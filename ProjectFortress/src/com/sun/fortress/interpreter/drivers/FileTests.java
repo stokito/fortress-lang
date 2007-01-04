@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.WireTappedPrintStream;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -51,10 +53,10 @@ public class FileTests {
         public void testFile() throws Throwable {
             PrintStream oldOut = System.out;
             PrintStream oldErr = System.err;
-            com.sun.fortress.interpreter.useful.WireTappedPrintStream wt_err = com.sun.fortress.interpreter.useful.WireTappedPrintStream
-                    .make(System.err, failsOnly);
-            com.sun.fortress.interpreter.useful.WireTappedPrintStream wt_out = com.sun.fortress.interpreter.useful.WireTappedPrintStream
-                    .make(System.out, failsOnly);
+            WireTappedPrintStream wt_err =
+                WireTappedPrintStream.make(System.err, failsOnly);
+            WireTappedPrintStream wt_out =
+                WireTappedPrintStream.make(System.out, failsOnly);
             System.setErr(wt_err);
             System.setOut(wt_out);
 
@@ -65,8 +67,8 @@ public class FileTests {
                     String tmpFile = "/tmp/" + s + ".ast";
                     String fssFile = f + ".fss";
                     Annotations anns = new Annotations(fssFile);
-                    com.sun.fortress.interpreter.nodes.CompilationUnit p;
-                    p = Driver.parseToJavaAst(fssFile, com.sun.fortress.interpreter.useful.Useful.utf8BufferedFileReader(fssFile));
+                    CompilationUnit p;
+                    p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
 
                     if (anns.compile) {
                         // oldOut.print(" COMPILING"); oldOut.flush();
@@ -153,7 +155,7 @@ public class FileTests {
             Lex lex = new Lex(br);
             Unprinter up = new Unprinter(lex);
             lex.name(); // Inhale opening parentheses
-            com.sun.fortress.interpreter.nodes.CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
+            CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
             Driver.runProgram(p, true, new ArrayList<String>());
         }
 

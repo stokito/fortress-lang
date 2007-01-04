@@ -55,6 +55,7 @@ import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.MethodInstance;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.MethodWrapper;
@@ -62,6 +63,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.MatchFailure;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -570,7 +572,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
         }
 
         if (matches.size() != 1) {
-            throw new com.sun.fortress.interpreter.useful.MatchFailure();
+            throw new MatchFailure();
         }
         TypeCaseClause c = matches.get(0);
         List<Expr> body = c.getBody();
@@ -1086,12 +1088,12 @@ public class Evaluator extends EvaluatorBase<FValue> implements
                         throw new ProgramError(x, fobject.getSelfEnv(),
                                 "undefined method/field "
                                 + fld.getName());
-                    } else if (cl instanceof com.sun.fortress.interpreter.evaluator.values.OverloadedMethod) {
+                    } else if (cl instanceof OverloadedMethod) {
 
                         throw new InterpreterError(x, fobject.getSelfEnv(),
                                 "Don't actually resolve overloading of generic methods yet.");
 
-                    } else if (cl instanceof com.sun.fortress.interpreter.evaluator.values.MethodInstance) {
+                    } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
                         // the generic method.
                         // This is ever-so-slightly wrong -- we need to not
@@ -1171,7 +1173,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
      * @return
      */
     private FValue finishFunctionInvocation(List<Expr> exprs, FValue foo,
-            com.sun.fortress.interpreter.nodes.Node loc) {
+            Node loc) {
         return functionInvocation(evalInvocationArgs(exprs), foo, loc);
     }
 
@@ -1201,6 +1203,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
             // && ((FTuple) val).getVals().size() == 1) {
             // Old general-case code, works for tuples of size 1.
             List<FValue> val_elts = ((FTuple) val).getVals();
+            System.out.println("Flattening "+val);
             for (FValue val_elt : val_elts)
                 appendFlattened(args, val_elt);
         } else {
@@ -1259,7 +1262,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
                     exp.accept(ev);
                 }
             } else
-                throw new com.sun.fortress.interpreter.useful.MatchFailure();
+                throw new MatchFailure();
         }
         return result;
     }
@@ -1312,7 +1315,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
         return res;
     }
 
-    public FValue forVoidLiteral(com.sun.fortress.interpreter.nodes.VoidLiteral x) {
+    public FValue forVoidLiteral(VoidLiteral x) {
         return FVoid.V;
     }
 

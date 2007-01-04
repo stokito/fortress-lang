@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.interpreter.useful.Useful;
+
 // / and arrow_type = arrow_type_rec node
 // / and arrow_type_rec =
 // / {
@@ -97,11 +99,11 @@ public class ArrowType extends TypeRef {
 
     @Override
     public String toString() {
-        return com.sun.fortress.interpreter.useful.Useful.listsInParens(getDomain(), getKeywords())
+        return Useful.listsInParens(getDomain(), getKeywords())
                 + "->"
                 + getRange()
-                + (getThrows_().size() > 0 ? (" throws " + com.sun.fortress.interpreter.useful.Useful
-                        .listInCurlies(getThrows_())) : "");
+                + (getThrows_().size() > 0 ? (" throws " +
+                        Useful.listInCurlies(getThrows_())) : "");
     }
 
     @Override

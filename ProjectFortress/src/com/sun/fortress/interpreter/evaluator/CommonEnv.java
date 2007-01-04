@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.NI;
 
 
 /**
@@ -41,7 +42,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
      * @see com.sun.fortress.interpreter.evaluator.Environment#genericLeafEnvHack(com.sun.fortress.interpreter.evaluator.SpineEnv)
      */
     public BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt within) {
-        return com.sun.fortress.interpreter.useful.NI.na("This only works for SpineEnv");
+        return NI.na("This only works for SpineEnv");
     }
 
     abstract public void debugPrint(String debugString);

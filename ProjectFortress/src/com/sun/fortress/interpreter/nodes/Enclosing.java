@@ -80,7 +80,7 @@ public class Enclosing extends OprName {
      */
     @Override
     protected int mandatoryHashCode() {
-        return name().hashCode() * com.sun.fortress.interpreter.useful.MagicNumbers.e
+        return name().hashCode() * MagicNumbers.e
                 ^ closingName().hashCode() * MagicNumbers.g;
     }
 }

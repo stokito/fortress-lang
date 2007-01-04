@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
 // / and fn_expr = fn_expr_rec node
@@ -127,7 +128,7 @@ public class Fn extends ValueExpr implements Decl, Applicable {
     }
 
     public IterableOnce<String> stringNames() {
-        return new com.sun.fortress.interpreter.useful.UnitIterable<String>(getFnName().stringName());
+        return new UnitIterable<String>(getFnName().stringName());
     }
 
 }

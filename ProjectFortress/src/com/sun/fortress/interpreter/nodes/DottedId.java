@@ -21,9 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
-
 
 // /
 public class DottedId extends FnName {
@@ -108,8 +108,7 @@ public class DottedId extends FnName {
     }
 
     public int compareTo(DottedId other) {
-        return com.sun.fortress.interpreter.useful.ListComparer.stringListComparer.compare(names,
-                other.names);
+        return ListComparer.stringListComparer.compare(names, other.names);
     }
 
     @Override

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.MagicNumbers;
+
 public class PostFix extends OprName {
     Op op;
 
@@ -64,6 +66,6 @@ public class PostFix extends OprName {
      */
     @Override
     protected int mandatoryHashCode() {
-        return name().hashCode() * com.sun.fortress.interpreter.useful.MagicNumbers.x;
+        return name().hashCode() * MagicNumbers.x;
     }
 }

@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.typechecker;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.evaluator.Init;
 
 import junit.framework.TestCase;
 
@@ -29,7 +30,7 @@ public class TypeCheckerJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-        com.sun.fortress.interpreter.evaluator.Init.initializeEverything();
+        Init.initializeEverything();
     }
 
     public void testForVarRefExpr() {

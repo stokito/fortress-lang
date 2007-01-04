@@ -29,6 +29,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -59,6 +60,7 @@ import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
+import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.useful.BATree;
@@ -387,7 +389,7 @@ public class Disambiguate extends Rewrite {
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     ObjectExpr oe = (ObjectExpr) node;
                     List<? extends DefOrDecl> defs = oe.getDefs();
-                    Option<List<com.sun.fortress.interpreter.nodes.TypeRef>> xtends = oe.getTraits();
+                    Option<List<TypeRef>> xtends = oe.getTraits();
                     // TODO wip
 
                     objectNestingDepth++;
@@ -439,7 +441,7 @@ public class Disambiguate extends Rewrite {
                     List<? extends DefOrDecl> defs = od.getDefs();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
-                    Option<List<com.sun.fortress.interpreter.nodes.TypeRef>> xtends = od.getTraits();
+                    Option<List<TypeRef>> xtends = od.getTraits();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -502,7 +504,7 @@ public class Disambiguate extends Rewrite {
         accumulateMembersFromExtends(td.getExtends_(), td.getDisEnv());
     }
 
-    private void accumulateMembersFromExtends(Option<List<com.sun.fortress.interpreter.nodes.TypeRef>> xtends, Map<String, Thing> disEnv) {
+    private void accumulateMembersFromExtends(Option<List<TypeRef>> xtends, Map<String, Thing> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
         Set<Node> visited = new HashSet<Node>();
@@ -634,13 +636,13 @@ public class Disambiguate extends Rewrite {
      *            (bookkeeping) to prevent revisiting, and possible looping on
      *            bad inputs
      */
-    private void accumulateTraitsAndMethods(Option<List<com.sun.fortress.interpreter.nodes.TypeRef>> oxtends,
+    private void accumulateTraitsAndMethods(Option<List<TypeRef>> oxtends,
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
             Set<Node> visited) {
         if (oxtends.isPresent()) {
-            List<com.sun.fortress.interpreter.nodes.TypeRef> xtends = oxtends.getVal();
+            List<TypeRef> xtends = oxtends.getVal();
 
-            for (com.sun.fortress.interpreter.nodes.TypeRef t : xtends) {
+            for (TypeRef t : xtends) {
                 // First de-parameterize the type
                 while (t instanceof ParamType) {
                     t = ((ParamType) t).getGeneric();
@@ -670,7 +672,7 @@ public class Disambiguate extends Rewrite {
                                         visited);
                             }
                         } else if (th==null) {
-                            new com.sun.fortress.interpreter.evaluator.ProgramError(t,"TypeRef extends non-visible entity " + s);
+                            throw new ProgramError(t,"TypeRef extends non-visible entity " + s);
                         } else {
                             NI.nyi("TypeRef extends something unknown " + s + " = " + th);
                         }

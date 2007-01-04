@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 
 import junit.framework.TestCase;
@@ -31,7 +32,7 @@ public class IndexedJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-        com.sun.fortress.interpreter.evaluator.Init.initializeEverything();
+        Init.initializeEverything();
     }
 
     static IUOTuple A3(int x, int l, int m, int n) {

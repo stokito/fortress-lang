@@ -72,7 +72,7 @@ public class BuildLetEnvironments extends BaseNodeVisitor<FValue> {
             Closure cl = new Closure(containing, fn);
             try {
                 containing.putValue(fname, cl);
-            } catch (com.sun.fortress.interpreter.evaluator.ProgramError pe) {
+            } catch (ProgramError pe) {
                 pe.setWithin(containing);
                 pe.setWhere(x);
             }

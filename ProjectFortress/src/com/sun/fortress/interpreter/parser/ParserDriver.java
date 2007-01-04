@@ -41,7 +41,7 @@ public class ParserDriver {
 
     public static void writeJavaAst(Tree t, BufferedWriter fout)
             throws IOException {
-        (new com.sun.fortress.interpreter.nodes.Printer()).dump(t, fout, 0);
+        (new Printer()).dump(t, fout, 0);
     }
 
     public static void writeJavaAst(Tree t, String s) throws IOException {

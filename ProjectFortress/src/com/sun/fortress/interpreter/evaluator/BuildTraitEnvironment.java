@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LValue;
@@ -50,7 +51,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         this.methodEnvironment = methodEnvironment;
     }
 
-    protected Simple_fcn newClosure(BetterEnv e, com.sun.fortress.interpreter.nodes.Applicable x) {
+    protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
         return new PartiallyDefinedMethod(containing, methodEnvironment, x,
                 WellKnownNames.secretSelfName);
     }

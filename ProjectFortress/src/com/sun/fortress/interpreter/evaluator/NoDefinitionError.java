@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-public class NoDefinitionError extends com.sun.fortress.interpreter.evaluator.ProgramError {
+public class NoDefinitionError extends ProgramError {
 
     /**
      *

@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.nodes.*;
  * Note: null is not allowed as a value for any field.
  */
 public class RealExpr extends Object implements InfixOpExpr {
-   private final com.sun.fortress.interpreter.nodes.Expr _expr;
+   private final Expr _expr;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
@@ -32,7 +32,7 @@ public class RealExpr extends Object implements InfixOpExpr {
     * Constructs a RealExpr.
     * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public RealExpr(com.sun.fortress.interpreter.nodes.Expr in_expr) {
+   public RealExpr(Expr in_expr) {
       super();
 
       if (in_expr == null) {
@@ -41,7 +41,7 @@ public class RealExpr extends Object implements InfixOpExpr {
       _expr = in_expr;
    }
 
-   final public com.sun.fortress.interpreter.nodes.Expr getExpr() { return _expr; }
+   final public Expr getExpr() { return _expr; }
 
    public <RetType> RetType accept(OpExprVisitor<RetType> visitor) { return visitor.forRealExpr(this); }
    public void accept(OpExprVisitor_void visitor) { visitor.forRealExpr(this); }
@@ -69,7 +69,7 @@ public class RealExpr extends Object implements InfixOpExpr {
 
       writer.print(" ");
       writer.print("expr = ");
-      com.sun.fortress.interpreter.nodes.Expr temp_expr = getExpr();
+      Expr temp_expr = getExpr();
       if (temp_expr == null) {
          writer.print("null");
       } else {

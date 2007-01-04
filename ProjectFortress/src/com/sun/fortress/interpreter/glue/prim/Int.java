@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.glue.prim.Util;
  */
 public class Int {
 
-public static final class LNegate extends com.sun.fortress.interpreter.glue.NativeFn1 {
+public static final class LNegate extends NativeFn1 {
     public FValue act(FValue x) {
         return new FIntLiteral(BigInteger.valueOf(-x.getLong()));
     }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.interpreter.useful.NI;
 
 
 public class Span {
@@ -84,7 +85,7 @@ public class Span {
         try {
             return appendTo(new StringBuffer(), true).toString();
         } catch (IOException ex) {
-            return com.sun.fortress.interpreter.useful.NI.np();
+            return NI.np();
         }
     }
 

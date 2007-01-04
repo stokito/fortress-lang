@@ -229,7 +229,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     public Environment getEnv() {
-        return com.sun.fortress.interpreter.env.BetterEnv.empty();
+        return BetterEnv.empty();
     }
 
     protected final boolean commonSubtypeOf(FType other) {

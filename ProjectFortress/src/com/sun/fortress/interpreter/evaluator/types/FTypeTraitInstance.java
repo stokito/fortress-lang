@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.NI;
 
 
 /**
@@ -54,7 +55,7 @@ public class FTypeTraitInstance extends FTypeTrait implements GenericTypeInstanc
     @Override
     public void unify(BetterEnv e, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         // TODO Auto-generated method stub
-        com.sun.fortress.interpreter.useful.NI.nyi();
+        NI.nyi();
         super.unify(e, tp_set, abm, val);
     }
 

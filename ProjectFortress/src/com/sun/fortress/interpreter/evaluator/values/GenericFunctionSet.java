@@ -131,7 +131,7 @@ public class GenericFunctionSet extends
                 FGenericFunction gf = ci.getGenerator();
                 try {
                     f = ev.inferAndInstantiateGenericFunction(args, gf, loc);
-                } catch (com.sun.fortress.interpreter.evaluator.ProgramError ex) {
+                } catch (ProgramError ex) {
                     if (TRACE) System.err.println("Rejecting "+f);
                     if (TRACE) ex.printStackTrace();
                     /* When unification fails, we assume the instance

@@ -23,6 +23,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.IterableOnce;
+import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
 // / and lvalue_bind = lvalue_bind_rec node
@@ -123,6 +124,6 @@ public class LValueBind extends LValue implements LHS {
 
     @Override
     public IterableOnce<String> stringNames() {
-        return new com.sun.fortress.interpreter.useful.UnitIterable<String>(getName().getName());
+        return new UnitIterable<String>(getName().getName());
     }
 }

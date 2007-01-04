@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -98,9 +99,9 @@ public class TypeFixedDimIndices extends TypeIndices {
      */
     @Override
     public int hashCode() {
-        int hc = com.sun.fortress.interpreter.useful.MagicNumbers.D;
+        int hc = MagicNumbers.D;
         for (TypeRange i : ranges) {
-            hc = (hc + i.hashCode()) * com.sun.fortress.interpreter.useful.MagicNumbers.E;
+            hc = (hc + i.hashCode()) * MagicNumbers.E;
         }
         return hc;
     }

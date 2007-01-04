@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.useful.Hasher;
 
 public class MethodClosure extends Closure implements Method {
 
-    public MethodClosure(BetterEnv within, com.sun.fortress.interpreter.nodes.Applicable fndef, String self_name) {
+    public MethodClosure(BetterEnv within, Applicable fndef, String self_name) {
         super(within, fndef);
         self = self_name;
 

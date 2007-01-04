@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-public class RedefinitionError extends com.sun.fortress.interpreter.evaluator.ProgramError {
+public class RedefinitionError extends ProgramError {
 
     /**
      *

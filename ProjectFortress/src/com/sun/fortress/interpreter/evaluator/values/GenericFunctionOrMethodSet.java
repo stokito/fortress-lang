@@ -71,14 +71,14 @@ abstract public class GenericFunctionOrMethodSet<What extends GenericFunctionOrM
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
-        return com.sun.fortress.interpreter.useful.NI.nyi();
+        return NI.nyi();
     }
 
     FnName name;
 
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-        return com.sun.fortress.interpreter.useful.NI.na();
+        return NI.na();
     }
 
     @Override

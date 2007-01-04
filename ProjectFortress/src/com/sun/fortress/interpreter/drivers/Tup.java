@@ -45,7 +45,7 @@ public class Tup extends MainBase {
             System.err.println("Reading " + s);
             Unprinter up = new Unprinter(lex);
             lex.name();
-            com.sun.fortress.interpreter.nodes.CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
+            CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
             finish(s, p);
           } finally {
             if (! lex.atEOF() )

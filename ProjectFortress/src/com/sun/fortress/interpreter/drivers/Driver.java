@@ -33,6 +33,7 @@ import EDU.oswego.cs.dl.util.concurrent.FJTaskRunnerGroup;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
@@ -42,10 +43,12 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Tree;
+import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
@@ -79,7 +82,7 @@ public class Driver {
         try {
             Unprinter up = new Unprinter(lex);
             lex.name();
-            com.sun.fortress.interpreter.nodes.CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
+            CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
             return p;
         } finally {
             if (!lex.atEOF())
@@ -191,13 +194,13 @@ public class Driver {
      */
     public static void writeJavaAst(CompilationUnit p, BufferedWriter fout)
             throws IOException {
-        (new com.sun.fortress.interpreter.nodes.Printer()).dump(p, fout, 0);
+        (new Printer()).dump(p, fout, 0);
     }
 
     static public void runTests() {
     }
 
-    public static BetterEnv evalComponent(com.sun.fortress.interpreter.nodes.CompilationUnit p) {
+    public static BetterEnv evalComponent(CompilationUnit p) {
         Init.initializeEverything();
         BetterEnv e = BetterEnv.empty();
         e.installPrimitives();
@@ -218,14 +221,14 @@ public class Driver {
     }
 
     // This runs the program from inside a task.
-    public static void runProgramTask(com.sun.fortress.interpreter.nodes.CompilationUnit p, boolean runTests,
+    public static void runProgramTask(CompilationUnit p, boolean runTests,
             List<String> args) {
-        com.sun.fortress.interpreter.env.FortressTests.reset();
+        FortressTests.reset();
         BetterEnv e = evalComponent(p);
         Closure run_fn = e.getRunMethod();
         Toplevel toplevel = new Toplevel();
         if (runTests) {
-            List<Closure> testClosures = com.sun.fortress.interpreter.env.FortressTests.get();
+            List<Closure> testClosures = FortressTests.get();
             for (Iterator<Closure> i = testClosures.iterator(); i.hasNext();) {
                 Closure testCl = i.next();
                 List<FValue> fvalue_args = new ArrayList<FValue>();
@@ -288,7 +291,7 @@ public class Driver {
     static FJTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram(com.sun.fortress.interpreter.nodes.CompilationUnit p, boolean runTests,
+    public static void runProgram(CompilationUnit p, boolean runTests,
 				  boolean libraryTest,
 				  List<String> args) throws Throwable {
 	_libraryTest = libraryTest;
@@ -312,12 +315,12 @@ public class Driver {
         }
     }
 
-    public static void runProgram(com.sun.fortress.interpreter.nodes.CompilationUnit p, boolean runTests,
+    public static void runProgram(CompilationUnit p, boolean runTests,
 				  List<String> args) throws Throwable {
 	runProgram(p, runTests, false, args);
     }
 
-    private static class Toplevel implements com.sun.fortress.interpreter.useful.HasAt {
+    private static class Toplevel implements HasAt {
         public String at() {
             return "toplevel";
         }

@@ -24,15 +24,20 @@ import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Array;
 
+import com.sun.fortress.interpreter.nodes.ChainExpr;
+import com.sun.fortress.interpreter.nodes.Enclosing;
 import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.LooseJuxt;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.OprName;
+import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.*;
 import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.PureList;
 
 // From Fortress/interpreter/ast/ast_utils.ml
@@ -59,7 +64,7 @@ public class ASTUtil {
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return new OprExpr(span, new com.sun.fortress.interpreter.nodes.PostFix(op.getSpan(), op), arg);
+        return new OprExpr(span, new PostFix(op.getSpan(), op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =
@@ -72,7 +77,7 @@ public class ASTUtil {
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
         return new OprExpr(span,
-                           new com.sun.fortress.interpreter.nodes.Enclosing(FortressUtil.spanTwo(left, right),
+                           new Enclosing(FortressUtil.spanTwo(left, right),
                                                left, right),
                            args);
     }
@@ -83,8 +88,8 @@ public class ASTUtil {
     //        (node span
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
-    static Expr chain(Span span, Expr first, List<com.sun.fortress.interpreter.useful.Pair<Op, Expr>> links) {
-        return new com.sun.fortress.interpreter.nodes.ChainExpr(span, first, links);
+    static Expr chain(Span span, Expr first, List<Pair<Op, Expr>> links) {
+        return new ChainExpr(span, first, links);
     }
 
     // let loose (exprs : expr list) : expr =
@@ -96,7 +101,7 @@ public class ASTUtil {
                     return e.getExpr();
                 }
             });
-        return new com.sun.fortress.interpreter.nodes.LooseJuxt(spanAll(exprs), _exprs.toJavaList());
+        return new LooseJuxt(spanAll(exprs), _exprs.toJavaList());
     }
 
     static Span spanAll(PureList<RealExpr> exprs) {

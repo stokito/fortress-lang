@@ -23,6 +23,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 public abstract class FnDefOrDecl extends Tree implements Generic, Applicable,
@@ -67,9 +68,9 @@ public abstract class FnDefOrDecl extends Tree implements Generic, Applicable,
     public String toString() {
 
         return name.name()
-                + (staticParams.isPresent() ? com.sun.fortress.interpreter.useful.Useful
-                        .listInOxfords(staticParams.getVal()) : "")
-                + com.sun.fortress.interpreter.useful.Useful.listInParens(params)
+                + (staticParams.isPresent() ?
+                        Useful.listInOxfords(staticParams.getVal()) : "")
+                + Useful.listInParens(params)
                 + (returnType.isPresent() ? (":" + returnType.getVal()) : "")
                 + "\n\t@" + name.at();
     }

@@ -334,6 +334,6 @@ public class EvaluatorJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-        com.sun.fortress.interpreter.evaluator.Init.initializeEverything();
+        Init.initializeEverything();
     }
 }

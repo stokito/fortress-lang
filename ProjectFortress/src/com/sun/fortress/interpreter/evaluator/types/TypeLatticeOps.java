@@ -21,7 +21,8 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.LatticeOps;
-
+import com.sun.fortress.interpreter.useful.DualLattice;
+import com.sun.fortress.interpreter.useful.NI;
 
 
 public class TypeLatticeOps implements LatticeOps<FType> {
@@ -54,11 +55,11 @@ public class TypeLatticeOps implements LatticeOps<FType> {
     }
 
     public FType zero() {
-        return com.sun.fortress.interpreter.useful.NI.nyi("We haven't defined a bottom type yet.");
+        return NI.nyi("We haven't defined a bottom type yet.");
     }
 
     public final static LatticeOps<FType> V = new TypeLatticeOps();
-    public final static LatticeOps<FType> dualLattice = new com.sun.fortress.interpreter.useful.DualLattice<FType>(V);
+    public final static LatticeOps<FType> dualLattice = new DualLattice<FType>(V);
 
 
 }

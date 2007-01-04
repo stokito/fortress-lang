@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class MainBase {
@@ -114,7 +115,7 @@ public abstract class MainBase {
                         + outSuffix);
                 out = fout;
             }
-            (new com.sun.fortress.interpreter.nodes.Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
+            (new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
                     .dump(p, out, 0);
             if (fout != null)
                 fout.close();

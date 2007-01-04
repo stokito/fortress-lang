@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 
 
@@ -34,7 +35,7 @@ public class BuildObjectEnvironment extends BuildTraitEnvironment {
         // TODO Auto-generated constructor stub
     }
 
-    protected Simple_fcn newClosure(BetterEnv e, com.sun.fortress.interpreter.nodes.Applicable x) {
+    protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
         return new MethodClosure(e,x, WellKnownNames.secretSelfName);
     }
 

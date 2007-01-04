@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import com.sun.fortress.interpreter.evaluator.CommonEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Primitives;
@@ -44,7 +45,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.StringComparer;
 
 
-public final class BetterEnv extends com.sun.fortress.interpreter.evaluator.CommonEnv implements Environment, Iterable<String>  {
+public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
 
     private BATreeNode<String, FType> type_env;
     private BATreeNode<String, Number> nat_env;

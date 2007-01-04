@@ -60,7 +60,7 @@ abstract public class Simple_fcn extends Fcn {
     static class SignatureEquivalence extends Hasher<Simple_fcn> {
         @Override
         public long hash(Simple_fcn x) {
-            long a = (long) x.getFnName().hashCode() * com.sun.fortress.interpreter.useful.MagicNumbers.s;
+            long a = (long) x.getFnName().hashCode() * MagicNumbers.s;
             long b =  (long) x.getDomain().hashCode() * MagicNumbers.l;
             // System.err.println("Hash of " + x + " yields " + a + " and " + b);
 
@@ -89,7 +89,7 @@ abstract public class Simple_fcn extends Fcn {
     static class NameEquivalence extends Hasher<Simple_fcn> {
         @Override
         public long hash(Simple_fcn x) {
-            long a = (long) x.getFnName().hashCode() * com.sun.fortress.interpreter.useful.MagicNumbers.N;
+            long a = (long) x.getFnName().hashCode() * MagicNumbers.N;
              return a;
         }
 

@@ -47,6 +47,7 @@ import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
+import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.Some;
 import com.sun.fortress.interpreter.nodes.StaticArg;
@@ -94,7 +95,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
 
         /*
            try {
-            (new com.sun.fortress.interpreter.nodes.Printer()).dump(od, System.err);
+            (new Printer()).dump(od, System.err);
            } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

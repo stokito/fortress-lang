@@ -29,6 +29,8 @@ import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.*;
 import com.sun.fortress.interpreter.useful.Cons;
+import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.PureList;
 
 /*
@@ -75,12 +77,12 @@ public class Resolver {
   //       "Incompatible chaining operators:\n%s" (ops_to_string op_list)
     private static void ensureValidChaining(PureList<ExprOpPair> links)
         throws ReadError {
-        PureList<String> names = links.map(new com.sun.fortress.interpreter.useful.Fn<ExprOpPair,String>() {
+        PureList<String> names = links.map(new Fn<ExprOpPair,String>() {
             public String apply(ExprOpPair p) { return p.getB().getName(); }
         });
 
         if (!PrecedenceMap.T.isValidChaining(names.toJavaList())) {
-            PureList<Op> ops = links.map(new com.sun.fortress.interpreter.useful.Fn<ExprOpPair,Op>() {
+            PureList<Op> ops = links.map(new Fn<ExprOpPair,Op>() {
                 public Op apply(ExprOpPair pair) { return pair.getB(); }
             });
 
@@ -553,17 +555,17 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<com.sun.fortress.interpreter.useful.Pair<Op, Expr>>
+  private static PureList<Pair<Op, Expr>>
     buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
     if (links.isEmpty()) {
-        return PureList.<com.sun.fortress.interpreter.useful.Pair<Op,Expr>>make(
-                      new com.sun.fortress.interpreter.useful.Pair<Op,Expr>(first,last));
+        return PureList.<Pair<Op,Expr>>make(
+                      new Pair<Op,Expr>(first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      com.sun.fortress.interpreter.useful.Pair<Op,Expr> l = new com.sun.fortress.interpreter.useful.Pair<Op,Expr>(first, link.getA());
+      Pair<Op,Expr> l = new Pair<Op,Expr>(first, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }
@@ -1127,7 +1129,7 @@ public class Resolver {
       Layer layer = (Layer) stack;
       Op layerOp = layer.getOp();
 
-      List<com.sun.fortress.interpreter.nodes.Expr> es = new ArrayList<com.sun.fortress.interpreter.nodes.Expr>();
+      List<Expr> es = new ArrayList<Expr>();
       es.add(buildLayer(layer.getList()));
       RealExpr expr = new RealExpr
         (ASTUtil.enclosing(FortressUtil.spanTwo(layerOp, op), layerOp, es, op));

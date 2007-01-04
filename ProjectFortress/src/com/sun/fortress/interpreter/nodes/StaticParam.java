@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.ListComparer;
+
 public abstract class StaticParam extends Tree implements
         Comparable<StaticParam> {
     StaticParam(Span span) {
@@ -41,7 +43,8 @@ public abstract class StaticParam extends Tree implements
 
     public abstract String getName();
 
-    public static com.sun.fortress.interpreter.useful.ListComparer<StaticParam> listComparer = new com.sun.fortress.interpreter.useful.ListComparer<StaticParam>();
+    public static ListComparer<StaticParam> listComparer =
+        new ListComparer<StaticParam>();
 }
 
 // / and type_param =

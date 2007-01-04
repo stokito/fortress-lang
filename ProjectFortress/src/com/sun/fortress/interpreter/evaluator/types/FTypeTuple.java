@@ -34,6 +34,7 @@ import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.Factory1;
 import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.Memo1C;
+import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
@@ -67,7 +68,7 @@ public class FTypeTuple extends FType {
     }
 
     public String toString() {
-        return com.sun.fortress.interpreter.useful.Useful.listInParens(l);
+        return Useful.listInParens(l);
     }
 
         /**
@@ -218,13 +219,13 @@ public class FTypeTuple extends FType {
         // TODO these cases make my brain hurt.
 
         if (s1 != s2)
-            com.sun.fortress.interpreter.useful.NI.nyi("JOIN of lists of types of unequal length");
+            NI.nyi("JOIN of lists of types of unequal length");
 
         if (s1 > 0 && pl1.get(s1 - 1) instanceof FTypeRest)
-            com.sun.fortress.interpreter.useful.NI.nyi("JOIN of lists, first has REST parameter");
+            NI.nyi("JOIN of lists, first has REST parameter");
 
         if (s2 > 0 && pl2.get(s2 - 1) instanceof FTypeRest)
-            com.sun.fortress.interpreter.useful.NI.nyi("JOIN of lists, second has REST parameter");
+            NI.nyi("JOIN of lists, second has REST parameter");
 
         // TODO today, if we can arrive at a single answer, we declare victory,
         // otherwise punt.

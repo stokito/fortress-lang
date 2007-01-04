@@ -51,7 +51,7 @@ public class OverloadJUTest extends TestCase {
             assertTrue(idx >= 0);
             assertEquals(result, clauses.get(idx));
         }
-        catch (com.sun.fortress.interpreter.evaluator.ProgramError pe)
+        catch (ProgramError pe)
             {
                 assertFalse("CompilationUnit error related to overloading: " + pe.getMessage(),
                             pe.getMessage().contains("Overloading"));
@@ -66,7 +66,7 @@ public class OverloadJUTest extends TestCase {
             assertTrue("Dispatch found candidate "+idx+ " when it shouldn't",
                        idx == -1);
         }
-        catch (com.sun.fortress.interpreter.evaluator.ProgramError pe)
+        catch (ProgramError pe)
             {
                 assertTrue("CompilationUnit error was not related to overloading",
                            pe.getMessage().contains("Overloading"));
@@ -99,7 +99,7 @@ public class OverloadJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-        com.sun.fortress.interpreter.evaluator.Init.initializeEverything();
+        Init.initializeEverything();
     }
 
     @SuppressWarnings("unchecked")

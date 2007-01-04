@@ -35,6 +35,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVector;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
 import com.sun.fortress.interpreter.evaluator.values.Indexed;
+import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
@@ -71,7 +72,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
         List<Expr> subs = x.getSubs();
         // Should evaluate obj.[](subs, value)
         FObject array = (FObject) obj.accept(evaluator);
-        com.sun.fortress.interpreter.evaluator.values.Method cl = (com.sun.fortress.interpreter.evaluator.values.Method) array.getSelfEnv().getValue("[]=");
+        Method cl = (Method) array.getSelfEnv().getValue("[]=");
         ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
         subscriptsAndValue.add(value);
         evaluator.evalExprList(subs, subscriptsAndValue);

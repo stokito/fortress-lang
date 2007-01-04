@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
 import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.NodeReflection;
 import com.sun.fortress.interpreter.nodes.None;
 import com.sun.fortress.interpreter.nodes.Some;
 import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.Pair;
 
 
@@ -40,7 +42,7 @@ import com.sun.fortress.interpreter.useful.Pair;
  *   wrapped method reference -> self.wrappingField().method()
  */
 
-public abstract class Rewrite extends com.sun.fortress.interpreter.nodes.NodeReflection {
+public abstract class Rewrite extends NodeReflection {
     static Class[] oneSpanArg = { Span.class };
     @Override
     protected Constructor defaultConstructorFor(Class cl) throws NoSuchMethodException {
@@ -140,7 +142,7 @@ public abstract class Rewrite extends com.sun.fortress.interpreter.nodes.NodeRef
                 // This gives some hope of tracing an exception to a
                 // point in the source code, and thus diagnosing why
                 // the AST might have gone wrong. -Jan
-                throw new com.sun.fortress.interpreter.evaluator.ProgramError(n,"Has a null component.",x);
+                throw new ProgramError(n,"Has a null component.",x);
             }
         }
         if (replacement != null && n instanceof HasSomeExtraState) {

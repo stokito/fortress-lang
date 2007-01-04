@@ -17,10 +17,10 @@
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import com.sun.fortress.interpreter.nodes.Op;
+import com.sun.fortress.interpreter.nodes.Span;
 
 public class ReadError extends Exception {
-   public ReadError(com.sun.fortress.interpreter.nodes.Span span, String message) {
+   public ReadError(Span span, String message) {
       super(span.getBegin().at() + ": " + message);
    }
 }

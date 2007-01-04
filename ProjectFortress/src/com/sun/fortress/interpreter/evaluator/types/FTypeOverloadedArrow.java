@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Factory1;
 import com.sun.fortress.interpreter.useful.Memo1;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeOverloadedArrow extends FType {
@@ -51,7 +52,7 @@ public class FTypeOverloadedArrow extends FType {
   }
 
   public String toString() {
-      return com.sun.fortress.interpreter.useful.Useful.listInParens(l);
+      return Useful.listInParens(l);
   }
 
   public boolean subtypeOf(FType other) {

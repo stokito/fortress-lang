@@ -51,6 +51,7 @@ import com.sun.fortress.interpreter.useful.GHashMap;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MultiMap;
 import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.interpreter.useful.ReversedList;
 
 
 public class Constructor extends AnonymousConstructor {
@@ -144,7 +145,7 @@ public class Constructor extends AnonymousConstructor {
 
         // First process all the generics, so we can form generic functions
         // TODO this is approximate; add generics in reversed order.
-        for (FType t : new com.sun.fortress.interpreter.useful.ReversedList<FType>(extendedTraits)) {
+        for (FType t : new ReversedList<FType>(extendedTraits)) {
             FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers(); // This is correct, it enumerates the methods.
             accumulateGenericMethods(generics, ft, e);
@@ -179,7 +180,7 @@ public class Constructor extends AnonymousConstructor {
         // TODO The signature map uses EQUALITY, and that might be wrong,
         // if the object can implement with a more general signature.
         for (FType t : extendedTraits) {
-            FTypeTrait ft = (com.sun.fortress.interpreter.evaluator.types.FTypeTrait) t;
+            FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers();
             accumulateEnvMethods(signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
         }
@@ -413,14 +414,14 @@ public class Constructor extends AnonymousConstructor {
     FnName cfn;
     List<? extends DefOrDecl> defs;
 
-    com.sun.fortress.interpreter.useful.MultiMap<FTraitOrObject, Simple_fcn> traitsToMethodSets =
-        new com.sun.fortress.interpreter.useful.MultiMap<FTraitOrObject, Simple_fcn>();
+    MultiMap<FTraitOrObject, Simple_fcn> traitsToMethodSets =
+        new MultiMap<FTraitOrObject, Simple_fcn>();
 
-    com.sun.fortress.interpreter.useful.MultiMap<FnName, MethodClosure> namesToSignatureSets =
-        new com.sun.fortress.interpreter.useful.MultiMap<FnName, MethodClosure>();
+    MultiMap<FnName, MethodClosure> namesToSignatureSets =
+        new MultiMap<FnName, MethodClosure>();
 
-    com.sun.fortress.interpreter.useful.MultiMap<FTraitOrObject, FnName> traitsToNamesReferenced =
-        new com.sun.fortress.interpreter.useful.MultiMap<FTraitOrObject, FnName>();
+    MultiMap<FTraitOrObject, FnName> traitsToNamesReferenced =
+        new MultiMap<FTraitOrObject, FnName>();
 
     Set<FnName>[] traitNameReferenceArray;
     FTraitOrObject[] traitArray;

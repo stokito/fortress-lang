@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
+import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
 // / and unpasting_bind = unpasting_bind_rec node
@@ -65,6 +66,6 @@ public class UnpastingBind extends Unpasting {
 
     @Override
     public IterableOnce<String> stringNames() {
-        return new com.sun.fortress.interpreter.useful.UnitIterable<String>(getName().getName());
+        return new UnitIterable<String>(getName().getName());
     }
 }

@@ -24,6 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Init;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.env.FortressTests;
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class fs {
@@ -65,7 +69,7 @@ public class fs {
      * @param tmpFile
      * @throws Throwable
      */
-    public static void runInterpreter(com.sun.fortress.interpreter.nodes.CompilationUnit p,
+    public static void runInterpreter(CompilationUnit p,
             boolean runTests, List<String> args) throws Throwable {
         long begin = System.currentTimeMillis();
         Driver.runProgram(p, runTests, libraryTest, args);
@@ -73,7 +77,7 @@ public class fs {
                 + " milliseconds");
     }
 
-    static volatile com.sun.fortress.interpreter.nodes.CompilationUnit p;
+    static volatile CompilationUnit p;
     static boolean walk = "\\".equals(File.separator);
     static boolean verbose = false;
     static boolean keep = false;
@@ -145,7 +149,7 @@ public class fs {
             parseAndRun(s);
         }
         if (pause) {
-            com.sun.fortress.interpreter.env.FortressTests.reset();
+            FortressTests.reset();
             Init.initializeEverything();
 
             System.gc();
@@ -187,7 +191,7 @@ public class fs {
                         .utf8BufferedFileWriter(astFile);
                 Appendable out = fout;
 
-                (new com.sun.fortress.interpreter.nodes.Printer(true, true, true)).dump(p, out, 0);
+                (new Printer(true, true, true)).dump(p, out, 0);
                 if (fout != null)
                     fout.close();
             }
@@ -214,11 +218,10 @@ public class fs {
             synchronized (Throwable.class) {
                 keepTemp = true;
                 th.printStackTrace();
-                if (th instanceof com.sun.fortress.interpreter.evaluator.ProgramError) {
+                if (th instanceof ProgramError) {
                     System.out
                             .println("\n--------Fortress error appears below--------\n");
-                    ((com.sun.fortress.interpreter.evaluator.ProgramError) th)
-                            .printInterpreterStackTrace(System.out);
+                    ((ProgramError) th).printInterpreterStackTrace(System.out);
                     System.out.println();
                     System.out.println(th.getMessage());
                 }

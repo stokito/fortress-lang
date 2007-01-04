@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -50,6 +51,7 @@ import com.sun.fortress.interpreter.nodes.AbsTraitDecl;
 import com.sun.fortress.interpreter.nodes.AbsVarDecl;
 import com.sun.fortress.interpreter.nodes.AnonymousFnName;
 import com.sun.fortress.interpreter.nodes.Api;
+import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.Decl;
@@ -275,7 +277,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
             } else {
                 putValue(e, name, value);
             }
-        } catch (com.sun.fortress.interpreter.evaluator.ProgramError pe) {
+        } catch (ProgramError pe) {
             pe.setWithin(e);
             pe.setWhere(where);
             throw pe;
@@ -363,7 +365,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
                     for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
                         Modifier m = i.next();
                         if (m instanceof Modifier.Test) {
-                            com.sun.fortress.interpreter.env.FortressTests.add((Closure) cl);
+                            FortressTests.add((Closure) cl);
                             break;
                         }
                     }
@@ -505,7 +507,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         }
     }
 
-    protected Simple_fcn newClosure(BetterEnv e, com.sun.fortress.interpreter.nodes.Applicable x) {
+    protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
         return new Closure(e, x);
     }
 

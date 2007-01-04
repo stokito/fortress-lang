@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.MagicNumbers;
+
 public class Opr extends OprName {
     Op op;
 
@@ -70,6 +72,6 @@ public class Opr extends OprName {
     @Override
     protected int mandatoryHashCode() {
         // TODO Auto-generated method stub
-        return name().hashCode() * com.sun.fortress.interpreter.useful.MagicNumbers.p;
+        return name().hashCode() * MagicNumbers.p;
     }
 }

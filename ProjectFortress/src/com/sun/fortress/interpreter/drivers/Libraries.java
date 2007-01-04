@@ -51,8 +51,8 @@ public class Libraries {
                             .println("Missing or stale preparsed AST, rebuilding from source");
                     long begin = System.currentTimeMillis();
 
-                    c = (Component)  Driver.parseToJavaAst(librarySource, com.sun.fortress.interpreter.useful.Useful
-                            .utf8BufferedFileReader(librarySource));
+                    c = (Component)  Driver.parseToJavaAst(librarySource,
+                            Useful.utf8BufferedFileReader(librarySource));
 
                     System.err.println("Parsed " + librarySource + ": "
                             + (System.currentTimeMillis() - begin)

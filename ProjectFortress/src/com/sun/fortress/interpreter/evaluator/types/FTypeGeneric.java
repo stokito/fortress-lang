@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.GenericDef;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
@@ -50,9 +51,9 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
     BetterEnv env;
 
-    com.sun.fortress.interpreter.nodes.Generic def;
+    Generic def;
 
-    public com.sun.fortress.interpreter.nodes.Generic getDef() {
+    public Generic getDef() {
         return def;
     }
 

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TopSortItemImpl<T> implements com.sun.fortress.interpreter.useful.TopSortItem<TopSortItemImpl<T>> {
+public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>> {
 
     public T x;
     List<TopSortItemImpl<T>> succs;

@@ -175,7 +175,7 @@ public class EvalType extends BaseNodeVisitor<FType>
             Id id = in_p.getName();
             String pname = id.getName();
             Option<TypeRef> type = in_p.getType();
-            com.sun.fortress.interpreter.evaluator.types.FType ptype = e.getFTypeFromOption(type);
+            FType ptype = e.getFTypeFromOption(type);
             Parameter fp = new Parameter(pname, ptype);
             fparams.add(i++, fp);
         }
@@ -186,7 +186,7 @@ public class EvalType extends BaseNodeVisitor<FType>
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putType(name, type);
-        } catch (com.sun.fortress.interpreter.evaluator.ProgramError pe) {
+        } catch (ProgramError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -197,7 +197,7 @@ public class EvalType extends BaseNodeVisitor<FType>
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putNat(name, nat);
-        } catch (com.sun.fortress.interpreter.evaluator.ProgramError pe) {
+        } catch (ProgramError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -208,7 +208,7 @@ public class EvalType extends BaseNodeVisitor<FType>
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putBool(name, b);
-        } catch (com.sun.fortress.interpreter.evaluator.ProgramError pe) {
+        } catch (ProgramError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -420,7 +420,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     public FType forParamType(ParamType x) {
-        com.sun.fortress.interpreter.nodes.TypeRef t = x.getGeneric();
+        TypeRef t = x.getGeneric();
         FType ft1 = t.accept(this);
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;

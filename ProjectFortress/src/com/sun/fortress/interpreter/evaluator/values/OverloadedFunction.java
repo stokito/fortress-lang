@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.Ordinal;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
@@ -209,7 +210,7 @@ public class OverloadedFunction extends Fcn {
                     String s1 = parameterName(unrelated, o1);
                     String s2 = parameterName(unrelated, o2);
 
-                    String explanation = com.sun.fortress.interpreter.useful.Ordinal.ordinal(unrelated+1) + " parameters " +s1 + ":" + pl1 + " and " + s2 + ":" + pl2 + " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present";
+                    String explanation = Ordinal.ordinal(unrelated+1) + " parameters " +s1 + ":" + pl1 + " and " + s2 + ":" + pl2 + " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present";
                     throw new ProgramError(o1, o2, within, explanation);
                 }
 
