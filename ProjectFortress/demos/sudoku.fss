@@ -1,0 +1,360 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component sudoku.fss
+export Executable
+
+weight:ZZ32 = 4
+
+trait Tree comprises {Node, Empty}
+   getVal():ZZ32
+   getLeftChild():Tree
+   getRightChild():Tree
+   printTree():()
+   printSet():()
+   size():ZZ32
+   empty():Boolean
+   member(x:ZZ32):Boolean
+   minimum():ZZ32
+   deleteMinimum():Tree = do
+     (_, res) = self.removeMinimum()
+     res
+   end
+   removeMinimum()(* :(ZZ32, Tree) *)
+   add(z:ZZ32):Tree
+   delete(z:ZZ32):Tree
+   balancedDelete(r:Tree):Tree
+
+   union(t2:Tree):Tree
+   intersection(t2:Tree):Tree
+   difference(t2:Tree):Tree
+   concat(t2:Tree):Tree
+   splitAt(x:ZZ32) (* :(Tree,Boolean,Tree) *)
+   concat3(v:ZZ32, t2:Tree)
+end
+
+object Empty extends Tree
+   getVal():ZZ32 = 1/0
+   getLeftChild():Tree = Empty
+   getRightChild():Tree = Empty
+   printTree():() = print(" Empty")
+   printSet():() = print("{}")
+   size():ZZ32 = 0
+   empty():Boolean = true
+   member(x:ZZ32):Boolean = false
+   minimum():ZZ32 = 1/0
+   removeMinimum()(* :(ZZ32, Tree) *) = (1/0, self)
+   add(z:ZZ32):Tree = Node(z,Empty,Empty)
+   delete(z:ZZ32):Tree = self
+   balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = Node(val,Empty,Empty)
+   balancedDelete(r:Tree):Tree = r
+   union(t2:Tree):Tree = t2
+   intersection(t2:Tree):Tree = self
+   difference(t2:Tree):Tree = self
+   concat(t2:Tree):Tree = t2
+   splitAt(x:ZZ32) (*:(Tree,Boolean,Tree) *) = (self, false, self)
+   concat3(v:ZZ32, t2:Tree) = t2.add(v)
+end
+
+object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
+   getVal():ZZ32 = val
+   getLeftChild():Tree = left
+   getRightChild():Tree = right
+   sz:ZZ32 = 1 + left.size() + right.size()
+   size():ZZ32 = sz
+   empty():Boolean = false
+
+   printTree():() = do
+      print("(")
+      print(val)
+      print(" ")
+      left.printTree()
+      right.printTree()
+      println(")")
+      end
+
+   printSet():() = do
+      temp : Tree = self
+      print("{")
+      (min, delmin) = temp.removeMinimum()
+      print(min)
+      temp := delmin
+      while (temp.size() > 0) do
+        print(",")
+        (minn, delminn) = temp.removeMinimum()
+        print(minn)
+        temp := delminn
+      end
+      print("}")
+   end
+
+   member(z:ZZ32):Boolean = do
+      if (z = val) then true
+      elif (z < val) then left.member(z)
+      else right.member(z)
+      end
+   end
+
+   add(z:ZZ32):Tree =
+      if   (z = val) then self
+      elif (z < val) then balancedAdd(val,left.add(z),right)
+      else balancedAdd(val,left,right.add(z))
+      end
+
+   delete(x:ZZ32):Tree =
+       if   x < val then balancedAdd(val,left.delete(x),right)
+       elif val < x then balancedAdd(val,left,right.delete(x))
+       else              left.balancedDelete(right)
+       end
+
+   balancedDelete(r:Node):Tree = do
+     (min_elt, del_min) = r.removeMinimum()
+     balancedAdd(min_elt, self, del_min)
+   end
+   balancedDelete(r:Tree):Tree = self
+
+   minimum():ZZ32 = do
+      if left.empty() then val else left.minimum() end
+   end
+
+   removeMinimum() =
+     if left.empty() then (val,right)
+     else
+       (min, delmin) = left.removeMinimum()
+       (min, balancedAdd(val,delmin,right))
+     end
+
+   union(t2:Node):Tree = do
+      (newl, _, newr) = t2.splitAt(val)
+      left.union(newl).concat3(val, right.union(newr))
+   end
+   union(t2:Tree):Tree = self
+
+   intersection(t2:Node):Tree = do
+      (newl, m, newr) = t2.splitAt(val)
+      (li, ri) = (left.intersection(newl), right.intersection(newr))
+      if m then li.concat3(val,ri) else li.concat(ri)
+      end
+   end
+   intersection(t2:Tree):Tree = t2
+
+   difference(t2:Node):Tree = do
+      (newl, m, newr) = t2.splitAt(val)
+      (li,ri) = (left.difference(newl), right.difference(newr))
+      if m then li.concat(ri) else li.concat3(val,ri) end
+   end
+   difference(t2:Tree):Tree = self
+
+   concat(t2:Node):Tree = do
+      (min, delmin) = t2.removeMinimum()
+      self.concat3(min, delmin)
+   end
+   concat(t2:Tree):Tree = self
+
+   splitAt(x:ZZ32) (*:(Tree,Boolean,Tree)*) =
+      if x < val then
+        (ll,m,rl) = left.splitAt(x)
+        (ll,m,rl.concat3(val,right))
+      elif v < x then
+        (lr,m,rr) = right.splitAt(x)
+        (left.concat3(val,lr),m,rr)
+      else (left,true,right)
+      end
+
+   concat3(v:ZZ32, t2:Node) = do
+      v1 = self.getVal()
+      n1 = self.size()
+      l1 = self.getLeftChild()
+      r1 = self.getRightChild()
+      v2 = t2.getVal()
+      n2 = t2.size()
+      l2 = t2.getLeftChild()
+      r2 = t2.getRightChild()
+      if weight n1 < n2 then balancedAdd(v2,self.concat3(v,l2),r2)
+      elif weight n2 < n1 then balancedAdd(v1,l1,r1.concat3(v,t2))
+      else Node(v,self,t2) end
+   end
+   concat3(v:ZZ32, t2:Tree) = self.add(v)
+end
+
+balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = do
+   ln = left.size()
+   rn = right.size()
+   if ln + rn < weight then Node(val, left, right)
+   elif rn > weight ln then do
+      rl = right.getRightChild().getLeftChild()
+      rr = right.getRightChild().getRightChild()
+      rln = rl.size()
+      rrn = rr.size()
+      if rln < rrn then single_L(val, left, right) else double_L(val, left, right) end
+      end
+   elif ln > weight rn then do
+      ll = left.getLeftChild().getLeftChild()
+      lr = left.getLeftChild().getRightChild()
+      lln = ll.size()
+      lrn = lr.size()
+      if (lrn < lln) then single_R(val, left, right) else double_R(val,left,right) end
+      end
+   else Node(val,left,right) end
+end
+
+single_L(val:ZZ32,  left:Tree, right:Tree):Node = do
+   a = val
+   x = left
+   b = right.getVal()
+   y = right.getLeftChild()
+   z = right.getRightChild()
+   Node(b, Node(a, x, y), z)
+end
+
+single_R(val:ZZ32,  left:Tree, right:Tree):Node = do
+   b = val
+   a = right.getVal()
+   x = right.getLeftChild()
+   y = right.getRightChild()
+   z = left
+   Node(a,x,Node(b,y,z))
+end
+
+double_L(val:ZZ32,  left:Tree, right:Tree):Node = do
+   a = val
+   x = left
+   c = right.getVal()
+   b = right.getLeftChild().getVal()
+   y1 = right.getLeftChild().getLeftChild()
+   y2 = right.getLeftChild().getRightChild()
+   z = right.getRightChild()
+   println("double_L " a " " b)
+   Node(b, Node(a,x,y1),Node(c,y2,z))
+end
+
+double_R(val:ZZ32,  left:Tree, right:Tree):Node = do
+   c = val
+   a = left.getVal()
+   x = left.getLeftChild()
+   b = left.getRightChild().getVal()
+   y1 = left.getRightChild.getLeftChild()
+   y2 = left.getRightChild.getRightChild()
+   z = right
+   println("double_R " a " " b " " c)
+   Node(b, Node(a, x,y1), Node(c,y2,z))
+end
+
+
+initialSet():Tree = do
+   init:Tree = Empty
+   init := init.add(1)
+   init := init.add(2)
+   init := init.add(3)
+   init := init.add(4)
+   init := init.add(5)
+   init := init.add(6)
+   init := init.add(7)
+   init := init.add(8)
+   init := init.add(9)
+   init
+end
+
+singleton(arg:ZZ32):Tree = do
+   s:Tree = Empty
+   s := s.add(arg)
+   s
+end
+
+printBoard(b:Tree[9,9]):()=do
+   for i <- seq(0#9) do
+      for j <- seq(0#9) do
+         b[i,j].printSet()
+      end
+      println("")
+   end
+end
+
+(* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
+removeElement(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
+   s:Tree = b[i,j]
+   if s.size() > 1 then      (* Don't delete the element being removed! *)
+      if s.member(elem) then (* Avoid redundant deletion/update *)
+         b[i,j] := s.delete(elem)
+      end
+   end
+end
+
+propagateRow(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+   for k <- 0#9 do
+      removeElement(b,i,k,elem)
+   end
+
+
+propagateColumn(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+   for k <- 0#9 do
+     removeElement(b,k,j,elem)
+   end
+
+propagateSquare(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
+   starti:ZZ32 = narrow(truncate(i/3)) 3
+   startj:ZZ32 = narrow(truncate(j/3)) 3
+   for k <-starti#3, l <- startj#3 do
+      removeElement(b,k,l,elem)
+   end
+end
+
+propagateSingleton(board:Tree[9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
+   propagateRow(board, i, j, elem)
+   propagateColumn(board, i, j, elem)
+   propagateSquare(board, i, j, elem)
+end
+
+(* This version involves a barrier between propagation steps. *)
+propagate(board:Tree[9,9]):() = do
+   prevUnsolved : ZZ32 := 64
+   unsolved : ZZ32 := 63
+   while unsolved < prevUnsolved do
+      (* Fixed point iteration.  This will tolerate data race in
+         propagateSingleton, though we'd be just as happy without it. *)
+      prevUnsolved := unsolved
+      unsolved := 0
+      for i <- 0#9, j<- 0#9 do
+         if board[i,j].size() = 1 then
+            elem = board[i,j].minimum()
+            propagateSingleton(board, i, j, elem)
+         else
+            atomic unsolved += 1
+         end
+      end
+   end
+end
+
+run(args:String...):()=do
+   init:Tree = initialSet()
+   board:Tree[9,9] = [singleton(8) init singleton(6) singleton(1) init singleton(9) singleton(3) init singleton(5) ;
+                      init singleton(9) init init singleton(8) init singleton(4) init init;
+                      init singleton(7) singleton(1) init init init init init singleton(6);
+                      init init init singleton(9) singleton(2) init singleton(5) singleton(3) init;
+                      init init singleton(9) init singleton(6) init singleton(7) init init;
+                      init singleton(3) singleton(4) init singleton(7) singleton(8) init init init;
+                      singleton(3) init init init init init singleton(1) singleton(4) init;
+                      init init singleton(5) init singleton(1) init init singleton(9) init;
+                      singleton(9) init singleton(7) singleton(8) init singleton(4) singleton(6) init singleton(2)]
+   printBoard(board)
+   println("Starting parallel sudoku solver")
+   recordTime(6.847)
+   propagate(board)
+   printTime(6.847)
+   printBoard(board)
+end
+end

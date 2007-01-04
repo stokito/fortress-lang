@@ -1,0 +1,1096 @@
+################################################################################
+#    Copyright 2007 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+################################################################################
+
+# Operators in Section c_2_1 are redundant with many others, but
+# are also mentioned in the precedence specification.
+# There's no need to mention abbreviations here, they are attached
+# elsewhere in the specification.
+
+c_2_1
+  asterisk
+  middle dot
+  multiplication sign
+  asterisk operator
+  multiset multiplication
+  circled times
+  circled dot operator
+  circled asterisk operator
+  squared times
+  squared dot operator
+  dot operator
+  squared asterisk
+  times with left half black
+  times with right half black
+  vector or cross product
+  multiplication sign with dot above
+  multiplication sign with underbar
+  multiplication sign in left half circle
+  multiplication sign in right half circle
+  circled multiplication sign with circumflex accent
+  multiplication sign in double circle
+  multiplication sign in triangle
+  solidus
+  division sign
+  division slash
+  circled division slash
+  circled reverse solidus
+  circled anticlockwise-rotated division sign
+  squared rising diagonal slash
+  reverse solidus operator
+  big solidus
+  big reverse solidus
+  circled division sign
+  double solidus operator
+
+addition_and_subtraction
+  plus sign
+  hyphen-minus
+  minus sign
+
+multiplication_and_division
+  asterisk
+  middle dot, dot
+  multiplication sign, times, by
+  solidus
+  division sign, div
+  division slash
+  asterisk operator
+  dot operator
+  vector or cross product
+
+dot_above_addition_and_subtraction
+  dot plus, dotplus
+  dot minus, dotminus
+
+dot_above_multiplication_and_division
+  multiplication sign with dot above, dottimes
+
+dot_below_addition_and_subtraction
+  plus sign with dot below
+  minus sign with dot below
+
+tri_addition_and_subtraction
+  plus sign in triangle, triplus
+  minus sign in triangle, triminus
+
+tri_multiplication_and_division
+  multiplication sign in triangle, tritimes
+
+circled_addition_and_subtraction
+  circled plus, oplus
+  circled minus, ominus
+
+circled_multiplication_and_division
+  circled times, otimes
+  circled division slash, oslash
+  circled dot operator, odot
+  circled asterisk operator, circledast
+  circled division sign, odiv
+
+squared_addition_and_subtraction
+  squared plus, boxplus
+  squared minus, boxminus
+
+squared_multiplication_and_division
+  squared times, boxtimes
+  squared dot operator, boxdot
+  squared rising diagonal slash, boxslash
+  squared asterisk, boxast
+
+misc_addition
+  plus-minus sign
+  minus-or-plus sign
+  minus tilde
+  plus sign with small circle above
+  plus sign with circumflex accent above
+  plus sign with tilde above
+  plus sign with tilde below
+  plus sign with subscript two
+  plus sign with black triangle
+  minus sign with comma above
+  minus sign with falling dots
+  minus sign with rising dots
+  plus sign in left half circle
+  plus sign in right half circle
+
+set_intersection
+  intersection, cap, intersect
+  double intersection, capcap
+  intersection with dot
+  intersection with overbar
+  intersection with logical and
+  intersection beside and joined with intersection
+  closed intersection with serifs
+  transversal intersection
+
+set_union
+  union, cup
+  multiset union, uplus
+  double union, cupcup
+  union with minus sign
+  union with overbar
+  union with logical or
+  union beside and joined with union
+  closed union with serifs
+  closed union with serifs and smash product
+
+misc_set
+  set minus
+
+square_intersection
+  square cap, sqcap
+  double square intersection, sqcapcap
+
+square_union
+  square cup, sqcup
+  double square union, sqcupcup
+
+curly_and
+  curly logical and, curlyand
+
+curly_or
+  curly logical or, curlyor
+
+equivalence_operators
+  equals sign, eq
+  asymptotically equal to, simeq
+  approximately equal to
+  approximately but not actually equal to
+  almost equal to, approx
+  almost equal or equal to, approxeq
+  all equal to
+  equivalent to
+  geometrically equivalent to, bumpeqv
+  geometrically equal to, doteqdot
+  approximately equal to or the image of
+  image of or approximately equal to
+  ring in equal to, eqring
+  ring equal to, ringeq
+  star equals
+  delta equal to, eqdel
+  equal to by definition, eqdef
+  questioned equal to
+  identical to, eqv, equiv
+  strictly equivalent to, seqv, ===
+  circled equals
+  reversed tilde equals
+  equal and parallel to
+  equals sign and slanted parallel
+  equals sign and slanted parallel with tilde above
+  identical to and slanted parallel
+  equals sign with dot below
+  identical with dot above
+  similar minus similar
+  equals with asterisk
+  almost equal to with circumflex accent
+  approximately equal or equal to
+  equals sign above plus sign
+  plus sign above equals sign
+  equals sign above tilde operator
+  two consecutive equals signs
+  three consecutive equals signs
+  equals sign with two dots above and two dots below
+  equivalent with four dots above
+  equals sign with bumpy above
+  small equals sign
+  fullwidth equals sign
+
+inequivalence_operators
+  neither approximately nor actually equal to
+  not asymptotically equal to, nsimeq
+  not almost equal to, napprox
+  not equal to, =/=, ne
+  not identical to, neqv
+  not equivalent to
+
+less_than_operators
+  less-than sign, lt
+  less-than or equal to, le, <=
+  less-than over equal to
+  less-than but not equal to
+  much less-than, <<
+  less-than or equivalent to
+  less-than with dot, dotlt
+  very much less-than, <<<
+  equal to or less-than
+  less-than but not equivalent to
+  circled less-than
+  less-than with circle inside
+  less-than with question mark above
+  less-than or slanted equal to
+  less-than or slanted equal to with dot inside
+  less-than or slanted equal to with dot above
+  less-than or slanted equal to with dot above right
+  less-than or approximate
+  less-than and single-line not equal to
+  less-than and not approximate
+  less-than above similar or equal
+  slanted equal to or less-than
+  slanted equal to or less-than with dot inside
+  double-line equal to or less-than
+  double-line slanted equal to or less-than
+  similar or less-than
+  similar above less-than above equals sign
+  double nested less-than
+  double nested less-than with underbar
+  less-than closed by curve
+  less-than closed by curve above slanted equal
+  triple nested less-than
+  double-line slanted less-than or equal to
+  small less-than sign
+  fullwidth less-than sign
+
+greater_than_operators
+  greater-than sign, gt
+  greater-than or equal to, ge, >=
+  greater-than over equal to
+  greater-than but not equal to
+  much greater-than, >>
+  greater-than or equivalent to
+  greater-than with dot, dotgt
+  very much greater-than, >>>
+  equal to or greater-than
+  greater-than but not equivalent to
+  circled greater-than
+  greater-than with circle inside
+  greater-than with question mark above
+  greater-than or slanted equal to
+  greater-than or slanted equal to with dot inside
+  greater-than or slanted equal to with dot above
+  greater-than or slanted equal to with dot above left
+  greater-than or approximate
+  greater-than and single-line not equal to
+  greater-than and not approximate
+  greater-than above similar or equal
+  slanted equal to or greater-than
+  slanted equal to or greater-than with dot inside
+  double-line equal to or greater-than
+  double-line slanted equal to or greater-than
+  similar or greater-than
+  similar above greater-than above equals sign
+  double nested greater-than
+  greater-than closed by curve
+  greater-than closed by curve above slanted equal
+  triple nested greater-than
+  double-line slanted greater-than or equal to
+  small greater-than sign
+  fullwidth greater-than sign
+
+plain_comparison
+  not less-than, nlt
+  not greater-than, ngt
+  neither less-than nor equal to, nle
+  neither greater-than nor equal to, nge
+  neither less-than nor equivalent to
+  neither greater-than nor equivalent to
+  less-than or greater-than
+  greater-than or less-than
+  neither less-than nor greater-than
+  neither greater-than nor less-than
+  less-than equal to or greater-than
+  greater-than equal to or less-than
+  less-than above double-line equal above greater-than
+  greater-than above double-line equal above less-than
+  less-than above similar above greater-than
+  greater-than above similar above less-than
+  less-than above greater-than above double-line equal
+  greater-than above less-than above double-line equal
+  less-than above slanted equal above greater-than above slanted equal
+  greater-than above slanted equal above less-than above slanted equal
+  greater-than overlapping less-than
+  greater-than beside less-than
+  number sign
+#  colon
+
+subset_comparison_operators
+  subset of, subset
+  subset of or equal to, subseteq
+  subset of with not equal to, subsetneq
+  double subset, subsub
+  open subset
+  subset with dot
+  subset with plus sign below
+  subset with multiplication sign below
+  subset of or equal to with dot above
+  subset of above equals sign
+  subset of above tilde operator
+  subset of above almost equal to
+  subset of above not equal to
+  closed subset
+  closed subset or equal to
+  subset above subset
+
+superset_comparison_operators
+  superset of, supset
+  superset of or equal to, supseteq
+  superset of with not equal to, supsetneq
+  double superset, supsup
+  open superset
+  superset with dot
+  superset with plus sign below
+  superset with multiplication sign below
+  superset of or equal to with dot above
+  superset of above equals sign
+  superset of above tilde operator
+  superset of above almost equal to
+  superset of above not equal to
+  closed superset
+  closed superset or equal to
+  superset above superset
+
+misc_set_comparison
+  not a subset of, nsubset
+  not a superset of, nsupset
+  neither a subset of nor equal to, nsubseteq
+  neither a superset of nor equal to, nsupseteq
+  subset above superset
+  superset above subset
+  superset beside subset
+  superset beside and joined by dash with subset
+
+square_image_of
+  square image of, sqsubset
+  square image of or equal to, sqsubseteq
+  square image of or not equal to
+
+square_original_of
+  square original of, sqsupset
+  square original of or equal to, sqsupseteq
+  square original of or not equal to
+
+square_misc
+  not square image of or equal to
+  not square original of or equal to
+
+curly_precedes
+  precedes, prec
+  precedes or equal to, preceq
+  precedes or equivalent to, precsim
+  precedes under relation
+  equal to or precedes, eqprec
+  precedes but not equivalent to, precnsim
+  precedes above single-line equals sign
+  precedes above single-line not equal to
+  precedes above equals sign
+  precedes above not equal to
+  precedes above almost equal to
+  precedes above not almost equal to
+  double precedes
+
+curly_succeeds
+  succeeds, succ
+  succeeds or equal to, succeq
+  succeeds or equivalent to, succsim
+  succeeds under relation
+  equal to or succeeds, eqsucc
+  succeeds but not equivalent to, succnsim
+  succeeds above single-line equals sign
+  succeeds above single-line not equal to
+  succeeds above equals sign
+  succeeds above not equal to
+  succeeds above almost equal to
+  succeeds above not almost equal to
+  double succeeds
+
+curly_misc
+    does not precede, nprec
+    does not succeed, nsucc
+    does not precede or equal
+    does not succeed or equal
+
+tri_subgroup
+  normal subgroup of
+  normal subgroup of or equal to
+
+tri_contains
+  contains as normal subgroup
+  contains as normal subgroup or equal to
+
+tri_misc
+  not normal subgroup of
+  does not contain as normal subgroup
+  not normal subgroup of or equal to
+  does not contain as normal subgroup or equal
+
+chickenfoot_smaller
+  smaller than, smaller
+  smaller than or equal to, smallereq
+
+chickenfoot_greater
+  larger than, larger
+  larger than or equal to, largereq
+
+relational_misc
+  element of, in
+  not an element of, notin
+  small element of
+  contains as member, contains
+  does not contain as member
+  small contains as member
+  element of with long horizontal stroke
+  element of with vertical bar at end of horizontal stroke
+  small element of with vertical bar at end of horizontal stroke
+  element of with dot above
+  element of with overbar
+  small element of with overbar
+  element of with underbar
+  element of with two horizontal strokes
+  contains with long horizontal stroke
+  contains with vertical bar at end of horizontal stroke
+  small contains with vertical bar at end of horizontal stroke
+  contains with overbar
+  small contains with overbar
+  z notation bag membership
+
+boolean_conjunction
+  logical and, and
+  and with dot
+  logical and with dot above
+  double logical and
+  two intersecting logical and
+  logical and with middle stem
+  logical and with horizontal dash
+  logical and with double overbar
+  logical and with double underbar
+
+boolean_disjunction
+  logical or, or
+  logical or with dot above
+  double logical or
+  two intersecting logical or
+  logical or with middle stem
+  logical or with horizontal dash
+  logical or with double overbar
+  logical or with double underbar
+
+boolean_misc
+  rightwards arrow, ->, implies
+  left right arrow, <->, iff
+  xor
+  nand
+  nor
+
+enclosing_left
+  left square bracket, [
+  left curly bracket, {
+  left-pointing double angle quotation mark
+  left square bracket with quill, [./
+  left ceiling, |/
+  left floor, |\
+  left s-shaped bag delimiter,|.\
+#  mathematical left white square bracket, [\
+  mathematical left angle bracket, <|
+  mathematical left double angle bracket, <<|
+  left white curly bracket, {\
+  left white parenthesis, (\
+  z notation left image bracket, (/
+  z notation left binding bracket, <||
+  left square bracket with underbar, [.\
+  left square bracket with tick in top corner, [.//
+  left square bracket with tick in bottom corner, [.\\
+  left angle bracket with dot, <.|
+  left arc less-than bracket, (<
+  double left arc greater-than bracket, ((>
+  left black tortoise shell bracket, [*/
+  left wiggly fence, [/\/
+  left double wiggly fence, [/\/\/
+  left-pointing curved angle bracket, <|||
+  left corner bracket, </
+  left white corner bracket, <</
+  left black lenticular bracket, {*/
+  left white tortoise shell bracket, [//
+  left tortoise shell bracket, [/
+  left white lenticular bracket, {/
+
+enclosing_right
+  right square bracket, ]
+  right curly bracket, }
+  right-pointing double angle quotation mark
+  right square bracket with quill, /.]
+  right ceiling,\|
+  right floor,/|
+  right s-shaped bag delimiter,/.|
+#  mathematical right white square bracket, \]
+  mathematical right angle bracket, |>
+  mathematical right double angle bracket, |>>
+  right white curly bracket, \}
+  right white parenthesis, \)
+  z notation right image bracket, /)
+  z notation right binding bracket, ||>
+  right square bracket with underbar, \.]
+  right square bracket with tick in top corner, //.]
+  right square bracket with tick in bottom corner, \\.]
+  right angle bracket with dot, |.>
+  right arc greater-than bracket, >)
+  double right arc less-than bracket, <))
+  right black tortoise shell bracket, /*]
+  right wiggly fence, /\/]
+  right double wiggly fence, /\/\/]
+  right-pointing curved angle bracket, |||>
+  right corner bracket, \>
+  right white corner bracket, \>>
+  right black lenticular bracket, /*}
+  right white tortoise shell bracket, //]
+  right tortoise shell bracket, /]
+  right white lenticular bracket, /}
+
+enclosing
+  vertical line
+  double vertical line, ||
+  triple vertical bar binary relation, |||
+  double solidus operator, //
+  triple solidus binary relation, ///
+
+other_operators
+  exclamation mark
+  dollar sign
+  percent sign
+  question mark
+  commercial at
+  tilde
+  inverted exclamation mark
+  cent sign, cents
+  pound sign
+  currency sign
+  yen sign
+  broken bar
+  not sign, not
+ degree sign, degrees
+  inverted question mark
+  double exclamation mark, !!
+#  leftwards arrow, <-
+  upwards arrow, uparrow
+  downwards arrow, downarrow
+  up down arrow, updownarrow
+  north west arrow, nwarrow
+  north east arrow, nearrow
+  south east arrow, searrow
+  south west arrow, swarrow
+  leftwards arrow with stroke, <-/-
+  rightwards arrow with stroke, -/->
+  leftwards wave arrow
+  rightwards wave arrow, leadsto
+  leftwards two headed arrow
+  upwards two headed arrow
+  rightwards two headed arrow
+  downwards two headed arrow
+  leftwards arrow with tail
+  rightwards arrow with tail
+  leftwards arrow from bar
+  upwards arrow from bar
+  rightwards arrow from bar, mapsto, |->
+  downwards arrow from bar
+  up down arrow with base
+  leftwards arrow with hook
+  rightwards arrow with hook
+  leftwards arrow with loop
+  rightwards arrow with loop
+  left right wave arrow
+  left right arrow with stroke
+  downwards zigzag arrow
+  upwards arrow with tip leftwards
+  upwards arrow with tip rightwards
+  downwards arrow with tip leftwards
+  downwards arrow with tip rightwards
+  rightwards arrow with corner downwards
+  downwards arrow with corner leftwards
+  anticlockwise top semicircle arrow
+  clockwise top semicircle arrow
+  north west arrow to long bar
+  leftwards arrow to bar over rightwards arrow to bar
+  anticlockwise open circle arrow
+  clockwise open circle arrow
+  leftwards harpoon with barb upwards, leftharpoonup
+  leftwards harpoon with barb downwards, leftharpoondown
+  upwards harpoon with barb rightwards, upharpoonright
+  upwards harpoon with barb leftwards, upharpoonleft
+  rightwards harpoon with barb upwards, rightharpoonup
+  rightwards harpoon with barb downwards, rightharpoondown
+  downwards harpoon with barb rightwards, downharpoonright
+  downwards harpoon with barb leftwards, downharpoonleft
+  rightwards arrow over leftwards arrow, rightleftarrows
+  upwards arrow leftwards of downwards arrow
+  leftwards arrow over rightwards arrow, leftrightarrows
+  leftwards paired arrows, leftleftarrows
+  upwards paired arrows, upuparrows
+  rightwards paired arrows, rightrightarrows
+  downwards paired arrows, downdownarrows
+  leftwards harpoon over rightwards harpoon
+  rightwards harpoon over leftwards harpoon, rightleftharpoons
+  leftwards double arrow with stroke
+  left right double arrow with stroke
+  rightwards double arrow with stroke
+  leftwards double arrow
+  upwards double arrow
+#  rightwards double arrow, =>
+  downwards double arrow
+  left right double arrow, <=>
+  up down double arrow
+  north west double arrow
+  north east double arrow
+  south east double arrow
+  south west double arrow
+  leftwards triple arrow
+  rightwards triple arrow
+  leftwards squiggle arrow
+  rightwards squiggle arrow
+  upwards arrow with double stroke
+  downwards arrow with double stroke
+  leftwards dashed arrow
+  upwards dashed arrow
+  rightwards dashed arrow
+  downwards dashed arrow
+  leftwards arrow to bar
+  rightwards arrow to bar
+  leftwards white arrow
+  upwards white arrow
+  rightwards white arrow
+  downwards white arrow
+  upwards white arrow from bar
+  upwards white arrow on pedestal
+  upwards white arrow on pedestal with horizontal bar
+  upwards white arrow on pedestal with vertical bar
+  upwards white double arrow
+  upwards white double arrow on pedestal
+  rightwards white arrow from wall
+  north west arrow to corner
+  south east arrow to corner
+  up down white arrow
+  right arrow with small circle
+  downwards arrow leftwards of upwards arrow
+  three rightwards arrows
+  leftwards arrow with vertical stroke
+  rightwards arrow with vertical stroke
+  left right arrow with vertical stroke
+  leftwards arrow with double vertical stroke
+  rightwards arrow with double vertical stroke
+  left right arrow with double vertical stroke
+  leftwards open-headed arrow
+  rightwards open-headed arrow
+  left right open-headed arrow
+  complement
+  partial differential, del
+  there does not exist
+  increment
+  n-ary product, product
+  n-ary coproduct, coproduct
+  n-ary summation, sum
+  ring operator, circ, ring, compose
+  bullet operator
+  square root, sqrt
+  cube root, cbrt
+  fourth root, fourthroot
+  proportional to, propto
+  divides
+  does not divide
+  parallel to, parallel
+  not parallel to, nparallel
+  integral
+  double integral
+  triple integral
+  contour integral
+  surface integral
+  volume integral
+  clockwise integral
+  clockwise contour integral
+  anticlockwise contour integral
+  therefore
+  because
+  ratio
+  proportion
+  excess
+  geometric proportion
+  homothetic
+  tilde operator
+  reversed tilde
+  inverted lazy s
+  sine wave
+  wreath product, wreath
+  not tilde
+  triple tilde
+  difference between, bumpeq
+  approaches the limit, doteq
+  corresponds to
+  estimates
+  equiangular to
+  measured by
+  between
+  multiset
+  circled ring operator, circledring
+  circled dash
+  right tack, vdash, turnstile
+  left tack, dashv
+  down tack, top
+  up tack, bottom
+  assertion
+  models
+  true
+  forces
+  triple vertical bar right turnstile
+  double vertical bar double right turnstile
+  does not prove
+  not true
+  does not force
+  negated double vertical bar double right turnstile
+  original of
+  image of
+  multimap
+  hermitian conjugate matrix
+  intercalate
+  right angle with arc
+  right triangle
+  n-ary logical and, bigand, all
+  n-ary logical or, bigor, any
+  n-ary intersection, bigcap, bigintersect
+  n-ary union, bigcup, bigunion
+  diamond operator, diamond
+  star operator, star
+  division times
+  bowtie
+  left normal factor semidirect product
+  right normal factor semidirect product
+  left semidirect product
+  right semidirect product
+  pitchfork
+  vertical ellipsis
+  midline horizontal ellipsis
+  up right diagonal ellipsis
+  down right diagonal ellipsis
+  three dimensional angle
+  white triangle containing small white triangle
+  perpendicular, perp
+  white diamond with centred dot
+  element of opening upwards
+  lower right corner with dot
+  upper left corner with dot
+  left outer join
+  right outer join
+  full outer join
+  large up tack
+  large down tack
+  left and right double turnstile
+  left and right tack
+  left multimap
+  long right tack
+  long left tack
+  up tack with circle above
+  lozenge divided by horizontal rule
+  white concave-sided diamond
+  white concave-sided diamond with leftwards tick
+  white concave-sided diamond with rightwards tick
+  white square with leftwards tick
+  white square with rightwards tick
+  upwards quadruple arrow
+  downwards quadruple arrow
+  anticlockwise gapped circle arrow
+  clockwise gapped circle arrow
+  right arrow with circled plus
+  long leftwards arrow
+  long rightwards arrow
+  long left right arrow
+  long leftwards double arrow
+  long rightwards double arrow
+  long left right double arrow
+  long leftwards arrow from bar
+  long rightwards arrow from bar
+  long leftwards double arrow from bar
+  long rightwards double arrow from bar
+  long rightwards squiggle arrow
+  rightwards two-headed arrow with vertical stroke
+  rightwards two-headed arrow with double vertical stroke
+  leftwards double arrow with vertical stroke
+  rightwards double arrow with vertical stroke
+  left right double arrow with vertical stroke
+  rightwards two-headed arrow from bar
+  leftwards double arrow from bar
+  rightwards double arrow from bar
+  downwards arrow with horizontal stroke
+  upwards arrow with horizontal stroke
+  upwards triple arrow
+  downwards triple arrow
+  leftwards double dash arrow
+  rightwards double dash arrow
+  leftwards triple dash arrow
+  rightwards triple dash arrow
+  rightwards two-headed triple dash arrow
+  rightwards arrow with dotted stem
+  upwards arrow to bar
+  downwards arrow to bar
+  rightwards arrow with tail with vertical stroke
+  rightwards arrow with tail with double vertical stroke
+  rightwards two-headed arrow with tail
+  rightwards two-headed arrow with tail with vertical stroke
+  rightwards two-headed arrow with tail with double vertical stroke
+  leftwards arrow-tail
+  rightwards arrow-tail
+  leftwards double arrow-tail
+  rightwards double arrow-tail
+  leftwards arrow to black diamond
+  rightwards arrow to black diamond
+  leftwards arrow from bar to black diamond
+  rightwards arrow from bar to black diamond
+  north west and south east arrow
+  north east and south west arrow
+  north west arrow with hook
+  north east arrow with hook
+  south east arrow with hook
+  south west arrow with hook
+  north west arrow and north east arrow
+  north east arrow and south east arrow
+  south east arrow and south west arrow
+  south west arrow and north west arrow
+  rising diagonal crossing falling diagonal
+  falling diagonal crossing rising diagonal
+  south east arrow crossing north east arrow
+  north east arrow crossing south east arrow
+  falling diagonal crossing north east arrow
+  rising diagonal crossing south east arrow
+  north east arrow crossing north west arrow
+  north west arrow crossing north east arrow
+  wave arrow pointing directly right
+  arrow pointing rightwards then curving upwards
+  arrow pointing rightwards then curving downwards
+  arrow pointing downwards then curving leftwards
+  arrow pointing downwards then curving rightwards
+  right-side arc clockwise arrow
+  left-side arc anticlockwise arrow
+  top arc anticlockwise arrow
+  bottom arc anticlockwise arrow
+  top arc clockwise arrow with minus
+  top arc anticlockwise arrow with plus
+  lower right semicircular clockwise arrow
+  lower left semicircular anticlockwise arrow
+  anticlockwise closed circle arrow
+  clockwise closed circle arrow
+  rightwards arrow above short leftwards arrow
+  leftwards arrow above short rightwards arrow
+  short rightwards arrow above leftwards arrow
+  rightwards arrow with plus below
+  leftwards arrow with plus below
+  rightwards arrow through x
+  left right arrow through small circle
+  upwards two-headed arrow from small circle
+  left barb up right barb down harpoon
+  left barb down right barb up harpoon
+  up barb right down barb left harpoon
+  up barb left down barb right harpoon
+  left barb up right barb up harpoon
+  up barb right down barb right harpoon
+  left barb down right barb down harpoon
+  up barb left down barb left harpoon
+  leftwards harpoon with barb up to bar
+  rightwards harpoon with barb up to bar
+  upwards harpoon with barb right to bar
+  downwards harpoon with barb right to bar
+  leftwards harpoon with barb down to bar
+  rightwards harpoon with barb down to bar
+  upwards harpoon with barb left to bar
+  downwards harpoon with barb left to bar
+  leftwards harpoon with barb up from bar
+  rightwards harpoon with barb up from bar
+  upwards harpoon with barb right from bar
+  downwards harpoon with barb right from bar
+  leftwards harpoon with barb down from bar
+  rightwards harpoon with barb down from bar
+  upwards harpoon with barb left from bar
+  downwards harpoon with barb left from bar
+  leftwards harpoon with barb up above leftwards harpoon with barb down
+  upwards harpoon with barb left beside upwards harpoon with barb right
+  rightwards harpoon with barb up above rightwards harpoon with barb down
+  downwards harpoon with barb left beside downwards harpoon with barb right
+  leftwards harpoon with barb up above rightwards harpoon with barb up
+  leftwards harpoon with barb down above rightwards harpoon with barb down
+  rightwards harpoon with barb up above leftwards harpoon with barb up
+  rightwards harpoon with barb down above leftwards harpoon with barb down
+  leftwards harpoon with barb up above long dash
+  leftwards harpoon with barb down below long dash
+  rightwards harpoon with barb up above long dash
+  rightwards harpoon with barb down below long dash
+  upwards harpoon with barb left beside downwards harpoon with barb right
+  downwards harpoon with barb left beside upwards harpoon with barb right
+  right double arrow with rounded head
+  equals sign above rightwards arrow
+  tilde operator above rightwards arrow
+  leftwards arrow above tilde operator
+  rightwards arrow above tilde operator
+  rightwards arrow above almost equal to
+  less-than above leftwards arrow
+  leftwards arrow through less-than
+  greater-than above rightwards arrow
+  subset above rightwards arrow
+  leftwards arrow through subset
+  superset above leftwards arrow
+  left fish tail
+  right fish tail
+  up fish tail
+  down fish tail
+  triple vertical bar delimiter
+  z notation spot
+  z notation type colon
+  dotted fence
+  vertical zigzag line
+  measured angle opening left
+  right angle variant with square
+  measured right angle with dot
+  angle with s inside
+  acute angle
+  spherical angle opening left
+  spherical angle opening up
+  turned angle
+  reversed angle
+  angle with underbar
+  reversed angle with underbar
+  oblique angle opening up
+  oblique angle opening down
+  measured angle with open arm ending in arrow pointing up and right
+  measured angle with open arm ending in arrow pointing up and left
+  measured angle with open arm ending in arrow pointing down and right
+  measured angle with open arm ending in arrow pointing down and left
+  measured angle with open arm ending in arrow pointing right and up
+  measured angle with open arm ending in arrow pointing left and up
+  measured angle with open arm ending in arrow pointing right and down
+  measured angle with open arm ending in arrow pointing left and down
+  reversed empty set
+  empty set with overbar
+  empty set with small circle above
+  empty set with right arrow above
+  empty set with left arrow above
+  circle with horizontal bar
+  circled vertical bar
+  circled parallel
+  circled perpendicular
+  circle divided by horizontal bar and top half divided by vertical bar
+  circle with superimposed x
+  up arrow through circle
+  circled white bullet
+  circled bullet
+  circle with small circle to the right
+  circle with two horizontal strokes to the right
+  squared falling diagonal slash
+  squared small circle
+  squared square
+  two joined squares
+  triangle with dot above
+  triangle with underbar
+  s in triangle
+  triangle with serifs at bottom
+  right triangle above left triangle
+  left triangle beside vertical bar
+  vertical bar beside right triangle
+  bowtie with left half black
+  bowtie with right half black
+  black bowtie
+  white hourglass
+  black hourglass
+  incomplete infinity
+  tie over infinity
+  infinity negated with vertical bar
+  double-ended multimap
+  square with contoured outline
+  increases as
+  shuffle product
+  gleich stark
+  thermodynamic
+  down-pointing triangle with left half black
+  down-pointing triangle with right half black
+  black diamond with down arrow
+  black lozenge
+  white circle with down arrow
+  black circle with down arrow
+  error-barred white square
+  error-barred black square
+  error-barred white diamond
+  error-barred black diamond
+  error-barred white circle
+  error-barred black circle
+  rule-delayed
+  solidus with overbar
+  reverse solidus with horizontal stroke
+  double plus
+  triple plus
+  tiny
+  miny
+  n-ary circled dot operator, bigodot
+  n-ary circled plus operator, bigoplus
+  n-ary circled times operator, bigotimes
+  n-ary union operator with dot, bigudot
+  n-ary union operator with plus, biguplus
+  n-ary square intersection operator, bigsqcap
+  n-ary square union operator, bigsqcup
+  two logical and operator
+  two logical or operator
+  n-ary times operator, bigtimes
+  modulo two sum
+  circulation function
+  anticlockwise integration
+  line integration with rectangular path around pole
+  line integration with semicircular path around pole
+  line integration not including the pole
+  join, join
+  large left triangle operator
+  z notation schema composition
+  z notation schema piping
+  z notation schema projection
+  semidirect product with bottom closed
+  smash product
+  interior product
+  righthand interior product
+  z notation relational composition
+  amalgamation or coproduct
+  sloping large or
+  sloping large and
+  small vee with underbar
+  z notation domain antirestriction
+  z notation range antirestriction
+  triple horizontal bar with double vertical stroke
+  triple horizontal bar with triple vertical stroke
+  tilde operator with dot above
+  tilde operator with rising dots
+  congruent with dot above
+  square left open box operator
+  square right open box operator
+  element of opening downwards
+  pitchfork with tee top
+  forking
+  nonforking
+  short left tack
+  short down tack
+  short up tack
+  perpendicular with s
+  vertical bar triple right turnstile
+  double vertical bar left turnstile
+  vertical bar double left turnstile
+  double vertical bar double left turnstile
+  long dash from left member of double vertical
+  short down tack with overbar
+  short up tack with underbar
+  short up tack above short down tack
+  double down tack
+  double up tack
+  double stroke not sign
+  reversed double stroke not sign
+  does not divide with reversed negation slash
+  vertical line with circle above
+  vertical line with circle below
+  down tack with circle below
+  parallel with horizontal stroke
+  parallel with tilde operator
+  triple vertical bar with horizontal stroke
+  triple colon operator
+  large triple vertical bar operator
+  white vertical bar
+  n-ary white vertical bar

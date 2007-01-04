@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component restTest2
+export Executable
+
+
+foo(y:ZZ32, z:ZZ32, x:ZZ32...) = do
+   var sum:ZZ32 = y + z
+   for i <- x.base()#x.size() do
+     sum += x[i]
+   end
+   sum
+end
+
+foo(y:ZZ32) = y
+
+
+run(args:String...):() = do
+   println(foo(1,2,3,4,5))
+   println(foo(17))
+end
+
+end

@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component monoidal
+
+object Identity[\opr OPLUS\]()
+end
+
+object Zero[\opr OTIMES\]()
+end
+
+trait Monoid[\T extends Monoid[\T,OPLUS\], opr OPLUS\]
+  opr OPLUS(self, other:T):T
+end
+
+trait EquivalenceRelation[\T extends EquivalenceRelation, opr ~\]
+  opr ~(self, other:T):Boolean
+end
+
+trait TotalOrder[\T extends TotalOrder[\T,OPLUS\],opr <,opr <=,opr =,opr >=,opr >\]
+    extends { EquivalenceRelation[\T, =\] }
+  opr <(self, other:T):Boolean = NOT (self >= other)
+  opr <=(self, other:T):Boolean
+  opr >(self, other:T):Boolean = NOT (self <= other)
+  opr >=(self, other:T):Boolean = other <= self
+end
+
+object N(x:ZZ32)
+  extends { Monoid[\N, OTIMES\], Monoid[\N, OPLUS\], Monoid[\N, MAX\],
+            TotalOrder[\N, LESS, LESSEQ, EQ, GREATEQ, GREAT\] }
+    (* We don't get far enough yet to even check the body. *)
+end
+
+run(args:String...) = do
+  n1 = N(1)
+  n2 = N(2)
+  println(n1.x " and " n2.x)
+end
+
+end

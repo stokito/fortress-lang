@@ -1,0 +1,519 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions.
+ */
+module Expression(Param, Header, Type, DelimitedExpr, Identifier, Keyword,
+                  Symbol, Spacing);
+
+import Param;
+import Header;
+import Type;
+import DelimitedExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* Expr and UnitExpr are mutually left recursive.
+   We've inlined them into each other and removed the left recursion. */
+/* Expr ::=
+     AssignLefts w AssignOp w Expr
+   | OpExpr
+   | DelimitedExpr
+   | FlowExpr
+   | fn w ValParam [w IsType] [w Throws] w => w Expr
+   | Expr w as w TypeRef
+   | Expr w asif w TypeRef
+   | UnitExpr
+   UnitExpr ::=
+     UnitRef
+   | Expr w UnitRef
+   | Expr w . w UnitRef
+   | Expr w / w UnitRef
+   | Expr w per w UnitRef
+   | Expr w in w UnitRef
+ */
+Expr Expr =
+     seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
+Expr ExprFront =
+     <Assign> a1:AssignLefts w a2:AssignOp w a3:Expr
+     { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
+   / yyValue:OpExpr
+   / yyValue:DelimitedExpr
+   / <Flow> yyValue:FlowExpr
+   / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
+     { Option<TypeRef> ty_opt;
+       List<TypeRef> tys;
+       if (a2 == null) ty_opt = None.<TypeRef>make();
+       else            ty_opt = Some.<TypeRef>make(a2);
+       if (a3 == null) tys = FortressUtil.emptyTypeRefs();
+       else            tys = a3;
+       yyValue = new Fn(createSpan(yyStart,yyCount), a1, ty_opt, tys, a4);
+     };
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / a1:UnitRef
+************************************************ */
+
+constant transient Action<Expr> ExprTail =
+     <As> As
+   / <Asif> AsIf
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / w         a1:UnitRef
+   / w dot   w a1:UnitRef
+   / w slash w a1:UnitRef
+   / w per   w a1:UnitRef
+   / w in    w a1:UnitRef
+************************************************ */
+   ;
+
+constant inline Action<Expr> As =
+     w as w a1:TypeRef
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return new AsExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+           }};
+     };
+
+constant inline Action<Expr> AsIf =
+     w asif w a1:TypeRef
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return new AsIfExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+           }};
+     };
+
+/* UnitExpr ::=
+     UnitRef
+   | Expr w UnitRef
+   | Expr w . w UnitRef
+   | Expr w / w UnitRef
+   | Expr w per w UnitRef
+   | Expr w in w UnitRef
+ */
+/* ************************************************
+ * Not Yet Implemented ***************************
+Tree UnitExpr =
+     a1:UnitRef
+   / a1:Expr w         a2:UnitRef
+   / a1:Expr w dot   w a2:UnitRef
+   / a1:Expr w slash w a2:UnitRef
+   / a1:Expr w per   w a2:UnitRef
+   / a1:Expr w in    w a2:UnitRef
+************************************************ */
+
+/* AssignLefts ::=
+     ( w AssignLeft (w , w AssignLeft)* w )
+   | AssignLeft
+ */
+List<LHS> AssignLefts =
+     openparen w a1:AssignLeft a2s:(w comma w AssignLeft)* w closeparen
+     { yyValue = new ArrayList<LHS>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     }
+   / a1:AssignLeft
+     { yyValue = new ArrayList<LHS>();
+       yyValue.add(a1);
+     };
+
+/* AssignLeft ::=
+     SubscriptExpr
+   | FieldSelection
+   | BindId
+   SubscriptExpr ::= Primay [ [w ExprList] w ]
+   FieldSelection ::= Primary dot Id
+ */
+LHS AssignLeft =
+    seed:PrimaryFront list:AssignLeftTail*
+    { Expr left = (Expr)apply(list, seed);
+      if (left instanceof LHS) yyValue = (LHS)left;
+      else yyValue = null;
+    }
+  / a1:BindId
+    { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
+
+constant transient Action<Expr> AssignLeftTail =
+      SubscriptAssign
+    / FieldSelectionAssign
+    ;
+
+constant inline Action<Expr> SubscriptAssign =
+    opensquare a1:(w ExprList)? w closesquare
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              List<Expr> es;
+              if (a1 == null) es = FortressUtil.emptyExprs();
+              else            es = a1;
+              return new SubscriptExpr(createSpan(yyStart,yyCount), base, es);
+          }};
+    };
+
+constant inline Action<Expr> FieldSelectionAssign =
+    dot a1:Id
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new FieldSelection(createSpan(yyStart,yyCount), base, a1);
+          }};
+    };
+
+/* OpExpr ::=
+     OpExprNoEnc
+   | OpExprLeftEncloser
+   | Encloser
+ */
+Expr OpExpr =
+     a1:OpExprNoEnc
+     { yyValue = Resolver.resolveOps(a1); }
+   / a1:OpExprLeftEncloser
+     { yyValue = Resolver.resolveOps(a1); }
+   / a1:Encloser
+     { OpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
+       yyValue = Resolver.resolveOps(PureList.make(e));
+     };
+
+/* OpExprNoEnc ::=
+     OpExprPrimary
+   | OpExprPrefix
+   | Op
+ */
+PureList<OpExpr> OpExprNoEnc =
+     yyValue:OpExprPrimary
+   / yyValue:OpExprPrefix
+   / a1:Op
+     { OpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
+       yyValue = PureList.make(e);
+     };
+
+/* TightInfixRight ::=
+     Encloser OpExprPrimary
+   | Encloser OpExprPrefix
+   | Encloser wr OpExprPrimary
+   | Encloser wr LooseInfix
+   | Encloser wr LeftLooseInfix
+   | Encloser
+ */
+PureList<OpExpr> TightInfixRight =
+     a1:Encloser a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+   / a1:Encloser a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+   / <Primary>   a1:Encloser wr a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+   / <Loose>     a1:Encloser wr a2:LooseInfix
+     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+   / <LeftLoose> a1:Encloser wr a2:LeftLooseInfix
+     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+   / a1:Encloser
+     { yyValue = PureList.make((OpExpr)new Right(a1)); };
+
+/* LeftLooseInfix ::=
+     OpExprLeftEncloser
+   | Encloser wr OpExprPrimary
+   | Encloser wr OpExprPrefix
+   | Encloser wr OpExprLeftEncloser
+ */
+PureList<OpExpr> LeftLooseInfix =
+     yyValue:OpExprLeftEncloser
+   / <Primary> a1:Encloser wr a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+   / <Prefix>  a1:Encloser wr a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+   / <Left>    a1:Encloser wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+
+/* OpExprLeftEncloser ::= Encloser OpExprNoEnc */
+PureList<OpExpr> OpExprLeftEncloser =
+     a1:Encloser a2:OpExprNoEnc
+     { yyValue = a2.cons(new Left(a1)); };
+
+/* OpExprPrimary ::=
+     Primary TightInfixPostfix
+   | Primary TightInfixRight
+   | Primary wr OpExprPrimary
+   | Primary wr LooseInfix
+   | Primary wr LeftLooseInfix
+   | Primary
+ */
+PureList<OpExpr> OpExprPrimary =
+     a1:Primary a2:TightInfixPostfix
+     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+   / a1:Primary a2:TightInfixRight
+     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+   / <Primary>   a1:Primary wr a2:OpExprPrimary
+     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+   / <Loose>     a1:Primary wr a2:LooseInfix
+     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+   / <LeftLoose> a1:Primary wr a2:LeftLooseInfix
+     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+   / a1:Primary
+     { yyValue =
+           PureList.make((OpExpr)new RealExpr(FortressUtil.buildPrimary(a1))); };
+
+/* OpExprPrefix ::=
+     Op OpExprPrimary
+   | Op OpExprPrefix
+   | Op OpExprLeftEncloser
+   | Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+ */
+PureList<OpExpr> OpExprPrefix =
+     a1:Op a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+   / a1:Op a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+   / a1:Op a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+   / <Primary> a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+   / <Prefix>  a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+   / <Left>    a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new Prefix(a1)); };
+
+/* TightInfixPostfix ::=
+     Op OpExprPrimary
+   | Op OpExprPrefix
+   | Op OpExprLeftEncloser
+   | Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+   | Op
+ */
+PureList<OpExpr> TightInfixPostfix =
+     a1:Op a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+   / a1:Op a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+   / a1:Op a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+   / <Primary> a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+   / <Prefix>  a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+   / <Left>    a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+   / a1:Op
+     { yyValue = PureList.make((OpExpr)new Postfix(a1)); };
+
+/* LooseInfix ::=
+     Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+ */
+PureList<OpExpr> LooseInfix =
+     a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+   / a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+   / <Left> a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+
+/* Primary ::=
+     Comprehension
+   | BaseExpr
+   | LeftEncloser [w ExprList] w RightEncloser
+   | Primary [\ w StaticArgList w \]
+   | Primary [ [w ExprList] w ]
+   | Primary dot Id
+   | Primary ^ BaseExpr
+   | Primary ExponentOp
+   | Primary TupleExpr
+   | Primary ( [w Expr] w )
+   | Primary Primary
+ */
+constant PureList<Expr> Primary =
+     seed:PrimaryFront list:PrimaryTail*
+     { yyValue = (PureList<Expr>)apply(list, PureList.make(seed)); };
+
+Expr PrimaryFront =
+     yyValue:Comprehension
+   / yyValue:BaseExpr
+   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     { if (a2 == null) a2 = new ArrayList<Expr>();
+       yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
+     }
+   ;
+
+constant transient Action<PureList<Expr>> PrimaryTail =
+     StaticApply
+   / SubscriptExpr
+   / FieldSelection
+   / ExponentExpr
+   / TightJuxtaposition
+   ;
+
+constant inline Action<PureList<Expr>> StaticApply =
+     opendoublesquare w a1:StaticArgList w closedoublesquare
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               Span span = createSpan(yyStart,yyCount);
+               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
+               return PureList.make((Expr)new TypeApply(span, fun, a1));
+           }};
+     };
+
+constant inline Action<PureList<Expr>> SubscriptExpr =
+     opensquare a1:(w ExprList)? w closesquare
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               Span span = createSpan(yyStart,yyCount);
+               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
+               List<Expr> es;
+               if (a1 == null) es = FortressUtil.emptyExprs();
+               else            es = a1;
+               return PureList.make((Expr)new SubscriptExpr(span, fun, es));
+           }};
+     };
+
+constant inline Action<PureList<Expr>> FieldSelection =
+     dot a1:Id
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               Span span = createSpan(yyStart,yyCount);
+               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
+               return PureList.make((Expr)new FieldSelection(span, fun, a1));
+           }};
+     };
+
+constant inline Action<PureList<Expr>> ExponentExpr =
+     a1:caret a2:BaseExpr
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               PureList<Expr> primary = (PureList<Expr>)base;
+               if (primary.isEmpty()) {
+                   throw new ProgramError(a2,
+                                          "Exponentiation on an empty primary.");
+               } else { // !primary.isEmpty()
+                   Expr last = ((Cons<Expr>)primary).getFirst();
+                   PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
+                   Span span = FortressUtil.spanTwo(last, a2);
+                   Op op = new Op(createSpan(yyStart,yyCount), a1);
+                   return rest.cons(ASTUtil.infix(span, last, op, a2));
+               }
+           }};
+     }
+   / a1:ExponentOp
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               PureList<Expr> primary = (PureList<Expr>)base;
+               if (primary.isEmpty()) {
+                   throw new ProgramError(a1,
+                                          "Exponentiation on an empty primary.");
+               } else { // !primary.isEmpty()
+                   Expr last = ((Cons<Expr>)primary).getFirst();
+                   PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
+                   Span span = FortressUtil.spanTwo(last, a1);
+                   return rest.cons(ASTUtil.postfix(span, last, a1));
+               }
+           }};
+     };
+
+constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
+     a1:TupleExpr
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               return base.cons(a1);
+           }};
+     }
+   / openparen w closeparen
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               return base.cons(new VoidLiteral(createSpan(yyStart,yyCount)));
+           }};
+     }
+   / a1:Primary
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               return a1.append(base);
+           }};
+     };
+
+/* FlowExpr ::=
+     exit [w Id] [w with w Expr]
+   | Accumulator [w [ w GeneratorList w ]] w Expr
+   | atomic w AtomicBack
+   | tryatomic w AtomicBack
+   | spawn w Expr
+   | throw w Expr
+ */
+Expr FlowExpr =
+     exit a1:(w Id)? a2:(w with w Expr)?
+     { Option<Id> name;
+       Option<Expr> expr;
+       if (a1 == null) name = None.<Id>make();
+       else            name = Some.<Id>make(a1);
+       if (a2 == null) expr = None.<Expr>make();
+       else            expr = Some.<Expr>make(a2);
+       yyValue = new Exit(createSpan(yyStart,yyCount), name, expr);
+     }
+   / a1:Accumulator a2:(w opensquare w GeneratorList w closesquare)? w a3:Expr
+     { if (a2 == null) a2 = Collections.<Generator>emptyList();
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), a1, a2, a3);
+     }
+   / atomic w a1:AtomicBack
+     { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), a1); }
+   / tryatomic w a1:AtomicBack
+     { yyValue = new TryAtomicExpr(createSpan(yyStart,yyCount), a1); }
+   / spawn w a1:Expr
+     { yyValue = new Spawn(createSpan(yyStart,yyCount), a1); }
+   / throw w a1:Expr
+     { yyValue = new Throw(createSpan(yyStart,yyCount), a1); };
+
+/* AtomicBack ::=
+     AssignLefts w AssignOp w Expr
+   | OpExpr
+   | DelimitedExpr
+ */
+Expr AtomicBack =
+     a1:AssignLefts w a2:AssignOp w a3:Expr
+     { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
+   / yyValue:OpExpr
+   / yyValue:DelimitedExpr ;
+
+/* GeneratorList ::= Generator (w , w Generator)* */
+List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
+     { yyValue = new ArrayList<Generator>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Generator ::=
+     Id w <- w Expr
+   | ( w Id w , w IdList w ) w <- w Expr
+   | Expr
+ */
+Generator Generator =
+     a1:Id w leftarrow w a2:Expr
+     { List<Id> ids = new ArrayList<Id>();
+       ids.add(a1);
+       yyValue = new Generator(createSpan(yyStart,yyCount), ids, a2);
+     }
+   / openparen w a1:Id w comma w a2s:IdList w closeparen w leftarrow w a3:Expr
+     { List<Id> ids = new ArrayList<Id>();
+       ids.add(a1);
+       ids.addAll(a2s);
+       yyValue = new Generator(createSpan(yyStart,yyCount), ids, a3);
+     }
+   / a1:Expr
+     { yyValue = new Generator(createSpan(yyStart,yyCount),
+                               Collections.<Id>emptyList(), a1);
+     };

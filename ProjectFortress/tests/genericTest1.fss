@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component genericTest1
+export Executable
+
+f[\nat n\]():ZZ32 = n
+g[\nat n, nat m\]():ZZ32 = n+m
+
+run(args:String...):()=do
+
+  println(
+  if (f[\1\]() + g[\2,3\]() = 6) then "pass" else "fail" end
+  )
+end
+
+end

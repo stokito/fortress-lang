@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component InheritedOverload
+export Executable
+
+trait Base
+end
+
+trait Sub1 extends Base excludes {Sub2}
+end
+
+trait Sub2 extends Base excludes {Sub1}
+end
+
+trait T1
+  a(x:Sub1, y:Base):ZZ32 = 2
+end
+
+trait T2
+  a(x:Base, y:Sub2):ZZ32 = 1
+end
+
+object O() extends {T1, T2}
+end
+
+run(args:String...):()=do
+  o:O = O()
+  println("o.b()=" o.b())
+end
+
+end

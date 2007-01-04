@@ -1,0 +1,48 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress spacing including comments.
+ *
+ * Whitespace Convention in grammar productions:
+ * Every production which can be empty "owns" its leading whitespace.
+ * Exception: Modifiers own their trailing whitespace.
+ */
+module Spacing(Symbol);
+
+import Symbol;
+
+private transient void Whitespace     = Space / Newline ;
+private transient void Space          = ' ' / '\t' / '\f' / Comment ;
+private transient void Newline        = '\r' '\n' / '\r' / '\n' ;
+private transient void Comment        = "(*" (w CommentContent)* w "*)" ;
+private transient void CommentContent = Comment / ('*' !')' / !'*' _ ) ;
+
+transient void w  = wr? ;         // whitespace optional
+transient void wr = Whitespace w; // whitespace required
+
+transient void s  = sr? ;         // space optional
+transient void sr = Space s;      // space required
+
+transient void nl = s Newline w ; // required newline in whitespace
+transient void br = nl / s ";" w; // line break
+
+/* RectSeparator ::= w ;+ w /  sr / nl */
+Integer RectSeparator =
+     w a1s:semicolon+ w { yyValue = a1s.size() + 1; }
+   / sr                 { yyValue = 1; }
+   / nl                 { yyValue = 2; };

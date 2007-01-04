@@ -1,0 +1,143 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress parameters.
+ */
+module Parameter(Header, Type, Expr, Identifier, Keyword, Symbol, Spacing);
+
+import Header;
+import Type;
+import Expr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* ValParam ::= BindId | ( [w Params] w ) */
+List<Param> ValParam =
+     a1:BindId
+     { yyValue = new ArrayList<Param>();
+       yyValue.add(new Param(createSpan(yyStart,yyCount),
+                             FortressUtil.emptyModifiers(), a1));
+     }
+   / openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+       else            yyValue = a1;
+     };
+
+/* Params ::=
+     (Param w , w)* [Varargs w , w] Keyword (w , w Keyword)*
+   | (Param w , w)*  Varargs
+   |  Param (w , w Param)*
+ */
+List<Param> Params =
+     a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
+       a4s:(w comma w Keyword)*
+     { yyValue = new ArrayList<Param>();
+       yyValue.addAll(a1s.list());
+       if (a2 != null) yyValue.add(a2);
+       yyValue.add(a3);
+       yyValue.addAll(a4s.list());
+     }
+   / a1s:(Param w comma w)* a2:Varargs
+     { yyValue = new ArrayList<Param>();
+       yyValue.addAll(a1s.list());
+       yyValue.add(a2);
+     }
+   /  a1:Param a2s:(w comma w Param)*
+     { yyValue = new ArrayList<Param>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Varargs ::= Id w : w TypeRef w ... */
+Param VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
+     { TypeRef ty = new RestType(a2.getSpan(), a2);
+       yyValue = new Param(createSpan(yyStart,yyCount),
+                           FortressUtil.emptyModifiers(), a1, ty);
+     };
+Param Varargs = yyValue:VarargsParam ;
+
+/* Keyword ::= Param w = w Expr */
+Param Keyword = a1:Param w equals w a2:Expr
+     { yyValue = new Param(createSpan(yyStart,yyCount), a1.getMods(),
+                           a1.getName(), a1.getType(), Some.<Expr>make(a2));
+     };
+
+/* Param ::= BindId [w IsType] | TypeRef */
+Param PlainParam =
+     a1:BindId a2:(w IsType)?
+     { Option<TypeRef> ty;
+       if (a2 == null) ty = None.<TypeRef>make();
+       else            ty = Some.<TypeRef>make(a2);
+       yyValue = new Param(createSpan(yyStart,yyCount),
+                           FortressUtil.emptyModifiers(), a1, ty,
+                           None.<Expr>make());
+     }
+   / a1:TypeRef
+     { yyValue = new Param(createSpan(yyStart,yyCount),
+                           FortressUtil.emptyModifiers(),
+                           new Id(createSpan(yyStart,yyCount), "_"),
+                           Some.<TypeRef>make(a1), None.<Expr>make());
+     };
+Param Param = yyValue:PlainParam ;
+
+/* OpHeaderFront ::=
+     opr [w StaticParams] w (LeftEncloser | Encloser) w Params w
+     (RightEncloser | Encloser) [w := w ( w SubscriptAssignParam w ) ]
+   | opr [w StaticParams] w ValParam w Op
+   | opr w (Op | Encloser) [w StaticParams] w ValParam
+ */
+FnHeaderFront OpHeaderFront =
+     opr opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w opa3:Params w
+       opa4:(RightEncloser / Encloser) opa5:(w void:colonequals w
+       openparen w SubscriptAssignParam w closeparen)?
+     { FnName name;
+       Span span = createSpan(yyStart,yyCount);
+       String left  = opa2.getName();
+       String right = opa4.getName();
+       if (left.equals("[") && right.equals("]")) {
+           if (opa5 == null) name = new SubscriptOp(span);
+           else              name = new SubscriptAssign(span);
+       } else if (PrecedenceMap.T.matchedBrackets(left, right))
+           name = new Enclosing(span, opa2, opa4);
+       else
+           throw new ProgramError(opa2,
+                                  "Mismatched enclosing operator definition: "
+                                  + left + " and " + right);
+       if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
+       Option<Param> opparam;
+       if (opa5 == null) opparam = None.<Param>make();
+       else              opparam = Some.<Param>make(opa5);
+       yyValue = new FnHeaderFront(name, opa1, opa3, opparam);
+     }
+   / opr a1:(w StaticParams)? w a2:ValParam w a3:Op
+     { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(new PostFix(createSpan(yyStart,yyCount), a3),
+                                   a1, a2);
+     }
+   / opr w a1:(Op / Encloser) a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(new Opr(createSpan(yyStart,yyCount), a1),
+                                   a2, a3);
+     };
+
+/* SubscriptAssignParam ::= Varargs | Param */
+private Param SubscriptAssignParam =
+     yyValue:Varargs
+   / yyValue:Param ;

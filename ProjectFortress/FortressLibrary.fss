@@ -1,0 +1,1019 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component FortressLibrary
+
+export Executable
+
+(** Moved up here because of initialization order dysfunction *)
+trait HasRank excludes { Number, MaybeType }
+  rank():ZZ32
+  eq(o:HasRank):Boolean = false
+end
+
+(** Initialization order trouble again *)
+trait MaybeType excludes { Number }
+  getter isJust() : Boolean
+  eq(o:MaybeType):Boolean = false
+end
+
+pi = 3.141592653589793 (* Double whose sin is closest to 0 *)
+
+builtinPrimitive[\T\](javaClass:String):T = do
+  println("Implementation should not invoke builtinPrimitive " javaClass)
+  die
+end
+
+(** Builtin types from evaluator.Primitives.java:
+
+Here "object" really implies non-extensibility.
+
+trait  Number        extends { Any }         excludes { String, Boolean }
+trait  Integral      extends { Number }      excludes { String, Boolean, RR64, FloatLiteral }
+object ZZ32          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
+object ZZ64          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
+object RR64          extends { Number }      excludes { String, Boolean }
+object String        extends { Any }         excludes { IntLiteral, FloatLiteral, Boolean }
+object IntLiteral    extends { ZZ32, ZZ64, RR64 }
+object FloatLiteral  extends { RR64 }
+object Boolean       extends { Any }
+
+trait  Any           extends {}
+  Note that everything is considered to extend the type Any.
+
+Note also that there isn't (yet) a trait Object!  Eventually
+user-written trait and object declarations will extend Object by
+default; right now they instead extend Any by default.
+
+*)
+
+opr =(a:Any, b:Any):Boolean = false
+opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+
+(** Maybe type *)
+trait Maybe[\T\] extends MaybeType comprises { Nothing[\T\], Just[\T\] }
+  getter unJust() : T throws UnJustNothing
+end
+
+object Just[\T\](x:T) extends {Maybe[\T\]}
+  isJust() = true
+  unJust() = x
+  eq(o:Just[\T\]) = (x=o.unJust())
+end
+
+object Nothing[\T\]() extends { Maybe[\T\] }
+  isJust() = false
+  unJust() = throw UnJustNothing
+  eq(o:Nothing[\T\]) = true
+end
+
+opr =(x:MaybeType, y:MaybeType) = x.eq(y)
+
+(** Exception hierarchy *)
+
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+(* Exceptions which are not checked *)
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+(*********  Commented out until we actually make exceptions work.
+
+(* also referred to as DivideByZeroException *)
+object DivisionByZero extends UncheckedException
+end
+
+object UnpastingException extends UncheckedException
+end
+
+object CallerViolation extends UncheckedException
+end
+
+object CalleeViolation extends UncheckedException
+end
+
+object TestFailure extends UncheckedException
+end
+
+object ContractHierarchyViolation extends UncheckedException
+end
+
+object NoEqualityOnFunctions extends UncheckedException
+end
+
+object InvalidRange extends UncheckedException
+end
+
+object ForbiddenException(chain : Exception) extends UncheckedException
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NotFound extends UncheckedException
+end
+
+(* Drop "Exception" from these? *)
+object IndexOutOfBoundsException extends UncheckedException
+end
+
+object NegativeLengthException extends UncheckedException
+end
+
+object IntegerOverflowException extends UncheckedException
+end
+
+object RationalComparisonException extends UncheckedException
+end
+
+object FloatingComparisonException extends UncheckedException
+end
+
+
+*****************)
+
+(* Checked Exceptions *)
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+(**************** Commented out until we actually have exceptions.
+
+object CastException extends CheckedException
+end
+
+object IOException extends CheckedException
+end
+
+object MatchFailure extends CheckedException
+end
+
+object UnJustNothing extends CheckedException
+end
+
+(* SetsNotDisjoint? *)
+object DisjointUnionException extends CheckedException
+end
+
+object APIMissing extends CheckedException
+end
+
+object APINameCollision extends CheckedException
+end
+
+object ExportedAPIMissing extends CheckedException
+end
+
+object HiddenAPIMissing extends CheckedException
+end
+
+trait TryAtomicException extends {CheckedException}
+  comprises {AtomicAborted, AtomicConflict}
+end
+
+object AtomicAborted extends TryAtomicException
+end
+
+object AtomicConflict extends TryAtomicException
+end
+
+(* Should take a spawned thread as an argument *)
+object AtomicSpawnSynchronization extends {UncheckedException}
+end
+
+***************)
+
+(** Casting *)
+
+cast[\T\](x:Any):T =
+  typecase x of
+    T => x
+    else => throw CastException
+  end
+
+instanceOf[\T\](x:Any):Boolean =
+  typecase x of
+    T => true
+    else => false
+  end
+
+(** Useful functions *)
+
+ignore(x:Any):() = ()
+
+identity[\T\](x:T):T = x
+
+(* Should we depracate tuple and use identity instead?  Decision: no. *)
+tuple[\T\](x:T):T = x
+
+(** Boilerplate code for Array *)
+
+oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
+   println("For subscript " s " wanted " l "#" sz " but got " got);
+   die
+end
+
+opr =(a:HasRank, b:HasRank):Boolean = a.eq(b)
+
+(* Declared Rank-n-ness *)
+trait Rank[\ nat n \] extends HasRank
+  rank():ZZ32 = n
+end
+
+(* Potemkin exclusion traits.  Really we just want to say that
+ * Rank[\n\] excludes Rank[\m\] where { m =/= n }, but we can't yet. *)
+
+trait Rank1 extends { Rank[\1\]} excludes { Rank2, Rank3, Number, String }
+end
+
+trait Rank2 extends { Rank[\2\]} excludes { Rank3, Number, String }
+end
+
+trait Rank3 extends { Rank[\3\]} excludes { Number, String }
+end
+
+(* The trait Indexed_i[\n\] indicates that something has an i^th
+ * dimension of size n.  In general anything which extends Indexed_i
+ * must also extend Indexed_j for j < i. *)
+
+trait Indexed1[\ nat n \] end
+
+trait Indexed2[\ nat n \] end
+
+trait Indexed3[\ nat n \] end
+
+(* The indexed trait indicates that an object of type T can be indexed
+using type I to obtain elements with type E.  For this to really work
+the way we want for arrays, we'll need better parameterization of
+typles with tuples. *)
+
+trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
+  opr[i:I] : E
+  opr[i:I]:=(v:E) : ()
+  assign(v:T):T = fill(fn (i:I):E => v[i])
+  fill(f:I->E):T
+  fill(v:E):T = fill(fn (i:I):E => v)
+  copy():T
+  mapReduce[\R\](f:(I,E)->R, j:(R,R)->R, z:R):R
+  reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (i:I,e:E)=>e, j, z)
+end
+
+(* Canonical partitioning of a positive number x into two pieces.  If
+     (a,b) = partition(n)
+   and n > 0 then 0 < a <= b,  n = a + b.
+   As it turns out we choose a to be the largest power of 2 < n.
+*)
+partition(x:ZZ32):(ZZ32,ZZ32) = do
+  t : ZZ32 = x
+  one : ZZ32 = 1  (* Work around bug in IntLiteral conversion *)
+  u : ZZ32 = t-one
+  m : ZZ32 := u RSHIFT 1
+  m BITOR= m RSHIFT 1
+  m BITOR= m RSHIFT 2
+  m BITOR= m RSHIFT 4
+  m BITOR= m RSHIFT 8
+  m BITOR= m RSHIFT 16
+  m += 1
+  (m,x-m)
+end
+
+(* The reduction classes allow us to define systematic
+recursively-decomposed computations in the absence of a real Generator
+hierarchy.  The simplest instance of a reduction defines three functions:
+  empty -- What to do if we reach an empty portion of a structure
+  join  -- How to combine two pieces of a structure if we don't care which dimension it was split in.
+  leaf  -- What to do to a single element, given its index.  Obviously the index will depend upon on the dimensionality of the underlying structure.
+
+Every reduction provides dimension-specific join methods and a run()
+method which runs the reduction.  *)
+
+trait ReductionBase[\T\]
+  empty():T
+  join(a:T,b:T):T
+end
+
+trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
+  leaf(i:ZZ32):T
+  run() =
+    if s=0 then empty() else
+        runInnerLoop(b:ZZ32,n:ZZ32) =
+          if n=1 then leaf(b)
+          else
+            (n0,n1) = partition(n)
+            join(runInnerLoop(b,n0),runInnerLoop(b+n0,n1))
+          end
+        runInnerLoop(0,s)
+    end
+end
+
+(* A void-like object to work around inability to parse
+parameterization with () *)
+object _V end
+
+trait Array1[\T, nat b0, nat s0\]
+    extends { Indexed1 [\s0\], Rank1, Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
+    excludes {Number, String}
+
+  (* Get and put come from implementation.  They are always 0-indexed
+     and unchecked. *)
+  get(i:ZZ32):T
+  put(v:T, i:ZZ32)
+
+  size():ZZ32 = s0
+  base():ZZ32 = b0
+  indices():ZZ32Range = b0#s0
+
+  (* Offset converts from b0 indexing to 0 indexing,
+     bounds checking en route *)
+  offset(i:ZZ32):ZZ32 = do
+    r = i - b0
+    if r >= s0 OR r < 0 then oops(1, b0, s0, i) end
+    r
+  end
+
+  opr[i:ZZ32] : T = get(offset(i))
+  opr[i:ZZ32]:=(v:T) : () = put(v, offset(i))
+
+  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
+
+  (* the replica method returns a replica of the array (similar layout
+     etc.) but with a different element type. *)
+  replica[\U\]():Array1[\U,b0,s0\] = _DefaultArray1[\U,b0,s0\]()
+  (*
+  replica[\U\](v:U):Array1[\U,b0,s0\] = replica[\U\]().fill(v)
+  replica[\U\](f:(ZZ32)->T):Array1[\U,b0,s0\] = replica[\U\]().fill(f)
+  *)
+
+  fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
+    (object extends Reduction1[\_V,s0\]
+       empty()= _V
+       join(a:_V,b:_V):_V = _V
+       leaf(a:ZZ32):_V = do put(f(a+b0),a); _V end
+     end).run()
+    self
+  end
+
+  copy():Array1[\T,b0,s0\] = self.replica[\T\]().assign(self)
+
+  mapReduce[\R\](f:(ZZ32,T)->R, j:(R,R)->R, z:R):R =
+    (object extends Reduction1[\R,s0\]
+       empty() = z
+       join(a:R,b:R):R = j(a,b)
+       leaf(i:ZZ32):R = f(i+b0,get(i))
+     end).run()
+
+  eq(o:Array1[\T,b0,s0\]):Boolean =
+    (object extends Reduction1[\Boolean,s0\]
+       empty():Boolean = true
+       join(a:Boolean,b:Boolean):Boolean = a AND b
+       leaf(i:ZZ32):Boolean = (get(i) = o.get(i))
+     end).run()
+end
+
+(* A 1-D subarray, defined wrt underlying FlatStorage.
+   l0 is the underlying size, m0 the stride, and o0 the starting
+   offset in the underlying FlatStorage.
+   Invariant: (s0-1) m0 + o0 < l0 *)
+object _SubArray1[\T, nat b0, nat s0, nat l0\]
+       (mem:FlatStorageMaker[\T,l0\], o0:ZZ32, m0:ZZ32)
+       extends Array1[\T, b0, s0\]
+    index(i:ZZ32):T = i m0 + o0
+    get(i:ZZ32):T = mem.get(index(i))
+    put(v:T, i:ZZ32):T = mem.put(index(i))
+    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+      o_n : ZZ32 = o - b0
+      if s + o_n > s0 then
+          println("_SubArray1: subarray exceeds bounds of underlying array.")
+          die
+      end
+      o_f : ZZ32 = o_n m0 + o0
+      _SubArray1[\T,b,s,l0\](mem,o_f,m0)
+    end
+end
+
+object _DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
+  mem:FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
+  get(i:ZZ32):T = mem.get(i)
+  put(v:T, i:ZZ32) = mem.put(v,i)
+  replica[\U\]() = _DefaultArray1[\U,b0,s0\]()
+  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+    o0 : ZZ32 = o - b0
+    if s + o0 > s0 then
+        println("_DefaultArray1: subarray exceeds bounds of underlying array.")
+        die
+    end
+    _SubArray1[\T,b,s,s0\](mem,o0,1)
+  end
+end
+
+(* builtinFactory1 must be a non-overloaded 0-parameter factory for
+   0-indexed 1-D arrays.  The type parameters are enshrined in
+   LHSEvaluator.java and NonPrimitive.java; the factory name is
+   enshrined in WellKnownNames.java.  There must be some factory,
+   named in this file, with this type signature.  A similar thing is
+   true for K-dimensional array types. *)
+_builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
+    _DefaultArray1[\T,b0,s0\]()
+
+array1[\T, nat s0\]():Array1[\T,0,s0\] = _builtinFactory1[\T,0,s0\]()
+array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
+array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
+
+(* vector is the same as array1, but specialized to numeric type arguments *)
+vector[\T extends Number, nat s0\]():Array1[\T,0,s0\] = array1[\T,s0\]()
+vector[\T extends Number, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\](v)
+vector[\T extends Number, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\](f)
+
+(* For the moment we cannot define a distinct Vector subclass of
+Array1, because there's no way to build a usable factory which
+distinguishes the array type at run time and constructs an instance of
+the appropriate subclass (ordinary array or vector).  What we *really*
+want is conditional extension, so that *every* Array1 whose element
+type is a Number is treated as a vector, and there's a set of Array1
+methods which are defined iff T extends Number.  *)
+
+opr +[\ T extends Number, nat n, nat m \]
+     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):Array1[\T,0,n\] =
+  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) + other.get(i))
+
+opr -[\ T extends Number, nat n, nat m \]
+     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):Array1[\T,0,n\] =
+  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) - other.get(i))
+
+opr -[\ T extends Number, nat n, nat m \]
+     (me : Array1[\T,0,n\]):Array1[\T,0,n\] =
+  me.replica[\T\]().fill(fn (i:ZZ32):T => - me.get(i))
+
+pmul[\ T extends Number, nat k \]
+    (a : Array1[\T,0,k\], b : Array1[\T,0,k\]):Array1[\T,0,k\] =
+  a.replica[\T\]().fill(fn (i:ZZ32):T => a.get(i) b.get(i))
+
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):T =
+  me.mapReduce[\T\](fn (i:ZZ32, me_i:T):T => me_i other.get(i),fn (x,y)=>x+y,0)
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):T = me DOT other
+
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (me : Array1[\T,0,n\], other : T) : Array1[\T,0,n\] =
+  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) other)
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (me : Array1[\T,0,n\], other : T) : Array1[\T,0,n\] = me DOT other
+
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+        (other : T, me : Array1[\T,0,n\]) : Array1[\T,0,n\] =
+  me.replica[\T\]().fill(fn (i:ZZ32):T => other me.get(i))
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (other : T, me : Array1[\T,0,n\]) : Array1[\T,0,n\] = other DOT me
+
+squaredNorm[\T extends Number, nat s0\](a:Array1[\T,0,s0\]):T = a DOT a
+
+opr [\ T extends Number, nat k \]
+    ||me : Array1[\T,0,k\]|| : RR64 = sqrt(squaredNorm(me))
+
+(* Column-major reduction in 2 dimensions *)
+trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
+  join(l:T,r:T):T = join0(l,r)
+  join0(l:T,r:T):T = join(l,r)
+  join1(l:T,r:T):T = join(l,r)
+  empty():T
+  leaf(a:ZZ32,b:ZZ32):T
+  run():T =
+    if s0=/=0 AND s1=/=0 then
+      rr(a0:ZZ32,sz0:ZZ32,a1:ZZ32,sz1:ZZ32):T =
+        if sz1 >= sz0 then
+          if sz1 = 1 then
+            leaf(a0,a1)
+          else
+            (sz_l,sz_r) = partition(sz1)
+            join1(rr(a0,sz0,a1,sz_l),rr(a0,sz0,a1+sz_l,sz_r))
+          end
+        else
+            (sz_t,sz_b) = partition(sz0)
+            join0(rr(a0,sz_t,a1,sz1),rr(a0+sz_t,sz_b,a1,sz1))
+        end
+      rr(0,s0,0,s1)
+    else
+      empty()
+    end
+end
+
+trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
+    extends { Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank2 (* ,
+              Indexed[\Array2[\T,b0,s0,b1,s1\],T, (ZZ32,ZZ32)\] *) }
+    excludes { Number, String }
+  (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
+  offset(a0:ZZ32,a1:ZZ32):(ZZ32,ZZ32) = do
+    c0 = a0 - b0
+    c1 = a1 - b1
+    if c0 < 0 OR c0 >= s0 OR c1 < 0 OR c1 >= s1 then
+      if c0 < 0 OR c0 >= s0 then
+        oops(1,b0,s0,a0)
+      else
+        oops(2,b1,s1,a1)
+      end
+    end
+    (c0,c1)
+  end
+  opr[x:ZZ32,y:ZZ32] : T = self.get(offset(x,y))
+  opr[x:ZZ32,y:ZZ32]:=(v:T) : () = do
+    (i,j) = offset(x,y)
+    self.put(v,i,j)
+  end
+  fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
+    (object extends Reduction2[\_V,s0,s1\]
+       join(l:_V,r:_V):_V = _V
+       empty():_V = _V
+       leaf(a0:ZZ32,a1:ZZ32) = do put(f(a0+b0,a1+b1),a0,a1); _V end
+     end).run()
+    self
+  end
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\]
+  copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
+  mapReduce[\R\](f:(ZZ32,ZZ32,T)->R, j:(R,R)->R, z:R):R =
+    (object extends Reduction2[\R,s0,s1\]
+       join(l:R,r:R):R = j(l,r)
+       empty() = z
+       leaf(a0:ZZ32,a1:ZZ32):R = f(a0+b0,a1+b1,get(a0,a1))
+     end).run()
+  put(v:T, i:ZZ32, j:ZZ32) : ()
+  get(i:ZZ32, j:ZZ32):T
+  t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
+  (* Copied here from Indexed. *)
+  assign(v:Array2[\T,b0,s0,b1,s1\]):Array2[\T,b0,s0,b1,s1\] =
+    fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
+  fill(v:T):Array2[\T,b0,s0,b1,s1\] = fill(fn (i:ZZ32,j:ZZ32):T => v)
+  reduce(j:(T,T)->T, z:T):T = mapReduce[\T\](fn (i:ZZ32,j:ZZ32,e:T)=>e, j, z)
+  eq(o:Array2[\T,b0,s0,b1,s1\]):Boolean =
+    (object extends Reduction2[\Boolean,s0,s1\]
+       empty():Boolean = true
+       join(a:Boolean,b:Boolean):Boolean = a AND b
+       leaf(i:ZZ32,j:ZZ32):Boolean = (get(i,j) = o.get(i,j))
+     end).run()
+end
+
+(* Default array is column-major, but we could switch it. *)
+object _DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
+    extends Array2[\T, b0, s0, b1, s1\]
+  mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
+
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = _DefaultArray2[\U,b0,s0,b1,s1\]()
+
+  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
+  get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
+end
+
+object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
+                       (mem:Array2[\T,b1,s1,b0,s0\])
+    extends Array2[\T, b0, s0, b1, s1\]
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
+      TransposedArray2[\U,b0,s0,b1,s1\](mem.replica[\U\]())
+
+  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
+  get(i:ZZ32, j:ZZ32):T = mem.get(j,i)
+  t() = mem
+end
+
+_builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
+  _DefaultArray2[\T,b0,s0,b1,s1\]()
+
+(* array2 is a factory for 0-based 2-D arrays. *)
+array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
+  _builtinFactory2[\T,0,s0,0,s1\]()
+array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
+  array2[\T,s0,s1\]().fill(v)
+array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
+  array2[\T,s0,s1\]().fill(f)
+
+(* matrix is the same as array1, but specialized to numeric type
+   arguments, except that the default value (if given) is used to
+   construct a multiple of the identity matrix. *)
+matrix[\T extends Number, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
+  _DefaultArray2[\T,0,s0,0,s1\]()
+matrix[\T extends Number, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
+  array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
+
+opr +[\ T extends Number, nat n, nat m \](
+          me:Array2[\T,0,n,0,m\], other:Array2[\T,0,n,0,m\])
+          : Array2[\T,0,n,0,m\] =
+    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => me[i,j] + other[i,j])
+
+opr -[\ T extends Number, nat n, nat m \](
+          me:Array2[\T,0,n,0,m\], other:Array2[\T,0,n,0,m\])
+          : Array2[\T,0,n,0,m\] =
+    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => me[i,j] - other[i,j])
+
+opr -[\ T extends Number, nat n, nat m \](
+          me:Array2[\T,0,n,0,m\])
+          : Array2[\T,0,n,0,m\] =
+    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => - me[i,j])
+
+(* Matrix multiplication; used to use a cache-oblivious algorithm, but
+   we ran into trouble due to lack of support for atomic increment of
+   matrix elements. *)
+opr DOT[\ T extends Number, nat n, nat m, nat p\](
+        me:Array2[\T,0,n,0,m\], other:Array2[\T,0,m,0,p\])
+        : Array2[\T,0,n,0,p\] = do
+  res = matrix[\T,n,p\]()
+  mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+      if k>=i AND k>=j then
+        if k=1 then
+          pr : T = me.get(a,b) other.get(b,c)
+          (* If this were atomic, we could parallelize j-partition. *)
+          res.put(res.get(a,c) + pr, a, c)
+        else
+          (k0,k1) = partition(k)
+          (mma(a,i,b,j,c,k0),mma(a,i,b,j,c+k0,k1))
+        end
+      elif j>=i then
+          (j0,j1) = partition(j)
+          mma(a,i,b,j0,c,k)
+          mma(a,i,b+j0,j1,c,k)
+      else
+          (i0,i1) = partition(i)
+          (mma(a,i0,b,j,c,k),mma(a+i0,i1,b,j,c,k))
+      end
+  mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+      if k>=i AND k>=j then
+        if k=1 then
+          res.put(me.get(a,b) other.get(b,c), a, c)
+        else
+          (k0,k1) = partition(k)
+          (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
+        end
+      elif j>=i then
+          (j0,j1) = partition(j)
+          mm(a,i,b,j0,c,k)
+          mma(a,i,b+j0,j1,c,k)
+      else
+          (i0,i1) = partition(i)
+          (mm(a,i0,b,j,c,k),mm(a+i0,i1,b,j,c,k))
+      end
+  if n=0 OR m=0 OR p=0 then
+    res
+  else
+    mm(0,n,0,m,0,p)
+    res
+  end
+end
+
+opr *[\ T extends Number, nat n, nat m, nat p\]
+     (me:Array2[\T,0,n,0,m\], other:Array2[\T,0,m,0,p\]) : Array2[\T,0,n,0,p\] =
+  me DOT other
+
+
+(* matrix-vector multiplication *)
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (me:Array2[\T,0,n,0,m\], v:Array1[\T,0,m\]):Array1[\T,0,n\] = do
+  row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => me[i,j] v_j,
+                                   fn (a,b)=> a+b, 0)
+  vector[\T,n\]().fill(row)
+end
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (me:Array2[\T,0,n,0,m\], v:Array1[\T,0,m\]):Array1[\T,0,n\] = me DOT v
+
+(* vector-matrix multiplication *)
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (v:Array1[\T,0,n\], me:Array2[\T,0,n,0,m\]):Array1[\T,0,m\] = do
+  col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j me[j,i],
+                                   fn (a,b)=> a+b, 0)
+  vector[\T,m\]().fill(col)
+end
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (v:Array1[\T,0,n\], me:Array2[\T,0,n,0,m\]):Array1[\T,0,m\] = v DOT me
+
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (me : Array2[\T,0,n,0,m\], other : T) : Array2[\T,0,n,0,m\] =
+  me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => me[i,j] other)
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (me : Array2[\T,0,n,0,m\], other : T) : Array2[\T,0,n,0,m\] =
+  me DOT other
+
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (other : T, me : Array2[\T,0,n,0,m\]) : Array2[\T,0,n,0,m\] =
+  me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => other me[i,j])
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (other : T, me : Array2[\T,0,n,0,m\]) : Array2[\T,0,n,0,m\] =
+  other DOT me
+
+trait Reduction3[\R,nat s0,nat s1,nat s2\] extends ReductionBase[\R\]
+  join(l:R,r:R):R = join0(l,r)
+  join0(l:R,r:R):R = join(l,r)
+  join1(l:R,r:R):R = join(l,r)
+  join2(l:R,r:R):R = join(l,r)
+  leaf(a0:ZZ32,a1:ZZ32,z2:ZZ32):R
+  run() =
+    if s0=0 OR s1=0 OR s2=0 then
+      empty()
+    else
+      rr(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+        if k>=i AND k>=j then
+          if k=1 then
+            leaf(a+b0,b+b1,c+b2)
+          else
+            (k0,k1) = partition(k)
+            join(rr(a,i,b,j,c,k0),rr(a,i,b,j,c+k0,k1))
+          end
+        elif j>=i then
+            (j0,j1) = partition(j)
+            join(rr(a,i,b,j0,c,k),rr(a,i,b+j0,j1,c,k))
+        else
+            (i0,i1) = partition(i)
+            join(rr(a,i0,b,j,c,k),rr(a+i0,i1,b,j,c,k))
+        end
+      rr(0,s0,0,s1,0,s2)
+    end
+end
+
+
+trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
+  extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3}
+  excludes { Number, String }
+
+  (* Again, offset performs bounds checking and shifts to 0 indexing. *)
+  offset(a0:ZZ32,a1:ZZ32,a2:ZZ32):(ZZ32,ZZ32,ZZ32) = do
+    c0 = a0 - b0; c1 = a1 - b1; c2 = a2 - b2
+    if c0 >= s0 OR c0 < 0 then oops(1, b0, s0, a0); end
+    if c1 >= s1 OR c1 < 0 then oops(2, b1, s1, a1); end
+    if c2 >= s2 OR c2 < 0 then oops(3, b2, s2, a2); end
+    (c0,c1,c2)
+  end
+
+  (* And get and put are 0-indexed without bounds checks. *)
+  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : ()
+  get(i:ZZ32, j:ZZ32, k:ZZ32) : T
+
+  opr[i:ZZ32, j:ZZ32, k:ZZ32] : T = self.get(offset(i,j,k))
+  opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do
+    (a,b,c) = offset(i,j,k)
+    self.put(v,i,j,k)
+  end
+
+  fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
+    (object extends Reduction3[\_V,s0,s1,s2\]
+       empty():_V = _V
+       join(l:_V,r:_V):_V = _V
+       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):_V = do
+         put(a0,a1,a2,f(a0+b0,a1+b1,a2+b2))
+         _V
+       end
+     end).run()
+    self
+  end
+  replica[\U\]():Array3[\T,b0,s0,b1,s1,b2,s2\]
+  copy():Array3[\T,b0,s0,b1,s1,b2,s2\] = self.replica[\T\]().assign(self)
+  mapReduce[\R\](f:(ZZ32,ZZ32,ZZ32,T)->R, j:(R,R)->R, z:R):R =
+    (object extends Reduction3[\R,s0,s1,s2\]
+       empty():R = z
+       join(l:R, r:R):R = j(l,r)
+       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):R = f(a0+b0,a1+b1,a2+b2,get(a0,a1,a2))
+     end).run()
+  (* Copied here from Indexed. *)
+  assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) = fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
+  fill(v:T):T = fill(fn (i:ZZ32,j:ZZ32):T => v)
+  reduce(j:(T,T)->T, z:T):T = mapReduce[\T\](fn (i:ZZ32,j:ZZ32,e:T)=>e, j, z)
+  eq(o:Array3[\T,b0,s0,b1,s1,b2,s2\]):Boolean =
+    (object extends Reduction3[\Boolean,s0,s1,s2\]
+       empty() = true
+       join(a,b) = a AND b
+       leaf(i:ZZ32,j:ZZ32,k:ZZ32):R = (get(i,j,k) = o.get(i,j,k))
+     end).run()
+end
+
+object _DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
+                                        Array3[\T, b0, s0, b1, s1, b2, s2\]
+  mem:FlatStorageMaker[\T,(s0 (s1 s2))\] = FlatStorageMaker[\T,(s0 (s1 s2))\]()
+
+  ofs = s1 s2
+
+  replica():Array3[\T,b0,s0,b1,s1,b2,s2\] =
+      _DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : () = mem.put(v, i ofs + j s2 + k)
+  get(i:ZZ32, j:ZZ32, k:ZZ32) : T = mem.get(i ofs + j s2 + k)
+end
+
+_builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
+        Array3[\T,b0,s0,b1,s1,b2,s2\] =
+  _DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+
+array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\] =
+  _builtinFactory3[\T,0,s0,0,s1,0,s2\]
+
+(************************************************************
+ * Some range operators
+ ************************************************************)
+
+(*
+opr :(l:ZZ32, u:ZZ32):ZZ32Range = l # (u-l+1)
+*)
+
+
+(*************
+
+trait Monoid[\ T, opr OPLUS \]
+  where { T extends Monoid[\ T, OPLUS \] }
+    zero() : T
+    opr OPLUS(self, other:T):T
+end
+
+(* Ordinarily a Generator will define the generate method.
+   To generate an element, invoke m.  To generate an empty,
+   invoke r.zero().  To join two generated pieces a and b, invoke
+   r.join(a,b) *)
+trait Generator[\ E \]
+  getter size() : ZZ64
+  generate[\ R extends Monoid[\ R, OPLUS \], opr OPLUS \]
+          (bogus : R, body : E -> R):R
+  (* Requires SimplePairGenerator, which instantiates Monoid.
+     Blocked on bug fix for opr parameter instantiation in extends.
+  join[\ N \](other : Generator[\ N \]) : Generator[\ (E, N) \] =
+    SimplePairGenerator[\ E, N \](self, other)
+  *)
+end
+
+
+(*
+object SimplePairGenerator[\ A, B \]
+        (outer : Generator[\ A \], inner : Generator[\ B \])
+        extends Generator[\ (A, B) \]
+  generate[\ R extends Monoid[\ R, OPLUS, z \], opr OPLUS, ident z \]
+          (bogus : R, body : E -> R):R =
+    outer.generate(bogus,
+                   (fn (a : A) => inner.generate(bogus,
+                                                 (fn (b : B) => body (a,b)))))
+  join[\ N \](other : Generator[\ N \]) : Generator[\ ((A,B), N) \] =
+    SimpleMapGenerator(outer.join(inner.join(other)),
+                       (fn (a,(b,n)) => ((a,b),n)))
+end
+
+trait SimpleMapGenerator[\ A, B \]
+        (g : Generator[\ A \], f : A -> B)
+        extends Generator[\ B \]
+  generate[\ R extends Monoid[\ R, OPLUS, z \], opr OPLUS, ident z \]
+          (bogus : R, body : E -> R):R =
+    g.generate(bogus, (fn a => body(f(b))))
+  join[\ N \](other : Generator[\ N \]) : Generator[\ (B, N) \] =
+    SimpleMapGenerator(g.join(other), (fn (a,n) => (f(a),n)))
+end
+*)
+
+*************)
+
+(** NUMERIC primitives, down here to avoid ordering hosure. *)
+opr [\ N extends Number \]|x:N| = if x>=0 then x else -x end
+
+opr -[\ T extends Number, nat n, nat m \]
+     (a:IntLiteral):IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LNegate")
+
+opr -[\ T extends Number, nat n, nat m \]
+     (a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
+opr +[\ T extends Number, nat n, nat m \]
+     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
+opr -[\ T extends Number, nat n, nat m \]
+     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
+opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
+opr MOD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mod")
+opr GCD(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Gcd")
+opr LCM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Lcm")
+opr CHOOSE(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Choose")
+opr BITAND(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitAnd")
+opr BITOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitOr")
+opr BITXOR(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitXor")
+opr LSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LShift")
+opr RSHIFT(a:ZZ32,b:Integral):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RShift")
+opr BITNOT(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitNot")
+opr =(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
+opr <=(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LessEq")
+opr MIN(a:ZZ32, b:ZZ32):ZZ32 = if a <= b then a else b end
+opr MAX(a:ZZ32, b:ZZ32):ZZ32 = if b <= a then a else b end
+(* opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow") *)
+widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
+opr #(a:ZZ32, b:ZZ32):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$MkRange")
+rangeBase(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RangeBase")
+rangeSize(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RangeSize")
+elementOf(a:ZZ32, b:ZZ32Range):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ElementOf")
+seq(a:ZZ32Range):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sequential")
+sequential(a:ZZ32Range):ZZ32Range = seq(a)
+
+opr -[\ T extends Number, nat n, nat m \]
+     (a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
+opr +[\ T extends Number, nat n, nat m \]
+     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
+opr -[\ T extends Number, nat n, nat m \]
+     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+opr DIV(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
+opr REM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
+opr MOD(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
+opr GCD(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
+opr LCM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
+opr CHOOSE(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
+opr BITAND(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
+opr BITOR(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
+opr BITXOR(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
+opr LSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
+opr RSHIFT(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
+opr BITNOT(a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
+opr =(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
+opr <=(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LessEq")
+opr MIN(a:Integral, b:Integral):ZZ64 = if a <= b then a else b end
+opr MAX(a:Integral, b:Integral):ZZ64 = if b <= a then a else b end
+(* opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow") *)
+narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$FromLong")
+
+opr   <(a:Integral, b:Integral):Boolean = NOT (b <= a)
+opr   >(a:Integral, b:Integral):Boolean = NOT (a <= b)
+opr  >=(a:Integral, b:Integral):Boolean = b <= a
+
+opr -[\ T extends Number, nat n, nat m \]
+     (a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
+opr +[\ T extends Number, nat n, nat m \]
+     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
+opr -[\ T extends Number, nat n, nat m \]
+     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+opr /(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
+opr =(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
+opr =/=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NEq")
+opr <(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Less")
+opr <=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$LessEq")
+opr >(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Greater")
+opr >=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
+opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
+opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
+opr [\N extends Number\]|a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+(* opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow") *)
+sqrt(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
+sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
+cos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
+tan(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
+asin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ASin")
+acos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ACos")
+atan(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan")
+atan2(y:Number,x:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan2")
+floor(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
+opr |\a:Number/|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
+ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
+opr |/a:Number\|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
+truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
+random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
+opr [\N extends Number\]|x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:Any, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Any):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr =(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Eq")
+opr <(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Less")
+opr <=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$LessEq")
+opr >(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Greater")
+opr >=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GreaterEq")
+
+print(a(*:Any*)):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+println(a(*:Any*)):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+
+opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr NOT(a:Boolean):Boolean = if a then false else true end
+opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
+
+opr DOT[\T extends Number, nat n, nat m, nat p\](me:ZZ32,other:ZZ32):ZZ32 =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (x:Integral, y:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+       (x:Number, y:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+
+opr +[\ T extends Number, nat n, nat m \](x:T) = x
+
+infinity = 1.0 / 0.0
+
+end

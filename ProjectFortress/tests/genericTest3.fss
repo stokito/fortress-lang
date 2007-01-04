@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component genericTest3
+export Executable
+
+(* Tests that differently instantiated generics match different overloads *)
+
+g[\T\](x:T, y:T):T=do
+  aGc += 1
+  x y;
+  end
+
+var aGc:ZZ32 = 0
+var aZc:ZZ32 = 0
+var aSc:ZZ32 = 0
+
+a(f:(ZZ32, ZZ32)->ZZ32):RR64=do
+  println("a ZZ32 called")
+  aZc := 1;
+  0.0 + f(1,2)
+end
+
+a(f:(String, String)->String):RR64=do
+  println("a " f("String ", "called"));
+  aSc := 1;
+  7.0
+end
+
+t(b:Boolean) = println (if b then "pass" else "fail" end)
+
+run(args:String...):()=do
+
+  t( a(g[\ZZ32\]) = 2 )
+  a(g[\String\])
+  t( (aSc = 1) )
+  t( (aZc = 1) )
+  t( (aGc = 2) )
+
+end
+
+end

@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.primOverloadTest
+export Executable
+
+opr -[\ T extends Number, nat n, nat m \]
+     (x:String, y:ZZ32):() = do
+  for i <- 1#y do
+    println(x)
+  end
+end
+
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (x:Array1[\ZZ32, 0, 3\], y:String) = x[0] y x[1] y x[2]
+
+run(args:String...):()= do
+  "cat"-7
+  x:ZZ32[3] = [4 5 6]
+  y:String = "-"
+  println( x[0] )
+  println( x (y) )
+  println( x[1] )
+  println( x y )
+  end
+end

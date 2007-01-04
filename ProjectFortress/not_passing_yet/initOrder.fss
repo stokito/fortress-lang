@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component initOrder
+export Executable
+
+(* Attempt to reproduce a bizarre bug with initialization order of
+classes and operators, which results in "get of unset extends" in
+FTraitOrObject. *)
+
+(* Everything must extend this trait, or the bug will disappear. *)
+trait S
+end
+
+(* Moving this definition down past the definition of object V
+   causes the bug to disappear. *)
+f(a:ZZ32, b:ZZ32):ZZ32 = a
+
+(* Changing *both* of these to object declarations causes the bug to
+   disapper. *)
+trait M extends { S }
+end
+
+trait V extends { S }
+end
+
+(* Moving these definitions around doesn't seem to make any difference
+   at all. *)
+f(me:M, other:M):M = me
+f(other : RR64, me : V) : V = me
+
+run(args:String...) = println(f(13,14))
+
+end

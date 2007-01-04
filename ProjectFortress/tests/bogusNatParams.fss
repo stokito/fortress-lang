@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Tree
+export Executable
+
+(** Most of the code in this test now incorporated into the libraries. *)
+
+run(args:String...):() = do
+  a1 : RR64[3] = [ 1.00 2.00 3.00 ]
+  a2 : RR64[3] = [ 100 200 300 ]
+  v3 = a1 + a2
+end
+
+end

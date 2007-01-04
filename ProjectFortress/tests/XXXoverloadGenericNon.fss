@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.executable
+
+export Executable
+
+(* similar to wrapZZ, but tests overloading of built-in operators,
+   which are currently represented as top-level functions rather than
+   as functional methods. *)
+
+object WrapZZ(n : ZZ32)
+end
+
+opr +(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n + o.n)
+opr *(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n * o.n)
+
+run(args:String...):() = do
+  x : WrapZZ = WrapZZ(5)
+  y : WrapZZ = WrapZZ(7)
+  z = x * y
+  w = x + y
+  print("z = " z.n "\nw = " w.n "\n")
+  if z.n =/= 35 OR w.n =/= 12 then
+    print("FAIL: EXPECTED 35 and 12\n")
+  end
+end
+
+end

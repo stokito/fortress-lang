@@ -1,0 +1,729 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component examples
+export Executable
+
+  astring = "cat"
+
+  trait T[\X\] end
+
+  half = 0.5
+  (*
+  half = 0.5_10
+  half = 0.8_16
+  half = 0.8_SIXTEEN
+  half = 0.80000000000000000000000000000000000000000000000000000000_SIXTEEN
+  third = 0.1_3
+  *)
+  zero = 0.0
+  (*
+  zero = 0.00000000000000000000000000000000000000000000000000000000_TWO
+  huge = 10000000000000000000000000000000000000000000000000000000000000.1_16
+  *)
+
+  (* Examples taken from 0.707 spec *)
+  (* updated to 1647, 2005-10-17 *)
+
+  (* SPEC BUG - No more {Ty} page 17 *)
+  SixElementSet  : Set[\Integer\]  = {0, 1, 2, 3, 4, 5}
+
+  (* page 17, 144 *)
+  AMap  :{Integer |-> Character}  = {0 |-> 'a', 1 |-> 'b', 2 |-> 'c'}
+  AMap   = {0 |-> 'a', 1 |-> 'b', 2 |-> 'c'}
+  AMap   = {0 MAPSTO 'a', 1 MAPSTO 'b', 2 MAPSTO 'c'}
+
+  (* page 17, 129 *)
+  AList = <| 1, 2, 3 |>
+  AnElement = Alist <| 2 |>
+
+  (* page 18 *)
+  M1 = [ 3 4
+         5 6 ]
+  M2 = [ 3 4 ;
+         5 6 ]
+  M3 = [ 3 4
+
+       ; 5 6 ]
+
+  M4 = [ 3 4 ; 5 6 ]
+
+  (* page 19 *)
+
+  IfExpr = if x IN {0, 1, 2} then 0
+           elif x IN  {3, 4, 5} then 3
+           else 6 end
+
+  IfExpr2 = if x IN {0, 1, 2} then 0 ; 1
+           elif x IN  {3, 4, 5} then 3 ; 4
+           else 6; 7 end
+
+  IfExpr3 = if x IN {0, 1, 2} then 0 ; 1
+            else 6; 7 end
+
+  IfExpr4 = if x IN {0, 1, 2} then 0 ; 1 end
+
+  (* page 20 *)
+
+  ForExpr() = for v_1 <- g_1,
+                  v_2 <- g_2 do
+                  exprs
+              end
+
+  (* page 22 *)
+   ABinding() = do
+        (x, y, z): (Int, Int, Int) = (0, 1, 2)
+        (x:Int, y:Int, z:Int) = (0, 1, 2)
+        (x, y, z): Int... = (0, 1, 2)
+    42
+  end
+
+  Squares = { x^2 | x <- {0,1,2,3,4,5}, x MOD 2 = 0 }
+
+
+  a = [ (x,y,1) |-> 0.0 | x  <- 1#xSize, y <- 1#ySize
+        (1,y,z) |-> 0.0 | y  <- 1#ySize, z <- 2#zSize
+        (x,1,z) |-> 0.0 | x  <- 2#xSize, z <- 2#zSize
+        (x,y,z) |-> x+y*z | x <- 2#xSize, y <- 2#ySize, z <- 2#zSize ]
+
+ (* page 23 *)
+
+  swap(x:Any, y:Any):(Any, Any) = (y, x)
+  swap(x:Any, y:Any) = (y, x)
+  swap(x, y) = (y, x)
+
+  (* page 23 *)
+  (* this is the new aggregate syntax *)
+  wrap(xs, ys = xs) = [xs ys]
+
+  asArray(xs:Object...) = xs
+
+  (* page 25 *)
+  x = sqrt(x) +
+      atan(y, x) +
+      makeColor(red=5, green=3, blue=43) +
+      processString(s, start=5, fin=43)
+
+   a = sqrt 2
+   b = sin x
+   c = log log n
+
+   (* page 24 *)
+   BracketsIndicateSubscripts() : () = do
+   (-b + sqrt(bˆ2 - 4 a c)) / 2 a
+   nˆn eˆ(-n) sqrt(2 pi n)
+   a[k] b[n-k]
+   x[1] y[2] - x[2] y[1]
+   1/2 g tˆ2
+   n(n+1)/2
+   (j+k)!/(j! k!)
+   1/3 3/5 5/7 7/9 9/11
+   17.3 meter/second
+   17.3 m_/s_
+   u DOT (v CROSS w)
+   (A UNION B) INTERSECT C
+   i < j <= k AND p PREC q
+   print("The answers are " (p+q) " and " (p-q))
+
+   end
+
+   (* pages 26-27 *)
+
+opr <| x:Num  |>: Num = xˆ2
+opr <| x:Num, y:Num|>: Num = xˆ2 + yˆ2
+opr <| x:Num, y:Num, z:Num|>: Num = xˆ2 + yˆ2 + zˆ2
+(* SPEC BUG - use <- not IN *)
+opr <|x:Num...|>: Num = SUM[a <- x] aˆ2
+(*skrow siht fo enon *)
+
+a = <|3|>
+b = <|3, 4|>
+c = <|2, 3, 4|>
+
+opr AND(x:BoolOperators, y:BoolOperators) = x.and(y)
+opr OR (x:BoolOperators, y:BoolOperators) = x.or_(y)
+opr XOR(x:BoolOperators, y:BoolOperators) = x.xor(y)
+opr NOT(x:BoolOperators) = x.not()
+
+
+(* pages 27-28 *)
+Assignments() = do
+x := f(0)
+c[i,j] := c[i,j] + a[i,k] b[k,j]
+(a, b, c) := (b, c, a) (* Permute a, b, and c *)
+(q:Int, r:Int) := quotientAndRemainder(x, y) (* Bind q and r *)
+var s:Int
+(q, s) := quotientAndRemainder(x, y) (* Assign q but bind s *)
+x += 1
+(x, y) += (delta_x, delta_y)
+myBag = myBag UNION newItems
+myBag UNION= newItems
+end
+
+f(x:R64) = do
+  (sin(x) + 1)^2
+end
+foo(x:R64) = do
+  y = x
+  z = 2 x
+  y + z
+end
+mySum(i:Z64):Z64 = do
+  acc:Int := 0
+  for j <- 0#i do
+    acc := acc + j
+  end
+  acc
+end
+
+LabelEx() = do
+  label I95
+    if goingTo(Sun)
+    then exit I95 with x32B
+    end
+  end I95
+end
+
+(* pages 28-29 *)
+
+ Case(planet):String = case planet IN of
+  { Mercury, Venus, Earth, Mars } => "inner"
+  { Jupiter, Saturn, Uranus, Neptune, Pluto } => "outer"
+  else =>  "remote"
+end
+
+ Case():String = case 2 + 2 of
+    4  => "it really is 4"
+    5#3 => "we were wrong again"
+  end
+
+ Case():String =
+   case largest of
+     mile  => "miles are larger"
+     kilometer  => "we were wrong again"
+   end
+
+ Exprs(planet):String = case planet IN of
+  { Mercury, Venus, Earth, Mars } => 1 ; 2 ;
+  3
+  4
+  { Jupiter, Saturn, Uranus, Neptune, Pluto } => "outer"
+  "bigger" ;
+  "colder"
+  else =>  "remote"
+  "comet"
+end
+
+
+
+(* Page 30 *)
+
+ Try1() =
+ try
+   do
+    inp = read(file)
+    write(inp, newFile)
+   end
+ catch e
+   IOException => throwException(e)
+ end
+
+
+Try2() =
+try
+  do
+    inp = read(file)
+    write(inp, newFile)
+  end
+forbid {IOException}
+end
+
+Try3() =
+try
+   open(file)
+   do
+      inp = read(file)
+    write(inp, newFile)
+   end
+catch e
+   IOException => throwException(e)
+finally
+   close(file)
+end
+
+FnExpr = fn(x:double) => if x < 0 then -x else x end
+
+(* page 31 *)
+
+DispatchExpr1() =
+  typecase x = myLoser.myField of
+    String => x.append("foo")
+    Num => x + 3
+    Thread => x.run()
+    Object => yogiBerraAutograph
+  end
+
+DispatchExpr2() =
+  typecase x  of
+    String => x.append("foo")
+    Num => x + 3
+    Thread => x.run()
+    Object => yogiBerraAutograph
+  end
+
+  (* page 32 *)
+  factorial(n:Int) requires { n >= 0 } =
+    if n = 0 then 1
+    else n factorial(n-1) end
+
+  print(input:List) ensures {sorted(result)
+                    provided sorted(input)}  =
+  if x /= Empty then
+    print(first(input))
+    print(rest(input))
+  end
+
+  (* page 33 *)
+  trait Catalyst extends {Molecule}
+    self.catalyze(reaction: Reaction): ()
+  end
+
+  trait Molecule
+  comprises {OrganicMolecule, InorganicMolecule}
+   mass(): Mass
+  end
+
+  (* page 34 *)
+
+  trait OrganicMolecule extends {Molecule}
+    excludes {InorganicMolecule}
+  end
+
+  trait InorganicMolecule extends {Molecule} end
+
+  trait Enzyme extends {OrganicMolecule, Catalyst}
+    reactionSpeed(): Speed
+    catalyze(reaction) = reaction.accelerate(reactionSpeed())
+  end
+
+  (* pages 35-36 *)
+  object Empty extends {List}
+    first() = throw Error
+    rest() = throw Error
+    cons(x) = Cons(x, self)
+    append(xs) = xs
+  end
+
+  (* page 37 BUG *)
+
+  x = object extends {StarSystem, OrbitingObject}
+    sun = Sol
+
+    planets = { Mercury, Venus, Earth, Mars,
+                Jupiter, Saturn, Uranus, Neptune, Pluto }
+
+    (* BUG position = Polar (25000 lightYear, 0 radian) *)
+
+(* NYI: dimensions and units
+    omega : radian/s := 2 pi radian / 226 million year
+*)
+    omega : radianPers := 2 pi radian / 226 million year
+
+    accelerate(theta) = omega := omega + theta
+  end
+
+  object Cons[\T\] ( first: T, rest : List[\T\]) extends List[\T\]
+    cons (x ) = Cons(x,self)
+    append(xs) = Cons(first,rest.append(xs))
+  end
+
+  (* page 38 *)
+  trait Dictionary [\T\]
+    put(x:T):()
+    get():T
+  end
+  object WrappedDictionary [\T\] ( wrapped val:Dictionary [\T\] )
+  extends Dictionary[\T\]
+    get() = throw Error
+  end
+
+  (* page 39 *)
+
+   opr AND (b0:True, b1:Bool) = b1
+   opr OR (b0:True, b1:Bool) = True
+   opr NOT (b0:True) = False
+   opr XOR (b0:True, b1:Bool) = NOT b1
+   opr AND (b0:False, b1:Bool) = False
+   opr OR (b0:False, b1:Bool) = b1
+   opr NOT (b0:False) = True
+   opr XOR (b0:False, b1:Bool) = b1
+
+  (* pages 41-42 *)
+  trait List [\ T \] where { T extends {Comparable} }
+    first(): T
+    rest (): List [\T\]
+    cons (x: T): List[\T\]
+    append(xs: List [\T\]): List [\T\]
+    sort (): List [\T\]
+  end
+
+  object Empty extends List[\T\]
+    where {T extends {Object}}
+    first() = throw Error
+    rest () = throw Error
+    cons(x) = Cons(x,self)
+    append(xs) = xs
+  end
+
+(* page 42 *)
+
+f[\ nat n \] (x:Length^(2 n)): Length^n = sqrt(x)
+
+(* NYI: dimensions and units
+dim Length
+unit m : Length
+*)
+k = 1000
+circumference = 40075 k m
+
+trait Coordinates[\ dim D\]
+  nth(n:Int):D
+end
+
+(* page 43 *)
+
+type IntList = List[\Int\]
+type Area = Length^2
+type BinOp = (Float, Float) -> Float
+
+(* SPEC BUG - opr needed before OPR *)
+trait UnaryOperator[\ T, opr OPR \]
+  where { T extends {UnaryOperator[\T,OPR\]} }
+  opr OPR():T
+end
+
+trait BinaryOperator[\T, opr OPR\]
+  where { T extends {UnaryOperator[\T,OPR\]} }
+  opr OPR(that:T):T
+end
+
+trait UnaryPredicate[\T, opr OPR\]
+  where  { T extends {UnaryPredicate[\T,OPR\] } }
+  opr OPR():Bool
+end
+
+trait BinaryPredicate[\T, opr OPR\]
+  where { T extends {BinaryPredicate[\T,OPR\]} }
+  opr OPR(that:T):Bool
+end
+(**)
+
+(* p. 44 *)  (* BUG in SPEC {Object} required. *)
+List [\ T extends Object \] (rest: T...) where {T extends Object } =
+do
+  length = rest.length()
+  if length = 0 then Empty
+  else Cons(rest[0], List(rest.asTuple(1, length - 1))) (* SPEC BUG missing ) *)
+  end
+end
+
+mysquare[\dim D\](x:D):D^2 = x^2
+
+(* this has to be a var def in this context, thus the = 4 *)
+arrowTyped1 : (Float, Float) -> Float  = 4
+
+arrowTyped2 : Int -> (Int, Int) throws IOException  = 4
+
+arrowTyped3 : (Int, Int, p=Printer) -> Int  = 4
+
+(* p. 55 *)
+test testFactorial() = do
+  assert(factorial(0) = 1)
+  assert(factorial(5) = 120)
+end
+
+(* p. 56 *)
+test zero = 0
+test one = 1
+test five = 5
+test factorial(x,y) =
+if x > y then
+assert factorial(x) > factorial(y)
+end
+
+test object TestFactorial
+  test zero = 0
+  test one = 1
+  test five = 5
+
+  test factorial() = do
+    assert(factorial(0) = 1)
+    assert(factorial(5) = 120)
+  end
+
+  test factorial(x,y) =
+    if x > y then
+    assert factorial(x) > factorial(y)
+  end
+
+end
+
+(* BUG WE WANT THIS TO WORK (i,j) <- vs i,j <- *)
+newstuff() = do
+   for i,j <- matrix.indices() do stuff end
+end
+
+(* p. 60 *)
+
+v = spawn do exprs end
+
+(* p. 61 *) (* SPEC BUG {Additive} *)
+arraySum [\N extends {Additive}, nat x\](a:N[x]):N = do
+  sum:N := 0
+  for i<-a.indices() do
+    atomic do sum:=sum+a[i]
+  end
+  end
+  sum
+end
+
+(* pp. 61-62 *)
+
+labelex() =
+label AtomicBlock while True do
+    try
+      result = tryatomic do body end
+      exit AtomicBlock with result
+    catch e
+      TransactionFailed => () (* continue execution *)
+    end
+  end
+  throw(UnreachableCode)
+end AtomicBlock
+
+(* p. 63 *)
+trait Reduction[\ T \] op(l : T, r : T) : T
+  identity() : T
+end
+
+(* p. 64 *) (* SPEC BUG {Additive} *)
+arraySum [\ N extends {Additive}, nat x \] (a:N[x]):N = do
+  sum:N := 0
+  for i <- a.indices() do
+    var temp:N
+    atomic do
+      temp:=a[i]
+    end
+    sum:=sum+temp
+  end
+  sum
+end
+
+(* p. 66 *)
+recSum(gen : Generator [\ Int \] ) : Int = do
+    sum : Int := 0
+    if (gen.isSequential) then
+        for i <- gen do
+            sum += i
+        end
+    else
+        for childGen <- gen.children() do
+            sum += recSum(childGen)
+        end
+    end
+    sum
+end
+
+(* pp. 66-67 *)
+recSum(gen : Generator [\ Int \] ) : Int = do
+    sum : Int := 0
+    if (gen.isSequential) then
+        for i <- gen do
+            sum += i
+        end
+    else
+        for childGen <- par(gen.children()) do
+            sum += recSum(childGen)
+        end
+    end
+    sum
+end
+
+(* p 67 *) (* SPEC BUG value is a keyword *)
+spawnex():() = do
+    v = spawn do
+        a[i]
+    end
+    w = spawn do
+        v.vlue() * 17
+    end
+end
+
+(* p. 68 *) (* BUG Goes wrong at BY *)
+mm [\ nat m, nat n, nat p \] (left:T^(m BY n),
+                              right:T^(n BY p),
+                              result:T^(m BY p)):() = do
+    case largest of
+    1=> result[0,0] += (left[0,0] right[0,0])
+    m=> [ lefttop
+          leftbottom ] = left
+        [ resulttop
+          resultbottom ] = result
+        t1 = spawn do mm(lefttop, right, resulttop) end
+        mm(leftbottom, right, resultbottom)
+        t1.wait()
+    p=> [ rightleft rightright ] = right
+        [ resultleft resultright ] = result
+        t1 = spawn do mm(left, rightleft, resultleft) end
+        mm(left, rightright, resultright)
+        t1.wait()
+    n=> [ leftleft leftright ] = left
+        [ righttop
+          rightbottom ] = right
+        mm(leftleft , righttop , result)
+        mm(leftright, rightbottom, result)
+    end (* *)
+end
+
+(* p. 69 *)
+
+(* Looks like missing nat parameters here BUG *)
+(* BUG goes wrong at BY *)
+foo(A:T^(m BY n)):() = do
+    if m < n then
+        [ square'[m BY m] rest ] = A
+        dotdotdot
+    elif m > n then
+        [ square'[n BY n]
+          rest ] = A
+        dotdotdot
+    else (* A already square *)
+        dotdotdot
+    end
+end (* *)
+
+
+(* p. 70 *)
+(* BUG goes wrong at BY *)
+unequalColumns[\ nat m, nat n \]
+(X:T^(m BY n)):() = do
+[ [ A[m/2 BY n/4]  B[m/2 BY 3 n/4] ]
+  [ C[m/2 BY 3 n/4] D[m/2 BY n/4] ] ] = X
+  dotdotdot
+end
+
+(* BUG.
+bar [\ nat p, nat q \](X:T^(r0#p BY c0#q)):() = do
+[ A[r0#m BY c0#n] B[r0#m BY c0+n#q-n]
+  C[r0+m#p-m BY c0#n] D[r0+m#p-m BY c0+n#q-n] ] = X
+  dotdotdot
+end
+*)
+
+fubar[\ nat m, nat n \] (X:T^(m BY n)):() = do
+[ A[m/2 BY n/2] B[m/2 BY n/2]
+  C[m/2 BY n/2] D[m/2 BY n/2] ] = X
+  dotdotdot
+end
+(* *)
+
+(* NYI: dimensions and units
+dim Length
+dim Mass
+dim Time
+dim ElectricCurrent
+
+(* p. 71 *)
+dim Velocity = Length / Time
+dim Acceleration = Velocity / Time
+dim CurrentDensity = ElectricCurrent / (Length^2)
+dim Length default meter
+dim Mass default kilogram
+dim Time default second
+
+unit meter : Length
+unit kilogram : Mass
+unit second : Time
+unit ampere : ElectricCurrent
+
+(* p. 72 *)
+unit newton: Force = (meter BY kilogram) / (second^2)
+unit joule: Energy = newton meter
+unit pascal: Pressure = newton / (meter^2)
+
+
+dim Length
+unit meter: Length; unit meters = meter
+unit kilometer: Length = 10^3 meter; unit kilometers = kilometer
+
+unit inch: Length = 2.54 TIMES 10^(-2) (* BUG is (-2) required? *) meter;
+
+unit inches = inch
+unit foot: Length = 12 inch; unit feet = foot
+unit mile: Length = 5280 foot; unit miles = mile
+
+
+(* p. 73 *)
+unit foot feet ft : Length
+
+
+(* p. 74, units *)
+dim Length SI_unit meter meters m_
+dim Mass default kilogram; SI_unit gram grams g_: Mass
+dim Time SI_unit second seconds s_
+dim ElectricCurrent SI_unit ampere amperes A_
+dim Temperature SI_unit kelvin kelvins K_
+dim AmountOfSubstance SI_unit mole moles mol_
+dim LuminousIntensity SI_unit candela candelas cd_
+*)
+
+trait Vector[\ EltType extends {Number} absorbs unit, nat len \]
+end
+
+(* p. 75, operator definitions *)
+
+opr MAX [\ T extends {Rational} \] (x:T,y:T):T =
+  if x > y then x else y end
+
+opr ~(x:Widget):Widget = x.invert()
+
+(* p. 76 *)
+
+opr (n:Integer)! = PROD[i <- 1#n] i (* factorial *)
+
+(* NYI: colon as an operator
+opr :() = ImplicitRange
+*)
+
+(* angle bracket notation for inner product *)
+opr <| x:Vector, y:Vector |> = SUM[i <-  x.indices()] x[i] * y[i]
+
+(* vector space norm (may not be the most efficient) *)
+opr ||x:Vector|| = sqrt <| x, x |>
+
+(* p. 77 *)
+
+(* subscripting method *)
+opr [x:BizarroIndex] = self.bizarroFetch(x)
+
+(* subscripted assignment method *)
+opr [x:BizarroIndex] := (newValue:Widget) =
+    self.bizarroInstall(x, newValue)
+
+run(args:String...):() = ()
+
+end

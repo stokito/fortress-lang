@@ -1,0 +1,72 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component matrixOps
+export Executable
+
+assertEq(a:Any, b:Any):() =
+  if a=/=b then
+    println("FAIL: " a " =/= " b)
+  end
+
+(*
+dump[\N extends Number, nat n, nat m\](a:Array2[\N,0,n,0,m\]):() = do
+    for i <- seq(0#n) do
+      for j <- seq(0#m) do
+        print(" " a[i,j])
+      end
+      println(";")
+    end
+  end
+*)
+
+run(args:String...) = do
+  m0 : RR64[3,4] = [ 2.0 0.0 0.0  7.0
+                     0.0 3.0 0.0 11.0
+                     0.0 0.0 5.0 13.0 ]
+  i3 : RR64[3,3] = matrix[\RR64,3,3\](1.0)
+  i4 : RR64[4,4] = matrix[\RR64,4,4\](1.0)
+  v3 : RR64[3] = vector[\RR64,3\](1.0)
+  v4 : RR64[4] = vector[\RR64,4\](1.0)
+  (*
+  dump(m0)
+  dump(i3)
+  dump(i4)
+  *)
+  assertEq(m0.copy(), m0)
+  assertEq(i3 DOT v3, v3)
+  assertEq(i4 DOT v4, v4)
+  assertEq(v3 DOT i3, v3)
+  assertEq(v4 DOT i4, v4)
+  r4 : RR64[4] = [ 9 14 18 ]
+  assertEq(m0 DOT v4, r4)
+  r3 : RR64[3] = [ 2 3 5 31 ]
+  assertEq(v3 DOT m0, r3)
+  assertEq(m0 DOT i4, m0)
+  assertEq(i3 DOT m0, m0)
+  m1 : RR64[4,4] = [ 4  0  0  14
+                     0  9  0  33
+                     0  0 25  65
+                    14 33 65 339]
+  assertEq(m0.t() DOT m0,m1)
+  m02 = 2.0 DOT m0
+  assertEq(m0 + m0, m02)
+  assertEq(m0 DOT 2.0, m02)
+  ()
+end
+
+end

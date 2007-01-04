@@ -1,0 +1,105 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component deepHierarchy
+export Executable
+
+(* A deep type hierarchy seems to create interpreter trouble.  This is
+   extracted from the FingerTree code. *)
+
+trait Stringable
+  toString():String
+end
+
+trait Finger[\ E \] extends Stringable
+    comprises { D01[\E\], Deep[\E\] }
+  addLeft(e:D0[\E\]) : Finger[\E\]
+  addLeft(e:D14[\E\]) : Finger[\E\]
+end
+
+trait D04[\E\] extends Stringable
+    comprises { D03[\E\], D14[\E\] }
+end
+
+trait D03[\E\] extends D04[\E\]
+    comprises { D02[\E\], D13[\E\] }
+end
+
+trait D14[\E\] extends D04[\E\]
+    comprises { D13[\E\], D24[\E\] }
+end
+
+trait D02[\E\] extends D03[\E\]
+    comprises { D01[\E\],D12[\E\] }
+end
+
+trait D13[\E\] extends { D03[\E\], D14[\E\] }
+    comprises { D12[\E\], D23[\E\] }
+end
+
+trait D24[\E\] extends D14[\E\]
+end
+
+trait D01[\E\] extends { D02[\E\], Finger[\E\] }
+    comprises { D0[\E\], D1[\E\] }
+end
+
+trait D12[\E\] extends { D02[\E\], D13[\E\] }
+    comprises { D1[\E\], D2[\E\] }
+end
+
+trait D23[\E\] extends { D13[\E\], D24[\E\] }
+    comprises { D2[\E\], D3[\E\] }
+end
+
+trait D34[\E\] extends D24[\E\]
+    comprises { D3[\E\], D4[\E\] }
+end
+
+object D0[\E\]() extends { D01[\E\] }
+  toString() = "0"
+end
+
+object D1[\E\]() extends { D01[\E\], D12[\E\] }
+  toString() = "1"
+end
+
+object D2[\E\]() extends { D12[\E\], D23[\E\] }
+  toString() = "2"
+end
+
+object D3[\E\]() extends { D23[\E\], D34[\E\] }
+  toString() = "3"
+end
+
+object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
+  toString() = "4"
+end
+
+object Deep[\E\]()
+    extends { Finger[\E\] }
+  toString() = "D"
+end
+
+
+run(args:String...):() = do
+  e = D0[\ZZ32\]()
+  println(e.toString())
+  ()
+end
+
+end

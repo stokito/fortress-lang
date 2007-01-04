@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component objectTest4
+export Executable
+
+g():A = A(2,3)
+h():A = A(3,6)
+
+object A(i:ZZ32, j:ZZ32)
+  f:() -> A = g (* A closure-valued field, initially g *)
+
+  id():A = self
+  self.getI():ZZ32 = self.i
+  notself.getZ():ZZ32 = j
+
+  setF(g) = do f := g; end (* Update the closure-valued field *)
+end
+
+(* Test that a's fields have the expected sum *)
+s(a:A, n:ZZ32) = println(
+  if (a.id().getI() + a.id().getZ() = n) then "pass" else "fail" end
+  )
+
+run(args:String...):()=do
+
+  a = A(3,4)
+  s(a,7)
+
+  s(a.f(),5) (* a.f = g, g() = A(2,3) *)
+
+  a.setF(h)
+  s(a.f(),9) (* a.f = h, h() = A(3,6) *)
+
+end
+end

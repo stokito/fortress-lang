@@ -1,0 +1,242 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress components and APIs.
+ */
+module Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+
+import Decl;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* File ::=
+     CompilationUnit w
+   | [w Imports] w Exports [w Decls] w
+   | [w Imports] w AbsDecls w
+   | w Imports [w AbsDecls] w
+ */
+public CompilationUnit File =
+     yyValue:CompilationUnit w
+   / a1:(w Imports)? w a2:Exports a3:(w Decls)? w
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       DottedId name = new DottedId(span, file.substring(0, file.length()-4));
+       yyValue = new Component(span, name, a1, a2, a3);
+     }
+   / a1:(w Imports)? w a2:AbsDecls w
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       DottedId name;
+       if (file.length() > 4)
+           name = new DottedId(span, file.substring(0, file.length()-4));
+       else
+           throw new ProgramError(new Id(span, "_"), "Invalid file name.");
+       yyValue = new Api(span, name, a1, a2);
+     }
+   / w a1:Imports a2:(w AbsDecls)? w
+     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       DottedId name;
+       if (file.length() > 4)
+           name = new DottedId(span, file.substring(0, file.length()-4));
+       else
+           throw new ProgramError(new Id(span, "_"), "Invalid file name.");
+       yyValue = new Api(span, name, a1, a2);
+     };
+
+/* CompilationUnit ::=
+     w Component w
+   | w Api w
+ */
+private CompilationUnit CompilationUnit =
+     w yyValue:Component w
+   / w yyValue:Api w ;
+
+/* Component ::= component w DottedId [w Imports] w Exports [w Decls] w end */
+private Component Component =
+     component w a1:DottedId a2:(w Imports)? w a3:Exports a4:(w Decls)? w end
+     { if (a2 == null) a2 = Collections.<Import>emptyList();
+       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
+       yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);
+     };
+
+/* Api ::= api w DottedId [w Imports] [w AbsDecls] w end */
+private Api Api = api w a1:DottedId a2:(w Imports)? a3:(w AbsDecls)? w end
+     { if (a2 == null) a2 = Collections.<Import>emptyList();
+       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);
+     };
+
+/* Imports ::= Import (wr Import)* */
+private List<Import> Imports = a1:Import a2s:(wr Import)*
+     { yyValue = new ArrayList<Import>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Import ::=
+     import wr ImportFrom
+   | import wr AliasedDottedIds
+ */
+private Import Import =
+     import wr yyValue:ImportFrom
+   / import wr a1:AliasedDottedIds
+     { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
+
+/* ImportFrom ::=
+     * [wr except wr Names] wr from wr DottedId
+   | AliasedNames wr from wr DottedId
+ */
+private ImportFrom ImportFrom =
+     star a1:(wr except wr Names)? wr from wr a2:DottedId
+     { if (a1 == null) a1 = Collections.<Name>emptyList();
+       yyValue = new ImportStar(createSpan(yyStart,yyCount), a1, a2);
+     }
+   / a1:AliasedNames wr from wr a2:DottedId
+     { yyValue = new ImportNames(createSpan(yyStart,yyCount), a2, a1); };
+
+/* Names ::= Name | { w NameList w } */
+private List<Name> Names =
+     a1:Name
+     { yyValue = new ArrayList<Name>();
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:NameList w closecurly ;
+
+/* NameList ::= Name (w , w Name)* */
+private List<Name> NameList = a1:Name a2s:(w comma w Name)*
+     { yyValue = new ArrayList<Name>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AliasedNames ::=
+     AliasedName
+   | { w AliasedNameList w }
+ */
+private List<AliasedName> AliasedNames =
+     a1:AliasedName
+     { yyValue = new ArrayList<AliasedName>();
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:AliasedNameList w closecurly ;
+
+/* AliasedName ::=
+     Id [wr as wr DottedId]
+   | opr w Op [w as w Op]
+   | opr w LeftEncloser w RightEncloser [w as w LeftEncloser w RightEncloser]
+ */
+private AliasedName AliasedName =
+     a1:Id a2:(wr as wr DottedId)?
+     { if (a2 == null)
+           yyValue = new AliasedName(createSpan(yyStart,yyCount), a1);
+       else
+           yyValue = new AliasedName(createSpan(yyStart,yyCount), a1, a2);
+     }
+   / opr w a1:Op a2:(w as w Op)?
+     { if (a2 == null)
+           yyValue = new AliasedName(createSpan(yyStart,yyCount),
+                                     new Opr(a1.getSpan(), a1));
+       else
+           yyValue = new AliasedName(createSpan(yyStart,yyCount),
+                                     new Opr(a1.getSpan(), a1),
+                                     new Opr(a2.getSpan(), a2));
+     }
+   / opr w a1:LeftEncloser w a2:RightEncloser
+       a3:(w as w left:LeftEncloser w right:RightEncloser
+            { yyValue = new Enclosing(createSpan(yyStart,yyCount),left,right); }
+          )?
+     { Span span = createSpan(yyStart,yyCount);
+       Enclosing enclosing = new Enclosing(FortressUtil.spanTwo(a1,a2), a1, a2);
+       if (a3 == null)
+           yyValue = new AliasedName(span, enclosing);
+       else
+           yyValue = new AliasedName(span, enclosing, (Enclosing)a3);
+     };
+
+/* AliasedNameList ::= AliasedName (w , w AliasedName)* */
+private List<AliasedName> AliasedNameList =
+     a1:AliasedName a2s:(w comma w AliasedName)*
+     { yyValue = new ArrayList<AliasedName>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AliasedDottedIds ::=
+     AliasedDottedId
+   | { w AliasedDottedIdList w }
+ */
+private List<AliasedDottedId> AliasedDottedIds =
+     a1:AliasedDottedId
+     { yyValue = new ArrayList<AliasedDottedId>();
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:AliasedDottedIdList w closecurly ;
+
+/* AliasedDottedId ::= DottedId [wr as wr DottedId] */
+private AliasedDottedId AliasedDottedId =
+     a1:DottedId a2:(wr as wr DottedId)?
+     { if (a2 == null)
+           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1);
+       else
+           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
+                                         Some.<DottedId>make(a2));
+     };
+
+/* AliasedDottedIdList ::= AliasedDottedId (w , w AliasedDottedId)* */
+private List<AliasedDottedId> AliasedDottedIdList =
+     a1:AliasedDottedId a2s:(w comma w AliasedDottedId)*
+     { yyValue = new ArrayList<AliasedDottedId>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Exports ::= Export (wr Export)* */
+private List<Export> Exports = a1:Export a2s:(wr Export)*
+     { yyValue = new ArrayList<Export>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Export ::= export wr DottedIds */
+private Export Export = export wr a1:DottedIds
+     { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
+
+/* DottedIds ::=
+     DottedId
+   | { w DottedIdList w }
+ */
+List<DottedId> DottedIds =
+     a1:DottedId
+     { yyValue = new ArrayList<DottedId>();
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:DottedIdList w closecurly ;
+
+/* DottedIdList ::= DottedId (w , w DottedId)* */
+private List<DottedId> DottedIdList = a1:DottedId a2s:(w comma w DottedId)*
+     { yyValue = new ArrayList<DottedId>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };

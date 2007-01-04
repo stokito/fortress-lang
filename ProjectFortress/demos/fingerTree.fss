@@ -1,0 +1,326 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fingerTree
+export Executable
+
+(** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
+    16:2 2006.
+
+    Why finger trees?  They're balanced and support nearly any
+    operation we care to think of in optimal asymptotic time and
+    space.  The code is niggly due to lots of cases, but fast in
+    practice.
+
+    It's also a trial for encoding type-based invariants in Fortress.
+    Can we represent "array of size at most n"?  Not yet, but we ought
+    to be able to do so.  This involves questions about the encoding
+    of existentials, especially constrained existentials.
+
+  *)
+
+object EmptyFinger() extends CheckedException
+end
+
+trait Stringable
+  toString():String
+end
+
+trait Finger[\ E \] extends Stringable
+    comprises { D01[\E\], Deep[\E\] }
+  getter empty():Boolean
+  getter first():E throws EmptyFinger
+  getter last():E throws EmptyFinger
+  getter firstRest():(E,Finger[\E\]) throws EmptyFinger
+  getter initLast():(Finger[\E\],E) throws EmptyFinger
+  append(f:D01[\E\]) : Finger[\E\] = addRight(f)
+  addLeft(e:D0[\E\]) : Finger[\E\] = self
+  addLeft(e:D14[\E\]) : Finger[\E\]
+  addLeft(e:E):Finger[\E\]
+  addRight(e:D0[\E\]) : Finger[\E\] = self
+  addRight(e:D14[\E\]) : Finger[\E\]
+  addRight(e:E):Finger[\E\]
+  append3(e:D04[\E\], f:D01[\E\]) = addRight(e).addRight(f)
+  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\]
+end
+
+(* The type of all digits, from 0 to 4.
+   We populate the sets of digits of particular sizes.  The ones which
+   matter most are D14 (fringes of a Deep), D01 (shallow Finger), and
+   D23 (nodes of the middle of a Deep).  *)
+trait D04[\E\] extends Stringable
+    comprises { D03[\E\], D14[\E\] }
+  toFinger():Finger[\E\]
+end
+
+trait D03[\E\] extends D04[\E\]
+    comprises { D02[\E\], D13[\E\] }
+  cons(e:E) : D14[\E\]
+  snoc(e:E) : D14[\E\]
+end
+
+trait D14[\E\] extends D04[\E\]
+    comprises { D13[\E\], D24[\E\] }
+  getter uncons() : (E,D03[\E\])
+  getter unsnoc() : (D03[\E\],E)
+  getter car() : E
+  getter rac() : E
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D13[\D23[\E\]\]
+end
+
+trait D02[\E\] extends D03[\E\]
+    comprises { D01[\E\],D12[\E\] }
+  cons(e:E) : D13[\E\]
+  snoc(e:E) : D13[\E\]
+end
+
+trait D13[\E\] extends { D03[\E\], D14[\E\] }
+    comprises { D12[\E\], D23[\E\] }
+  cons(e:E) : D24[\E\]
+  snoc(e:E) : D24[\E\]
+  getter uncons() : (E,D02[\E\])
+  getter unsnoc() : (D02[\E\],E)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D13[\D23[\E\]\]
+end
+
+trait D24[\E\] extends D14[\E\]
+  getter uncons() : (E,D13[\E\])
+  getter unsnoc() : (D13[\E\],E)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D13[\D23[\E\]\]
+  nodes1():D12[\D23[\E\]\]
+end
+
+trait D01[\E\] extends { D02[\E\], Finger[\E\] }
+    comprises { D0[\E\], D1[\E\] }
+  cons(e:E) : D12[\E\]
+  snoc(e:E) : D12[\E\]
+  append(f:Deep[\E\]) : Finger[\E\] = f.addLeft(self)
+  toFinger():Finger[\E\] = self
+end
+
+trait D12[\E\] extends { D02[\E\], D13[\E\] }
+    comprises { D1[\E\], D2[\E\] }
+  cons(e:E) : D34[\E\]
+  snoc(e:E) : D34[\E\]
+  getter uncons() : (E,D01[\E\])
+  getter unsnoc() : (D01[\E\],E)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D12[\D23[\E\]\]
+end
+
+trait D23[\E\] extends { D13[\E\], D24[\E\] }
+    comprises { D2[\E\], D3[\E\] }
+  cons(e:E) : D34[\E\]
+  snoc(e:E) : D34[\E\]
+  getter uncons() : (E,D12[\E\])
+  getter unsnoc() : (D12[\E\],E)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D13[\D23[\E\]\]
+end
+
+trait D34[\E\] extends D24[\E\]
+    comprises { D3[\E\], D4[\E\] }
+  getter uncons() : (E,D23[\E\])
+  getter unsnoc() : (D23[\E\],E)
+  nodes3(x:D04[\E\],y:D14[\E\]):D24[\D23[\E\]\]
+  nodes2(x:D14[\E\]):D23[\D23[\E\]\]
+end
+
+object D0[\E\]() extends { D01[\E\] }
+  cons(e:E):D1[\E\] = D1[\E\](e)
+  snoc(e:E):D1[\E\] = D1[\E\](e)
+  empty() = true
+  first() = throw EmptyFinger
+  last() = throw EmptyFinger
+  firstRest() = throw EmptyFinger
+  initLast() = throw EmptyFinger
+  append(f:Finger[\E\]) = f
+  addLeft(e:E):Finger[\E\] = cons(e)
+  addLeft(e:D14[\E\]) : Finger[\E\] = e.toFinger()
+  addRight(e:E):Finger[\E\] = snoc(e)
+  addRight(e:D14[\E\]) : Finger[\E\] = e.toFinger()
+  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\] = f.addLeft(e)
+  toString() = "#"
+end
+
+object D1[\E\](a:E) extends { D01[\E\], D12[\E\] }
+  cons(e:E):D2[\E\] = D2[\E\](e,a)
+  snoc(e:E):D2[\E\] = D2[\E\](a,e)
+  uncons():(E,D0[\E\]) = firstRest()
+  unsnoc():(D0[\E\],E) = initLast()
+  empty() = false
+  first() = a
+  last() = a
+  car() = a
+  rac() = a
+  firstRest() = (a,D0[\E\]())
+  initLast() = (D0[\E\](),a)
+  append(f:Finger[\E\]) = f.addLeft(a)
+  addLeft(e:E):Finger[\E\] = addLeft(D1[\E\](e))
+  addLeft(e:D14[\E\]) = Deep[\E\](e,Empty[\D23[\E\]\](),self)
+  addRight(e:E):Finger[\E\] = addRight(D1[\E\](e))
+  addRight(e:D14[\E\]) = Deep[\E\](self,Empty[\D23[\E\]\](),e)
+  append3(e:D04[\E\],f:Deep[\E\]):Finger[\E\] = f.addLeft(e).addLeft(self)
+  nodes3(x:D4[\E\],y:D14[\E\]):D13[\D23[\E\]\] =
+    D2[\E\](x.c,x.d).nodes2(y).addLeft(D3[\E\](a,x.a,x.b))
+  nodes3(x:D03[\E\],c:D14[\E\]):D13[\D23[\E\]\] =
+    x.addLeft(a).nodes2(y)
+  nodes2(x:D4[\E\]):D2[\D23[\E\]\] =
+    D2[\D23[\E\]\](D3[\E\](a,x.a,x.b),D2[\E\](x.c,x.d))
+  nodes2(x:D13[\E\]):D12[\D23[\E\]\] = x.addLeft(a).nodes1()
+  toString()="(" a ")"
+end
+
+object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
+  cons(e:E):D3[\E\] = D3[\E\](e,a,b)
+  snoc(e:E):D3[\E\] = D3[\E\](a,b,e)
+  car() = a
+  rac() = b
+  uncons():(E,D1[\E\]) = (a,D1[\E\](b))
+  unsnoc():(D1[\E\],E) = (D1[\E\](a),b)
+  nodes3(x:D0[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
+    nodes2(y)
+  nodes3(x:D1[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
+    snoc(x.car()).nodes2(y)
+  nodes3(x:D24[\E\],y:D14[\E\]):D14[\D23[\E\]\] = do
+      (xh, xt) = x.uncons()
+      xt.nodes2(y).addLeft(D3[\E\](a,b,xh))
+    end
+  nodes2(x:D1[\E\]):D1[\D23[\E\]\] =
+    D1[\D23[\E\]\](self.snoc(x.car()))
+  nodes2(x:D2[\E\]):D2[\D23[\E\]\] =
+    D2[\D23[\E\]\](self,x)
+  nodes2(x:D34[\E\]):D12[\D23[\E\]\] = do
+      (xh, xt) = x.uncons()
+      xt.nodes1().addLeft(D3[\a,b,xh\])
+    end
+  nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
+  toFinger()=Deep[\E\](D1[\E\](a),D0[\D23[\E\]\](),D1[\E\](b))
+  toString()="(" a "," b ")"
+end
+
+object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
+  cons(e:E):D4[\E\] = D4[\E\](e,a,b,c)
+  snoc(e:E):D4[\E\] = D4[\E\](a,b,c,e)
+  car() = a
+  rac() = c
+  uncons():(E,D2[\E\]) = (a,D2[\E\](b,c))
+  unsnoc():(D2[\E\],E) = (D2[\E\](a,b),c)
+  nodes3(x:D04[\E\],y:D14[\E\]):D24[\D23[\E\]\] =
+    x.nodes2(y).addLeft(self)
+  nodes2(x:D1[\E\]):D23[\D23[\E\]\] =
+    D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,x.car()))
+  nodes2(x:D24[\E\]):D23[\D23[\E\]\] =
+    x.nodes1().addLeft(self)
+  nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
+  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D1[\E\](c))
+  toString()="(" a "," b "," c ")"
+end
+
+object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
+  car() = a
+  rac() = d
+  uncons():(E,D3[\E\]) = (a,D3[\E\](b,c,d))
+  unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)
+  nodes3(b:D04[\E\],c:D14[\E\]):D24[\D23[\E\]\] =
+    D1[\E\](d).nodes3(b,c).addLeft(D3[\E\](a,b,c))
+  nodes2(b:D14[\E\]):D23[\D23[\E\]\] =
+    D1[\E\](d).nodes2(b).addLeft(D3[\E\](a,b,c))
+  nodes1():D2[\D23[\E\]\] = D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,d))
+  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D2[\E\](c,d))
+  toString()="(" a "," b "," c "," d ")"
+end
+
+object Deep[\E\](l:D14[\E\], m:Finger[\ D23[\E\] \], r:D14[\E\])
+    extends { Finger[\E\] }
+  empty():Boolean = false
+  first():E = l.car()
+  last():E = r.rac()
+  firstRest():(E,Finger[\E\]) = do
+      h(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car(),r.toFinger())
+      h(l0:D1[\E\], m0:Finger[\D23[\E\]\]) = do
+          (l1,m1) = m0.firstRest()
+          (l0.car(),Deep[\E\](l1,m1,r))
+        end
+      h(l0:D14[\E\], m0:Finger[\D23[\E\]\]) = do
+          (f,l1) = l0.uncons()
+          (f,Deep[\E\](l1,m0,r))
+        end
+      h(l,m)
+    end
+  initLast():(E,Finger[\E\]) = do
+      h(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac())
+      h(r0:D1[\E\], m0:Finger[\D23[\E\]\]) = do
+          (m1,l1) = m0.initLast()
+          (Deep[\E\](l1,m1,r),r0.rac())
+        end
+      h(r0:D14[\E\], m0:Finger[\D23[\E\]\]) = do
+          (r1,l) = r0.unsnoc()
+          (Deep[\E\](l,m0,r1),l)
+        end
+      h(l,m)
+    end
+  addLeft(e:E):Finger[\E\] = do
+      h(l0:D4[\E\]) =
+        Deep[\E\](D2[\E\](e,l0.a),m0.addLeft(D3[\E\](l0.b,l0.c,l0.d)),r)
+      h(l0:D03[\E\]) = Deep[\E\](l0.cons(e),m,r)
+      h(l)
+    end
+  addLeft(e:D14[\E\]) : Finger[\E\] = do
+      (ef,er) = e.snoc()
+      addLeft(er).addLeft(ef)
+    end
+  addRight(e:E):Finger[\E\] = do
+      h(r0:D4[\E\]) =
+        Deep[\E\](l,m0.addRight(D3[\E\](r0.a,r0.b,r0.c)),D2[\E\](l0.d,e))
+      h(r0:D03[\E\]) = Deep[\E\](l,m,r.snoc(e))
+      h(l)
+    end
+  addRight(e:D14[\E\]) : Finger[\E\] = do
+      (ef,er) = e.cons()
+      addRight(ef).addRight(er)
+    end
+
+  append(f:Deep[\E\]) : Finger[\E\] =
+    Deep[\E\](l,m.append3(r.node2(f.l),f.m),f.r)
+  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\] =
+    Deep[\E\](l,m.append3(r.node3(e,f.l),f.m),f.r)
+
+  toString() = l.toString() ";" m.toString() ";" r.toString()
+end
+
+dump(a:Stringable):() = println(a.toString())
+
+run(args:String...):() = do
+  e = D0[\ZZ32\]()
+  (*
+  dump(e)
+  d1 = D1[\ZZ32\](1)
+  d2 = D2[\ZZ32\](2,3)
+  d3 = D3[\ZZ32\](4,5,6)
+  d4 = D4[\ZZ32\](7,8,9,10)
+  dump(d1)
+  dump(d2)
+  dump(d3)
+  dump(d4)
+  *)
+end
+
+end

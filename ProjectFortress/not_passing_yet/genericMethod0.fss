@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.executable
+export Executable
+
+trait SGenerator[\ E \]
+  size() : ZZ64
+  generate[\ R \]
+          (f: (R,R) -> R, z : R, body : E -> R):R
+end
+
+value object MyRange(l:ZZ32, h:ZZ32) extends Generator[\ ZZ32 \]
+  generate[\ R \](f : (R, R) -> R, z:R, body : ZZ32 -> R):R = do
+    i:ZZ32 := l
+    r : R := z
+    while i <= h do
+      r := f(r,body(i))
+      i += 1
+    end
+  end
+end
+
+run(args:String...):() = do
+  MyRange(1,10).generate[\()\](fn (a,b)=>(), (),
+                               fn (x:ZZ32):() => print "Hello World\n")
+end
+
+end

@@ -1,0 +1,155 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress keywords.
+ */
+module Keyword;
+
+body {
+  static {
+    add(FORTRESS_KEYWORDS, new String[] {
+        "FORALL",
+
+        "cubed",        "cubic",        "inverse",      "per",
+        "square",       "squared",
+
+        "goto",         "idiom",        "public",       "pure",
+        "reciprocal",   "static",
+
+        "BIG",          "SI_unit",      "absorbs",      "abstract",
+        "also",         "api",          "as",           "asif",
+        "at",           "atomic",       "bool",         "case",
+        "catch",        "coerces",      "coercion",     "component",
+        "comprises",    "default",      "dim",          "do",
+        "elif",         "else",         "end",          "ensures",
+        "except",       "excludes",     "exit",         "export",
+        "extends",      "finally",      "fn",           "for",
+        "forbid",       "from",         "getter",       "hidden",
+        "ident",        "if",           "import",       "in",
+        "int",          "invariant",    "io",           "juxtaposition",
+        "label",        "largest",      "nat",          "object",
+        "of",           "opr",          "or",           "private",
+        "property",     "provided",     "requires",     "self",
+        "settable",     "setter",       "smallest",     "spawn",
+        "syntax",       "test",         "then",         "throw",
+        "throws",       "trait",        "transient",    "try",
+        "tryatomic",    "type",         "typecase",     "unit",
+        "value",        "var",          "where",        "while",
+        "widening",     "widens",       "with",         "wrapped"
+    });
+  }
+}
+
+option setOfString(FORTRESS_KEYWORDS);
+
+transient void FORALL = "FORALL";
+transient void cubed = "cubed";
+transient void cubic = "cubic";
+transient void inverse = "inverse";
+transient void per = "per";
+transient void square = !(squared) "square";
+transient void squared = "squared";
+transient void juxtaposition = "juxtaposition";
+transient void goto = "goto";
+transient void idiom = "idiom";
+transient void public = "public";
+transient void pure = "pure";
+transient void reciprocal = "reciprocal";
+transient void static = "static";
+
+transient void BIG = "BIG";
+transient void SI_unit = "SI_unit";
+transient void absorbs = "absorbs";
+transient void also = "also";
+transient void api = "api";
+transient void as = !(asif) "as";
+transient void asif = "asif";
+transient void at = !(atomic) "at";
+transient void bool = "bool";
+transient void case = "case";
+transient void catch = "catch";
+transient void coerces = "coerces";
+transient void coercion = "coercion";
+transient void component = "component";
+transient void comprises = "comprises";
+transient void default = "default";
+transient void dim = "dim";
+transient void do = "do";
+transient void elif = "elif";
+transient void else = "else";
+transient void ensures = "ensures";
+transient void except = "except";
+transient void excludes = "excludes";
+transient void exit = "exit";
+transient void export = "export";
+transient void extends = "extends";
+transient void finally = "finally";
+transient void fn = "fn";
+transient void for = !(forbid) "for";
+transient void forbid = "forbid";
+transient void from = "from";
+transient void ident = "ident";
+transient void if = "if";
+transient void import = "import";
+transient void in = !(int) "in";
+transient void int = "int";
+transient void invariant = "invariant";
+transient void label = "label";
+transient void nat = "nat";
+transient void object = "object";
+transient void of = "of";
+transient void opr = "opr";
+transient void or = "or";
+transient void property = "property";
+transient void provided = "provided";
+transient void requires = "requires";
+transient void spawn = "spawn";
+transient void syntax = "syntax";
+transient void then = "then";
+transient void throw = !(throws) "throw";
+transient void throws = "throws";
+transient void trait = "trait";
+transient void try = !(tryatomic) "try";
+transient void tryatomic = "tryatomic";
+transient void type = !(typecase) "type";
+transient void typecase = "typecase";
+transient void where = "where";
+transient void while = "while";
+transient void widens = "widens";
+transient void with = "with";
+
+/* Keywords that we need the string representation such as modifiers. */
+String abstract = "abstract";
+String atomic = "atomic";
+String end = "end";
+String getter = "getter";
+String hidden = "hidden";
+String io = "io";
+String largest = "largest";
+String private = "private";
+String self = "self";
+String settable = "settable";
+String setter = "setter";
+String smallest = "smallest";
+String test = "test";
+String transient = "transient";
+String unit = "unit";
+String value = "value";
+String var = "var";
+String widening = "widening";
+String wrapped = "wrapped";

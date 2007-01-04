@@ -1,0 +1,85 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component objectTest8
+export Executable
+
+trait T
+  getI():ZZ32
+  getJ():ZZ32
+end
+
+trait U
+  getMyX():ZZ32
+  getMyXAlt():ZZ32
+  getParentX():ZZ32
+end
+
+object A(i:ZZ32, j:ZZ32) extends T
+
+     getI():ZZ32 = i
+     getJ():ZZ32 = j
+     k:ZZ32 = 4
+     x:ZZ32 = 9
+
+
+  b(k:ZZ32):T = object extends {T,U}
+     m:ZZ32 = k
+     x:ZZ32 = 7
+     getI():ZZ32 = m
+     getJ():ZZ32 = i+j+1
+     notself.getMyX():ZZ32 = notself.x
+     getMyXAlt():ZZ32 = x+1
+     notself.getParentX():ZZ32 = self.x
+  end
+
+end
+
+i = 5
+j = 6
+
+object B extends T
+  getI():ZZ32 = i
+  getJ():ZZ32 = j
+end
+
+t(s:String, got:ZZ32, expected:ZZ32):() = do
+  println(
+    if got = expected then
+      s ": " got " = " expected " OK"
+    else
+      s ": " got " /= " expected " FAIL"
+    end
+  )
+end
+
+run(args:String...):()=do
+  a:A = A(1,2)
+  b:T = a.b(3)
+  c:U = a.b(3)
+  t("a.getI()", a.getI(), 1) (* 1 *)
+  t("a.getJ()", a.getJ(), 2) (* 2 *)
+  t("b.getI()", b.getI(), 3) (* 3 *)
+  t("b.getJ()", b.getJ(), 4) (* 4 *)
+  t("B.getI()", B.getI(), 5) (* 5 *)
+  t("B.getJ()", B.getJ(), 6) (* 6 *)
+  t("c.getMyX()", c.getMyX(), 7) (* 7 *)
+  t("c.getMyXAlt()", c.getMyXAlt(), 8) (* 8 *)
+  t("c.getParentX()", c.getParentX(), 9) (* 9 *)
+
+end
+end

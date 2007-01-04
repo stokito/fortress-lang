@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component juxtTwice
+export Executable
+
+(* It looks like the first component of a loose juxtaposition is being
+   run twice!  That's clearly wrong, even if writing code which will
+   notice is fairly naughty. *)
+
+object O(x : RR64)
+  f(a:RR64):RR64 = a x
+end
+
+run(args:String...):() = do
+  v : ZZ32 := 0
+  x = pi / 4
+  y = 4.0
+  f(a:ZZ32):ZZ32 = do atomic do v += a end; v end
+  n = (f(1)) (f(1))
+  if n=/=2 then
+    println("FAIL: Multiple evaluation set n to " n)
+  end
+  u = n (n+1) sin 3 n x sqrt sqrt y
+  w = (n (n+1)) (sin (3 n x)) (sqrt (sqrt y))
+  if u=/=w then
+    println("FAIL: " u " =/= parenthesized equivalent " w)
+  end
+end
+
+end

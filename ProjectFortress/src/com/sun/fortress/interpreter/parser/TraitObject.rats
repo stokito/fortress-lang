@@ -1,0 +1,227 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress trait and object declarations.
+ */
+module TraitObject(Method, Field, AbsField, Param, Other, Header, Identifier,
+                   Keyword, Spacing);
+
+import Method;
+import Field;
+import AbsField;
+modify Param;
+import Other;
+import Header;
+import Identifier;
+import Keyword;
+import Spacing;
+
+/* TraitDecl ::= TraitHeader [w GoInATrait] w end  */
+TraitDecl TraitDecl = a1:TraitHeader a2:(w GoInATrait)? w end
+     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       yyValue =
+        new TraitDecl(createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
+                      Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
+                      Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+                      a1.getExcludesClause(), a1.getComprisesClause(),
+                      FortressUtil.getListVal(a1.getWhereClause()), a2);
+     };
+
+/* TraitHeader ::=
+     [TraitMods] trait w Id [w StaticParams] [w Extends] [w Excludes]
+     [w Comprises] [w Where]
+ */
+private TraitHeader TraitHeader =
+     a1:TraitMods? trait w a2:Id a3:(w StaticParams)? a4:(w Extends)?
+     a5:(w Excludes)? a6:(w Comprises)? a7:(w Where)?
+     { Option<List<TypeRef>> comprises;
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a3 == null) a3 = FortressUtil.emptyStaticParams();
+       if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
+       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
+       if (a6 == null) comprises = None.<List<TypeRef>>make();
+       else            comprises = Some.<List<TypeRef>>make(a6);
+       Option<List<WhereClause>> where;
+       if (a7 == null) where = None.<List<WhereClause>>make();
+       else            where = Some.<WhereClause>makeSomeListOrNone(a7);
+       yyValue = new TraitHeader(a1, a2, a3, a4, a5, comprises, where);
+     };
+
+/* GoInATrait ::= GoesInATrait (br GoesInATrait)* */
+private List<DefOrDecl> GoInATrait = a1:GoesInATrait a2s:(br GoesInATrait)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* GoesInATrait ::= MdDecl | AbsFldDecl | PropertyDecl */
+private DefOrDecl GoesInATrait =
+     yyValue:MdDecl
+   / yyValue:AbsFldDecl
+   / yyValue:PropertyDecl ;
+
+/* ObjectDecl ::= ObjectHeader [w GoInAnObject] w end */
+ObjectDecl ObjectDecl = a1:ObjectHeader a2:(w GoInAnObject)? w end
+     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       Contract contract;
+       FnHeaderClause fhc = a1.getFnHeaderClause();
+       Option<Contract> o = fhc.getContractClause();
+       if (o.isPresent()) contract = (Contract)o.getVal();
+       else               contract = FortressUtil.emptyContract();
+       yyValue = new ObjectDecl
+           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
+            a1.getParams(),
+            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+            FortressUtil.getListVal(fhc.getThrowsClause()),
+            FortressUtil.getListVal(fhc.getWhereClause()), contract, a2);
+     };
+
+/* ObjectHeader ::=
+     [ObjectMods] object w Id [w StaticParams] [w ObjectValParam] [w Extends]
+     FnClauses
+ */
+private ObjectHeader ObjectHeader =
+     a1:ObjectMods? object w a2:Id a3:(w StaticParams)?
+     a4:(w ObjectValParam)? a5:(w Extends)? a6:FnClauses
+     { Option<List<Param>> params;
+       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a3 == null) a3 = FortressUtil.emptyStaticParams();
+       if (a4 == null) params = None.<List<Param>>make();
+       else            params = Some.<List<Param>>make(a4);
+       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
+       yyValue = new ObjectHeader(a1, a2, a3, params, a5, a6);
+     };
+
+/* ObjectValParam ::= ( [w ObjectParams] w ) */
+private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+       else yyValue = a1;
+     };
+
+/* ObjectParams  ::=
+     (ObjectParam w , w)* [ObjectVarargs w , w] ObjectKeyword (w , w ObjectKeyword)*
+   | (ObjectParam w , w)*  ObjectVarargs
+   |  ObjectParam (w , w ObjectParam)*
+   ObjectVarargs ::= transient wr Varargs
+   ObjectKeyword ::= ObjectParam w = w Expr
+   ObjectParam   ::= [FldMods] Param
+                 |   transient wr Param
+ */
+Param Varargs := transient wr a1:VarargsParam
+     { List<Modifier> mods = new ArrayList<Modifier>(1);
+       mods.add(new Modifier.Transient(createSpan(yyStart,9)));
+       Option<TypeRef> ty_opt = a1.getType();
+       if (ty_opt.isPresent())
+           yyValue = new Param(createSpan(yyStart,yyCount),
+                               mods, a1.getName(), (TypeRef)ty_opt.getVal());
+       else
+           yyValue = new Param(createSpan(yyStart,yyCount), mods, a1.getName());
+     };
+
+Param Param :=
+     a1:FldMods? a2:PlainParam
+     { if (a1 == null) a1 = Collections.<Modifier>emptyList();
+       Option<TypeRef> ty_opt = a2.getType();
+       if (ty_opt.isPresent())
+           yyValue = new Param(createSpan(yyStart,yyCount), a1, a2.getName(),
+                               (TypeRef)ty_opt.getVal());
+       else
+           yyValue = new Param(createSpan(yyStart,yyCount), a1, a2.getName());
+     }
+   / a1:transient wr a2:PlainParam
+     { List<Modifier> mods = new ArrayList<Modifier>(1);
+       mods.add(new Modifier.Transient(createSpan(yyStart,9)));
+       Option<TypeRef> ty_opt = a2.getType();
+       if (ty_opt.isPresent())
+           yyValue = new Param(createSpan(yyStart,yyCount),
+                               mods, a2.getName(), (TypeRef)ty_opt.getVal());
+       else
+           yyValue = new Param(createSpan(yyStart,yyCount), mods, a2.getName());
+     };
+
+/* GoInAnObject ::= GoesInAnObject (br GoesInAnObject)* */
+List<DefOrDecl> GoInAnObject = a1:GoesInAnObject a2s:(br GoesInAnObject)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* GoesInAnObject ::= MdDef | FldDecl | PropertyDecl */
+private DefOrDecl GoesInAnObject =
+     yyValue:MdDef
+   / yyValue:FldDecl
+   / yyValue:PropertyDecl ;
+
+/* AbsTraitDecl  ::= TraitHeader [w AbsGoInATrait] w end */
+AbsTraitDecl AbsTraitDecl = a1:TraitHeader a2:(w AbsGoInATrait)? w end
+     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       yyValue = new AbsTraitDecl
+           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
+            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+            a1.getExcludesClause(), a1.getComprisesClause(),
+            FortressUtil.getListVal(a1.getWhereClause()), a2);
+     };
+
+/* AbsGoInATrait ::= AbsGoesInATrait (br AbsGoesInATrait)* */
+private List<DefOrDecl> AbsGoInATrait =
+     a1:AbsGoesInATrait a2s:(br AbsGoesInATrait)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsGoesInATrait ::= AbsMdDecl | AbsCoercion | ApiFldDecl | PropertyDecl */
+private DefOrDecl AbsGoesInATrait =
+     yyValue:AbsMdDecl
+   / yyValue:AbsCoercion
+   / yyValue:ApiFldDecl
+   / yyValue:PropertyDecl ;
+
+/* AbsObjectDecl ::= ObjectHeader [w AbsGoInAnObject] w end */
+AbsObjectDecl AbsObjectDecl = a1:ObjectHeader a2:(w AbsGoInAnObject)? w a3:end
+     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       Contract contract;
+       FnHeaderClause fhc = a1.getFnHeaderClause();
+       Option<Contract> o = fhc.getContractClause();
+       if (o.isPresent()) contract = (Contract)o.getVal();
+       else               contract = FortressUtil.emptyContract();
+       yyValue = new AbsObjectDecl
+           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
+            a1.getParams(),
+            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+            FortressUtil.getListVal(fhc.getThrowsClause()),
+            FortressUtil.getListVal(fhc.getWhereClause()), contract, a2);
+     };
+
+/* AbsGoInAnObject ::= AbsGoesInAnObject (br AbsGoesInAnObject)* */
+private List<DefOrDecl> AbsGoInAnObject =
+     a1:AbsGoesInAnObject a2s:(br AbsGoesInAnObject)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsGoesInAnObject ::= AbsMdDecl | AbsCoercion | ApiFldDecl | PropertyDecl */
+private DefOrDecl AbsGoesInAnObject =
+     yyValue:AbsMdDecl
+   / yyValue:AbsCoercion
+   / yyValue:ApiFldDecl
+   / yyValue:PropertyDecl ;

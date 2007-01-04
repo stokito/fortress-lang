@@ -1,0 +1,138 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress dimension, unit, type alias, test, property, and
+ * external syntax declarations.
+ */
+module OtherDecl(Param, Header, Type, NoNewlineExpr, Identifier, Keyword,
+                 Symbol, Spacing);
+
+import Param;
+import Header;
+import Type;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* DimUnitDecl ::=
+     dim w Id [w = w DimRef] [w default w Id]
+   | (unit | SI_unit) w Id (wr Id)* [w : w DimRef] [w = w NoNewlineExpr]
+   | dim w Id [w = w DimRef] s (unit | SI_unit) w Id (wr Id)* [w = w NoNewlineExpr]
+ */
+/* ************************************************
+ * Not Yet Implemented ***************************
+Dimension DimUnitDecl =
+     dim w a1:Id a2:(w void:equals w DimRef)? a3:(w void:default w Id)?
+     { Option<TypeRef> derived;
+       Option<TypeRef> default;
+       if (a2 == null) derived = None.<TypeRef>make();
+       else            derived = Some.<TypeRef>make(a2);
+       if (a3 == null) default = None.<TypeRef>make();
+       else            default = Some.<TypeRef>make(new IdType(a3.getSpan(),a3));
+       yyValue = new Dimension(createSpan(yyStart,yyCount),a1,derived,default);
+     }
+   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w void:colon w DimRef)?
+       a4:(w void:equals w NoNewlineExpr)?
+     { yyValue = new DimUnitDecl(createSpan(yyStart,yyCount), a1, a2s.list(),
+                                 a3, a4);
+     }
+   / dim w a1:Id a2:(w void:equals w DimRef)? s (unit / SI_unit) w a3:Id
+       a4s:(wr Id)* a5:(w void:equals w NoNewlineExpr)?
+     { yyValue = new DimUnitDecl(createSpan(yyStart,yyCount), a1, a2, a3,
+                                 a4s.list(), a5);
+     };
+************************************************ */
+
+/* TypeAlias ::= type w Id [w StaticParams] w = w TypeRef */
+TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:TypeRef
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
+     };
+
+/* TestDecl ::= test w Id w [ w GeneratorList w ] w = w NoNewlineExpr */
+TestDecl TestDecl =
+     test w a1:Id w opensquare w a2:GeneratorList w closesquare w equals w
+       a3:NoNewlineExpr
+     { yyValue = new TestDecl(createSpan(yyStart,yyCount), a1, a2, a3); };
+
+/* PropertyDecl ::= property [w Id w =] [w FORALL w ValParam] w NoNewlineExpr */
+PropertyDecl PropertyDecl =
+     property a1:(w Id w void:equals)? a2:(w FORALL w ValParam)? w
+       a3:NoNewlineExpr
+     { Option<Id> id;
+       if (a1 == null) id = None.<Id>make();
+       else            id = Some.<Id>make(a1);
+       if (a2 == null) a2 = FortressUtil.emptyParams();
+       yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
+     };
+
+/* ExternalSyntax ::=
+     syntax w OpenExpander w Id w CloseExpander w = w NoNewlineExpr
+ */
+ExternalSyntax ExternalSyntax =
+     syntax w a1:OpenExpander w a2:Id w a3:CloseExpander w equals w
+       a4:NoNewlineExpr
+     { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
+
+/* OpenExpander ::= Id | LeftEncloser */
+Name OpenExpander =
+     a1:Id           { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
+   / a1:LeftEncloser { yyValue = new Name(createSpan(yyStart,yyCount), a1); };
+
+/* CloseExpander ::= Id | RightEncloser | end */
+Name CloseExpander =
+     a1:Id            { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
+   / a1:RightEncloser { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
+   / end
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new Name(span, new Id(span, "end"));
+     };
+
+/* AbsDimUnitDecl ::=
+     dim w Id [w default w Id]
+   | (unit | SI_unit) w Id (wr Id)* [w : w DimRef]
+   | dim w Id s (unit | SI_unit) w Id (wr Id)*
+ */
+/* ************************************************
+ * Not Yet Implemented ***************************
+AbsDimUnitDecl AbsDimUnitDecl =
+     dim w a1:Id a2:(w void:equals w DimRef)?
+     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2); }
+   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w void:colon w DimRef)?
+     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1,
+                                    a2s.list(), a3);
+     }
+   / dim w a1:Id a2:(w void:equals w DimRef)? s (unit / SI_unit) w a3:Id
+       a4s:(wr Id)*
+     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2, a3,
+                                    a4s.list());
+     };
+************************************************ */
+
+/* AbsTypeAlias ::= type w Id [w StaticParams] */
+AbsTypeAlias AbsTypeAlias = type w a1:Id a2:(w StaticParams)?
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new AbsTypeAlias(createSpan(yyStart,yyCount), a1, a2);
+     };
+
+/* AbsExternalSyntax ::= syntax w OpenExpander w Id w CloseExpander */
+AbsExternalSyntax AbsExternalSyntax =
+     syntax w a1:OpenExpander w a2:Id w a3:CloseExpander
+     { yyValue = new AbsExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3); };

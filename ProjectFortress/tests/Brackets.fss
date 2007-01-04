@@ -1,0 +1,84 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Brackets
+export Executable
+
+opr <| x:RR64 |>:String = "<|" x "|>"
+opr <<| x:RR64 |>>:String = "<<|" x "|>>"
+(* opr |/ x:RR64 \|:String = "|/" x "\\|" *)
+(* opr |\ x:RR64 /|:String = "|\\" x  "/|" *)
+opr {\ x:RR64 \}:String = "{\\" x "\\}"
+opr {/ x:RR64 /}:String = "{/" x "/}"
+opr [/ x:RR64 /]:String = "[/" x "/]"
+opr [// x:RR64 //]:String = "[//" x "//]"
+opr {*/ x:RR64 /*}:String = "{*/" x "/*}"
+opr [*/ x:RR64 /*]:String = "[*/" x "/*]"
+opr (\ x:RR64 \):String = "(\\" x "\\)"
+opr </ x:RR64 \>:String = "</" x "\\>"
+opr <</ x:RR64 \>>:String = "<</" x "\\>>"
+
+(* The absolute value and norm operators are defined in the library. *)
+(* opr | x:RR64 |:String = "|" x "|"
+opr || x:RR64 ||:String = "||" x "||" *)
+opr ||| x:RR64 |||:String = "|||" x "|||"
+opr // x:RR64 //:String = "//" x "//"
+
+opr ///(x:RR64, y:RR64):String = "" x " /// " y;
+
+run(Args:String...) = do
+  println( <| 2.5 |> )
+  println( <<| 2.5 |>> )
+
+(*
+  println(⟨ 2.5 ⟩)
+  println(⟪ 2.5⟫)
+*)
+
+  println(|/ 2.5 \|)
+  println(|\ 2.5 /|)
+
+(*
+  println(⌈ 2.5 ⌉)
+  println(⌊ 2.5 ⌋)
+*)
+
+  println({\ 2.5 \})
+  println({/ 2.5 /})
+
+  println([/ 2.5 /])
+  println([// 2.5 //])
+
+  println({*/ 2.5 /*})
+  println([*/ 2.5 /*])
+
+
+  println((\ 2.5 \))
+
+  println( </ 2.5 \> )
+  println( <</ 2.5 \>> )
+
+  println( |-2.5| )
+  y : RR64[2] = [ -2.5 0.0 ]
+  println( ||y|| )
+  println( |||2.5||| )
+  println( //2.5// )
+  println(2.0 /// 0.5)
+
+end
+
+end

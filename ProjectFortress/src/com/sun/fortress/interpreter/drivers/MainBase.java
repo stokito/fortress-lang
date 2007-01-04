@@ -1,0 +1,127 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+package com.sun.fortress.interpreter.drivers;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.useful.Useful;
+
+public abstract class MainBase {
+    static String baseName(String s, String suffix) {
+        String sep = System.getProperty("file.separator");
+        int slashI = s.lastIndexOf(sep);
+        if (slashI != -1)
+            s = s.substring(slashI + 1);
+        int sufI = s.lastIndexOf(suffix);
+        if (sufI != -1)
+            s = s.substring(0, sufI);
+        return s;
+    }
+
+    boolean ast = false;
+
+    boolean interpret = false;
+
+    boolean firstFieldOnNewLine = true;
+
+    boolean oneLineVarRef = true;
+
+    boolean skipEmpty = true;
+
+    boolean fileOut = false;
+
+    String inSuffix = ".sexp";
+
+    String outSuffix = ".jst";
+
+    List<String> fortressArgs = new ArrayList<String>();
+
+    public void doit(String[] args) {
+
+        for (int i = 0; i < args.length; i++) {
+            String s = args[i];
+            if ("-ast".equals(s)) {
+                ast = true;
+            } else if (s.startsWith("-interp")) {
+                interpret = true;
+            } else if ("-sr".equals(s)) {
+                firstFieldOnNewLine = true;
+                oneLineVarRef = true;
+            } else if ("-all".equals(s)) {
+                skipEmpty = false;
+            } else if (s.startsWith("-fileout")) {
+                fileOut = true;
+                if (s.startsWith("-fileout=")) {
+                    int eqi = s.indexOf("=");
+                    s = s.substring(eqi + 1);
+                    if (s.startsWith(".")) {
+                        outSuffix = s;
+                    } else {
+                        outSuffix = "." + s;
+                    }
+                }
+                ast = true;
+                if (inSuffix.equals(outSuffix))
+                    outSuffix += "2";
+
+            } else
+                try {
+                    subDoit(s);
+
+                } catch (IOException ex) {
+                    System.err.println("Trouble opening, reading, or parsing "
+                            + s);
+                    ex.printStackTrace();
+                } catch (Error ex) {
+                    System.err.println("Trouble opening, reading, or parsing "
+                            + s);
+                    ex.printStackTrace();
+                } catch (Throwable ex) {
+                    System.err.println("Trouble opening, reading, or parsing "
+                            + s);
+                    ex.printStackTrace();
+                }
+        }
+    }
+
+    abstract void subDoit(String s) throws Throwable;
+
+    void finish(String s, CompilationUnit p) throws Throwable {
+        if (ast) {
+            Appendable out = System.err;
+            BufferedWriter fout = null;
+            if (fileOut) {
+
+                fout = Useful.utf8BufferedFileWriter(baseName(s, inSuffix)
+                        + outSuffix);
+                out = fout;
+            }
+            (new com.sun.fortress.interpreter.nodes.Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
+                    .dump(p, out, 0);
+            if (fout != null)
+                fout.close();
+        }
+        if (interpret) {
+            Driver.runProgram(p, false, fortressArgs);
+        }
+    }
+
+}

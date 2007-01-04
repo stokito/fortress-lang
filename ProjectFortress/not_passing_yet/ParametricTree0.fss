@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ParametricTree
+
+(* Tests non-parametric singleton extending polymorphic supertype,
+   only simple type paramters. *)
+
+trait Tree0[\ E \]
+  comprises { Node0[\E\], Leaf0 }
+end
+
+object Node0[\ E \]
+           (settable data : E,
+            l : ZZ32, (* Index of node at depth d in complete k-Tree *)
+            children : Tree[\E,k,d+1\][2])
+    extends { Tree0[\ E \] }
+end
+
+object Leaf0 extends { Tree0[\ E \] }
+    where { E extends Object }
+end
+
+end

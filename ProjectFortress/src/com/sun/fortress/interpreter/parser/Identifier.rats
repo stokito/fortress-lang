@@ -1,0 +1,63 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress identifiers.
+ */
+module Identifier(Keyword, Symbol, Unicode, Spacing);
+
+import Keyword;
+import Symbol;
+import Unicode;
+import Spacing;
+
+option setOfString(FORTRESS_KEYWORDS);
+
+/* A word is an identifier if it begins with a letter and is not a reserved
+   word, an operator, or all or part of a numeral.
+ */
+        String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
+private String idstart = UnicodeIdStart / [_] ;
+private String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
+private String IdName  = a1:id &{!FortressUtil.validOp(a1) } ;
+
+Id Id = a1:IdName { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
+
+/* IdList ::= Id (w , w Id)* */
+List<Id> IdList = a1:Id a2s:(w comma w Id)*
+     { yyValue = new ArrayList<Id>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Name ::= Id | opr w Op */
+Name Name =
+     a1:Id       { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
+   / opr w a1:Op { yyValue = new Name(createSpan(yyStart,yyCount), a1); };
+
+/* DottedId ::= Id(.Id)* */
+/* This says that if we find ellipses, the dot doesn't count */
+DottedId DottedId =
+     a1:Id &(w ellipses)
+     { yyValue = new DottedId(createSpan(yyStart,yyCount), a1); }
+   / a1:Id a2s:(dot Id)*
+     { yyValue = new DottedId(createSpan(yyStart,yyCount), a1, a2s.list()); };
+
+/* BindId ::= Id | _ */
+Id BindId =
+     yyValue:Id
+   / underscore { yyValue = new Id(createSpan(yyStart,yyCount), "_"); };

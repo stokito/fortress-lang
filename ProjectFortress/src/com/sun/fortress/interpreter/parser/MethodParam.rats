@@ -1,0 +1,45 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress method parameter declarations.
+ */
+module MethodParam(Param, Keyword);
+
+modify Param;
+import Keyword;
+
+/* MdValParam ::= ( [w MdParams] w )
+   MdParams ::=
+     (MdParam w , w)* [Varargs w , w] MdKeyword (w , w MdKeyword)*
+   | (MdParam w , w)*  Varargs
+   |  MdParam (w , w MdParam)*
+   MdKeyword ::= MdParam w = w Expr
+   MdParam   ::= Param | self
+ */
+List<Param> ValParam := openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+       else            yyValue = a1;
+     };
+
+Param Param :=
+     yyValue:PlainParam
+   / a1:self
+     { yyValue = new Param(createSpan(yyStart,yyCount),
+                           FortressUtil.emptyModifiers(),
+                           new Id(createSpan(yyStart,yyCount),"self"));
+     };

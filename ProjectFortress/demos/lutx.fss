@@ -1,0 +1,134 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component lutx
+export Executable
+
+(* Guy's sequential LU code, based on Dongarra code.
+   Translated into something which works in Fortress today by Jan.
+*)
+
+opr MAXMIN[\N extends Number, I extends Integral\](a:(N,I),b:(N,I)):(N,I) = do
+  (x1,n1) = a
+  (x2,n2) = b
+  if x1 > x2 then
+    a
+  elif x1 < x2 OR n2 < n1 then
+    b
+  else
+    a
+  end
+end
+
+object Lower[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
+    extends Array2[\N,0,n,0,n\]
+  replica[\U\]():Array2[\U,0,n,0,n\] = mem.replica[\U\]()
+  put(v:N, i:ZZ32, j:ZZ32) : () = do
+    println("Lower triangular matrices are immutable.")
+    if true then die end
+  end
+  get(i:ZZ32,j:ZZ32):N = if i=j then 1 elif i>=j then mem.get(i,j) else 0 mem.get(i,j) end
+end
+
+lower[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\]) = Lower[\N,n\](mem)
+
+object Upper[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
+    extends Array2[\N,0,n,0,n\]
+  replica[\U\]():Array2[\U,0,n,0,n\] = mem.replica[\U\]()
+  put(v:N, i:ZZ32, j:ZZ32) : () = do
+    println("Upper triangular matrices are immutable.")
+    if true then die end
+  end
+  get(i:ZZ32,j:ZZ32):N = if i<=j then mem.get(i,j) else 0 mem.get(i,j) end
+end
+
+upper[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\]) = Upper[\N,n\](mem)
+
+lutx[\nat n\](A:Array2[\RR64,0,n,0,n\]):
+    (Array2[\RR64,0,n,0,n\],Array1[\ZZ32,0,n\]) = do
+  p : Array1[\ZZ32,0,n\] = vector[\ZZ32,n\](identity[\ZZ32\])
+  for k <- seq(0#n-1) do
+    rest = k+1 # n-k-1
+    t:(RR64,ZZ32) := (|A[k,k]|,k)
+    for ii <- rest do
+      atomic t MAXMIN= (|A[ii,k]|,ii)
+    end
+    (v,m) = t
+    if v =/= 0 then
+      if m =/= k then
+        (* exchange rows if required. *)
+        for j <- 0#n do
+          (A[k,j],A[m,j]) := (A[m,j],A[k,j])
+        end
+        (p[k],p[m]) := (p[m],p[k])
+      end
+      for j <- rest do
+        A[j,k] /= A[k,k]
+      end
+      for i <- rest, j <- rest do
+          A[i,j] -= A[i,k] A[k,j]
+      end
+    end
+  end
+  (lower(A),upper(A),p)
+end
+
+showMatrix[\nat m, nat n\](a:Array2[\RR64,0,m,0,n\]):() = do
+  print("[")
+  for i <- seq(0#m) do
+    for j <- seq(0#n) do
+      print(" " a[i,j])
+    end
+    if i < m-1 then
+      println("")
+      print(" ")
+    else
+      println("]")
+    end
+  end
+end
+
+showPerm[\nat n\](a:Array1[\ZZ32,0,n\]):() = do
+  print("[")
+  for i <- seq(0#n) do
+    print(" " i "->" a[i])
+  end
+  println(" ]")
+end
+
+mtest(a:RR64[6,6]):() = do
+  showMatrix(a)
+  (l,u,p) = lutx(a)
+  showMatrix(a)
+  showPerm(p)
+  showMatrix(l u)
+  println("")
+end
+
+run(args:String...):() = do
+  a : RR64[6,6] = matrix[\RR64,6,6\]()
+  for i <- 0#6, j <- 0#6 do
+      a[i,j] := if j <= i then 7.0-i else 7*6*5*2.0 end
+  end
+  mtest(a)
+  for i <- 0#6, j <- 0#6 do
+      a[i,j] := if j >= i then 7.0-j else 7*6*5*2.0 end
+  end
+  mtest(a)
+end
+
+end

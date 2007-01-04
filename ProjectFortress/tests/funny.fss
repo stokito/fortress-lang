@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component funny
+export Executable
+
+object A(i:ZZ32, j:ZZ32)
+  id():A = self
+  self.getI():ZZ32 = self.i
+  notself.getZ():ZZ32 = j
+end
+
+t(f:(ZZ32->ZZ32), i:ZZ32) = do
+  println("g(" i ")=" f(i))
+end
+
+run(args:String...):()=do
+  var z:ZZ32 = 0
+  var y:ZZ32 = 1
+  f = fn (x:ZZ32):ZZ32 => do z+=2; x-y; end
+  g (x:ZZ32):ZZ32 = if x < 2 then x else first= g(f x);
+                                         second = g(f (f x));
+                                         first+second end
+
+  println("g(4)=" g(4))
+  println("z=" z)
+  z := 0
+  println("g(5)=" g(5))
+  println("z=" z)
+  z := 0
+  t(g,5)
+  println("z=" z)
+  z := 0
+  println("g(6)=" g(6))
+  println("z=" z)
+  y := 2; z := 0
+  println("g(4)=" g(4))
+  println("z=" z)
+
+end
+
+end

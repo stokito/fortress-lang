@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component neOperator
+export Executable
+
+ok() = println("OK")
+not() = println("FAIL")
+
+run(args:String...) = do
+  if 0 = 1 then not() else ok() end
+  if 0+0 = 1+1 then not() else ok() end
+  if 0 0 = 1 1 then not() else ok() end
+  if (0 = 0) = (0 = 1) then not() else ok() end
+
+(*  if 0 EQ q then 1/0; () end
+  if 0+0 EQ 1+1 then 1/0; () end
+  if 0 0 EQ 1 1 then 1/0; () end
+  if (0 EQ 0) NE (0 NE 1) then 1/0; () end
+
+  if 0 NE 1 then 1/0; () end
+  if 0+0 NE 1+1 then 1/0; () end
+  if 0 0 NE 1 1 then 1/0; () end
+  if (0 NE 0) NE (0 NE 1) then 1/0; () end *)
+
+  if 0 =/= 1 then ok() else not() end
+  if (0+0) =/= (1+1) then ok() else not() end
+  if 0 0 =/= 1 1 then ok() else not() end
+  if (0 =/= 0) =/= (0 =/= 1) then ok() else not() end
+end
+
+end

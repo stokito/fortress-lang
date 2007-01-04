@@ -1,0 +1,402 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress headers.
+ */
+module Header(Other, Type, Expr, DelimitedExpr, Identifier, Keyword, Symbol,
+              Spacing);
+
+import Other;
+import Type;
+import Expr;
+import DelimitedExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* Extends ::= extends w TraitTypes */
+List<TypeRef> Extends = extends w yyValue:TraitTypes ;
+
+/* Excludes ::= excludes w TraitTypes */
+List<TypeRef> Excludes = excludes w yyValue:TraitTypes ;
+
+/* Comprises ::= comprises w MayTraitTypes */
+List<TypeRef> Comprises = comprises w yyValue:MayTraitTypes ;
+
+/* TraitTypes ::= TraitType | { w TraitTypeList w } */
+List<TypeRef> TraitTypes =
+     a1:TraitType
+     { yyValue = new ArrayList<TypeRef>(1);
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:TraitTypeList w closecurly ;
+
+/* TraitTypeList ::= TraitType (w , w TraitType)* */
+private List<TypeRef> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
+     { yyValue = new ArrayList<TypeRef>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* MayTraitTypes ::= { w } | TraitTypes  */
+private List<TypeRef> MayTraitTypes =
+     opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
+   / yyValue:TraitTypes ;
+
+/* Where ::= where w { w WhereClauseList w } */
+List<WhereClause> Where =
+      where w opencurly w yyValue:WhereClauseList w closecurly ;
+
+/* WhereClauseList ::= WhereClause (w , w WhereClause)* */
+private List<WhereClause> WhereClauseList =
+     a1:WhereClause a2s:(w comma w WhereClause)*
+     { yyValue = new ArrayList<WhereClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* WhereClause ::=
+     Id w Extends
+   | TypeAlias
+   | NatConstraint
+   | IntConstraint
+   | BoolConstraint
+   | UnitConstraint
+   | TypeRef w coerces w TypeRef
+   | TypeRef w widens w TypeRef
+ */
+private WhereClause WhereClause =
+     a1:Id w a2:Extends
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
+   / yyValue:TypeAlias ;
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / a1:NatConstraint
+   / a1:IntConstraint
+   / a1:BoolConstraint
+   / a1:UnitConstraint
+   / a1:TypeRef w coerces w a2:TypeRef
+   / a1:TypeRef w widens w a2:TypeRef
+************************************************ */
+
+/* NatConstraint ::=
+     NatRef w LT w NatRef
+   | NatRef w LE w NatRef
+   | NatRef w GT w NatRef
+   | NatRef w GE w NatRef
+   | NatRef w = w NatRef
+   | ( w NatRef w )
+ */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private NatConstraint NatConstraint =
+     a1:NatRef w "LT":op w a2:NatRef
+   / a1:NatRef w "LE":op w a2:NatRef
+   / a1:NatRef w "GT":op w a2:NatRef
+   / a1:NatRef w "GE":op w a2:NatRef
+   / a1:NatRef w equals w a2:NatRef
+   / openparen w a1:NatRef w closeparen
+************************************************ */
+
+/* IntConstraint ::= NatConstraint */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private IntConstraint IntConstraint = yyValue:NatConstraint ;
+************************************************ */
+
+/* BoolConstraint ::=
+     bool w Id
+   | NOT w BoolRef
+   | BoolRef w OR w BoolRef
+   | BoolRef w AND w BoolRef
+   | BoolRef w IMPLIES w BoolRef
+   | BoolRef w = w BoolRef
+   | ( w BoolRef w )
+ */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private BoolConstraint BoolConstraint =
+     bool w a1:Id
+   / "NOT":op w a1:BoolRef
+   / a1:BoolRef w "OR":op w a2:BoolRef
+   / a1:BoolRef w "AND":op w a2:BoolRef
+   / a1:BoolRef w "IMPLIES":op w a2:BoolRef
+   / a1:BoolRef w equals w a2:BoolRef
+   / openparen w a1:BoolRef w closeparen
+************************************************ */
+
+/* UnitConstraint ::= UnitRef w = w UnitRef */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private UnitConstraint UnitConstraint = a1:UnitRef w equals w a2:UnitRef
+************************************************ */
+
+/* FnHeaderClause ::= [w IsType] FnClauses */
+FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
+     { Option<TypeRef> returnType;
+       if (a1 == null) returnType = None.<TypeRef>make();
+       else            returnType = Some.<TypeRef>make(a1);
+       yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
+                                    a2.getContractClause(), returnType);
+     };
+
+/* FnClauses ::= [w Throws] [w Where] Contract */
+FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
+     { Option<List<TypeRef>>     throwsClause;
+       Option<List<WhereClause>> whereClause;
+       Option<Contract>          contractClause;
+       if (a1 == null) throwsClause   = None.<List<TypeRef>>make();
+       else            throwsClause   = Some.<TypeRef>makeSomeListOrNone(a1);
+       if (a2 == null) whereClause    = None.<List<WhereClause>>make();
+       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a2);
+       if (a3 == null) contractClause = None.<Contract>make();
+       else            contractClause = Some.<Contract>make(a3);
+       yyValue = new FnHeaderClause(throwsClause, whereClause, contractClause,
+                                    None.<TypeRef>make());
+     };
+
+/* Throws ::= throws w MayTraitTypes */
+List<TypeRef> Throws = throws w yyValue:MayTraitTypes ;
+
+/* Contract ::= [w Requires] [w Ensures] [w Invariant] */
+Contract Contract =
+     a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
+     { if (a1 == null) a1 = FortressUtil.emptyExprs();
+       if (a2 == null) a2 = FortressUtil.emptyEnsuresClauses();
+       if (a3 == null) a3 = FortressUtil.emptyExprs();
+       if (a1 == null && a2 == null && a3 == null) yyValue = null;
+       else yyValue = new Contract(createSpan(yyStart,yyCount), a1, a2, a3);
+     };
+
+/* Requires ::= requires w { [w ExprList] w } */
+private List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
+     { if (a1 == null) yyValue = FortressUtil.emptyExprs();
+       else            yyValue = a1;
+     };
+
+/* Ensures  ::= ensures w { [w ProvidedList] w } */
+private List<EnsuresClause> Ensures =
+     ensures w opencurly a1:(w ProvidedList)? w closecurly
+     { if (a1 == null) yyValue = FortressUtil.emptyEnsuresClauses();
+       else            yyValue = a1;
+     };
+
+/* ProvidedList ::= Provided (w , w Provided)* */
+private List<EnsuresClause> ProvidedList = a1:Provided a2s:(w comma w Provided)*
+     { yyValue = new ArrayList<EnsuresClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Provided ::= Expr [w provided w Expr] */
+private EnsuresClause Provided = a1:Expr a2:(w provided w Expr)?
+     { Option<Expr> ensures;
+       if (a2 == null) ensures = None.<Expr>make();
+       else            ensures = Some.<Expr>make(a2);
+       yyValue = new EnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
+     };
+
+/* Invariant::= invariant w { [w ExprList] w } */
+private List<Expr> Invariant =
+     invariant w opencurly a1:(w ExprList)? w closecurly
+     { if (a1 == null) yyValue = FortressUtil.emptyExprs();
+       else            yyValue = a1;
+     };
+
+/* CoercionClauses ::= [w Throws] [w CoercionWhere] w Contract */
+FnHeaderClause CoercionClauses =
+     a1:(w Throws)? a2:(w CoercionWhere)? a3:(w Contract)
+     { Option<List<TypeRef>>     throwsClause;
+       Option<List<WhereClause>> whereClause;
+       Option<Contract>          contractClause;
+       if (a1 == null) throwsClause   = None.<List<TypeRef>>make();
+       else            throwsClause   = Some.<TypeRef>makeSomeListOrNone(a1);
+       if (a2 == null) whereClause    = None.<List<WhereClause>>make();
+       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a2);
+       if (a3 == null) contractClause = None.<Contract>make();
+       else            contractClause = Some.<Contract>make(a3);
+       yyValue = new FnHeaderClause(throwsClause, whereClause, contractClause,
+                                    None.<TypeRef>make());
+     };
+
+/* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
+private List<WhereClause> CoercionWhere =
+     where w opencurly w yyValue:CoercionWhereClauseList w closecurly ;
+
+/* CoercionWhereClauseList ::= CoercionWhereClause (w , w CoercionWhereClause)*
+ */
+private List<WhereClause> CoercionWhereClauseList =
+     a1:CoercionWhereClause a2s:(w comma w CoercionWhereClause)*
+     { yyValue = new ArrayList<WhereClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* CoercionWhereClause ::=
+     WhereClause
+   | TypeRef w widens w or w coerces w TypeRef
+*/
+private WhereClause CoercionWhereClause =
+     yyValue:WhereClause
+   / a1:TypeRef w widens w or w coerces w a2:TypeRef
+     { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
+
+/* UniversalMod ::= private | test */
+private Modifier UniversalMod =
+     a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); }
+   / a1:test    { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
+
+/* TraitMod ::= value | UniversalMod */
+private Modifier TraitMod =
+     a1:value   { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
+   / yyValue:UniversalMod ;
+
+/* ObjectMod ::= TraitMod */
+private Modifier ObjectMod = yyValue:TraitMod ;
+
+/* TraitMods ::= TraitMod wr (TraitMod wr)* */
+List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* ObjectMods ::= TraitMods */
+List<Modifier> ObjectMods = yyValue:TraitMods ;
+
+/* FnMod ::= atomic | io | UniversalMod */
+private Modifier FnMod =
+     a1:atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
+   / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); }
+   / yyValue:UniversalMod ;
+
+/* FnMods ::= FnMod wr (FnMod wr)* */
+List<Modifier> FnMods = a1:FnMod wr a2s:(FnMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* VarMod ::= var | UniversalMod */
+private Modifier VarMod =
+     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / yyValue:UniversalMod ;
+
+/* VarMods ::= VarMod wr (VarMod wr)* */
+List<Modifier> VarMods = a1:VarMod wr a2s:(VarMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* MdMod ::= getter | setter | FnMod */
+private Modifier MdMod =
+     a1:getter { yyValue = new Modifier.Getter(createSpan(yyStart,yyCount)); }
+   / a1:setter { yyValue = new Modifier.Setter(createSpan(yyStart,yyCount)); }
+   / yyValue:FnMod ;
+
+/* MdMods ::= MdMod wr (MdMod wr)* */
+List<Modifier> MdMods = a1:MdMod wr a2s:(MdMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsFldMod ::= hidden | settable | wrapped | UniversalMod */
+private Modifier AbsFldMod =
+     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
+   / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
+   / yyValue:UniversalMod ;
+
+/* AbsFldMods ::= AbsFldMod wr (AbsFldMod wr)* */
+List<Modifier> AbsFldMods = a1:AbsFldMod wr a2s:(AbsFldMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* FldMod ::= var | AbsFldMod */
+private Modifier FldMod =
+     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / yyValue:AbsFldMod ;
+
+/* FldMods ::= FldMod wr (FldMod wr)* */
+List<Modifier> FldMods = a1:FldMod wr a2s:(FldMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* ApiFldMod ::= hidden | settable | UniversalMod */
+private Modifier ApiFldMod =
+     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
+   / yyValue:UniversalMod ;
+
+/* ApiFldMods ::= ApiFldMod wr (ApiFldMod wr)* */
+List<Modifier> ApiFldMods = a1:ApiFldMod wr a2s:(ApiFldMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* StaticParams ::= [\ w StaticParamList w \] */
+List<StaticParam> StaticParams =
+     opendoublesquare w yyValue:StaticParamList w closedoublesquare ;
+
+/* StaticParamList ::= StaticParam (w , w StaticParam)* */
+private List<StaticParam> StaticParamList =
+     a1:StaticParam a2s:(w comma w StaticParam)*
+     { yyValue = new ArrayList<StaticParam>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* StaticParam ::=
+     Id [w Extends] [w absorbs w unit]
+   | nat w Id
+   | int w Id
+   | bool w Id
+   | dim w Id
+   | unit w Id [w : w DimRef] [w absorbs w unit]
+   | opr w Op
+   | ident w Id
+*/
+private StaticParam StaticParam =
+     a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
+     { Option<List<TypeRef>> extends_;
+       if (a2 == null) extends_ = None.<List<TypeRef>>make();
+       else            extends_ = Some.<TypeRef>makeSomeListOrNone(a2);
+       boolean absorbs;
+       if (a3 == null) absorbs = false;
+       else            absorbs = true;
+       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount), a1, extends_,
+                                     absorbs);
+     }
+   / nat  w a1:Id { yyValue = new NatParam(createSpan(yyStart,yyCount), a1); }
+   / int  w a1:Id { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
+   / bool w a1:Id { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
+   / dim  w a1:Id {yyValue = new DimensionParam(createSpan(yyStart,yyCount),a1);}
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / unit w a1:Id a2:(w colon w DimRef)? a3:(w absorbs w unit)?
+************************************************ */
+   / opr  w a1:Op { yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);}
+   / ident w a1:Id { yyValue = new IdentParam(createSpan(yyStart,yyCount),a1); };

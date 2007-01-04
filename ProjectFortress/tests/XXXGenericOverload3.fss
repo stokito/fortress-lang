@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component GenericOverload3
+export Executable
+
+(* Should not compile *)
+
+trait B  end
+object A extends B end
+object C extends B end
+
+f[\ U, V extends U \](x:U, y:V) = 1
+f[\ U, V extends U \](x:V, y:U) = 2
+f[\ U, V extends U \](x:V, y:V) = 3
+
+run(args:String...):() = do
+  g = f[\B, A\]
+
+  println( g(A,A) )
+  println( g(A,C) )
+  println( g(C,A) )
+
+  h = f[\C, C\]
+
+  println( h(C,C) )
+
+
+end
+
+end

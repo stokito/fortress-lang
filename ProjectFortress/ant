@@ -1,0 +1,43 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2007 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+################################################################################
+
+if [ "$ANT_HOME" == "" ] ; then
+  export TMPDIR="$$".tmpdir
+  mkdir /tmp/$TMPDIR
+
+  ANT_HOME=`(cd /tmp/$TMPDIR; ant -diagnostics | sed -n -e 's/^ant\.home: //p' | head -1)`
+
+  rmdir /tmp/$TMPDIR
+
+  echo please set ANT_HOME, guessing $ANT_HOME
+else
+  echo ANT_HOME is $ANT_HOME
+fi
+
+if [ "$EXPLICIT_ANT_ARGS" == "" ] ; then
+  EXPLICIT_ANT_ARGS="-noclasspath -lib \"third_party/ant:third_party/xtc:third_party/junit:\""
+fi
+
+export ANT_ARGS=$EXPLICIT_ANT_ARGS
+export ANT_OPTS="-Xmx384M -Xms256M -XX:+UseParallelGC" # -verbosegc" # -XX:+PrintGCDetails"
+export ANT_CALLED_FROM_SCRIPT="yes"
+
+echo Using Ant args $ANT_ARGS
+
+$ANT_HOME/bin/ant $ANT_ARGS $*

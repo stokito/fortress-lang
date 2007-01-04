@@ -1,0 +1,47 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component genericTest4
+export Executable
+
+object A[\T\](i:ZZ32, j:ZZ32)
+  eff(x:T):ZZ32 = f(x) (* I think this uses interpreter-only sleight-of-type *)
+  self.getI():ZZ32 = self.i
+  notself.getZ():ZZ32 = j
+end
+
+var c1:ZZ32 = 0
+var c2:ZZ32 = 0
+
+f(x:String):ZZ32=17
+
+f(x:ZZ32):ZZ32=11
+
+t(b:Boolean) = println (if b then "pass" else "fail" end)
+
+run(args:String...):()=do
+  a1:A[\String\] = A[\String\](3,4)
+  a2:A[\ZZ32\] = A[\ZZ32\](5,9)
+
+  t((a1.getI()+a1.getZ()=7))
+  t((a2.getI()+a2.getZ()=14))
+  t((a1.eff("cat")=17))
+  t((a2.eff(42)=11))
+
+end
+
+end

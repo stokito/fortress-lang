@@ -1,0 +1,77 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress abstract field declarations.
+ */
+module AbsField(Variable, Header, Type, Identifier, Spacing);
+
+modify Variable;
+import Header;
+import Type;
+import Identifier;
+import Spacing;
+
+/* AbsFldDecl ::=
+     AbsFldWTypes
+   | AbsFldWoTypes w : w TypeRef...
+   | AbsFldWoTypes w : w SimpleTupleType
+   AbsFldWTypes ::=
+     AbsFldWType
+   | ( w AbsFldWType (w , w AbsFldWType)+ w )
+   AbsFldWType ::= [AbsFldMods] Id w IsType
+   AbsFldWoTypes ::=
+     AbsFldWoType
+   | ( w AbsFldWoType (w , w AbsFldWoType)+ w )
+   AbsFldWoType ::= [AbsFldMods] Id
+ */
+AbsVarDecl AbsFldDecl = yyValue:AbsVarDecl ;
+
+LValue VarWType := a1:AbsFldMods? a2:Id w a3:IsType
+     { if (a1 == null)
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    Some.<TypeRef>make(a3),
+                                    FortressUtil.emptyModifiers(), false);
+       else
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    Some.<TypeRef>make(a3), a1,
+                                    FortressUtil.getMutable(a1));
+     };
+
+LValue VarWoType := a1:AbsFldMods? a2:Id
+     { if (a1 == null) {
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    None.<TypeRef>make(),
+                                    FortressUtil.emptyModifiers(), false);
+       } else {
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    None.<TypeRef>make(), a1,
+                                    FortressUtil.getMutable(a1));
+       }
+     };
+
+/* ApiFldDecl ::= [ApiFldMods] Id w IsType */
+AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:Id w a3:IsType
+     { List<LValue> lhs = new ArrayList<LValue>();
+       if (a1 == null)
+           lhs.add(new LValueBind(a2.getSpan(), a2, Some.<TypeRef>make(a3),
+                                  FortressUtil.emptyModifiers(), false));
+       else
+           lhs.add(new LValueBind(a2.getSpan(), a2, Some.<TypeRef>make(a3), a1,
+                                  FortressUtil.getMutable(a1)));
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lhs);
+     };

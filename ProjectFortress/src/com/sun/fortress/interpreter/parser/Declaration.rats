@@ -1,0 +1,91 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress top-level declarations.
+ */
+module Declaration(TraitObject, Function, Variable, Other, Spacing);
+
+import TraitObject;
+import Function;
+import Variable;
+import Other;
+import Spacing;
+
+/* Decls ::= Decl (br Decl)* */
+List<DefOrDecl> Decls = a1:Decl a2s:(br Decl)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Decl ::=
+     TraitDecl
+   | ObjectDecl
+   | VarDecl
+   | FnDecl
+   | DimUnitDecl
+   | TypeAlias
+   | TestDecl
+   | PropertyDecl
+   | ExternalSyntax
+*/
+private DefOrDecl Decl =
+     yyValue:TraitDecl
+   / yyValue:ObjectDecl
+   / yyValue:VarDecl
+   / yyValue:FnDecl
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / yyValue:DimUnitDecl
+************************************************ */
+   / yyValue:TypeAlias
+   / yyValue:TestDecl
+   / yyValue:PropertyDecl
+   / yyValue:ExternalSyntax ;
+
+/* AbsDecls ::= AbsDecl (br AbsDecl)* */
+List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsDecl ::=
+     AbsTraitDecl
+   | AbsObjectDecl
+   | AbsVarDecl
+   | AbsFnDecl
+   | AbsDimUnitDecl
+   | AbsTypeAlias
+   | TestDecl
+   | PropertyDecl
+   | AbsExternalSyntax
+ */
+private DefOrDecl AbsDecl =
+     yyValue:AbsTraitDecl
+   / yyValue:AbsObjectDecl
+   / yyValue:AbsVarDecl
+   / yyValue:AbsFnDecl
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / yyValue:AbsDimUnitDecl
+************************************************ */
+   / yyValue:AbsTypeAlias
+   / yyValue:TestDecl
+   / yyValue:PropertyDecl
+   / yyValue:AbsExternalSyntax ;

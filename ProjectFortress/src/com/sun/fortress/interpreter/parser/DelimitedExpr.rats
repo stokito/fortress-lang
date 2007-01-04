@@ -1,0 +1,356 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions that are enclosed by keywords.
+ */
+module DelimitedExpr(TraitObject, Header, Type, Expr, LocalDecl, Literal,
+                     Identifier, Keyword, Symbol, Spacing);
+import TraitObject;
+import Header;
+import Type;
+import Expr;
+import LocalDecl;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* DelimitedExpr ::=
+     TupleExpr
+   | object [w Extends] [w GoInAnObject] w end
+   | Do
+   | label w Id w BlockElems w end w Id
+   | while w Expr w Do
+   | for w GeneratorList w DoFront w end
+   | if w Expr w then w BlockElems [w Elifs] [w Else] w end
+   | ( w if w Expr w then w BlockElems [w Elifs] w Else [w end] w )
+   | case w Expr [w Op] w of w CaseClauses [w CaseElse] w end
+   | case w (largest | smallest) [w Op] w of w CaseClauses w end
+   | typecase w TypecaseBindings w of w TypecaseClauses [br CaseElse] w end
+   | try w BlockElems [w Catch] [w forbid w TraitTypes] [w finally w BlockElems] w end
+ */
+Expr DelimitedExpr =
+     yyValue:TupleExpr
+   / object a1:(w Extends)? a2:(w GoInAnObject)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyTypeRefs();
+       if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       yyValue = new ObjectExpr(createSpan(yyStart,yyCount),
+                                Some.<TypeRef>makeSomeListOrNone(a1), a2);
+     }
+   / yyValue:Do
+   / label w a1:Id w a2:BlockElems w end w a3:Id
+     { if (!a1.getName().equals(a3.getName()))
+           throw new ProgramError(a1, "Mismatched identifiers for "
+                                      + "label expressions.");
+       yyValue = new Label(createSpan(yyStart,yyCount), a1,
+                           FortressUtil.doBlock(a2));
+     }
+   / while w a1:Expr w a2:Do
+     { yyValue = new While(createSpan(yyStart,yyCount), a1, a2); }
+   / for w a1:GeneratorList w a2:DoFront w end
+     { yyValue = new For(createSpan(yyStart,yyCount), a1, a2); }
+   / if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
+     { Expr body = FortressUtil.doBlock(a2);
+       IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
+       List<IfClause> clauses = new ArrayList<IfClause>();
+       clauses.add(ic);
+       if (a3 != null) clauses.addAll(a3);
+       Option<Expr> elseC;
+       if (a4 == null) elseC = None.<Expr>make();
+       else            elseC = Some.<Expr>make(a4);
+       yyValue = new If(createSpan(yyStart,yyCount), clauses, elseC);
+     }
+   / openparen w if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? w a4:Else
+       (w end)? w closeparen
+     { Expr body = FortressUtil.doBlock(a2);
+       IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
+       List<IfClause> clauses = new ArrayList<IfClause>();
+       clauses.add(ic);
+       if (a3 != null) clauses.addAll(a3);
+       yyValue = new If(createSpan(yyStart,yyCount),clauses,Some.<Expr>make(a4));
+     }
+   / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
+     { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
+       Option<Op> compare;
+       if (a2 == null) compare = None.<Op>make();
+       else            compare = Some.<Op>make(a2);
+       if (a4 == null) a4 = FortressUtil.emptyExprs();
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), e1, compare, a3, a4);
+     }
+   / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
+     { CaseParam e1;
+       if (a1.equals("largest"))
+           e1 = new CaseParamLargest(createSpan(yyStart+5,7));
+       else // a1.equals("smallest")
+           e1 = new CaseParamSmallest(createSpan(yyStart+5,8));
+       Option<Op> compare;
+       if (a2 == null) compare = None.<Op>make();
+       else            compare = Some.<Op>make(a2);
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), e1, compare, a3,
+                              FortressUtil.emptyExprs());
+     }
+   / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
+       w end
+     { Option<List<Expr>> caseElse;
+       if (a3 == null) caseElse = None.<List<Expr>>make();
+       else            caseElse = Some.<Expr>makeSomeListOrNone(a3);
+       yyValue = new TypeCase(createSpan(yyStart,yyCount), a1, a2, caseElse);
+     }
+   / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
+        a4:(w finally w BlockElems)? w end
+     { Option<CatchExpr> catch_;
+       Option<Expr> finally_;
+       if (a2 == null) catch_ = None.<CatchExpr>make();
+       else            catch_ = Some.<CatchExpr>make(a2);
+       if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
+       if (a4 == null) finally_ = None.<Expr>make();
+       else            finally_ = Some.<Expr>make(FortressUtil.doBlock(a4));
+       yyValue = new Try(createSpan(yyStart,yyCount), FortressUtil.doBlock(a1),
+                         catch_, a3, finally_);
+     };
+
+/* Do ::= (DoFront w also w)* DoFront w end */
+Expr Do = yyValue:DoFront w end ;
+/* ************************************************
+ * Not Yet Implemented ***************************
+a1s:(DoFront w also w)* a2:DoFront w end
+************************************************ */
+
+/* DoFront ::= [at w Expr w] [atomic w] do [w BlockElems] */
+private Expr DoFront = do a1:(w BlockElems)?
+     { if (a1 == null) a1 = FortressUtil.emptyExprs();
+       yyValue = FortressUtil.doBlock(a1);
+     };
+/* ************************************************
+ * Not Yet Implemented ***************************
+     a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
+************************************************ */
+
+/* TupleExpr ::=
+     ( w (Expr w , w)* [Expr w ... w , w] Binding (w , w Binding)* w )
+   | NoKeyTuple
+ */
+Expr TupleExpr =
+     openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
+       a3:Binding a4s:(w comma w Binding)* w closeparen
+     { List<Expr> es = new ArrayList<Expr>();
+       es.addAll(a1s.list());
+       if (a2 != null) es.add(new VarargsExpr(a2.getSpan(), a2));
+       List<com.sun.fortress.interpreter.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.interpreter.useful.Pair<Id,Expr>>();
+       ks.add(new com.sun.fortress.interpreter.useful.Pair<Id,Expr>(a3.getName(), a3.getInit()));
+       for (Binding b : (List<Binding>)a4s.list()) {
+           ks.add(new com.sun.fortress.interpreter.useful.Pair<Id,Expr>(b.getName(), b.getInit()));
+       }
+       yyValue = new KeywordsExpr(createSpan(yyStart,yyCount), es, ks);
+     }
+   / NoKeyTuple ;
+
+/* NoKeyTuple ::=
+     ( w (Expr w , w)*  Expr w ... w )
+   | ( w (Expr w , w)*  Expr w )
+ */
+Expr NoKeyTuple =
+     openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
+     { List<Expr> es = new ArrayList<Expr>();
+       es.addAll(a1s.list());
+       es.add(new VarargsExpr(a2.getSpan(), a2));
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), es);
+     }
+   / openparen w a1s:(Expr w comma w)* a2:Expr w closeparen
+     { if (a1s.list().isEmpty()) {
+           a2.setInParentheses();
+           yyValue = a2;
+       } else {
+           List<Expr> es = new ArrayList<Expr>();
+           es.addAll(a1s.list());
+           es.add(a2);
+           yyValue = new TupleExpr(createSpan(yyStart,yyCount), es);
+       }
+     };
+
+/* Elifs ::= Elif (w Elif)* */
+List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
+     { yyValue = new ArrayList<IfClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Elif ::= elif w Expr w then w BlockElems */
+private IfClause Elif = elif w a1:Expr w then w a2:BlockElems
+     { yyValue = new IfClause(createSpan(yyStart,yyCount), a1,
+                              FortressUtil.doBlock(a2));
+     };
+
+/* Else ::= else w BlockElems */
+Expr Else = else w a1:BlockElems
+     { yyValue = FortressUtil.doBlock(a1); };
+
+/* CaseClauses ::= CaseClause (br CaseClause)* */
+private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
+     { yyValue = new ArrayList<CaseClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* CaseElse ::= else w => w BlockElems */
+List<Expr> CaseElse = else w match w yyValue:BlockElems ;
+
+/* TypecaseBindings ::=
+     ( w BindingList w )
+   | Binding
+   | Id
+ */
+private List<Binding> TypecaseBindings =
+     openparen w yyValue:BindingList w closeparen
+   / a1:Binding
+     { yyValue = new ArrayList<Binding>();
+       yyValue.add(a1);
+     }
+   / a1:Id
+     { yyValue = new ArrayList<Binding>();
+       yyValue.add(new Binding(createSpan(yyStart,yyCount), a1,
+                               new VarRefExpr(a1.getSpan(), a1)));
+     };
+
+/* BindingList ::= Binding (w , w Binding)*  */
+private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
+     { yyValue = new ArrayList<Binding>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* Binding ::= BindId w = w Expr */
+private Binding Binding = a1:BindId w equals w a2:Expr
+     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
+
+/* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
+private List<TypeCaseClause> TypecaseClauses =
+     a1:TypecaseClause a2s:(br TypecaseClause)*
+     { yyValue = new ArrayList<TypeCaseClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* TypecaseClause ::= TypecaseTypeRefs w => w BlockElems */
+TypeCaseClause TypecaseClause =
+     a1:TypecaseTypeRefs w match w a2:BlockElems
+     { yyValue = new TypeCaseClause(createSpan(yyStart,yyCount), a1, a2); };
+
+/* TypecaseTypeRefs ::=
+     ( w TypeRefList w )
+   | TypeRef
+ */
+List<TypeRef> TypecaseTypeRefs =
+     openparen w yyValue:TypeRefList w closeparen
+   / a1:TypeRef
+     { yyValue = new ArrayList<TypeRef>();
+       yyValue.add(a1);
+     };
+
+/* Catch ::= catch w Id w CatchClauses */
+CatchExpr Catch = catch w a1:Id w a2:CatchClauses
+     { yyValue = new CatchExpr(createSpan(yyStart,yyCount), a1, a2); };
+
+/* CatchClauses ::= CatchClause (br CatchClause)* */
+private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
+     { yyValue = new ArrayList<CatchClause>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* CatchClause ::= TraitType w => w BlockElems */
+private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
+     { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
+
+/* Comprehension ::=
+     { w Expr wr | wr GeneratorList w }
+   | { w Entry wr | wr GeneratorList w }
+   | <| w Expr wr | wr GeneratorList w |>
+   | [ w ArrayComprehensionClause (br ArrayComprehensionClause)* w ]
+ */
+Comprehension Comprehension =
+     opencurly w a1:Expr wr bar wr a2:GeneratorList w closecurly
+     { yyValue = new SetComprehension(createSpan(yyStart,yyCount), a2, a1); }
+   / opencurly w a1:Entry wr bar wr a2:GeneratorList w closecurly
+     { yyValue = new MapComprehension(createSpan(yyStart,yyCount), a2,
+                                      a1.getKey(), a1.getValue());
+     }
+   / openangle w a1:Expr wr bar wr a2:GeneratorList w closeangle
+     { yyValue = new ListComprehension(createSpan(yyStart,yyCount), a2, a1); }
+   / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
+       w closesquare
+     { List<RectCompClause> clauses = new ArrayList<RectCompClause>();
+       clauses.add(a1);
+       clauses.addAll(a2s.list());
+       yyValue = new RectComprehension(createSpan(yyStart,yyCount), clauses);
+     };
+
+/* The operator "|->" should not be in the left-hand sides of map expressions
+   and map/array comprehensions.
+ */
+String mapstoOp = !("|->" w Expr (w mapsto / wr bar)) "|->" ;
+
+/* Entry ::= Expr w |-> w Expr */
+Entry Entry = a1:Expr w mapsto w a2:Expr
+     { yyValue = new Entry(createSpan(yyStart,yyCount), a1, a2); };
+
+/* ArrayComprehensionLeft ::=
+     IdOrInt w |-> w Expr
+   | ( w IdOrInt w , w IdOrIntList w ) w |-> w Expr
+ */
+com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
+     a1:IdOrInt w mapsto w a2:Expr
+     { List<Expr> exprs = new ArrayList<Expr>();
+       exprs.add(a1);
+       yyValue = new com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr>(exprs, a2);
+     }
+   / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w a3:Expr
+     { List<Expr> exprs = new ArrayList<Expr>();
+       exprs.add(a1);
+       for (Expr i : a2) {
+           exprs.add(i);
+       }
+       yyValue = new com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr>(exprs, a3);
+     };
+
+/* IdOrInt ::= Id | IntLiteral */
+Expr IdOrInt =
+     a1:Id { yyValue = new VarRefExpr(a1.getSpan(), a1); }
+   / yyValue:IntLiteral ;
+
+/* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
+List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
+     { yyValue = new ArrayList<Expr>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* BaseExpr ::= NoKeyTuple | Literal | Id | self */
+Expr BaseExpr =
+     yyValue:NoKeyTuple
+   / yyValue:Literal
+   / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); }
+   / a1:self { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
+
+/* ExprList ::= Expr (w , w Expr)* */
+List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
+     { yyValue = new ArrayList<Expr>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };

@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component genericTest6
+export Executable
+
+trait List[\T\]
+   length():ZZ32
+    head():T
+    tail():List[\T\]
+end
+
+object Cons[\T\](x:T, y:List[\T\]) extends List[\T\]
+    length():ZZ32=1+y.length()
+    head():T=x
+    tail():List[\T\]=y
+end
+
+object End[\T\](x:T) extends List[\T\]
+    length():ZZ32=1
+    head():T=x
+    tail():List[\T\]= self (* Buggy, but we lack where clauses at this stage *)
+end
+
+
+t(b:Boolean) = println (if b then "pass" else "fail" end)
+
+run(args:String...):()=do
+  one=End[\String\]("cat", "extraparameter") (* should fail here *)
+  two=Cons[\String\]("dog", one)
+  println (two.head() " " two.tail().head())
+end
+
+end

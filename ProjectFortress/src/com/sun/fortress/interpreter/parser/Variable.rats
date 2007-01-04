@@ -1,0 +1,168 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress variable declarations.
+ */
+module Variable(Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
+                Spacing);
+
+import Header;
+import Type;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* VarDecl ::=
+     VarWTypes w InitVal
+   | VarWTypes
+   | VarWoTypes w = w NoNewlineExpr
+   | VarWoTypes w : w TypeRef w ... [w InitVal]
+   | VarWoTypes w : w SimpleTupleType [w InitVal]
+ */
+DefOrDecl VarDecl =
+     a1:VarWTypes w a2:InitVal
+     { if (a2.getB()) FortressUtil.setMutable(a1);
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2.getA());
+     }
+   / a1:VarWTypes
+     { yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1); }
+   / a1:VarWoTypes w equals w a2:NoNewlineExpr
+     { yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:VarWoTypes w colon w a2:TypeRef w ellipses a3:(w InitVal)?
+     { for (LValue v : a1) {
+           if (v instanceof LValueBind) ((LValueBind)v).setType(a2);
+           else throw new ProgramError(v, "LValueBind is expected.");
+       }
+       if (a3 == null)
+           yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1);
+       else {
+           if (a3.getB()) FortressUtil.setMutable(a1);
+           yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a3.getA());
+       }
+     }
+   / a1:VarWoTypes w colon w a2:SimpleTupleType a3:(w InitVal)?
+     { Span span = createSpan(yyStart,yyCount);
+       List<TypeRef> tys = a2.getElements();
+       if (a1.size() != tys.size())
+           throw new ProgramError(new Id(span, "_"),
+                                  "Mismatched numbers of variables and types.");
+       int ind = 0;
+       for (LValue v : a1) {
+           if (v instanceof LValueBind) {
+               ((LValueBind)v).setType(tys.get(ind));
+               ind += 1;
+           } else throw new ProgramError(v, "LValueBind is expected.");
+       }
+       if (a3 == null)
+           yyValue = new AbsVarDecl(span, a1);
+       else {
+           if (a3.getB()) FortressUtil.setMutable(a1);
+           yyValue = new VarDecl(span, a1, a3.getA());
+       }
+     };
+
+/* VarWTypes ::=
+     VarWType
+   | ( w VarWType (w , w VarWType)+ w )
+ */
+List<LValue> VarWTypes =
+     a1:VarWType
+     { yyValue = new ArrayList<LValue>();
+       yyValue.add(a1);
+     }
+   / openparen w a1:VarWType a2s:(w comma w VarWType)+ w closeparen
+     { yyValue = new ArrayList<LValue>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* VarWType ::= [VarMods] Id w IsType */
+LValue VarWType = a1:VarMods? a2:Id w a3:IsType
+     { if (a1 == null)
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    Some.<TypeRef>make(a3),
+                                    FortressUtil.emptyModifiers(), false);
+       else
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    Some.<TypeRef>make(a3), a1,
+                                    FortressUtil.getMutable(a1));
+     };
+
+/* VarWoTypes ::=
+     VarWoType
+   | ( w VarWoType (w , w VarWoType)+ w )
+ */
+List<LValue> VarWoTypes =
+     a1:VarWoType
+     { yyValue = new ArrayList<LValue>();
+       yyValue.add(a1);
+     }
+   / openparen w a1:VarWoType a2s:(w comma w VarWoType)+ w closeparen
+     { yyValue = new ArrayList<LValue>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* VarWoType ::= [VarMods] Id */
+LValue VarWoType = a1:VarMods? a2:Id
+     { if (a1 == null)
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    None.<TypeRef>make(),
+                                    FortressUtil.emptyModifiers(), false);
+       else
+           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
+                                    None.<TypeRef>make(), a1,
+                                    FortressUtil.getMutable(a1));
+     };
+
+/* InitVal ::= (=|:=) w NoNewlineExpr */
+com.sun.fortress.interpreter.useful.Pair<Expr,Boolean> InitVal = a1:(equals / colonequals) w a2:NoNewlineExpr
+     { yyValue = new com.sun.fortress.interpreter.useful.Pair<Expr,Boolean>(a2, a1.equals(":=")); };
+
+/* AbsVarDecl ::=
+     VarWTypes
+   | VarWoTypes w : w TypeRef w ...
+   | VarWoTypes w : w SimpleTupleType
+ */
+AbsVarDecl AbsVarDecl =
+     a1:VarWTypes
+     { yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1); }
+   / a1:VarWoTypes w colon w a2:TypeRef w ellipses
+     { for (LValue v : a1) {
+           if (v instanceof LValueBind) ((LValueBind)v).setType(a2);
+           else throw new ProgramError(v, "LValueBind is expected.");
+       }
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1);
+     }
+   / a1:VarWoTypes w colon w a2:SimpleTupleType
+     { Span span = createSpan(yyStart,yyCount);
+       List<TypeRef> tys = a2.getElements();
+       if (a1.size() != tys.size())
+           throw new ProgramError(new Id(span, "_"),
+                                  "Mismatched numbers of variables and types.");
+       int ind = 0;
+       for (LValue v : a1) {
+           if (v instanceof LValueBind) {
+               ((LValueBind)v).setType(tys.get(ind));
+               ind += 1;
+           } else throw new ProgramError(v, "LValueBind is expected.");
+       }
+       yyValue = new AbsVarDecl(span, a1);
+     };

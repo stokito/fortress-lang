@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component XXXGenericOverload2
+export Executable
+
+(* Should not compile *)
+
+(* This demonstrates why it is not correct to
+   substitute bounds for generic type parameters
+   when checking correctness of overloading. *)
+
+trait B  end
+object A extends B end
+
+f[\ U, V \] ( u:U, v:V, b:B) = 1
+f[\ U, V \] ( v:V, u:U, a:A) = 2
+
+run(args:String...):() = do
+  println("FAIL: should have failed in generic overloading of f" )
+
+  g = f[\A, B\]
+end
+
+end

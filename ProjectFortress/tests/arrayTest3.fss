@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component arrayTest3
+export Executable
+
+run(args:String...):()=do
+
+  a:ZZ32[2,2] = [ 11 12 ;
+                  21 22 ]
+
+  b:ZZ32[3,3] = [ 1 2 ;
+                  3 a ]
+
+
+  println( "" b[0,0] " " b[0,1] " " b[0,2])
+  println( "" b[1,0] " " b[1,1] " " b[1,2])
+  println( "" b[2,0] " " b[2,1] " " b[2,2])
+
+end
+
+end

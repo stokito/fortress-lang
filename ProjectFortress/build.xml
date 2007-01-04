@@ -1,0 +1,371 @@
+<?xml version="1.0" ?>
+
+<!--
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries. -->
+
+
+<project name="Fortress" default="compile">
+    <description>
+        The Fortress interpreter, implemented in Java.
+    </description>
+
+    <!-- Set global properties for this build. -->
+	<property name="src" location="src"/>
+
+	<property name="blahblahblah" value="com/sun/fortress/interpreter"/>
+	<property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
+
+	<property name="build" location="build"/>
+	<property name="xtc" location="${basedir}/third_party/xtc"/>
+	<property name="fj" location="${basedir}/third_party/FJ"/>
+	<property name="unicode" location="${basedir}/third_party/unicode"/>
+    <property name="nodesPackage" value="${blahblahblah}/nodes"/>
+    <property name="nodes"  location="${src}/${nodesPackage}"/>
+    <property name="nodesBuild" location="${build}/${nodesPackage}"/>
+    <property name="parser"  location="${src}/${blahblahblah}/parser"/>
+    <property name="build.classpath" location="${build}"/>
+    <property name="precedence" location="${parser}/precedence"/>
+    <property name="testPattern" location=""/>
+
+    <property environment="env"/>
+
+    <target name="help">
+        <echo message="ant init, visitorGen, parser, compile, jar, clean, test,
+        testParser, testAll, testNotPassing"/>
+    </target>
+
+    <condition property="correct.environment">
+        <and>
+            <equals arg1="${ant.java.version}" arg2="1.5"/>
+            <equals arg1="${env.ANT_CALLED_FROM_SCRIPT}" arg2='yes'/>
+        </and>
+    </condition>
+
+    <target name="systemProperties">
+        <echo message="Environment variables set correctly? ${correct.environment}"/>
+        <echo message="Ant Java version: ${ant.java.version}"/>
+        <echo message="Ant called from script? ${env.ANT_CALLED_FROM_SCRIPT}"/>
+        <echo message="ANT_ARGS: ${env.ANT_ARGS}"/>
+        <echo message="ANT_OPTS: ${env.ANT_OPTS}"/>
+        <echo message="Java Runtime Environment
+        version: ${java.version}"/>
+        <echo message="Java Runtime Environment
+        vendor: ${java.vendor}"/>
+        <echo message="Java Runtime Environment
+        vendor URL: ${java.vendor.url}"/>
+        <echo message="Java installation
+        directory: ${java.home}"/>
+        <echo message="Java Virtual Machine
+              specification version:
+        ${java.vm.specification.version}"/>
+        <echo message="Java Virtual Machine
+              specification vendor:
+        ${java.vm.specification.vendor}"/>
+        <echo message="Java Virtual Machine
+              specification name:
+        ${java.vm.specification.name}"/>
+        <echo message="Java Virtual Machine
+              implementation version:
+        ${java.vm.version}"/>
+        <echo message="Java Virtual Machine
+              implementation vendor:
+        ${java.vm.vendor}"/>
+        <echo message="Java Virtual Machine
+        implementation name: ${java.vm.name}"/>
+        <echo message="Java Runtime Environment
+              specification version:
+        ${java.specification.version}"/>
+        <echo message="Java Runtime Environment
+              specification vendor:
+        ${java.specification.vendor}"/>
+        <echo message="Java Runtime Environment
+              specification name:
+        ${java.specification.name}"/>
+        <echo message="Java class format version
+        number: ${java.class.version}"/>
+        <echo message="Java class path:
+        ${java.class.path}"/>
+        <echo message="List of paths to search when
+        loading libraries: ${java.library.path}"/>
+        <echo message="Path of extension directory
+        or directories: ${java.ext.dirs}"/>
+        <echo message="Default temp file path:
+        ${java.io.tmpdir}"/>
+        <echo message="Operating system name:
+        ${os.name}"/>
+        <echo message="Operating system
+        architecture: ${os.arch}"/>
+        <echo message="Operating system version:
+        ${os.version}"/>
+    </target>
+
+    <target name="checkEnv">
+        <echo message="Environment variables set correctly? ${correct.environment}"/>
+        <fail unless="correct.environment"
+              message='ERROR: This build script requires specific command-line arguments to Ant. Please call it using the script provided at ${basedir}/ant.'/>
+    </target>
+
+    <target name="init">
+        <echo message="basedir: ${basedir}"/>
+        <!-- Create the time stamp. -->
+        <tstamp/>
+        <!-- Create the build directory structure used by compile. -->
+        <mkdir dir="${build}"/>
+        <!-- Create the precedence types directory structure. -->
+        <mkdir dir="${precedence}/opexpr"/>
+    </target>
+
+    <target name="clean"
+            description="Delete the ${build} directory tree and generated files.">
+        <delete dir="${build}"/>
+        <delete file="${nodes}/NodeVisitor.java"/>
+        <delete file="${nodes}/BaseNodeVisitor.java"/>
+        <delete file="${parser}/Fortress.java"/>
+        <delete file="${parser}/precedence/resolver/Operators.java"/>
+        <delete file="FortressLibrary.ast"/>
+        <delete file="FortressLibrary.jst"/>
+    </target>
+
+    <!-- Generation of the NodeVisitor and BaseNodeVisitor sources depends only on the awk files
+       and AST files in the ${nodes} directory. Thus, we can determine whether we can safely
+       skip rebuilding these visitors by checking whether the visitor class files are no older
+       than these AST files and awk files. If AST files have not changed but they depend on other
+       files that have, errors will be caught during recompilation.-->
+    <target name="checkVisitorsUptodate" depends="init, compileCommon">
+        <condition property="visitors.uptodate">
+            <and>
+                <uptodate srcfile="${nodes}/InterfaceMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
+                <uptodate srcfile="${nodes}/BaseNodeMaker.java" targetfile="${nodes}/BaseNodeVisitor.java"/>
+                <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/NodeVisitor.java"/>
+                <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/BaseNodeVisitor.java"/>
+                <uptodate targetfile="${nodesBuild}/NodeVisitor.class">
+                    <srcfiles dir="${nodes}" includes="**/*.java"/>
+                </uptodate>
+                <uptodate targetfile="${nodesBuild}/BaseNodeVisitor.class">
+                    <srcfiles dir="${nodes}" includes="**/*.java"/>
+                </uptodate>
+            </and>
+        </condition>
+        <echo message="Nodes up to date? ${visitors.uptodate}"/>
+    </target>
+
+    <target name="visitorGen" unless="visitors.uptodate" depends="init, checkVisitorsUptodate, compileCommon"
+            description="Automatically generate visitors for AST nodes.">
+        <echo message="Regenerating visitors"/>
+
+        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.InterfaceMaker">
+            <classpath>
+                <pathelement location="${build}"/>
+            </classpath>
+            <arg value="${nodes}/leafclasses"/>
+        </java>
+
+        <java output="${nodes}/BaseNodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker">
+            <classpath>
+                <pathelement location="${build}"/>
+            </classpath>
+            <arg value="${nodes}/leafclasses"/>
+        </java>
+    </target>
+
+    <!-- Generation of Operators.java depends only on the files listed below.
+         Note that there are class files it depends on; if these class files are
+         not up to date with respect to their sources, they are themselves recompiled
+         by the compileCommon target.-->
+    <target name="checkOperatorsUptodate" depends="init, compileCommon">
+        <condition property="operators.uptodate">
+            <and>
+                <uptodate srcfile="${unicode}/UnicodeData.500.txt"
+                          targetfile="${parser}/precedence/resolver/Operators.java"/>
+                <uptodate srcfile="${parser}/precedence/resolver/operators.txt"
+                          targetfile="${parser}/precedence/resolver/Operators.java"/>
+                <uptodate srcfile="${build}/${blahblahblah}/unicode/OperatorStuffGenerator.class"
+                          targetfile="${parser}/precedence/resolver/Operators.java"/>
+                <uptodate srcfile="${build}/${blahblahblah}/unicode/Element.class"
+                          targetfile="${parser}/precedence/resolver/Operators.java"/>
+            </and>
+        </condition>
+        <echo message="Operators up to date? ${operators.uptodate}"/>
+    </target>
+
+    <target name="operatorsGen"  unless="operators.uptodate" depends="init, compileCommon, checkOperatorsUptodate"
+     description="Automatically generate visitors for AST nodes.">
+        <echo message="Regenerating operators"/>
+        <java classname="${blahDOTblah}.unicode.OperatorStuffGenerator">
+            <classpath>
+                <pathelement location="${build}"/>
+            </classpath>
+        </java>
+    </target>
+
+
+    <target name="compile" depends="visitorGen, parser, compileCommon, operatorsGen"
+     description="Compile all interpreter code.">
+        <depend srcdir="${src}"
+         destdir="${build}"
+         closure="yes"
+         cache="${basedir}/.dependencies"/>
+        <javac
+            srcdir="${src}"
+            destdir="${build}"
+            source="1.5"
+            debug="true"
+            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar">
+            <!-- Uncomment the following line to print unchecked warnings
+                 (here and in the 'compileCommon' target. -->
+            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+            <include name="**/*.java"/>
+            <exclude name="${blahblahblah}/useful/*.java"/>
+            <exclude name="${blahblahblah}/unicode/*.java"/>
+        </javac>
+    </target>
+
+    <target name="compileCommon" depends="init"
+     description="Compile interpreter-indepedent code.">
+        <depend srcdir="${src}"
+         destdir="${build}"
+         closure="yes"
+         cache="${basedir}/.dependencies"/>
+        <javac
+            srcdir="${src}"
+            destdir="${build}"
+            source="1.5"
+            debug="true"
+            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar">
+
+            <!-- Uncomment the following line to print unchecked warnings
+                 (here and in the 'compile' target. -->
+            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+            <include name="${blahblahblah}/useful/*.java"/>
+            <include name="${blahblahblah}/unicode/*.java"/>
+
+            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
+            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
+            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile"
+            description="Package up the interpreter in a jar.">
+        <jar
+            destfile="../components/fortress/FORTRESS/lib/interpreter.jar"
+            basedir="${build}"
+            includes="**/*"/>
+    </target>
+
+
+    <target name="testOnly" depends="compile"
+            description="Run a single test case.">
+        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath>
+            	<pathelement location="${build}"/>
+                <pathelement location="${fj}/concurrent.jar"/>
+            </classpath>
+            <formatter type="plain" usefile="false"/>
+            <batchtest todir="${basedir}/TEST-RESULTS">
+                <fileset dir="${build}">
+                    <include name="**/*${testPattern}.class"/>
+                    <exclude name="**/*$*.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+    </target>
+
+
+    <target name="test" depends="compile"
+            description="Run all unit and system tests expected to pass.">
+        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath>
+            	<pathelement location="${build}"/>
+            	<pathelement location="${fj}/concurrent.jar"/>
+            </classpath>
+            <formatter type="plain" usefile="true"/>
+            <batchtest todir="${basedir}/TEST-RESULTS">
+                <fileset dir="${build}">
+                    <include name="**/*JUTest.class"/>
+                    <include name="**/*JUTests.class"/>
+                    <exclude name="**/*$*.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+    </target>
+
+    <target name="testNotPassing" depends="compile"
+            description="Run system tests that aren't passing yet.">
+        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               errorProperty="not.passing.yet"
+               failureProperty="not.passing.yet">
+            <classpath>
+                <pathelement location="${build}"/>
+            	<pathelement location="${fj}/concurrent.jar"/>
+            </classpath>
+            <formatter type="brief" usefile="true"/>
+            <batchtest todir="${basedir}/TEST-RESULTS">
+                <fileset dir="${build}">
+                    <include name="**/*NotPassingYet.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="testAll" depends="test, testNotPassing, reportNotPassing, reportNotPassing"
+            description="Run all tests, including those known not to pass yet.">
+    </target>
+
+    <target name="reportNotPassing" if="not.passing.yet" depends="test,testNotPassing">
+        <echo message="Some tests expected to fail still aren't passing."/>
+    </target>
+
+    <!-- If the generated file Fortress.java is no older than all rats files
+       in the parser directory, then the parser must be up to date.
+       This is a conservative test; a more precise test would perform a
+       dependency analysis over Rats! code.-->
+    <target name="checkParserUptodate" depends="init">
+        <uptodate property="parser.uptodate" targetfile="${parser}/Fortress.java">
+            <srcfiles dir="${parser}" includes="**/*.rats"/>
+        </uptodate>
+        <echo message="Parser up to date? ${parser.uptodate}"/>
+    </target>
+
+    <target name="parser" unless="parser.uptodate"
+            depends="checkParserUptodate"
+            description="Fortress Parser">
+        <echo message="Rebuilding parser..."/>
+        <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
+            <arg value="rats"/>
+            <arg value="Fortress.rats"/>
+        </java>
+    </target>
+
+</project>

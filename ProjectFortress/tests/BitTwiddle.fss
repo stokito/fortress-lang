@@ -1,0 +1,53 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component BitTwiddle
+export Executable
+
+assert(a : Boolean): () =
+  if NOT a then 1/0; () end
+
+run(args:String...) = do
+  n : ZZ32 = 245
+  n_bar : ZZ32 = BITNOT n
+  z : ZZ32 = 0
+  z_bar = BITNOT z
+  assert((BITNOT z_bar) = 0)
+  assert((-1) = z_bar)
+  assert((BITNOT n_bar) = n)
+  assert((n BITAND n_bar) = 0)
+  assert((n BITOR n_bar) = z_bar)
+  assert((n BITAND z_bar) = n)
+  assert((n BITOR z_bar) = z_bar)
+  assert((n BITAND 0) = 0)
+  assert((n BITOR 0) = n)
+  assert((n BITXOR n) = 0)
+  assert((n BITXOR 0) = n)
+  assert((n BITXOR z_bar) = n_bar)
+  assert((n LSHIFT 1) = n+n)
+  assert((n LSHIFT 3) = 8*n)
+  assert((n LSHIFT 32) = 0)
+  assert((n RSHIFT 1) = (n DIV 2))
+  assert((n RSHIFT 3) = (n DIV 8))
+  assert((n RSHIFT 32) = 0)
+  assert((n_bar RSHIFT 1) < 0)
+  assert(((n RSHIFT 1) LSHIFT 1) = (n BITAND (BITNOT 1)))
+  assert((n_bar RSHIFT 32) = z_bar)
+  print("Success")
+end
+
+end
