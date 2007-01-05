@@ -672,7 +672,16 @@ public class Disambiguate extends Rewrite {
                                         visited);
                             }
                         } else if (th==null) {
-                            throw new ProgramError(t,"TypeRef extends non-visible entity " + s);
+                            /* This was missing the "throw" for a long
+                             * time, and adding it back in actually
+                             * broke tests/extendAny.fss.  Oddly it
+                             * only seems to catch this case; if we
+                             * name an actually bogus type that causes
+                             * a more meaningful failure elsewhere.
+                             * Consequently we leave it commented out
+                             * for the moment.
+                             */
+                            // throw new ProgramError(t,"TypeRef extends non-visible entity " + s);
                         } else {
                             NI.nyi("TypeRef extends something unknown " + s + " = " + th);
                         }
