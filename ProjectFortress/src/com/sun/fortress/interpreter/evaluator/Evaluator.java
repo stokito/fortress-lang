@@ -1184,31 +1184,16 @@ public class Evaluator extends EvaluatorBase<FValue> implements
      * @return
      */
     List<FValue> evalInvocationArgs(List<Expr> exprs) {
-        List<Expr> rest = exprs.subList(1, exprs.size());
-        List<FValue> args = new ArrayList<FValue>();
-        for (Iterator<Expr> i = rest.iterator(); i.hasNext();) {
-            Expr exp = i.next();
-            FValue val = exp.accept(this);
-            appendFlattened(args, val);
+        List<FValue> rest = evalExprListParallel(exprs.subList(1, exprs.size()));
+        if (rest.size()==1) {
+            FValue val = rest.get(0);
+            if (val instanceof FVoid) {
+                rest = new ArrayList(0);
+            } else if (val instanceof FTuple) {
+                rest = ((FTuple) val).getVals();
+            }
         }
-        return args;
-    }
-
-    /**
-     * @param args
-     * @param val
-     */
-    private void appendFlattened(List<FValue> args, FValue val) {
-        if (val instanceof FTuple) {
-            // && ((FTuple) val).getVals().size() == 1) {
-            // Old general-case code, works for tuples of size 1.
-            List<FValue> val_elts = ((FTuple) val).getVals();
-            System.out.println("Flattening "+val);
-            for (FValue val_elt : val_elts)
-                appendFlattened(args, val_elt);
-        } else {
-            args.add(val);
-        }
+        return rest;
     }
 
     private List<FValue> argList(FValue arg) {

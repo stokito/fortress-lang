@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.useful.Useful;
  * (and perhaps other constructors, but we need to tread carefully here).
  */
 
-public class IUOTuple extends FTuple implements IndexedShape {
+public class IUOTuple extends FTupleLike implements IndexedShape {
     /**
      * The rank of this pasting.
      */

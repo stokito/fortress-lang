@@ -16,36 +16,9 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-
-
-public class FTuple extends FValue {
-    List<FValue> vals;
-
-    public String getString() {
-        StringBuffer res = new StringBuffer();
-        boolean first = true;
-        for (Iterator<FValue> i = vals.iterator(); i.hasNext(); ) {
-            FValue val = i.next();
-            if (first) {
-                first = false;
-                res.append('(');
-            } else {
-                res.append(',');
-            }
-            res = res.append(val.getString());
-        }
-        return res.append(')').toString();
-    }
-
-    public String toString() {
-        return (this.getString()+':'+this.type().toString());
-    }
+public class FTuple extends FTupleLike {
 
     public static FTuple make(List<FValue> elems) {
         if (elems.size() == 0) return FVoid.V;
@@ -53,14 +26,11 @@ public class FTuple extends FValue {
     }
 
     protected FTuple() {
-        vals = Collections.<FValue>emptyList();
-        setFtype(FTypeTuple.make(Collections.<FType>emptyList()));
+        super();
     }
 
     protected FTuple(List<FValue> elems) {
-        vals = elems;
-        setFtype(FTypeTuple.make(typeListFromValues(elems)));
+        super(elems);
     }
 
-    public List<FValue> getVals() { return vals;}
 }
