@@ -21,6 +21,7 @@ TEST-RESULTS/*
 *.jst
 META
 bin/
+build/
 src/com/sun/fortress/interpreter/nodes/BaseNodeVisitor.java
 src/com/sun/fortress/interpreter/nodes/NodeVisitor.java
 src/com/sun/fortress/interpreter/parser/Fortress.java

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="third_party/FJ/concurrent.jar"/>
+	<classpathentry kind="lib" path="third_party/junit/junit.jar"/>
+	<classpathentry kind="lib" path="third_party/xtc/xtc.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>
