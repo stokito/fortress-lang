@@ -166,14 +166,14 @@
             description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating visitors"/>
 
-        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.InterfaceMaker">
+        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.InterfaceMaker" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
             <arg value="${nodes}/leafclasses"/>
         </java>
 
-        <java output="${nodes}/BaseNodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker">
+        <java output="${nodes}/BaseNodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
@@ -204,7 +204,7 @@
     <target name="operatorsGen"  unless="operators.uptodate" depends="init, compileCommon, checkOperatorsUptodate"
      description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating operators"/>
-        <java classname="${blahDOTblah}.unicode.OperatorStuffGenerator">
+        <java classname="${blahDOTblah}.unicode.OperatorStuffGenerator" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
