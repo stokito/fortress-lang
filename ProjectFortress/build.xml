@@ -274,10 +274,11 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
+               fork="yes"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
-            	<pathelement location="${build}"/>
+                <pathelement location="${build}"/>
                 <pathelement location="${fj}/concurrent.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
@@ -299,11 +300,13 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
+               fork="yes"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
             	<pathelement location="${build}"/>
             	<pathelement location="${fj}/concurrent.jar"/>
+            	<pathelement location="${xtc}/xtc.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
             <batchtest todir="${basedir}/TEST-RESULTS">
@@ -324,11 +327,13 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
+               fork="yes"
                errorProperty="not.passing.yet"
                failureProperty="not.passing.yet">
             <classpath>
                 <pathelement location="${build}"/>
             	<pathelement location="${fj}/concurrent.jar"/>
+            	<pathelement location="${xtc}/xtc.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
             <batchtest todir="${basedir}/TEST-RESULTS">

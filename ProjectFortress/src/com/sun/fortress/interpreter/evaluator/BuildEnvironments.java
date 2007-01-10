@@ -89,18 +89,52 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
-
+/**
+ * This comment is not yet true; it is a goal.
+ * 
+ * BuildEnvironments is a multiple-pass visitor pattern.
+ * 
+ * The first pass, applied to a node that contains things
+ * (for example, a component contains top-level declarations,
+ * a trait contains method declrations) it creates entries
+ * for those things in the bindInto environment.  The bindings
+ * created are not complete after the first pass.
+ * 
+ * The second pass completes the type initialization.  For contained
+ * things that have internal structure (e.g., a trait within a
+ * top level list) this may require a recursive visit, but with
+ * a newly allocated environment running its first and
+ * second passes.  This includes singleton object types.
+ * 
+ * The third pass initializes functions and methods; these may depend
+ * on types.
+ * 
+ * The fourth pass performs value initialization.  These may depend on
+ * functions.  This includes singleton object values.
+ * 
+ * The evaluation order is slightly relaxed to make the interpreter
+ * tractable; value cells (and variable cells?) are initialized with
+ * thunks.  (How do we thunk a singleton object?)
+ * 
+ * Note that not all passes are required in all contexts; only the top level
+ * has the combination of types, functions, variables, and unordered access.
+ * Different initializations are assigned to different (numbered) passes
+ * so that environment building in some contexts can skip passes (for example,
+ * skip the type pass in any non-top-level environment).
+ * 
+ * @author chase
+ */
 public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
-    private boolean firstPass = true;
+    private int pass = 1;
 
     public void secondPass() {
-        firstPass = false;
+        pass = 2;
         bindInto.bless();
     }
 
     public void resetPass() {
-        firstPass = true;
+        pass = 1;
     }
 
     BetterEnv containing;
@@ -115,15 +149,16 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         this.containing = within;
         this.bindInto = within;
     }
+    
     public BuildEnvironments(BetterEnv within, BetterEnv bind_into) {
         this.containing = within;
         this.bindInto = bind_into;
     }
 
-    private BuildEnvironments(BetterEnv within, boolean firstPass) {
+    private BuildEnvironments(BetterEnv within, int pass) {
         this.containing = within;
         this.bindInto = within;
-        this.firstPass = firstPass;
+        this.pass = pass;
     }
 
     public BetterEnv getEnvironment() {
@@ -172,6 +207,10 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         return null;
     }
+    
+    protected void forApi1(Api x) {
+        
+    }
 
     /*
      * (non-Javadoc)
@@ -188,7 +227,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
     public Voidoid forComponent2(Component x) {
         List<? extends DefOrDecl> defs = x.getDefs();
-        doDefs(containing, defs);
+        doDefs(this, defs);
         return null;
     }
 
@@ -204,13 +243,12 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         // TODO Run over the imports,
         // and inject names appropriately into the environment.
 
-        doDefs(containing, defs);
+        doDefs(this, defs);
 
         return null;
     }
 
-    public void doDefs(BetterEnv into, List<? extends DefOrDecl> defs) {
-        BuildEnvironments inner = new BuildEnvironments(into, firstPass);
+    private void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
             def.accept(inner);
         }
@@ -318,7 +356,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-            if (firstPass) {
+            if (pass == 1) {
                 FValue cl = newGenericClosure(containing, x);
                 putOrOverloadOrShadowGeneric(x, containing, name, cl);
 //                guardedPutValue(containing, fname, cl, x);
@@ -357,7 +395,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         } else {
             // NOT GENERIC
-            if (firstPass) {
+            if (pass == 1) {
                 Simple_fcn cl = newClosure(containing, x);
                 // Search for test modifier
                 List<Modifier> mods = x.getMods();
@@ -572,7 +610,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         // List<Decl> defs = x.getDefs();
         String fname = name.getName();
         FType ft;
-        if (firstPass) {
+        if (pass == 1) {
             ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
                     : new FTypeObject(fname, e, x);
 
@@ -668,7 +706,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         //Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
 
-        if (firstPass) {
+        if (pass == 1) {
         } else {
             FValue init_value = init.accept(new Evaluator(
                     containing));
@@ -729,12 +767,12 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         // List<WhereClause> where;
 
         if (staticParams.isPresent()) {
-            if (firstPass) {
+            if (pass == 1) {
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
             }
         } else {
-            if (firstPass) {
+            if (pass == 1) {
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
@@ -1028,7 +1066,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-            if (firstPass) {
+            if (pass == 1) {
                 // TODO same treatment as regular functions.
                 FValue cl = newGenericClosure(containing, x);
                 putOrOverloadOrShadowGeneric(x, containing, name, cl);
@@ -1036,7 +1074,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         } else {
             // NOT GENERIC
-            if (firstPass) {
+            if (pass == 1) {
                 Simple_fcn cl = newClosure(containing, x);
                 putOrOverloadOrShadow(x, containing, name, cl);
             } else {
