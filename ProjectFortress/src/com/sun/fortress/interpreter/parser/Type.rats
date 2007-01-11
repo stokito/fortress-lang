@@ -309,7 +309,6 @@ private constant transient Action<StaticArg> StaticArgTail =
 /* ************************************************
  * Not Yet Implemented ***************************
    / w per          w a2:StaticArg
-   / a1:DUPreOp    sr a2:StaticArg
    / w a2:DUPostOp
    / w "OR":op      w a2:StaticArg
    / w "AND":op     w a2:StaticArg

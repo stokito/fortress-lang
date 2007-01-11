@@ -76,11 +76,11 @@ constant transient Action<Expr> ExprTail =
    / <Asif> AsIf
 /* ************************************************
  * Not Yet Implemented ***************************
-   / w         a1:UnitRef
-   / w dot   w a1:UnitRef
-   / w slash w a1:UnitRef
-   / w per   w a1:UnitRef
-   / w in    w a1:UnitRef
+   / w            a1:UnitRef
+   / w "DOT":op w a1:UnitRef
+   / w slash    w a1:UnitRef
+   / w per      w a1:UnitRef
+   / w in       w a1:UnitRef
 ************************************************ */
    ;
 
@@ -112,11 +112,11 @@ constant inline Action<Expr> AsIf =
  * Not Yet Implemented ***************************
 Tree UnitExpr =
      a1:UnitRef
-   / a1:Expr w         a2:UnitRef
-   / a1:Expr w dot   w a2:UnitRef
-   / a1:Expr w slash w a2:UnitRef
-   / a1:Expr w per   w a2:UnitRef
-   / a1:Expr w in    w a2:UnitRef
+   / a1:Expr w            a2:UnitRef
+   / a1:Expr w "DOT":op w a2:UnitRef
+   / a1:Expr w slash    w a2:UnitRef
+   / a1:Expr w per      w a2:UnitRef
+   / a1:Expr w in       w a2:UnitRef
 ************************************************ */
 
 /* AssignLefts ::=

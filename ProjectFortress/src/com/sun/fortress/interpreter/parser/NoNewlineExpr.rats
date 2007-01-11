@@ -65,11 +65,11 @@ Action<Expr> ExprTail :=
    / <AsIf> NoNewlineAsIf
 /* ************************************************
  * Not Yet Implemented ***************************
-   / s         a1:UnitRef
-   / s dot   w a1:UnitRef
-   / s slash w a1:UnitRef
-   / s per   w a1:UnitRef
-   / s in    w a1:UnitRef
+   / s            a1:UnitRef
+   / s "DOT":op w a1:UnitRef
+   / s slash    w a1:UnitRef
+   / s per      w a1:UnitRef
+   / s in       w a1:UnitRef
 ************************************************ */
    ;
 
