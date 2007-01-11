@@ -39,7 +39,7 @@ import Spacing;
 /* ************************************************
  * Not Yet Implemented ***************************
 Dimension DimUnitDecl =
-     dim w a1:Id a2:(w void:equals w DimRef)? a3:(w void:default w Id)?
+     dim w a1:Id a2:(w void:equals w DimRef)? a3:(w default w Id)?
      { Option<TypeRef> derived;
        Option<TypeRef> default;
        if (a2 == null) derived = None.<TypeRef>make();
@@ -48,7 +48,7 @@ Dimension DimUnitDecl =
        else            default = Some.<TypeRef>make(new IdType(a3.getSpan(),a3));
        yyValue = new Dimension(createSpan(yyStart,yyCount),a1,derived,default);
      }
-   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w void:colon w DimRef)?
+   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?
        a4:(w void:equals w NoNewlineExpr)?
      { yyValue = new DimUnitDecl(createSpan(yyStart,yyCount), a1, a2s.list(),
                                  a3, a4);
@@ -113,16 +113,15 @@ Name CloseExpander =
 /* ************************************************
  * Not Yet Implemented ***************************
 AbsDimUnitDecl AbsDimUnitDecl =
-     dim w a1:Id a2:(w void:equals w DimRef)?
+     dim w a1:Id a2:(w default w Id)?
      { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2); }
-   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w void:colon w DimRef)?
+   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?
      { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1,
                                     a2s.list(), a3);
      }
-   / dim w a1:Id a2:(w void:equals w DimRef)? s (unit / SI_unit) w a3:Id
-       a4s:(wr Id)*
-     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2, a3,
-                                    a4s.list());
+   / dim w a1:Id s (unit / SI_unit) w a2:Id a3s:(wr Id)*
+     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2,
+                                    a3s.list());
      };
 ************************************************ */
 

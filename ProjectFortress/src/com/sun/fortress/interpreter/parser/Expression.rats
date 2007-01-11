@@ -339,6 +339,7 @@ PureList<OpExpr> LooseInfix =
    | Primary TupleExpr
    | Primary ( [w Expr] w )
    | Primary Primary
+   | TraitType dot coercion [[\ w StaticArgList w \]] ( w Expr w )
  */
 constant PureList<Expr> Primary =
      seed:PrimaryFront list:PrimaryTail*
@@ -351,6 +352,12 @@ Expr PrimaryFront =
      { if (a2 == null) a2 = new ArrayList<Expr>();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
      }
+/* ************************************************
+ * Not Yet Implemented ***************************
+   / a1:TraitType dot coercion
+     a2:(opendoublesquare w StaticArgList w closedoublesquare)?
+     openparen w a3:Expr w closeparen
+************************************************ */
    ;
 
 constant transient Action<PureList<Expr>> PrimaryTail =

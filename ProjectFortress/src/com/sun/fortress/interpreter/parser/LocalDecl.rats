@@ -207,7 +207,7 @@ private Unpasting UnpastingElems =
    / yyValue:UnpastingElem ;
 
 /* UnpastingElem ::=
-     Id [s w [ w UnpastingDim w ]]
+     Id [w [ w UnpastingDim w ]]
    | Unpasting
  */
 private Unpasting UnpastingElem =
