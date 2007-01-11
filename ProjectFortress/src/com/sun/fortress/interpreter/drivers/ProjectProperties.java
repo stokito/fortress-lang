@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.drivers;
 
 import java.io.File;
+import java.net.URI;
 
 public class ProjectProperties {
     /* This static field holds the absolute path of the project location, as
@@ -25,11 +26,8 @@ public class ProjectProperties {
      * package, and grabbing the parent directory.
      */
     public static final String BASEDIR =
-            new File(new ProjectProperties().
-                            getClass().
-                                getClassLoader().
-                                    getResource("").
-                                        getFile()).
+        new File(URI.create(ProjectProperties.class.getProtectionDomain().
+            getCodeSource().getLocation().toExternalForm())).
                 getParent()
                     + File.separator;
 

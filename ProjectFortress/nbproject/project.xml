@@ -8,7 +8,7 @@
             <properties/>
             <folders>
                 <source-folder>
-                    <label>src</label>
+                    <label>Sources</label>
                     <type>java</type>
                     <location>src</location>
                 </source-folder>
@@ -28,10 +28,23 @@
                     <target>compile</target>
                 </action>
             </ide-actions>
+            <export>
+                <type>folder</type>
+                <location>build</location>
+                <build-target>compile</build-target>
+            </export>
             <view>
                 <items>
+                    <source-folder style="tree">
+                        <label>Demos</label>
+                        <location>demos</location>
+                    </source-folder>
+                    <source-folder style="tree">
+                        <label>Tests</label>
+                        <location>tests</location>
+                    </source-folder>
                     <source-folder style="packages">
-                        <label>src</label>
+                        <label>Sources</label>
                         <location>src</location>
                     </source-folder>
                     <source-file>
@@ -50,7 +63,8 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/1">
             <compilation-unit>
                 <package-root>src</package-root>
-                <classpath mode="compile">third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar</classpath>
+                <classpath mode="compile">third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/junit/junit.jar</classpath>
+                <built-to>build</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
