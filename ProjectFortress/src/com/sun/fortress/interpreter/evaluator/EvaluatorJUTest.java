@@ -41,6 +41,14 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import dstm2.atomic;
+import dstm2.AtomicArray;
+import dstm2.ContentionManager;
+import dstm2.manager.BackoffManager;
+import dstm2.Thread;
+import dstm2.Transaction;
+import static dstm2.Defaults.*;
+
 public class EvaluatorJUTest extends TestCase {
 
     public EvaluatorJUTest() {
@@ -52,7 +60,6 @@ public class EvaluatorJUTest extends TestCase {
   }
 
   public void testEnvironment2() throws IOException {
-
       BetterEnv e = BetterEnv.primitive();
       e.bless();
       BetterEnv s = new BetterEnv(e, "s");
@@ -335,5 +342,16 @@ public class EvaluatorJUTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         Init.initializeEverything();
+      // Setup transactional memory
+        Thread _thread = new Thread();
+        try {
+            Class managerClass = Class.forName("dstm2.manager.BackoffManager");
+            _thread.setContentionManagerClass(managerClass);
+            _thread.setAdapterClass("dstm2.factory.ofree.Adapter");
+        } catch (ClassNotFoundException ex) {
+            System.out.println("UhOh Contention Manager not found");
+            System.exit(0);
+        }
+
     }
 }

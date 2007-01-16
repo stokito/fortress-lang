@@ -30,6 +30,8 @@
 
 	<property name="build" location="build"/>
 	<property name="xtc" location="${basedir}/third_party/xtc"/>
+	<property name="bcel" location="${basedir}/third_party/bcel"/>
+	<property name="dstm2" location="${basedir}/third_party/dstm2"/>
 	<property name="fj" location="${basedir}/third_party/FJ"/>
 	<property name="unicode" location="${basedir}/third_party/unicode"/>
     <property name="nodesPackage" value="${blahblahblah}/nodes"/>
@@ -38,8 +40,6 @@
     <property name="parser"  location="${src}/${blahblahblah}/parser"/>
     <property name="build.classpath" location="${build}"/>
     <property name="precedence" location="${parser}/precedence"/>
-    <property name="testPattern" location=""/>
-
     <property environment="env"/>
 
     <target name="help">
@@ -274,24 +274,26 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
-               fork="yes"
+               fork="true"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
                 <pathelement location="${build}"/>
+                <pathelement location="${xtc}/xtc.jar"/>
+                <pathelement location="${bcel}/bcel-5.2.jar"/>
+                <pathelement location="${dstm2}/dstm2.jar"/>
                 <pathelement location="${fj}/concurrent.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
-            <batchtest todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
                 <fileset dir="${build}">
                     <include name="**/*${testPattern}.class"/>
                     <exclude name="**/*$*.class"/>
                 </fileset>
-            </batchtest>
+             </batchtest>
         </junit>
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
-
 
     <target name="test" depends="compile"
             description="Run all unit and system tests expected to pass.">
@@ -300,16 +302,18 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
-               fork="yes"
+               fork="true"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
             	<pathelement location="${build}"/>
+                <pathelement location="${xtc}/xtc.jar"/>
+                <pathelement location="${bcel}/bcel-5.2.jar"/>
+                <pathelement location="${dstm2}/dstm2.jar"/>
             	<pathelement location="${fj}/concurrent.jar"/>
-            	<pathelement location="${xtc}/xtc.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
-            <batchtest todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
                 <fileset dir="${build}">
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
@@ -327,16 +331,18 @@
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
-               fork="yes"
+               fork="true"
                errorProperty="not.passing.yet"
                failureProperty="not.passing.yet">
             <classpath>
                 <pathelement location="${build}"/>
             	<pathelement location="${fj}/concurrent.jar"/>
+                <pathelement location="${bcel}/bcel-5.2.jar"/>
+                <pathelement location="${dstm2}/dstm2.jar"/>
             	<pathelement location="${xtc}/xtc.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
-            <batchtest todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
                 <fileset dir="${build}">
                     <include name="**/*NotPassingYet.class"/>
                 </fileset>

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,6 +37,8 @@ import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Option;
 
+import dstm2.Thread;
+import dstm2.Transaction;
 
 public class AtomicEvaluator extends EvaluatorBase<FValue> implements
         NodeVisitor<FValue> {
@@ -135,14 +138,21 @@ public class AtomicEvaluator extends EvaluatorBase<FValue> implements
 
     }
 
+    FValue doBlock(List<Expr> exprs) {
+	FValue res = FVoid.V;
+        for (Expr expr : exprs) {
+            res = expr.accept(evaluator);
+       }
+        return res;
+    }
+
     public FValue forBlock(Block x) {
         debugPrint("forBlock " + x);
-        List<Expr> exprs = x.getExprs();
-        if (exprs.size() != 1)
-            throw new InterpreterError(x, evaluator.e,
-                    "Only single expr atomic expressions implemented");
+        final List<Expr> exprs = x.getExprs();
+        FValue res = Thread.doIt(new Callable<FValue>() { public FValue call() {
+                           return doBlock(exprs);}
 
-        Expr exp = exprs.get(0);
-        return exp.accept(this);
+                     });
+        return res;
     }
 }

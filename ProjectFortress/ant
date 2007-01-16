@@ -31,7 +31,7 @@ else
 fi
 
 if [ "$EXPLICIT_ANT_ARGS" == "" ] ; then
-  EXPLICIT_ANT_ARGS="-noclasspath -lib \"third_party/ant:third_party/xtc:third_party/junit:\""
+  EXPLICIT_ANT_ARGS="-noclasspath -lib \"third_party/ant:third_party/xtc:third_party/junit:third_party/fj:third_party/dstm2:third_party/bcel:build\""
 fi
 
 export ANT_ARGS=$EXPLICIT_ANT_ARGS

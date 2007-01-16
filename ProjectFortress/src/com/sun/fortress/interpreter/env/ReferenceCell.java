@@ -21,6 +21,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import dstm2.factory.Factory;
+import dstm2.atomic;
+import dstm2.Thread;
+
 
 
 /**
@@ -29,30 +34,54 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
  */
 public class ReferenceCell extends IndirectionCell {
     private FType theType;
+    protected FNode node;
+    static Factory<FNode> factory = Thread.makeFactory(FNode.class);
+
+
     ReferenceCell(FType t, FValue v) {
         super();
         theType = t;
-        theValue = v;
+	node = factory.create();
+        node.setValue(v);
     }
 
     ReferenceCell(FType t) {
         super();
         theType = t;
+        node = factory.create();
     }
 
     public void assignValue(FValue f2) {
         theValue = f2;
+        node.setValue(f2);
     }
 
     public FType getType() {
         return theType;
     }
 
-    public boolean casValue(FValue old_value, FValue new_value) {
-        return valueUpdater.compareAndSet(this, old_value, new_value);
+
+    @atomic public interface FNode {
+        FValue getValue();
+        void setValue(FValue value);
     }
 
-    static final AtomicReferenceFieldUpdater<IndirectionCell, FValue> valueUpdater =
-        AtomicReferenceFieldUpdater.newUpdater(IndirectionCell.class, FValue.class, "theValue");
+    public void storeValue(FValue f2) {
+        if (node.getValue() != null)
+            throw new ProgramError("Internal error, second store of indirection cell");
+        node.setValue(f2);
+    }
+
+    public boolean isInitialized() {
+        return node.getValue() != null;
+    }
+
+    public FValue getValue() {
+        FValue theValue = node.getValue();
+        if (theValue == null) {
+            throw new ProgramError("Attempt to read uninitialized variable");
+        }
+        return theValue;
+    }
 
 }

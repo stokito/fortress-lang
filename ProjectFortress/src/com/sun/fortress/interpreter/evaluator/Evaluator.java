@@ -29,6 +29,8 @@ import java.util.Stack;
 import EDU.oswego.cs.dl.util.concurrent.FJTask;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.tasks.ForLoopTask;
+import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
@@ -290,22 +292,6 @@ public class Evaluator extends EvaluatorBase<FValue> implements
         return res;
     }
 
-    static class TupleTask extends FJTask {
-        Evaluator eval;
-
-        Expr expr;
-
-        FValue res;
-
-        TupleTask(Expr ex, Evaluator ev) {
-            expr = ex;
-            eval = ev;
-        }
-
-        public void run() {
-            res = expr.accept(new Evaluator(eval, expr));
-        }
-    }
 
     <T extends Expr> List<FValue> evalExprListParallel(List<T> exprs) {
         TupleTask[] tasks = new TupleTask[exprs.size()];
@@ -316,7 +302,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
         FJTask.coInvoke(tasks);
         ArrayList<FValue> resList = new ArrayList<FValue>(count);
         for (int i = 0; i < count; i++) {
-            resList.add(tasks[i].res);
+            resList.add(tasks[i].getRes());
         }
         return resList;
     }
@@ -653,34 +639,6 @@ public class Evaluator extends EvaluatorBase<FValue> implements
         return NI("forFnDecl");
     }
 
-    static class ForLoopTask extends FJTask {
-        FGenerator fgen;
-
-        Expr body;
-
-        Evaluator eval;
-
-        public void run() {
-            if (fgen.isSequential() || fgen.hasOne()) {
-                while (fgen.update(body, new Evaluator(eval, body))) {
-                    /* update does all the work. */
-                }
-            } else {
-                // coInvoke enqueues its first argument, then executes its
-                // second argument. This apparently backwards call should
-                // preserve apparent sequential semantics in the absence of
-                // steals.
-                coInvoke(new ForLoopTask(fgen.secondHalf(), body, eval),
-                        new ForLoopTask(fgen.firstHalf(), body, eval));
-            }
-        }
-
-        ForLoopTask(FGenerator f, Expr b, Evaluator e) {
-            fgen = f;
-            body = b;
-            eval = e;
-        }
-    }
 
     public FValue forFor(For x) {
         // debugPrint("forFor " + x);

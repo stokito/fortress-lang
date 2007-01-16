@@ -17,6 +17,6 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-java -cp "build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar" \
+java -cp "build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar" \
 junit.swingui.TestRunner \
 com.sun.fortress.interpreter.drivers.SystemJUTests >& test.log

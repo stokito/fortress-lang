@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
+import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -249,42 +250,6 @@ public class Driver {
         if (!(ret instanceof FVoid))
             throw new ProgramError("run method returned non-void value");
         System.out.println("finish runProgram");
-    }
-
-    private static class EvaluatorTask extends FJTask {
-        CompilationUnit p;
-
-        boolean causedException;
-
-        Throwable err;
-
-        boolean runTests = false;
-
-        List<String> args;
-
-        public EvaluatorTask(CompilationUnit prog, boolean tests, List<String> args_) {
-            p = prog;
-            causedException = false;
-            runTests = tests;
-            args = args_;
-        }
-
-        public void run() {
-            try {
-                runProgramTask(p, runTests, args);
-            } catch (Throwable e) {
-                causedException = true;
-                err = e;
-            }
-        }
-
-        public boolean causedException() {
-            return causedException;
-        }
-
-        public Throwable getException() {
-            return err;
-        }
     }
 
 

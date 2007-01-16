@@ -272,19 +272,24 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //
 //    }
 
-    public boolean casValue(String str, FValue old_value, FValue new_value) {
-        FValue v = get(var_env, str);
-        if (v instanceof ReferenceCell) {
-            return ((ReferenceCell)v).casValue(old_value, new_value);
-        }
-        if (v == null)
-            throw new ProgramError("Cannot CAS to unbound variable " + str);
-        throw new ProgramError("Cannot CAS to immutable " + str);
-    }
+//    public boolean casValue(String str, FValue old_value, FValue new_value) {
+//        FValue v = get(var_env, str);
+//        if (v instanceof ReferenceCell) {
+//            return ((ReferenceCell)v).casValue(old_value, new_value);
+//        }
+//        if (v == null)
+//            throw new ProgramError("Cannot CAS to unbound variable " + str);
+//        throw new ProgramError("Cannot CAS to immutable " + str);
+//    }
 
 //    public boolean casValue(FValue f1, FValue old_value, FValue new_value) {
 //        return  casValue(string(f1), old_value, new_value);
 //    }
+
+    public boolean casValue(String str, FValue old_value, FValue new_value) {
+       throw new ProgramError("Cas on envs no longer supported");
+    }
+
 
     public void debugPrint(String debugString) {
         if (debug)
