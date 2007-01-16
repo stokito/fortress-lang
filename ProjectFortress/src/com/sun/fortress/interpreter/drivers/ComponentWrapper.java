@@ -89,7 +89,7 @@ public class ComponentWrapper {
 //                 cw.finishEnvironment();
 //             }
 
-            be.forComponent2(p);
+            be.forComponentDefs(p);
             dis.registerObjectExprs(be.getEnvironment());
 
         } else if (visitState == UNVISITED)

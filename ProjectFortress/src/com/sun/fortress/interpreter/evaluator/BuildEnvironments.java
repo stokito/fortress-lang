@@ -128,13 +128,29 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
     private int pass = 1;
 
+    public void resetPass() {
+        pass = 1;
+    }
+    
+    public void assertPass(int p) {
+        if (pass != p)
+            throw new InterpreterError("Expected pass " + p + " got pass " + pass);
+    }
+    
     public void secondPass() {
+        assertPass(1);
         pass = 2;
+        // An environment must be blessed before it can be cloned.
         bindInto.bless();
     }
 
-    public void resetPass() {
-        pass = 1;
+    public void thirdPass() {
+        assertPass(2);
+        pass = 3;
+    }
+    public void fourthPass() {
+        assertPass(3);
+        pass = 4;
     }
 
     BetterEnv containing;
@@ -221,11 +237,11 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     public Voidoid forComponent(Component x) {
         forComponent1(x);
         secondPass();
-        forComponent2(x);
+        forComponentDefs(x);
         return null;
     }
 
-    public Voidoid forComponent2(Component x) {
+    public Voidoid forComponentDefs(Component x) {
         List<? extends DefOrDecl> defs = x.getDefs();
         doDefs(this, defs);
         return null;
@@ -240,10 +256,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         SComponent comp = new SComponent(BetterEnv.primitive(x), x);
         containing.putComponent(name, comp);
 
-        // TODO Run over the imports,
-        // and inject names appropriately into the environment.
-
-        doDefs(this, defs);
+        forComponentDefs(x);
 
         return null;
     }

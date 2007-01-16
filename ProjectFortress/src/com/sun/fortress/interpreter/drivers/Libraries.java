@@ -82,7 +82,7 @@ public class Libraries {
             be.forComponent1(c);
             Glue.installHooks(be.getEnvironment());
             be.secondPass();
-            be.forComponent2(c);
+            be.forComponentDefs(c);
             be.resetPass();
         }
 

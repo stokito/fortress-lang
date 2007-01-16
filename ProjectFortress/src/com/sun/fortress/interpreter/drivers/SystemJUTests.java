@@ -22,14 +22,21 @@ import junit.framework.TestSuite;
 
 public class SystemJUTests {
 
+     
     public static void main(String[] args) {
+        
         junit.swingui.TestRunner.run(SystemJUTests.class);
     }
 
     public static Test suite() {
+        String testDir = ProjectProperties.BASEDIR + "tests";
+        String s = System.getProperty("tests");
+        if (s != null) {
+            testDir = s;
+        }
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(ProjectProperties.BASEDIR + "tests", true));
+        suite.addTest(FileTests.suite(testDir, true));
         //$JUnit-END$
         return suite;
     }

@@ -21,15 +21,35 @@ import java.io.File;
 import java.net.URI;
 
 public class ProjectProperties {
+    
+    private static String baseDir() {
+        String s = null;
+        
+        try {
+         s = System.getProperty("BASEDIR");
+        } catch (Throwable th) {
+            
+        }
+            
+        if (s == null) {
+            // This gave the wrong value under Eclipse with the old copy
+            // of the repository.  As a transitional crutch, specify the
+            // BASEDIR explicitly with a property instead.
+            
+            s = new File(URI.create(ProjectProperties.class.getProtectionDomain().
+                getCodeSource().getLocation().toExternalForm())).
+                    getParent() ;
+        }
+        
+        return s + File.separator;
+    }
+    
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
      */
-    public static final String BASEDIR =
-        new File(URI.create(ProjectProperties.class.getProtectionDomain().
-            getCodeSource().getLocation().toExternalForm())).
-                getParent()
-                    + File.separator;
+    public static final String BASEDIR = baseDir();
+        
 
     /** Creates a new instance of ProjectProperties */
     private ProjectProperties() {
