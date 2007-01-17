@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.reader;
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.File;
 
 import com.sun.fortress.interpreter.nodes.Unprinter;
 
@@ -257,6 +258,8 @@ public class Lex {
                     state = NORMAL;
                 } else if (c == '\'') {
                     state = SAW_BACKSLASH_TICK;
+                } else if (File.separator.equals("\\")) {
+                    state = NORMAL;
                 } else {
                     unexpected("Backslash escape " + c + "(hex "
                             + Integer.toHexString(c) + ") ");

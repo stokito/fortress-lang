@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -390,6 +391,9 @@ public class Unprinter extends NodeReflection {
                 } else if (c == '\'') {
                     state = SAW_BACKSLASH_TICK;
                     escaped = new StringBuffer();
+                } else if (File.separator.equals("\\")) {
+                    sb.append('\\');
+                    state = NORMAL;
                 } else {
                     throw new Error(
                             "Malformed input, unexpected backslash escape " + c
