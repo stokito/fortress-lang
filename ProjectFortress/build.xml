@@ -223,7 +223,7 @@
             destdir="${build}"
             source="1.5"
             debug="true"
-            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar">
+            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
             <!-- <compilerarg value="-Xlint:unchecked"/>  -->
@@ -244,7 +244,7 @@
             destdir="${build}"
             source="1.5"
             debug="true"
-            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar">
+            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar">
 
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compile' target. -->
