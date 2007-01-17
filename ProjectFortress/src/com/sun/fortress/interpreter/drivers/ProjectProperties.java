@@ -41,7 +41,30 @@ public class ProjectProperties {
                     getParent() ;
         }
         
-        return s + File.separator;
+        s = s + File.separator;
+        
+        // It is a myth that Windows requires backslashes.  Only the DOS shell
+        // requires backslashes.
+        s = backslashToSlash(s);
+        return s;
+    }
+
+
+    /**
+     * No-op right now.
+     * 
+     * Intended to replace backslashes in a string with slashes.
+     * It is a myth that Windows needs backslashes in path names;
+     * in fact, it is only the DOS shell.  This fix was backed out
+     * because a different fix for the same problem was added; however,
+     * once tested this may be re-enabled.
+     * 
+     * @param s
+     * @return
+     */
+    public static String backslashToSlash(String s) {
+        //return s.replaceAll("\\\\", "/");
+        return s;
     }
     
     /* This static field holds the absolute path of the project location, as

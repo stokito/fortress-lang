@@ -169,6 +169,7 @@ public class FileTests {
     public static Test suite(String dirname, boolean failsOnly) {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
+        dirname = ProjectProperties.backslashToSlash(dirname);
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);

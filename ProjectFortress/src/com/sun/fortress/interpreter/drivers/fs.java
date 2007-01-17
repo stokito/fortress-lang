@@ -43,6 +43,10 @@ public class fs {
     static boolean runTests = false;
 
     static String basename(String s) {
+        // Note that this is perhaps a no-op, so the
+        // old Windows-aware code must remain.
+        s = ProjectProperties.backslashToSlash(s);
+        
         int sepi1 = s.lastIndexOf("/");
         // Why look twice? On Windows, either separator works!
         // Write Once, Paranoid Always
@@ -78,7 +82,6 @@ public class fs {
     }
 
     static volatile CompilationUnit p;
-    static boolean walk = "\\".equals(File.separator);
     static boolean verbose = false;
     static boolean keep = false;
     static boolean tryRats = false;
@@ -169,6 +172,7 @@ public class fs {
 
         String tmpFile = System.getProperty("java.io.tmpdir") + "/"
                 + basename(s) + "." + timeStamp + SXP_SUFFIX;
+        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
         boolean keepTemp = keep;
 
         try {
