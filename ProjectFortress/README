@@ -183,9 +183,9 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   bind type variables; we are working to address this shortcoming.
 
 * The "atomic" construct uses the DSTM2 transactional memory library.
-  Nested transactions are flattened.  We use their obstruction free algorithm 
-  with a simple backoff contention manager.  Reductions are not yet 
-  implemented, so perform an explicit atomic update instead.
+  Nested transactions are flattened.  We use their obstruction free
+  algorithm with a simple backoff contention manager.  Reductions are
+  not yet implemented, so perform an explicit atomic update instead.
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
@@ -219,8 +219,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
   not both.
 
 * throw and catch
-
-* General sequential for loops
 
 * Generators and reduction variables
 
@@ -512,4 +510,8 @@ an integer:
 opr |\a:RR64/|:ZZ64 = builtinPrimitive("glue.prim.Float$IFloor")
 
 You should *not* mention the type parameter to builtinPrimitive when
-invoking it; doing so will confuse the interpreter.
+invoking it; doing so will confuse the interpreter.  Note also that
+the interpreter requires that you declare appropriate argument and
+return types for your native functions as shown above.  If you give an
+incorrect type declaration on the Fortress side, you'll get
+non-user-friendly error messages when the Java code is run.
