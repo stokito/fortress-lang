@@ -173,17 +173,16 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   generators do not yet exist due to shortcomings in the type system
   and the absence of loop desugaring.
 
+* Sequential for loops over simple ranges.  The seq() and sequential()
+  functions (which are identical) take a ZZ32Range and return an
+  equivalent sequential ZZ32Range.  Every use of the resulting range
+  as a loop generator will cause the loop to run sequentially.
+
 * While loops, typecase, if, etc.  Note that for parametric types
   typecase isn't nearly as useful as you might think, since it cannot
   bind type variables; we are working to address this shortcoming.
 
-* "Atomic" is a hack.  An atomic block can contain a single assignment
-  of the form "var OP= value".  Value is evaluated non-atomically, and
-  then the OP= is performed using a compare and swap until it
-  succeeds.  Note that you will typically use this where you *ought*
-  to be using a reduction variable, since reductions are not yet
-  implemented.
-
+* The "atomic" construct uses the DSTM2 transactional memory library.
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
@@ -217,10 +216,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
   not both.
 
 * throw and catch
-
-* True atomicity
-
-* Sequential for loops
 
 * Generators and reduction variables
 
