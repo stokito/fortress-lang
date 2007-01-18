@@ -183,6 +183,9 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   bind type variables; we are working to address this shortcoming.
 
 * The "atomic" construct uses the DSTM2 transactional memory library.
+  Nested transactions are flattened.  We use their obstruction free algorithm 
+  with a simple backoff contention manager.  Reductions are not yet 
+  implemented, so perform an explicit atomic update instead.
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
@@ -216,6 +219,8 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
   not both.
 
 * throw and catch
+
+* General sequential for loops
 
 * Generators and reduction variables
 

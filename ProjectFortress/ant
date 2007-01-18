@@ -30,18 +30,13 @@ else
   echo ANT_HOME is $ANT_HOME
 fi
 
-# IF YOU UPDATE THIS CLASSPATH,
-# BE SURE TO UPDATE THE CLASSPATH EVERYWHERE (MORE THAN JUST ONCE) 
-# IT OCCURS IN build.xml.  FAILURE TO OBSERVE THIS SIMPLE RULE BREAKS
-# ANT-IDE INTEGRATION.
-if [ "$EXPLICIT_ANT_ARGS" == "" ] ; then
-  EXPLICIT_ANT_ARGS="-noclasspath -lib \"third_party/ant:third_party/xtc:third_party/junit:third_party/fj:third_party/dstm2:third_party/bcel:build\""
-fi
-
-export ANT_ARGS=$EXPLICIT_ANT_ARGS
-export ANT_OPTS="-Xmx384M -Xms256M -XX:+UseParallelGC" # -verbosegc" # -XX:+PrintGCDetails"
-export ANT_CALLED_FROM_SCRIPT="yes"
-
-echo Using Ant args $ANT_ARGS
-
-$ANT_HOME/bin/ant $ANT_ARGS $*
+#
+# For NetBeans, you should not need to adjust anything to
+# build and test Fortress.
+#
+# For Eclipse, workspace and ant builds should not require any
+# adjustments, but to run tests using ant within Eclipse, you
+# will need to add junit.jar to
+# build.xml -> Run As -> Ant Build... -> Classpath -> User Entries -> Add JARs...
+#
+$ANT_HOME/bin/ant -noclasspath -lib third_party/junit "$@"

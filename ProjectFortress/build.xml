@@ -40,6 +40,8 @@
     <property name="parser"  location="${src}/${blahblahblah}/parser"/>
     <property name="build.classpath" location="${build}"/>
     <property name="precedence" location="${parser}/precedence"/>
+    <property name="junit" location="${basedir}/third_party/junit"/>
+    <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar:${junit}/junit.jar"/>
     <property environment="env"/>
 
     <target name="help">
@@ -223,7 +225,7 @@
             destdir="${build}"
             source="1.5"
             debug="true"
-            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar">
+            classpath="${compile.classpath}">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
             <!-- <compilerarg value="-Xlint:unchecked"/>  -->
@@ -244,7 +246,7 @@
             destdir="${build}"
             source="1.5"
             debug="true"
-            classpath="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar">
+            classpath="${compile.classpath}">
 
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compile' target. -->
