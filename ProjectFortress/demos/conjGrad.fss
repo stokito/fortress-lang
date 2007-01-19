@@ -91,12 +91,12 @@ export Runnable
   end
 
 run(args:String...):() = do
-  A : RR64[16,16] = mkMatrix[\16\]()
-  v : RR64[16] = mkVector[\16\]()
+  A : RR64[12,12] = mkMatrix[\12\]()
+  v : RR64[12] = mkVector[\12\]()
   showMatrix(A)
   print("\nv =")
   showVector(v)
-  (s,e) = conjGrad[\16,RR64\](A,v)
+  (s,e) = conjGrad[\12,RR64\](A,v)
   print("s =")
   showVector(s)
   println("Error = " e)

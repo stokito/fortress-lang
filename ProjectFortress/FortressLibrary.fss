@@ -73,12 +73,14 @@ object Just[\T\](x:T) extends {Maybe[\T\]}
   isJust() = true
   unJust() = x
   eq(o:Just[\T\]) = (x=o.unJust())
+  toString():String = "Just(" x ")"
 end
 
 object Nothing[\T\]() extends { Maybe[\T\] }
   isJust() = false
   unJust() = throw UnJustNothing
   eq(o:Nothing[\T\]) = true
+  toString():String = "Nothing"
 end
 
 opr =(x:MaybeType, y:MaybeType) = x.eq(y)
@@ -307,6 +309,7 @@ trait ReductionBase[\T\]
 end
 
 trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
+  toString():String = "Reduction1[\\T," s "\\]"
   leaf(i:ZZ32):T
   run() =
     if s=0 then empty() else
@@ -322,11 +325,21 @@ end
 
 (* A void-like object to work around inability to parse
 parameterization with () *)
-object _V end
+object _V
+  toString():String = "_V[library internal]"
+end
 
 trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1, Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
+
+  toString() = do
+    r : String = "[" b0 "#" s0 "] = ["
+    for i <- seq(0#s0) do
+      r := r " " get(i)
+    end
+    r " ]"
+  end
 
   (* Get and put come from implementation.  They are always 0-indexed
      and unchecked. *)
@@ -490,6 +503,7 @@ opr [\ T extends Number, nat k \]
 
 (* Column-major reduction in 2 dimensions *)
 trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
+  toString()="Reduction2[\\T," s0 "," s1 "\\]"
   join(l:T,r:T):T = join0(l,r)
   join0(l:T,r:T):T = join(l,r)
   join1(l:T,r:T):T = join(l,r)
@@ -519,6 +533,23 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends { Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank2 (* ,
               Indexed[\Array2[\T,b0,s0,b1,s1\],T, (ZZ32,ZZ32)\] *) }
     excludes { Number, String }
+  toString() = do
+    r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
+    row(i) =
+      for j <- seq(0#s1) do
+         r := r " " get(i,j)
+      end
+    if s0 = 0 then
+      r " []"
+    else
+      r := r "\n["
+      row(0)
+      for i <- seq(1#(s0-1)) do
+        r := r "\n " row(i)
+      end
+      r " ]"
+    end
+  end
   (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
   offset(a0:ZZ32,a1:ZZ32):(ZZ32,ZZ32) = do
     c0 = a0 - b0
@@ -718,6 +749,7 @@ opr *[\ T extends Number, nat n, nat m, nat p \]
   other DOT me
 
 trait Reduction3[\R,nat s0,nat s1,nat s2\] extends ReductionBase[\R\]
+  toString():String = "Reduction3[\\R," s0 "," s1 "," s2 "\\]"
   join(l:R,r:R):R = join0(l,r)
   join0(l:R,r:R):R = join(l,r)
   join1(l:R,r:R):R = join(l,r)
@@ -750,6 +782,29 @@ end
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3}
   excludes { Number, String }
+
+  toString():String = do
+    r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
+    row(i,j) =
+        for k <- seq(0#s2) do
+          r := r " " get(i,j,k)
+        end
+    surf(i) =
+      if s1 > 0 then
+        for j <- seq(0#(s1-1)) do
+          row(i,j)
+        end
+      end
+    if s0=0 then
+      r " []"
+    else
+      r := r "\n[ " surf(0)
+      for i <- seq(1#(s0-1)) do
+        r := r ";;\n  " surf(i)
+      end
+      r " ]"
+    end
+  end
 
   (* Again, offset performs bounds checking and shifts to 0 indexing. *)
   offset(a0:ZZ32,a1:ZZ32,a2:ZZ32):(ZZ32,ZZ32,ZZ32) = do
@@ -988,9 +1043,13 @@ opr [\N extends Number\]|x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.inter
 opr *[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (a:Any, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+     (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:Any):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+     (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:Any, b:String):String = a.toString() b
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Any):String = a b.toString()
 opr =(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Eq")
 opr <(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Less")
 opr <=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$LessEq")

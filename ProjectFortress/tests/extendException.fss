@@ -21,6 +21,7 @@ export Executable
 (* We can extend stuff in the Fortress libraries. *)
 
 object Infinity extends Exception
+  toString() = "Infinity"
 end
 
 run(args:String...) = do
