@@ -1,0 +1,35 @@
+#!/bin/bash
+
+ver=`svnversion`
+
+if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
+echo "Cleaning and testing, just in case"
+./ant clean test
+echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
+zip -9 fortress_${ver}.zip \
+`find . \( -name .svn -o \
+           -name "fortress_*.zip" -o \
+           -name .hg -o \
+           -name "*.log" -o \
+           -name "*~" -o \
+           -name .dependencies -o \
+           -name "TEST-RESULTS" \) -prune -o -print` > zip_${ver}.log
+
+else
+  reason="none"
+  if ( echo $ver | egrep -q 'M') ; then
+    echo "Please commit local changes in $ver"
+    reason="M"
+  fi
+  if ( echo $ver | egrep -q 'S') ; then
+    echo "Please be sure $ver is not switched"
+    reason="S"
+  fi
+  if ( echo $ver | egrep -q ':') ; then
+    echo "Please update at top level to get a consistent version, not $ver"
+    reason=":"
+  fi
+  if [ ${reason} == "none" ]; then
+    echo "An svnversion '${ver}' not expected by the author of this script is causing confusion."
+  fi
+fi
