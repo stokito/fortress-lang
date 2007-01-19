@@ -29,11 +29,16 @@ export Runnable
   end
 
   mkMatrix[\nat n\]() : RR64[n,n] = do
-    nlgn = n lg(n)
-    p : RR64 = nlgn / (n n)
+    lgn = lg(n)
+    p : RR64 = lgn / (2 n)  (* Probability of a nonzero off-diagonal element *)
+    (* We begin by generating a non-negative upper-triangular matrix
+       with no (likely) zeros on the diagonal *)
     f(i:ZZ32,j:ZZ32):RR64 =
-      if i=j OR random(1.0) <= p then random(4.0)-2.0 else 0.0 end
-    array2[\RR64,n,n\](f)
+      if i=j OR i > j AND random(1.0) <= p then random(sqrt 2) else 0.0 end
+    m = array2[\RR64,n,n\](f)
+    (* We multiply by the transpose and hope the result is positive-definite.
+       It will be with high probability. *)
+    m m.t()
   end
 
   mkVector[\nat n\]() : RR64[n] = do
@@ -45,10 +50,10 @@ export Runnable
    *    A z = x
    * along with the approximate cartesian error of the solution.  This
    * method is considered superior to LU decomposition when A is
-   * sparse. *)
+   * sparse, symmetric, and positive-definite. *)
   conjGrad[\nat n, E extends Number\]
           (A: E[n,n], x: E[n]): (E[n], RR64) = do
-    cgitmax = 25
+    cgitmax = 15
     z: E[n] := vector[\RR64,n\](0)
     r: E[n] := x
     p: E[n] := r
@@ -86,12 +91,12 @@ export Runnable
   end
 
 run(args:String...):() = do
-  A : RR64[8,8] = mkMatrix[\8\]()
-  v : RR64[8] = mkVector[\8\]()
+  A : RR64[16,16] = mkMatrix[\16\]()
+  v : RR64[16] = mkVector[\16\]()
   showMatrix(A)
   print("\nv =")
   showVector(v)
-  (s,e) = conjGrad[\8,RR64\](A,v)
+  (s,e) = conjGrad[\16,RR64\](A,v)
   print("s =")
   showVector(s)
   println("Error = " e)
