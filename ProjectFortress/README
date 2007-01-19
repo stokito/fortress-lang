@@ -61,16 +61,22 @@ Ant starts up a JVM.
 
 RUNNING THE INTERPRETER
 
-Provided that the 'java' command is on your path, you can run the interpreter by
-replacing 'hello.fss' with the name of your program in the following command:
+Provided that the 'java' command is on your path, you can run the
+command "./fortress hello.fss".  Typing "./fortress --help" will give
+usage information for the driver.
 
-java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar" com.sun.fortress.interpreter.drivers.fs hello.fss
+Or you can invoke the interpreter directly by replacing 'hello.fss'
+with the name of your program in the following command:
+
+java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar" com.sun.fortress.interpreter.drivers.fs hello.fss
 
 and get the usage of the driver by:
 
-java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar" com.sun.fortress.interpreter.drivers.fs --help
+java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar" com.sun.fortress.interpreter.drivers.fs --help
 
-Or, you can run the command "./fortress hello.fss" or "./fortress --help"
+If all else fails, look at the ./fortress script to see if your system
+has peculiarities (for example cygwin requires ; separators in the
+classpath).
 
 DEMO PROGRAMS
 
@@ -218,7 +224,8 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * Overloaded parametric methods.  You can have one or the other, but
   not both.
 
-* throw and catch
+* throw and catch.  Because of this lack we do not yet perform
+  arithmetic range checks.
 
 * Generators and reduction variables
 
@@ -243,6 +250,9 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * Integers other than ZZ32 and ZZ64
 
 * Use of ZZ64 for indexing
+
+* Contracts and contract checking: requires, ensures, invariant
+  clauses do not work.
 
 
 BUILT-IN TYPES
