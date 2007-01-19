@@ -287,9 +287,10 @@ end
 (* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
 removeElement(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    s:Tree = b[i,j]
-   if s.size() > 1 then      (* Don't delete the element being removed! *)
-      if s.member(elem) then (* Avoid redundant deletion/update *)
-         b[i,j] := s.delete(elem)
+   if s.member(elem) then      (* Don't delete the element being removed! *)
+      r = s.delete(elem)
+      if NOT r.empty() then
+         b[i,j] := r
       end
    end
 end
@@ -321,9 +322,9 @@ end
 
 (* This version involves a barrier between propagation steps. *)
 propagate(board:Tree[9,9]):() = do
-   prevUnsolved : ZZ32 := 64
-   unsolved : ZZ32 := 63
-   while unsolved < prevUnsolved do
+   prevUnsolved : ZZ32 := 82
+   unsolved : ZZ32 := 81
+   while unsolved > 0 AND unsolved < prevUnsolved do
       (* Fixed point iteration.  This will tolerate data race in
          propagateSingleton, though we'd be just as happy without it. *)
       prevUnsolved := unsolved
@@ -333,9 +334,10 @@ propagate(board:Tree[9,9]):() = do
             elem = board[i,j].minimum()
             propagateSingleton(board, i, j, elem)
          else
-            atomic unsolved += 1
+            atomic do unsolved += 1 end (* Bug requires do block here *)
          end
       end
+      println("**** " unsolved)
    end
 end
 

@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 public class IndirectionCell extends FValue {
     protected volatile FValue theValue;
     public String toString() {
+        if (theValue==null) return "null";
         return theValue.toString();
     }
 

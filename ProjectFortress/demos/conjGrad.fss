@@ -1,0 +1,100 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component conjGrad
+export Runnable
+
+  lg(n:ZZ32) : ZZ32 = do
+    r : ZZ32 := 0
+    m : ZZ32 := 1
+    while (m < n) do
+      r += 1
+      m += m
+    end
+    r
+  end
+
+  mkMatrix[\nat n\]() : RR64[n,n] = do
+    nlgn = n lg(n)
+    p : RR64 = nlgn / (n n)
+    f(i:ZZ32,j:ZZ32):RR64 =
+      if i=j OR random(1.0) <= p then random(4.0)-2.0 else 0.0 end
+    array2[\RR64,n,n\](f)
+  end
+
+  mkVector[\nat n\]() : RR64[n] = do
+    f(i) = random(4.0)-2.0
+    array1[\RR64,n\](f)
+  end
+
+  (* conjGrad returns the approximate solution z to the linear equation:
+   *    A z = x
+   * along with the approximate cartesian error of the solution.  This
+   * method is considered superior to LU decomposition when A is
+   * sparse. *)
+  conjGrad[\nat n, E extends Number\]
+          (A: E[n,n], x: E[n]): (E[n], RR64) = do
+    cgitmax = 25
+    z: E[n] := vector[\RR64,n\](0)
+    r: E[n] := x
+    p: E[n] := r
+    rho: E := r DOT r
+    for j <- sequential(0#cgitmax) do
+      q = A p
+      alpha = rho / (p DOT q)
+      z += alpha p
+      r -= alpha q
+      rho0 = rho
+      rho := r DOT r
+      beta = rho / rho0
+      p := r + beta p
+      print("Iter " j " alpha = " alpha "\nz =")
+      showVector(z)
+    end
+    (z, ||x - A z||)
+  end
+
+(************************************************************)
+
+  showMatrix[\E, nat n\](A:Array2[\E,0,n,0,n\]) =
+     for i<-seq(0#n) do
+        for j<-seq(0#n) do
+           print(" " A[i,j])
+        end
+        println("")
+     end
+
+  showVector[\E, nat n\](A:Array1[\E,0,n\]) = do
+     for i<-seq(0#n) do
+        print(" " A[i])
+     end
+     println("")
+  end
+
+run(args:String...):() = do
+  A : RR64[8,8] = mkMatrix[\8\]()
+  v : RR64[8] = mkVector[\8\]()
+  showMatrix(A)
+  print("\nv =")
+  showVector(v)
+  (s,e) = conjGrad[\8,RR64\](A,v)
+  print("s =")
+  showVector(s)
+  println("Error = " e)
+end
+
+end
