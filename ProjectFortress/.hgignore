@@ -19,6 +19,8 @@ TEST-RESULTS/*
 *.yy.cc
 *~
 *.jst
+fortress_*.zip
+.dependencies/dependencies.txt
 META
 bin/
 build/
