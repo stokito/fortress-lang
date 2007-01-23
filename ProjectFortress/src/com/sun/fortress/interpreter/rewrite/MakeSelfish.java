@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.rewrite;
 
 import java.util.HashMap;
+
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;

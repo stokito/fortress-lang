@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.glue;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
@@ -26,7 +25,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;

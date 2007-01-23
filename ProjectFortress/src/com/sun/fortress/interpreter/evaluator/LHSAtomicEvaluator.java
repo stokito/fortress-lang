@@ -19,14 +19,12 @@ package com.sun.fortress.interpreter.evaluator;
 
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
-import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 
 
-public class LHSAtomicEvaluator extends BaseNodeVisitor<FValue>
-    implements NodeVisitor<FValue> {
+public class LHSAtomicEvaluator extends NodeVisitor<FValue> {
 
     LHSAtomicEvaluator(Evaluator evaluator,
 		       FValue old_value,

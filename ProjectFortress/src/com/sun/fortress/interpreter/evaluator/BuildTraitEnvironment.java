@@ -32,8 +32,6 @@ import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
-import com.sun.fortress.interpreter.nodes.Option;
-import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.useful.Voidoid;
 

@@ -23,13 +23,13 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FixedDim;
 import com.sun.fortress.interpreter.nodes.PolyDim;
 
 
-public class EvalIndices extends BaseNodeVisitor<TypeIndices> {
+public class EvalIndices extends NodeVisitor<TypeIndices> {
 
     EvalType evalType;
 
@@ -37,7 +37,7 @@ public class EvalIndices extends BaseNodeVisitor<TypeIndices> {
         evalType = type;
     }
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forFixedDim(com.sun.fortress.interpreter.nodes.FixedDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFixedDim(com.sun.fortress.interpreter.nodes.FixedDim)
      */
     @Override
     public TypeIndices forFixedDim(FixedDim x) {
@@ -50,7 +50,7 @@ public class EvalIndices extends BaseNodeVisitor<TypeIndices> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forPolyDim(com.sun.fortress.interpreter.nodes.PolyDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forPolyDim(com.sun.fortress.interpreter.nodes.PolyDim)
      */
     @Override
     public TypeIndices forPolyDim(PolyDim x) {

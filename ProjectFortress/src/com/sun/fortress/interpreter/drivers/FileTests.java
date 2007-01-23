@@ -22,15 +22,15 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.WireTappedPrintStream;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class FileTests {
 

@@ -17,10 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import java.util.List;
 import java.util.ArrayList;
-
-import com.sun.fortress.interpreter.useful.Useful;
+import java.util.List;
 
 // / and matrix_type = matrix_type_rec node
 // / and matrix_type_rec =

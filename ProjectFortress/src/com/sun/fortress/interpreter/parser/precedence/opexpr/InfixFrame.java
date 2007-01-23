@@ -17,9 +17,6 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.parser.precedence.resolver.ExprOpPair;
-import com.sun.fortress.interpreter.useful.Pair;
 
 
 public interface InfixFrame {

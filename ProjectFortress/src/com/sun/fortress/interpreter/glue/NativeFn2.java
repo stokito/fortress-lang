@@ -20,7 +20,6 @@ package com.sun.fortress.interpreter.glue;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.glue.NativeApp;
 
 
 /**

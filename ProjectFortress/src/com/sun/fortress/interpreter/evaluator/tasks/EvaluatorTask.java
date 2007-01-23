@@ -17,11 +17,10 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import java.util.List;
-import EDU.oswego.cs.dl.util.concurrent.FJTask;
-import EDU.oswego.cs.dl.util.concurrent.FJTaskRunnerGroup;
+
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
 
 public class EvaluatorTask extends BaseTask {
     

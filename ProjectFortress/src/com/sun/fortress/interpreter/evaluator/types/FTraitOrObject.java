@@ -22,13 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.TopSort;
 import com.sun.fortress.interpreter.useful.TopSortItemImpl;
 import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 abstract public class FTraitOrObject extends FType {
     List<FType> extends_;

@@ -17,11 +17,8 @@
 
 package com.sun.fortress.interpreter.glue;
 
-import com.sun.fortress.interpreter.evaluator.values.FFloat;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.useful.HasAt;
 
 
 /**

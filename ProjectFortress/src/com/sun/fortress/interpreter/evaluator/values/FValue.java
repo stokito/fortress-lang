@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.useful.NI;
 
 
 public class FValue {

@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
+
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-
-import junit.framework.TestCase;
 
 public class IndexedJUTest extends TestCase {
 

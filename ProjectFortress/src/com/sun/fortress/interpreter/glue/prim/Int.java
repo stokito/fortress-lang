@@ -24,13 +24,10 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
-import com.sun.fortress.interpreter.glue.prim.Util;
 
 
 /**

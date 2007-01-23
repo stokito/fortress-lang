@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.*;
 
 /**
  * Class Higher, a component of the Precedence composite hierarchy.

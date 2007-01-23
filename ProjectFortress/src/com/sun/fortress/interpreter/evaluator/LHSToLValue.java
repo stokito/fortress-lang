@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
@@ -31,7 +31,6 @@ import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LHS;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.NatRef;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.SubscriptExpr;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
@@ -51,7 +50,7 @@ import com.sun.fortress.interpreter.useful.NI;
  * ALHSEvaluator.  Cache computations are represented using
  * WrappedFValue AST com.sun.fortress.interpreter.nodes.
  */
-public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS> {
+public class LHSToLValue extends NodeVisitor<LHS>  {
     Evaluator evaluator;
 
     LHSToLValue(Evaluator evaluator) {
@@ -90,7 +89,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
     @Override
     public LHS forSubscriptExpr(SubscriptExpr x) {
@@ -100,7 +99,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forFieldSelection(com.sun.fortress.interpreter.nodes.FieldSelection)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldSelection(com.sun.fortress.interpreter.nodes.FieldSelection)
      */
     @Override
     public LHS forFieldSelection(FieldSelection x) {
@@ -114,7 +113,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
      */
     @Override
     public LHS forUnpastingBind(UnpastingBind x) {
@@ -124,7 +123,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingDim(com.sun.fortress.interpreter.nodes.UnpastingDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingDim(com.sun.fortress.interpreter.nodes.UnpastingDim)
      */
     @Override
     public LHS forUnpastingDim(UnpastingDim x) {
@@ -135,7 +134,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
      */
     @Override
     public LHS forUnpastingSplit(UnpastingSplit x) {
@@ -149,7 +148,7 @@ public class LHSToLValue extends BaseNodeVisitor<LHS> implements NodeVisitor<LHS
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTupleExpr(com.sun.fortress.interpreter.nodes.TupleExpr)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTupleExpr(com.sun.fortress.interpreter.nodes.TupleExpr)
      */
     @Override
     public LHS forTupleExpr(TupleExpr x) {

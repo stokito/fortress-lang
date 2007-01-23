@@ -38,7 +38,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.ConstructorFnName;
-import com.sun.fortress.interpreter.nodes.Decl;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnName;

@@ -29,7 +29,6 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.FnName;

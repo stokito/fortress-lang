@@ -105,6 +105,10 @@ public abstract class Node implements HasAt {
     }
 
     abstract public <T> T accept(NodeVisitor<T> v);
+    
+    public final <T> T acceptOuter(NodeVisitor<T> v) {
+        return accept(v);
+    }
 
     /**
      * @return Returns the span.

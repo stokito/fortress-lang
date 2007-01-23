@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +42,7 @@ import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.ArrayType;
 import com.sun.fortress.interpreter.nodes.ArrowType;
 import com.sun.fortress.interpreter.nodes.BaseNatType;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.BoolParam;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
@@ -53,7 +52,6 @@ import com.sun.fortress.interpreter.nodes.Indices;
 import com.sun.fortress.interpreter.nodes.IntParam;
 import com.sun.fortress.interpreter.nodes.MatrixType;
 import com.sun.fortress.interpreter.nodes.NatParam;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
@@ -72,8 +70,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 
 
-public class EvalType extends BaseNodeVisitor<FType>
-    implements NodeVisitor<FType> {
+public class EvalType extends NodeVisitor<FType> {
 
     BetterEnv env;
     private EvalIndices ___evalIndices;
@@ -83,6 +80,10 @@ public class EvalType extends BaseNodeVisitor<FType>
         return ___evalIndices;
     }
 
+    public FType evalType(TypeRef t) {
+        return acceptNode(t);
+    }
+    
     public static FType getFTypeFromOption(Option<TypeRef> t, BetterEnv e) {
         if (t.isPresent())
             return getFType(t.getVal(), e);
@@ -344,7 +345,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forBaseNatType(com.sun.fortress.interpreter.nodes.BaseNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatType(com.sun.fortress.interpreter.nodes.BaseNatType)
      */
     @Override
     public FType forBaseNatType(BaseNatType x) {
@@ -352,7 +353,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forOperatorParam(com.sun.fortress.interpreter.nodes.OperatorParam)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOperatorParam(com.sun.fortress.interpreter.nodes.OperatorParam)
      */
     @Override
     public FType forOperatorParam(OperatorParam x) {
@@ -361,7 +362,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forProductNatType(com.sun.fortress.interpreter.nodes.ProductNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductNatType(com.sun.fortress.interpreter.nodes.ProductNatType)
      */
     @Override
     public FType forProductNatType(ProductNatType x) {
@@ -388,7 +389,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forSumNatType(com.sun.fortress.interpreter.nodes.SumNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSumNatType(com.sun.fortress.interpreter.nodes.SumNatType)
      */
     @Override
     public FType forSumNatType(SumNatType x) {
@@ -401,7 +402,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTypeArg(com.sun.fortress.interpreter.nodes.StaticArg)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeArg(com.sun.fortress.interpreter.nodes.StaticArg)
      */
     @Override
     public FType forStaticArg(StaticArg x) {
@@ -431,7 +432,7 @@ public class EvalType extends BaseNodeVisitor<FType>
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forArrayType(com.sun.fortress.interpreter.nodes.IndexedType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArrayType(com.sun.fortress.interpreter.nodes.IndexedType)
      */
     @Override
     public FType forArrayType(ArrayType x) {

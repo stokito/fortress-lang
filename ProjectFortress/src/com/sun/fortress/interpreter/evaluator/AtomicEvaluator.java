@@ -18,30 +18,25 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.nodes.Assignment;
 import com.sun.fortress.interpreter.nodes.Block;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.LHS;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Option;
 
 import dstm2.Thread;
-import dstm2.Transaction;
 
-public class AtomicEvaluator extends EvaluatorBase<FValue> implements
-        NodeVisitor<FValue> {
+public class AtomicEvaluator extends EvaluatorBase<FValue> {
 
     AtomicEvaluator(Evaluator evaluator) {
         // To simplify life, we extend EvaluatorBase to get access to

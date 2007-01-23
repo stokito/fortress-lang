@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import com.sun.fortress.interpreter.glue.prim.Util;
 
 /**
  * Functions from RR64.

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;

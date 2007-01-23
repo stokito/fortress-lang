@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.evaluator.types;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 

@@ -20,9 +20,9 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.TreeSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;

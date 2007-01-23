@@ -19,13 +19,11 @@ package com.sun.fortress.interpreter.typechecker;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 
 
-public class TypeChecker extends BaseNodeVisitor<FType> implements
-        NodeVisitor<FType> {
+public class TypeChecker extends NodeVisitor<FType> {
 
     private final BetterEnv e;
 

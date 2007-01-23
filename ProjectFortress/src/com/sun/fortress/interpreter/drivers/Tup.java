@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.drivers;
 import java.io.BufferedReader;
-import java.io.FileReader;
 
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Unprinter;

@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
@@ -42,7 +42,7 @@ import com.sun.fortress.interpreter.nodes.TypeRef;
 
 
 
-public class BuildLetEnvironments extends BaseNodeVisitor<FValue> {
+public class BuildLetEnvironments extends NodeVisitor<FValue> {
 
     boolean firstPass = true;
 
@@ -53,7 +53,7 @@ public class BuildLetEnvironments extends BaseNodeVisitor<FValue> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forLetFn(com.sun.fortress.interpreter.nodes.LetFn)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forLetFn(com.sun.fortress.interpreter.nodes.LetFn)
      */
     @Override
     public FValue forLetFn(LetFn x) {

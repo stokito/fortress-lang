@@ -17,13 +17,10 @@
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import junit.framework.TestCase;
-
 import java.util.List;
-import java.util.ListIterator;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashSet;
+
+import junit.framework.TestCase;
 
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Equal;
@@ -31,7 +28,6 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Higher;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Lower;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.None;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
-import com.sun.fortress.interpreter.parser.precedence.opexpr.RealPrecedence;
 import com.sun.fortress.interpreter.useful.Useful;
 
 

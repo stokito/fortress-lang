@@ -19,8 +19,8 @@ package com.sun.fortress.interpreter.reader;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 
 import com.sun.fortress.interpreter.nodes.Unprinter;
 

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import junit.framework.TestCase;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
@@ -33,8 +35,6 @@ import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Span;
-
-import junit.framework.TestCase;
 
 public class OverloadJUTest extends TestCase {
 

@@ -23,16 +23,16 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.Assert;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.sun.fortress.interpreter.nodes.IntLiteral;
 import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
-
-import junit.framework.Assert;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /*
  * JUnit based test

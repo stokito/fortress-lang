@@ -17,14 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTask;
-import EDU.oswego.cs.dl.util.concurrent.FJTaskRunnerGroup;
-
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import java.util.List;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.nodes.Expr;
 
 public class TupleTask extends BaseTask {
         Evaluator eval;

@@ -20,22 +20,17 @@ package com.sun.fortress.interpreter.parser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.Reader;
 
-import com.sun.fortress.interpreter.nodes.*;
-
-
+import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
-import xtc.parser.ParseError;
+
+import com.sun.fortress.interpreter.nodes.Printer;
+import com.sun.fortress.interpreter.nodes.Tree;
 
 public class ParserDriver {
 

@@ -17,7 +17,14 @@
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 import com.sun.fortress.interpreter.nodes.Span;
-import com.sun.fortress.interpreter.parser.precedence.opexpr.*;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Left;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.LooseInfix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.OpExprVisitor;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Postfix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Prefix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Right;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.TightInfix;
 
 
 /** A parametric abstract implementation of a visitor over OpExpr that return a value.

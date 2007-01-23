@@ -44,26 +44,21 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethodSet;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.interpreter.nodes.AbsDecl;
 import com.sun.fortress.interpreter.nodes.AbsFnDecl;
 import com.sun.fortress.interpreter.nodes.AbsObjectDecl;
 import com.sun.fortress.interpreter.nodes.AbsTraitDecl;
 import com.sun.fortress.interpreter.nodes.AbsVarDecl;
-import com.sun.fortress.interpreter.nodes.AnonymousFnName;
 import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
-import com.sun.fortress.interpreter.nodes.Decl;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.Dimension;
 import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes.Enclosing;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.HasWhere;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.ImportApi;
 import com.sun.fortress.interpreter.nodes.ImportIds;
@@ -94,49 +89,51 @@ import com.sun.fortress.interpreter.useful.Voidoid;
  * 
  * BuildEnvironments is a multiple-pass visitor pattern.
  * 
- * The first pass, applied to a node that contains things
- * (for example, a component contains top-level declarations,
- * a trait contains method declrations) it creates entries
- * for those things in the bindInto environment.  The bindings
- * created are not complete after the first pass.
+ * The first pass, applied to a node that contains things (for example, a
+ * component contains top-level declarations, a trait contains method
+ * declrations) it creates entries for those things in the bindInto environment.
+ * The bindings created are not complete after the first pass.
  * 
- * The second pass completes the type initialization.  For contained
- * things that have internal structure (e.g., a trait within a
- * top level list) this may require a recursive visit, but with
- * a newly allocated environment running its first and
- * second passes.  This includes singleton object types.
+ * The second pass completes the type initialization. For contained things that
+ * have internal structure (e.g., a trait within a top level list) this may
+ * require a recursive visit, but with a newly allocated environment running its
+ * first and second passes. This includes singleton object types.
  * 
- * The third pass initializes functions and methods; these may depend
- * on types.
+ * The third pass initializes functions and methods; these may depend on types.
  * 
- * The fourth pass performs value initialization.  These may depend on
- * functions.  This includes singleton object values.
+ * The fourth pass performs value initialization. These may depend on functions.
+ * This includes singleton object values.
  * 
- * The evaluation order is slightly relaxed to make the interpreter
- * tractable; value cells (and variable cells?) are initialized with
- * thunks.  (How do we thunk a singleton object?)
+ * The evaluation order is slightly relaxed to make the interpreter tractable;
+ * value cells (and variable cells?) are initialized with thunks. (How do we
+ * thunk a singleton object?)
  * 
- * Note that not all passes are required in all contexts; only the top level
- * has the combination of types, functions, variables, and unordered access.
- * Different initializations are assigned to different (numbered) passes
- * so that environment building in some contexts can skip passes (for example,
- * skip the type pass in any non-top-level environment).
+ * It may be necessary to thunk the types as well; this is not yet entirely
+ * clear because the type system is so complex. Because types already contain
+ * references to their defining environment, this may proceed in an ad-hoc
+ * fashion with lazy memoization.
  * 
- * @author chase
+ * Note that not all passes are required in all contexts; only the top level has
+ * the combination of types, functions, variables, and unordered access.
+ * Different initializations are assigned to different (numbered) passes so that
+ * environment building in some contexts can skip passes (for example, skip the
+ * type pass in any non-top-level environment).
+ * 
  */
-public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
+public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     private int pass = 1;
 
     public void resetPass() {
         pass = 1;
     }
-    
+
     public void assertPass(int p) {
         if (pass != p)
-            throw new InterpreterError("Expected pass " + p + " got pass " + pass);
+            throw new InterpreterError("Expected pass " + p + " got pass "
+                    + pass);
     }
-    
+
     public void secondPass() {
         assertPass(1);
         pass = 2;
@@ -148,24 +145,26 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         assertPass(2);
         pass = 3;
     }
+
     public void fourthPass() {
         assertPass(3);
         pass = 4;
     }
 
     BetterEnv containing;
+
     BetterEnv bindInto;
 
     /**
      * Creates an environment builder that will inject bindings into 'within'.
-     * The visit is suspended at generics (com.sun.fortress.interpreter.nodes with type parameters) until
-     * they can be instantiated.
+     * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
+     * with type parameters) until they can be instantiated.
      */
     public BuildEnvironments(BetterEnv within) {
         this.containing = within;
         this.bindInto = within;
     }
-    
+
     public BuildEnvironments(BetterEnv within, BetterEnv bind_into) {
         this.containing = within;
         this.bindInto = bind_into;
@@ -180,7 +179,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     public BetterEnv getEnvironment() {
         return containing;
     }
-
+    
     static Closure instantiate(FGenericFunction x) {
         return null;
     }
@@ -195,8 +194,8 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
     /*
      * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forApi(com.sun.fortress.interpreter.nodes.Api)
+     * 
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forApi(com.sun.fortress.interpreter.nodes.Api)
      */
     @Override
     public Voidoid forApi(Api x) {
@@ -212,26 +211,26 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         // and inject names appropriately into the environment.
 
         for (DefOrDecl decl : decls) {
-            decl.accept(this);
+            acceptNode(decl);
         }
 
         secondPass();
 
         for (DefOrDecl decl : decls) {
-            decl.accept(this);
+            acceptNode(decl);
         }
 
         return null;
     }
-    
+
     protected void forApi1(Api x) {
-        
+
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forComponent(com.sun.fortress.interpreter.nodes.Component)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forComponent(com.sun.fortress.interpreter.nodes.Component)
      */
     @Override
     public Voidoid forComponent(Component x) {
@@ -263,10 +262,9 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
     private void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
-            def.accept(inner);
+            inner.acceptNode(def);
         }
     }
-
 
     /**
      * Put the mappings into "into", but create closures against forTraitMethods.
@@ -276,19 +274,21 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
      * @param defs
      * @param fields
      */
-    public void doTraitMethodDefs(BetterEnv into, BetterEnv forTraitMethods, List<? extends DefOrDecl> defs,
-            Set<String> fields) {
-        BuildTraitEnvironment inner = new BuildTraitEnvironment(into, forTraitMethods, fields);
+    public void doTraitMethodDefs(BetterEnv into, BetterEnv forTraitMethods,
+            List<? extends DefOrDecl> defs, Set<String> fields) {
+        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
+                forTraitMethods, fields);
         for (DefOrDecl def : defs) {
-            def.accept(inner);
+            inner.acceptNode(def);
         }
         inner.secondPass();
         for (DefOrDecl def : defs) {
-            def.accept(inner);
+            inner.acceptNode(def);
         }
     }
 
-    private void guardedPutValue(BetterEnv e, String name, FValue value, HasAt where) {
+    private void guardedPutValue(BetterEnv e, String name, FValue value,
+            HasAt where) {
         guardedPutValue(e, name, value, null, where);
 
     }
@@ -310,19 +310,20 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
      * @param name
      * @param value
      * @param ft
-     */protected void putValue(BetterEnv e, String name, FValue value) {
+     */
+    protected void putValue(BetterEnv e, String name, FValue value) {
         e.putValue(name, value);
     }
 
-    private void guardedPutValue(BetterEnv e, String name, FValue value, FType ft,
-            HasAt where) {
+    private void guardedPutValue(BetterEnv e, String name, FValue value,
+            FType ft, HasAt where) {
         try {
             if (ft != null) {
                 if (!ft.typeMatch(value)) {
-                    throw new ProgramError(where,e,
-                              "TypeRef mismatch binding " + value
-                            + " (type " + value.type() + ") to " + name
-                            + " (type " + ft + ")");
+                    throw new ProgramError(where, e,
+                            "TypeRef mismatch binding " + value + " (type "
+                                    + value.type() + ") to " + name + " (type "
+                                    + ft + ")");
                 }
                 putValue(e, name, value, ft);
             } else {
@@ -340,13 +341,13 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     }
 
     protected FValue newGenericClosure(BetterEnv e, FnDefOrDecl x) {
-        return new FGenericFunction(e,x);
+        return new FGenericFunction(e, x);
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
      */
     @Override
     public Voidoid forFnDecl(FnDecl x) {
@@ -372,14 +373,6 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
             if (pass == 1) {
                 FValue cl = newGenericClosure(containing, x);
                 putOrOverloadOrShadowGeneric(x, containing, name, cl);
-//                guardedPutValue(containing, fname, cl, x);
-//                if (name instanceof Enclosing) {
-//                    Enclosing ename = (Enclosing) name;
-//                    String efname = ename.getClose().getName();
-//                    if (!efname.equals(name)) {
-//                        guardedPutValue(containing, efname, cl, x);
-//                    }
-//                }
             } else {
                 // Why isn't this the right thing to do?
                 // FGenericFunction is (currently) excluded from this treatment.
@@ -388,22 +381,22 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
                     GenericFunctionSet gfs = (GenericFunctionSet) fcn;
                     gfs.finishInitializing();
                 }
-//
-//                if (fcn instanceof Closure) {
-//                    // This is only loosely paired with the
-//                    // first pass; dealing with overloading tends to
-//                    // break up the 1-1 relationship between the two.
-//                    // However, because of the way that scopes nest,
-//                    // it is possible (I think) that f could be overloaded
-//                    // in an inner scope but not overloaded in an outer
-//                    // scope.
-//                    Closure cl = (Closure) fcn;
-//                    cl.finishInitializing();
-//                } else if (fcn instanceof OverloadedFunction) {
-//                    OverloadedFunction og = (OverloadedFunction) fcn;
-//                    og.finishInitializing();
-//
-//                }
+                //
+                //                if (fcn instanceof Closure) {
+                //                    // This is only loosely paired with the
+                //                    // first pass; dealing with overloading tends to
+                //                    // break up the 1-1 relationship between the two.
+                //                    // However, because of the way that scopes nest,
+                //                    // it is possible (I think) that f could be overloaded
+                //                    // in an inner scope but not overloaded in an outer
+                //                    // scope.
+                //                    Closure cl = (Closure) fcn;
+                //                    cl.finishInitializing();
+                //                } else if (fcn instanceof OverloadedFunction) {
+                //                    OverloadedFunction og = (OverloadedFunction) fcn;
+                //                    og.finishInitializing();
+                //
+                //                }
             }
 
         } else {
@@ -458,10 +451,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
      * @param name
      * @param cl
      */
-    public void putOrOverloadOrShadow(
-            HasAt x,
-            BetterEnv e,
-            FnName name,
+    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, FnName name,
             Simple_fcn cl) {
         Fcn g = (Fcn) e.getValueNull(name.name());
         if (g == null) {
@@ -476,10 +466,16 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
             if (g instanceof OverloadedFunction) {
                 og = (OverloadedFunction) g;
                 og.addOverload(cl);
-            } else if (g instanceof GenericMethodSet || g instanceof GenericMethod) {
-                throw new ProgramError(x,e, "Cannot combine generic method and nongeneric method " + name.name() + " in an overloading");
-            } else if (g instanceof GenericFunctionSet || g instanceof FGenericFunction) {
-                throw new ProgramError(x,e, "Cannot combine generic function and nongeneric function " + name.name() + " in an overloading");
+            } else if (g instanceof GenericMethodSet
+                    || g instanceof GenericMethod) {
+                throw new ProgramError(x, e,
+                        "Cannot combine generic method and nongeneric method "
+                                + name.name() + " in an overloading");
+            } else if (g instanceof GenericFunctionSet
+                    || g instanceof FGenericFunction) {
+                throw new ProgramError(x, e,
+                        "Cannot combine generic function and nongeneric function "
+                                + name.name() + " in an overloading");
             } else {
                 og = new OverloadedFunction(name, e);
                 og.addOverload(cl);
@@ -499,13 +495,10 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
      * @param name
      * @param cl
      */
-    public void putOrOverloadOrShadowGeneric(
-            HasAt x,
-            BetterEnv e,
-            FnName name,
-            FValue cl) {
+    private void putOrOverloadOrShadowGeneric(HasAt x, BetterEnv e,
+            FnName name, FValue cl) {
         FValue fv = e.getValueNull(name.name());
-        if (fv != null && ! (fv instanceof Fcn)) {
+        if (fv != null && !(fv instanceof Fcn)) {
             throw new ProgramError(x, e, "Generic not generic? " + name.name());
         }
         Fcn g = (Fcn) fv;
@@ -571,41 +564,16 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         String s = name.name();
         guardedPutValue(e, s, f, x);
         e.noteName(s);
-//        if (name instanceof Enclosing) {
-//            Enclosing ename = (Enclosing) name;
-//            String efname = ename.getClose().getName();
-//            // TODO seems unnecessary.
-//            if (!efname.equals(s))
-//                guardedPutValue(e, efname, f, x);
-//        }
     }
 
     private static void assignFunction(BetterEnv e, FnName name, FValue f) {
         e.putValueUnconditionally(name.name(), f);
-//        if (name instanceof Enclosing) {
-//            Enclosing ename = (Enclosing) name;
-//            String efname = ename.getClose().getName();
-//            if (!efname.equals(name.name()))
-//                e.putValueUnconditionally(efname, f);
-//        }
     }
-
-//    public static FValue anObject(FTypeObject ft, BetterEnv e, Option<List<TypeRef>> traits,
-//            List<Decl> defs, HasAt x) {
-//
-//        Constructor cl = new Constructor(e, (FTypeObject) ft, x,
-//                new AnonymousFnName(x), defs);
-//        cl.setParams(Collections.<Parameter> emptyList());
-//        finishObjectTrait(traits, null, null, ft, e, x);
-//        cl.finishInitializing();
-//
-//        return cl.apply(java.util.Collections.<FValue> emptyList(), x, e);
-//    }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forObjectDef(com.sun.fortress.interpreter.nodes.ObjectDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forObjectDef(com.sun.fortress.interpreter.nodes.ObjectDecl)
      */
     @Override
     public Voidoid forObjectDecl(ObjectDecl x) {
@@ -690,8 +658,8 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
                 finishObjectTrait(x, fto);
                 cl.finishInitializing();
                 ;
-                guardedPutValue(containing, fname, cl.apply(java.util.Collections
-                        .<FValue> emptyList(), x, e), x);
+                guardedPutValue(containing, fname, cl.apply(
+                        java.util.Collections.<FValue> emptyList(), x, e), x);
 
             }
         }
@@ -707,7 +675,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forVarDef(com.sun.fortress.interpreter.nodes.VarDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDef(com.sun.fortress.interpreter.nodes.VarDecl)
      */
     @Override
     public Voidoid forVarDecl(VarDecl x) {
@@ -721,22 +689,26 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
 
         if (pass == 1) {
         } else {
-            FValue init_value = init.accept(new Evaluator(
-                    containing));
+            
+            FValue init_value = (new Evaluator(containing)).eval(init);
             for (LValue lv : lhs) {
                 if (lv instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) lv;
 
-                Option<TypeRef> type = lvb.getType();
-                Id name = lvb.getName();
+                    Option<TypeRef> type = lvb.getType();
+                    Id name = lvb.getName();
 
-            FType ft = type.isPresent() ? type.getVal().accept(
-                    new EvalType(containing)) : null;
-            // TODO We're not careful enough about forward references here.
-            // TODO When new environment are created, need to insert into containing AND bindInto
-            guardedPutValue(bindInto, name.getName(), init_value, ft, x);
+                    FType ft = type.isPresent() ?
+                            //type.getVal().accept(new EvalType(containing))
+                            (new EvalType(containing)).evalType(type.getVal())
+                            : null;
+                    // TODO We're not careful enough about forward references here.
+                    // TODO When new environment are created, need to insert into
+                    //      containing AND bindInto
+                    guardedPutValue(bindInto, name.getName(), init_value, ft, x);
                 } else {
-                    throw new InterpreterError(x, "Don't support arbitary LHS in Var decl yet");
+                    throw new InterpreterError(x,
+                            "Don't support arbitary LHS in Var decl yet");
                 }
             }
         }
@@ -747,7 +719,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
      */
     @Override
     public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
@@ -767,7 +739,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTraitDef(com.sun.fortress.interpreter.nodes.TraitDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDef(com.sun.fortress.interpreter.nodes.TraitDecl)
      */
     @Override
     public Voidoid forTraitDecl(TraitDecl x) {
@@ -817,9 +789,8 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         ftt.setExtendsAndExcludes(extl, excl, interior);
         List<? extends DefOrDecl> fns = x.getFns();
 
-        doTraitMethodDefs(ftt.getMembers(), ftt.getMethodExecutionEnv(), fns, null); // NOTICE THE
-                                                            // DIFFERENT
-                                                            // ENVIRONMENT!
+        doTraitMethodDefs(ftt.getMembers(), ftt.getMethodExecutionEnv(), fns,
+                null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 
     }
 
@@ -871,7 +842,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
                     List<TypeRef> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     for (TypeRef t : types) {
-                        FType st = t.accept(et);
+                        FType st = et.evalType(t); // t.accept(et);
                         if (ft instanceof SymbolicType) {
                             // Treat as "extends".
                             ((SymbolicType) ft).addExtend(st);
@@ -897,7 +868,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
                     TypeAlias ta = (TypeAlias) w;
                     Id name = ta.getName();
                     TypeRef type = ta.getType();
-                    interior.putType(name.getName(), type.accept(et));
+                    interior.putType(name.getName(), et.evalType(type));
                 } else {
                     NI.nyi("Where clause " + w);
                 }
@@ -917,17 +888,19 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }
 
-    static public void finishObjectTrait(Option<List<TypeRef>> extends_, List<TypeRef> excludes, List<WhereClause> wheres,
-            FTypeObject ftt, BetterEnv interior, HasAt x) {
+    static public void finishObjectTrait(Option<List<TypeRef>> extends_,
+            List<TypeRef> excludes, List<WhereClause> wheres, FTypeObject ftt,
+            BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);
         EvalType et = processWhereClauses(wheres, interior);
-        ftt.setExtendsAndExcludes(et.getFTypeListFromOptionList(extends_), et.getFTypeListFromList(excludes), interior);
+        ftt.setExtendsAndExcludes(et.getFTypeListFromOptionList(extends_), et
+                .getFTypeListFromList(excludes), interior);
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTypeAlias(com.sun.fortress.interpreter.nodes.TypeAlias)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeAlias(com.sun.fortress.interpreter.nodes.TypeAlias)
      */
     @Override
     public Voidoid forTypeAlias(TypeAlias x) {
@@ -941,7 +914,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forDimension(com.sun.fortress.interpreter.nodes.Dimension)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimension(com.sun.fortress.interpreter.nodes.Dimension)
      */
     @Override
     public Voidoid forDimension(Dimension x) {
@@ -956,7 +929,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnitDim(com.sun.fortress.interpreter.nodes.UnitDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnitDim(com.sun.fortress.interpreter.nodes.UnitDim)
      */
     @Override
     public Voidoid forUnitDim(UnitDim x) {
@@ -967,7 +940,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnitVar(com.sun.fortress.interpreter.nodes.UnitVar)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnitVar(com.sun.fortress.interpreter.nodes.UnitVar)
      */
     @Override
     public Voidoid forUnitVar(UnitVar x) {
@@ -983,7 +956,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forImportApi(com.sun.fortress.interpreter.nodes.ImportApi)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportApi(com.sun.fortress.interpreter.nodes.ImportApi)
      */
     @Override
     public Voidoid forImportApi(ImportApi x) {
@@ -994,7 +967,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forImportIds(com.sun.fortress.interpreter.nodes.ImportIds)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportIds(com.sun.fortress.interpreter.nodes.ImportIds)
      */
     @Override
     public Voidoid forImportIds(ImportIds x) {
@@ -1005,7 +978,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forImportNames(com.sun.fortress.interpreter.nodes.ImportNames)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportNames(com.sun.fortress.interpreter.nodes.ImportNames)
      */
     @Override
     public Voidoid forImportNames(ImportNames x) {
@@ -1016,7 +989,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forImportStar(com.sun.fortress.interpreter.nodes.ImportStar)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportStar(com.sun.fortress.interpreter.nodes.ImportStar)
      */
     @Override
     public Voidoid forImportStar(ImportStar x) {
@@ -1027,7 +1000,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forVarDecl(com.sun.fortress.interpreter.nodes.AbsVarDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDecl(com.sun.fortress.interpreter.nodes.AbsVarDecl)
      */
     @Override
     public Voidoid forAbsVarDecl(AbsVarDecl x) {
@@ -1041,7 +1014,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
     public Voidoid forAbsFnDecl(AbsFnDecl x) {
@@ -1061,7 +1034,6 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
         // List<WhereClause> where;
         // Contract contract;
         // Environment e = containing;
-
         /*
          * If a function definition is generic, suspend evaluation, including
          * the types of the parameter list, until the generic parameters have
@@ -1118,7 +1090,7 @@ public class BuildEnvironments extends BaseNodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
      */
     @Override
     public Voidoid forAbsObjectDecl(AbsObjectDecl x) {

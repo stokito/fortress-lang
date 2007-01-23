@@ -20,11 +20,23 @@ package com.sun.fortress.interpreter.unit_tests;
 import java.math.BigInteger;
 import java.util.Collections;
 
-import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.Useful;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
+
+import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.FloatLiteral;
+import com.sun.fortress.interpreter.nodes.Id;
+import com.sun.fortress.interpreter.nodes.ImportStar;
+import com.sun.fortress.interpreter.nodes.IntLiteral;
+import com.sun.fortress.interpreter.nodes.SourceLoc;
+import com.sun.fortress.interpreter.nodes.SourceLocRats;
+import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes.StringLiteral;
+import com.sun.fortress.interpreter.nodes.TupleExpr;
+import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.nodes.VoidLiteral;
+import com.sun.fortress.interpreter.useful.Useful;
 
 public class ConstructorsJUTest extends TestCase {
     public void testSourceLoc() {

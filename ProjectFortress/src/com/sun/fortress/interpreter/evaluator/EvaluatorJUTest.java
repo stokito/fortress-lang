@@ -20,34 +20,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FRangeIterator;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.Unprinter;
-import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.useful.HasAt;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-import dstm2.atomic;
-import dstm2.AtomicArray;
-import dstm2.ContentionManager;
-import dstm2.manager.BackoffManager;
 import dstm2.Thread;
-import dstm2.Transaction;
-import static dstm2.Defaults.*;
 
 public class EvaluatorJUTest extends TestCase {
 

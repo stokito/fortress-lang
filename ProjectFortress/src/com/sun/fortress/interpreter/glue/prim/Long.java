@@ -21,8 +21,6 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn2;
-import com.sun.fortress.interpreter.glue.prim.Int;
-import com.sun.fortress.interpreter.glue.prim.Util;
 
 
 /**

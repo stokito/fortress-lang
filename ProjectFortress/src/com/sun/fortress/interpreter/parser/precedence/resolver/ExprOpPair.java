@@ -16,7 +16,8 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
-import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.useful.Pair;
 
 

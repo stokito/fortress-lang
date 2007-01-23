@@ -18,12 +18,10 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
-import java.util.TreeSet;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 

@@ -134,7 +134,6 @@
             description="Delete the ${build} directory tree and generated files.">
         <delete dir="${build}"/>
         <delete file="${nodes}/NodeVisitor.java"/>
-        <delete file="${nodes}/BaseNodeVisitor.java"/>
         <delete file="${parser}/Fortress.java"/>
         <delete file="${parser}/precedence/resolver/Operators.java"/>
         <delete file="FortressLibrary.ast"/>
@@ -149,14 +148,9 @@
     <target name="checkVisitorsUptodate" depends="init, compileCommon">
         <condition property="visitors.uptodate">
             <and>
-                <uptodate srcfile="${nodes}/InterfaceMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
-                <uptodate srcfile="${nodes}/BaseNodeMaker.java" targetfile="${nodes}/BaseNodeVisitor.java"/>
+                <uptodate srcfile="${nodes}/BaseNodeMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
                 <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/NodeVisitor.java"/>
-                <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/BaseNodeVisitor.java"/>
                 <uptodate targetfile="${nodesBuild}/NodeVisitor.class">
-                    <srcfiles dir="${nodes}" includes="**/*.java"/>
-                </uptodate>
-                <uptodate targetfile="${nodesBuild}/BaseNodeVisitor.class">
                     <srcfiles dir="${nodes}" includes="**/*.java"/>
                 </uptodate>
             </and>
@@ -168,14 +162,7 @@
             description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating visitors"/>
 
-        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.InterfaceMaker" fork="true">
-            <classpath>
-                <pathelement location="${build}"/>
-            </classpath>
-            <arg value="${nodes}/leafclasses"/>
-        </java>
-
-        <java output="${nodes}/BaseNodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker" fork="true">
+        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>

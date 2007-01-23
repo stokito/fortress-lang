@@ -17,8 +17,6 @@
 
 package com.sun.fortress.interpreter.drivers;
 
-import java.io.BufferedReader;
-
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.Component;

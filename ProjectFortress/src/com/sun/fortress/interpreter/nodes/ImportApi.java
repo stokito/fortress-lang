@@ -17,8 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 // / and import_api = import_api_rec node

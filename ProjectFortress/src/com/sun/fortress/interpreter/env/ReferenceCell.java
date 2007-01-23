@@ -17,14 +17,13 @@
 
 package com.sun.fortress.interpreter.env;
 
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
-import dstm2.factory.Factory;
-import dstm2.atomic;
+
 import dstm2.Thread;
+import dstm2.atomic;
+import dstm2.factory.Factory;
 
 
 

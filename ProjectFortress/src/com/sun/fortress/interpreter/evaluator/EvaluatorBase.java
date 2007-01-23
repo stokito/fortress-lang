@@ -31,9 +31,8 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
-import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -43,8 +42,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.StringComparer;
 
 
-public class EvaluatorBase<T> extends BaseNodeVisitor<T> implements
-        NodeVisitor<T> {
+public class EvaluatorBase<T> extends NodeVisitor<T>  {
 
     final public BetterEnv e;
 

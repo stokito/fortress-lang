@@ -20,14 +20,36 @@
  */
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
-import com.sun.fortress.interpreter.parser.precedence.opexpr.*;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Chain;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Equal;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Higher;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.InfixFrame;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.InfixOpExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.JuxtInfix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Left;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Loose;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.LooseChain;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.LooseInfix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Lower;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.NonChain;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.OpExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Postfix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.PostfixOpExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Prefix;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.PrefixOpExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Right;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.Tight;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.TightChain;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.TightInfix;
 import com.sun.fortress.interpreter.useful.Cons;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Pair;

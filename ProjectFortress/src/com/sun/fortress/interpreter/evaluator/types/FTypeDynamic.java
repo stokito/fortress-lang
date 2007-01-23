@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.TreeSet;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.useful.Useful;

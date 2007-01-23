@@ -17,8 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import java.io.IOException;
-
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 // / type op = string node

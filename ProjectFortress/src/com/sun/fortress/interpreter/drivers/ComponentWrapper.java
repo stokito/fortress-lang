@@ -16,15 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.nodes.Component;
-import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes.Import;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
 
 

@@ -20,9 +20,8 @@
  */
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.lang.reflect.Array;
+import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.ChainExpr;
 import com.sun.fortress.interpreter.nodes.Enclosing;
@@ -31,11 +30,10 @@ import com.sun.fortress.interpreter.nodes.LooseJuxt;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprExpr;
-import com.sun.fortress.interpreter.nodes.OprName;
 import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
-import com.sun.fortress.interpreter.parser.precedence.opexpr.*;
+import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.PureList;

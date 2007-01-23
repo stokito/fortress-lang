@@ -40,14 +40,13 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes.BaseNodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.NatRef;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.SubscriptExpr;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
@@ -62,9 +61,9 @@ import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
 
-public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisitor<Voidoid> {
+public class LHSEvaluator extends NodeVisitor<Voidoid>  {
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
     @Override
     public Voidoid forSubscriptExpr(SubscriptExpr x) {
@@ -81,7 +80,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forFieldSelection(com.sun.fortress.interpreter.nodes.FieldSelection)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldSelection(com.sun.fortress.interpreter.nodes.FieldSelection)
      */
     @Override
     public Voidoid forFieldSelection(FieldSelection x) {
@@ -126,7 +125,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
      */
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
@@ -136,7 +135,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingDim(com.sun.fortress.interpreter.nodes.UnpastingDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingDim(com.sun.fortress.interpreter.nodes.UnpastingDim)
      */
     @Override
     public Voidoid forUnpastingDim(UnpastingDim x) {
@@ -147,7 +146,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
      */
     @Override
     public Voidoid forUnpastingSplit(UnpastingSplit x) {
@@ -276,7 +275,7 @@ public class LHSEvaluator extends BaseNodeVisitor<Voidoid> implements NodeVisito
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTupleExpr(com.sun.fortress.interpreter.nodes.TupleExpr)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTupleExpr(com.sun.fortress.interpreter.nodes.TupleExpr)
      */
     @Override
     public Voidoid forTupleExpr(TupleExpr x) {

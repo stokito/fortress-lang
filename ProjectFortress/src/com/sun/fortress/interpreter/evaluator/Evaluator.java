@@ -18,9 +18,7 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -31,10 +29,8 @@ import EDU.oswego.cs.dl.util.concurrent.FJTask;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.ForLoopTask;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
-import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
@@ -62,8 +58,102 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.MethodWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.nodes.AbsFnDecl;
+import com.sun.fortress.interpreter.nodes.AbsVarDecl;
+import com.sun.fortress.interpreter.nodes.Accumulator;
+import com.sun.fortress.interpreter.nodes.Apply;
+import com.sun.fortress.interpreter.nodes.AsExpr;
+import com.sun.fortress.interpreter.nodes.Assignment;
+import com.sun.fortress.interpreter.nodes.AtomicExpr;
+import com.sun.fortress.interpreter.nodes.Binding;
+import com.sun.fortress.interpreter.nodes.Block;
+import com.sun.fortress.interpreter.nodes.BoundedInterval;
+import com.sun.fortress.interpreter.nodes.CaseClause;
+import com.sun.fortress.interpreter.nodes.CaseExpr;
+import com.sun.fortress.interpreter.nodes.CaseParam;
+import com.sun.fortress.interpreter.nodes.CaseParamExpr;
+import com.sun.fortress.interpreter.nodes.CaseParamLargest;
+import com.sun.fortress.interpreter.nodes.CaseParamSmallest;
+import com.sun.fortress.interpreter.nodes.CatchClause;
+import com.sun.fortress.interpreter.nodes.CatchExpr;
+import com.sun.fortress.interpreter.nodes.ChainExpr;
+import com.sun.fortress.interpreter.nodes.CharLiteral;
+import com.sun.fortress.interpreter.nodes.Dispatch;
+import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.interpreter.nodes.EmptyInterval;
+import com.sun.fortress.interpreter.nodes.Enclosing;
+import com.sun.fortress.interpreter.nodes.Entry;
+import com.sun.fortress.interpreter.nodes.Exit;
+import com.sun.fortress.interpreter.nodes.Export;
+import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.ExtentRange;
+import com.sun.fortress.interpreter.nodes.FieldSelection;
+import com.sun.fortress.interpreter.nodes.FloatLiteral;
+import com.sun.fortress.interpreter.nodes.Fn;
+import com.sun.fortress.interpreter.nodes.FnBind;
+import com.sun.fortress.interpreter.nodes.For;
+import com.sun.fortress.interpreter.nodes.Fun;
+import com.sun.fortress.interpreter.nodes.Generator;
+import com.sun.fortress.interpreter.nodes.Id;
+import com.sun.fortress.interpreter.nodes.If;
+import com.sun.fortress.interpreter.nodes.IfClause;
+import com.sun.fortress.interpreter.nodes.IntLiteral;
+import com.sun.fortress.interpreter.nodes.KeywordsExpr;
+import com.sun.fortress.interpreter.nodes.LHS;
+import com.sun.fortress.interpreter.nodes.LValueBind;
+import com.sun.fortress.interpreter.nodes.Label;
+import com.sun.fortress.interpreter.nodes.LetExpr;
+import com.sun.fortress.interpreter.nodes.LetFn;
+import com.sun.fortress.interpreter.nodes.ListComprehension;
+import com.sun.fortress.interpreter.nodes.ListExpr;
+import com.sun.fortress.interpreter.nodes.LooseJuxt;
+import com.sun.fortress.interpreter.nodes.MapComprehension;
+import com.sun.fortress.interpreter.nodes.MapExpr;
+import com.sun.fortress.interpreter.nodes.MultiDim;
+import com.sun.fortress.interpreter.nodes.MultiDimElement;
+import com.sun.fortress.interpreter.nodes.MultiDimRow;
+import com.sun.fortress.interpreter.nodes.NameDim;
+import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.ObjectExpr;
+import com.sun.fortress.interpreter.nodes.Op;
+import com.sun.fortress.interpreter.nodes.OperatorParam;
+import com.sun.fortress.interpreter.nodes.Opr;
+import com.sun.fortress.interpreter.nodes.OprArg;
+import com.sun.fortress.interpreter.nodes.OprExpr;
+import com.sun.fortress.interpreter.nodes.OprName;
+import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.nodes.PostFix;
+import com.sun.fortress.interpreter.nodes.RectCompClause;
+import com.sun.fortress.interpreter.nodes.RectComprehension;
+import com.sun.fortress.interpreter.nodes.SetComprehension;
+import com.sun.fortress.interpreter.nodes.SetExpr;
+import com.sun.fortress.interpreter.nodes.Spawn;
+import com.sun.fortress.interpreter.nodes.StaticArg;
+import com.sun.fortress.interpreter.nodes.StringLiteral;
+import com.sun.fortress.interpreter.nodes.SubscriptAssign;
+import com.sun.fortress.interpreter.nodes.SubscriptExpr;
+import com.sun.fortress.interpreter.nodes.SubscriptOp;
+import com.sun.fortress.interpreter.nodes.Throw;
+import com.sun.fortress.interpreter.nodes.TightJuxt;
+import com.sun.fortress.interpreter.nodes.Try;
+import com.sun.fortress.interpreter.nodes.TryAtomicExpr;
+import com.sun.fortress.interpreter.nodes.TupleExpr;
+import com.sun.fortress.interpreter.nodes.TypeApply;
+import com.sun.fortress.interpreter.nodes.TypeArg;
+import com.sun.fortress.interpreter.nodes.TypeCase;
+import com.sun.fortress.interpreter.nodes.TypeCaseClause;
+import com.sun.fortress.interpreter.nodes.TypeCaseOrDispatch;
+import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.nodes.UnitDim;
+import com.sun.fortress.interpreter.nodes.UnitVar;
+import com.sun.fortress.interpreter.nodes.UnpastingBind;
+import com.sun.fortress.interpreter.nodes.UnpastingDim;
+import com.sun.fortress.interpreter.nodes.UnpastingSplit;
+import com.sun.fortress.interpreter.nodes.VarDecl;
+import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.nodes.VoidLiteral;
+import com.sun.fortress.interpreter.nodes.While;
+import com.sun.fortress.interpreter.nodes.WrappedFValue;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MatchFailure;
 import com.sun.fortress.interpreter.useful.NI;
@@ -71,12 +161,15 @@ import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-public class Evaluator extends EvaluatorBase<FValue> implements
-        NodeVisitor<FValue> {
+public class Evaluator extends EvaluatorBase<FValue> {
     boolean debug = false;
 
     final public static FVoid evVoid = FVoid.V;
 
+    public FValue eval(Expr e) {
+        return acceptNode(e);
+    }
+    
     /**
      * Creates a new evaluator in a primitive environment.
      *
@@ -971,7 +1064,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
     @Override
     public FValue forSubscriptExpr(SubscriptExpr x) {
@@ -1298,7 +1391,7 @@ public class Evaluator extends EvaluatorBase<FValue> implements
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.BaseNodeVisitor#forTypeApply(com.sun.fortress.interpreter.nodes.TypeApply)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeApply(com.sun.fortress.interpreter.nodes.TypeApply)
      */
     @Override
     public FValue forTypeApply(TypeApply x) {

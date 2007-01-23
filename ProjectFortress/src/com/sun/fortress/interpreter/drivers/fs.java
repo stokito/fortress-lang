@@ -23,9 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.useful.Useful;

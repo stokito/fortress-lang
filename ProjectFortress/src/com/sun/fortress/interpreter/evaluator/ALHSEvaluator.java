@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.useful.HasAt;
 

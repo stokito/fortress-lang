@@ -17,14 +17,10 @@
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +30,6 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Lower;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.None;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealPrecedence;
-import com.sun.fortress.interpreter.parser.precedence.resolver.Operators;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
 

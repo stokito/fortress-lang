@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.*;
 
 public interface PostfixOpExpr extends OpExpr {
 

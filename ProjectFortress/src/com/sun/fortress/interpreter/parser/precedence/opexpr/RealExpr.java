@@ -17,7 +17,10 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.IntLiteral;
+import com.sun.fortress.interpreter.nodes.OprExpr;
+import com.sun.fortress.interpreter.nodes.VarRefExpr;
 
 /**
  * Class RealExpr, a component of the OpExpr composite hierarchy.

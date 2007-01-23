@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.IterableOnce;
 
 public interface DefOrDecl extends HasAt {
     // public String stringName();
