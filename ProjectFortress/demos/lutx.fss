@@ -87,21 +87,6 @@ lutx[\nat n\](A:Array2[\RR64,0,n,0,n\]):
   (lower(A),upper(A),p)
 end
 
-showMatrix[\nat m, nat n\](a:Array2[\RR64,0,m,0,n\]):() = do
-  print("[")
-  for i <- seq(0#m) do
-    for j <- seq(0#n) do
-      print(" " a[i,j])
-    end
-    if i < m-1 then
-      println("")
-      print(" ")
-    else
-      println("]")
-    end
-  end
-end
-
 showPerm[\nat n\](a:Array1[\ZZ32,0,n\]):() = do
   print("[")
   for i <- seq(0#n) do
@@ -111,12 +96,11 @@ showPerm[\nat n\](a:Array1[\ZZ32,0,n\]):() = do
 end
 
 mtest(a:RR64[6,6]):() = do
-  showMatrix(a)
+  println(a)
   (l,u,p) = lutx(a)
-  showMatrix(a)
+  println(a)
   showPerm(p)
-  showMatrix(l u)
-  println("")
+  println(l u)
 end
 
 run(args:String...):() = do

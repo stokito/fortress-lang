@@ -25,7 +25,6 @@ trait Tree comprises {Node, Empty}
    getLeftChild():Tree
    getRightChild():Tree
    printTree():()
-   printSet():()
    size():ZZ32
    empty():Boolean
    member(x:ZZ32):Boolean
@@ -34,7 +33,7 @@ trait Tree comprises {Node, Empty}
      (_, res) = self.removeMinimum()
      res
    end
-   removeMinimum()(* :(ZZ32, Tree) *)
+   removeMinimum():(ZZ32, Tree)
    add(z:ZZ32):Tree
    delete(z:ZZ32):Tree
    balancedDelete(r:Tree):Tree
@@ -43,7 +42,7 @@ trait Tree comprises {Node, Empty}
    intersection(t2:Tree):Tree
    difference(t2:Tree):Tree
    concat(t2:Tree):Tree
-   splitAt(x:ZZ32) (* :(Tree,Boolean,Tree) *)
+   splitAt(x:ZZ32):(Tree,Boolean,Tree)
    concat3(v:ZZ32, t2:Tree)
 end
 
@@ -52,12 +51,12 @@ object Empty extends Tree
    getLeftChild():Tree = Empty
    getRightChild():Tree = Empty
    printTree():() = print(" Empty")
-   printSet():() = print("{}")
+   toString():String = "{}"
    size():ZZ32 = 0
    empty():Boolean = true
    member(x:ZZ32):Boolean = false
    minimum():ZZ32 = 1/0
-   removeMinimum()(* :(ZZ32, Tree) *) = (1/0, self)
+   removeMinimum():(ZZ32, Tree) = (1/0, self)
    add(z:ZZ32):Tree = Node(z,Empty,Empty)
    delete(z:ZZ32):Tree = self
    balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = Node(val,Empty,Empty)
@@ -66,7 +65,7 @@ object Empty extends Tree
    intersection(t2:Tree):Tree = self
    difference(t2:Tree):Tree = self
    concat(t2:Tree):Tree = t2
-   splitAt(x:ZZ32) (*:(Tree,Boolean,Tree) *) = (self, false, self)
+   splitAt(x:ZZ32):(Tree,Boolean,Tree) = (self, false, self)
    concat3(v:ZZ32, t2:Tree) = t2.add(v)
 end
 
@@ -87,19 +86,18 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
       println(")")
       end
 
-   printSet():() = do
-      temp : Tree = self
-      print("{")
+   toString():String = do
+      temp : Tree := self
+      res : String := "{"
       (min, delmin) = temp.removeMinimum()
-      print(min)
+      res *= min
       temp := delmin
-      while (temp.size() > 0) do
-        print(",")
+      while (NOT temp.empty()) do
         (minn, delminn) = temp.removeMinimum()
-        print(minn)
+        res *= "," minn
         temp := delminn
       end
-      print("}")
+      res "}"
    end
 
    member(z:ZZ32):Boolean = do
@@ -165,7 +163,7 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
    end
    concat(t2:Tree):Tree = self
 
-   splitAt(x:ZZ32) (*:(Tree,Boolean,Tree)*) =
+   splitAt(x:ZZ32):(Tree,Boolean,Tree) =
       if x < val then
         (ll,m,rl) = left.splitAt(x)
         (ll,m,rl.concat3(val,right))
@@ -275,15 +273,6 @@ singleton(arg:ZZ32):Tree = do
    s
 end
 
-printBoard(b:Tree[9,9]):()=do
-   for i <- seq(0#9) do
-      for j <- seq(0#9) do
-         b[i,j].printSet()
-      end
-      println("")
-   end
-end
-
 (* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
 removeElement(b:Tree[9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    s:Tree = b[i,j]
@@ -352,11 +341,11 @@ run(args:String...):()=do
                       singleton(3) init init init init init singleton(1) singleton(4) init;
                       init init singleton(5) init singleton(1) init init singleton(9) init;
                       singleton(9) init singleton(7) singleton(8) init singleton(4) singleton(6) init singleton(2)]
-   printBoard(board)
+   println(board)
    println("Starting parallel sudoku solver")
    recordTime(6.847)
    propagate(board)
    printTime(6.847)
-   printBoard(board)
+   println(board)
 end
 end

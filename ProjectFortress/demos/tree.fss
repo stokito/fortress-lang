@@ -25,15 +25,6 @@ even(z:ZZ32):Boolean = (z REM 2 = 0)
 (** Start with 1-D tensors, from tensor.py *)
 
 (** Part 1: vectors. *)
-toString[\T extends Number, nat b0, nat s0, nat b1, nat s1\]
-        (v:Array1[\T,b0,s0\]):String = do
-    s : String := "["
-    for i <- seq(b0#s0) do
-         s := s " " v[i]
-         i += 1
-    end
-    (s " ]")
-end
 
 (* Elementwise product *)
 opr BOXDOT[\ nat n \](a : Array1[\RR64,0,n\], b : RR64[n]) : RR64[n] = do
@@ -56,19 +47,6 @@ merge[\nat n\](u:RR64[n],v:RR64[n]):RR64[2 n] = do
     r[i+n] := v[i]
   end
   r
-end
-
-(** Part 2: Matrices *)
-toString[\T extends Number, nat b0, nat s0, nat b1, nat s1\]
-        (m:Array2[\T,b0,s0,b1,s1\]):String = do
-    s : String := "["
-    for i <- seq(0#s0) do
-        for j <- seq(0#s1) do
-            s := s " " m.get(i,j)
-        end
-        s := s ";"
-    end
-    (s " ]")
 end
 
 (** Part 3: Constants for wavelet transform *)
@@ -717,7 +695,7 @@ testMe():() = do
   v1 : RR64[3] = [ 1.00 2.00 3.00 ]
   v2 : RR64[3] = [ 100 200 300 ]
   v3 = v1 + v2
-  println(toString(v3))
+  println(v3)
   s = v1 v2
   println(s)
   v4 = 3 v1

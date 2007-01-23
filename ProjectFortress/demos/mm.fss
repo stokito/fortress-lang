@@ -179,18 +179,6 @@ MM2(a:ZZ32[2,2],b:ZZ32[2,2]):ZZ32[2,2] = do
    c
 end
 
-print8(a:ZZ32[8,8]):() = do
-   s = 8
-   for i <- seq(0#8) do
-      for j <- seq(0#8) do
-         print(a[i,j])
-         print("   ")
-      end
-      println(" ")
-   end
-   println("   ")
-end
-
 run(args:String...):()=do
    a:ZZ32[16,16] = [ 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9;
                      9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9;

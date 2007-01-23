@@ -306,20 +306,18 @@ object Deep[\E\](l:D14[\E\], m:Finger[\ D23[\E\] \], r:D14[\E\])
   toString() = l.toString() ";" m.toString() ";" r.toString()
 end
 
-dump(a:Stringable):() = println(a.toString())
-
 run(args:String...):() = do
   e = D0[\ZZ32\]()
   (*
-  dump(e)
+  println(e)
   d1 = D1[\ZZ32\](1)
   d2 = D2[\ZZ32\](2,3)
   d3 = D3[\ZZ32\](4,5,6)
   d4 = D4[\ZZ32\](7,8,9,10)
-  dump(d1)
-  dump(d2)
-  dump(d3)
-  dump(d4)
+  println(d1)
+  println(d2)
+  println(d3)
+  println(d4)
   *)
 end
 

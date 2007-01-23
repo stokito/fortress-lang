@@ -274,6 +274,10 @@ trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
   reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (i:I,e:E)=>e, j, z)
 end
 
+(* Array whose bounds are implicit rather than static. *)
+trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
+end
+
 (* Canonical partitioning of a positive number x into two pieces.  If
      (a,b) = partition(n)
    and n > 0 then 0 < a <= b,  n = a + b.
@@ -330,15 +334,19 @@ object _V
 end
 
 trait Array1[\T, nat b0, nat s0\]
-    extends { Indexed1 [\s0\], Rank1, Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
+    extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
+              Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
 
   toString() = do
     r : String = "[" b0 "#" s0 "] = ["
-    for i <- seq(0#s0) do
-      r := r " " get(i)
+    if s0=0 then
+      r "]"
+    else
+      f(i:ZZ32,t:T):String = " " t
+      j(a:String,b:String) = a b
+      r self.mapReduce[\String\](f,j,"") " ]"
     end
-    r " ]"
   end
 
   (* Get and put come from implementation.  They are always 0-indexed
@@ -545,7 +553,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       r := r "\n["
       row(0)
       for i <- seq(1#(s0-1)) do
-        r := r "\n " row(i)
+        r := r "\n "
+        row(i)
       end
       r " ]"
     end
@@ -798,9 +807,11 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     if s0=0 then
       r " []"
     else
-      r := r "\n[ " surf(0)
+      r := r "\n[ "
+      surf(0)
       for i <- seq(1#(s0-1)) do
-        r := r ";;\n  " surf(i)
+        r := r ";;\n  "
+        surf(i)
       end
       r " ]"
     end
@@ -1047,6 +1058,10 @@ opr *[\ T extends Number, nat n, nat m, nat p \]
 opr *[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr *[\ T extends Number, nat n, nat m, nat p \]
      (a:Any, b:String):String = a.toString() b
 opr *[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:Any):String = a b.toString()
@@ -1056,8 +1071,14 @@ opr <=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpre
 opr >(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Greater")
 opr >=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GreaterEq")
 
-print(a(*:Any*)):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a(*:Any*)):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+print(a:Any):() = print(a.toString())
+println(a:Any):() = println(a.toString())
 
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end

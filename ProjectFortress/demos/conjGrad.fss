@@ -67,38 +67,20 @@ export Runnable
       rho := r DOT r
       beta = rho / rho0
       p := r + beta p
-      print("Iter " j " alpha = " alpha "\nz =")
-      showVector(z)
+      println("Iter " j " alpha = " alpha "\nz" z)
     end
     (z, ||x - A z||)
   end
 
 (************************************************************)
 
-  showMatrix[\E, nat n\](A:Array2[\E,0,n,0,n\]) =
-     for i<-seq(0#n) do
-        for j<-seq(0#n) do
-           print(" " A[i,j])
-        end
-        println("")
-     end
-
-  showVector[\E, nat n\](A:Array1[\E,0,n\]) = do
-     for i<-seq(0#n) do
-        print(" " A[i])
-     end
-     println("")
-  end
-
 run(args:String...):() = do
   A : RR64[12,12] = mkMatrix[\12\]()
   v : RR64[12] = mkVector[\12\]()
-  showMatrix(A)
-  print("\nv =")
-  showVector(v)
+  println(A)
+  println("v" v)
   (s,e) = conjGrad[\12,RR64\](A,v)
-  print("s =")
-  showVector(s)
+  println("s" s)
   println("Error = " e)
 end
 

@@ -22,6 +22,7 @@ export Executable
 (* We ought to be able to extend the builtin type Any. *)
 
 object Infinity extends Any
+  toString()="Infinity"
 end
 
 run(args:String...):() = do
