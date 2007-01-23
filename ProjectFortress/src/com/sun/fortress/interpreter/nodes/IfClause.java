@@ -25,7 +25,7 @@ package com.sun.fortress.interpreter.nodes;
 // / if_clause_body : expr;
 // / }
 // /
-public class IfClause extends Tree {
+public class IfClause extends Node {
 
     Expr test;
 

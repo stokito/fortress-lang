@@ -27,7 +27,7 @@ import java.util.List;
 // / ensures_clause_post : expr list;
 // / }
 // /
-public class EnsuresClause extends Tree {
+public class EnsuresClause extends Node {
 
     Option<Expr> pre;
 

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 // / type t = program
 // /
-public abstract class CompilationUnit extends Tree {
+public abstract class CompilationUnit extends Node {
     CompilationUnit(Span span) {
         super(span);
     }

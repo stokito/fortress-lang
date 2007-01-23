@@ -26,7 +26,7 @@ import java.util.List;
 // / generator_init : expr;
 // / }
 // /
-public class Generator extends Tree {
+public class Generator extends Node {
 
     List<Id> bind;
 

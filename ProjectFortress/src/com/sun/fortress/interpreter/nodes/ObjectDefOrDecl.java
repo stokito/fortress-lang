@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
-public abstract class ObjectDefOrDecl extends Tree implements Generic,
+public abstract class ObjectDefOrDecl extends Node implements Generic,
         DefOrDecl {
 
     List<Modifier> mods;

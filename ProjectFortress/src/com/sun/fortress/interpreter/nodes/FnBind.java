@@ -29,7 +29,7 @@ import java.util.List;
 // / fn_bind_body : expr;
 // / }
 // /
-public class FnBind extends Tree {
+public class FnBind extends Node {
 
     Id name;
 

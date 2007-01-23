@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
-public class TestDecl extends Tree implements Decl, AbsDecl {
+public class TestDecl extends Node implements Decl, AbsDecl {
     Id id;
 
     List<Generator> gens;

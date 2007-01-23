@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public abstract class Expr extends Tree {
+public abstract class Expr extends Node {
 
     protected Expr(Span span) {
         super(span);

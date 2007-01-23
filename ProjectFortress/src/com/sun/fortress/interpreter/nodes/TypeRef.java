@@ -22,7 +22,7 @@ import java.util.Comparator;
 import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
-public abstract class TypeRef extends Tree implements Comparable<TypeRef> {
+public abstract class TypeRef extends Node implements Comparable<TypeRef> {
 
     TypeRef(Span s) {
         super(s);

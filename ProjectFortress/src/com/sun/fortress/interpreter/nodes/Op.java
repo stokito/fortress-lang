@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 // / type op = string node
-public class Op extends Tree {
+public class Op extends Node {
 
     String name;
 

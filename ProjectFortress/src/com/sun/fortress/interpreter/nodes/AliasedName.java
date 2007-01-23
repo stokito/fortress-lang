@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public class AliasedName extends Tree {
+public class AliasedName extends Node {
 
     FnName name;
 

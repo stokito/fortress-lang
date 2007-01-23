@@ -30,7 +30,7 @@ package com.sun.fortress.interpreter.nodes;
 // / [ trait_mod | object_mod | fn_mod | method_mod | var_mod
 // / | field_mod | param_mod ] node
 // /
-public abstract class Modifier extends Tree {
+public abstract class Modifier extends Node {
 
     /*
      * A bunch of inner classes and interfaces. These did not seem substantial

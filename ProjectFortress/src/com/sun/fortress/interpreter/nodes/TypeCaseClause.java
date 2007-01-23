@@ -26,7 +26,7 @@ import java.util.List;
 // / type_clause_body : expr;
 // / }
 // /
-public class TypeCaseClause extends Tree {
+public class TypeCaseClause extends Node {
 
     List<TypeRef> match;
 

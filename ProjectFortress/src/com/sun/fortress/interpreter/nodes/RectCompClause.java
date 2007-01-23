@@ -30,7 +30,7 @@ import java.util.List;
 // / }
 // /
 
-public class RectCompClause extends Tree {
+public class RectCompClause extends Node {
     // This field should be List<Id> instead of List<Expr>.
     // We need to fix this after replacing the OCaml com.sun.fortress.interpreter.parser with the Rats!
     // com.sun.fortress.interpreter.parser.

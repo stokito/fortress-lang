@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public abstract class WhereClause extends Tree {
+public abstract class WhereClause extends Node {
     WhereClause(Span span) {
         super(span);
     }

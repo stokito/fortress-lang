@@ -29,17 +29,17 @@ import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
+import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.Printer;
-import com.sun.fortress.interpreter.nodes.Tree;
 
 public class ParserDriver {
 
-    public static void writeJavaAst(Tree t, BufferedWriter fout)
+    public static void writeJavaAst(Node t, BufferedWriter fout)
             throws IOException {
         (new Printer()).dump(t, fout, 0);
     }
 
-    public static void writeJavaAst(Tree t, String s) throws IOException {
+    public static void writeJavaAst(Node t, String s) throws IOException {
         BufferedWriter fout = new BufferedWriter(new FileWriter(s));
         writeJavaAst(t, fout);
         fout.close();
@@ -62,7 +62,7 @@ public class ParserDriver {
 
           if (r.hasValue()) {
 	    SemanticValue v = (SemanticValue)r;
-	    Tree n = (Tree) v.value;
+	    Node n = (Node) v.value;
 	    writeJavaAst(n, args[i] + ".out");
           } else {
             ParseError err = (ParseError)r;

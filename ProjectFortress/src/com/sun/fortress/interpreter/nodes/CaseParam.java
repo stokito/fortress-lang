@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public abstract class CaseParam extends Tree {
+public abstract class CaseParam extends Node {
 
     public CaseParam(Span span) {
         super(span);

@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
-public abstract class TraitDefOrDecl extends Tree implements Generic, HasWhere {
+public abstract class TraitDefOrDecl extends Node implements Generic, HasWhere {
 
     List<Modifier> mods;
 

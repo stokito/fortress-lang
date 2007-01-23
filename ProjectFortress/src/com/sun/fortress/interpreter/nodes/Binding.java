@@ -24,7 +24,7 @@ package com.sun.fortress.interpreter.nodes;
 // / binding_init : expr;
 // / }
 // /
-public class Binding extends Tree {
+public class Binding extends Node {
 
     Id name;
 

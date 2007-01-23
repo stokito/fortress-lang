@@ -26,7 +26,7 @@ import java.util.List;
 // / case_clause_body : expr;
 // / }
 // /
-public class CaseClause extends Tree {
+public class CaseClause extends Node {
 
     Expr match;
 

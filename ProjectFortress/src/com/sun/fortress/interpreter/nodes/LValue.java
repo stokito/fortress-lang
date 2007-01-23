@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
 
-public abstract class LValue extends Tree {
+public abstract class LValue extends Node {
 
     LValue(Span span) {
         super(span);

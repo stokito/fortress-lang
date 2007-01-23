@@ -24,7 +24,7 @@ package com.sun.fortress.interpreter.nodes;
 // / unpasting_dim_size : nat_type;
 // / }
 // /
-public class UnpastingDim extends Tree {
+public class UnpastingDim extends Node {
     Option<NatRef> base;
 
     Option<NatRef> size;

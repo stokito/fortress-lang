@@ -24,7 +24,7 @@ package com.sun.fortress.interpreter.nodes;
 // / entry_value : expr;
 // / }
 // /
-public class Entry extends Tree {
+public class Entry extends Node {
     Expr key;
 
     Expr value;

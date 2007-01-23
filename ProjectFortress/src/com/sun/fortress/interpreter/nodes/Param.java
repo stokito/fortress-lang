@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 // / param_default : expr option;
 // / }
 // /
-public class Param extends Tree {
+public class Param extends Node {
     List<Modifier> mods;
 
     Id name;

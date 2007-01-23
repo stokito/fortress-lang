@@ -26,7 +26,7 @@ import java.util.List;
 // / catch_clause_body : expr;
 // / }
 // /
-public class CatchClause extends Tree {
+public class CatchClause extends Node {
 
     TypeRef match;
 

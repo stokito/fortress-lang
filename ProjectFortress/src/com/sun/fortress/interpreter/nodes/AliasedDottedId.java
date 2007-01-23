@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public class AliasedDottedId extends Tree {
+public class AliasedDottedId extends Node {
 
     DottedId id;
 

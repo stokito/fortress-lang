@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
 
-public class PropertyDecl extends Tree implements Decl, AbsDecl {
+public class PropertyDecl extends Node implements Decl, AbsDecl {
     Option<Id> id;
 
     List<Param> params;

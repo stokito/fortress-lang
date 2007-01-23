@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public abstract class Import extends Tree {
+public abstract class Import extends Node {
     public Import(Span s) {
         super(s);
     }
