@@ -628,13 +628,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<TypeCaseClause> matches = new ArrayList<TypeCaseClause>();
         FValue result = evVoid;
         boolean found = false;
-        FType resTuple = FTypeTuple.make((List<FType>) res);
+        FType resTuple = FTypeTuple.make(res);
 
         for (Iterator<TypeCaseClause> i = clauses.iterator(); i.hasNext();) {
             TypeCaseClause c = i.next();
             List<TypeRef> match = c.getMatch();
-            FTypeTuple matchTuple = (FTypeTuple) EvalType.getFTypeFromList(
-                    match, ev.e);
+            /* Technically matchTuple and resTuple need not be tuple types;
+               they might be singletons. */
+            FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
 
             if (resTuple.subtypeOf(matchTuple)) {
                 // debugPrint("matchTuple = " + matchTuple +
@@ -1274,9 +1275,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (Iterator<TypeCaseClause> i = clauses.iterator(); i.hasNext();) {
             TypeCaseClause c = i.next();
             List<TypeRef> match = c.getMatch();
-            FTypeTuple matchTuple = (FTypeTuple) EvalType.getFTypeFromList(
-                    match, ev.e);
-            FType resTuple = FTypeTuple.make((List<FType>) res);
+            /* Technically, match and res need not be tuples; they could be
+               singletons and the subtype test below ought to be correct. */
+            FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
+            FType resTuple = FTypeTuple.make(res);
 
             if (resTuple.subtypeOf(matchTuple)) {
                 found = true;

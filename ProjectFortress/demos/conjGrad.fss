@@ -75,11 +75,11 @@ export Runnable
 (************************************************************)
 
 run(args:String...):() = do
-  A : RR64[12,12] = mkMatrix[\12\]()
-  v : RR64[12] = mkVector[\12\]()
+  A : RR64[4,4] = mkMatrix[\4\]()
+  v : RR64[4] = mkVector[\4\]()
   println(A)
   println("v" v)
-  (s,e) = conjGrad[\12,RR64\](A,v)
+  (s,e) = conjGrad[\4,RR64\](A,v)
   println("s" s)
   println("Error = " e)
 end

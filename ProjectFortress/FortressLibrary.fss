@@ -276,6 +276,8 @@ end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
+  sizes() : I
+  bases() : I
 end
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -337,7 +339,8 @@ trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
               Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
-
+  sizes():ZZ32 = s0
+  bases():ZZ32 = b0
   toString() = do
     r : String = "[" b0 "#" s0 "] = ["
     if s0=0 then
@@ -538,9 +541,11 @@ trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
 end
 
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
-    extends { Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank2 (* ,
-              Indexed[\Array2[\T,b0,s0,b1,s1\],T, (ZZ32,ZZ32)\] *) }
+    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\](*,
+              Indexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\]*) }
     excludes { Number, String }
+  sizes():(ZZ32,ZZ32) = (s0,s1)
+  bases():(ZZ32,ZZ32) = (b0,b1)
   toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
@@ -572,11 +577,10 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     end
     (c0,c1)
   end
+  opr[t:(ZZ32,ZZ32)] : T = self.get(offset t)
   opr[x:ZZ32,y:ZZ32] : T = self.get(offset(x,y))
-  opr[x:ZZ32,y:ZZ32]:=(v:T) : () = do
-    (i,j) = offset(x,y)
-    self.put(v,i,j)
-  end
+  opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset t; self.put(v,i,j) end
+  opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
   fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
     (object extends Reduction2[\_V,s0,s1\]
        join(l:_V,r:_V):_V = _V
@@ -587,11 +591,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   end
   replica[\U\]():Array2[\U,b0,s0,b1,s1\]
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
-  mapReduce[\R\](f:(ZZ32,ZZ32,T)->R, j:(R,R)->R, z:R):R =
+  mapReduce[\R\](f:((ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
     (object extends Reduction2[\R,s0,s1\]
        join(l:R,r:R):R = j(l,r)
        empty() = z
-       leaf(a0:ZZ32,a1:ZZ32):R = f(a0+b0,a1+b1,get(a0,a1))
+       leaf(a0:ZZ32,a1:ZZ32):R = f((a0+b0,a1+b1),get(a0,a1))
      end).run()
   put(v:T, i:ZZ32, j:ZZ32) : ()
   get(i:ZZ32, j:ZZ32):T
@@ -600,7 +604,6 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   assign(v:Array2[\T,b0,s0,b1,s1\]):Array2[\T,b0,s0,b1,s1\] =
     fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
   fill(v:T):Array2[\T,b0,s0,b1,s1\] = fill(fn (i:ZZ32,j:ZZ32):T => v)
-  reduce(j:(T,T)->T, z:T):T = mapReduce[\T\](fn (i:ZZ32,j:ZZ32,e:T)=>e, j, z)
   eq(o:Array2[\T,b0,s0,b1,s1\]):Boolean =
     (object extends Reduction2[\Boolean,s0,s1\]
        empty():Boolean = true
@@ -789,8 +792,13 @@ end
 
 
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
-  extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3}
+  extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
+            Array[\T,(ZZ32,ZZ32,ZZ32)\],
+            Indexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
+
+  sizes():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
+  bases():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
 
   toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
@@ -830,10 +838,12 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : ()
   get(i:ZZ32, j:ZZ32, k:ZZ32) : T
 
+  opr[t:(ZZ32, ZZ32, ZZ32)] : T = self.get(offset t)
   opr[i:ZZ32, j:ZZ32, k:ZZ32] : T = self.get(offset(i,j,k))
+  opr[t:(ZZ32,ZZ32,ZZ32)] := (v:T) = do (a,b,c)=offset t; self.put(v,a,b,c) end
   opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do
     (a,b,c) = offset(i,j,k)
-    self.put(v,i,j,k)
+    self.put(v,a,b,c)
   end
 
   fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
@@ -849,16 +859,15 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   end
   replica[\U\]():Array3[\T,b0,s0,b1,s1,b2,s2\]
   copy():Array3[\T,b0,s0,b1,s1,b2,s2\] = self.replica[\T\]().assign(self)
-  mapReduce[\R\](f:(ZZ32,ZZ32,ZZ32,T)->R, j:(R,R)->R, z:R):R =
+  mapReduce[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
     (object extends Reduction3[\R,s0,s1,s2\]
        empty():R = z
        join(l:R, r:R):R = j(l,r)
-       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):R = f(a0+b0,a1+b1,a2+b2,get(a0,a1,a2))
+       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):R = f((a0+b0,a1+b1,a2+b2),get(a0,a1,a2))
      end).run()
   (* Copied here from Indexed. *)
   assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) = fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
   fill(v:T):T = fill(fn (i:ZZ32,j:ZZ32):T => v)
-  reduce(j:(T,T)->T, z:T):T = mapReduce[\T\](fn (i:ZZ32,j:ZZ32,e:T)=>e, j, z)
   eq(o:Array3[\T,b0,s0,b1,s1,b2,s2\]):Boolean =
     (object extends Reduction3[\Boolean,s0,s1,s2\]
        empty() = true

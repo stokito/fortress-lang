@@ -48,7 +48,7 @@ public class AnonymousConstructor extends NonPrimitive {
     protected void setValueType() {
         // TODO Constructors aren't exposed, do they have a type?
         // yes, they are exposed, and they do.
-        setFtype(FTypeArrow.make(FTypeTuple.make(getDomain()), selfType));
+        setFtype(FTypeArrow.make(getDomain(), selfType));
     }
 
     @Override

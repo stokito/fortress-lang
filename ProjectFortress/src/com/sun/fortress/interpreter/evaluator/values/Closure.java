@@ -159,7 +159,7 @@ public class Closure extends NonPrimitive implements Scope {
     }
 
     protected void setValueType() {
-        setFtype(FTypeArrow.make(FTypeTuple.make(getDomain()), returnType));
+        setFtype(FTypeArrow.make(getDomain(), returnType));
     }
 
     /**

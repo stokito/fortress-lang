@@ -46,7 +46,9 @@ public class FTypeTuple extends FType {
     private static class Factory implements Factory1<List<FType>, FType> {
 
         public FType make(List<FType> part1) {
-            return part1.size() == 0 ? FTypeVoid.T : new FTypeTuple(part1);
+            if (part1.size() == 0) return FTypeVoid.T;
+            if (part1.size() == 1) return part1.get(0);
+            return new FTypeTuple(part1);
         }
 
     }

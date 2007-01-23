@@ -103,9 +103,8 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     public static FType getFTypeFromList(List<TypeRef> l,  EvalType et) {
-        if (l.size() == 1 && (l.get(0) instanceof VoidType)) {
-            // Flatten out voids.
-            return FTypeVoid.T;
+        if (l.size() == 1) {
+            return l.get(0).accept(et);
         }
         return FTypeTuple.make(getFTypeListFromNonEmptyList(l, et));
     }
