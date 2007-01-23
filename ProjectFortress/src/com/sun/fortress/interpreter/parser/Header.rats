@@ -114,6 +114,12 @@ private NatConstraint NatConstraint =
    / openparen w a1:NatRef w closeparen
 ************************************************ */
 
+/* NatRef ::= StaticArg */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private StaticArg NatRef = yyValue:StaticArg;
+************************************************ */
+
 /* IntConstraint ::= NatConstraint */
 /* ************************************************
  * Not Yet Implemented ***************************
@@ -139,6 +145,12 @@ private BoolConstraint BoolConstraint =
    / a1:BoolRef w "IMPLIES":op w a2:BoolRef
    / a1:BoolRef w equals w a2:BoolRef
    / openparen w a1:BoolRef w closeparen
+************************************************ */
+
+/* BoolRef ::= StaticArg */
+/* ************************************************
+ * Not Yet Implemented ***************************
+private StaticArg BoolRef = yyValue:StaticArg;
 ************************************************ */
 
 /* UnitConstraint ::= UnitRef w = w UnitRef */
@@ -266,9 +278,6 @@ private Modifier UniversalMod =
 private Modifier TraitMod =
      a1:value   { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
    / yyValue:UniversalMod ;
-
-/* ObjectMod ::= TraitMod */
-private Modifier ObjectMod = yyValue:TraitMod ;
 
 /* TraitMods ::= TraitMod wr (TraitMod wr)* */
 List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*

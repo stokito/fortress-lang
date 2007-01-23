@@ -243,6 +243,12 @@ private TypeRef DimTypeFront =
      a1:DimRef
 ************************************************ */
 
+/* DimRef ::= StaticArg */
+/* ************************************************
+ * Not Yet Implemented ***************************
+StaticArg DimRef = yyValue:StaticArg ;
+************************************************ */
+
 /* StaticArgList ::= StaticArg (w , w StaticArg)*  */
 List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = new ArrayList<StaticArg>();

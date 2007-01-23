@@ -255,6 +255,55 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
   clauses do not work.
 
 
+SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
+
+* A file may contain a single component or API.  The enclosing component
+  or API declaration may be omitted.
+
+* At least one export statement is required for a component.
+
+* A single declaration may declare multiple top-level variables, local
+  variables, or fields depending on the context.  Immutable variables
+  cannot be declared using the ":=" token.
+
+* A default unit for a dimension must be an indentifier.
+
+* More where-clause constraints and bool static arguments are added.
+
+* Each contract clause (requires clause, ensures clause, and invariant
+  clause) requires its subclauses or subexpressions to be separated by
+  commas and enclosed by curly braces.
+
+* A second value parameter of a subscripted assignment operator method
+  declaration must contain exactly one non-keyword value parameter.
+
+* Left-hand-sides of assignment expressions are (possibly multiple of)
+  array indexing, field accesses, the '_' token, or identifiers.
+
+* An operator name alone is not an expression.
+
+* Object expressions may include property declarations.
+
+* Else clauses of case and typecase expressions have the "=>" token
+  right after "else".
+
+* A typecase expression uses "of" instead of "in" after its bindings.
+
+* A parallel block expression syntax is enriched.
+
+* The '_' token can be used in any place where a binding can occur.
+
+* An index in left-hand sides of array comprehensions is either
+  an identifier or an integer numeral.
+
+* Matrix and vector types can be abbreviated using superscripts.
+
+* Alternative mathematical notations for arrow types are supported.
+
+* DimRef, unitRef, NatRef, IntRef, and BoolRef are merged with
+  StaticArg.
+
+
 BUILT-IN TYPES
 
 There are a bunch of types that are defined internally by the

@@ -329,11 +329,11 @@ PureList<OpExpr> LooseInfix =
 
 /* Primary ::=
      Comprehension
+   | Id [\ w StaticArgList w \]
    | BaseExpr
    | LeftEncloser [w ExprList] w RightEncloser
-   | Primary [\ w StaticArgList w \]
    | Primary [ [w ExprList] w ]
-   | Primary dot Id
+   | Primary dot Id [[\ w StaticArgList w \]]
    | Primary ^ BaseExpr
    | Primary ExponentOp
    | Primary TupleExpr
@@ -347,6 +347,10 @@ constant PureList<Expr> Primary =
 
 Expr PrimaryFront =
      yyValue:Comprehension
+   / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
+     { yyValue = new TypeApply(createSpan(yyStart,yyCount),
+                               new VarRefExpr(a1.getSpan(), a1), a2);
+     }
    / yyValue:BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = new ArrayList<Expr>();
@@ -361,43 +365,40 @@ Expr PrimaryFront =
    ;
 
 constant transient Action<PureList<Expr>> PrimaryTail =
-     StaticApply
-   / SubscriptExpr
+     SubscriptExpr
    / FieldSelection
    / ExponentExpr
    / TightJuxtaposition
    ;
-
-constant inline Action<PureList<Expr>> StaticApply =
-     opendoublesquare w a1:StaticArgList w closedoublesquare
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Span span = createSpan(yyStart,yyCount);
-               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new TypeApply(span, fun, a1));
-           }};
-     };
 
 constant inline Action<PureList<Expr>> SubscriptExpr =
      opensquare a1:(w ExprList)? w closesquare
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
-               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
+               Expr arr = FortressUtil.buildPrimary((PureList<Expr>)base);
                List<Expr> es;
                if (a1 == null) es = FortressUtil.emptyExprs();
                else            es = a1;
-               return PureList.make((Expr)new SubscriptExpr(span, fun, es));
+               return PureList.make((Expr)new SubscriptExpr(span, arr, es));
            }};
      };
 
 constant inline Action<PureList<Expr>> FieldSelection =
-     dot a1:Id
+     dot a1:Id a2:(opendoublesquare w a2:StaticArgList w closedoublesquare)?
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
-               Expr fun = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldSelection(span, fun, a1));
+               Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
+               PureList<Expr> res;
+               if (a2 == null) {
+                   res = PureList.make((Expr)new FieldSelection(span,rcv,a1));
+               } else {
+                   Expr fun = new FieldSelection(FortressUtil.spanTwo(rcv, a1),
+                                                 rcv, a1);
+                   res = PureList.make((Expr)new TypeApply(span, fun, a2));
+               }
+               return res;
            }};
      };
 
