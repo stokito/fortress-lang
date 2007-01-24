@@ -1,0 +1,39 @@
+(********************************************************************************
+    Copyright 2006 Sun Microsystems, Inc., 
+    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software. 
+    Government users are subject to the Sun Microsystems, Inc. standard 
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+********************************************************************************)
+
+component fortress.executable
+
+export executable
+
+run(args:String...):()=do
+   var count1 : ZZ32 = 0
+   var count2 : ZZ32 = 0
+   var count3 : ZZ32 = 0
+   var count4 : ZZ32 = 0
+   for i <- 1#3000 do
+      atomic do count1+= 1; count2+=2; count3+=3; count4+=4 end
+   end
+   if count1=/=3000 OR count2=/=6000 OR count3=/=9000 OR count4=/=12000 then
+     println("FAIL: count1 = " count1)
+     println("FAIL: count2 = " count2)
+     println("FAIL: count3 = " count3)
+     println("FAIL: count4 = " count4)
+   else 
+   println("SUCCESS")
+   end
+end
+end
