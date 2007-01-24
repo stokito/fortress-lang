@@ -50,7 +50,7 @@ public class SimpleTypeParam extends StaticParam {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forSimpleTypeParam(this);
     }
 

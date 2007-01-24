@@ -37,7 +37,7 @@ public class GeneratedExpr extends LetExpr {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forGeneratedExpr(this);
     }
 

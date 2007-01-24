@@ -69,7 +69,7 @@ public class AnonymousFnName extends FnName {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return NI.<T> na();
     }
 

@@ -30,7 +30,7 @@ public class Op extends Node {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forOp(this);
     }
 

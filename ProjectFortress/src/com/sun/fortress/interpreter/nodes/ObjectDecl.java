@@ -37,7 +37,7 @@ public class ObjectDecl extends ObjectDefOrDecl implements GenericDefWithParams 
     List<? extends DefOrDecl> defs;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forObjectDecl(this);
     }
 

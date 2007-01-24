@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 public class EmptyInterval extends Interval {
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forEmptyInterval(this);
     }
 

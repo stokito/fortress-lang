@@ -38,7 +38,7 @@ public class TraitDecl extends TraitDefOrDecl implements GenericDef {
     List<? extends DefOrDecl> fns;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forTraitDecl(this);
     }
 

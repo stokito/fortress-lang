@@ -42,7 +42,7 @@ public class FnBind extends Node {
     Expr body;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forFnBind(this);
     }
 

@@ -46,7 +46,7 @@ public class ImportNames extends ImportFrom {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forImportNames(this);
     }
 

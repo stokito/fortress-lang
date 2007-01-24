@@ -39,7 +39,7 @@ public class KeywordType extends Node implements Comparable<KeywordType> {
     TypeRef type;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forKeywordType(this);
     }
 

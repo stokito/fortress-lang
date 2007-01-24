@@ -36,7 +36,7 @@ public class CharLiteral extends Literal {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forCharLiteral(this);
     }
 

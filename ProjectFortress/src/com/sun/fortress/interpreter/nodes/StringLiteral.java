@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 // / type literal = string node
 public class StringLiteral extends Literal {
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forStringLiteral(this);
     }
 

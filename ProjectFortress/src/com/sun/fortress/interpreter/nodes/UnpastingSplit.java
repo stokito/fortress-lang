@@ -46,7 +46,7 @@ public class UnpastingSplit extends Unpasting {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forUnpastingSplit(this);
     }
 

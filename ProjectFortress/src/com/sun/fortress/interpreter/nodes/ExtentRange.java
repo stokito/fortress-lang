@@ -40,7 +40,7 @@ public class ExtentRange extends Node implements Comparable<ExtentRange> {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forExtentRange(this);
     }
 

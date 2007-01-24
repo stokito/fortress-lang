@@ -45,7 +45,7 @@ public abstract class FnName extends Node implements Comparable<FnName> {
      * @see com.sun.fortress.interpreter.nodes.Node#accept(com.sun.fortress.interpreter.nodes.NodeVisitor)
      */
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return null;
     }

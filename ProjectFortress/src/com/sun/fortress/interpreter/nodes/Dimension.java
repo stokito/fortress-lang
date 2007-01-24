@@ -28,7 +28,7 @@ public class Dimension extends Node implements Decl {
     Option<TypeRef> default_;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forDimension(this);
     }
 

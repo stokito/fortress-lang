@@ -63,7 +63,7 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forObjectExpr(this);
     }
 

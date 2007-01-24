@@ -77,7 +77,7 @@ public class Component extends CompilationUnit {
 
     // Necessary for vistor pattern
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forComponent(this);
     }
 

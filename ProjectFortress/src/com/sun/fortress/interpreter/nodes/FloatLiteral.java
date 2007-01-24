@@ -152,7 +152,7 @@ public class FloatLiteral extends NumberLiteral {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forFloatLiteral(this);
     }
 

@@ -26,7 +26,7 @@ public class OprArg extends StaticArg {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forOprArg(this);
     }
 

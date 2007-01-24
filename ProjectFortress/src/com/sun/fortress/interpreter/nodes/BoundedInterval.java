@@ -30,7 +30,7 @@ public class BoundedInterval extends Interval {
     Expr max;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forBoundedInterval(this);
     }
 

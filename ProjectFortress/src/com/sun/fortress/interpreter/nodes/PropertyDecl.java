@@ -38,7 +38,7 @@ public class PropertyDecl extends Node implements Decl, AbsDecl {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forPropertyDecl(this);
     }
 

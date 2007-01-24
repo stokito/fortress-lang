@@ -26,7 +26,7 @@ public class DimensionParam extends StaticParam {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forDimensionParam(this);
     }
 

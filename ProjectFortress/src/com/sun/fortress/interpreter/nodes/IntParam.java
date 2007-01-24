@@ -32,7 +32,7 @@ public class IntParam extends StaticParam {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forIntParam(this);
     }
 

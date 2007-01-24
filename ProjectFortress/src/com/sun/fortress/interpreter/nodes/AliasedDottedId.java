@@ -44,7 +44,7 @@ public class AliasedDottedId extends Node {
     }
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return null;
     }

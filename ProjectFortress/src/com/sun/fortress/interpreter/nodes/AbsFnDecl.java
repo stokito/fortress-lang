@@ -36,7 +36,7 @@ import java.util.List;
 public class AbsFnDecl extends FnDefOrDecl implements Decl, AbsDecl, Applicable {
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forAbsFnDecl(this);
     }
 

@@ -31,7 +31,7 @@ public class FieldSelection extends Expr implements LHS {
     Id id;
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forFieldSelection(this);
     }
 

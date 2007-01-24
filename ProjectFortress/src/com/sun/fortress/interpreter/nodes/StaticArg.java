@@ -29,7 +29,7 @@ abstract public class StaticArg extends TypeRef {
     // not a good way to tell the two apart.
 
     @Override
-    public <T> T accept(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forStaticArg(this);
     }
 
