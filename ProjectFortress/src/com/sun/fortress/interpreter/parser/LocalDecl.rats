@@ -77,20 +77,23 @@ private LetExpr LocalVarFnDecl =
      }
    / yyValue:LocalVarDecl ;
 
-/* LocalFnDecl ::= Id w ValParam [w IsType] [w Throws] w = w NoNewlineExpr */
+/* LocalFnDecl ::=
+     Id [w StaticParams] w ValParam [w IsType] [w Throws] w = w NoNewlineExpr
+ */
 private FnDecl LocalFnDecl =
-     a1:Id w a2:ValParam a3:(w IsType)? a4:(w Throws)? w equals w
-       a5:NoNewlineExpr
-     { Option<TypeRef> ty;
-       if (a3 == null) ty = None.<TypeRef>make();
-       else            ty = Some.<TypeRef>make(a3);
-       if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
+     a1:Id a2:(w StaticParams)? w a3:ValParam a4:(w IsType)? a5:(w Throws)? w
+       equals w a6:NoNewlineExpr
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       Option<TypeRef> ty;
+       if (a4 == null) ty = None.<TypeRef>make();
+       else            ty = Some.<TypeRef>make(a4);
+       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
        yyValue = new FnDecl(createSpan(yyStart,yyCount),
                             FortressUtil.emptyModifiers(), None.<Id>make(),
                             new Fun(a1.getSpan(), a1),
-                            None.<List<StaticParam>>make(), a2, ty, a4,
-                            FortressUtil.emptyWhereClauses(),
-                            FortressUtil.emptyContract(), a5);
+                            Some.<StaticParam>makeSomeListOrNone(a2),
+                            a3, ty, a5, FortressUtil.emptyWhereClauses(),
+                            FortressUtil.emptyContract(), a6);
      };
 
 /* LocalVarDecl ::=
