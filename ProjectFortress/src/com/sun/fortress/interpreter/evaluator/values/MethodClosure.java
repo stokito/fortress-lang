@@ -66,7 +66,7 @@ public class MethodClosure extends Closure implements Method {
         // selfName() was rewritten to our special "$self", and
         // we don't care about shadowing here.
         eval.e.putValueUnconditionally(selfName(), selfValue);
-        return getBody().accept(eval);
+        return eval.eval(getBody());
      }
     public boolean isMethod() {
         return true;

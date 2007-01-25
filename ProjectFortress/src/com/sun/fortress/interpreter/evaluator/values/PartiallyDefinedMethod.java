@@ -79,7 +79,7 @@ public class PartiallyDefinedMethod extends MethodClosure {
         // TraitMethods do not get their environment from the object.
         Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(evaluationEnv, args, loc));
         eval.e.putValue(selfName(), selfValue);
-        return getBody().accept(eval);
+        return eval.eval(getBody());
      }
 
 

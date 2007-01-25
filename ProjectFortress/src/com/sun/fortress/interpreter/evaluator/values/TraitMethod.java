@@ -34,7 +34,7 @@ public class TraitMethod extends MethodClosure {
         // TraitMethods do not get their environment from the object.
         Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(getWithin(), args, loc));
         eval.e.putValue(selfName(), selfValue);
-        return getBody().accept(eval);
+        return eval.eval(getBody());
      }
 
 }

@@ -35,7 +35,7 @@ public class TupleTask extends BaseTask {
         }
 
         public void run() {
-            res = expr.accept(new Evaluator(eval, expr));
+            res = new Evaluator(eval, expr).eval(expr);
         }
 
        public FValue getRes() { return res;}

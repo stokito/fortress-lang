@@ -22,6 +22,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGenerator;
+import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.Node;
 
@@ -62,7 +63,7 @@ public class FGenerator extends FValue {
 	return new FGenerator(id, range.secondHalf());
     }
 
-    public boolean update(Node body, Evaluator ev) {
+    public boolean update(Expr body, Evaluator ev) {
 	if (iterator.hasNext()) {
 	    FValue val = (FValue) iterator.next();
             try {
@@ -71,7 +72,7 @@ public class FGenerator extends FValue {
                 pe.setWithin(ev.e);
                 throw pe;
             }
-            body.accept(ev);
+            ev.eval(body);
 	    return true;
 	} else return false;
     }

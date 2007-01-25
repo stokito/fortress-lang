@@ -344,36 +344,47 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return new FGenericFunction(e, x);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
-     */
-    @Override
-    public Voidoid forFnDecl(FnDecl x) {
-        //BetterEnv e = containing;
+    
+    private void forFnDecl1(FnDecl x) {
+        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        FnName name = x.getFnName();
+        String fname = name.name();
 
-        /*
-         * If a function definition is generic, suspend evaluation, including
-         * the types of the parameter list, until the generic parameters have
-         * been supplied.
-         */
+        if (optStaticParams.isPresent()) {
+            FValue cl = newGenericClosure(containing, x);
+            putOrOverloadOrShadowGeneric(x, containing, name, cl);
 
-        // List<Modifier> mods;
-        // List<TypeRef> throwss;
-        // List<WhereClause> where;
-        // Contract contract;
-        // TODO Auto-generated method stub
+        } else {
+            // NOT GENERIC
+
+            Simple_fcn cl = newClosure(containing, x);
+            // Search for test modifier
+            List<Modifier> mods = x.getMods();
+            if (!mods.isEmpty()) {
+                for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
+                    Modifier m = i.next();
+                    if (m instanceof Modifier.Test) {
+                        FortressTests.add((Closure) cl);
+                        break;
+                    }
+                }
+            }
+            // TODO this isn't right if it was a test function.
+            // it belongs in a different namespace if it is.
+            putOrOverloadOrShadow(x, containing, name, cl);
+
+        }
+
+    }
+
+   private void forFnDecl2(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         FnName name = x.getFnName();
         String fname = name.name();
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-            if (pass == 1) {
-                FValue cl = newGenericClosure(containing, x);
-                putOrOverloadOrShadowGeneric(x, containing, name, cl);
-            } else {
+            {
                 // Why isn't this the right thing to do?
                 // FGenericFunction is (currently) excluded from this treatment.
                 FValue fcn = containing.getValue(fname);
@@ -381,44 +392,12 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     GenericFunctionSet gfs = (GenericFunctionSet) fcn;
                     gfs.finishInitializing();
                 }
-                //
-                //                if (fcn instanceof Closure) {
-                //                    // This is only loosely paired with the
-                //                    // first pass; dealing with overloading tends to
-                //                    // break up the 1-1 relationship between the two.
-                //                    // However, because of the way that scopes nest,
-                //                    // it is possible (I think) that f could be overloaded
-                //                    // in an inner scope but not overloaded in an outer
-                //                    // scope.
-                //                    Closure cl = (Closure) fcn;
-                //                    cl.finishInitializing();
-                //                } else if (fcn instanceof OverloadedFunction) {
-                //                    OverloadedFunction og = (OverloadedFunction) fcn;
-                //                    og.finishInitializing();
-                //
-                //                }
+
             }
 
         } else {
             // NOT GENERIC
-            if (pass == 1) {
-                Simple_fcn cl = newClosure(containing, x);
-                // Search for test modifier
-                List<Modifier> mods = x.getMods();
-                if (!mods.isEmpty()) {
-                    for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
-                        Modifier m = i.next();
-                        if (m instanceof Modifier.Test) {
-                            FortressTests.add((Closure) cl);
-                            break;
-                        }
-                    }
-                }
-                // TODO this isn't right if it was a test function.
-                // it belongs in a different namespace if it is.
-                putOrOverloadOrShadow(x, containing, name, cl);
-
-            } else {
+            {
                 Fcn fcn = (Fcn) containing.getValue(fname);
 
                 if (fcn instanceof Closure) {
@@ -439,10 +418,26 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             }
         }
 
-        return null;
-
-        // Do not visit the body of the function; that BetterEnv is
-        // created dynamically.
+    }
+   private void forFnDecl3(FnDecl x) {
+   }
+   private void forFnDecl4(FnDecl x) {
+   }
+   
+ /*
+     * (non-Javadoc)
+     * 
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
+     */
+    @Override
+    public Voidoid forFnDecl(FnDecl x) {
+        switch (pass) {
+        case 1: forFnDecl1(x); break;
+        case 2: forFnDecl2(x); break;
+        case 3: forFnDecl3(x); break;
+        case 4: forFnDecl4(x); break;
+        }
+       return null;
     }
 
     /**
@@ -577,6 +572,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      */
     @Override
     public Voidoid forObjectDecl(ObjectDecl x) {
+        switch (pass) {
+        case 1: forObjectDecl1(x); break;
+        case 2: forObjectDecl2(x); break;
+        case 3: forObjectDecl3(x); break;
+        case 4: forObjectDecl4(x); break;
+        }
+       return null;
+    }
+    private void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
         BetterEnv e = containing;
@@ -591,82 +595,101 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<Decl> defs = x.getDefs();
         String fname = name.getName();
         FType ft;
-        if (pass == 1) {
-            ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
-                    : new FTypeObject(fname, e, x);
+        ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
+                : new FTypeObject(fname, e, x);
 
-            // Need to check for overloaded constructor.
+        // Need to check for overloaded constructor.
 
-            guardedPutType(fname, ft, x);
+        guardedPutType(fname, ft, x);
 
-            if (params.isPresent()) {
-                if (staticParams.isPresent()) {
-                    // A generic, not yet a constructor
-                    GenericConstructor gen = new GenericConstructor(e, x);
-                    guardedPutValue(containing, fname, gen, x);
-                } else {
-                    // TODO need to deal with constructor overloading.
-
-                    // If parameters are present, it is really a constructor
-                    // BetterEnv interior = new SpineEnv(e, x);
-                    Constructor cl = new Constructor(containing,
-                            (FTypeObject) ft, x);
-                    guardedPutValue(containing, fname, cl, x);
-                    // doDefs(interior, defs);
-                }
-
+        if (params.isPresent()) {
+            if (staticParams.isPresent()) {
+                // A generic, not yet a constructor
+                GenericConstructor gen = new GenericConstructor(e, x);
+                guardedPutValue(containing, fname, gen, x);
             } else {
-                if (staticParams.isPresent()) {
-                    // A parameterized singleton is a sort of generic value.
-                    NI.nyi("Generic singleton objects");
-                    GenericConstructor gen = new GenericConstructor(e, x);
-                    guardedPutValue(containing, obfuscated(fname), gen, x);
+                // TODO need to deal with constructor overloading.
 
-                } else {
-                    // It is a singleton; do not expose the constructor, do
-                    // visit
-                    // the interior environment.
-                    // BetterEnv interior = new SpineEnv(e, x);
-                    Constructor cl = new Constructor(containing,
-                            (FTypeObject) ft, x);
-                    guardedPutValue(containing, obfuscated(fname), cl, x);
-
-                    // doDefs(interior, defs);
-                }
+                // If parameters are present, it is really a constructor
+                // BetterEnv interior = new SpineEnv(e, x);
+                Constructor cl = new Constructor(containing, (FTypeObject) ft,
+                        x);
+                guardedPutValue(containing, fname, cl, x);
+                // doDefs(interior, defs);
             }
+
         } else {
+            if (staticParams.isPresent()) {
+                // A parameterized singleton is a sort of generic value.
+                NI.nyi("Generic singleton objects");
+                GenericConstructor gen = new GenericConstructor(e, x);
+                guardedPutValue(containing, obfuscated(fname), gen, x);
 
-            if (params.isPresent()) {
-                if (staticParams.isPresent()) {
-                    // Do nothing.
-                } else {
-                    FTypeObject fto = (FTypeObject) containing.getType(fname);
-                    Constructor cl = (Constructor) containing.getValue(fname);
-                    List<Parameter> fparams = EvalType.paramsToParameters(
-                            containing, params.getVal());
-                    cl.setParams(fparams);
-                    finishObjectTrait(x, fto);
-                    cl.finishInitializing();
-                }
             } else {
-                // If there are no parameters, it is a singleton.
-                // Not clear we can evaluate it yet.
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
-                Constructor cl = (Constructor) containing
-                        .getValue(obfuscated(fname));
-                cl.setParams(Collections.<Parameter> emptyList());
-                finishObjectTrait(x, fto);
-                cl.finishInitializing();
-                ;
-                guardedPutValue(containing, fname, cl.apply(
-                        java.util.Collections.<FValue> emptyList(), x, e), x);
+                // It is a singleton; do not expose the constructor, do
+                // visit
+                // the interior environment.
+                // BetterEnv interior = new SpineEnv(e, x);
+                Constructor cl = new Constructor(containing, (FTypeObject) ft,
+                        x);
+                guardedPutValue(containing, obfuscated(fname), cl, x);
 
+                // doDefs(interior, defs);
             }
         }
 
-        return null;
     }
 
+    private void forObjectDecl2(ObjectDecl x) {
+        // List<Modifier> mods;
+
+        BetterEnv e = containing;
+        Id name = x.getName();
+
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        Option<List<Param>> params = x.getParams();
+
+        // List<TypeRef> throws_;
+        // List<WhereClause> where;
+        // Contract contract;
+        // List<Decl> defs = x.getDefs();
+        String fname = name.getName();
+        FType ft;
+
+        if (params.isPresent()) {
+            if (staticParams.isPresent()) {
+                // Do nothing.
+            } else {
+                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                Constructor cl = (Constructor) containing.getValue(fname);
+                List<Parameter> fparams = EvalType.paramsToParameters(
+                        containing, params.getVal());
+                cl.setParams(fparams);
+                finishObjectTrait(x, fto);
+                cl.finishInitializing();
+            }
+        } else {
+            // If there are no parameters, it is a singleton.
+            // Not clear we can evaluate it yet.
+            FTypeObject fto = (FTypeObject) containing.getType(fname);
+            Constructor cl = (Constructor) containing
+                    .getValue(obfuscated(fname));
+            cl.setParams(Collections.<Parameter> emptyList());
+            finishObjectTrait(x, fto);
+            cl.finishInitializing();
+            ;
+            guardedPutValue(containing, fname, cl.apply(java.util.Collections
+                    .<FValue> emptyList(), x, e), x);
+
+        }
+
+    }
+    private void forObjectDecl3(ObjectDecl x) {
+    }
+    private void forObjectDecl4(ObjectDecl x) {
+    }
+            
+    
     private String obfuscated(String fname) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
@@ -674,51 +697,76 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDef(com.sun.fortress.interpreter.nodes.VarDecl)
      */
     @Override
     public Voidoid forVarDecl(VarDecl x) {
+        switch (pass) {
+        case 1:
+            forVarDecl1(x);
+            break;
+        case 2:
+            forVarDecl2(x);
+            break;
+        case 3:
+            forVarDecl3(x);
+            break;
+        case 4:
+            forVarDecl4(x);
+            break;
+        }
+        return null;
+    }
+
+    private void forVarDecl1(VarDecl x) {
+
+    }
+
+    private void forVarDecl3(VarDecl x) {
+
+    }
+
+    private void forVarDecl4(VarDecl x) {
+
+    }
+
+    private void forVarDecl2(VarDecl x) {
 
         List<LValue> lhs = x.getLhs();
 
         // List<Modifier> mods;
-        //Id name = x.getName();
-        //Option<TypeRef> type = x.getType();
+        // Id name = x.getName();
+        // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
 
-        if (pass == 1) {
-        } else {
-            
-            FValue init_value = (new Evaluator(containing)).eval(init);
-            for (LValue lv : lhs) {
-                if (lv instanceof LValueBind) {
-                    LValueBind lvb = (LValueBind) lv;
+        FValue init_value = (new Evaluator(containing)).eval(init);
+        for (LValue lv : lhs) {
+            if (lv instanceof LValueBind) {
+                LValueBind lvb = (LValueBind) lv;
 
-                    Option<TypeRef> type = lvb.getType();
-                    Id name = lvb.getName();
+                Option<TypeRef> type = lvb.getType();
+                Id name = lvb.getName();
 
-                    FType ft = type.isPresent() ?
-                            //type.getVal().accept(new EvalType(containing))
-                            (new EvalType(containing)).evalType(type.getVal())
-                            : null;
-                    // TODO We're not careful enough about forward references here.
-                    // TODO When new environment are created, need to insert into
-                    //      containing AND bindInto
-                    guardedPutValue(bindInto, name.getName(), init_value, ft, x);
-                } else {
-                    throw new InterpreterError(x,
-                            "Don't support arbitary LHS in Var decl yet");
-                }
+                FType ft = type.isPresent() ?
+                // type.getVal().accept(new EvalType(containing))
+                (new EvalType(containing)).evalType(type.getVal())
+                        : null;
+                // TODO We're not careful enough about forward references here.
+                // TODO When new environment are created, need to insert into
+                // containing AND bindInto
+                guardedPutValue(bindInto, name.getName(), init_value, ft, x);
+            } else {
+                throw new InterpreterError(x,
+                        "Don't support arbitary LHS in Var decl yet");
             }
         }
 
-        return null;
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
      */
     @Override
@@ -743,6 +791,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      */
     @Override
     public Voidoid forTraitDecl(TraitDecl x) {
+        switch (pass) {
+        case 1: forTraitDecl1(x); break;
+        case 2: forTraitDecl2(x); break;
+        case 3: forTraitDecl3(x); break;
+        case 4: forTraitDecl4(x); break;
+        }
+       return null;
+    }
+    private void forTraitDecl1(TraitDecl x) {
         // TODO Auto-generated method stub
         Option<List<StaticParam>> staticParams = x.getStaticParams();
         // List<Modifier> mods;
@@ -762,7 +819,22 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
 
-            } else {
+            } 
+        }
+    }
+    private void forTraitDecl2(TraitDecl x) {
+        // TODO Auto-generated method stub
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        // List<Modifier> mods;
+        Id name = x.getName();
+        // List<TypeRef> excludes;
+        // Option<List<TypeRef>> bounds;
+        // List<WhereClause> where;
+
+        if (staticParams.isPresent()) {
+            
+        } else {
+           {
                 FTypeTrait ftt = (FTypeTrait) containing
                         .getType(name.getName());
                 BetterEnv interior = ftt.getEnv();
@@ -770,7 +842,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
             }
         }
-        return null;
+    }
+    private void forTraitDecl3(TraitDecl x) {
+    }
+    private void forTraitDecl4(TraitDecl x) {
     }
 
     /**
@@ -852,8 +927,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                             swt.addSubtype(ft);
                         } else {
                             // Check that constraint holds.
-                            NI
-                                    .nyi("need to verify constraint stated in where clause");
+                            NI.nyi("need to verify constraint stated in where clause");
                         }
                     }
                 } else if (w instanceof TypeAlias) {
@@ -1018,51 +1092,52 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsFnDecl(AbsFnDecl x) {
+        switch (pass) {
+        case 1: forAbsFnDecl1(x); break;
+        case 2: forAbsFnDecl2(x); break;
+        case 3: forAbsFnDecl3(x); break;
+        case 4: forAbsFnDecl4(x); break;
+        }
+       return null;
+    }
+    private void forAbsFnDecl1(AbsFnDecl x) {
 
-        /*
-         * EXPERIMENTAL CUT/PASTE from forFnDef to simplify trait
-         * implementation.
-         */
-
-        // I think Decls are a no-op in the interpreter.
-        // List<Modifier> mods;
-        // FnName name;
-        // Option<List<StaticParam>> staticParams;
-        // List<Param> params;
-        // Option<TypeRef> returnType;
-        // List<TypeRef> throwss;
-        // List<WhereClause> where;
-        // Contract contract;
-        // Environment e = containing;
-        /*
-         * If a function definition is generic, suspend evaluation, including
-         * the types of the parameter list, until the generic parameters have
-         * been supplied.
-         */
-
-        // List<Modifier> mods;
-        // List<TypeRef> throwss;
-        // List<WhereClause> where;
-        // Contract contract;
-        // TODO Auto-generated method stub
+        
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         FnName name = x.getFnName();
         String fname = name.name();
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-            if (pass == 1) {
+           
                 // TODO same treatment as regular functions.
                 FValue cl = newGenericClosure(containing, x);
                 putOrOverloadOrShadowGeneric(x, containing, name, cl);
-            }
+           
 
         } else {
             // NOT GENERIC
-            if (pass == 1) {
+           
                 Simple_fcn cl = newClosure(containing, x);
                 putOrOverloadOrShadow(x, containing, name, cl);
-            } else {
+            
+        }
+
+    }
+    private void forAbsFnDecl2(AbsFnDecl x) {
+
+        
+        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        FnName name = x.getFnName();
+        String fname = name.name();
+
+        if (optStaticParams.isPresent()) {
+            // GENERIC
+           
+
+        } else {
+            // NOT GENERIC
+            
                 Fcn fcn = (Fcn) containing.getValue(fname);
 
                 if (fcn instanceof Closure) {
@@ -1080,11 +1155,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     og.finishInitializing();
 
                 }
-            }
+            
         }
 
-        return null;
-
+    }
+    private void forAbsFnDecl3(AbsFnDecl x) {
+    }
+    private void forAbsFnDecl4(AbsFnDecl x) {
     }
 
     /*

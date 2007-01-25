@@ -56,7 +56,7 @@ public class PartiallyDefinedMethodInstance extends PartiallyDefinedMethod  impl
                 evaluationEnv, // getWithin(),
                 args, loc));
         eval.e.putValue(selfName(), selfValue);
-        return getBody().accept(eval);
+         return eval.eval(getBody());
      }
 
 }

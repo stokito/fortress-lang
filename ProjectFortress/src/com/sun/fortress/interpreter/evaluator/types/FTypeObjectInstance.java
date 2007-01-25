@@ -70,7 +70,7 @@ public class FTypeObjectInstance extends FTypeObject implements
             // TODO Auto-generated method stub
             List<FType> ets = this.getTransitiveExtends();
             EvalType eval_type = new EvalType(env);
-            FType eval_val_generic = val_generic.accept(eval_type);
+            FType eval_val_generic = eval_type.evalType(val_generic);
             for (FType t : ets) {
                 if (t instanceof GenericTypeInstance) {
                     GenericTypeInstance gti = (GenericTypeInstance) t;

@@ -110,7 +110,7 @@ public abstract class Node implements HasAt {
          * @param v
          * @return
          */
-     public final <T> T accept(NodeVisitor<T> v) {
+   public final <T> T accept(NodeVisitor<T> v) {
         return acceptInner(v);
     }
 

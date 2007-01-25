@@ -129,7 +129,7 @@ public class Closure extends NonPrimitive implements Scope {
             }
         } else {
             Evaluator eval = new Evaluator(buildEnvFromParams(args, loc));
-            return getBody().accept(eval);
+            return eval.eval(getBody());
         }
     }
 

@@ -26,7 +26,7 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     public FValue getValue() {
         if (theValue == null) {
             theValue = this;
-            exp.accept(new Evaluator(e));
+            theValue = (new Evaluator(e)).eval(exp);
             exp = null;
             e = null;
         } else if (theValue == this) {

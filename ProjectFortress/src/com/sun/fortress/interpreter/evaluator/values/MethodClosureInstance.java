@@ -49,7 +49,7 @@ public class MethodClosureInstance extends MethodClosure  implements MethodInsta
         // instantiation of some generic?  It seems like signatures etc will depend on this.
         Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv, loc), args, loc));
         eval.e.putValue(selfName(), selfValue);
-        return getBody().accept(eval);
+         return eval.eval(getBody());
      }
 
      public GenericMethod getGenerator() {
