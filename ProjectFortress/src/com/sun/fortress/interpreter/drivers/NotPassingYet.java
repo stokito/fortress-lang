@@ -26,9 +26,10 @@ public class NotPassingYet {
     }
 
     public static Test suite() {
+        String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite("not_passing_yet", false));
+        suite.addTest(FileTests.suite(testDir, false));
         //$JUnit-END$
         return suite;
     }

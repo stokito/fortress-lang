@@ -202,9 +202,14 @@ public class Driver {
         BuildEnvironments be = new BuildEnvironments(e);
         Disambiguate dis = new Disambiguate();
 	if (_libraryTest) {
+            /*
+             * It's not quite clear what's going on here,
+             * and this is probably busted after the
+             * 4-pass upgrade to BuildEnvironments.
+             */ 
 	    Glue.installHooks(be.getEnvironment());
-	    be.secondPass();
-	    be.resetPass();
+            be.secondPass();
+            be.resetPass();
 	} else {
 	    Libraries.link(be, dis);
 	}

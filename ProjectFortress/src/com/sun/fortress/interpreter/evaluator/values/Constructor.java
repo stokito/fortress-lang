@@ -545,14 +545,18 @@ public class Constructor extends AnonymousConstructor {
      * @param be
      */
     private void visitDefs(BuildEnvironments be) {
-        for (DefOrDecl d : defs) {
-            d.accept(be);
-        }
-        be.secondPass();
-        for (DefOrDecl d : defs) {
-            d.accept(be);
-        }
-        be.getBindingEnv().bless();
+        be.doDefs1234(defs);
+//        be.secondPass();
+//        
+//        be.doDefs(defs);
+//        be.getBindingEnv().bless();
+//        
+//        be.thirdPass();
+//        be.doDefs(defs);
+//        
+//        be.fourthPass();
+//        be.doDefs(defs);
+        
     }
 
     @Override

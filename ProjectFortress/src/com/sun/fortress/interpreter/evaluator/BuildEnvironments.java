@@ -50,6 +50,7 @@ import com.sun.fortress.interpreter.nodes.AbsTraitDecl;
 import com.sun.fortress.interpreter.nodes.AbsVarDecl;
 import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.Applicable;
+import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -210,15 +211,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // TODO Run over the imports,
         // and inject names appropriately into the environment.
 
-        for (DefOrDecl decl : decls) {
-            acceptNode(decl);
-        }
-
-        secondPass();
-
-        for (DefOrDecl decl : decls) {
-            acceptNode(decl);
-        }
+        doDefs1234(decls);
 
         return null;
     }
@@ -235,8 +228,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     @Override
     public Voidoid forComponent(Component x) {
         forComponent1(x);
-        secondPass();
-        forComponentDefs(x);
+        List<? extends DefOrDecl> defs = x.getDefs();
+        
+        doDefs234(defs);
+        
         return null;
     }
 
@@ -260,9 +255,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return null;
     }
 
-    private void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
+    private static void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
             inner.acceptNode(def);
+        }
+    }
+    
+    protected void doDefs(List<? extends DefOrDecl> defs) {
+        for (DefOrDecl def : defs) {
+            acceptNode(def);
         }
     }
 
@@ -278,13 +279,23 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             List<? extends DefOrDecl> defs, Set<String> fields) {
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, fields);
-        for (DefOrDecl def : defs) {
-            inner.acceptNode(def);
-        }
-        inner.secondPass();
-        for (DefOrDecl def : defs) {
-            inner.acceptNode(def);
-        }
+        
+        inner.doDefs1234(defs);
+
+    }
+    
+    public void doDefs1234(List<? extends DefOrDecl> defs) {
+        doDefs(defs);
+        doDefs234(defs);
+    }
+
+    public void doDefs234(List<? extends DefOrDecl> defs) {
+        secondPass();
+        doDefs(defs);
+        thirdPass();
+        doDefs(defs);
+        fourthPass();
+        doDefs(defs);
     }
 
     private void guardedPutValue(BetterEnv e, String name, FValue value,
@@ -378,49 +389,49 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
    private void forFnDecl2(FnDecl x) {
-        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        FnName name = x.getFnName();
-        String fname = name.name();
-
-        if (optStaticParams.isPresent()) {
-            // GENERIC
-            {
-                // Why isn't this the right thing to do?
-                // FGenericFunction is (currently) excluded from this treatment.
-                FValue fcn = containing.getValue(fname);
-                if (fcn instanceof GenericFunctionSet) {
-                    GenericFunctionSet gfs = (GenericFunctionSet) fcn;
-                    gfs.finishInitializing();
-                }
-
-            }
-
-        } else {
-            // NOT GENERIC
-            {
-                Fcn fcn = (Fcn) containing.getValue(fname);
-
-                if (fcn instanceof Closure) {
-                    // This is only loosely paired with the
-                    // first pass; dealing with overloading tends to
-                    // break up the 1-1 relationship between the two.
-                    // However, because of the way that scopes nest,
-                    // it is possible (I think) that f could be overloaded
-                    // in an inner scope but not overloaded in an outer
-                    // scope.
-                    Closure cl = (Closure) fcn;
-                    cl.finishInitializing();
-                } else if (fcn instanceof OverloadedFunction) {
-                    OverloadedFunction og = (OverloadedFunction) fcn;
-                    og.finishInitializing();
-
-                }
-            }
-        }
-
+      
     }
    private void forFnDecl3(FnDecl x) {
-   }
+       Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+       FnName name = x.getFnName();
+       String fname = name.name();
+
+       if (optStaticParams.isPresent()) {
+           // GENERIC
+           {
+               // Why isn't this the right thing to do?
+               // FGenericFunction is (currently) excluded from this treatment.
+               FValue fcn = containing.getValue(fname);
+               if (fcn instanceof GenericFunctionSet) {
+                   GenericFunctionSet gfs = (GenericFunctionSet) fcn;
+                   gfs.finishInitializing();
+               }
+
+           }
+
+       } else {
+           // NOT GENERIC
+           {
+               Fcn fcn = (Fcn) containing.getValue(fname);
+
+               if (fcn instanceof Closure) {
+                   // This is only loosely paired with the
+                   // first pass; dealing with overloading tends to
+                   // break up the 1-1 relationship between the two.
+                   // However, because of the way that scopes nest,
+                   // it is possible (I think) that f could be overloaded
+                   // in an inner scope but not overloaded in an outer
+                   // scope.
+                   Closure cl = (Closure) fcn;
+                   cl.finishInitializing();
+               } else if (fcn instanceof OverloadedFunction) {
+                   OverloadedFunction og = (OverloadedFunction) fcn;
+                   og.finishInitializing();
+
+               }
+           }
+       }
+  }
    private void forFnDecl4(FnDecl x) {
    }
    
@@ -641,7 +652,35 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
     private void forObjectDecl2(ObjectDecl x) {
-        // List<Modifier> mods;
+      
+        BetterEnv e = containing;
+        Id name = x.getName();
+
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        Option<List<Param>> params = x.getParams();
+
+        String fname = name.getName();
+        FType ft;
+
+        if (params.isPresent()) {
+            if (staticParams.isPresent()) {
+                // Do nothing.
+            } else {
+                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                Constructor cl = (Constructor) containing.getValue(fname);
+                finishObjectTrait(x, fto);
+            }
+        } else {
+            // If there are no parameters, it is a singleton.
+            // Not clear we can evaluate it yet.
+            FTypeObject fto = (FTypeObject) containing.getType(fname);
+            
+            finishObjectTrait(x, fto);
+
+        }
+
+    }
+    private void forObjectDecl3(ObjectDecl x) {
 
         BetterEnv e = containing;
         Id name = x.getName();
@@ -649,10 +688,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Option<List<StaticParam>> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
-        // List<TypeRef> throws_;
-        // List<WhereClause> where;
-        // Contract contract;
-        // List<Decl> defs = x.getDefs();
         String fname = name.getName();
         FType ft;
 
@@ -665,28 +700,41 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 List<Parameter> fparams = EvalType.paramsToParameters(
                         containing, params.getVal());
                 cl.setParams(fparams);
-                finishObjectTrait(x, fto);
                 cl.finishInitializing();
             }
         } else {
             // If there are no parameters, it is a singleton.
-            // Not clear we can evaluate it yet.
-            FTypeObject fto = (FTypeObject) containing.getType(fname);
+            // TODO -  Blindly assuming a non-generic singleton.
+            
             Constructor cl = (Constructor) containing
                     .getValue(obfuscated(fname));
             cl.setParams(Collections.<Parameter> emptyList());
-            finishObjectTrait(x, fto);
             cl.finishInitializing();
-            ;
+           
+
+        }
+    }
+    private void forObjectDecl4(ObjectDecl x) {
+
+        BetterEnv e = containing;
+        Id name = x.getName();
+
+        Option<List<Param>> params = x.getParams();
+
+        String fname = name.getName();
+
+        if (params.isPresent()) {
+            
+        } else {
+            // TODO -  Blindly assuming a non-generic singleton.
+            
+            Constructor cl = (Constructor) containing
+                    .getValue(obfuscated(fname));
+            
             guardedPutValue(containing, fname, cl.apply(java.util.Collections
                     .<FValue> emptyList(), x, e), x);
 
         }
-
-    }
-    private void forObjectDecl3(ObjectDecl x) {
-    }
-    private void forObjectDecl4(ObjectDecl x) {
     }
             
     
@@ -723,15 +771,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     }
 
+    private void forVarDecl2(VarDecl x) {
+
+    }
+
     private void forVarDecl3(VarDecl x) {
 
     }
 
     private void forVarDecl4(VarDecl x) {
-
-    }
-
-    private void forVarDecl2(VarDecl x) {
 
         List<LValue> lhs = x.getLhs();
 
@@ -868,6 +916,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 
     }
+    
 
     /**
      * Processes a list of where clauses,
@@ -1125,6 +1174,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     }
     private void forAbsFnDecl2(AbsFnDecl x) {
+    }
+    private void forAbsFnDecl3(AbsFnDecl x) {
 
         
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
@@ -1158,8 +1209,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             
         }
 
-    }
-    private void forAbsFnDecl3(AbsFnDecl x) {
     }
     private void forAbsFnDecl4(AbsFnDecl x) {
     }

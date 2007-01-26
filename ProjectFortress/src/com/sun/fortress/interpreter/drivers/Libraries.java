@@ -80,6 +80,15 @@ public class Libraries {
             be.forComponent1(c);
             Glue.installHooks(be.getEnvironment());
             be.secondPass();
+            /*
+             * This is ugly, but it probably needs to be exposed
+             * like this.  Once linking-proper is working, each component
+             * must be pushed through pass N in turn before N is incremented.
+             */
+            be.forComponentDefs(c);
+            be.thirdPass();
+            be.forComponentDefs(c);
+            be.fourthPass();
             be.forComponentDefs(c);
             be.resetPass();
         }

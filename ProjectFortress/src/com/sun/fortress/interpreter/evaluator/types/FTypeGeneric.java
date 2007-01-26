@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.GenericDef;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
@@ -74,35 +75,52 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     genericAt);
             BuildEnvironments be = new BuildEnvironments(clenv);
 
-            if (def instanceof TraitDecl) {
-                TraitDecl td = (TraitDecl) def;
-                FTypeTrait ftt = new FTypeTraitInstance(td.getName().getName(), clenv, FTypeGeneric.this, args);
-                FTraitOrObject old = map.put(args, ftt); // Must put early to expose for second pass.
+            FTraitOrObject rval;
 
-                // be.doFnDefs(clenv, td.getFns());
-                be.secondPass();
-                be.finishTrait(td, ftt, clenv);
-                return ftt;
-            } else if (def instanceof ObjectDecl) {
-                ObjectDecl td = (ObjectDecl) def;
-                FTypeObject fto =
-                    new FTypeObjectInstance(td.getName().getName(), clenv, FTypeGeneric.this, args);
-                map.put(args, fto); // Must put early to expose for second pass.
-                be.secondPass();
-                be.finishObjectTrait(td, fto);
-                return fto;
-            } else if (def instanceof ObjectExpr) {
-                ObjectExpr td = (ObjectExpr) def;
-                FTypeObject fto =
-                    new FTypeObjectInstance(td.stringName(), clenv, FTypeGeneric.this, args);
-                map.put(args, fto); // Must put early to expose for second pass.
-                be.secondPass();
-                be.finishObjectTrait(td, fto);
-                return fto;
+            if (def instanceof DefOrDecl) {
+                DefOrDecl dod = (DefOrDecl) def;
+                if (dod instanceof TraitDecl) {
+                    TraitDecl td = (TraitDecl) dod;
+                    FTypeTrait ftt = new FTypeTraitInstance(td.getName()
+                            .getName(), clenv, FTypeGeneric.this, args);
+                    FTraitOrObject old = map.put(args, ftt); // Must put
+                                                                // early to
+                                                                // expose for
+                                                                // second pass.
+
+                    be.secondPass();
+                    be.finishTrait(td, ftt, clenv);
+                    rval = ftt;
+                } else if (dod instanceof ObjectDecl) {
+                    ObjectDecl td = (ObjectDecl) dod;
+                    FTypeObject fto = new FTypeObjectInstance(td.getName()
+                            .getName(), clenv, FTypeGeneric.this, args);
+                    map.put(args, fto); // Must put early to expose for second
+                                        // pass.
+
+                    be.secondPass();
+                    be.finishObjectTrait(td, fto);
+                    rval = fto;
+                } else if (dod instanceof ObjectExpr) {
+                    ObjectExpr td = (ObjectExpr) dod;
+                    FTypeObject fto = new FTypeObjectInstance(td.stringName(),
+                            clenv, FTypeGeneric.this, args);
+                    map.put(args, fto); // Must put early to expose for second
+                                        // pass.
+
+                    be.secondPass();
+                    be.finishObjectTrait(td, fto);
+                    rval = fto;
+                } else {
+                    throw new InterpreterError(within,
+                            "Generic def-or-declaration surprise " + dod);
+                }
+ 
+                return rval;
+
             } else {
-                throw new InterpreterError(within,"Generic surprise " + def);
+                throw new InterpreterError(within, "Generic surprise " + def);
             }
-
         }
     }
 
