@@ -18,9 +18,10 @@
 /*
  * Definition of Fortress local declarations.
  */
-module LocalDecl(Variable, Param, Header, Type, NoNewlineExpr, DelimitedExpr,
-                 Identifier, Keyword, Symbol, Spacing);
+module LocalDecl(Variable, Function, Param, Header, Type, NoNewlineExpr,
+                 DelimitedExpr, Identifier, Keyword, Symbol, Spacing);
 modify Variable;
+import Function;
 import Param;
 import Header;
 import Type;
@@ -78,22 +79,24 @@ private LetExpr LocalVarFnDecl =
    / yyValue:LocalVarDecl ;
 
 /* LocalFnDecl ::=
-     Id [w StaticParams] w ValParam [w IsType] [w Throws] w = w NoNewlineExpr
+     [LocalFnMods] FnHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
 private FnDecl LocalFnDecl =
-     a1:Id a2:(w StaticParams)? w a3:ValParam a4:(w IsType)? a5:(w Throws)? w
-       equals w a6:NoNewlineExpr
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       Option<TypeRef> ty;
-       if (a4 == null) ty = None.<TypeRef>make();
-       else            ty = Some.<TypeRef>make(a4);
-       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
-       yyValue = new FnDecl(createSpan(yyStart,yyCount),
-                            FortressUtil.emptyModifiers(), None.<Id>make(),
-                            new Fun(a1.getSpan(), a1),
-                            Some.<StaticParam>makeSomeListOrNone(a2),
-                            a3, ty, a5, FortressUtil.emptyWhereClauses(),
-                            FortressUtil.emptyContract(), a6);
+     a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w 
+     a4:NoNewlineExpr
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
+       List<WhereClause> where_ = FortressUtil.getListVal(a3.getWhereClause());
+       Contract contract;
+       if (a3.getContractClause().isPresent())
+           contract = (Contract)a3.getContractClause().getVal();
+       else
+           contract = FortressUtil.emptyContract();
+       yyValue =
+         new FnDecl(createSpan(yyStart,yyCount),a1,None.<Id>make(),a2.getName(),
+                    Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
+                    a2.getParams(), a3.getReturnType(), throws_, where_,
+                    contract, a4);
      };
 
 /* LocalVarDecl ::=

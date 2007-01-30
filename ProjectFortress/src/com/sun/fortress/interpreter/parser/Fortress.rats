@@ -46,8 +46,9 @@ instantiate DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,
 instantiate NoNewlineExpr(Expression, Keyword, Symbol, Spacing);
 instantiate NoSpaceExpr  (Expression, Keyword, Symbol, Spacing);
 instantiate Literal      (DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
-instantiate LocalDecl    (Variable, Parameter, Header, Type, NoNewlineExpr,
-                          DelimitedExpr, Identifier, Keyword, Symbol, Spacing);
+instantiate LocalDecl    (Variable, Function, Parameter, Header, Type,
+                          NoNewlineExpr, DelimitedExpr, Identifier, Keyword,
+                          Symbol, Spacing);
 instantiate Identifier   (Keyword, Symbol, Unicode, Spacing);
 instantiate Symbol       (DelimitedExpr, NoNewlineExpr, Type, Identifier,
                           Spacing, Keyword);

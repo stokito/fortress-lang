@@ -289,10 +289,9 @@ List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*
 /* ObjectMods ::= TraitMods */
 List<Modifier> ObjectMods = yyValue:TraitMods ;
 
-/* FnMod ::= atomic | io | UniversalMod */
+/* FnMod ::= LocalFnMod | UniversalMod */
 private Modifier FnMod =
-     a1:atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
-   / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); }
+     yyValue:LocalFnMod
    / yyValue:UniversalMod ;
 
 /* FnMods ::= FnMod wr (FnMod wr)* */
@@ -361,6 +360,18 @@ private Modifier ApiFldMod =
 
 /* ApiFldMods ::= ApiFldMod wr (ApiFldMod wr)* */
 List<Modifier> ApiFldMods = a1:ApiFldMod wr a2s:(ApiFldMod wr)*
+     { yyValue = new ArrayList<Modifier>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* LocalFnMod ::= atomic | io */
+private Modifier LocalFnMod =
+     a1:atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
+   / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
+
+/* LocalFnMods ::= LocalFnMod wr (LocalFnMod wr)* */
+List<Modifier> LocalFnMods = a1:LocalFnMod wr a2s:(LocalFnMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());

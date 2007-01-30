@@ -94,7 +94,7 @@ AbsFnDecl AbsFnDecl =
      Id [w StaticParams] w ValParam
    | OpHeaderFront
  */
-private FnHeaderFront FnHeaderFront =
+FnHeaderFront FnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount), a1),
