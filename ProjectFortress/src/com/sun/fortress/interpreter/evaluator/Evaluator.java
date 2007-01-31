@@ -54,6 +54,7 @@ import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.MethodInstance;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedMethod;
+import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.MethodWrapper;
@@ -707,16 +708,31 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr obj = x.getObj();
         Id fld = x.getId();
         FValue fobj = obj.accept(this);
-        if (fobj instanceof FObject) {
-            FObject fobject = (FObject) fobj;
-            // TODO Need to distinguish between public/private methods/fields
+        if (fobj instanceof Selectable) {
+            Selectable selectable = (Selectable) fobj;
+            /*
+             * Selectable was introduced to make it not necessary
+             * to know whether a.b was file b of object a, or member
+             * b of api a (or api name prefix, extended).
+             */
+//          TODO Need to distinguish between public/private methods/fields
             try {
-                return fobject.getSelfEnv().getValue(fld.getName());
+                return selectable.select(fld.getName());
             } catch (ProgramError ex) {
                 ex.setWithin(e);
                 ex.setWhere(x);
                 throw ex;
-            }
+            } 
+//        } else if (fobj instanceof FObject) {
+//            FObject fobject = (FObject) fobj;
+//            // TODO Need to distinguish between public/private methods/fields
+//            try {
+//                return fobject.getSelfEnv().getValue(fld.getName());
+//            } catch (ProgramError ex) {
+//                ex.setWithin(e);
+//                ex.setWhere(x);
+//                throw ex;
+//            }
         } else {
             throw new ProgramError(x, e, "Non-object cannot have field "
                     + fld.getName());

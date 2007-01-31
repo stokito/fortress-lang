@@ -170,10 +170,10 @@ public class fs {
     private static void parseAndRun(String s) {
         timeStamp = Useful.timeStamp();
 
-        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
-                + basename(s) + "." + timeStamp + SXP_SUFFIX;
-        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
-        boolean keepTemp = keep;
+//        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
+//                + basename(s) + "." + timeStamp + SXP_SUFFIX;
+//        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
+//        boolean keepTemp = keep;
 
         try {
 
@@ -220,7 +220,7 @@ public class fs {
 
         } catch (Throwable th) {
             synchronized (Throwable.class) {
-                keepTemp = true;
+                // keepTemp = true;
                 th.printStackTrace();
                 if (th instanceof ProgramError) {
                     System.out
@@ -231,17 +231,17 @@ public class fs {
                 }
             }
         }
-        if (!keepTemp) {
-            (new File(tmpFile)).delete();
-        }
+//        if (!keepTemp) {
+//            // (new File(tmpFile)).delete();
+//        }
     }
 
     static void usage() {
         System.err
-                .println("Usage: java fs  [-v]  [-keep] [-pause] [-parseOnly] Fortress-source-file-name Fortress-String-args");
+                .println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] Fortress-source-file-name Fortress-String-args");
         System.err
                 .println("Iteratively parses and executes a Fortress source file.");
-        System.err.println("The -keep option preserves the temproary file(s).");
+        System.err.println("The -ast option writes out the ast.");
         System.err.println("The -pause option performs a reset and gc after running the program, and then waits for input.");
         System.err.println("The -parseOnly option parses but does not evaluate the program.");
         System.err.println("The -v option is more verbose.");

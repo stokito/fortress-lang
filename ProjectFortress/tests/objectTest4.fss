@@ -22,7 +22,7 @@ g():A = A(2,3)
 h():A = A(3,6)
 
 object A(i:ZZ32, j:ZZ32)
-  f:() -> A = g (* A closure-valued field, initially g *)
+  f:() -> A := g (* A closure-valued field, initially g *)
 
   id():A = self
   self.getI():ZZ32 = self.i

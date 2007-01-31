@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 
-public class FObject extends FValue {
+public class FObject extends FValue implements Selectable {
 
     BetterEnv lexicalEnv;
     BetterEnv selfEnv;
@@ -31,6 +31,10 @@ public class FObject extends FValue {
       this.selfEnv = self_dot_env;
 }
 
+  public FValue select(String s) {
+      return getSelfEnv().getValue(s);
+  }
+  
   /**
    * The environment that you get from "self."
    * @return

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
+import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -777,6 +778,39 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     private void forVarDecl3(VarDecl x) {
 
+        List<LValue> lhs = x.getLhs();
+
+        // List<Modifier> mods;
+        // Id name = x.getName();
+        // Option<TypeRef> type = x.getType();
+        Expr init = x.getInit();
+
+        FValue init_value = new LazilyEvaluatedCell(init, containing);
+        for (LValue lv : lhs) {
+            if (lv instanceof LValueBind) {
+                LValueBind lvb = (LValueBind) lv;
+                Option<TypeRef> type = lvb.getType();
+                Id name = lvb.getName();
+                /* In this pass, make entries for immutable variables. */
+                if (! lvb.getMutable() ) {
+                    String sname = name.getName();
+                     
+                    try {
+                        /* Ignore the type, until later */
+                        putValue(bindInto, sname, init_value);
+                    } catch (ProgramError pe) {
+                        pe.setWithin(bindInto);
+                        pe.setWhere(x);
+                        throw pe;
+                    }
+                }
+                
+            } else {
+                throw new InterpreterError(x,
+                        "Don't support arbitary LHS in Var decl yet");
+            }
+        }
+
     }
 
     private void forVarDecl4(VarDecl x) {
@@ -795,15 +829,31 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 Option<TypeRef> type = lvb.getType();
                 Id name = lvb.getName();
+                String sname = name.getName();
 
                 FType ft = type.isPresent() ?
-                // type.getVal().accept(new EvalType(containing))
-                (new EvalType(containing)).evalType(type.getVal())
-                        : null;
-                // TODO We're not careful enough about forward references here.
-                // TODO When new environment are created, need to insert into
-                // containing AND bindInto
-                guardedPutValue(bindInto, name.getName(), init_value, ft, x);
+                        // type.getVal().accept(new EvalType(containing))
+                        (new EvalType(containing)).evalType(type.getVal())
+                                : null;
+                if (lvb.getMutable()) {
+                   
+                    // TODO We're not careful enough about forward references
+                    // here.
+                    // TODO When new environment are created, need to insert
+                    // into containing AND bindInto
+                    guardedPutValue(bindInto, sname, init_value, ft, x);
+                } else {
+                    // Force evaluation, snap the link, check the type!
+                    FValue value = bindInto.getValue(sname);
+                    if (ft != null) {
+                        if (!ft.typeMatch(value)) {
+                            throw new ProgramError(x, bindInto,
+                                    "TypeRef mismatch binding " + value + " (type "
+                                            + value.type() + ") to " + name + " (type "
+                                            + ft + ")");
+                        }
+                    }
+                }
             } else {
                 throw new InterpreterError(x,
                         "Don't support arbitary LHS in Var decl yet");

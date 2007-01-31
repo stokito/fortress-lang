@@ -19,12 +19,6 @@ component FortressLibrary
 
 export Executable
 
-(** Moved up here because of initialization order dysfunction *)
-trait HasRank excludes { Number, MaybeType }
-  rank():ZZ32
-  eq(o:HasRank):Boolean = false
-end
-
 (** Initialization order trouble again *)
 trait MaybeType excludes { Number }
   getter isJust() : Boolean
@@ -1104,5 +1098,11 @@ opr DOT[\ T extends Number, nat n, nat m, nat p \]
 opr +[\ T extends Number, nat n, nat m \](x:T) = x
 
 infinity = 1.0 / 0.0
+
+(** Moved up here because of initialization order dysfunction *)
+trait HasRank excludes { Number, MaybeType }
+  rank():ZZ32
+  eq(o:HasRank):Boolean = false
+end
 
 end
