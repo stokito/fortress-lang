@@ -1366,6 +1366,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Id var = x.getVar();
         String s = var.getName();
         // debugPrint("forVarRefExpr " + s);
+         
         FValue res = e.getValueNull(s);
 
         if (res == null)

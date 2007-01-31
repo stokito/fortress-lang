@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.CommonEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -266,6 +267,19 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         throw new ProgramError(loc, this, "Cannot assign to immutable " + str);
 
     }
+    
+    public void storeType(HasAt loc, String str, FType f2) {
+        FValue v = get(var_env, str);
+        if (v instanceof ReferenceCell) {
+            ((ReferenceCell)v).storeType(f2);
+            return;
+        }
+        if (v == null)
+            throw new ProgramError(loc, this, "Type stored to unbound variable " + str);
+        throw new ProgramError(loc, this, "Type stored to immutable variable " + str);
+
+    }
+
 
 //    public void assignValue(FValue f1, FValue f2) {
 //        assignValue(string(f1), f2);
@@ -395,7 +409,12 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         if (v == null)
             return v;
         if (v instanceof IndirectionCell) {
-            v = ((IndirectionCell) v).getValue();
+            try {
+                v = ((IndirectionCell) v).getValue();
+            } catch (CircularDependenceError ce) {
+                ce.addParticipant(s);
+                throw ce;
+            }
             // Ought to snap link if original was not ReferenceCell
             if (v == null) {
                 throw new ProgramError("Variable " + s + " has no value");
@@ -475,6 +494,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public void putVariable(String str, FValue f2) {
         putValue(str, new ReferenceCell(FTypeDynamic.T, f2));
+     }
+
+    public void putVariablePlaceholder(String str) {
+        putValue(str, new ReferenceCell());
      }
 
     public void putValueUnconditionally(String str, FValue f2) {

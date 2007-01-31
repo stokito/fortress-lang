@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component immutableTopLevel
+export Executable
+
+(* Notice that initialization is out-of-order *)
+
+var effects:ZZ32=0
+
+sideeffect(x:ZZ32):ZZ32 = do
+  effects+=1
+  x
+end
+
+a=sideeffect(x)
+b=sideeffect(y)
+c:ZZ32=sideeffect(x)
+d:ZZ32=sideeffect(y)
+
+
+x:ZZ32=sideeffect(1)
+y=sideeffect(2)
+z:ZZ32:=sideeffect(3)
+
+run(args:String...):()=do
+  println("x = " x)
+  println("y = " y)
+  println("z = " z)
+  println("a = " a)
+  println("b = " b)
+  println("c = " c)
+  println("d = " d)
+  println("Sideeffect count = " effects ", " (if effects = 7 then "PASS" else "FAIL" end))
+  
+end
+
+end

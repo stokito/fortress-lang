@@ -59,15 +59,15 @@ public class Useful {
         return localNow(new java.util.Date());
     }
 
-    public static <T> String listInParens(List<T> l) {
+    public static <T> String listInParens(Collection<T> l) {
         return listInDelimiters("(", l, ")");
     }
 
-    public static <T> String listInCurlies(List<T> l) {
+    public static <T> String listInCurlies(Collection<T> l) {
         return listInDelimiters("{", l, "}");
     }
 
-    public static <T> String listInDelimiters(String left, List<T> l,
+    public static <T> String listInDelimiters(String left, Collection<T> l,
             String right) {
         StringBuffer sb = new StringBuffer();
         sb.append(left);

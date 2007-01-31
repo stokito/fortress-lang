@@ -4,6 +4,7 @@
  */
 package com.sun.fortress.interpreter.env;
 
+import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -30,7 +31,7 @@ public class LazilyEvaluatedCell extends IndirectionCell {
             exp = null;
             e = null;
         } else if (theValue == this) {
-            throw new ProgramError(exp, "Value is self-dependent, cannot be evaluated.");
+            throw new CircularDependenceError(exp, "Value is self-dependent, cannot be evaluated.");
         }
        
         return theValue;

@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
@@ -727,8 +728,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         if (params.isPresent()) {
             
         } else {
-            // TODO -  Blindly assuming a non-generic singleton.
-            
+            // TODO - Blindly assuming a non-generic singleton.
+            // TODO - Need to insert the name much, much, earlier; this is too late.
             Constructor cl = (Constructor) containing
                     .getValue(obfuscated(fname));
             
@@ -769,15 +770,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
     private void forVarDecl1(VarDecl x) {
-
-    }
-
-    private void forVarDecl2(VarDecl x) {
-
-    }
-
-    private void forVarDecl3(VarDecl x) {
-
         List<LValue> lhs = x.getLhs();
 
         // List<Modifier> mods;
@@ -791,26 +783,35 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 LValueBind lvb = (LValueBind) lv;
                 Option<TypeRef> type = lvb.getType();
                 Id name = lvb.getName();
-                /* In this pass, make entries for immutable variables. */
-                if (! lvb.getMutable() ) {
-                    String sname = name.getName();
-                     
-                    try {
-                        /* Ignore the type, until later */
+                String sname = name.getName();
+
+                try {
+                    /* Ignore the type, until later */
+                    if (lvb.getMutable()) {
+                        bindInto.putVariablePlaceholder(sname);
+                    } else {
                         putValue(bindInto, sname, init_value);
-                    } catch (ProgramError pe) {
-                        pe.setWithin(bindInto);
-                        pe.setWhere(x);
-                        throw pe;
                     }
+                 } catch (ProgramError pe) {
+                    pe.setWithin(bindInto);
+                    pe.setWhere(x);
+                    throw pe;
                 }
-                
+
             } else {
                 throw new InterpreterError(x,
                         "Don't support arbitary LHS in Var decl yet");
             }
         }
+    }
 
+    private void forVarDecl2(VarDecl x) {
+
+    }
+
+    private void forVarDecl3(VarDecl x) {
+
+       
     }
 
     private void forVarDecl4(VarDecl x) {
@@ -822,7 +823,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
 
-        FValue init_value = (new Evaluator(containing)).eval(init);
         for (LValue lv : lhs) {
             if (lv instanceof LValueBind) {
                 LValueBind lvb = (LValueBind) lv;
@@ -832,16 +832,28 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 String sname = name.getName();
 
                 FType ft = type.isPresent() ?
-                        // type.getVal().accept(new EvalType(containing))
                         (new EvalType(containing)).evalType(type.getVal())
                                 : null;
+                        
                 if (lvb.getMutable()) {
-                   
-                    // TODO We're not careful enough about forward references
-                    // here.
+                    FValue value = (new Evaluator(containing)).eval(init); 
+                     
                     // TODO When new environment are created, need to insert
                     // into containing AND bindInto
-                    guardedPutValue(bindInto, sname, init_value, ft, x);
+                    
+                    if (ft != null) {
+                        if (!ft.typeMatch(value)) {
+                            throw new ProgramError(x, bindInto,
+                                    "TypeRef mismatch binding " + value + " (type "
+                                            + value.type() + ") to " + name + " (type "
+                                            + ft + ")");
+                        }
+                    } else {
+                        ft = FTypeDynamic.T;
+                    }
+                    /* Finally, can finish this initialiation. */
+                    bindInto.storeType(x, sname, ft);
+                    bindInto.assignValue(x, sname, value);
                 } else {
                     // Force evaluation, snap the link, check the type!
                     FValue value = bindInto.getValue(sname);

@@ -50,6 +50,11 @@ public class ReferenceCell extends IndirectionCell {
         node = factory.create();
     }
 
+    ReferenceCell() {
+        super();
+        node = factory.create();
+    }
+
     public void assignValue(FValue f2) {
         theValue = f2;
         node.setValue(f2);
@@ -69,6 +74,12 @@ public class ReferenceCell extends IndirectionCell {
         if (node.getValue() != null)
             throw new ProgramError("Internal error, second store of indirection cell");
         node.setValue(f2);
+    }
+
+    public void storeType(FType f2) {
+        if (theType != null)
+            throw new ProgramError("Internal error, second store of type");
+        theType = f2;
     }
 
     public boolean isInitialized() {
