@@ -61,6 +61,7 @@ private TraitHeader TraitHeader =
                                      a5.getComprises(), a5.getWhere());
      };
 
+/* Each trait clause cannot appear more than once. */
 /* TraitClauses ::= (w TraitClause)+ */
 private TraitClauses TraitClauses = a1s:(w TraitClause)+
      { yyValue = new TraitClauses();
