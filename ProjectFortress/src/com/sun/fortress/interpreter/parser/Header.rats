@@ -279,13 +279,16 @@ private Modifier TraitMod =
      a1:value   { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
    / yyValue:UniversalMod ;
 
+/* Each modifier cannot appear more than once. */
 /* TraitMods ::= TraitMod wr (TraitMod wr)* */
 List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
+/* Each modifier cannot appear more than once. */
 /* ObjectMods ::= TraitMods */
 List<Modifier> ObjectMods = yyValue:TraitMods ;
 
@@ -294,11 +297,13 @@ private Modifier FnMod =
      yyValue:LocalFnMod
    / yyValue:UniversalMod ;
 
+/* Each modifier cannot appear more than once. */
 /* FnMods ::= FnMod wr (FnMod wr)* */
 List<Modifier> FnMods = a1:FnMod wr a2s:(FnMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* VarMod ::= var | UniversalMod */
@@ -306,11 +311,13 @@ private Modifier VarMod =
      a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
    / yyValue:UniversalMod ;
 
+/* Each modifier cannot appear more than once. */
 /* VarMods ::= VarMod wr (VarMod wr)* */
 List<Modifier> VarMods = a1:VarMod wr a2s:(VarMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* MdMod ::= getter | setter | FnMod */
@@ -319,11 +326,13 @@ private Modifier MdMod =
    / a1:setter { yyValue = new Modifier.Setter(createSpan(yyStart,yyCount)); }
    / yyValue:FnMod ;
 
+/* Each modifier cannot appear more than once. */
 /* MdMods ::= MdMod wr (MdMod wr)* */
 List<Modifier> MdMods = a1:MdMod wr a2s:(MdMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* AbsFldMod ::= hidden | settable | wrapped | UniversalMod */
@@ -333,11 +342,13 @@ private Modifier AbsFldMod =
    / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
    / yyValue:UniversalMod ;
 
+/* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= AbsFldMod wr (AbsFldMod wr)* */
 List<Modifier> AbsFldMods = a1:AbsFldMod wr a2s:(AbsFldMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* FldMod ::= var | AbsFldMod */
@@ -345,11 +356,13 @@ private Modifier FldMod =
      a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
    / yyValue:AbsFldMod ;
 
+/* Each modifier cannot appear more than once. */
 /* FldMods ::= FldMod wr (FldMod wr)* */
 List<Modifier> FldMods = a1:FldMod wr a2s:(FldMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* ApiFldMod ::= hidden | settable | UniversalMod */
@@ -358,11 +371,13 @@ private Modifier ApiFldMod =
    / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
    / yyValue:UniversalMod ;
 
+/* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= ApiFldMod wr (ApiFldMod wr)* */
 List<Modifier> ApiFldMods = a1:ApiFldMod wr a2s:(ApiFldMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* LocalFnMod ::= atomic | io */
@@ -370,11 +385,13 @@ private Modifier LocalFnMod =
      a1:atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
    / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
 
+/* Each modifier cannot appear more than once. */
 /* LocalFnMods ::= LocalFnMod wr (LocalFnMod wr)* */
 List<Modifier> LocalFnMods = a1:LocalFnMod wr a2s:(LocalFnMod wr)*
      { yyValue = new ArrayList<Modifier>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
+       FortressUtil.noDuplicate(yyValue);
      };
 
 /* StaticParams ::= [\ w StaticParamList w \] */

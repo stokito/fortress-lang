@@ -105,6 +105,59 @@ public final class FortressUtil {
         else               return Collections.<T>emptyList();
     }
 
+    private static void multiple(Modifier m) {
+        throw new ProgramError(m, "A modifier must not occur multiple times");
+    }
+    public static void noDuplicate(List<Modifier> mods) {
+        boolean m_atomic   = false;
+        boolean m_getter   = false;
+        boolean m_hidden   = false;
+        boolean m_io       = false;
+        boolean m_private  = false;
+        boolean m_settable = false;
+        boolean m_setter   = false;
+        boolean m_test     = false;
+        boolean m_value    = false;
+        boolean m_var      = false;
+        boolean m_wrapped  = false;
+        for (Modifier m : mods) {
+	    if (m instanceof Modifier.Atomic) {
+                if (m_atomic) multiple(m);
+                else m_atomic = true;
+            } else if (m instanceof Modifier.Getter) {
+                if (m_getter) multiple(m);
+                else m_getter = true;
+            } else if (m instanceof Modifier.Hidden) {
+                if (m_hidden) multiple(m);
+                else m_hidden = true;
+            } else if (m instanceof Modifier.IO) {
+                if (m_io) multiple(m);
+                else m_io = true;
+            } else if (m instanceof Modifier.Private) {
+                if (m_private) multiple(m);
+                else m_private = true;
+            } else if (m instanceof Modifier.Settable) {
+                if (m_settable) multiple(m);
+                else m_settable = true;
+            } else if (m instanceof Modifier.Setter) {
+                if (m_setter) multiple(m);
+                else m_setter = true;
+            } else if (m instanceof Modifier.Test) {
+                if (m_test) multiple(m);
+                else m_test = true;
+            } else if (m instanceof Modifier.Value) {
+                if (m_value) multiple(m);
+                else m_value = true;
+            } else if (m instanceof Modifier.Var) {
+                if (m_var) multiple(m);
+                else m_var = true;
+            } else if (m instanceof Modifier.Wrapped) {
+                if (m_wrapped) multiple(m);
+                else m_wrapped = true;
+            }
+        }
+    }
+
     private static boolean compoundOp(String s) {
         return (s.length() > 1 && s.endsWith("=")
                 && !s.equals("<=") && !s.equals(">=")
