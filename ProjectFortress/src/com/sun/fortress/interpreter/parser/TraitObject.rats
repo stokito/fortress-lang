@@ -43,24 +43,44 @@ TraitDecl TraitDecl = a1:TraitHeader a2:(w GoInATrait)? w end
      };
 
 /* TraitHeader ::=
-     [TraitMods] trait w Id [w StaticParams] [w Extends] [w Excludes]
-     [w Comprises] [w Where]
+     [TraitMods] trait w Id [w StaticParams] [w Extends] [TraitClauses]
  */
 private TraitHeader TraitHeader =
      a1:TraitMods? trait w a2:Id a3:(w StaticParams)? a4:(w Extends)?
-     a5:(w Excludes)? a6:(w Comprises)? a7:(w Where)?
-     { Option<List<TypeRef>> comprises;
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     a5:(TraitClauses)?
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = FortressUtil.emptyStaticParams();
        if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
-       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
-       if (a6 == null) comprises = None.<List<TypeRef>>make();
-       else            comprises = Some.<List<TypeRef>>make(a6);
-       Option<List<WhereClause>> where;
-       if (a7 == null) where = None.<List<WhereClause>>make();
-       else            where = Some.<WhereClause>makeSomeListOrNone(a7);
-       yyValue = new TraitHeader(a1, a2, a3, a4, a5, comprises, where);
+       if (a5 == null)
+           yyValue = new TraitHeader(a1, a2, a3, a4, 
+                                     FortressUtil.emptyTypeRefs(),
+                                     None.<List<TypeRef>>make(),
+                                     None.<List<WhereClause>>make());
+       else
+           yyValue = new TraitHeader(a1, a2, a3, a4, a5.getExcludes(),
+                                     a5.getComprises(), a5.getWhere());
      };
+
+/* TraitClauses ::= (w TraitClause)+ */
+private TraitClauses TraitClauses = a1s:(w TraitClause)+
+     { yyValue = new TraitClauses();
+       for (TraitClause t : (List<TraitClause>)a1s.list()) {
+         yyValue.set(t);
+       }
+     };
+
+/* TraitClause ::=
+     w Excludes
+   | w Comprises
+   | w Where
+ */
+private TraitClause TraitClause =
+     w a1:Excludes
+     { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
+   / w a1:Comprises
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
+   / w a1:Where
+     { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
 /* GoInATrait ::= GoesInATrait (br GoesInATrait)* */
 private List<DefOrDecl> GoInATrait = a1:GoesInATrait a2s:(br GoesInATrait)*
