@@ -70,8 +70,8 @@ List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | AbsObjectDecl
    | AbsVarDecl
    | AbsFnDecl
-   | AbsDimUnitDecl
-   | AbsTypeAlias
+   | DimUnitDecl
+   | TypeAlias
    | TestDecl
    | PropertyDecl
    | AbsExternalSyntax
@@ -83,9 +83,9 @@ private DefOrDecl AbsDecl =
    / yyValue:AbsFnDecl
 /* ************************************************
  * Not Yet Implemented ***************************
-   / yyValue:AbsDimUnitDecl
+   / yyValue:DimUnitDecl
 ************************************************ */
-   / yyValue:AbsTypeAlias
+   / yyValue:TypeAlias
    / yyValue:TestDecl
    / yyValue:PropertyDecl
    / yyValue:AbsExternalSyntax ;

@@ -105,32 +105,6 @@ Name CloseExpander =
        yyValue = new Name(span, new Id(span, "end"));
      };
 
-/* AbsDimUnitDecl ::=
-     dim w Id [w default w Id]
-   | (unit | SI_unit) w Id (wr Id)* [w : w DimRef]
-   | dim w Id s (unit | SI_unit) w Id (wr Id)*
- */
-/* ************************************************
- * Not Yet Implemented ***************************
-AbsDimUnitDecl AbsDimUnitDecl =
-     dim w a1:Id a2:(w default w Id)?
-     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2); }
-   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?
-     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1,
-                                    a2s.list(), a3);
-     }
-   / dim w a1:Id s (unit / SI_unit) w a2:Id a3s:(wr Id)*
-     { yyValue = new AbsDimUnitDecl(createSpan(yyStart,yyCount), a1, a2,
-                                    a3s.list());
-     };
-************************************************ */
-
-/* AbsTypeAlias ::= type w Id [w StaticParams] */
-AbsTypeAlias AbsTypeAlias = type w a1:Id a2:(w StaticParams)?
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new AbsTypeAlias(createSpan(yyStart,yyCount), a1, a2);
-     };
-
 /* AbsExternalSyntax ::= syntax w OpenExpander w Id w CloseExpander */
 AbsExternalSyntax AbsExternalSyntax =
      syntax w a1:OpenExpander w a2:Id w a3:CloseExpander
