@@ -36,8 +36,8 @@ List<TypeRef> Extends = extends w yyValue:TraitTypes ;
 /* Excludes ::= excludes w TraitTypes */
 List<TypeRef> Excludes = excludes w yyValue:TraitTypes ;
 
-/* Comprises ::= comprises w MayTraitTypes */
-List<TypeRef> Comprises = comprises w yyValue:MayTraitTypes ;
+/* Comprises ::= comprises w ComprisingTypes */
+List<TypeRef> Comprises = comprises w yyValue:ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<TypeRef> TraitTypes =
@@ -54,10 +54,26 @@ private List<TypeRef> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
        yyValue.addAll(a2s.list());
      };
 
-/* MayTraitTypes ::= { w } | TraitTypes  */
-private List<TypeRef> MayTraitTypes =
-     opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
-   / yyValue:TraitTypes ;
+/* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
+private List<TypeRef> ComprisingTypes =
+     a1:TraitType
+     { yyValue = new ArrayList<TypeRef>(1);
+       yyValue.add(a1);
+     }
+   / opencurly w yyValue:ComprisingTypeList w closecurly ;
+
+/* ComprisingTypeList ::=
+     ...
+   | TraitType (w , w TraitType)* (w , w ...)?
+ */
+private List<TypeRef> ComprisingTypeList =
+     ellipses
+     { yyValue = FortressUtil.emptyTypeRefs(); }
+   / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
+     { yyValue = new ArrayList<TypeRef>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
 
 /* Where ::= where w { w WhereClauseList w } */
 List<WhereClause> Where =
@@ -185,6 +201,11 @@ FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
 
 /* Throws ::= throws w MayTraitTypes */
 List<TypeRef> Throws = throws w yyValue:MayTraitTypes ;
+
+/* MayTraitTypes ::= { w } | TraitTypes  */
+private List<TypeRef> MayTraitTypes =
+     opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
+   / yyValue:TraitTypes ;
 
 /* Contract ::= [w Requires] [w Ensures] [w Invariant] */
 Contract Contract =
