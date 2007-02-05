@@ -75,12 +75,16 @@ import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TightJuxt;
 import com.sun.fortress.interpreter.nodes.TraitDecl;
+import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.TypeAlias;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.UnitDim;
 import com.sun.fortress.interpreter.nodes.UnitVar;
 import com.sun.fortress.interpreter.nodes.VarDecl;
+import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.nodes.WhereExtends;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -643,10 +647,21 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // visit
                 // the interior environment.
                 // BetterEnv interior = new SpineEnv(e, x);
+                
+                // TODO - binding into "containing", or "bindInto"?
+                
                 Constructor cl = new Constructor(containing, (FTypeObject) ft,
                         x);
                 guardedPutValue(containing, obfuscated(fname), cl, x);
 
+                String sname = name.getName();
+                // Create a little expression to run the constructor.
+                Expr init = new TightJuxt(x.getSpan(),
+                        new VarRefExpr(x.getSpan(), obfuscated(fname)),
+                        new VoidLiteral(x.getSpan()));
+                FValue init_value = new LazilyEvaluatedCell(init, containing);
+                putValue(bindInto, sname, init_value);
+                
                 // doDefs(interior, defs);
             }
         }
@@ -730,11 +745,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         } else {
             // TODO - Blindly assuming a non-generic singleton.
             // TODO - Need to insert the name much, much, earlier; this is too late.
-            Constructor cl = (Constructor) containing
-                    .getValue(obfuscated(fname));
             
-            guardedPutValue(containing, fname, cl.apply(java.util.Collections
-                    .<FValue> emptyList(), x, e), x);
+            String sname = name.getName();
+            FValue value = bindInto.getValue(sname);
+            
+//            Constructor cl = (Constructor) containing
+//                    .getValue(obfuscated(fname));
+//            
+//            guardedPutValue(containing, fname, cl.apply(java.util.Collections
+//                    .<FValue> emptyList(), x, e), x);
 
         }
     }

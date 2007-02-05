@@ -32,6 +32,13 @@ b=sideeffect(y)
 c:ZZ32=sideeffect(x)
 d:ZZ32=sideeffect(y)
 
+object P
+  ff:ZZ32 = do O.p(1); 17; end
+end
+
+object O
+  p(x:ZZ32):() = println("O.p(" x ") called")
+end
 
 x:ZZ32=sideeffect(1)
 y=sideeffect(2)
@@ -45,6 +52,7 @@ run(args:String...):()=do
   println("b = " b)
   println("c = " c)
   println("d = " d)
+  O.p(P.ff)
   println("Sideeffect count = " effects ", " (if effects = 7 then "PASS" else "FAIL" end))
   
 end
