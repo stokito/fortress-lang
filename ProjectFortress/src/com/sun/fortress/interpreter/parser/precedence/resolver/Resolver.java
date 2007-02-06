@@ -1210,7 +1210,7 @@ public class Resolver {
       for (OpExpr expr : opExprs.toJavaList()) {
       msg += "\n  " + expr.toString();
       }
-      throw new Error("Resolution of operator precedence failed for:\n" + msg);
+      throw new Error("Resolution of operator property failed for:\n" + msg);
     }
   }
 }
