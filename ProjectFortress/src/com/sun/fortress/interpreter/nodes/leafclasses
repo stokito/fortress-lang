@@ -176,7 +176,10 @@ VarRefExpr
 VectorType
 VoidLiteral
 VoidType
+WhereBool
 WhereExtends
+WhereNat
+WhereUnit
 WhereWidensCoerces
 While
 WrappedFValue

@@ -100,35 +100,38 @@ private List<WhereClause> WhereClauseList =
 private WhereClause WhereClause =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
-   / yyValue:TypeAlias ;
+   / yyValue:TypeAlias
+   / yyValue:NatConstraint
+   / yyValue:IntConstraint
+   / yyValue:BoolConstraint
+   / yyValue:UnitConstraint ;
 /* ************************************************
  * Not Yet Implemented ***************************
-   / a1:NatConstraint
-   / a1:IntConstraint
-   / a1:BoolConstraint
-   / a1:UnitConstraint
    / a1:TypeRef w coerces w a2:TypeRef
    / a1:TypeRef w widens w a2:TypeRef
 ************************************************ */
 
 /* NatConstraint ::=
-     NatRef w LT w NatRef
+     nat w Id
+   | NatRef w LT w NatRef
    | NatRef w LE w NatRef
    | NatRef w GT w NatRef
    | NatRef w GE w NatRef
    | NatRef w = w NatRef
-   | ( w NatRef w )
+   | ( w NatConstraint w )
  */
+private WhereNat NatConstraint =
+     nat w a1:Id
+     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
-private NatConstraint NatConstraint =
-     a1:NatRef w "LT":op w a2:NatRef
+   / a1:NatRef w "LT":op w a2:NatRef
    / a1:NatRef w "LE":op w a2:NatRef
    / a1:NatRef w "GT":op w a2:NatRef
    / a1:NatRef w "GE":op w a2:NatRef
    / a1:NatRef w equals w a2:NatRef
-   / openparen w a1:NatRef w closeparen
 ************************************************ */
+   / openparen w yyValue:NatConstraint w closeparen ;
 
 /* NatRef ::= StaticArg */
 /* ************************************************
@@ -136,11 +139,27 @@ private NatConstraint NatConstraint =
 private StaticArg NatRef = yyValue:StaticArg;
 ************************************************ */
 
-/* IntConstraint ::= NatConstraint */
+/* IntConstraint ::=
+     int w Id
+   | NatRef w LT w NatRef
+   | NatRef w LE w NatRef
+   | NatRef w GT w NatRef
+   | NatRef w GE w NatRef
+   | NatRef w = w NatRef
+   | ( w IntConstraint w )
+ */
+private WhereNat IntConstraint =
+     int w a1:Id
+     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
-private IntConstraint IntConstraint = yyValue:NatConstraint ;
+   / a1:NatRef w "LT":op w a2:NatRef
+   / a1:NatRef w "LE":op w a2:NatRef
+   / a1:NatRef w "GT":op w a2:NatRef
+   / a1:NatRef w "GE":op w a2:NatRef
+   / a1:NatRef w equals w a2:NatRef
 ************************************************ */
+   / openparen w yyValue:IntConstraint w closeparen ;
 
 /* BoolConstraint ::=
      bool w Id
@@ -149,19 +168,20 @@ private IntConstraint IntConstraint = yyValue:NatConstraint ;
    | BoolRef w AND w BoolRef
    | BoolRef w IMPLIES w BoolRef
    | BoolRef w = w BoolRef
-   | ( w BoolRef w )
+   | ( w BoolConstraint w )
  */
+private WhereBool BoolConstraint =
+     bool w a1:Id
+     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
-private BoolConstraint BoolConstraint =
-     bool w a1:Id
    / "NOT":op w a1:BoolRef
    / a1:BoolRef w "OR":op w a2:BoolRef
    / a1:BoolRef w "AND":op w a2:BoolRef
    / a1:BoolRef w "IMPLIES":op w a2:BoolRef
    / a1:BoolRef w equals w a2:BoolRef
-   / openparen w a1:BoolRef w closeparen
 ************************************************ */
+   / openparen w yyValue:BoolConstraint w closeparen ;
 
 /* BoolRef ::= StaticArg */
 /* ************************************************
@@ -169,10 +189,16 @@ private BoolConstraint BoolConstraint =
 private StaticArg BoolRef = yyValue:StaticArg;
 ************************************************ */
 
-/* UnitConstraint ::= UnitRef w = w UnitRef */
+/* UnitConstraint ::=
+     unit w Id
+   | UnitRef w = w UnitRef
+ */
+private WhereUnit UnitConstraint =
+     unit w a1:Id
+     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); } ;
 /* ************************************************
  * Not Yet Implemented ***************************
-private UnitConstraint UnitConstraint = a1:UnitRef w equals w a2:UnitRef
+   / a1:UnitRef w equals w a2:UnitRef
 ************************************************ */
 
 /* FnHeaderClause ::= [w IsType] FnClauses */
