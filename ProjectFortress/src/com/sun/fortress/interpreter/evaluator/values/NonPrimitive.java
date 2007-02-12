@@ -202,7 +202,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                             "Closure/Constructor for " + getAt().stringName()
                                     + " parameter " + i + " ("
                                     + param.getName() + ":"
-                                    + param.getType() + ") got type "
+                                    + paramType + ") got type "
                                     + arg.type());
                 }
                 try {

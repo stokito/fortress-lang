@@ -89,6 +89,12 @@ public static final class ATan extends Util.R2R {
 public static final class ATan2 extends Util.RR2R {
     protected double f(double y, double x) { return Math.atan2(y,x); }
 }
+public static final class Log extends Util.R2R {
+    protected double f(double x) { return Math.log(x); }
+}
+public static final class Exp extends Util.R2R {
+    protected double f(double x) { return Math.exp(x); }
+}
 public static final class Ceiling extends Util.R2R {
     protected double f(double x) { return Math.ceil(x); }
 }
