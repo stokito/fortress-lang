@@ -18,6 +18,9 @@
 component fingerTree
 export Executable
 
+(** CURRENTLY DOES NOT WORK.  See not_passing_yet/deepHierarchy.fss,
+    which must pass before this has a prayer of working. *)
+
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
     16:2 2006.
 
@@ -307,6 +310,7 @@ object Deep[\E\](l:D14[\E\], m:Finger[\ D23[\E\] \], r:D14[\E\])
 end
 
 run(args:String...):() = do
+  println("Howdy!")
   e = D0[\ZZ32\]()
   (*
   println(e)

@@ -18,87 +18,44 @@
 component deepHierarchy
 export Executable
 
-(* A deep type hierarchy seems to create interpreter trouble.  This is
-   extracted from the FingerTree code. *)
+(* We need to be careful about the order in which we instantiate a
+   type hierarchy with an overloaded method whose argument type
+   mentions a subclass.  This is extracted from the FingerTree code.
+   We see the following instantiation work (R indicates completion).
+   Note that nested instantiations of a type will return the
+   partially-computed outer object, and the problem is we need to know
+   the extends list in order to check the validity of the addLeft
+   overloading.
 
-trait Stringable
-  toString():String
+Started
+not_passing_yet/deepHierarchy.fss:56.6: D0[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:50.27: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.27: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.27: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:47.12: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.12: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:46.23: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:46.23: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:46.12: D0[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:46.12: D0[\ZZ32\] R
+Got exception: com.sun.fortress.interpreter.evaluator.InterpreterError: not_passing_yet/deepHierarchy.fss:56.6: D0[\ZZ32\]: Get of unset extends
+
+*)
+
+trait Finger[\ E \]
+  addLeft(e:D0[\E\]) : Finger[\E\] = self
+  addLeft(e:Finger[\E\]) : Finger[\E\] = e
 end
 
-trait Finger[\ E \] extends Stringable
-    comprises { D01[\E\], Deep[\E\] }
-  addLeft(e:D0[\E\]) : Finger[\E\]
-  addLeft(e:D14[\E\]) : Finger[\E\]
-end
-
-trait D04[\E\] extends Stringable
-    comprises { D03[\E\], D14[\E\] }
-end
-
-trait D03[\E\] extends D04[\E\]
-    comprises { D02[\E\], D13[\E\] }
-end
-
-trait D14[\E\] extends D04[\E\]
-    comprises { D13[\E\], D24[\E\] }
-end
-
-trait D02[\E\] extends D03[\E\]
-    comprises { D01[\E\],D12[\E\] }
-end
-
-trait D13[\E\] extends { D03[\E\], D14[\E\] }
-    comprises { D12[\E\], D23[\E\] }
-end
-
-trait D24[\E\] extends D14[\E\]
-end
-
-trait D01[\E\] extends { D02[\E\], Finger[\E\] }
-    comprises { D0[\E\], D1[\E\] }
-end
-
-trait D12[\E\] extends { D02[\E\], D13[\E\] }
-    comprises { D1[\E\], D2[\E\] }
-end
-
-trait D23[\E\] extends { D13[\E\], D24[\E\] }
-    comprises { D2[\E\], D3[\E\] }
-end
-
-trait D34[\E\] extends D24[\E\]
-    comprises { D3[\E\], D4[\E\] }
-end
-
-object D0[\E\]() extends { D01[\E\] }
+object D0[\E\]() extends { Finger[\E\] }
   toString() = "0"
 end
 
-object D1[\E\]() extends { D01[\E\], D12[\E\] }
-  toString() = "1"
-end
-
-object D2[\E\]() extends { D12[\E\], D23[\E\] }
-  toString() = "2"
-end
-
-object D3[\E\]() extends { D23[\E\], D34[\E\] }
-  toString() = "3"
-end
-
-object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
-  toString() = "4"
-end
-
-object Deep[\E\]()
-    extends { Finger[\E\] }
-  toString() = "D"
-end
-
-
 run(args:String...):() = do
+  println("Started")
   e = D0[\ZZ32\]()
-  println(e.toString())
+  println("Instantiated")
+  println(e)
   ()
 end
 

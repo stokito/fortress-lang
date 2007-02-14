@@ -72,7 +72,8 @@ abstract public class FTraitOrObject extends FType {
 
     public List<FType> getExtends() {
         if (extends_ == null)
-            throw new InterpreterError(membersOf.getAt(),"Get of unset extends");
+            throw new InterpreterError(membersOf.getAt(),
+                                       this+": Get of unset extends");
         // throw new IllegalStateException("Get of unset extends");
         return extends_;
     }
