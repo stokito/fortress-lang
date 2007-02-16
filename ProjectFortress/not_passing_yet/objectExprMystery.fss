@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component objectExprMystery
+export Executable
+
+(* We trip up on Array2.fill(f:I->E) even though it works fine in
+   tests/matrixOps.fss! *)
+
+(* Commenting out the following declaration, or the argument type, causes
+   things to work. *)
+mtest(a:Array2[\RR64,0,6,0,6\]):() = ()
+
+run(args:String...):() = do
+  a : RR64[6,6] = array2[\RR64,6,6\](0.0)
+end
+
+end

@@ -129,7 +129,12 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
             new Factory());
 
     public FTraitOrObject make(List<FType> l, HasAt within) {
-        return memo.make(l, within);
+        // System.out.println(""+within.at()+": "+
+        //                    this.name+Useful.listInOxfords(l));
+        FTraitOrObject r = memo.make(l, within);
+        // System.out.println(""+within.at()+": "+
+        //                    this.name+Useful.listInOxfords(l)+" R");
+        return r;
     }
 
     public FType typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {

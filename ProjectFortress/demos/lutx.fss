@@ -22,6 +22,7 @@ export Executable
    Translated into something which works in Fortress today by Jan.
 *)
 
+
 opr MAXMIN[\N extends Number, I extends Integral\](a:(N,I),b:(N,I)):(N,I) = do
   (x1,n1) = a
   (x2,n2) = b
@@ -95,7 +96,9 @@ showPerm[\nat n\](a:Array1[\ZZ32,0,n\]):() = do
   println(" ]")
 end
 
-mtest(a:RR64[6,6]):() = do
+(* Uncommenting the type signature manifests the bug in
+   objectExprMystery.fss *)
+mtest(a(*:RR64[6,6]*)):() = do
   println(a)
   (l,u,p) = lutx(a)
   println(a)
@@ -105,13 +108,9 @@ end
 
 run(args:String...):() = do
   a : RR64[6,6] = matrix[\RR64,6,6\]()
-  for i <- 0#6, j <- 0#6 do
-      a[i,j] := if j <= i then 7.0-i else 7*6*5*2.0 end
-  end
+  a.fill(fn (i,j) => if j <= i then 7.0-i else 7*6*5*2.0 end)
   mtest(a)
-  for i <- 0#6, j <- 0#6 do
-      a[i,j] := if j >= i then 7.0-j else 7*6*5*2.0 end
-  end
+  a.fill(fn (i,j) => if j >= i then 7.0-j else 7*6*5*2.0 end)
   mtest(a)
 end
 

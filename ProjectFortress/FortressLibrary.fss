@@ -53,6 +53,8 @@ opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
 (** Maybe type *)
 
+(* This makes excludes work without where clauses, and allows opr =()
+   to remain non-parametric. *)
 trait MaybeType excludes { Number }
   getter isJust() : Boolean
   eq(o:MaybeType):Boolean = false
@@ -69,6 +71,8 @@ object Just[\T\](x:T) extends {Maybe[\T\]}
   toString():String = "Just(" x ")"
 end
 
+(* Obviously ought to be a non-parametric singleton when we get where
+   clauses working. *)
 object Nothing[\T\]() extends { Maybe[\T\] }
   isJust() = false
   unJust() = throw UnJustNothing
@@ -225,19 +229,19 @@ value object N[\nat n\]() extends { NatParam }
   toZZ() = n
 end
 
-  _refl[\nat r, nat b\](x:ZZ32):NatParam =
+  __refl'[\nat r, nat b\](x:ZZ32):NatParam =
     if x=0 then N[\r\]()
     elif (x REM (b+b)) = 0 then
-      _refl[\r, b+b\](x)
+      __refl'[\r, b+b\](x)
     else
-      _refl[\r+b, b+b\](x-b)
+      __refl'[\r+b, b+b\](x-b)
     end
 
 reflect(z:ZZ32):NatParam = do
   if z < 0 then
     fail("reflect(" z "): " negative argument)
   else
-    _refl[\0,1\](z)
+    __refl'[\0,1\](z)
   end
 end
 
@@ -289,9 +293,9 @@ trait Indexed3[\ nat n \] end
 (* The indexed trait indicates that an object of type T can be indexed
 using type I to obtain elements with type E.  For this to really work
 the way we want for arrays, we'll need better parameterization of
-typles with tuples. *)
+types with tuples. *)
 
-trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
+trait Indexed[\T extends Indexed[\T, E, I\], E, I\] extends HasRank
   opr[i:I] : E
   opr[i:I]:=(v:E) : ()
   assign(v:T):T = fill(fn (i:I):E => v[i])
@@ -304,26 +308,26 @@ end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
-  sizes() : I
-  bases() : I
+  size() : I
+  base() : I
   replica[\U\]():Array[\U,I\]
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
    run-time-determined size. *)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = _arr(array1[\E,0\](),reflect(x))
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(array1[\E,0\](),reflect(x))
 array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-   _arr(array1[\E,0\](),reflect(x), reflect(y))
+   __arr'(array1[\E,0\](),reflect(x), reflect(y))
 array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-   _arr(array1[\E,0\](),reflect(x), reflect(y), reflect(z))
+   __arr'(array1[\E,0\](),reflect(x), reflect(y), reflect(z))
 
 (* This should be local to array, but we don't support local
    parametric methods in the language spec at all at the moment. *)
-_arr[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\]):Array1[\E,0,n\] =
+__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\]):Array1[\E,0,n\] =
    array1[\E,n\]()
-_arr[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\]):
+__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
-_arr[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
+__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -345,7 +349,7 @@ partition(x:ZZ32):(ZZ32,ZZ32) = do
   (m,x-m)
 end
 
-(* The reduction classes allow us to define systematic
+(* The reduction traits allow us to define systematic
 recursively-decomposed computations in the absence of a real Generator
 hierarchy.  The simplest instance of a reduction defines three functions:
   empty -- What to do if we reach an empty portion of a structure
@@ -358,6 +362,7 @@ method which runs the reduction.  *)
 trait ReductionBase[\T\]
   empty():T
   join(a:T,b:T):T
+  run():T
 end
 
 trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
@@ -375,18 +380,12 @@ trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
     end
 end
 
-(* A void-like object to work around inability to parse
-parameterization with () *)
-object _V
-  toString():String = "_V[library internal]"
-end
-
 trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
               Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
-  sizes():ZZ32 = s0
-  bases():ZZ32 = b0
+  size():ZZ32 = s0
+  base():ZZ32 = b0
   toString() = do
     r = "[" b0 "#" s0 "] = ["
     if s0=0 then
@@ -403,8 +402,6 @@ trait Array1[\T, nat b0, nat s0\]
   get(i:ZZ32):T
   put(v:T, i:ZZ32)
 
-  size():ZZ32 = s0
-  base():ZZ32 = b0
   indices():ZZ32Range = b0#s0
 
   (* Offset converts from b0 indexing to 0 indexing,
@@ -422,13 +419,13 @@ trait Array1[\T, nat b0, nat s0\]
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
-  replica[\U\]():Array1[\U,b0,s0\] = _DefaultArray1[\U,b0,s0\]()
+  replica[\U\]():Array1[\U,b0,s0\] = __DefaultArray1[\U,b0,s0\]()
 
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
-    (object extends Reduction1[\_V,s0\]
-       empty()= _V
-       join(a:_V,b:_V):_V = _V
-       leaf(a:ZZ32):_V = do put(f(a+b0),a); _V end
+    (object extends Reduction1[\(),s0\]
+       empty()= ()
+       join(a:(),b:()):() = ()
+       leaf(a:ZZ32):() = put(f(a+b0),a)
      end).run()
     self
   end
@@ -454,7 +451,7 @@ end
    l0 is the underlying size, m0 the stride, and o0 the starting
    offset in the underlying FlatStorage.
    Invariant: (s0-1) m0 + o0 < l0 *)
-object _SubArray1[\T, nat b0, nat s0, nat l0\]
+object __SubArray1[\T, nat b0, nat s0, nat l0\]
        (mem:FlatStorageMaker[\T,l0\], o0:ZZ32, m0:ZZ32)
        extends Array1[\T, b0, s0\]
     index(i:ZZ32):T = i m0 + o0
@@ -463,24 +460,24 @@ object _SubArray1[\T, nat b0, nat s0, nat l0\]
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
       o_n : ZZ32 = o - b0
       if s + o_n > s0 then
-          fail("_SubArray1: subarray exceeds bounds of underlying array.")
+          fail("__SubArray1: subarray exceeds bounds of underlying array.")
       end
       o_f : ZZ32 = o_n m0 + o0
-      _SubArray1[\T,b,s,l0\](mem,o_f,m0)
+      __SubArray1[\T,b,s,l0\](mem,o_f,m0)
     end
 end
 
-object _DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
+object __DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
   mem:FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
   get(i:ZZ32):T = mem.get(i)
   put(v:T, i:ZZ32) = mem.put(v,i)
-  replica[\U\]() = _DefaultArray1[\U,b0,s0\]()
+  replica[\U\]() = __DefaultArray1[\U,b0,s0\]()
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
     o0 : ZZ32 = o - b0
     if s + o0 > s0 then
-        fail("_DefaultArray1: subarray exceeds bounds of underlying array.")
+        fail("__DefaultArray1: subarray exceeds bounds of underlying array.")
     end
-    _SubArray1[\T,b,s,s0\](mem,o0,1)
+    __SubArray1[\T,b,s,s0\](mem,o0,1)
   end
 end
 
@@ -490,10 +487,10 @@ end
    enshrined in WellKnownNames.java.  There must be some factory,
    named in this file, with this type signature.  A similar thing is
    true for K-dimensional array types. *)
-_builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
-    _DefaultArray1[\T,b0,s0\]()
+__builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
+    __DefaultArray1[\T,b0,s0\]()
 
-array1[\T, nat s0\]():Array1[\T,0,s0\] = _builtinFactory1[\T,0,s0\]()
+array1[\T, nat s0\]():Array1[\T,0,s0\] = __DefaultArray1[\T,0,s0\]()
 array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
 array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
 
@@ -502,10 +499,10 @@ vector[\T extends Number, nat s0\]():Array1[\T,0,s0\] = array1[\T,s0\]()
 vector[\T extends Number, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\](v)
 vector[\T extends Number, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\](f)
 
-(* For the moment we cannot define a distinct Vector subclass of
+(* For the moment we cannot define a distinct Vector subtrait of
 Array1, because there's no way to build a usable factory which
 distinguishes the array type at run time and constructs an instance of
-the appropriate subclass (ordinary array or vector).  What we *really*
+the appropriate subtrait (ordinary array or vector).  What we *really*
 want is conditional extension, so that *every* Array1 whose element
 type is a Number is treated as a vector, and there's a set of Array1
 methods which are defined iff T extends Number.  *)
@@ -581,11 +578,11 @@ trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
 end
 
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
-    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\](*,
-              Indexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\]*) }
+    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\],
+              Indexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
-  sizes():(ZZ32,ZZ32) = (s0,s1)
-  bases():(ZZ32,ZZ32) = (b0,b1)
+  size():(ZZ32,ZZ32) = (s0,s1)
+  base():(ZZ32,ZZ32) = (b0,b1)
   toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
@@ -622,10 +619,10 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset t; self.put(v,i,j) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
   fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
-    (object extends Reduction2[\_V,s0,s1\]
-       join(l:_V,r:_V):_V = _V
-       empty():_V = _V
-       leaf(a0:ZZ32,a1:ZZ32) = do put(f(a0+b0,a1+b1),a0,a1); _V end
+    (object extends Reduction2[\(),s0,s1\]
+       join(l:(),r:()):() = ()
+       empty():() = ()
+       leaf(a0:ZZ32,a1:ZZ32):() = put(f(a0+b0,a1+b1),a0,a1)
      end).run()
     self
   end
@@ -653,11 +650,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
 end
 
 (* Default array is column-major, but we could switch it. *)
-object _DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
+object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
   mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
 
-  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = _DefaultArray2[\U,b0,s0,b1,s1\]()
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = __DefaultArray2[\U,b0,s0,b1,s1\]()
 
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
   get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
@@ -674,12 +671,12 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   t() = mem
 end
 
-_builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
-  _DefaultArray2[\T,b0,s0,b1,s1\]()
+__builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
+  __DefaultArray2[\T,b0,s0,b1,s1\]()
 
 (* array2 is a factory for 0-based 2-D arrays. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-  _builtinFactory2[\T,0,s0,0,s1\]()
+  __DefaultArray2[\T,0,s0,0,s1\]()
 array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
   array2[\T,s0,s1\]().fill(v)
 array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
@@ -689,7 +686,7 @@ array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
    arguments, except that the default value (if given) is used to
    construct a multiple of the identity matrix. *)
 matrix[\T extends Number, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-  _DefaultArray2[\T,0,s0,0,s1\]()
+  __DefaultArray2[\T,0,s0,0,s1\]()
 matrix[\T extends Number, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
   array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
 
@@ -837,8 +834,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
             Indexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
 
-  sizes():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
-  bases():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
+  size():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
+  base():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
 
   toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
@@ -846,7 +843,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         for k <- seq(0#s2) do
           r := r " " get(i,j,k)
         end
-    surf(i) =
+    plane(i) =
       if s1 > 0 then
         for j <- seq(0#(s1-1)) do
           row(i,j)
@@ -856,10 +853,10 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
       r " []"
     else
       r := r "\n[ "
-      surf(0)
+      plane(0)
       for i <- seq(1#(s0-1)) do
         r := r ";;\n  "
-        surf(i)
+        plane(i)
       end
       r " ]"
     end
@@ -887,13 +884,11 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   end
 
   fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
-    (object extends Reduction3[\_V,s0,s1,s2\]
-       empty():_V = _V
-       join(l:_V,r:_V):_V = _V
-       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):_V = do
+    (object extends Reduction3[\(),s0,s1,s2\]
+       empty():() = ()
+       join(l:(),r:()):() = ()
+       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):() =
          put(a0,a1,a2,f(a0+b0,a1+b1,a2+b2))
-         _V
-       end
      end).run()
     self
   end
@@ -916,24 +911,24 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
      end).run()
 end
 
-object _DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
+object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
   mem:FlatStorageMaker[\T,(s0 (s1 s2))\] = FlatStorageMaker[\T,(s0 (s1 s2))\]()
 
   ofs = s1 s2
 
   replica():Array3[\T,b0,s0,b1,s1,b2,s2\] =
-      _DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+      __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
   put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : () = mem.put(v, i ofs + j s2 + k)
   get(i:ZZ32, j:ZZ32, k:ZZ32) : T = mem.get(i ofs + j s2 + k)
 end
 
-_builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
+__builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
         Array3[\T,b0,s0,b1,s1,b2,s2\] =
-  _DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+  __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
 
 array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\] =
-  _builtinFactory3[\T,0,s0,0,s1,0,s2\]
+  __DefaultArray3[\T,0,s0,0,s1,0,s2\]()
 
 (************************************************************
  * Some range operators

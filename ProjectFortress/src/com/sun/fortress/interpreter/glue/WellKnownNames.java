@@ -25,7 +25,7 @@ public class WellKnownNames {
         return "Array"+rank;
     }
     public static String arrayMaker(int rank) {
-        return "_builtinFactory"+rank;
+        return "__builtinFactory"+rank;
     }
     public static String arrayElementTypeName = "T";
     public static String arrayGetter = "get";

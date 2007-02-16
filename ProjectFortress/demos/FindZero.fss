@@ -1,0 +1,37 @@
+component FindZero
+export Runnable
+
+(* Find zeros of a given function in a given interval.
+   Actually tries to find the representable point whose value is
+   nearest zero in the interval.  If there is more than one zero in an
+   interval, which zero is chosen is somewhat arbitrary.  The
+   endpoints lo and high must be such that f(lo) and f(hi) have
+   different sign. *)
+
+root(f:(RR64)->RR64, lo:RR64, hi:RR64) = do
+    l : RR64 := lo
+    h : RR64 := hi
+    m : RR64 := 0.5*(l+h)
+    while m=/=l AND m=/=h do
+        if (f(m)>0) = (f(l)>0) then
+            l := m
+        else
+            h := m
+        end
+        m := 0.5*(l+h)
+    end
+    if |f(l)| < |f(h)| then
+        l
+    else
+        h
+    end
+  end
+
+run(args:String...):() = do
+    println(root(sin,3.0,3.2))
+    println(root((fn (x) => x^2-3),-1,3))
+    println(root((fn (x) => x^2-x-1),0,3))
+    println(root((fn (x) => x^2-4),-2,2))
+end
+
+end
