@@ -229,19 +229,19 @@ value object N[\nat n\]() extends { NatParam }
   toZZ() = n
 end
 
-  __refl'[\nat r, nat b\](x:ZZ32):NatParam =
+reflect(z:ZZ32):NatParam = do
+  refl'[\nat r, nat b\](x:ZZ32):NatParam =
     if x=0 then N[\r\]()
     elif (x REM (b+b)) = 0 then
-      __refl'[\r, b+b\](x)
+      refl'[\r, b+b\](x)
     else
-      __refl'[\r+b, b+b\](x-b)
+      refl'[\r+b, b+b\](x-b)
     end
 
-reflect(z:ZZ32):NatParam = do
   if z < 0 then
     fail("reflect(" z "): " negative argument)
   else
-    __refl'[\0,1\](z)
+    refl'[\0,1\](z)
   end
 end
 
@@ -315,20 +315,20 @@ end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
    run-time-determined size. *)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(array1[\E,0\](),reflect(x))
-array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-   __arr'(array1[\E,0\](),reflect(x), reflect(y))
-array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-   __arr'(array1[\E,0\](),reflect(x), reflect(y), reflect(z))
-
-(* This should be local to array, but we don't support local
-   parametric methods in the language spec at all at the moment. *)
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\]):Array1[\E,0,n\] =
-   array1[\E,n\]()
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\]):
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = do
+  arr'[\nat n\](w:Array1[\E,0,0\],x:N[\n\]):Array1[\E,0,n\] = array1[\E,n\]()
+  arr'(array1[\E,0\](),reflect(x))
+end
+array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] = do
+  arr'[\nat n, nat m\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
+  arr'(array1[\E,0\](),reflect(x), reflect(y))
+end
+array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] = do
+  arr'[\nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
+  arr'(array1[\E,0\](),reflect(x), reflect(y), reflect(z))
+end
 
 (* Canonical partitioning of a positive number x into two pieces.  If
      (a,b) = partition(n)
