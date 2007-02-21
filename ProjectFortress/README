@@ -268,11 +268,28 @@ SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
 
 * A default unit for a dimension must be an indentifier.
 
+* No more abstract declarations of dimensions, units, and type aliases
+
+* Trait headers can have the excludes, comprises, and where clauses in
+  any order.
+
+* No more empty comprises clauses.  A comprises clause of a trait T may
+  include "..." to hide some of T's subtraits.  A type listed in the
+  comprises clause must be defined within the same component (or possibly
+  an API imported by the component, if there is a cycle in the API import
+  chain).
+
 * More where-clause constraints and bool static arguments are added.
 
 * Each contract clause (requires clause, ensures clause, and invariant
   clause) requires its subclauses or subexpressions to be separated by
   commas and enclosed by curly braces.
+
+* Each modifier must not appear multiple times.
+
+* Local function declarations have the same syntax with top-level
+  function declarations except that local function declarations must not
+  have the modifiers "private" and "test".
 
 * A second value parameter of a subscripted assignment operator method
   declaration must contain exactly one non-keyword value parameter.
