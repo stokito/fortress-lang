@@ -393,15 +393,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
 
     <T extends Expr> List<FValue> evalExprListParallel(List<T> exprs) {
-        TupleTask[] tasks = new TupleTask[exprs.size()];
-        int count = 0;
-        for (Expr e : exprs) {
-            tasks[count++] = new TupleTask(e, this);
-        }
-        FJTask.coInvoke(tasks);
-        ArrayList<FValue> resList = new ArrayList<FValue>(count);
-        for (int i = 0; i < count; i++) {
-            resList.add(tasks[i].getRes());
+        // Added some special-case code to avoid explosion of TupleTasks.
+        int sz = exprs.size();
+        ArrayList<FValue> resList = new ArrayList<FValue>(sz);
+        if (sz==1) {
+            resList.add(exprs.get(0).accept(this));
+        } else if (sz > 1) {
+            TupleTask[] tasks = new TupleTask[exprs.size()];
+            int count = 0;
+            for (Expr e : exprs) {
+                tasks[count++] = new TupleTask(e, this);
+            }
+            FJTask.coInvoke(tasks);
+            for (int i = 0; i < count; i++) {
+                resList.add(tasks[i].getRes());
+            }
         }
         return resList;
     }

@@ -45,8 +45,6 @@ export Runnable
         elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; x y end
         mem1 = mem.replica[\T\]().fill(elt)
       end
-      subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] =
-         fail("SparseVector.subarray")
       toString():String = do
           elt(t:ZZ32,v:T):String = " " t "->" v
           join(a:String,b:String):String = a b

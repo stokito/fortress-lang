@@ -415,7 +415,21 @@ trait Array1[\T, nat b0, nat s0\]
   opr[i:ZZ32] : T = get(offset(i))
   opr[i:ZZ32]:=(v:T) : () = put(v, offset(i))
 
-  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
+  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+    o0 : ZZ32 = o - b0
+    if o0 < 0 OR o0 > s0-s then
+        fail("Array1: subarray exceeds bounds of underlying array.")
+    end
+    __SimpleSubArray1[\T,b,s,b0,s0\](self,o0,1)
+  end
+  __subarray[\nat b, nat s, nat o\]
+            (_:N[\b\],_:N[\o\],_:N[\s\]):Array1[\T,b,s\] = subarray[\b,s,o\]()
+
+  opr[r:ZZ32Range]:Array[\T,ZZ32\] = do
+      (b,s) = (reflect(rangeBase(r)), reflect(rangeSize(r)))
+      self.__subarray(N[\0\],b,s)
+    end
+  opr[r:ZZ32Range]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
@@ -459,11 +473,30 @@ object __SubArray1[\T, nat b0, nat s0, nat l0\]
     put(v:T, i:ZZ32):T = mem.put(index(i))
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
       o_n : ZZ32 = o - b0
-      if s + o_n > s0 then
+      if o_n < 0 OR o_n > s0-s then
           fail("__SubArray1: subarray exceeds bounds of underlying array.")
       end
-      o_f : ZZ32 = o_n m0 + o0
-      __SubArray1[\T,b,s,l0\](mem,o_f,m0)
+      __SubArray1[\T,b,s,l0\](mem,index(o_n),m0)
+    end
+end
+
+(* A 1-D subarray of an Array1.
+   b_a and s_a are the underlying array's bounds; s0 and b0 are the
+   result bounds.  o0 is the starting offset in the underlying array,
+   defined in 0-indexed space.  m0 the stride within that array.
+   Invariant: (s0-1) m0 + o0 - b_a) < s_a *)
+object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
+       (arr:Array[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
+       extends Array1[\T, b0, s0\]
+    index(i:ZZ32):T = i m0 + o0
+    get(i:ZZ32):T = arr.get(index(i))
+    put(i:ZZ32):T = arr.put(index(i))
+    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+      o_n : ZZ32 = o - b0
+      if o_n < 0 OR o_n > s0-s then
+        fail("__SimpleSubArray1: subarray exceeds bounds of underlying array.")
+      end
+      __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
     end
 end
 
@@ -474,7 +507,7 @@ object __DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
   replica[\U\]() = __DefaultArray1[\U,b0,s0\]()
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
     o0 : ZZ32 = o - b0
-    if s + o0 > s0 then
+    if o0 < 0 OR o0 > s0-s then
         fail("__DefaultArray1: subarray exceeds bounds of underlying array.")
     end
     __SubArray1[\T,b,s,s0\](mem,o0,1)
