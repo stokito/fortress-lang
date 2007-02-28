@@ -31,33 +31,26 @@ import Spacing;
 
 /* VarDecl ::=
      VarWTypes w InitVal
-   | VarWTypes
    | VarWoTypes w = w NoNewlineExpr
-   | VarWoTypes w : w TypeRef w ... [w InitVal]
-   | VarWoTypes w : w SimpleTupleType [w InitVal]
+   | VarWoTypes w : w TypeRef w ... w InitVal
+   | VarWoTypes w : w SimpleTupleType w InitVal
  */
 DefOrDecl VarDecl =
      a1:VarWTypes w a2:InitVal
      { if (a2.getB()) FortressUtil.setMutable(a1);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2.getA());
      }
-   / a1:VarWTypes
-     { yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1); }
    / a1:VarWoTypes w equals w a2:NoNewlineExpr
      { yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:VarWoTypes w colon w a2:TypeRef w ellipses a3:(w InitVal)?
+   / a1:VarWoTypes w colon w a2:TypeRef w ellipses w a3:InitVal
      { for (LValue v : a1) {
            if (v instanceof LValueBind) ((LValueBind)v).setType(a2);
            else throw new ProgramError(v, "LValueBind is expected.");
        }
-       if (a3 == null)
-           yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1);
-       else {
-           if (a3.getB()) FortressUtil.setMutable(a1);
-           yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a3.getA());
-       }
+       if (a3.getB()) FortressUtil.setMutable(a1);
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a3.getA());
      }
-   / a1:VarWoTypes w colon w a2:SimpleTupleType a3:(w InitVal)?
+   / a1:VarWoTypes w colon w a2:SimpleTupleType w a3:InitVal
      { Span span = createSpan(yyStart,yyCount);
        List<TypeRef> tys = a2.getElements();
        if (a1.size() != tys.size())
@@ -70,12 +63,8 @@ DefOrDecl VarDecl =
                ind += 1;
            } else throw new ProgramError(v, "LValueBind is expected.");
        }
-       if (a3 == null)
-           yyValue = new AbsVarDecl(span, a1);
-       else {
-           if (a3.getB()) FortressUtil.setMutable(a1);
-           yyValue = new VarDecl(span, a1, a3.getA());
-       }
+       if (a3.getB()) FortressUtil.setMutable(a1);
+       yyValue = new VarDecl(span, a1, a3.getA());
      };
 
 /* VarWTypes ::=

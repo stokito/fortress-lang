@@ -28,10 +28,9 @@ import Spacing;
 
 /* FldDecl ::=
      FldWTypes w InitVal
-   | FldWTypes
    | FldWoTypes w = w NoNewlineExpr
-   | FldWoTypes w : w TypeRef w ... [w InitVal]
-   | FldWoTypes w : w SimpleTupleType [w InitVal]
+   | FldWoTypes w : w TypeRef w ... w InitVal
+   | FldWoTypes w : w SimpleTupleType w InitVal
    FldWTypes ::=
      FldWType
    | ( w FldWType (w , w FldWType)+ w )
