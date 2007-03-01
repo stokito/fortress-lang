@@ -367,21 +367,6 @@ List<Modifier> VarMods = a1:VarMod wr a2s:(VarMod wr)*
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* MdMod ::= getter | setter | FnMod */
-private Modifier MdMod =
-     a1:getter { yyValue = new Modifier.Getter(createSpan(yyStart,yyCount)); }
-   / a1:setter { yyValue = new Modifier.Setter(createSpan(yyStart,yyCount)); }
-   / yyValue:FnMod ;
-
-/* Each modifier cannot appear more than once. */
-/* MdMods ::= MdMod wr (MdMod wr)* */
-List<Modifier> MdMods = a1:MdMod wr a2s:(MdMod wr)*
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
 /* AbsFldMod ::= hidden | settable | wrapped | UniversalMod */
 private Modifier AbsFldMod =
      a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }

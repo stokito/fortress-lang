@@ -52,7 +52,7 @@ private TraitHeader TraitHeader =
        if (a3 == null) a3 = FortressUtil.emptyStaticParams();
        if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
        if (a5 == null)
-           yyValue = new TraitHeader(a1, a2, a3, a4, 
+           yyValue = new TraitHeader(a1, a2, a3, a4,
                                      FortressUtil.emptyTypeRefs(),
                                      None.<List<TypeRef>>make(),
                                      None.<List<WhereClause>>make());
@@ -83,17 +83,43 @@ private TraitClause TraitClause =
    / w a1:Where
      { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
-/* GoInATrait ::= GoesInATrait (br GoesInATrait)* */
-private List<DefOrDecl> GoInATrait = a1:GoesInATrait a2s:(br GoesInATrait)*
+/* GoInATrait ::=
+     GoFrontInATrait [br GoBackInATrait]
+   | GoBackInATrait
+ */
+private List<DefOrDecl> GoInATrait =
+     a1:GoFrontInATrait a2:(br GoBackInATrait)?
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.addAll(a1);
+       if (a2 != null) yyValue.addAll(a2);
+     }
+   / yyValue:GoBackInATrait ;
+
+/* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
+private List<DefOrDecl> GoFrontInATrait =
+     a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
      { yyValue = new ArrayList<DefOrDecl>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
-/* GoesInATrait ::= MdDecl | AbsFldDecl | PropertyDecl */
-private DefOrDecl GoesInATrait =
+/* GoesFrontInATrait ::= AbsFldDecl | GetterSetterDecl | PropertyDecl */
+private DefOrDecl GoesFrontInATrait =
+     yyValue:AbsFldDecl
+   / yyValue:GetterSetterDecl
+   / yyValue:PropertyDecl ;
+
+/* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
+private List<DefOrDecl> GoBackInATrait =
+     a1:GoesBackInATrait a2s:(br GoesBackInATrait)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* GoesBackInATrait ::= MdDecl | PropertyDecl */
+private DefOrDecl GoesBackInATrait =
      yyValue:MdDecl
-   / yyValue:AbsFldDecl
    / yyValue:PropertyDecl ;
 
 /* ObjectDecl ::= ObjectHeader [w GoInAnObject] w end */
@@ -176,17 +202,43 @@ Param Param :=
            yyValue = new Param(createSpan(yyStart,yyCount), mods, a2.getName());
      };
 
-/* GoInAnObject ::= GoesInAnObject (br GoesInAnObject)* */
-List<DefOrDecl> GoInAnObject = a1:GoesInAnObject a2s:(br GoesInAnObject)*
+/* GoInAnObject ::=
+     GoFrontInAnObject [br GoBackInAnObject]
+   | GoBackInAnObject
+ */
+List<DefOrDecl> GoInAnObject =
+     a1:GoFrontInAnObject a2:(br GoBackInAnObject)?
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.addAll(a1);
+       if (a2 != null) yyValue.addAll(a2);
+     }
+   / yyValue:GoBackInAnObject ;
+
+/* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
+private List<DefOrDecl> GoFrontInAnObject =
+     a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
      { yyValue = new ArrayList<DefOrDecl>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
-/* GoesInAnObject ::= MdDef | FldDecl | PropertyDecl */
-private DefOrDecl GoesInAnObject =
+/* GoesFrontInAnObject ::= FldDecl | GetterSetterDef | PropertyDecl */
+private DefOrDecl GoesFrontInAnObject =
+     yyValue:FldDecl
+   / yyValue:GetterSetterDef
+   / yyValue:PropertyDecl ;
+
+/* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
+private List<DefOrDecl> GoBackInAnObject =
+     a1:GoesBackInAnObject a2s:(br GoesBackInAnObject)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* GoesBackInAnObject ::= MdDef | PropertyDecl */
+private DefOrDecl GoesBackInAnObject =
      yyValue:MdDef
-   / yyValue:FldDecl
    / yyValue:PropertyDecl ;
 
 /* AbsTraitDecl  ::= TraitHeader [w AbsGoInATrait] w end */
@@ -200,19 +252,44 @@ AbsTraitDecl AbsTraitDecl = a1:TraitHeader a2:(w AbsGoInATrait)? w end
             FortressUtil.getListVal(a1.getWhereClause()), a2);
      };
 
-/* AbsGoInATrait ::= AbsGoesInATrait (br AbsGoesInATrait)* */
+/* AbsGoInATrait ::=
+     AbsGoFrontInATrait [br AbsGoBackInATrait]
+   | AbsGoBackInATrait
+ */
 private List<DefOrDecl> AbsGoInATrait =
-     a1:AbsGoesInATrait a2s:(br AbsGoesInATrait)*
+     a1:AbsGoFrontInATrait a2:(br AbsGoBackInATrait)?
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.addAll(a1);
+       if (a2 != null) yyValue.addAll(a2);
+     }
+   / yyValue:AbsGoBackInATrait ;
+
+/* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
+private List<DefOrDecl> AbsGoFrontInATrait =
+     a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
      { yyValue = new ArrayList<DefOrDecl>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
-/* AbsGoesInATrait ::= AbsMdDecl | AbsCoercion | ApiFldDecl | PropertyDecl */
-private DefOrDecl AbsGoesInATrait =
+/* AbsGoesFrontInATrait ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
+private DefOrDecl AbsGoesFrontInATrait =
+     yyValue:ApiFldDecl
+   / yyValue:AbsGetterSetterDecl
+   / yyValue:PropertyDecl ;
+
+/* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
+private List<DefOrDecl> AbsGoBackInATrait =
+     a1:AbsGoesBackInATrait a2s:(br AbsGoesBackInATrait)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsGoesBackInATrait ::= AbsMdDecl | AbsCoercion | PropertyDecl */
+private DefOrDecl AbsGoesBackInATrait =
      yyValue:AbsMdDecl
    / yyValue:AbsCoercion
-   / yyValue:ApiFldDecl
    / yyValue:PropertyDecl ;
 
 /* AbsObjectDecl ::= ObjectHeader [w AbsGoInAnObject] w end */
@@ -232,17 +309,42 @@ AbsObjectDecl AbsObjectDecl = a1:ObjectHeader a2:(w AbsGoInAnObject)? w a3:end
             FortressUtil.getListVal(fhc.getWhereClause()), contract, a2);
      };
 
-/* AbsGoInAnObject ::= AbsGoesInAnObject (br AbsGoesInAnObject)* */
-private List<DefOrDecl> AbsGoInAnObject =
-     a1:AbsGoesInAnObject a2s:(br AbsGoesInAnObject)*
+/* AbsGoInAnObject ::=
+     AbsGoFrontInAnObject [br AbsGoBackInAnObject]
+   | AbsGoBackInAnObject
+ */
+List<DefOrDecl> AbsGoInAnObject =
+     a1:AbsGoFrontInAnObject a2:(br AbsGoBackInAnObject)?
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.addAll(a1);
+       if (a2 != null) yyValue.addAll(a2);
+     }
+   / yyValue:AbsGoBackInAnObject ;
+
+/* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */
+private List<DefOrDecl> AbsGoFrontInAnObject =
+     a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
      { yyValue = new ArrayList<DefOrDecl>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
-/* AbsGoesInAnObject ::= AbsMdDecl | AbsCoercion | ApiFldDecl | PropertyDecl */
-private DefOrDecl AbsGoesInAnObject =
+/* AbsGoesFrontInAnObject ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
+private DefOrDecl AbsGoesFrontInAnObject =
+     yyValue:ApiFldDecl
+   / yyValue:AbsGetterSetterDecl
+   / yyValue:PropertyDecl ;
+
+/* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
+private List<DefOrDecl> AbsGoBackInAnObject =
+     a1:AbsGoesBackInAnObject a2s:(br AbsGoesBackInAnObject)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
+
+/* AbsGoesBackInAnObject ::= AbsMdDecl | AbsCoercion | PropertyDecl */
+private DefOrDecl AbsGoesBackInAnObject =
      yyValue:AbsMdDecl
    / yyValue:AbsCoercion
-   / yyValue:ApiFldDecl
    / yyValue:PropertyDecl ;

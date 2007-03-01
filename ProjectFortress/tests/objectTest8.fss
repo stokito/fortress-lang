@@ -31,10 +31,10 @@ end
 
 object A(i:ZZ32, j:ZZ32) extends T
 
-     getI():ZZ32 = i
-     getJ():ZZ32 = j
      k:ZZ32 = 4
      x:ZZ32 = 9
+     getI():ZZ32 = i
+     getJ():ZZ32 = j
 
 
   b(k:ZZ32):T = object extends {T,U}

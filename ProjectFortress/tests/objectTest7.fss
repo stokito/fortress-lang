@@ -25,9 +25,9 @@ end
 
 object A(i:ZZ32, j:ZZ32) extends T
 
+     k:ZZ32 = 4
      getI():ZZ32 = i
      getJ():ZZ32 = j
-     k:ZZ32 = 4
 
   b(k:ZZ32):T = object extends T
      m:ZZ32 = k

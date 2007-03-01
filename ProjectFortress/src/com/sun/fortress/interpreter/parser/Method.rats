@@ -35,12 +35,12 @@ FnDefOrDecl MdDecl =
      yyValue:MdDef
    / yyValue:AbsMdDecl ;
 
-/* MdDef  ::=
-     [MdMods] MdHeaderFront FnHeaderClause w = w NoNewlineExpr
+/* MdDef ::=
+     [FnMods] MdHeaderFront FnHeaderClause w = w NoNewlineExpr
    | Coercion
  */
 FnDecl MdDef =
-     a1:MdMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     a1:FnMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
        List<WhereClause> where_ = FortressUtil.getListVal(a3.getWhereClause());
@@ -58,9 +58,9 @@ FnDecl MdDef =
      }
    / yyValue:Coercion ;
 
-/* AbsMdDecl ::= [abstract wr] [MdMods] MdHeaderFront FnHeaderClause */
+/* AbsMdDecl ::= [abstract wr] [FnMods] MdHeaderFront FnHeaderClause */
 AbsFnDecl AbsMdDecl =
-     a1:(abstract wr)? a2:MdMods? a3:MdHeaderFront a4:FnHeaderClause
+     a1:(abstract wr)? a2:FnMods? a3:MdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new Modifier.Abstract(createSpan(yyStart,8)));
@@ -100,6 +100,64 @@ private FnHeaderFront MdHeaderFront =
 private Id Receiver =
      yyValue:Id
    / a2:self    { yyValue = new Id(createSpan(yyStart,yyCount), "self"); };
+
+/* GetterSetterDecl ::= GetterSetterDef | AbsGetterSetterDecl */
+FnDefOrDecl GetterSetterDecl =
+     yyValue:GetterSetterDef
+   / yyValue:AbsGetterSetterDecl ;
+
+/* GetterSetterDef ::=
+     [FnMods] GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
+ */
+FnDecl GetterSetterDef =
+     a1:FnMods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
+     a5:NoNewlineExpr
+     { if (a1 == null) a1 = new ArrayList<Modifier>();
+       a1.add(a2);
+       List<TypeRef>    throws_ = FortressUtil.getListVal(a4.getThrowsClause());
+       List<WhereClause> where_ = FortressUtil.getListVal(a4.getWhereClause());
+       Contract contract;
+       if (a4.getContractClause().isPresent())
+           contract = (Contract)a4.getContractClause().getVal();
+       else
+           contract = FortressUtil.emptyContract();
+       yyValue =
+           new FnDecl(createSpan(yyStart,yyCount), a1, a3.getReceiver(),
+                      a3.getName(),
+                      Some.<StaticParam>makeSomeListOrNone(a3.getStaticParams()),
+                      a3.getParams(), a4.getReturnType(), throws_, where_,
+                      contract, a5);
+     };
+
+/* GetterSetterMod ::= getter wr | setter wr */
+private Modifier GetterSetterMod =
+     a1:getter wr { yyValue = new Modifier.Getter(createSpan(yyStart,yyCount));}
+   / a1:setter wr { yyValue = new Modifier.Setter(createSpan(yyStart,yyCount));};
+
+/* AbsGetterSetterDecl ::=
+     [abstract wr] [FnMods] GetterSetterMod MdHeaderFront FnHeaderClause */
+AbsFnDecl AbsGetterSetterDecl =
+     a1:(abstract wr)? a2:FnMods? a3:GetterSetterMod a4:MdHeaderFront
+     a5:FnHeaderClause
+     { List<Modifier> mods = new ArrayList<Modifier>();
+       if (a1 != null)
+           mods.add(new Modifier.Abstract(createSpan(yyStart,8)));
+       if (a2 != null) mods.addAll(a2);
+       mods.add(a3);
+       List<TypeRef>    throws_ = FortressUtil.getListVal(a5.getThrowsClause());
+       List<WhereClause> where_ = FortressUtil.getListVal(a5.getWhereClause());
+       Contract contract;
+       if (a5.getContractClause().isPresent())
+           contract = (Contract)a5.getContractClause().getVal();
+       else
+           contract = FortressUtil.emptyContract();
+       yyValue =
+        new AbsFnDecl(createSpan(yyStart,yyCount), mods, a4.getReceiver(),
+                      a4.getName(),
+                      Some.<StaticParam>makeSomeListOrNone(a4.getStaticParams()),
+                      a4.getParams(), a5.getReturnType(), throws_, where_,
+                      contract);
+     };
 
 /* Coercion ::=
      [widening w] coercion [w StaticParams] w ( w Id w IsType w )
