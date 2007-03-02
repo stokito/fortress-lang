@@ -21,12 +21,12 @@ export Executable
 weight:ZZ32 = 4
 
 trait Tree comprises {Node, Empty}
+   getter size():ZZ32
+   getter empty():Boolean
    getVal():ZZ32
    getLeftChild():Tree
    getRightChild():Tree
    printTree():()
-   size():ZZ32
-   empty():Boolean
    member(x:ZZ32):Boolean
    minimum():ZZ32
    deleteMinimum():Tree = do
@@ -70,12 +70,12 @@ object Empty extends Tree
 end
 
 object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
+   sz:ZZ32 = 1 + left.size() + right.size()
+   getter size():ZZ32 = sz
+   getter empty():Boolean = false
    getVal():ZZ32 = val
    getLeftChild():Tree = left
    getRightChild():Tree = right
-   sz:ZZ32 = 1 + left.size() + right.size()
-   size():ZZ32 = sz
-   empty():Boolean = false
 
    printTree():() = do
       print("(")
