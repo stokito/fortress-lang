@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component anyLenArray
+export Executable
+
+run(args:String...):()=do
+  (* arrayTest0 done with unknown array size. *)
+  z:Array[\String, ZZ32\] = array[\String\](3)
+  z[0]:="cat"
+  z[1]:="dog"
+  z[2]:="bat"
+  println( z[0] " " z[1] " " z[2] );
+
+  println( z.get(1) )
+
+  println( z.rank() )
+end
+
+end

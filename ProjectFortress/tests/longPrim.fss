@@ -19,16 +19,14 @@ component newIntPrim
 export Executable
 
 assert(s:String,a:Boolean):() = do
-  println(s)
   if NOT a then
-      println("FAIL: assert")
+      println("FAIL: assert " s)
   end
 end
 
 assertEq(s:String, a:ZZ64, b:ZZ64):() = do
-  println(s)
   if a=/=b then
-      println("FAIL: got " a " but expected " b)
+      println("FAIL: " s " got " a " but expected " b)
   end
 end
 

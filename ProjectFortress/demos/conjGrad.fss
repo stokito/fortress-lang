@@ -23,9 +23,9 @@ export Runnable
   object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
     extends Array1[\T,0,n\]
       get(i:ZZ32):T = do
-        b = mem.bases()
+        b = mem.base()
         lo:ZZ32 := -1
-        hi:ZZ32 := mem.sizes()
+        hi:ZZ32 := mem.size()
         while lo + 1 < hi do
           mid = (lo+hi) DIV 2
           (ii,_) = mem[b+mid]
@@ -65,8 +65,8 @@ export Runnable
      (* We perform sparse vector-vector multiply serially due to the
         absence of reduction variables, and the fact that this allows
         us to do it with linear work. *)
-     i1 : ZZ32 := other.mem.bases()
-     t1 = other.mem.sizes() + i1
+     i1 : ZZ32 := other.mem.base()
+     t1 = other.mem.size() + i1
      (j1:ZZ32, v1:T) := (-2, 0)
      res : T := 0
      for i0 <- seq(me.mem.indices()) do
@@ -86,7 +86,7 @@ export Runnable
      sz = me.mapReduce[\ZZ32\](fn (i:ZZ32,v:RR64):ZZ32=>if v=0 then 0 else 1 end,
                                fn (a:ZZ32,b:ZZ32):ZZ32 => a+b, 0)
      res:Array[\(ZZ32,RR64),ZZ32\] := array[\(ZZ32,RR64)\](sz)
-     j : ZZ32 := res.bases()
+     j : ZZ32 := res.base()
      for i <- seq(me.indices()) do
         v = me[i]
         if v =/= 0 then
