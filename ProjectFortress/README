@@ -262,11 +262,14 @@ SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
 
 * At least one export statement is required for a component.
 
+* Top-level variable declarations and field declarations should have
+  initial-value expressions.
+
 * A single declaration may declare multiple top-level variables, local
   variables, or fields depending on the context.  Immutable variables
   cannot be declared using the ":=" token.
 
-* A default unit for a dimension must be an indentifier.
+* A default unit for a dimension must be an identifier.
 
 * No more abstract declarations of dimensions, units, and type aliases
 
@@ -286,6 +289,11 @@ SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
   commas and enclosed by curly braces.
 
 * Each modifier must not appear multiple times.
+
+* method declarations occur syntactically after field declarations and
+  getter and setter declarations.  Property declarations can be freely
+  commingled with the field and method declarations.  A getter or setter
+  modifier should be the last modifier of a method declaration.
 
 * Local function declarations have the same syntax with top-level
   function declarations except that local function declarations must not
