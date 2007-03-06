@@ -323,7 +323,8 @@ SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
 
 * Matrix and vector types can be abbreviated using superscripts.
 
-* Alternative mathematical notations for arrow types are supported.
+* Alternative mathematical notations for arrow types are not supported
+  any more.
 
 * DimRef, unitRef, NatRef, IntRef, and BoolRef are merged with
   StaticArg.
