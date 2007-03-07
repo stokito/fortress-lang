@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 class NativeApplicable implements Applicable {
@@ -81,5 +82,14 @@ class NativeApplicable implements Applicable {
     public List<WhereClause> getWhere() {
         return Collections.<WhereClause>emptyList();
     }
+    
+    public int applicableCompareTo( Applicable other) {
+        int x = Useful.compareClasses(this, other);
+        if (x != 0) return x;
+        NativeApplicable na = (NativeApplicable) other;
+        x = name.compareTo(na.name);
+        if (x != 0) return x;
+        return fnName.name().compareTo(na.getFnName().name());
+     }
 
 }

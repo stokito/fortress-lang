@@ -16,30 +16,53 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.nodes.Api;
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class ComponentWrapper {
-    Component p;
+    CompilationUnit p;
+    
+    HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
+    
     BuildEnvironments be;
     Disambiguate dis;
-    Map<String, ComponentWrapper> componentDict;
+    
     int visitState;
-    private final static int UNVISITED=0, POPULATED=1, FINISHED=2;
+    private final static int UNVISITED=0, POPULATED=1, TYPED=2, FUNCTIONED=3, FINISHED=4;
 
-    public ComponentWrapper(Component comp, Map<String, ComponentWrapper> dictionary) {
+    private ComponentWrapper() {
         BetterEnv e = BetterEnv.empty();
-        e.installPrimitives();
+        e.setTopLevel();
         be = new BuildEnvironments(e);
-        dis = new Disambiguate();
-        componentDict = dictionary;
+    }
+
+    public ComponentWrapper(CompilationUnit comp) {
+        this();
         p = comp;
+    }
+
+    /**
+     * Simple/stupid wrapper constructor for the non-general 1-1 case.
+     * @param comp
+     * @param api
+     */
+    public ComponentWrapper(Component comp, ComponentWrapper api) {
+        this();
+        p = comp;
+        exports.put(api.getComponent().getName().toString(),api);
     }
 
     public boolean populated() {
@@ -54,47 +77,104 @@ public class ComponentWrapper {
         return visitState == POPULATED;
     }
 
+    /**
+     * Inject names into all the appropriate environments.
+     * 
+     * This populates both the component environment and all the
+     * API environments.  The relationship between these two
+     * environments is a little delicate and probably is not yet
+     * implemented correctly.
+     * 
+     * A separate API environment must be maintained to ensure that
+     * imports are filtered through the API, and do not inadvertently
+     * pick up names from the implementing component.
+     * 
+     * Currently, the API names are not additionally initialized,
+     * though that may need to change.
+     *
+     */
     public void populateEnvironment() {
         if (visitState != UNVISITED)
             return;
 
         visitState = POPULATED;
-        p = (Component) dis.visit(p); // Rewrites p!
-                                      // Caches information in dis!
-
-//        List<Import> imports = p.getImports();
-//        for (Import i : imports) {
-//            DottedId d = i.getSource();
-//            ComponentWrapper cw = componentDict.get(d.toString());
-//            cw.populateEnvironment();
-//        }
-
-        be.forComponent1(p);
-
-
+        
+        p = (Component) populateOne(p, be);
+        
+        for (ComponentWrapper api: exports.values()) {
+            api.populateEnvironment();
+        }
     }
 
-    public void finishEnvironment() {
+    /**
+     * 
+     */
+    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments be) {
+        dis = new Disambiguate();
+        cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
+                                      // Caches information in dis!
+        be.visit(cu);
+        
+        return cu;
+    }
+
+    public void initTypes() {
         if (visitState == POPULATED) {
+            visitState = TYPED;
+            
+            be.secondPass();
+            
+            be.visit(p);
+
+        } else 
+            throw new IllegalStateException("Must be populated before init types");
+    }
+
+    public void initFuncs() {
+        if (visitState == TYPED) {
+            visitState = FUNCTIONED;
+            
+            be.thirdPass();
+            
+            be.visit(p);
+
+        } else 
+            throw new IllegalStateException("Must be typed before init funcs");
+    }
+
+    public void initVars() {
+        if (visitState == FUNCTIONED) {
             visitState = FINISHED;
 
-            // This is not good enough; we need thunk the initializations
-//             List<Import> imports = p.getImports();
-//             for (Import i : imports) {
-//                 DottedId d = i.getSource();
-//                 ComponentWrapper cw = componentDict.get(d.toString());
-//                 cw.finishEnvironment();
-//             }
+            be.fourthPass();
+            be.visit(p);
 
-            be.forComponentDefs(p);
+                /*
+                 * TODO Need to figure out why this works (or seems to).
+                 */
             dis.registerObjectExprs(be.getEnvironment());
-
+            
         } else if (visitState == UNVISITED)
-            throw new IllegalStateException("Must be populated before finishing");
+            throw new IllegalStateException("Must be populated, typed, and functioned before init vars");
     }
 
-    public Environment getEnvironment() {
+    public BetterEnv getEnvironment() {
         return be.getEnvironment();
+    }
+
+    public CompilationUnit getComponent() {
+       return p;
+    }
+
+    /**
+     * Returns the component wrapper for the API apiname that this component
+     * exports.
+     * 
+     * @param from_apiname
+     * @return
+     */
+    public ComponentWrapper getExportedCW(String apiname) {
+        return exports.get(apiname);
     }
 
 }

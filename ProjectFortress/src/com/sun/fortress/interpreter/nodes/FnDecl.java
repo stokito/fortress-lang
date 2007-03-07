@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
+import com.sun.fortress.interpreter.useful.Useful;
+
 // / and fn_def = fn_def_rec node
 // / and fn_def_rec =
 // / {
@@ -86,4 +88,5 @@ public class FnDecl extends FnDefOrDecl implements Decl, Applicable {
         }
     }
 
+ 
 }

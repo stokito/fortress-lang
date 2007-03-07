@@ -1,21 +1,22 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,8 +24,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 import xtc.parser.ParseError;
 import xtc.parser.Result;
@@ -36,30 +40,50 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.Glue;
+import com.sun.fortress.interpreter.nodes.AliasedDottedId;
+import com.sun.fortress.interpreter.nodes.AliasedName;
+import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.nodes.Component;
+import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.interpreter.nodes.FnName;
+import com.sun.fortress.interpreter.nodes.Import;
+import com.sun.fortress.interpreter.nodes.ImportApi;
+import com.sun.fortress.interpreter.nodes.ImportFrom;
+import com.sun.fortress.interpreter.nodes.ImportNames;
+import com.sun.fortress.interpreter.nodes.ImportStar;
+import com.sun.fortress.interpreter.nodes.Name;
+import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.useful.CheckedNullPointerException;
+import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.Visitor2;
 
 public class Driver {
 
     private static int numThreads = 8;
+
     private static boolean _libraryTest = false;
 
     private Driver() {
     };
 
-    public static CompilationUnit readJavaAst(String fileName) throws IOException {
+    public static CompilationUnit readJavaAst(String fileName)
+            throws IOException {
         BufferedReader br = Useful.utf8BufferedFileReader(fileName);
         return readJavaAst(fileName, br);
 
@@ -71,8 +95,8 @@ public class Driver {
      * @return
      * @throws IOException
      */
-    public static CompilationUnit readJavaAst(String reportedFileName, BufferedReader br)
-            throws IOException {
+    public static CompilationUnit readJavaAst(String reportedFileName,
+            BufferedReader br) throws IOException {
         Lex lex = new Lex(br);
         try {
             Unprinter up = new Unprinter(lex);
@@ -87,29 +111,31 @@ public class Driver {
         }
     }
 
-    public static CompilationUnit parseToJavaAst(String reportedFileName, BufferedReader in)
-    throws IOException {
-        Fortress p  = new Fortress(in, reportedFileName, (int)new File(reportedFileName).length());
-        Result   r  = p.pFile(0);
+    public static CompilationUnit parseToJavaAst(String reportedFileName,
+            BufferedReader in) throws IOException {
+        Fortress p = new Fortress(in, reportedFileName, (int) new File(
+                reportedFileName).length());
+        Result r = p.pFile(0);
 
         if (r.hasValue()) {
-            SemanticValue v = (SemanticValue)r;
+            SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
             return n;
         } else {
-          ParseError err = (ParseError)r;
-          if (-1 == err.index) {
-            System.err.println("  Parse error");
-          } else {
-            System.err.println("  " + p.location(err.index) + ": " + err.msg);
-          }
-          return null;
+            ParseError err = (ParseError) r;
+            if (-1 == err.index) {
+                System.err.println("  Parse error");
+            } else {
+                System.err.println("  " + p.location(err.index) + ": "
+                        + err.msg);
+            }
+            return null;
         }
     }
 
     /**
      * Runs a command and captures its output and errors streams.
-     *
+     * 
      * @param command
      *            The command to run
      * @param output
@@ -175,8 +201,8 @@ public class Driver {
         return errors_encountered;
     }
 
-
-    public static void writeJavaAst(CompilationUnit p, String s) throws IOException {
+    public static void writeJavaAst(CompilationUnit p, String s)
+            throws IOException {
         BufferedWriter fout = Useful.utf8BufferedFileWriter(s);
         writeJavaAst(p, fout);
         fout.close();
@@ -196,35 +222,370 @@ public class Driver {
     }
 
     public static BetterEnv evalComponent(CompilationUnit p) {
+
         Init.initializeEverything();
-        BetterEnv e = BetterEnv.empty();
-        e.installPrimitives();
-        BuildEnvironments be = new BuildEnvironments(e);
-        Disambiguate dis = new Disambiguate();
-	if (_libraryTest) {
+
+        /*
+         * Begin "linker" -- to be replaced with the real thing, when more
+         * infrastructure is present.
+         */
+
+        HashMap<String, ComponentWrapper> linker = new HashMap<String, ComponentWrapper>();
+
+        Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
+        ArrayList<ComponentWrapper> components = new ArrayList<ComponentWrapper>();
+
+        ComponentWrapper comp = new ComponentWrapper((Component) p);
+
+        /*
+         * This "linker" implements a one-to-one, same-name correspondence
+         * between APIs and components.
+         * 
+         * phase 0.5: starting with the main component, identify other
+         * components that will be needed (the fortress will contain the map
+         * from component C's imported APIs to their implementing components).
+         * Each component will be paired with its top level environment (TLE).
+         * 
+         * phase 1: for each component, prepare the TLE by creating all name
+         * slots (nothing in the slots will is initialized AT ALL -- it's all
+         * thunks, empty mutables, and uninitialized types).
+         * 
+         * phase 1.5: for each component C, add to C's TLE all the names that C
+         * imports (using the API->component map from the fortress to figure out
+         * the values/types associated with each of those names).
+         * 
+         */
+        comp.populateEnvironment();
+        linker.put("main", comp);
+        pile.push(comp);
+
+        
+        /*
+         * This is a patch; eventually, it will all be done explicitly.
+         */
+        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary());
+        lib.getEnvironment().installPrimitives();
+        lib.populateEnvironment();
+        pile.push(lib);
+
+        /*
+         * This performs closure over APIs and components, ensuring that all are
+         * initialized through phase one of building environments.
+         */
+        while (!pile.isEmpty()) {
+
+            ComponentWrapper cw = pile.pop();
+            components.add(cw);
+
+            CompilationUnit c = cw.getComponent();
+            List<Import> imports = c.getImports();
+
+            ensureImportsImplemented(linker, pile, imports);
+        }
+
+        /*
+         * Transitional stuff.
+         * 
+         * This will stick native hooks into the "library", and these will in
+         * turn be copied into all the other environments.
+         */
+        Glue.installHooks(lib.getEnvironment());
+
+        /*
+         * Inject imported names into environments.
+         * 
+         * TODO traits and objects must have their members filtered in these
+         * injections. This is not at all simple in the case of a component
+         * exporting multiple APIs that may also have different views of the
+         * same trait, when some subset of those APIs is imported in another
+         * component. Because this is not simple, because the many-to-many case
+         * is not yet handled, it is not yet implemented. Getting this right
+         * will probably affect the code that builds object types and deals with
+         * overloading there.
+         */
+        for (ComponentWrapper cw : components) {
+            CompilationUnit c = cw.getComponent();
+            List<Import> imports = c.getImports();
+            final BetterEnv e = cw.getEnvironment();
+
             /*
-             * It's not quite clear what's going on here,
-             * and this is probably busted after the
-             * 4-pass upgrade to BuildEnvironments.
-             */ 
-	    Glue.installHooks(be.getEnvironment());
-            be.secondPass();
-            be.resetPass();
-	} else {
-	    Libraries.link(be, dis);
-	}
-        p = (CompilationUnit) dis.visit(p); // note that p is unused after the next
-                                    // line.
-        p.accept(be);
-        dis.registerObjectExprs(be.getEnvironment());
-        return be.getEnvironment();
+             * Transitional stuff. Import everything from "library" into a
+             * Component.
+             */
+
+            if (cw != lib)
+                importAllExcept(e, lib.getEnvironment(), lib.getEnvironment(),
+                        Collections.<String> emptyList(), "FortressLibrary",
+                        "FortressLibrary");
+
+            for (Import i : imports) {
+                if (i instanceof ImportApi) {
+                    ImportApi ix = (ImportApi) i;
+                    List<AliasedDottedId> apis = ix.getApis();
+                    for (AliasedDottedId adi : apis) {
+                        DottedId id = adi.getId();
+                        String from_apiname = id.toString();
+
+                        Option<DottedId> alias = adi.getAlias();
+                        String known_as = alias.getVal(id).toString();
+
+                        ComponentWrapper from_cw = linker.get(from_apiname);
+
+                        /*
+                         * Every name N in api A with optional alias B is added
+                         * to e, using the value from the component C
+                         * implementing A. If B is present, C.N is referenced as
+                         * B.N, else it is referenced as A.N.
+                         */
+
+                        /*
+                         * Not-yet-implemented because of issues with selectors.
+                         */
+                        NI.nyi("Import of dotted name");
+                    }
+
+                } else if (i instanceof ImportFrom) {
+                    ImportFrom ix = (ImportFrom) i;
+                    DottedId source = ix.getSource();
+                    String from_apiname = source.toString();
+
+                    ComponentWrapper from_cw = linker.get(from_apiname);
+                    BetterEnv from_e = from_cw.getEnvironment();
+                    BetterEnv api_e = from_cw.getExportedCW(from_apiname)
+                            .getEnvironment();
+
+                    /* Pull in names, UNqualified */
+
+                    if (ix instanceof ImportNames) {
+                        /* A set of names */
+                        List<AliasedName> names = ((ImportNames) ix).getNames();
+                        for (AliasedName an : names) {
+                            FnName name = an.getName();
+                            Option<FnName> alias = an.getAlias();
+                            /*
+                             * If alias exists, associate the binding from
+                             * component_wrapper with alias, otherwise associate
+                             * it with plain old name.
+                             */
+
+                            inject(e, api_e, from_e, name, alias, from_apiname,
+                                    from_cw.getComponent().getName().toString());
+
+                        }
+
+                    } else if (ix instanceof ImportStar) {
+                        /* All names BUT excepts, as they are listed. */
+                        final List<Name> excepts = ((ImportStar) ix)
+                                .getExcept();
+                        final List<String> except_names = Useful.applyToAll(
+                                excepts, new Fn<Name, String>() {
+                                    public String apply(Name n) {
+                                        return n.name();
+                                    }
+                                });
+
+                        importAllExcept(e, api_e, from_e, except_names,
+                                from_apiname, from_cw.getComponent().getName()
+                                        .toString());
+
+                    }
+                } else {
+
+                }
+            }
+        }
+
+        for (ComponentWrapper cw : components) {
+            cw.initTypes();
+        }
+        for (ComponentWrapper cw : components) {
+            cw.initFuncs();
+        }
+        for (ComponentWrapper cw : components) {
+            cw.initVars();
+        }
+
+        // Libraries.link(be, dis);
+
+        return comp.getEnvironment();
+    }
+
+    /**
+     * @param into_e
+     * @param from_e
+     * @param except_names
+     */
+    private static void importAllExcept(final BetterEnv into_e,
+            BetterEnv api_e, final BetterEnv from_e,
+            final List<String> except_names, final String a, final String c) {
+
+        Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+            public void visit(String s, FType o) {
+                try {
+                    if (!except_names.contains(s)) {
+                        into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    throw new ProgramError("Import of " + s + " from api " + a
+                            + " not found in implementing component " + c);
+                }
+            }
+        };
+        /*
+         * Potential problem here, we have to make overloading work when we put
+         * a function.
+         */
+        Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
+            public void visit(String s, FValue o) {
+                try {
+                    if (!except_names.contains(s)) {
+                        into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    throw new ProgramError("Import of " + s + " from api " + a
+                            + " not found in implementing component " + c);
+                }
+            }
+        };
+        Visitor2<String, Number> vi = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                try {
+                    if (!except_names.contains(s)) {
+                        into_e.putInt(s, NI.cnnf(from_e.getIntNull(s)));
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    throw new ProgramError("Import of " + s + " from api " + a
+                            + " not found in implementing component " + c);
+                }
+            }
+        };
+        Visitor2<String, Number> vn = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                try {
+                    if (!except_names.contains(s)) {
+                        into_e.putNat(s, NI.cnnf(from_e.getNat(s)));
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    throw new ProgramError("Import of " + s + " from api " + a
+                            + " not found in implementing component " + c);
+                }
+            }
+        };
+        Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
+            public void visit(String s, Boolean o) {
+                try {
+                    if (!except_names.contains(s)) {
+                        into_e.putBool(s, NI.cnnf(from_e.getBool(s)));
+                    }
+                } catch (CheckedNullPointerException ex) {
+                    throw new ProgramError("Import of " + s + " from api " + a
+                            + " not found in implementing component " + c);
+                }
+            }
+        };
+
+        api_e.visit(vt, vn, vi, vv, vb);
+    }
+
+    private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
+            FnName name, Option<FnName> alias, String a, String c) {
+        String s = name.name();
+        String add_as = s;
+        if (alias.isPresent()) {
+            add_as = alias.getVal().name();
+        }
+        try {
+            if (api_e.getNatNull(s) != null)
+                e.putNat(add_as, NI.cnnf(from_e.getNatNull(s)));
+            if (api_e.getIntNull(s) != null)
+                e.putInt(add_as, NI.cnnf(from_e.getIntNull(s)));
+            if (api_e.getBoolNull(s) != null)
+                e.putBool(add_as, NI.cnnf(from_e.getBoolNull(s)));
+            if (api_e.getTypeNull(s) != null)
+                e.putType(add_as, NI.cnnf(from_e.getTypeNull(s)));
+
+            if (api_e.getValueRaw(s) != null)
+                e.putValue(add_as, NI.cnnf(from_e.getValueRaw(s)));
+        } catch (CheckedNullPointerException ex) {
+            throw new ProgramError("Import of " + name + " from api " + a
+                    + " not found in implementing component " + c);
+        }
+
+    }
+
+    /**
+     * For each imported API, checks to see if it is already "linked". If not,
+     * "finds" it (looks for apiname.fss/apiname.jst) and reads it in and sticks
+     * it in the "pile".
+     * 
+     * For each component, also reads in the corresponding APIs so that we know
+     * what to export.
+     * 
+     * @param linker
+     * @param pile
+     * @param imports
+     */
+    private static void ensureImportsImplemented(
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile, List<Import> imports) {
+
+        for (Import i : imports) {
+            if (i instanceof ImportApi) {
+                ImportApi ix = (ImportApi) i;
+                List<AliasedDottedId> apis = ix.getApis();
+                for (AliasedDottedId adi : apis) {
+                    DottedId id = adi.getId();
+                    ensureApiImplemented(linker, pile, id);
+
+                }
+
+            } else if (i instanceof ImportFrom) {
+                ImportFrom ix = (ImportFrom) i;
+                DottedId source = ix.getSource();
+                ensureApiImplemented(linker, pile, source);
+            } else {
+
+            }
+        }
+    }
+
+    /**
+     * @param linker
+     * @param pile
+     * @param id
+     */
+    private static void ensureApiImplemented(
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile, DottedId id) {
+        String apiname = id.toString();
+        if (linker.get(apiname) == null) {
+            /*
+             * Here, the linker prototype takes the extreme shortcut of assuming
+             * that Api Foo is implemented by Component Foo, dots and all.
+             */
+            Component newcomp = readTreeOrSourceComponent(apiname);
+            Api newapi = readTreeOrSourceApi(apiname);
+            ComponentWrapper apicw = new ComponentWrapper(newapi);
+            ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
+            newwrapper.populateEnvironment();
+            linker.put(apiname, newwrapper);
+            pile.push(newwrapper);
+
+            List<Import> imports = newcomp.getImports();
+            ensureImportsImplemented(linker, pile, imports);
+
+            imports = newapi.getImports();
+            ensureImportsImplemented(linker, pile, imports);
+        }
     }
 
     // This runs the program from inside a task.
     public static void runProgramTask(CompilationUnit p, boolean runTests,
             List<String> args) {
+
         FortressTests.reset();
         BetterEnv e = evalComponent(p);
+
         Closure run_fn = e.getRunMethod();
         Toplevel toplevel = new Toplevel();
         if (runTests) {
@@ -251,19 +612,18 @@ public class Driver {
         System.out.println("finish runProgram");
     }
 
-
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
     public static void runProgram(CompilationUnit p, boolean runTests,
-				  boolean libraryTest,
-				  List<String> args) throws Throwable {
-	_libraryTest = libraryTest;
+            boolean libraryTest, List<String> args) throws Throwable {
+        _libraryTest = libraryTest;
         String numThreadsString = System.getenv("NumFortressThreads");
         if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);
 
         if (group == null)
+
            group = new FortressTaskRunnerGroup(numThreads);
 
         EvaluatorTask evTask = new EvaluatorTask(p, runTests, args, null);
@@ -274,14 +634,14 @@ public class Driver {
             // group.interruptAll();
         }
         if (evTask.causedException()) {
-            Throwable th =  evTask.getException();
+            Throwable th = evTask.getException();
             throw th;
         }
     }
 
     public static void runProgram(CompilationUnit p, boolean runTests,
-				  List<String> args) throws Throwable {
-	runProgram(p, runTests, false, args);
+            List<String> args) throws Throwable {
+        runProgram(p, runTests, false, args);
     }
 
     private static class Toplevel implements HasAt {
@@ -292,6 +652,58 @@ public class Driver {
         public String stringName() {
             return "driver";
         }
+    }
+
+    public static Component readTreeOrSourceComponent(String basename) {
+        return (Component) readTreeOrSource(basename + ".fss", basename
+                + ".tfs");
+    }
+
+    public static Api readTreeOrSourceApi(String basename) {
+        return (Api) readTreeOrSource(basename + ".fsi", basename + ".tfi");
+    }
+
+    /**
+     * Attempts to read in preparsed program. Reparses if parsed form is missing
+     * or newer than preparsed form.
+     * 
+     * @param librarySource
+     * @param libraryTree
+     * @return
+     */
+    public static CompilationUnit readTreeOrSource(String librarySource,
+            String libraryTree) {
+        CompilationUnit c = null;
+        if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
+            try {
+                System.err
+                        .println("Missing or stale preparsed AST, rebuilding from source");
+                long begin = System.currentTimeMillis();
+
+                c = parseToJavaAst(librarySource, Useful
+                        .utf8BufferedFileReader(librarySource));
+
+                System.err.println("Parsed " + librarySource + ": "
+                        + (System.currentTimeMillis() - begin)
+                        + " milliseconds");
+                writeJavaAst(c, libraryTree);
+            } catch (Throwable ex) {
+                System.err.println("Trouble preparsing library AST.");
+                ex.printStackTrace();
+            }
+
+        } else
+            try {
+                long begin = System.currentTimeMillis();
+                c = readJavaAst(libraryTree);
+                System.err.println("Read " + libraryTree + ": "
+                        + (System.currentTimeMillis() - begin)
+                        + " milliseconds");
+            } catch (Throwable ex) {
+                System.err.println("Trouble reading preparsed library AST.");
+                ex.printStackTrace();
+            }
+        return c;
     }
 
 }

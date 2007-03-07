@@ -61,4 +61,12 @@ public class AliasedName extends Node {
         return null;
     }
 
+    public FnName getName() {
+        return name;
+    }
+
+    public Option<FnName> getAlias() {
+        return alias;
+    }
+
 }

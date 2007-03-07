@@ -17,11 +17,31 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.util.List;
+
 // / type t = program
 // /
 public abstract class CompilationUnit extends Node {
+    DottedId name;
+
+    List<Import> imports;
+
     CompilationUnit(Span span) {
         super(span);
+    }
+    
+    /**
+     * @return Returns the imports.
+     */
+    public List<Import> getImports() {
+        return imports;
+    }
+
+    /**
+     * @return Returns the name.
+     */
+    public DottedId getName() {
+        return name;
     }
 
 }

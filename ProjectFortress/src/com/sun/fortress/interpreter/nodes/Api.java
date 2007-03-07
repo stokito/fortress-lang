@@ -28,10 +28,7 @@ import java.util.List;
 // / }
 // /
 public class Api extends CompilationUnit {
-    DottedId name;
-
-    List<Import> imports;
-
+    
     List<? extends DefOrDecl> decls;
 
     @Override
@@ -58,17 +55,4 @@ public class Api extends CompilationUnit {
         return decls;
     }
 
-    /**
-     * @return Returns the imports.
-     */
-    public List<Import> getImports() {
-        return imports;
-    }
-
-    /**
-     * @return Returns the name.
-     */
-    public DottedId getName() {
-        return name;
-    }
 }

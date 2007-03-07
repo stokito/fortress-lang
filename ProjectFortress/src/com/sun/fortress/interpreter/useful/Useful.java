@@ -207,6 +207,14 @@ public class Useful {
 
     }
 
+    public static <T, U> List<U> applyToAll(List<T> s, Fn<T, U> verb) {
+        ArrayList<U> result = new ArrayList<U>();
+        for (T i : s)
+            result.add(verb.apply(i));
+        return result;
+
+    }
+
     public static <T> Set<T> set(T... x) {
       HashSet<T> result = new HashSet<T>();
       for (int i = 0; i < x.length; i++) {
@@ -468,6 +476,15 @@ public class Useful {
         File inp = new File(inputFile);
         // res does not exist, OR res has a smaller birthday.
         return !res.exists() || (res.lastModified() < inp.lastModified());
+    }
+
+    public static int compareClasses(Object x, Object y) {
+        Class a = x.getClass();
+        Class b = y.getClass();
+        if (a == b) return 0;
+        if (a.isAssignableFrom(b)) return -1;
+        if (b.isAssignableFrom(a)) return 1;
+        return a.getName().compareTo(b.getName());
     }
 
 }

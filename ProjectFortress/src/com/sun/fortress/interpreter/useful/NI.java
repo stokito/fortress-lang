@@ -77,10 +77,20 @@ public class NI {
 
     /**
      * Identity function for non-nulls.
+     * Throws a CHECKED exception.
+    */
+    public static <T> T cnnf(T x) throws CheckedNullPointerException {
+        if (x == null)
+            throw new CheckedNullPointerException("Null not allowed");
+        return x;
+    }
+    
+    /**
+     * Identity function for non-nulls.
     */
     public static <T> T nnf(T x) {
         if (x == null)
-            throw new Error("Null not allowed");
+            throw new NullPointerException("Null not allowed");
         return x;
     }
 

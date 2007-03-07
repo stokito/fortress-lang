@@ -37,13 +37,9 @@ import com.sun.fortress.interpreter.nodes.FnName;
  */
 public class GenericMethodSet extends GenericFunctionOrMethodSet<GenericMethod>
 {
-
-    public GenericMethodSet(FnName name, BetterEnv within, Set<GenericMethod> gs) {
-        super(name, within, gs);
-    }
-
+   
     public GenericMethodSet(FnName name, BetterEnv within) {
-        super(name, within);
+        super(name, within, GenericMethod.genFullComparer);
     }
 
     public boolean isMethod(){

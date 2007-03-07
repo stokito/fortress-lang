@@ -318,6 +318,12 @@ public class OverloadedFunction extends Fcn {
 //            throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
         addOverload(new Overload(fn));
     }
+    
+    public void addOverloads(OverloadedFunction cls) {
+        for (Overload cl : cls.overloads) {
+            addOverload(cl);
+        }
+    }
 
     /**
      * Add an overload to the list of overloads.

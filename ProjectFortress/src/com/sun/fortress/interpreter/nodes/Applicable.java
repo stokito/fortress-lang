@@ -34,4 +34,7 @@ public interface Applicable extends HasAt {
     public FnName getFnName();
 
     public List<WhereClause> getWhere();
+    
+    public int applicableCompareTo(Applicable a);
+    
 }

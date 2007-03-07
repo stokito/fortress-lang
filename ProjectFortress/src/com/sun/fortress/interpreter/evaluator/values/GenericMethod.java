@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
@@ -185,4 +186,13 @@ public class GenericMethod extends MethodClosure implements
 
     static final GenericComparer genComparer = new GenericComparer();
 
+    static class GenericFullComparer implements Comparator<GenericMethod> {
+
+        public int compare(GenericMethod arg0, GenericMethod arg1) {
+            return arg0.getDef().applicableCompareTo(arg1.getDef());
+            
+        }
+    }
+    static final GenericFullComparer genFullComparer = new GenericFullComparer();
+    
 }

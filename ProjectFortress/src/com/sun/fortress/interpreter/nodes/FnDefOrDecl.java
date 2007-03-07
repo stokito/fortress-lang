@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 
+import java.util.Comparator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.glue.WellKnownNames;
@@ -27,7 +28,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
-        DefOrDecl {
+        DefOrDecl, Comparable<FnDefOrDecl> {
 
     List<Modifier> mods;
 
@@ -44,7 +45,7 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
     List<WhereClause> where;
 
     Contract contract;
-
+    
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
             Option<TypeRef> returnType, List<TypeRef> throwss,
@@ -64,6 +65,42 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
         return WellKnownNames.defaultSelfName;
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(FnDefOrDecl a1) {
+        FnDefOrDecl a0 = this;
+        
+        FnName fn0 = a0.getFnName();
+        FnName fn1 = a1.getFnName();
+        int x = fn0.compareTo(fn1);
+        if (x != 0)  return x;
+
+        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), StaticParam.listComparer);
+
+        if (x != 0)  return x;
+        
+        x = Param.listComparer.compare(a0.getParams(), a1.getParams());
+        return x;
+
+    }
+    
+    static class Comparer implements Comparator<FnDefOrDecl> {
+
+        public int compare(FnDefOrDecl o1, FnDefOrDecl o2) {
+            return o1.compareTo(o2);
+        } 
+    }
+    
+    public final static Comparer comparer = new Comparer();
+    
+    public int applicableCompareTo(Applicable a) {
+        int x = Useful.compareClasses(this, a);
+        if (x != 0) return x;
+        return compareTo((FnDefOrDecl) a);
+    }
+
+    
     @Override
     public String toString() {
 

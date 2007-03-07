@@ -48,6 +48,11 @@ public class Some<T> extends Option<T> {
     public T getVal() {
         return val;
     }
+    
+    @Override
+    public T getVal(T ifMissing) {
+        return val;
+    }
 
     @Override
     public final boolean isPresent() {

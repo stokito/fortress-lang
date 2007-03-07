@@ -55,13 +55,6 @@ public class ImportNames extends ImportFrom {
     }
 
     /**
-     * @return Returns the source.
-     */
-    public DottedId getSource() {
-        return source;
-    }
-
-    /**
      * @return Returns the names.
      */
     public List<AliasedName> getNames() {

@@ -20,6 +20,13 @@ package com.sun.fortress.interpreter.nodes;
 public abstract class ImportFrom extends Import {
     DottedId source;
 
+    /**
+     * @return Returns the source.
+     */
+    public DottedId getSource() {
+        return source;
+    }
+
     ImportFrom(Span s) {
         super(s);
     }

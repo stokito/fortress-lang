@@ -213,6 +213,11 @@ public class Disambiguate extends Rewrite {
     String currentSelfName = WellKnownNames.defaultSelfName;
     boolean atTopLevelInsideTraitOrObject = false; // true immediately within a trait/object
 
+    /**
+     * Adds, to the supplied environment, constructors for any object
+     * expressions encountered the tree(s) processed by this Disambiguator.
+     * @param e
+     */
     public void registerObjectExprs(BetterEnv e) {
         for (ObjectExpr oe : objectExprs) {
             String name = oe.getGenSymName();

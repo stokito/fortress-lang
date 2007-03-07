@@ -42,7 +42,10 @@ public class AliasedDottedId extends Node {
         super(rewriteFrom);
         // TODO Auto-generated constructor stub
     }
-
+    
+    public DottedId getId() { return id; }
+    public Option<DottedId> getAlias() { return alias; }
+    
     @Override
     public <T> T acceptInner(NodeVisitor<T> v) {
         // TODO Auto-generated method stub

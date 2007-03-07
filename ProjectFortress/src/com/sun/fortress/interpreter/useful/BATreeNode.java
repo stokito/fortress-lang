@@ -54,6 +54,12 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
             return b;
         }
+        
+        public void visit(Visitor2<? super T, ? super U> v) {
+            if (left != null) left.visit(v);
+            v.visit(key, data);
+            if (right != null) right.visit(v);
+        }
 
         public void ok(Comparator<T> c) {
             int lw = 0;

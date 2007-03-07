@@ -52,6 +52,7 @@ import com.sun.fortress.interpreter.nodes.AbsTraitDecl;
 import com.sun.fortress.interpreter.nodes.AbsVarDecl;
 import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.Applicable;
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
@@ -64,7 +65,6 @@ import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.ImportApi;
-import com.sun.fortress.interpreter.nodes.ImportIds;
 import com.sun.fortress.interpreter.nodes.ImportNames;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.LValue;
@@ -157,6 +157,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         assertPass(3);
         pass = 4;
     }
+    
+    public void visit(CompilationUnit n) {
+        acceptNode(n);
+    }
 
     BetterEnv containing;
 
@@ -208,21 +212,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     public Voidoid forApi(Api x) {
         List<? extends DefOrDecl> decls = x.getDecls();
 
-        // List<Import> imports = x.getImports();
-        //DottedId name = x.getName();
-
-        //SApi api = new SApi(containing, x);
-        //containing.putApi(name, api);
-
-        // TODO Run over the imports,
-        // and inject names appropriately into the environment.
-
-        doDefs1234(decls);
-
-        return null;
-    }
-
-    protected void forApi1(Api x) {
+        switch (pass) {
+        case 1: 
+        case 2: 
+        case 3: 
+        case 4: doDefs(this, decls);break;
+        }
+       return null;
 
     }
 
@@ -233,12 +229,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      */
     @Override
     public Voidoid forComponent(Component x) {
-        forComponent1(x);
         List<? extends DefOrDecl> defs = x.getDefs();
+        switch (pass) {
+        case 1: forComponent1(x); break;
         
-        doDefs234(defs);
-        
-        return null;
+        case 2: 
+        case 3: 
+        case 4: doDefs(this, defs);break;
+        }
+       return null;
     }
 
     public Voidoid forComponentDefs(Component x) {
@@ -369,7 +368,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         if (optStaticParams.isPresent()) {
             FValue cl = newGenericClosure(containing, x);
-            putOrOverloadOrShadowGeneric(x, containing, name, cl);
+            bindInto.putValueShadowFn(fname, cl);
+            //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
 
         } else {
             // NOT GENERIC
@@ -388,7 +388,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             }
             // TODO this isn't right if it was a test function.
             // it belongs in a different namespace if it is.
-            putOrOverloadOrShadow(x, containing, name, cl);
+            bindInto.putValueShadowFn(fname, cl);
+            //LINKER putOrOverloadOrShadow(x, containing, name, cl);
 
         }
 
@@ -463,105 +464,105 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      * @param name
      * @param cl
      */
-    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, FnName name,
-            Simple_fcn cl) {
-        Fcn g = (Fcn) e.getValueNull(name.name());
-        if (g == null) {
-            putFunction(e, name, cl, x);
+//    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, FnName name,
+//            Simple_fcn cl) {
+//        Fcn g = (Fcn) e.getValueNull(name.name());
+//        if (g == null) {
+//            putFunction(e, name, cl, x);
+//
+//            // This is delicate temporary code (below), and breaks the
+//            // property that adding another layer of environment is an OK
+//            // thing to do.
+//        } else if (g.getWithin().equals(e)) {
+//            // OVERLOADING
+//            OverloadedFunction og;
+//            if (g instanceof OverloadedFunction) {
+//                og = (OverloadedFunction) g;
+//                og.addOverload(cl);
+//            } else if (g instanceof GenericMethodSet
+//                    || g instanceof GenericMethod) {
+//                throw new ProgramError(x, e,
+//                        "Cannot combine generic method and nongeneric method "
+//                                + name.name() + " in an overloading");
+//            } else if (g instanceof GenericFunctionSet
+//                    || g instanceof FGenericFunction) {
+//                throw new ProgramError(x, e,
+//                        "Cannot combine generic function and nongeneric function "
+//                                + name.name() + " in an overloading");
+//            } else {
+//                og = new OverloadedFunction(name, e);
+//                og.addOverload(cl);
+//                og.addOverload((Simple_fcn) g);
+//
+//                assignFunction(e, name, og);
+//            }
+//        } else {
+//            // SHADOWING
+//            putFunction(e, name, cl, x);
+//        }
+//    }
 
-            // This is delicate temporary code (below), and breaks the
-            // property that adding another layer of environment is an OK
-            // thing to do.
-        } else if (g.getWithin().equals(e)) {
-            // OVERLOADING
-            OverloadedFunction og;
-            if (g instanceof OverloadedFunction) {
-                og = (OverloadedFunction) g;
-                og.addOverload(cl);
-            } else if (g instanceof GenericMethodSet
-                    || g instanceof GenericMethod) {
-                throw new ProgramError(x, e,
-                        "Cannot combine generic method and nongeneric method "
-                                + name.name() + " in an overloading");
-            } else if (g instanceof GenericFunctionSet
-                    || g instanceof FGenericFunction) {
-                throw new ProgramError(x, e,
-                        "Cannot combine generic function and nongeneric function "
-                                + name.name() + " in an overloading");
-            } else {
-                og = new OverloadedFunction(name, e);
-                og.addOverload(cl);
-                og.addOverload((Simple_fcn) g);
-
-                assignFunction(e, name, og);
-            }
-        } else {
-            // SHADOWING
-            putFunction(e, name, cl, x);
-        }
-    }
-
-    /**
-     * @param x
-     * @param e
-     * @param name
-     * @param cl
-     */
-    private void putOrOverloadOrShadowGeneric(HasAt x, BetterEnv e,
-            FnName name, FValue cl) {
-        FValue fv = e.getValueNull(name.name());
-        if (fv != null && !(fv instanceof Fcn)) {
-            throw new ProgramError(x, e, "Generic not generic? " + name.name());
-        }
-        Fcn g = (Fcn) fv;
-        // Actually need to test for diff types of g.
-        if (g == null) {
-            putFunction(e, name, cl, x);
-        } else if (g.getWithin().equals(e)) {
-            // OVERLOADING
-            if (cl instanceof GenericMethod) {
-                GenericMethod clg = (GenericMethod) cl;
-                GenericMethodSet og;
-                if (g instanceof GenericMethodSet) {
-                    og = (GenericMethodSet) g;
-                    og.addOverload(clg);
-                } else if (g instanceof GenericMethod) {
-                    og = new GenericMethodSet(name, e);
-                    og.addOverload(clg);
-                    og.addOverload((GenericMethod) g);
-
-                    assignFunction(e, name, og);
-                } else {
-                    throw new ProgramError(x, e, "Overload of generic method "
-                            + cl + " with non-generic/method " + g);
-                }
-            } else if (cl instanceof FGenericFunction) {
-                FGenericFunction clg = (FGenericFunction) cl;
-                GenericFunctionSet og;
-                if (g instanceof GenericFunctionSet) {
-                    og = (GenericFunctionSet) g;
-                    og.addOverload(clg);
-                } else if (g instanceof FGenericFunction) {
-                    og = new GenericFunctionSet(name, e);
-                    og.addOverload(clg);
-                    og.addOverload((FGenericFunction) g);
-
-                    assignFunction(e, name, og);
-                } else {
-                    throw new ProgramError(x, e, "Overload of function method "
-                            + cl + " with non-generic/method " + g);
-                }
-            } else {
-                throw new ProgramError(x, e,
-                        "Overload of generic, but not a method/function" + cl
-                                + " with generic/method " + g);
-
-            }
-        } else {
-            // SHADOWING
-            putFunction(e, name, cl, x);
-        }
-    }
+//    /**
+//     * @param x
+//     * @param e
+//     * @param name
+//     * @param cl
+//     */
+//    private void putOrOverloadOrShadowGeneric(HasAt x, BetterEnv e,
+//            FnName name, FValue cl) {
+//        FValue fv = e.getValueNull(name.name());
+//        if (fv != null && !(fv instanceof Fcn)) {
+//            throw new ProgramError(x, e, "Generic not generic? " + name.name());
+//        }
+//        Fcn g = (Fcn) fv;
+//        // Actually need to test for diff types of g.
+//        if (g == null) {
+//            putFunction(e, name, cl, x);
+//        } else if (g.getWithin().equals(e)) {
+//            // OVERLOADING
+//            if (cl instanceof GenericMethod) {
+//                GenericMethod clg = (GenericMethod) cl;
+//                GenericMethodSet og;
+//                if (g instanceof GenericMethodSet) {
+//                    og = (GenericMethodSet) g;
+//                    og.addOverload(clg);
+//                } else if (g instanceof GenericMethod) {
+//                    og = new GenericMethodSet(name, e);
+//                    og.addOverload(clg);
+//                    og.addOverload((GenericMethod) g);
+//
+//                    assignFunction(e, name, og);
+//                } else {
+//                    throw new ProgramError(x, e, "Overload of generic method "
+//                            + cl + " with non-generic/method " + g);
+//                }
+//            } else if (cl instanceof FGenericFunction) {
+//                FGenericFunction clg = (FGenericFunction) cl;
+//                GenericFunctionSet og;
+//                if (g instanceof GenericFunctionSet) {
+//                    og = (GenericFunctionSet) g;
+//                    og.addOverload(clg);
+//                } else if (g instanceof FGenericFunction) {
+//                    og = new GenericFunctionSet(name, e);
+//                    og.addOverload(clg);
+//                    og.addOverload((FGenericFunction) g);
+//
+//                    assignFunction(e, name, og);
+//                } else {
+//                    throw new ProgramError(x, e, "Overload of function method "
+//                            + cl + " with non-generic/method " + g);
+//                }
+//            } else {
+//                throw new ProgramError(x, e,
+//                        "Overload of generic, but not a method/function" + cl
+//                                + " with generic/method " + g);
+//
+//            }
+//        } else {
+//            // SHADOWING
+//            putFunction(e, name, cl, x);
+//        }
+//    }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
         return new Closure(e, x);
@@ -1168,16 +1169,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportIds(com.sun.fortress.interpreter.nodes.ImportIds)
-     */
-    @Override
-    public Voidoid forImportIds(ImportIds x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    
 
     /*
      * (non-Javadoc)
@@ -1242,14 +1234,16 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
            
                 // TODO same treatment as regular functions.
                 FValue cl = newGenericClosure(containing, x);
-                putOrOverloadOrShadowGeneric(x, containing, name, cl);
+                // LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
+                bindInto.putValueShadowFn(fname, cl);
            
 
         } else {
             // NOT GENERIC
            
                 Simple_fcn cl = newClosure(containing, x);
-                putOrOverloadOrShadow(x, containing, name, cl);
+                // LINKER putOrOverloadOrShadow(x, containing, name, cl);
+                bindInto.putValueShadowFn(fname, cl);
             
         }
 

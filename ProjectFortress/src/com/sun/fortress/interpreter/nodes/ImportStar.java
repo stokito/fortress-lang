@@ -50,10 +50,6 @@ public class ImportStar extends ImportFrom {
         return except;
     }
 
-    public DottedId getSource() {
-        return source;
-    }
-
     @Override
     public boolean equals(Object o) {
         return o instanceof ImportStar;

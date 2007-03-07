@@ -121,37 +121,6 @@ public class ConstructorsJUTest extends TestCase {
         return new DottedId(span1, newId(a), Useful.list(newId(b), newId(c)));
     }
 
-    public void testImport() {
-        Span span1 = newSpan("cat", 1, 2, 3);
-        com.sun.fortress.interpreter.nodes.Import i1 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-                newDottedId("the", "import", "source"),
-                new ImportStar(span1));
-        com.sun.fortress.interpreter.nodes.Import i2 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-                newDottedId("the", "import", "source"),
-                new ImportStar(span1));
-        com.sun.fortress.interpreter.nodes.Import i3 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-                newDottedId("an", "import", "source"),
-                new ImportStar(span1));
-
-        een(i1,i2,i3);
-
-//         com.sun.fortress.interpreter.nodes.Import i4 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-//                 newDottedId("the", "import", "source"),
-//                 new ImportNames(span1, Useful.list(newId("cat"), newId("dog"))));
-
-//         com.sun.fortress.interpreter.nodes.Import i5 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-//                 newDottedId("the", "import", "source"),
-//                 new ImportNames(span1, Useful.list(newId("cat"), newId("dog"))));
-
-//         com.sun.fortress.interpreter.nodes.Import i6 = new com.sun.fortress.interpreter.nodes.ImportIds(span1,
-//                 newDottedId("the", "import", "source"),
-//                 new ImportNames(span1, Useful.list(newId("cat"), newId("cow"))));
-
-
-//         een(i4,i5,i6);
-//         Assert.assertFalse(i4.equals(i1));
-    }
-
     public void testExport() {
         Span span1 = newSpan("cat", 1, 2, 3);
         com.sun.fortress.interpreter.nodes.Export e1 = new com.sun.fortress.interpreter.nodes.Export(span1, newDottedId("some", "exported", "apiname"));

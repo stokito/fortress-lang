@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 public class DottedId extends FnName {
     List<String> names;
 
-    private String cachedToString;
+    private volatile String cachedToString;
 
     // For reflective creation
     DottedId(Span span) {
@@ -102,7 +102,10 @@ public class DottedId extends FnName {
     @Override
     public String toString() {
         if (cachedToString == null) {
-            cachedToString = Useful.dottedList(names);
+            synchronized (this) {
+                if (cachedToString == null)
+                    cachedToString = Useful.dottedList(names);
+            }
         }
         return cachedToString;
     }

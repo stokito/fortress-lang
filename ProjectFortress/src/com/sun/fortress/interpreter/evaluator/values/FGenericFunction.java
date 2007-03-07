@@ -18,12 +18,14 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.GenericMethod.GenericComparer;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
@@ -136,6 +138,38 @@ public class FGenericFunction extends Fcn
         return fndef;
     }
 
+    static class GenericComparer implements Comparator<FGenericFunction> {
 
+        public int compare(FGenericFunction arg0, FGenericFunction arg1) {
+            Applicable a0 = arg0.getDef();
+            Applicable a1 = arg1.getDef();
+
+            FnName fn0 = a0.getFnName();
+            FnName fn1 = a1.getFnName();
+            int x = fn0.compareTo(fn1);
+            if (x != 0)
+                return x;
+
+            List<StaticParam> oltp0 = a0.getStaticParams().getVal();
+            List<StaticParam> oltp1 = a1.getStaticParams().getVal();
+
+            return StaticParam.listComparer.compare(oltp0, oltp1);
+
+        }
+
+    }
+
+    static final GenericComparer genComparer = new GenericComparer();
+
+    static class GenericFullComparer implements Comparator<FGenericFunction> {
+
+        public int compare(FGenericFunction arg0, FGenericFunction arg1) {
+            return arg0.fndef.compareTo(arg1.fndef);
+            
+        }
+    }
+    static final GenericFullComparer genFullComparer = new GenericFullComparer();
+
+    
 
 }

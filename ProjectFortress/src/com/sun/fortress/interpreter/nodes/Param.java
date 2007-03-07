@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
+import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 
@@ -31,7 +32,8 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 // / param_default : expr option;
 // / }
 // /
-public class Param extends Node {
+public class Param extends Node implements
+      Comparable<Param> {
     List<Modifier> mods;
 
     Id name;
@@ -145,5 +147,17 @@ public class Param extends Node {
         }
         return false;
     }
+
+    public int compareTo(Param o) {
+        int x = getName().getName().compareTo(o.getName().getName());
+        if (x != 0) return x;
+        x = TypeRef.compareOptional(getType(), o.getType());
+        if (x != 0) return x;
+        // TODO default expr, mods, must enter into comparison also.
+        return x;
+    }
+    
+    public static ListComparer<Param> listComparer =
+        new ListComparer<Param>();
 
 }

@@ -29,10 +29,7 @@ import java.util.List;
 // / }
 // /
 public class Component extends CompilationUnit {
-    DottedId name;
-
-    List<Import> imports;
-
+    
     List<Export> exports;
 
     List<? extends DefOrDecl> defs;
@@ -61,19 +58,7 @@ public class Component extends CompilationUnit {
         return exports;
     }
 
-    /**
-     * @return Returns the imports.
-     */
-    public List<Import> getImports() {
-        return imports;
-    }
-
-    /**
-     * @return Returns the name.
-     */
-    public DottedId getName() {
-        return name;
-    }
+   
 
     // Necessary for vistor pattern
     @Override

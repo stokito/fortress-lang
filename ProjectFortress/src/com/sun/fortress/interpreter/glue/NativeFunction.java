@@ -60,7 +60,8 @@ public class NativeFunction extends Closure {
     public void register(BetterEnv e) {
         nativeEnvironment = e;
         BuildEnvironments be = new BuildEnvironments(e);
-        be.putOrOverloadOrShadow(getAt(), e, getFnName(), this);
+        e.putValue(getFnName().name(), this);
+        // LINKER  be.putOrOverloadOrShadow(getAt(), e, getFnName(), this);
     }
 
     static public void registerAll(BetterEnv e, NativeFunction[] funcs) {

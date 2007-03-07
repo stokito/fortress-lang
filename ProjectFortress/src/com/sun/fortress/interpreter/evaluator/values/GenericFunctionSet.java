@@ -42,7 +42,7 @@ public class GenericFunctionSet extends
     // }
 
     public GenericFunctionSet(FnName name, BetterEnv within) {
-        super(name, within);
+        super(name, within, FGenericFunction.genFullComparer);
     }
 
     OverloadedFunction oaf = null;
@@ -70,12 +70,13 @@ public class GenericFunctionSet extends
     }
 
     @Override
-    public void addOverload(FGenericFunction cl) {
+    public GenericFunctionOrMethodSet addOverload(FGenericFunction cl) {
         // Invalidate oaf to handle the case in which we're adding new
         // overloadings to an imported function.  This forces oaf to
         // be reconstructed from the new method set.
         this.oaf = null;
         super.addOverload(cl);
+        return this;
     }
 
     public Applicable getAnApplicable() {
@@ -153,8 +154,8 @@ public class GenericFunctionSet extends
                 } else {
                     if (FType.moreSpecificThan(candidate_params, best_params)) {
                         if (TRACE) System.err.println("More specific type");
-                        best_params = candidate_params;
                         best = f;
+                        best_params = candidate_params;
                     } else if (TRACE) System.err.println("Less specific.");
                 }
             }

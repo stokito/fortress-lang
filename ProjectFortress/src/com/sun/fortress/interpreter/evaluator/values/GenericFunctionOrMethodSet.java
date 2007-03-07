@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod.GenericComparer;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.FnName;
@@ -42,6 +44,7 @@ import com.sun.fortress.interpreter.nodes.TypeAlias;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.nodes.WhereExtends;
+import com.sun.fortress.interpreter.useful.BASet;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 
@@ -50,12 +53,11 @@ abstract public class GenericFunctionOrMethodSet<What extends GenericFunctionOrM
 
    // Extending Fcn is semi-bogus.  Generic methods have a name and an environment.
 
-    public GenericFunctionOrMethodSet(FnName name, BetterEnv within) {
-        this(name, within, new HashSet<What>());
+    public GenericFunctionOrMethodSet(FnName name, BetterEnv within, Comparator<What> comparer) {
+        this(name, within, new BASet<What>(comparer));
     }
 
-
-    public GenericFunctionOrMethodSet(FnName name, BetterEnv within, Set<What> gs) {
+    private GenericFunctionOrMethodSet(FnName name, BetterEnv within, Set<What> gs) {
         super(within);
         this.name = name;
         gmset = gs;
@@ -87,7 +89,7 @@ abstract public class GenericFunctionOrMethodSet<What extends GenericFunctionOrM
 
     abstract public boolean isMethod();
 
-    public void addOverload(What cl) {
+    public GenericFunctionOrMethodSet addOverload(What cl) {
         if (gmset.size() > 0) {
             // Check for consistent parameter lists.
             What first = gmset.iterator().next();
@@ -98,12 +100,14 @@ abstract public class GenericFunctionOrMethodSet<What extends GenericFunctionOrM
             }
         }
         gmset.add(cl);
+        return this;
     }
 
-    public void addOverloads(GenericFunctionOrMethodSet<What> cls) {
+    public GenericFunctionOrMethodSet addOverloads(GenericFunctionOrMethodSet<What> cls) {
         for (What cl : cls.gmset) {
             addOverload(cl);
         }
+        return this;
     }
 
     public Set<What> getMethods() { return gmset; }

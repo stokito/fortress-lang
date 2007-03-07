@@ -26,7 +26,6 @@ import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.Dimension;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.ImportApi;
-import com.sun.fortress.interpreter.nodes.ImportIds;
 import com.sun.fortress.interpreter.nodes.ImportNames;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
@@ -94,15 +93,6 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Voidoid forImportApi(ImportApi x) {
-        return null;
-
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forImportIds(com.sun.fortress.interpreter.nodes.ImportIds)
-     */
-    @Override
-    public Voidoid forImportIds(ImportIds x) {
         return null;
 
     }
