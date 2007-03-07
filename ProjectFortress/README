@@ -305,8 +305,6 @@ SYNTAX CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 ALPHA
 * Left-hand-sides of assignment expressions are (possibly multiple of)
   array indexing, field accesses, the '_' token, or identifiers.
 
-* An operator name alone is not an expression.
-
 * Object expressions may include property declarations.
 
 * Else clauses of case and typecase expressions have the "=>" token
