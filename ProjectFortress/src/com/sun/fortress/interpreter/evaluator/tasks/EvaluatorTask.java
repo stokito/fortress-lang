@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 
 public class EvaluatorTask extends BaseTask {
     
@@ -30,14 +31,20 @@ public class EvaluatorTask extends BaseTask {
 
     List<String> args;
 
-    public EvaluatorTask(CompilationUnit prog, boolean tests, List<String> args_) {
-        super();
+    public EvaluatorTask(CompilationUnit prog, boolean tests, 
+                         List<String> args_, BaseTask parent) {
+        super(parent);
         p = prog;
         runTests = tests;
         args = args_;
     }
 
+    public void print() {
+	System.out.println("EvaluatorTask: Compilation Unit = " + p);
+    }
+
     public void run() {
+        initTask();
         try {
                 Driver.runProgramTask(p, runTests, args);
             } catch (Throwable e) {
@@ -45,6 +52,7 @@ public class EvaluatorTask extends BaseTask {
                 err = e;
                 System.err.println("Got exception: " + e);
             }
+        finalizeTask();
     }
 
 }

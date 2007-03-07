@@ -49,6 +49,13 @@ public class FGenerator extends FValue {
 	setFtype(new FTypeGenerator(r.getBase(), r.getSize()));
     }
 
+    public String toString() {
+        return "Generator: base = " + range.getBase() + " size = " + range.getSize();
+    }
+
+    public String getString() {
+        return "Generator: base = " + range.getBase() + " size = " + range.getSize();
+    }
 
     public boolean hasNext() { return iterator.hasNext();}
 

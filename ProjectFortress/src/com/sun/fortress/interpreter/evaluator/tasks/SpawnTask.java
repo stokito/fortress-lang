@@ -32,11 +32,18 @@ public class SpawnTask extends BaseTask {
     FValue val;
 
     public void run() {
-        val = new Evaluator(eval, expr).eval(expr);
+        initTask();
+        try {
+            val = new Evaluator(eval, expr).eval(expr);
+	} catch (Throwable e) {
+	    causedException = true;
+            err = e;
+        }
+        finalizeTask();
     }
 
-    public SpawnTask(Expr b, Evaluator e) {
-        super();
+    public SpawnTask(Expr b, Evaluator e, BaseTask task) {
+        super(task);
         expr = b;
         eval = e;
         start();
@@ -47,6 +54,12 @@ public class SpawnTask extends BaseTask {
         return val;
     }
     
+    public void print() {
+        System.out.println("Spawn Task: Expr = " + expr +
+                           " eval = " + eval +
+                           " val = " + val);
+    }
+
     public void st_wait() { while (!isDone()) yield(); }
     public Boolean ready() { return isDone(); }
     public void stop() { cancel();}

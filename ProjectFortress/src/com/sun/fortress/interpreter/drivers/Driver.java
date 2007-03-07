@@ -29,7 +29,6 @@ import java.util.List;
 import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
-import EDU.oswego.cs.dl.util.concurrent.FJTaskRunnerGroup;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
@@ -37,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -252,7 +252,7 @@ public class Driver {
     }
 
 
-    static FJTaskRunnerGroup group;
+    static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
     public static void runProgram(CompilationUnit p, boolean runTests,
@@ -264,9 +264,9 @@ public class Driver {
             numThreads = Integer.parseInt(numThreadsString);
 
         if (group == null)
-           group = new FJTaskRunnerGroup(numThreads);
+           group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(p, runTests, args);
+        EvaluatorTask evTask = new EvaluatorTask(p, runTests, args, null);
         try {
             group.invoke(evTask);
         } catch (InterruptedException ex) {

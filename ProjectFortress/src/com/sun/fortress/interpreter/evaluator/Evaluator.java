@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTask;
-
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.ForLoopTask;
+import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
@@ -401,11 +401,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
+            BaseTask currentTask = BaseTask.getCurrentTask();
             for (Expr e : exprs) {
-                tasks[count++] = new TupleTask(e, this);
+                tasks[count++] = new TupleTask(e, this, currentTask);
             }
-            FJTask.coInvoke(tasks);
+            TupleTask.coInvoke(tasks);
             for (int i = 0; i < count; i++) {
+                if (tasks[i].causedException)
+	            throw new TaskError(tasks[i].err);
                 resList.add(tasks[i].getRes());
             }
         }
@@ -771,7 +774,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             gens = gens.subList(1,gens.size());
             body = new For(x.getSpan(),gens,body);
         }
-        new ForLoopTask(fgen, body, this).run();
+        new ForLoopTask(fgen, body, this, BaseTask.getCurrentTask()).run();
         return evVoid;
     }
 

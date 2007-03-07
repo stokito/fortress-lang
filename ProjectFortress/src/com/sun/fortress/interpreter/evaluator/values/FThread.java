@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
@@ -26,8 +27,12 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 public class FThread extends FValue {
     SpawnTask st;
     
+
+    public String toString() {return "FThread: task = " + st;}
+    public String getString() {return "FThread: task = " + st;}
+
     public FThread(Expr b, Evaluator e) {
-	st = new SpawnTask(b,e);
+	st = new SpawnTask(b,e, BaseTask.getCurrentTask());
     }
     
     public FValue val() { return st.val();}

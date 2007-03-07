@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
@@ -265,6 +266,12 @@ public class NativeFunction extends Closure {
                 System.err.println("Operation took " + (System.currentTimeMillis() - startTime) +" milliseconds");
                 return FVoid.V;
 		}
+            },	new NF1(e, "printTaskTrace", "x", FTypeDynamic.T, FTypeVoid.T) {
+		FValue a(FValue x, HasAt loc) {
+                BaseTask.getCurrentTask().printTaskTrace();
+                return FVoid.V;
+		}
+
             }
 
     };

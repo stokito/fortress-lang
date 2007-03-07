@@ -31,24 +31,39 @@ public class ForLoopTask extends BaseTask {
     Evaluator eval;
 
     public void run() {
-        if (fgen.isSequential() || fgen.hasOne()) {
-            while (fgen.update(body, new Evaluator(eval, body))) {
-          /* update does all the work. */
-	    }
-        } else {
-            // coInvoke enqueues its first argument, then executes its
-            // second argument. This apparently backwards call should
-            // preserve apparent sequential semantics in the absence of
-            // steals.
-            coInvoke(new ForLoopTask(fgen.secondHalf(), body, eval),
-                    new ForLoopTask(fgen.firstHalf(), body, eval));
-        }
+        initTask();
+        try {
+            if (fgen.isSequential() || fgen.hasOne()) {
+                while (fgen.update(body, new Evaluator(eval, body))) {
+              /* update does all the work. */
+     	        }
+            } else {
+                // coInvoke enqueues its first argument, then executes its
+                // second argument. This apparently backwards call should
+                // preserve apparent sequential semantics in the absence of
+                // steals.
+                coInvoke(new ForLoopTask(fgen.secondHalf(), body, eval, this),
+                        new ForLoopTask(fgen.firstHalf(), body, eval, this));
+            }
+        } catch (Throwable e) {
+		causedException = true;
+                err = e;
+	}
+        finalizeTask();
     }
-
-    public ForLoopTask(FGenerator f, Expr b, Evaluator e) {
-        super();
+            
+    public ForLoopTask(FGenerator f, Expr b, Evaluator e, BaseTask parent) {
+        super(parent);
         fgen = f;
         body = b;
         eval = e;
     }
+
+    public void print() { 
+        System.out.println("ForLoopTask: fgen = " + fgen + 
+                           "\n\t body = " + body +
+                           "\n\t eval = " + eval +
+                           "\n\t Thread = " + Thread.currentThread());
+    }
+
 }

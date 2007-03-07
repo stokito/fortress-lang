@@ -28,15 +28,29 @@ public class TupleTask extends BaseTask {
 
         FValue res;
 
-        public TupleTask(Expr ex, Evaluator ev) {
-            super();
+        public TupleTask(Expr ex, Evaluator ev, BaseTask parent) {
+            super(parent);
             expr = ex;
             eval = ev;
         }
 
         public void run() {
-            res = new Evaluator(eval, expr).eval(expr);
+            initTask();
+            try {
+               res = new Evaluator(eval, expr).eval(expr);
+	    } catch (Throwable e) {
+		causedException = true;
+                err = e;
+	    }
+            finalizeTask();
         }
-
+ 
+        public void print() {
+	    System.out.println("Tuple Task: eval = " + eval +
+                               "\n\t Expr = " + expr +
+                               "\n\t Res = " + res +
+                               "\n\t Thread = " + Thread.currentThread());
+	}
+    
        public FValue getRes() { return res;}
 }

@@ -24,8 +24,17 @@ public abstract class BaseTask extends FJTask {
     Thread _thread;
     public boolean causedException;
     public Throwable err;
+    public BaseTask currentTask;
 
-    public BaseTask() {
+    public void initTask() {
+        setCurrentTask(this);
+    }
+
+    public void finalizeTask() {
+	setCurrentTask(parent);
+    }
+
+    public BaseTask(BaseTask parent) {
         _thread = new Thread();
         try {
             Class managerClass = Class.forName("dstm2.manager.BackoffManager");
@@ -35,9 +44,52 @@ public abstract class BaseTask extends FJTask {
             System.out.println("UhOh Contention Manager not found");
             System.exit(0);
         }
+        setParentTask(parent);
     }
+
     public boolean causedException() {return causedException;}
     public Throwable getException() {return err;}
+
+    public static BaseTask getCurrentTask() {
+	FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+	return (BaseTask) taskrunner.getCurrentTask();
+    }
+
+    public static void setCurrentTask(BaseTask task) {
+	FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+        taskrunner.setCurrentTask(task);
+    }
+
+    BaseTask parent;
+    public BaseTask getParentTask() { return parent;}
+    public void setParentTask(BaseTask task) { parent = task;}
+
+
+    public abstract void print();
+
+    public static void printTaskTrace() {
+	BaseTask currentTask = getCurrentTask();
+        while (currentTask != null) {
+            currentTask.print();
+            currentTask = currentTask.getParentTask();
+	}
+    }
+
+    Object tag;
+    // Finds the current task and tags it
+    public static void tagCurrentTask(Object obj) { 
+	BaseTask currentTask = getCurrentTask();
+	currentTask.setTag(obj);
+    }
+
+    // Get the tag from the current task
+    public static Object  getCurrentTag() { 
+	BaseTask currentTask = getCurrentTask();
+        return currentTask.getTag();
+    }
+
+    public void setTag(Object obj) { tag = obj;}
+    public Object getTag() { return tag;}
 
 }
 
