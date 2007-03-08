@@ -21,6 +21,9 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.useful.EquivalenceClass;
+import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FValue {
@@ -63,6 +66,88 @@ public class FValue {
         for (FValue p : params) al.add(p.ftype);
         return al;
     }
+
+  static final public class AsTypes implements EquivalenceClass<FValue, FType> {
+
+            public int compare(FValue x, FType yt) {
+                FType xt = x.type();
+                return xt.compareTo(yt);
+            }
+
+            public int compareLeftKeys(FValue x, FValue y) {
+                FType xt = x.type();
+                FType yt = y.type();
+                return xt.compareTo(yt);
+            }
+
+            public int compareRightKeys(FType xt, FType yt) {
+               return xt.compareTo(yt);
+            }
+
+            public FType translate(FValue x) {
+                return x.type();
+            }
+            
+        }
+        
+        static final public AsTypes asTypes = new AsTypes();
+ 
+        static final public class AsTypesList implements EquivalenceClass<List<FValue>, List<FType>> {
+
+            public int compare(List<FValue> x, List<FType> y) {
+                int l0 = x.size();
+                int l1 = y.size();
+                if (l0 < l1) return -1;
+                if (l0 > l1) return 1;
+                for (int i = 0; i < l0; i++) {
+                    int c = x.get(i).type().compareTo(y.get(i));
+                    if (c != 0)
+                        return c;
+                }
+                return 0;
+            }
+
+            public int compareLeftKeys(List<FValue> x, List<FValue> y) {
+                int l0 = x.size();
+                int l1 = y.size();
+                if (l0 < l1) return -1;
+                if (l0 > l1) return 1;
+                for (int i = 0; i < l0; i++) {
+                    int c = x.get(i).type().compareTo(y.get(i).type());
+                    if (c != 0)
+                        return c;
+                }
+                return 0;
+            }
+
+            public int compareRightKeys(List<FType> x, List<FType> y) {
+                int l0 = x.size();
+                int l1 = y.size();
+                if (l0 < l1) return -1;
+                if (l0 > l1) return 1;
+                for (int i = 0; i < l0; i++) {
+                    int c = x.get(i).compareTo(y.get(i));
+                    if (c != 0)
+                        return c;
+                }
+                return 0;
+            }
+
+            public List<FType> translate(List<FValue> x) {
+                return Useful.applyToAll(x, valToType);
+            }          
+        }
+        
+        static final public Fn<FValue, FType> valToType = new Fn<FValue, FType>() {
+
+            @Override
+            public FType apply(FValue x) {
+                return x.type();
+            }
+            
+        };
+        
+        static final public AsTypesList asTypesList = new AsTypesList();
 
 
 }

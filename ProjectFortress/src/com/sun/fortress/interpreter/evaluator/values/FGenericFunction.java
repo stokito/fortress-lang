@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.useful.BATreeEC;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Memo1P;
@@ -58,6 +59,9 @@ public class FGenericFunction extends Fcn
         Closure cl = anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
         return cl.finishInitializing();
     }
+
+//    public BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
+//        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
 
     private class Factory implements Factory1P<List<FType>, Simple_fcn, HasAt> {
 

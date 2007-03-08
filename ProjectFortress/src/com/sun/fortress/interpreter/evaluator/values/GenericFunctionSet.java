@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.StaticArg;
+import com.sun.fortress.interpreter.useful.BATreeEC;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -46,6 +47,8 @@ public class GenericFunctionSet extends
     }
 
     OverloadedFunction oaf = null;
+    BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
+        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
 
     public OverloadedFunction getOverloadSymbolicFunction() {
         return oaf;
@@ -117,6 +120,25 @@ public class GenericFunctionSet extends
 
     public FValue applyInner(List<FValue> args, HasAt loc,
             BetterEnv envForInference) {
+        
+        Simple_fcn best = cache.get(args);
+        
+        if (best == null) {
+            best = inferAnInstance(args, loc, envForInference);
+            cache.syncPut(args, best);
+        }
+        return best.applyInner(args, loc, envForInference);
+
+    }
+
+    /**
+     * @param args
+     * @param loc
+     * @param envForInference
+     * @return
+     * @throws ProgramError
+     */
+    private Simple_fcn inferAnInstance(List<FValue> args, HasAt loc, BetterEnv envForInference) throws ProgramError {
         final boolean TRACE = false;
             // I've inserted this code twice to find bugs - Jan
         OverloadedFunction oaf = getOverloadSymbolicFunction();
@@ -167,7 +189,6 @@ public class GenericFunctionSet extends
                                    "args = " + Useful.listInParens(args) +
                                    ", overload = " + this);
         }
-        return best.applyInner(args, loc, envForInference);
-
+        return best;
     }
 }

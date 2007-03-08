@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.nodes.FnName;
+import com.sun.fortress.interpreter.useful.BATreeEC;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Ordinal;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -40,6 +41,9 @@ public class OverloadedFunction extends Fcn {
     protected boolean finishedFirst = false;
     protected boolean finishedSecond = false;
     protected FnName fnName;
+
+    BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
+        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
 
     public String getString() {
 
@@ -342,17 +346,24 @@ public class OverloadedFunction extends Fcn {
 
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+       
+        Simple_fcn best_f = cache.get(args);
+        
+        if (best_f == null) {
+            int best = bestMatchIndex(args);
 
-        int best = bestMatchIndex(args);
+            if (best == -1) {
+                // TODO add checks for COERCE, right here.
+                throw new ProgramError(loc,  within,
+                             "Failed to find matching overload, args = " +
+                             Useful.listInParens(args) + ", overload = " + this);
+            }
 
-        if (best == -1) {
-            // TODO add checks for COERCE, right here.
-            throw new ProgramError(loc,  within,
-                         "Failed to find matching overload, args = " +
-                         Useful.listInParens(args) + ", overload = " + this);
+            best_f = overloads.get(best).getFn();
+            cache.syncPut(args, best_f);
         }
-
-        return overloads.get(best).getFn().apply(args, loc, envForInference);
+        
+        return best_f.apply(args, loc, envForInference);
     }
 
      /**
