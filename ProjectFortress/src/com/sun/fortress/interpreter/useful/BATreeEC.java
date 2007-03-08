@@ -25,7 +25,8 @@ package com.sun.fortress.interpreter.useful;
  */
 public class BATreeEC<Key, KeyEC, Value> {
 
-    BATreeNodeEC<Key, KeyEC, Value> root;
+    volatile BATreeNodeEC<Key, KeyEC, Value> root;
+    
     EquivalenceClass<Key, KeyEC> equivalenceClass;
 
     public BATreeEC(EquivalenceClass<Key, KeyEC> e) {
