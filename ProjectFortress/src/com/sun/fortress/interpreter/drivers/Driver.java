@@ -78,6 +78,8 @@ public class Driver {
     private static int numThreads = 8;
 
     private static boolean _libraryTest = false;
+    
+    private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
 
     private Driver() {
     };
@@ -562,9 +564,12 @@ public class Driver {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming
              * that Api Foo is implemented by Component Foo, dots and all.
+             * 
+             * These two lines are what needs to be replaced by a real linker.
              */
-            Component newcomp = readTreeOrSourceComponent(apiname);
-            Api newapi = readTreeOrSourceApi(apiname);
+            Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
+            Component newcomp = readTreeOrSourceComponent(LIB_DIR + apiname);
+            
             ComponentWrapper apicw = new ComponentWrapper(newapi);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.populateEnvironment();
@@ -677,7 +682,7 @@ public class Driver {
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
             try {
                 System.err
-                        .println("Missing or stale preparsed AST, rebuilding from source");
+                        .println("Missing or stale preparsed AST " + libraryTree + ", rebuilding from source " + librarySource );
                 long begin = System.currentTimeMillis();
 
                 c = parseToJavaAst(librarySource, Useful

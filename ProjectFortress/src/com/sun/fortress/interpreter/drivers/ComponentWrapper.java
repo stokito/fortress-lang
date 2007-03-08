@@ -99,7 +99,7 @@ public class ComponentWrapper {
 
         visitState = POPULATED;
         
-        p = (Component) populateOne(p, be);
+        p = populateOne(p, be);
         
         for (ComponentWrapper api: exports.values()) {
             api.populateEnvironment();

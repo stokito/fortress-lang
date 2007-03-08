@@ -1,0 +1,5 @@
+For testing of imports and exports, there needs to be a place to put
+non-executable Fortress files that could not be run on their own.
+This directory is that place.
+
+This will probably change once the linker becomes more sophisticated.

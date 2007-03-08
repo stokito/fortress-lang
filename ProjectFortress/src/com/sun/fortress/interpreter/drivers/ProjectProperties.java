@@ -49,6 +49,27 @@ public class ProjectProperties {
         return s;
     }
 
+    private static String testLibDir() {
+        String s = null;
+        
+        try {
+         s = System.getProperty("TEST_LIB_DIR");
+        } catch (Throwable th) {
+            
+        }
+            
+        if (s == null) {
+            s = BASEDIR + "test_library";
+        }
+        
+        s = s + File.separator;
+        
+        // It is a myth that Windows requires backslashes.  Only the DOS shell
+        // requires backslashes.
+        s = backslashToSlash(s);
+        return s;
+    }
+
 
     /**
      * No-op right now.
@@ -72,6 +93,8 @@ public class ProjectProperties {
      * package, and grabbing the parent directory.
      */
     public static final String BASEDIR = baseDir();
+    
+    public static final String TEST_LIB_DIR = testLibDir();
         
 
     /** Creates a new instance of ProjectProperties */
