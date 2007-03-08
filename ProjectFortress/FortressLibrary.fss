@@ -1061,6 +1061,32 @@ seq(a:ZZ32Range):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue
 sequential(a:ZZ32Range):ZZ32Range = seq(a)
 
 opr -[\ T extends Number, nat n, nat m \]
+     (a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
+opr +[\ T extends Number, nat n, nat m \]
+     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
+opr -[\ T extends Number, nat n, nat m \]
+     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
+opr *[\ T extends Number, nat n, nat m, nat p \]
+     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+opr DIV(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
+opr REM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
+opr MOD(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mod")
+opr GCD(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Gcd")
+opr LCM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Lcm")
+opr CHOOSE(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Choose")
+opr BITAND(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitAnd")
+opr BITOR(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitOr")
+opr BITXOR(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitXor")
+opr LSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LShift")
+opr RSHIFT(a: IntLiteral,b:Integral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$RShift")
+opr BITNOT(a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
+opr =(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
+opr <=(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LessEq")
+opr MIN(a: IntLiteral, b: IntLiteral): IntLiteral = if a <= b then a else b end
+opr MAX(a: IntLiteral, b: IntLiteral): IntLiteral = if b <= a then a else b end
+(* opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow") *)
+
+opr -[\ T extends Number, nat n, nat m \]
      (a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
 opr +[\ T extends Number, nat n, nat m \]
      (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")

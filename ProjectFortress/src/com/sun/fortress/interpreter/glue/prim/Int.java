@@ -35,12 +35,6 @@ import com.sun.fortress.interpreter.glue.NativeFn2;
  */
 public class Int {
 
-public static final class LNegate extends NativeFn1 {
-    public FValue act(FValue x) {
-        return new FIntLiteral(BigInteger.valueOf(-x.getLong()));
-    }
-}
-
 public static final class Negate extends Util.Z2Z {
     protected int f(int x) { return -x; }
 }
@@ -135,7 +129,7 @@ public static final class MkRange extends Util.ZZ2o {
 }
 public static final class ElementOf extends NativeFn2 {
     protected FValue act(FValue x, FValue y) {
-        return FBool.make(((FRange) y).contains((FInt) x));
+        return FBool.make(((FRange) y).contains(x));
     }
 }
 
@@ -204,7 +198,7 @@ public static long gcd(long u, long v) {
 
 public static long choose(long n, long k) {
     if (k > n/2) k = n - k;
-    if (k == 0 || k == n) return 1;
+    if (k == 0) return 1;
     if (k == 1) return n;
     // k <= n/2
     // Will multiply (k) terms, n-k+1 through n-k+k

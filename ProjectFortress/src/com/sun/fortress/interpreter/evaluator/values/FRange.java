@@ -52,7 +52,7 @@ public class FRange extends FValue {
         return a;
     }
 
-    public boolean contains(FInt x) {
+    public boolean contains(FValue x) {
         int val = x.getInt();
         return val >= base && val < base + size;
     }

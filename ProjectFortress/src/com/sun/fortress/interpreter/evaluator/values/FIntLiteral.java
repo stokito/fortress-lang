@@ -19,20 +19,55 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
 
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
-
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 public class FIntLiteral extends FValue implements HasIntValue {
 
+    public static final BigInteger INT_MIN =
+        BigInteger.valueOf(java.lang.Integer.MIN_VALUE);
+
+    public static final BigInteger INT_MAX =
+        BigInteger.valueOf(java.lang.Integer.MAX_VALUE);
+
+    public static final BigInteger LONG_MIN =
+        BigInteger.valueOf(java.lang.Long.MIN_VALUE);
+
+    public static final BigInteger LONG_MAX =
+        BigInteger.valueOf(java.lang.Long.MAX_VALUE);
+
     private BigInteger value;
 
-    public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
-
-    public int getInt() { return value.intValue(); }
-    public long getLong() { return value.longValue(); }
-    public double getFloat() { return value.doubleValue(); }
-
-    public FIntLiteral(BigInteger i) {
+    private FIntLiteral(BigInteger i) {
         value = i;
         setFtype(FTypeIntLiteral.T);
     }
+
+    public static FValue make(BigInteger v) {
+        if (v.compareTo(INT_MAX)>0) {
+            if (v.compareTo(LONG_MAX)>0) {
+                return new FIntLiteral(v);
+            } else {
+                return FLong.make(v.longValue());
+            }
+        } else if (v.compareTo(INT_MIN)<0) {
+            if (v.compareTo(LONG_MIN)<0) {
+                return new FIntLiteral(v);
+            } else {
+                return FLong.make(v.longValue());
+            }
+        } else {
+            return FInt.make(v.intValue());
+        }
+    }
+
+    public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
+
+    public int getInt() {
+        throw new ProgramError("Value "+value+" does not fit in ZZ32.");
+    }
+    public long getLong() {
+        throw new ProgramError("Value "+value+" does not fit in ZZ64.");
+    }
+    public BigInteger getLit() { return value; }
+    public double getFloat() { return value.doubleValue(); }
 }

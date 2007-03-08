@@ -21,13 +21,9 @@ export Executable
 var x : ZZ32 = 0
 
 
-a() = do 
-        if x = 0 then
+a() = while x = 0 do
            println("I love to Spin") 
-           a()
-        end
-end
-
+      end
 
 run(args:String...):()=do
    spawn do x:=1 end 

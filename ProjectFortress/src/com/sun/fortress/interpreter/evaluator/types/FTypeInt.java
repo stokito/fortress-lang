@@ -30,7 +30,8 @@ public class FTypeInt extends FType {
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeLong.T, FTypeIntegral.T, FTypeNumber.T);
+        return Useful.<FType>list(this, FTypeLong.T, FTypeIntegral.T,
+                                  FTypeFloat.T, FTypeNumber.T);
     }
 
     public boolean subtypeOf(FType other) {

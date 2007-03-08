@@ -1417,7 +1417,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forIntLiteral(IntLiteral x) {
-        return new FIntLiteral(x.value());
+        return FIntLiteral.make(x.value());
     }
 
     public FValue forOprArg(OprArg x) {

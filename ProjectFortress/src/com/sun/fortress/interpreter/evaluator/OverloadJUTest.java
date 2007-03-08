@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
+import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
 import com.sun.fortress.interpreter.evaluator.types.FTypeString;
 import com.sun.fortress.interpreter.evaluator.values.DummyValue;
@@ -89,10 +90,11 @@ public class OverloadJUTest extends TestCase {
     private <T> List<T> l(T... args) { return Arrays.asList(args); }
 
     // some convenience bindings
-    FType Int = FTypeInt.T;
-    FType Float = FTypeFloat.T;
-    FType String = FTypeString.T;
-    FType Number = FTypeNumber.T;
+    static final FType Int = FTypeInt.T;
+    static final FType Integral = FTypeIntegral.T;
+    static final FType Float = FTypeFloat.T;
+    static final FType String = FTypeString.T;
+    static final FType Number = FTypeNumber.T;
 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
@@ -106,14 +108,14 @@ public class OverloadJUTest extends TestCase {
     public void testOverloadSucceed() {
         // All the tests
         makeDispatchTest(l(Int), l(l(Int), l(Float)), l(Int));
-        makeDispatchTest(l(Int), l(l(Number),l(Float)), l(Number));
+        makeDispatchTest(l(Int), l(l(Integral),l(Float)), l(Integral));
         makeDispatchTest(l(Int), l(l(Number),l(Int)), l(Int));
         makeDispatchTest(l(Int,Float),
                          l(l(Number,Number),l(Float,Float), l(Int,Int)),
-                         l(Number,Number));
+                         l(Float,Float));
         makeDispatchTest(l(Int,Int),
-                         l(l(Number,Number),l(Int,Float), l(Float,Int)),
-                         l(Number,Number));
+                         l(l(Integral,Integral),l(Int,Float), l(Float,Int)),
+                         l(Integral,Integral));
         makeDispatchTest(l(Int,Int),
                          l(l(Number,Number),l(Int,Number), l(Float,Int)),
                          l(Int,Number));
@@ -126,7 +128,7 @@ public class OverloadJUTest extends TestCase {
     @SuppressWarnings("unchecked")
     public void testOverloadFail() {
         makeDispatchFailTest(l(Int,Int),l(l(Number,Number),l(Number,Int),l(Int,Number)));
-        makeDispatchFailTest(l(Int,Int),l(l(Float,Float)));
+        // makeDispatchFailTest(l(Int,Int),l(l(Float,Float)));
         makeDispatchFailTest(l(Int,Int),l(l(Number,Float),l(Float,Number)));
         makeDispatchFailTest(l(Number),l(l(Int),l(Float)));
         makeDispatchFailTest(l(Number),new ArrayList<List<FType>>());

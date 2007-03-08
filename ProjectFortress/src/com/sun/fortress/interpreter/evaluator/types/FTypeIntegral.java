@@ -28,10 +28,10 @@ public class FTypeIntegral extends FType {
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeNumber.T);
+        return Useful.<FType>list(this, FTypeFloat.T, FTypeNumber.T);
     }
 
     public boolean subtypeOf(FType other) {
-        return (T==other || FTypeNumber.T.subtypeOf(other));
+        return (T==other || FTypeFloat.T.subtypeOf(other));
     }
 }
