@@ -19,6 +19,7 @@ TEST-RESULTS/*
 *.yy.cc
 *~
 *.jst
+*.tfs
 fortress_*.zip
 .dependencies/dependencies.txt
 META
