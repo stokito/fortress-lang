@@ -39,7 +39,7 @@ import Spacing;
    | ( w AbsFldWoType (w , w AbsFldWoType)+ w )
    AbsFldWoType ::= [AbsFldMods] Id
  */
-AbsVarDecl AbsFldDecl = yyValue:AbsVarDecl ;
+AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
 LValue VarWType := a1:AbsFldMods? a2:Id w a3:IsType
      { if (a1 == null)

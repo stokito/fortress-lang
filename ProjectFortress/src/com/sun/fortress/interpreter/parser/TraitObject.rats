@@ -93,7 +93,7 @@ private List<DefOrDecl> GoInATrait =
        yyValue.addAll(a1);
        if (a2 != null) yyValue.addAll(a2);
      }
-   / yyValue:GoBackInATrait ;
+   / GoBackInATrait ;
 
 /* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
 private List<DefOrDecl> GoFrontInATrait =
@@ -105,9 +105,9 @@ private List<DefOrDecl> GoFrontInATrait =
 
 /* GoesFrontInATrait ::= AbsFldDecl | GetterSetterDecl | PropertyDecl */
 private DefOrDecl GoesFrontInATrait =
-     yyValue:AbsFldDecl
-   / yyValue:GetterSetterDecl
-   / yyValue:PropertyDecl ;
+     AbsFldDecl
+   / GetterSetterDecl
+   / PropertyDecl ;
 
 /* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
 private List<DefOrDecl> GoBackInATrait =
@@ -119,8 +119,8 @@ private List<DefOrDecl> GoBackInATrait =
 
 /* GoesBackInATrait ::= MdDecl | PropertyDecl */
 private DefOrDecl GoesBackInATrait =
-     yyValue:MdDecl
-   / yyValue:PropertyDecl ;
+     MdDecl
+   / PropertyDecl ;
 
 /* ObjectDecl ::= ObjectHeader [w GoInAnObject] w end */
 ObjectDecl ObjectDecl = a1:ObjectHeader a2:(w GoInAnObject)? w end
@@ -212,7 +212,7 @@ List<DefOrDecl> GoInAnObject =
        yyValue.addAll(a1);
        if (a2 != null) yyValue.addAll(a2);
      }
-   / yyValue:GoBackInAnObject ;
+   / GoBackInAnObject ;
 
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
 private List<DefOrDecl> GoFrontInAnObject =
@@ -224,9 +224,9 @@ private List<DefOrDecl> GoFrontInAnObject =
 
 /* GoesFrontInAnObject ::= FldDecl | GetterSetterDef | PropertyDecl */
 private DefOrDecl GoesFrontInAnObject =
-     yyValue:FldDecl
-   / yyValue:GetterSetterDef
-   / yyValue:PropertyDecl ;
+     FldDecl
+   / GetterSetterDef
+   / PropertyDecl ;
 
 /* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
 private List<DefOrDecl> GoBackInAnObject =
@@ -238,8 +238,8 @@ private List<DefOrDecl> GoBackInAnObject =
 
 /* GoesBackInAnObject ::= MdDef | PropertyDecl */
 private DefOrDecl GoesBackInAnObject =
-     yyValue:MdDef
-   / yyValue:PropertyDecl ;
+     MdDef
+   / PropertyDecl ;
 
 /* AbsTraitDecl  ::= TraitHeader [w AbsGoInATrait] w end */
 AbsTraitDecl AbsTraitDecl = a1:TraitHeader a2:(w AbsGoInATrait)? w end
@@ -262,7 +262,7 @@ private List<DefOrDecl> AbsGoInATrait =
        yyValue.addAll(a1);
        if (a2 != null) yyValue.addAll(a2);
      }
-   / yyValue:AbsGoBackInATrait ;
+   / AbsGoBackInATrait ;
 
 /* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
 private List<DefOrDecl> AbsGoFrontInATrait =
@@ -274,9 +274,9 @@ private List<DefOrDecl> AbsGoFrontInATrait =
 
 /* AbsGoesFrontInATrait ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
 private DefOrDecl AbsGoesFrontInATrait =
-     yyValue:ApiFldDecl
-   / yyValue:AbsGetterSetterDecl
-   / yyValue:PropertyDecl ;
+     ApiFldDecl
+   / AbsGetterSetterDecl
+   / PropertyDecl ;
 
 /* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
 private List<DefOrDecl> AbsGoBackInATrait =
@@ -288,9 +288,9 @@ private List<DefOrDecl> AbsGoBackInATrait =
 
 /* AbsGoesBackInATrait ::= AbsMdDecl | AbsCoercion | PropertyDecl */
 private DefOrDecl AbsGoesBackInATrait =
-     yyValue:AbsMdDecl
-   / yyValue:AbsCoercion
-   / yyValue:PropertyDecl ;
+     AbsMdDecl
+   / AbsCoercion
+   / PropertyDecl ;
 
 /* AbsObjectDecl ::= ObjectHeader [w AbsGoInAnObject] w end */
 AbsObjectDecl AbsObjectDecl = a1:ObjectHeader a2:(w AbsGoInAnObject)? w a3:end
@@ -319,7 +319,7 @@ List<DefOrDecl> AbsGoInAnObject =
        yyValue.addAll(a1);
        if (a2 != null) yyValue.addAll(a2);
      }
-   / yyValue:AbsGoBackInAnObject ;
+   / AbsGoBackInAnObject ;
 
 /* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */
 private List<DefOrDecl> AbsGoFrontInAnObject =
@@ -331,9 +331,9 @@ private List<DefOrDecl> AbsGoFrontInAnObject =
 
 /* AbsGoesFrontInAnObject ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
 private DefOrDecl AbsGoesFrontInAnObject =
-     yyValue:ApiFldDecl
-   / yyValue:AbsGetterSetterDecl
-   / yyValue:PropertyDecl ;
+     ApiFldDecl
+   / AbsGetterSetterDecl
+   / PropertyDecl ;
 
 /* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
 private List<DefOrDecl> AbsGoBackInAnObject =
@@ -345,6 +345,6 @@ private List<DefOrDecl> AbsGoBackInAnObject =
 
 /* AbsGoesBackInAnObject ::= AbsMdDecl | AbsCoercion | PropertyDecl */
 private DefOrDecl AbsGoesBackInAnObject =
-     yyValue:AbsMdDecl
-   / yyValue:AbsCoercion
-   / yyValue:PropertyDecl ;
+     AbsMdDecl
+   / AbsCoercion
+   / PropertyDecl ;

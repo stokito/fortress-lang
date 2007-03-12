@@ -37,7 +37,7 @@ List<Param> ValParam := openparen a1:(w Params)? w closeparen
      };
 
 Param Param :=
-     yyValue:PlainParam
+     PlainParam
    / a1:self
      { yyValue = new Param(createSpan(yyStart,yyCount),
                            FortressUtil.emptyModifiers(),

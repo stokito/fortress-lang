@@ -61,7 +61,7 @@ private String encloser =
    ;
 
 private String leftEncloser =
-     yyValue: leftEncloserMulti &{ PrecedenceMap.T.isLeft(yyValue) }
+      leftEncloserMulti &{ PrecedenceMap.T.isLeft(yyValue) }
    / c:_ &{c != '|' && PrecedenceMap.T.isLeft(""+c)} { yyValue = ""+c; }
    ;
 
@@ -75,7 +75,7 @@ private String leftEncloserMulti =
    ;
 
 private String rightEncloser =
-     yyValue: rightEncloserMulti &{ PrecedenceMap.T.isRight(yyValue) }
+      rightEncloserMulti &{ PrecedenceMap.T.isRight(yyValue) }
    / c:_ &{c != '|' && PrecedenceMap.T.isRight(""+c)} { yyValue = ""+c; }
    ;
 
@@ -136,7 +136,7 @@ String singleOp =
      { yyValue = "" + a1; } ;
 
 String op =
-     yyValue:OpName
+     OpName
    / multiOp
    / singleOp
    / exponentOp ;
@@ -199,7 +199,7 @@ transient String accumulator = "SUM" / "PROD" ;
 Op Accumulator =
      "SUM":accumulator  { yyValue = new Op(createSpan(yyStart,yyCount), "+"); }
    / "PROD":accumulator { yyValue = new Op(createSpan(yyStart,yyCount), "DOT"); }
-   / BIG w yyValue:Op ;
+   / BIG w Op ;
 
 /* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
 RectCompClause ArrayComprehensionClause =

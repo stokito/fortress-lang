@@ -33,7 +33,7 @@ import Spacing;
    | w Imports [w AbsDecls] w
  */
 public CompilationUnit File =
-     yyValue:CompilationUnit w
+     CompilationUnit w
    / a1:(w Imports)? w a2:Exports a3:(w Decls)? w
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
@@ -70,8 +70,8 @@ public CompilationUnit File =
    | w Api w
  */
 private CompilationUnit CompilationUnit =
-     w yyValue:Component w
-   / w yyValue:Api w ;
+     w Component w
+   / w Api w ;
 
 /* Component ::= component w DottedId [w Imports] w Exports [w Decls] w end */
 private Component Component =
@@ -100,7 +100,7 @@ private List<Import> Imports = a1:Import a2s:(wr Import)*
    | import wr AliasedDottedIds
  */
 private Import Import =
-     import wr yyValue:ImportFrom
+     import wr ImportFrom
    / import wr a1:AliasedDottedIds
      { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
 
@@ -122,7 +122,7 @@ private List<Name> Names =
      { yyValue = new ArrayList<Name>();
        yyValue.add(a1);
      }
-   / opencurly w yyValue:NameList w closecurly ;
+   / opencurly w NameList w closecurly ;
 
 /* NameList ::= Name (w , w Name)* */
 private List<Name> NameList = a1:Name a2s:(w comma w Name)*
@@ -140,7 +140,7 @@ private List<AliasedName> AliasedNames =
      { yyValue = new ArrayList<AliasedName>();
        yyValue.add(a1);
      }
-   / opencurly w yyValue:AliasedNameList w closecurly ;
+   / opencurly w AliasedNameList w closecurly ;
 
 /* AliasedName ::=
      Id [wr as wr DottedId]
@@ -192,7 +192,7 @@ private List<AliasedDottedId> AliasedDottedIds =
      { yyValue = new ArrayList<AliasedDottedId>();
        yyValue.add(a1);
      }
-   / opencurly w yyValue:AliasedDottedIdList w closecurly ;
+   / opencurly w AliasedDottedIdList w closecurly ;
 
 /* AliasedDottedId ::= DottedId [wr as wr DottedId] */
 private AliasedDottedId AliasedDottedId =
@@ -232,7 +232,7 @@ List<DottedId> DottedIds =
      { yyValue = new ArrayList<DottedId>();
        yyValue.add(a1);
      }
-   / opencurly w yyValue:DottedIdList w closecurly ;
+   / opencurly w DottedIdList w closecurly ;
 
 /* DottedIdList ::= DottedId (w , w DottedId)* */
 private List<DottedId> DottedIdList = a1:DottedId a2s:(w comma w DottedId)*

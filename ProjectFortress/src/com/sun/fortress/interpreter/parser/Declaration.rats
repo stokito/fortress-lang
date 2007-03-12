@@ -45,18 +45,18 @@ List<DefOrDecl> Decls = a1:Decl a2s:(br Decl)*
    | ExternalSyntax
 */
 private DefOrDecl Decl =
-     yyValue:TraitDecl
-   / yyValue:ObjectDecl
-   / yyValue:VarDecl
-   / yyValue:FnDecl
+     TraitDecl
+   / ObjectDecl
+   / VarDecl
+   / FnDecl
 /* ************************************************
  * Not Yet Implemented ***************************
-   / yyValue:DimUnitDecl
+   / DimUnitDecl
 ************************************************ */
-   / yyValue:TypeAlias
-   / yyValue:TestDecl
-   / yyValue:PropertyDecl
-   / yyValue:ExternalSyntax ;
+   / TypeAlias
+   / TestDecl
+   / PropertyDecl
+   / ExternalSyntax ;
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
@@ -77,15 +77,15 @@ List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | AbsExternalSyntax
  */
 private DefOrDecl AbsDecl =
-     yyValue:AbsTraitDecl
-   / yyValue:AbsObjectDecl
-   / yyValue:AbsVarDecl
-   / yyValue:AbsFnDecl
+     AbsTraitDecl
+   / AbsObjectDecl
+   / AbsVarDecl
+   / AbsFnDecl
 /* ************************************************
  * Not Yet Implemented ***************************
-   / yyValue:DimUnitDecl
+   / DimUnitDecl
 ************************************************ */
-   / yyValue:TypeAlias
-   / yyValue:TestDecl
-   / yyValue:PropertyDecl
-   / yyValue:AbsExternalSyntax ;
+   / TypeAlias
+   / TestDecl
+   / PropertyDecl
+   / AbsExternalSyntax ;

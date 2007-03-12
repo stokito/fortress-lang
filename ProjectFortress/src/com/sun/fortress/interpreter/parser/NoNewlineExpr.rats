@@ -53,7 +53,7 @@ import Spacing;
    | DelimitedExpr
    | NoNewlineAssignLefts w AssignOp w NoNewlineExpr
  */
-Expr NoNewlineExpr = yyValue:Expr ;
+Expr NoNewlineExpr = Expr ;
 private Expr Expr := ... ;
 Expr ExprFront :=
      <Assign> a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
@@ -197,4 +197,4 @@ List<Generator> GeneratorList := a1:Generator a2s:(s comma w Generator)*
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
-List<Generator> NoNewlineGeneratorList = yyValue:GeneratorList ;
+List<Generator> NoNewlineGeneratorList = GeneratorList ;

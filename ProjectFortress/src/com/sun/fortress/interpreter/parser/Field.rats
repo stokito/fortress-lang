@@ -40,7 +40,7 @@ import Spacing;
    | ( w FldWoType (w , w FldWoType)+ w )
    FldWoType ::= [FldMods] Id
  */
-DefOrDecl FldDecl = yyValue:VarDecl ;
+DefOrDecl FldDecl = VarDecl ;
 
 LValue VarWType := a1:FldMods? a2:Id w a3:IsType
      { if (a1 == null)

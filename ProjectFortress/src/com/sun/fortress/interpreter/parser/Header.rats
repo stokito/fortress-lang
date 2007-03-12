@@ -31,13 +31,13 @@ import Symbol;
 import Spacing;
 
 /* Extends ::= extends w TraitTypes */
-List<TypeRef> Extends = extends w yyValue:TraitTypes ;
+List<TypeRef> Extends = extends w TraitTypes ;
 
 /* Excludes ::= excludes w TraitTypes */
-List<TypeRef> Excludes = excludes w yyValue:TraitTypes ;
+List<TypeRef> Excludes = excludes w TraitTypes ;
 
 /* Comprises ::= comprises w ComprisingTypes */
-List<TypeRef> Comprises = comprises w yyValue:ComprisingTypes ;
+List<TypeRef> Comprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<TypeRef> TraitTypes =
@@ -45,7 +45,7 @@ List<TypeRef> TraitTypes =
      { yyValue = new ArrayList<TypeRef>(1);
        yyValue.add(a1);
      }
-   / opencurly w yyValue:TraitTypeList w closecurly ;
+   / opencurly w TraitTypeList w closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
 private List<TypeRef> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
@@ -60,7 +60,7 @@ private List<TypeRef> ComprisingTypes =
      { yyValue = new ArrayList<TypeRef>(1);
        yyValue.add(a1);
      }
-   / opencurly w yyValue:ComprisingTypeList w closecurly ;
+   / opencurly w ComprisingTypeList w closecurly ;
 
 /* ComprisingTypeList ::=
      ...
@@ -77,7 +77,7 @@ private List<TypeRef> ComprisingTypeList =
 
 /* Where ::= where w { w WhereClauseList w } */
 List<WhereClause> Where =
-      where w opencurly w yyValue:WhereClauseList w closecurly ;
+      where w opencurly w WhereClauseList w closecurly ;
 
 /* WhereClauseList ::= WhereClause (w , w WhereClause)* */
 private List<WhereClause> WhereClauseList =
@@ -100,11 +100,11 @@ private List<WhereClause> WhereClauseList =
 private WhereClause WhereClause =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
-   / yyValue:TypeAlias
-   / yyValue:NatConstraint
-   / yyValue:IntConstraint
-   / yyValue:BoolConstraint
-   / yyValue:UnitConstraint ;
+   / TypeAlias
+   / NatConstraint
+   / IntConstraint
+   / BoolConstraint
+   / UnitConstraint ;
 /* ************************************************
  * Not Yet Implemented ***************************
    / a1:TypeRef w coerces w a2:TypeRef
@@ -131,12 +131,12 @@ private WhereNat NatConstraint =
    / a1:NatRef w "GE":op w a2:NatRef
    / a1:NatRef w equals w a2:NatRef
 ************************************************ */
-   / openparen w yyValue:NatConstraint w closeparen ;
+   / openparen w NatConstraint w closeparen ;
 
 /* NatRef ::= StaticArg */
 /* ************************************************
  * Not Yet Implemented ***************************
-private StaticArg NatRef = yyValue:StaticArg;
+private StaticArg NatRef = StaticArg;
 ************************************************ */
 
 /* IntConstraint ::=
@@ -159,7 +159,7 @@ private WhereNat IntConstraint =
    / a1:NatRef w "GE":op w a2:NatRef
    / a1:NatRef w equals w a2:NatRef
 ************************************************ */
-   / openparen w yyValue:IntConstraint w closeparen ;
+   / openparen w IntConstraint w closeparen ;
 
 /* BoolConstraint ::=
      bool w Id
@@ -181,12 +181,12 @@ private WhereBool BoolConstraint =
    / a1:BoolRef w "IMPLIES":op w a2:BoolRef
    / a1:BoolRef w equals w a2:BoolRef
 ************************************************ */
-   / openparen w yyValue:BoolConstraint w closeparen ;
+   / openparen w BoolConstraint w closeparen ;
 
 /* BoolRef ::= StaticArg */
 /* ************************************************
  * Not Yet Implemented ***************************
-private StaticArg BoolRef = yyValue:StaticArg;
+private StaticArg BoolRef = StaticArg;
 ************************************************ */
 
 /* UnitConstraint ::=
@@ -226,12 +226,12 @@ FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
      };
 
 /* Throws ::= throws w MayTraitTypes */
-List<TypeRef> Throws = throws w yyValue:MayTraitTypes ;
+List<TypeRef> Throws = throws w MayTraitTypes ;
 
 /* MayTraitTypes ::= { w } | TraitTypes  */
 private List<TypeRef> MayTraitTypes =
      opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
-   / yyValue:TraitTypes ;
+   / TraitTypes ;
 
 /* Contract ::= [w Requires] [w Ensures] [w Invariant] */
 Contract Contract =
@@ -296,7 +296,7 @@ FnHeaderClause CoercionClauses =
 
 /* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
 private List<WhereClause> CoercionWhere =
-     where w opencurly w yyValue:CoercionWhereClauseList w closecurly ;
+     where w opencurly w CoercionWhereClauseList w closecurly ;
 
 /* CoercionWhereClauseList ::= CoercionWhereClause (w , w CoercionWhereClause)*
  */
@@ -312,7 +312,7 @@ private List<WhereClause> CoercionWhereClauseList =
    | TypeRef w widens w or w coerces w TypeRef
 */
 private WhereClause CoercionWhereClause =
-     yyValue:WhereClause
+     WhereClause
    / a1:TypeRef w widens w or w coerces w a2:TypeRef
      { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
 
@@ -324,7 +324,7 @@ private Modifier UniversalMod =
 /* TraitMod ::= value | UniversalMod */
 private Modifier TraitMod =
      a1:value   { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
-   / yyValue:UniversalMod ;
+   / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
 /* TraitMods ::= TraitMod wr (TraitMod wr)* */
@@ -337,12 +337,12 @@ List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*
 
 /* Each modifier cannot appear more than once. */
 /* ObjectMods ::= TraitMods */
-List<Modifier> ObjectMods = yyValue:TraitMods ;
+List<Modifier> ObjectMods = TraitMods ;
 
 /* FnMod ::= LocalFnMod | UniversalMod */
 private Modifier FnMod =
-     yyValue:LocalFnMod
-   / yyValue:UniversalMod ;
+     LocalFnMod
+   / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
 /* FnMods ::= FnMod wr (FnMod wr)* */
@@ -356,7 +356,7 @@ List<Modifier> FnMods = a1:FnMod wr a2s:(FnMod wr)*
 /* VarMod ::= var | UniversalMod */
 private Modifier VarMod =
      a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
-   / yyValue:UniversalMod ;
+   / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
 /* VarMods ::= VarMod wr (VarMod wr)* */
@@ -372,7 +372,7 @@ private Modifier AbsFldMod =
      a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
    / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
    / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
-   / yyValue:UniversalMod ;
+   / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= AbsFldMod wr (AbsFldMod wr)* */
@@ -386,7 +386,7 @@ List<Modifier> AbsFldMods = a1:AbsFldMod wr a2s:(AbsFldMod wr)*
 /* FldMod ::= var | AbsFldMod */
 private Modifier FldMod =
      a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
-   / yyValue:AbsFldMod ;
+   / AbsFldMod ;
 
 /* Each modifier cannot appear more than once. */
 /* FldMods ::= FldMod wr (FldMod wr)* */
@@ -401,7 +401,7 @@ List<Modifier> FldMods = a1:FldMod wr a2s:(FldMod wr)*
 private Modifier ApiFldMod =
      a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
    / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
-   / yyValue:UniversalMod ;
+   / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= ApiFldMod wr (ApiFldMod wr)* */
@@ -428,7 +428,7 @@ List<Modifier> LocalFnMods = a1:LocalFnMod wr a2s:(LocalFnMod wr)*
 
 /* StaticParams ::= [\ w StaticParamList w \] */
 List<StaticParam> StaticParams =
-     opendoublesquare w yyValue:StaticParamList w closedoublesquare ;
+     opendoublesquare w StaticParamList w closedoublesquare ;
 
 /* StaticParamList ::= StaticParam (w , w StaticParam)* */
 private List<StaticParam> StaticParamList =

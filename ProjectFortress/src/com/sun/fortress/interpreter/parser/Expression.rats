@@ -54,9 +54,9 @@ Expr Expr =
 Expr ExprFront =
      <Assign> a1:AssignLefts w a2:AssignOp w a3:Expr
      { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
-   / yyValue:OpExpr
-   / yyValue:DelimitedExpr
-   / <Flow> yyValue:FlowExpr
+   / OpExpr
+   / DelimitedExpr
+   / <Flow> FlowExpr
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Option<TypeRef> ty_opt;
        List<TypeRef> tys;
@@ -195,8 +195,8 @@ Expr OpExpr =
    | Op
  */
 PureList<OpExpr> OpExprNoEnc =
-     yyValue:OpExprPrimary
-   / yyValue:OpExprPrefix
+     OpExprPrimary
+   / OpExprPrefix
    / a1:Op
      { OpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
        yyValue = PureList.make(e);
@@ -231,7 +231,7 @@ PureList<OpExpr> TightInfixRight =
    | Encloser wr OpExprLeftEncloser
  */
 PureList<OpExpr> LeftLooseInfix =
-     yyValue:OpExprLeftEncloser
+     OpExprLeftEncloser
    / <Primary> a1:Encloser wr a2:OpExprPrimary
      { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
    / <Prefix>  a1:Encloser wr a2:OpExprPrefix
@@ -348,12 +348,12 @@ constant PureList<Expr> Primary =
      { yyValue = (PureList<Expr>)apply(list, PureList.make(seed)); };
 
 Expr PrimaryFront =
-     yyValue:Comprehension
+     Comprehension
    / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = new TypeApply(createSpan(yyStart,yyCount),
                                new VarRefExpr(a1.getSpan(), a1), a2);
      }
-   / yyValue:BaseExpr
+   / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = new ArrayList<Expr>();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
@@ -519,8 +519,8 @@ Expr FlowExpr =
 Expr AtomicBack =
      a1:AssignLefts w a2:AssignOp w a3:Expr
      { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
-   / yyValue:OpExpr
-   / yyValue:DelimitedExpr ;
+   / OpExpr
+   / DelimitedExpr ;
 
 /* GeneratorList ::= Generator (w , w Generator)* */
 List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*

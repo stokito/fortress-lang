@@ -36,9 +36,9 @@ import Spacing;
 Expr Literal =
      openparen w closeparen
      { yyValue = new VoidLiteral(createSpan(yyStart,yyCount)); }
-   / yyValue:NumericLiteral
-   / yyValue:CharLiteral
-   / yyValue:StringLiteral
+   / NumericLiteral
+   / CharLiteral
+   / StringLiteral
    / opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
      { List<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>> elements =
            new ArrayList<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>>();
@@ -48,7 +48,7 @@ Expr Literal =
        }
        yyValue = new MapExpr(createSpan(yyStart,yyCount), elements);
      }
-   / opensquare w yyValue:RectElements w closesquare ;
+   / opensquare w RectElements w closesquare ;
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
 MultiDim RectElements =
@@ -65,8 +65,8 @@ com.sun.fortress.interpreter.useful.Pair<Integer,Expr> MultiDimCons =
      { yyValue = new com.sun.fortress.interpreter.useful.Pair<Integer,Expr>(a1,a2); };
 
 NumberLiteral NumericLiteral =
-     yyValue:FloatLiteral
-   / yyValue:IntLiteral ;
+     FloatLiteral
+   / IntLiteral ;
 
 transient FloatLiteral FloatLiteral = a1:DigitString dot a2:DigitString
      { yyValue = new FloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
@@ -87,7 +87,7 @@ StringLiteral StringLiteral = ["] a1:StringLiteralContent* ["]
        yyValue = new StringLiteral(createSpan(yyStart,yyCount), str);
      };
 private String StringLiteralContent =
-     yyValue:EscapeSequence
+     EscapeSequence
    / a1:(!["\\] _)     { yyValue = String.valueOf(a1); };
 private String EscapeSequence = '\\' a1:[btnfr"'\\]
      { switch (a1) {

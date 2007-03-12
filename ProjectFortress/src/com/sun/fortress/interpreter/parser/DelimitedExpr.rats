@@ -46,14 +46,14 @@ import Spacing;
    | try w BlockElems [w Catch] [w forbid w TraitTypes] [w finally w BlockElems] w end
  */
 Expr DelimitedExpr =
-     yyValue:TupleExpr
+     TupleExpr
    / object a1:(w Extends)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyTypeRefs();
        if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
        yyValue = new ObjectExpr(createSpan(yyStart,yyCount),
                                 Some.<TypeRef>makeSomeListOrNone(a1), a2);
      }
-   / yyValue:Do
+   / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getName().equals(a3.getName()))
            throw new ProgramError(a1, "Mismatched identifiers for "
@@ -209,7 +209,7 @@ private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
      };
 
 /* CaseElse ::= else w => w BlockElems */
-List<Expr> CaseElse = else w match w yyValue:BlockElems ;
+List<Expr> CaseElse = else w match w BlockElems ;
 
 /* TypecaseBindings ::=
      ( w BindingList w )
@@ -217,7 +217,7 @@ List<Expr> CaseElse = else w match w yyValue:BlockElems ;
    | Id
  */
 private List<Binding> TypecaseBindings =
-     openparen w yyValue:BindingList w closeparen
+     openparen w BindingList w closeparen
    / a1:Binding
      { yyValue = new ArrayList<Binding>();
        yyValue.add(a1);
@@ -257,7 +257,7 @@ TypeCaseClause TypecaseClause =
    | TypeRef
  */
 List<TypeRef> TypecaseTypeRefs =
-     openparen w yyValue:TypeRefList w closeparen
+     openparen w TypeRefList w closeparen
    / a1:TypeRef
      { yyValue = new ArrayList<TypeRef>();
        yyValue.add(a1);
@@ -332,7 +332,7 @@ com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft
 /* IdOrInt ::= Id | IntLiteral */
 Expr IdOrInt =
      a1:Id { yyValue = new VarRefExpr(a1.getSpan(), a1); }
-   / yyValue:IntLiteral ;
+   / IntLiteral ;
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
@@ -343,8 +343,8 @@ List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
 
 /* BaseExpr ::= NoKeyTuple | Literal | Id | self */
 Expr BaseExpr =
-     yyValue:NoKeyTuple
-   / yyValue:Literal
+     NoKeyTuple
+   / Literal
    / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); }
    / a1:self { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
 

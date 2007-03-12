@@ -32,8 +32,8 @@ import Spacing;
 
 /* FnDecl ::= FnDef | AbsFnDecl */
 Decl FnDecl =
-     yyValue:FnDef
-   / yyValue:AbsFnDecl ;
+     FnDef
+   / AbsFnDecl ;
 
 /* FnDef ::= [FnMods] FnHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl FnDef =
@@ -100,4 +100,4 @@ FnHeaderFront FnHeaderFront =
        yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount), a1),
                                    a2, a3);
      }
-   / yyValue:OpHeaderFront ;
+   / OpHeaderFront ;

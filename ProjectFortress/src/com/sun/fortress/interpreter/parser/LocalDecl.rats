@@ -60,7 +60,7 @@ List<Expr> BlockElems =
    | NoNewlineExpr [s , w NoNewlineGeneratorList]
  */
 private Expr BlockElem =
-     yyValue:LocalVarFnDecl
+     LocalVarFnDecl
    / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorList)?
      { if (a2 == null) yyValue = a1;
        else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), a1, a2,
@@ -76,13 +76,13 @@ private LetExpr LocalVarFnDecl =
        yyValue = new LetFn(createSpan(yyStart,yyCount), fns,
                            FortressUtil.emptyExprs());
      }
-   / yyValue:LocalVarDecl ;
+   / LocalVarDecl ;
 
 /* LocalFnDecl ::=
      [LocalFnMods] FnHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
 private FnDecl LocalFnDecl =
-     a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w 
+     a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w
      a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
@@ -197,10 +197,10 @@ LValue VarWoType :=
        yyValue = new LValueBind(createSpan(yyStart,yyCount),
                                 a2, None.<TypeRef>make(), mods, mutability);
      }
-   / yyValue:Unpasting ;
+   / Unpasting ;
 
 /* Unpasting ::= [ w UnpastingElems w ] */
-private Unpasting Unpasting = opensquare w yyValue:UnpastingElems w closesquare ;
+private Unpasting Unpasting = opensquare w UnpastingElems w closesquare ;
 
 /* UnpastingElems ::=
      UnpastingElem
@@ -210,7 +210,7 @@ private Unpasting UnpastingElems =
      a1:UnpastingElem a2:RectSeparator a3:UnpastingElems
      { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount), a1, a2,
                                             a3); }
-   / yyValue:UnpastingElem ;
+   / UnpastingElem ;
 
 /* UnpastingElem ::=
      Id [w [ w UnpastingDim w ]]
@@ -225,7 +225,7 @@ private Unpasting UnpastingElem =
            yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1,
                                        Some.<List<ExtentRange>>make(a2));
      }
-   / yyValue:Unpasting ;
+   / Unpasting ;
 
 /* UnpastingDim ::= ExtentRange (w BY w ExtentRange)+  */
 private List<ExtentRange> UnpastingDim =

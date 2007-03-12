@@ -71,7 +71,7 @@ Param VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
        yyValue = new Param(createSpan(yyStart,yyCount),
                            FortressUtil.emptyModifiers(), a1, ty);
      };
-Param Varargs = yyValue:VarargsParam ;
+Param Varargs = VarargsParam ;
 
 /* Keyword ::= Param w = w Expr */
 Param Keyword = a1:Param w equals w a2:Expr
@@ -95,7 +95,7 @@ Param PlainParam =
                            new Id(createSpan(yyStart,yyCount), "_"),
                            Some.<TypeRef>make(a1), None.<Expr>make());
      };
-Param Param = yyValue:PlainParam ;
+Param Param = PlainParam ;
 
 /* OpHeaderFront ::=
      opr [w StaticParams] w (LeftEncloser | Encloser) w Params w
@@ -139,5 +139,5 @@ FnHeaderFront OpHeaderFront =
 
 /* SubscriptAssignParam ::= Varargs | Param */
 private Param SubscriptAssignParam =
-     yyValue:Varargs
-   / yyValue:Param ;
+     Varargs
+   / Param ;

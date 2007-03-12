@@ -31,7 +31,7 @@ import Spacing;
    | NoSpaceAssignLeft AssignOp NoSpaceExpr
  */
 Expr ExprFront -= <Flow> , <Fn> ;
-Expr NoSpaceExpr = yyValue:ExprFront ;
+Expr NoSpaceExpr = ExprFront ;
 
 /* NoSpaceOpExpr ::=
      NoSpaceOpExprNoEnc
