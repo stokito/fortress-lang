@@ -43,7 +43,7 @@ public class BalancedApplicativeTreeEquivalenceClasssesJUTest extends TestCase {
         }
 
         public Number translate(String x) {
-            return new Integer(x);
+            return Integer.valueOf(x);
         }
 
     }

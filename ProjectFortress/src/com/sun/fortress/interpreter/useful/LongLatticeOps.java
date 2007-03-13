@@ -31,8 +31,8 @@ public class LongLatticeOps implements LatticeOps<Long> {
         return x.compareTo(y) > 0 ? y : x;
     }
 
-    private final static Long max = new Long(Long.MAX_VALUE);
-    private final static Long min = new Long(Long.MIN_VALUE);
+    private final static Long max = Long.valueOf(Long.MAX_VALUE);
+    private final static Long min = Long.valueOf(Long.MIN_VALUE);
 
     public Long one() {
         return max;

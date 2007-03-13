@@ -42,7 +42,7 @@ public class ListJUTest extends TestCase {
                  PureList.make("ab", "cde", "fghi").
                    map(new Fn<String, Integer>() {
                           public Integer apply(String x) {
-                             return new Integer(x.length());
+                             return Integer.valueOf(x.length());
                           }
                        }));
   }

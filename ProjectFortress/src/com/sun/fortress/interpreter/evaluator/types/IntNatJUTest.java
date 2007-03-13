@@ -83,14 +83,14 @@ public class IntNatJUTest extends TestCase {
      */
     public void testMakeLong() {
         IntNat x = IntNat.make(3);
-        IntNat y = IntNat.make(new Long(3));
+        IntNat y = IntNat.make(Long.valueOf(3));
 
         assertEquals(x, y);
         assertEquals(x, x);
         assertEquals(x.hashCode(), y.hashCode());
 
         x = IntNat.make(123456789);
-        y = IntNat.make(new Long(123456789));
+        y = IntNat.make(Long.valueOf(123456789));
         assertEquals(x, y);
         assertEquals(x, x);
         assertEquals(x.hashCode(), y.hashCode());
@@ -116,9 +116,9 @@ public class IntNatJUTest extends TestCase {
         IntNat x = IntNat.make(3);
         IntNat y = IntNat.make(4);
         IntNat z = IntNat.make(123456789);
-        assertEquals(x.getNumber(), new Long(3L));
-        assertEquals(y.getNumber(), new Long(4L));
-        assertEquals(z.getNumber(), new Long(123456789L));
+        assertEquals(x.getNumber(), Long.valueOf(3L));
+        assertEquals(y.getNumber(), Long.valueOf(4L));
+        assertEquals(z.getNumber(), Long.valueOf(123456789L));
 
     }
 

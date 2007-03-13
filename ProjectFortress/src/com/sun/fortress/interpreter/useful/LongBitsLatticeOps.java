@@ -27,18 +27,18 @@ public class LongBitsLatticeOps implements LatticeOps<Long> {
         long bx = x.longValue();
         long by = y.longValue();
         long b = bx | by;
-        return b == bx ? x : b == by ? y : new Long(b);
+        return b == bx ? x : b == by ? y : Long.valueOf(b);
     }
 
     public Long meet(Long x, Long y) { /* down */
         long bx = x.longValue();
         long by = y.longValue();
         long b = bx & by;
-        return b == bx ? x : b == by ? y : new Long(b);
+        return b == bx ? x : b == by ? y : Long.valueOf(b);
     }
 
-    private final static Long max = new Long(-1L);
-    private final static Long min = new Long(0L);
+    private final static Long max = Long.valueOf(-1L);
+    private final static Long min = Long.valueOf(0L);
 
     public Long one() {
         return max;

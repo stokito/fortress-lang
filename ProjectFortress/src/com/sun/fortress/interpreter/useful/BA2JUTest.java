@@ -33,9 +33,9 @@ public class BA2JUTest extends TestCase {
         }
     };
 
-    static Integer ONE = new Integer(1);
-    static Integer TWO = new Integer(2);
-    static Integer THREE = new Integer(3);
+    static Integer ONE = Integer.valueOf(1);
+    static Integer TWO = Integer.valueOf(2);
+    static Integer THREE = Integer.valueOf(3);
 
     BA2Tree<String, Integer, String> t =
         new BA2Tree<String, Integer, String> (String.CASE_INSENSITIVE_ORDER, IC);

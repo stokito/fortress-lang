@@ -105,12 +105,12 @@ public class EvaluatorJUTest extends TestCase {
   public void testEnvironment4() throws IOException {
       Environment e = BetterEnv.primitive("primitive");
       e.putBool("x", Boolean.TRUE);
-      e.putNat("x", new Integer(0));
+      e.putNat("x", Integer.valueOf(0));
       FType t1 = FTypeInt.T;
       e.putType("x", t1);
       // Cannot do this -- the bool/nat params overlap in value.  e.putValue("x", FInt.make(1));
       assertEquals(Boolean.TRUE, e.getBool("x"));
-      assertEquals(new Integer(0), e.getNat("x"));
+      assertEquals(Integer.valueOf(0), e.getNat("x"));
       assertEquals(t1, e.getType("x"));
       // assertEquals(1, e.getValue("x").getInt());
   }

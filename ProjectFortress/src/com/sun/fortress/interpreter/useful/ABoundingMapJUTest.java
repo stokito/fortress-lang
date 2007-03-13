@@ -49,9 +49,9 @@ public class ABoundingMapJUTest extends TestCase {
      * Test method for 'com.sun.fortress.interpreter.useful.ABoundingMap.meetPut(T, U)'
      */
     public void testMeetPut() {
-        Long o = abm.meetPut("3", new Long(11));
+        Long o = abm.meetPut("3", Long.valueOf(11));
         assertEquals(o, null);
-        o = abm.meetPut("3", new Long(7));
+        o = abm.meetPut("3", Long.valueOf(7));
         assertEquals(o.longValue(), 11);
         o = abm.get("3");
         assertEquals(o.longValue(), 3);
@@ -72,9 +72,9 @@ public class ABoundingMapJUTest extends TestCase {
      * Test method for 'com.sun.fortress.interpreter.useful.ABoundingMap.joinPut(T, U)'
      */
     public void testJoinPut() {
-        Long o = abm.joinPut("15", new Long(11));
+        Long o = abm.joinPut("15", Long.valueOf(11));
         assertEquals(o, null);
-        o = abm.joinPut("15", new Long(7));
+        o = abm.joinPut("15", Long.valueOf(7));
         assertEquals(o.longValue(), 11);
         o = abm.get("15");
         assertEquals(o.longValue(), 15);

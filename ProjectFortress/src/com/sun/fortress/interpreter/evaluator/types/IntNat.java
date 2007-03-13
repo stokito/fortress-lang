@@ -51,7 +51,7 @@ public class IntNat extends FTypeNat {
     public static IntNat make(long l) {
         if (l < small.length  && l >= 0)
             return small[(int)l];
-        return memo.make(new Long(l));
+        return memo.make(Long.valueOf(l));
     }
 
     private static class Factory implements Factory1<Long, IntNat> {

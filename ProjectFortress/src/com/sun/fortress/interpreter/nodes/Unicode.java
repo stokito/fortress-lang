@@ -50,23 +50,23 @@ public class Unicode {
     private static HashMap<String, Integer> numbers = new HashMap<String, Integer>();
     static {
         HashMap<String, Integer> m = numbers;
-        m.put("ZERO", new Integer(0));
-        m.put("ONE", new Integer(1));
-        m.put("TWO", new Integer(2));
-        m.put("THREE", new Integer(3));
-        m.put("FOUR", new Integer(4));
-        m.put("FIVE", new Integer(5));
-        m.put("SIX", new Integer(6));
-        m.put("SEVEN", new Integer(7));
-        m.put("EIGHT", new Integer(8));
-        m.put("NINE", new Integer(9));
-        m.put("TEN", new Integer(10));
-        m.put("ELEVEN", new Integer(11));
-        m.put("TWELVE", new Integer(12));
-        m.put("THIRTEEN", new Integer(13));
-        m.put("FOURTEEN", new Integer(14));
-        m.put("FIFTEEN", new Integer(15));
-        m.put("SIXTEEN", new Integer(16));
+        m.put("ZERO", Integer.valueOf(0));
+        m.put("ONE", Integer.valueOf(1));
+        m.put("TWO", Integer.valueOf(2));
+        m.put("THREE", Integer.valueOf(3));
+        m.put("FOUR", Integer.valueOf(4));
+        m.put("FIVE", Integer.valueOf(5));
+        m.put("SIX", Integer.valueOf(6));
+        m.put("SEVEN", Integer.valueOf(7));
+        m.put("EIGHT", Integer.valueOf(8));
+        m.put("NINE", Integer.valueOf(9));
+        m.put("TEN", Integer.valueOf(10));
+        m.put("ELEVEN", Integer.valueOf(11));
+        m.put("TWELVE", Integer.valueOf(12));
+        m.put("THIRTEEN", Integer.valueOf(13));
+        m.put("FOURTEEN", Integer.valueOf(14));
+        m.put("FIFTEEN", Integer.valueOf(15));
+        m.put("SIXTEEN", Integer.valueOf(16));
     }
     static {
         HashMap<String, String> m = unicodeByName;

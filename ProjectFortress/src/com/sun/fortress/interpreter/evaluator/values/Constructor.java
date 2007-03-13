@@ -220,12 +220,12 @@ public class Constructor extends AnonymousConstructor {
         traitNameReferenceArray = (Set<FnName>[]) new Set[traitCount];
 
         traitArray[0] = selfType;
-        traitToIndex.put(selfType, new Integer(0));
+        traitToIndex.put(selfType, Integer.valueOf(0));
         int trait_i = 1;
         for (FTraitOrObject too : traitsToNamesReferenced.keySet() ) { // was traitsToMethodSets.keySet()
             if (too != selfType) {
                 traitArray[trait_i] = too;
-                traitToIndex.put(too, new Integer(trait_i));
+                traitToIndex.put(too, Integer.valueOf(trait_i));
                 traitNameReferenceArray[trait_i] = traitsToNamesReferenced.get(too);
                 trait_i ++;
             }
@@ -282,7 +282,7 @@ public class Constructor extends AnonymousConstructor {
             if (s.size() == 2)
                 overloadCount++;
             methodsArray[sig_i] = mc;
-            methodsIndex.put(mc, new Integer(sig_i));
+            methodsIndex.put(mc, Integer.valueOf(sig_i));
             traitIndexForMethod[sig_i] = traitToIndex.get(too).intValue();
 
             sig_i++;
