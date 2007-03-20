@@ -42,7 +42,6 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.glue.NativeFunction;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
@@ -109,9 +108,6 @@ public class Primitives {
         FTypeString.T.addExclude(FTypeBool.T);
         FTypeString.T.addExclude(FTypeIntLiteral.T);
         FTypeString.T.addExclude(FTypeFloatLiteral.T);
-
-            NativeFunction.registerPrimitives(env);
-
 
     }
 

@@ -201,7 +201,7 @@ end
 cast[\T\](x:Any):T =
   typecase x of
     T => x
-    else => throw CastException
+    else => printTaskTrace(); throw CastException
   end
 
 instanceOf[\T\](x:Any):Boolean =
@@ -249,6 +249,7 @@ end
 
 fail(s:String) = do
    println("FAIL: " s)
+   printTaskTrace()
    if true then die end
 end
 
@@ -1051,7 +1052,7 @@ opr =(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.g
 opr <=(a:ZZ32, b:ZZ32):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LessEq")
 opr MIN(a:ZZ32, b:ZZ32):ZZ32 = if a <= b then a else b end
 opr MAX(a:ZZ32, b:ZZ32):ZZ32 = if b <= a then a else b end
-(* opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow") *)
+opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
 widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
 opr #(a:ZZ32, b:ZZ32):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$MkRange")
 rangeBase(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RangeBase")
@@ -1059,6 +1060,19 @@ rangeSize(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glu
 elementOf(a:ZZ32, b:ZZ32Range):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ElementOf")
 seq(a:ZZ32Range):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sequential")
 sequential(a:ZZ32Range):ZZ32Range = seq(a)
+
+nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
+printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")
+
+__globalTimeInformation: ZZ64 := 0
+recordTime(dummy: Any): () = do __globalTimeInformation := nanoTime() end
+printTime(dummy: Any): () = do
+    r = nanoTime()
+    e = r - __globalTimeInformation
+    __globalTimeInformation := r
+    secs: ZZ64 = (e+500000) DIV 1000000
+    println("Operation took " secs "ms")
+  end
 
 opr -[\ T extends Number, nat n, nat m \]
      (a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
@@ -1084,7 +1098,7 @@ opr =(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress
 opr <=(a: IntLiteral, b: IntLiteral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LessEq")
 opr MIN(a: IntLiteral, b: IntLiteral): IntLiteral = if a <= b then a else b end
 opr MAX(a: IntLiteral, b: IntLiteral): IntLiteral = if b <= a then a else b end
-(* opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow") *)
+opr ^(a: IntLiteral, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
 
 opr -[\ T extends Number, nat n, nat m \]
      (a:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
@@ -1110,7 +1124,7 @@ opr =(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.inter
 opr <=(a:Integral, b:Integral):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LessEq")
 opr MIN(a:Integral, b:Integral):ZZ64 = if a <= b then a else b end
 opr MAX(a:Integral, b:Integral):ZZ64 = if b <= a then a else b end
-(* opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow") *)
+opr ^(a:ZZ64, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
 narrow(a:ZZ64):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$FromLong")
 
 opr   <(a:Integral, b:Integral):Boolean = NOT (b <= a)
@@ -1135,7 +1149,7 @@ opr >=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpre
 opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
 opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
 opr [\N extends Number\]|a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
-(* opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow") *)
+opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
 sqrt(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
 sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
 cos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")

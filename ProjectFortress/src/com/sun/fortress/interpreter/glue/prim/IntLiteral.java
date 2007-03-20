@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
+import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
@@ -64,6 +65,12 @@ public static abstract class KL2K extends NativeFn2 {
     protected abstract BigInteger f(BigInteger x, long y);
     protected final FValue act(FValue x, FValue y) {
         return FIntLiteral.make(f(toB(x),y.getLong()));
+    }
+}
+public static abstract class KL2N extends NativeFn2 {
+    protected abstract FValue f(BigInteger x, long y);
+    protected final FValue act(FValue x, FValue y) {
+        return f(toB(x),y.getLong());
     }
 }
 
@@ -150,9 +157,13 @@ public static final class Eq extends KK2B {
 public static final class LessEq extends KK2B {
     protected boolean f(BigInteger x, BigInteger y) { return x.compareTo(y)<=0; }
 }
-public static final class Pow extends KL2K {
-    protected BigInteger f(BigInteger u, long v) {
-        return u.pow((int)v);
+public static final class Pow extends KL2N {
+    protected FValue f(BigInteger u, long v) {
+        if (v < 0) {
+            return FFloat.make(1.0 / u.pow((int)-v).doubleValue());
+        } else {
+            return FIntLiteral.make(u.pow((int)v));
+        }
     }
 }
 

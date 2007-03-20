@@ -20,6 +20,6 @@ component fortress.executable
 export Executable
 
 run(args:String...):()=do
-   for i <- 1 # 2 do printTaskTrace(1) end
+   for i <- 1 # 2 do printTaskTrace() end
 end
 end

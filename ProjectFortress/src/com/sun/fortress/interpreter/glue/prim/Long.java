@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.glue.prim;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeFn2;
 
 
@@ -104,8 +105,8 @@ public static final class LessEq extends Util.LL2B {
 public static final class Pow extends NativeFn2 {
     protected FValue act(FValue x, FValue y) {
         long base = x.getLong();
-        long exp = x.getLong();
-        if (base < 0) {
+        long exp = y.getLong();
+        if (exp < 0) {
             return FFloat.make(1.0 / (double)Int.pow(base,-exp));
         } else {
             return FLong.make(Int.pow(base,exp));
@@ -114,6 +115,13 @@ public static final class Pow extends NativeFn2 {
 }
 public static final class ToLong extends Util.Z2L {
     protected long f(int x) { return (long)x; }
+}
+
+public static final class NanoTime extends NativeFn0 {
+    protected FValue act() {
+        long res = System.nanoTime();
+        return FLong.make(res);
+    }
 }
 
 }

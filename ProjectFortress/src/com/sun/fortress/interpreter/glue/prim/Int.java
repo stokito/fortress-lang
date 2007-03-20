@@ -111,8 +111,8 @@ public static final class LessEq extends Util.ZZ2B {
 public static final class Pow extends NativeFn2 {
     protected FValue act(FValue x, FValue y) {
         int base = x.getInt();
-        long exp = x.getLong();
-        if (base < 0) {
+        long exp = y.getLong();
+        if (exp < 0) {
             return FFloat.make(1.0 / (double)pow(base,-exp));
         } else {
             return FInt.make(rc(pow(base,exp)));

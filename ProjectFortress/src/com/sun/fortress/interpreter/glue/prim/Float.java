@@ -63,7 +63,10 @@ public static final class Max extends Util.RR2R {
     protected double f(double x, double y) { return Math.max(x,y); }
 }
 public static final class Pow extends Util.RR2R {
-    protected double f(double x, double y) { return Math.pow(x,y); }
+    protected double f(double x, double y) {
+        System.out.println("Float.Pow "+x+"^"+y);
+        return Math.pow(x,y);
+    }
 }
 public static final class Sqrt extends Util.R2R {
     protected double f(double x) { return Math.sqrt(x); }

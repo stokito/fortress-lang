@@ -16,10 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
-
+import com.sun.fortress.interpreter.glue.NativeFn0;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 
 /**
- * Functions from RR64.
+ * Functions from String.
  */
 public class StringPrim {
 
@@ -47,6 +50,13 @@ public static final class Print extends Util.S2V {
 }
 public static final class Println extends Util.S2V {
     protected void f(String x) { System.out.println(x); }
+}
+
+public static final class PrintTaskTrace extends NativeFn0 {
+    protected FValue act() {
+        BaseTask.getCurrentTask().printTaskTrace();
+        return FVoid.V;
+    }
 }
 
 }
