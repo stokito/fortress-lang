@@ -1,0 +1,254 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component conjGrad
+export Executable
+
+trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = array[\T\](l).assign(v)
+
+object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
+  extends Array1[\T,0,n\]
+    get(i:ZZ32):T = do
+      b = mem.base()
+      lo:ZZ32 := -1
+      hi:ZZ32 := mem.size()
+      while lo + 1 < hi do
+        mid = (lo+hi) DIV 2
+        (ii,_) = mem[b+mid]
+        if ii <= i then lo := mid else hi := mid end
+      end
+      if lo>=0 then
+        (ii,t) = mem[b+lo]
+        if i=ii then t else 0.0 end
+      else 0.0 end
+    end
+    put(v:T, i:ZZ32) = fail("SparseVector is immutable")
+    mapReduce[\R\](f:(ZZ32,T)->R, j:(R,R)->R, z:R):R = do
+      f1(a:ZZ32,t:(ZZ32,T)):R = f t
+      mem.mapReduce[\R\](f1,j,z)
+    end
+    scale(x:T):SparseVector[\T,n\] = do
+      elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; x y end
+      mem1 = mem.replica[\T\]().fill(elt)
+    end
+    toString():String = do
+        elt(t:ZZ32,v:T):String = " " t "->" v
+        join(a:String,b:String):String = a b
+        "Sparse[" n "] = [" self.mapReduce[\String\](elt,join,"") "]"
+     end
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (other:Array1[\T,0,n\],me:SparseVector[\T,n\]):T = me DOT other
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me: SparseVector[\T,n\], other: Array1[\T,0,n\]):T = do
+  me.mapReduce[\T\](fn (i:ZZ32,v:T):T => v other[i], fn (a,b)=>a+b, 0)
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:SparseVector[\T,n\],other:SparseVector[\T,n\]):T = do
+   (* We perform sparse vector-vector multiply serially due to the
+      absence of reduction variables, and the fact that this allows
+      us to do it with linear work. *)
+   i1 : ZZ32 := other.mem.base()
+   t1 = other.mem.size() + i1
+   (j1:ZZ32, v1:T) := (-2, 0)
+   res : T := 0
+   for i0 <- seq(me.mem.indices()) do
+     (j0,v0) = me.mem[i0]
+     while j0>j1 AND i1 < t1 do
+        (j1,v1) := other.mem[i1]
+        i1 += 1
+     end
+     if j0=j1 then
+        res += v0 v1
+     end
+   end
+   res
+end
+
+sparse[\T extends Number,nat n\](me:Array1[\RR64,0,n\]):SparseVector[\RR64,n\] = do
+   sz = me.mapReduce[\ZZ32\](fn (i:ZZ32,v:RR64):ZZ32=>if v=0 then 0 else 1 end,
+                             fn (a:ZZ32,b:ZZ32):ZZ32 => a+b, 0)
+   res:Array[\(ZZ32,RR64),ZZ32\] := array[\(ZZ32,RR64)\](sz)
+   j : ZZ32 := res.base()
+   for i <- seq(me.indices()) do
+      v = me[i]
+      if v =/= 0 then
+         res[j] := (i,v)
+         j += 1
+      end
+   end
+   SparseVector[\RR64,n\](res)
+end
+
+object Csr[\N extends Number, nat n, nat m\]
+          (rows:Array1[\SparseVector[\N,m\],0,n\])
+  extends Array2[\N,0,n,0,m\]
+    get(i:ZZ32,j:ZZ32) = (rows[i])[j]
+    put(v:N, i:ZZ32, j:ZZ32) = fail("Csr is immutable")
+    replica[\U\]() = fail("Csr replica undefined")
+    mapReduce[\R\](f:((ZZ32,ZZ32),N)->R, j:(R,R)->R, z:R):R = do
+      outer(i:ZZ32,v:SparseVector[\N,m\]):R =
+        v.mapReduce[\R\](fn (j:ZZ32,r:N):R => f((i,j),r), j, z)
+      rows.mapReduce[\R\](outer,j,z)
+    end
+    t() = Csc[\N,m,n\](rows)
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Csr[\T,n,m\], other:Array1[\T,0,m\]):Array1[\T,0,n\] = do
+  res = me.rows.replica[\T\]()
+  row(i:ZZ32,r:SparseVector[\T,n\]):() = res.put(r DOT other,i)
+  j(l:(),r:()):() = ()
+  me.rows.mapReduce[\()\](row,j,())
+  res
+end
+
+object Csc[\N extends Number, nat n, nat m\]
+          (cols:Array1[\SparseVector[\N,n\],0,m\])
+  extends Array2[\N,0,n,0,m\]
+    get(i:ZZ32,j:ZZ32) = (cols[j])[i]
+    put(v:N, i:ZZ32, j:ZZ32) = fail("Csc is immutable")
+    replica[\U\]() = fail("Csc replica undefined")
+    mapReduce[\R\](f:((ZZ32,ZZ32),N)->R, j:(R,R)->R, z:R):R = do
+      outer(i:ZZ32,v:SparseVector[\N,n\]):R =
+        v.mapReduce[\R\](fn (j:ZZ32,r:N):R => f((j,i),r), j, z)
+      cols.mapReduce[\R\](outer,j,z)
+    end
+    t() = Csr[\N,m,n\](cols)
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Csr[\T,n,m\], other:Csc[\T,m,p\]):Csr[\T,n,p\] = do
+  row(i: ZZ32): SparseVector[\T,p\] = do
+    mem0 = array[\(ZZ32,RR64)\](p)
+    r = me.rows[i]
+    o : ZZ32 := 0
+    for j <- seq(0#p) do
+      d = r DOT other.cols[j]
+      if d=/=0 then
+        mem0[o] := (j,d)
+        o += 1
+      end
+    end
+    SparseVector[\RR64,n\](trim(mem0,o))
+  end
+  Csr[\T,n,p\](array1[\SparseVector[\T,p\],n\](row))
+end
+
+(************************************************************)
+
+mkMatrix[\nat n\]() : RR64[n,n] = do
+  (* We generate a symmetric positive-definite matrix by generating
+  a lower-triangular positive matrix and multiplying by its
+  transpose. *)
+  lambda_inv = - 4 n / log n
+  rt2 = sqrt 2
+  row(i:ZZ32):SparseVector[\RR64,n\] = do
+    mem0 = array[\(ZZ32,RR64)\](n-i)
+    j : ZZ32 := i
+    o : ZZ32 := 0
+    while (j < n) do
+      mem0[o] := (j,random(rt2))
+      (* Approximate Bernoulli interarrival with Poisson *)
+      ii = 1 + narrow (|\lambda_inv log random(1.0)/|)
+      j += ii
+      o += 1
+    end
+    SparseVector[\RR64,n\](trim(mem0,o))
+  end
+  l = Csr[\RR64,n,n\](array1[\SparseVector[\RR64,n\],n\](row))
+  (* We multiply by the transpose and hope the result is positive-definite.
+     It will be with high probability. *)
+  l DOT l.t()
+end
+
+mkVector[\nat n\]() : RR64[n] = do
+  f(i) = random(4.0)-2.0
+  array1[\RR64,n\](f)
+end
+
+testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
+  D = matrix[\RR64,n,n\]().assign(A)
+  if D=/=A then
+    println("FAIL: dense =/= sparse\nD" D "\nA" A)
+  else
+    println("dense OK")
+  end
+  A2 = identity[\Csr[\RR64,n,n\]\](A DOT A.t())
+  D2 = D DOT D.t()
+  if D2=/=A2 then
+    println("FAIL: dense^2 =/= sparse^2\nD^2" D2 "\nA^2" A2)
+  else
+    println("dense^2 OK")
+  end
+  v = mkVector[\n\]()
+  Av = A DOT v
+  Dv = D DOT v
+  (* Small variations may occur based on summation order for dot
+     product. *)
+  if ||Dv - Av|| > 0.000000000001 then
+    println("Fail: Dv =/= Av\nDv = " Dv "\nAv = " Av)
+  else
+    println("Dv OK")
+  end
+end
+
+(************************************************************)
+
+(* conjGrad returns the approximate solution z to the linear equation:
+ *    A z = x
+ * along with the approximate cartesian error of the solution.  This
+ * method is considered superior to LU decomposition when A is
+ * sparse, symmetric, and positive-definite. *)
+conjGrad[\nat n, E extends Number\]
+        (A: E[n,n], x: E[n]): (E[n], RR64) = do
+  cgit = 25
+  z: E[n] := vector[\RR64,n\](0)
+  r: E[n] := x
+  rho: E := r DOT r
+  p: E[n] := r
+  for j <- seq(1#cgit) do
+    q = A DOT p
+    alpha = rho / (p DOT q)
+    z += alpha p
+    rho0 = rho
+    r -= alpha q
+    rho := r DOT r
+    beta = rho / rho0
+    p := r + beta p
+    println("Iter " j " alpha = " alpha "\nz" z)
+  end
+  (z, ||x - A z||)
+end
+
+(************************************************************)
+
+run(args:String...):() = do
+  testSparse(mkMatrix[\16\]())
+  A : RR64[50,50] = mkMatrix[\50\]()
+  v : RR64[50] = mkVector[\50\]()
+  println(A)
+  println("v" v)
+  (s,e) = conjGrad[\50,RR64\](A,v)
+  println("s" s)
+  println("Error = " e)
+end
+
+end
