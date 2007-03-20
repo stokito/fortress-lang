@@ -28,6 +28,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
  */
 public class TestFn extends NativeFn2 {
     public FValue act(FValue x, FValue y) {
-        return new FString("testFn "+x.getString()+","+y.getString());
+        return FString.make("testFn "+x.getString()+","+y.getString());
     }
 }

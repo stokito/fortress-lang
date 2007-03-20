@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
 
 
@@ -34,14 +35,12 @@ public class FRange extends FValue {
         base = b;
         size = s;
         sequential = seq;
-        setFtype(new FTypeRange(base, size));
     }
 
     public FRange(int b, int s) {
         base = b;
         size = s;
         sequential = false;
-        setFtype(new FTypeRange(base, size));
     }
 
     static List<FRange> make(IndexedShape i) {
@@ -50,6 +49,10 @@ public class FRange extends FValue {
             a.add(new FRange(0, i.size(j)));
         }
         return a;
+    }
+
+    public FType type() {
+        return new FTypeRange(base,size);
     }
 
     public boolean contains(FValue x) {

@@ -24,8 +24,8 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 
 
-public abstract class FTupleLike extends FValue {
-    List<FValue> vals;
+public abstract class FTupleLike extends FConstructedValue {
+    private final List<FValue> vals;
 
     public String getString() {
         StringBuffer res = new StringBuffer();

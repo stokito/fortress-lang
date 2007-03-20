@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-public class FValue {
+public abstract class FValue {
     //   public static final FValue ZERO = new FInt(0);
     //  public static final FValue ONE = new FInt(1);
 
@@ -34,7 +34,7 @@ public class FValue {
         return getClass().getSimpleName() + " " + getString();
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
-    public FType type() { return ftype; }
+    public abstract FType type();
     public int getInt() { throw new InterpreterError("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterError("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterError("getFloat not implemented for "  + getClass().getSimpleName());}
@@ -42,16 +42,11 @@ public class FValue {
      * @param ftype The ftype to set.
      */
     public void setFtype(FType ftype) {
-        if (this.ftype != null)
-            throw new IllegalStateException("Cannot set twice");
-        this.ftype = ftype;
+        throw new IllegalStateException("Cannot set ftype of "+getClass().getSimpleName());
     }
 
     public void setFtypeUnconditionally(FType ftype) {
-        this.ftype = ftype;
     }
-
-    private FType ftype;
 
     // map "select type"
     static protected List<FType> typeListFromParameters(List<Parameter> params) {
@@ -63,7 +58,7 @@ public class FValue {
     // map "select type"
     static protected List<FType> typeListFromValues(List<FValue> params) {
         ArrayList<FType> al = new ArrayList<FType>(params.size());
-        for (FValue p : params) al.add(p.ftype);
+        for (FValue p : params) al.add(p.type());
         return al;
     }
 

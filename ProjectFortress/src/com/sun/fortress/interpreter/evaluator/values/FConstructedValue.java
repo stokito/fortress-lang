@@ -16,38 +16,35 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.useful.EquivalenceClass;
+import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
-public class FObject extends FConstructedValue implements Selectable {
+public abstract class FConstructedValue extends FValue {
+    /**
+     * Stores its ftype explicitly.
+     */
+    private FType ftype;
 
-    BetterEnv lexicalEnv;
-    BetterEnv selfEnv;
-  public FObject(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-      setFtype(selfType);
-      this.lexicalEnv = lexical_env;
-      this.selfEnv = self_dot_env;
-}
+    public FType type() { return ftype; }
 
-  public FValue select(String s) {
-      return getSelfEnv().getValue(s);
-  }
-  
-  /**
-   * The environment that you get from "self."
-   * @return
-   */
-  public BetterEnv getSelfEnv() {
-      return selfEnv;
-  }
+    /**
+     * @param ftype The ftype to set.
+     */
+    public void setFtype(FType ftype) {
+        if (this.ftype != null)
+            throw new IllegalStateException("Cannot set twice");
+        this.ftype = ftype;
+    }
 
-  public BetterEnv getLexicalEnv() {
-      return lexicalEnv;
-  }
-
-public String getString() { return getClass().getSimpleName() + " " + type().toString(); }
-
+    public void setFtypeUnconditionally(FType ftype) {
+        this.ftype = ftype;
+    }
 
 }

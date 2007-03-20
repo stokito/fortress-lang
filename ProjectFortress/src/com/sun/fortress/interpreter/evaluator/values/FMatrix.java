@@ -18,8 +18,8 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
 
-public class FMatrix extends FValue implements IndexedShape {
-  Indexed val;
+public class FMatrix extends FConstructedValue implements IndexedShape {
+  final Indexed val;
   public FMatrix(Indexed v, FTypeMatrix ft) {
     val = v;
     setFtype(ft);

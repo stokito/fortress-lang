@@ -16,10 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeStringLiteral;
 
 public class FStringLiteral extends FString {
   public FStringLiteral(String s) {
-    super(s, FTypeStringLiteral.T);
+    super(s);
   }
+  public FType type() { return FTypeStringLiteral.T; }
 }

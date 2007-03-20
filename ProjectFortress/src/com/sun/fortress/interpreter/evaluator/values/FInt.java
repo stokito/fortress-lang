@@ -16,10 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
+import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class FInt extends FValue implements HasIntValue {
-  int val;
+  private final int val;
+  public FType type() {return FTypeInt.T;}
   public int getInt() {return val;}
   public long getLong() {return (long)val;}
   public double getFloat() { return (double) val;}
@@ -29,12 +32,13 @@ public class FInt extends FValue implements HasIntValue {
   }
   private FInt(int x) {
     val = x;
-    setFtype(FTypeInt.T);
   }
 
-  static final int negCached=128;
+  public static final FInt ZERO = new FInt(0);
 
-  static FInt[] cached = {
+  private static final int negCached=128;
+
+  private static FInt[] cached = {
       new FInt(-128),   new FInt(-127),   new FInt(-126),   new FInt(-125),
       new FInt(-124),   new FInt(-123),   new FInt(-122),   new FInt(-121),
       new FInt(-120),   new FInt(-119),   new FInt(-118),   new FInt(-117),
@@ -67,7 +71,7 @@ public class FInt extends FValue implements HasIntValue {
       new FInt(-12),   new FInt(-11),   new FInt(-10),   new FInt(-9),
       new FInt(-8),   new FInt(-7),   new FInt(-6),   new FInt(-5),
       new FInt(-4),   new FInt(-3),   new FInt(-2),   new FInt(-1),
-      new FInt(0),   new FInt(1),   new FInt(2),   new FInt(3),
+      ZERO,   new FInt(1),   new FInt(2),   new FInt(3),
       new FInt(4),   new FInt(5),   new FInt(6),   new FInt(7),
       new FInt(8),   new FInt(9),   new FInt(10),   new FInt(11),
       new FInt(12),   new FInt(13),   new FInt(14),   new FInt(15),

@@ -23,17 +23,14 @@ import com.sun.fortress.interpreter.nodes.Unprinter;
 
 
 public class FString extends FValue {
-    String val;
+    private final String val;
+    public FType type() {return FTypeString.T;}
     public String getString() {return val;}
     public String toString() {
         return "\"" + Unprinter.enQuote(val) + "\"";
     }
-    protected FString(String x, FType t) {
+    protected FString(String x) {
         val = x;
-        setFtype(t);
-    }
-    public FString(String x) {
-      this(x, FTypeString.T);
     }
     public static FValue make(String s) {
         return new FString(s);

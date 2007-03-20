@@ -16,14 +16,15 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 
 public class FChar extends FValue {
-  char val;
+  private final char val;
+  public FType type() {return FTypeChar.T;}
   public String getString() {return Character.toString(val);}
   public char getChar() {return val;}
   FChar(char x) {
     val = x;
-    setFtype(FTypeChar.T);
   }
 }

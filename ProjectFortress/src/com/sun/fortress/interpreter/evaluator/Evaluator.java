@@ -688,7 +688,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (i.hasNext())
                 result = result.concat(".");
         }
-        return new FString(result);
+        return FString.make(result);
     }
 
     public FValue forEmptyInterval(EmptyInterval x) {
@@ -793,7 +793,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forId(Id x) {
-        return new FString(x.getName());
+        return FString.make(x.getName());
     }
 
     public FValue forIf(If x) {
@@ -824,7 +824,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forLValueBind(LValueBind x) {
         Id name = x.getName();
         String s = name.getName();
-        return new FString(s);
+        return FString.make(s);
     }
 
     public FValue forLabel(Label x) {
@@ -1041,7 +1041,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forPostFix(PostFix x) {
-        return new FString(x.name());
+        return FString.make(x.name());
     }
 
     public FValue forRectCompClause(RectCompClause x) {

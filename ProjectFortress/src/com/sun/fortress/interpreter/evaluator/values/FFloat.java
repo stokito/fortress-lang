@@ -16,10 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 
 public class FFloat extends FValue {
-    double val;
+    private final double val;
+    public FType type() {return FTypeFloat.T;}
     public double getFloat() {return val;}
     public String getString() {return Double.toString(val);}
     public String toString() {
@@ -27,7 +29,6 @@ public class FFloat extends FValue {
     }
     private FFloat(double x) {
         val = x;
-        setFtype(FTypeFloat.T);
     }
     static final FFloat Zero = new FFloat(0.0);
     static public FFloat make(double x) {

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 
 public class FBool extends FValue {
@@ -24,9 +25,13 @@ public class FBool extends FValue {
 
     public final static FBool FALSE = new FBool(false, "False");
 
-    private boolean val;
+    private final boolean val;
 
-    private String name;
+    private final String name;
+
+    public FType type() {
+        return FTypeBool.T;
+    }
 
     static public FBool make(boolean b) {
         return b ? TRUE : FALSE;
@@ -43,6 +48,5 @@ public class FBool extends FValue {
     private FBool(boolean b, String s) {
         val = b;
         name = s;
-        setFtype(FTypeBool.T);
     }
 }

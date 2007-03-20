@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component conjGrad
-export Runnable
+export Executable
 
 trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = array[\T\](l).assign(v)
 

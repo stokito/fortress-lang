@@ -123,9 +123,9 @@ public class Closure extends NonPrimitive implements Scope {
                 /* Wrap all other errors, but not these. */
                 throw ex.setWhere(loc);
             } catch (RuntimeException ex) {
-                throw new ProgramError(loc, "Wrapped exception", ex);
+                throw new ProgramError(loc, "Wrapped exception "+ex.toString(), ex);
             } catch (Error ex) {
-                throw new ProgramError(loc, "Wrapped error", ex);
+                throw new ProgramError(loc, "Wrapped error "+ex.toString(), ex);
             }
         } else {
             Evaluator eval = new Evaluator(buildEnvFromParams(args, loc));

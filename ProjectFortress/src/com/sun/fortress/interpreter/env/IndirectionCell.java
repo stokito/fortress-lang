@@ -19,10 +19,10 @@ package com.sun.fortress.interpreter.env;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.values.FConstructedValue;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
-
-public class IndirectionCell extends FValue {
+public class IndirectionCell extends FConstructedValue {
     protected volatile FValue theValue;
     public String toString() {
         if (theValue==null) return "null";

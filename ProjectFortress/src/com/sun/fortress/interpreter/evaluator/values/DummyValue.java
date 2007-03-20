@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
-public class DummyValue extends FValue {
+public class DummyValue extends FConstructedValue {
 
     public DummyValue(FType _t) {
         this.setFtype(_t);

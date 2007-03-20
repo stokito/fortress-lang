@@ -18,8 +18,8 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVector;
 
-public class FVector extends FValue implements IndexedShape {
-  Indexed val;
+public class FVector extends FConstructedValue implements IndexedShape {
+  final Indexed val;
   public FVector(Indexed v) {
     val = v;
     setFtype(new FTypeVector());

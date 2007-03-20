@@ -17,12 +17,12 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 
 public class FUndefined extends FValue {
     public final static FUndefined theUndefined = new FUndefined();
+    public FType type() { return FTypeDynamic.T; }
     public String getString() {return "Undefined";}
-    private FUndefined() {
-        setFtype(FTypeDynamic.T);
-    }
+    private FUndefined() {  }
 }

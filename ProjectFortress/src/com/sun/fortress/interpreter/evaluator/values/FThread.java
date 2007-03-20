@@ -24,9 +24,9 @@ import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 
-public class FThread extends FValue {
-    SpawnTask st;
-    
+public class FThread extends FConstructedValue {
+    private final SpawnTask st;
+
 
     public String toString() {return "FThread: task = " + st;}
     public String getString() {return "FThread: task = " + st;}
@@ -34,7 +34,7 @@ public class FThread extends FValue {
     public FThread(Expr b, Evaluator e) {
 	st = new SpawnTask(b,e, BaseTask.getCurrentTask());
     }
-    
+
     public FValue val() { return st.val();}
     public void f_wait() { st.st_wait();}
     public Boolean ready() { return st.ready();}

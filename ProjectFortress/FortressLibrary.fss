@@ -16,7 +16,6 @@
  ******************************************************************************)
 
 component FortressLibrary
-
 export Executable
 
 pi = 3.141592653589793 (* Double whose sin is closest to 0 *)

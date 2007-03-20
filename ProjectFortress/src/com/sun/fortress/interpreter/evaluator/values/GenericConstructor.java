@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Memo1P;
 
 
-public class GenericConstructor extends FValue implements Factory1P<List<FType>, Simple_fcn, HasAt> {
+public class GenericConstructor extends FConstructedValue implements Factory1P<List<FType>, Simple_fcn, HasAt> {
     private class Factory implements Factory1P<List<FType>, Constructor, HasAt> {
 
         public Constructor make(List<FType> args, HasAt within) {

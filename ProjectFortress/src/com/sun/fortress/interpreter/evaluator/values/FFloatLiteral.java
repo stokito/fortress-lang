@@ -16,10 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 
 public class FFloatLiteral extends FValue {
-    private String value;
+    private final String value;
+
+    public FType type() { return FTypeFloatLiteral.T; }
 
     public String getString() { return value; } // TODO Sam left this undone, not sure if intentional
 
@@ -27,6 +30,5 @@ public class FFloatLiteral extends FValue {
 
     public FFloatLiteral(String s) {
         value = s;
-        setFtype(FTypeFloatLiteral.T);
     }
 }

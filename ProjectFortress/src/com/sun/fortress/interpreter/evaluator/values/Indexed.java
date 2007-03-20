@@ -22,11 +22,11 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 
-public class Indexed extends FValue implements IndexedShape, IndexedTarget {
-  FType elementType;
-  FValue[] val;
-  List<FRange> extents;
-  int[] strides;
+public class Indexed extends FConstructedValue implements IndexedShape, IndexedTarget {
+  final FType elementType;
+  final FValue[] val;
+  final List<FRange> extents;
+  final int[] strides;
 
   public Indexed(IndexedShape s, FType t) {
       elementType = t;

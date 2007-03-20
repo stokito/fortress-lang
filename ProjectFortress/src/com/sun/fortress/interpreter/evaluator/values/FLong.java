@@ -16,14 +16,16 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeLong;
 
 public class FLong extends FValue implements HasIntValue {
-  long val;
+  private final long val;
   public int getInt() {
       // TODO Throw an error on out-of-range conversion?
       return (int) val;
   }
+  public FType type() { return FTypeLong.T; }
   public long getLong() {return (long)val;}
   public double getFloat() { return (double) val;}
   public String getString() {return Long.toString(val);}
@@ -32,7 +34,6 @@ public class FLong extends FValue implements HasIntValue {
   }
   private FLong(long x) {
     val = x;
-    setFtype(FTypeLong.T);
   }
 
   static final long negCached = 128;

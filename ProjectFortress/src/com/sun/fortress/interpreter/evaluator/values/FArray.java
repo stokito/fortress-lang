@@ -22,8 +22,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
-public class FArray extends FValue implements IndexedShape {
-    Indexed val;
+public class FArray extends FConstructedValue implements IndexedShape {
+    final Indexed val;
 
     public FArray(Indexed v, Environment env, HasAt at) {
         val = v;

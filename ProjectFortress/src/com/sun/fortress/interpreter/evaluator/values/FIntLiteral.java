@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
@@ -35,11 +36,10 @@ public class FIntLiteral extends FValue implements HasIntValue {
     public static final BigInteger LONG_MAX =
         BigInteger.valueOf(java.lang.Long.MAX_VALUE);
 
-    private BigInteger value;
+    private final BigInteger value;
 
     private FIntLiteral(BigInteger i) {
         value = i;
-        setFtype(FTypeIntLiteral.T);
     }
 
     public static FValue make(BigInteger v) {
@@ -59,6 +59,8 @@ public class FIntLiteral extends FValue implements HasIntValue {
             return FInt.make(v.intValue());
         }
     }
+
+    public FType type() { return FTypeIntLiteral.T; }
 
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 

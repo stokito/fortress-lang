@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
-abstract public class Fcn extends FValue {
+abstract public class Fcn extends FConstructedValue {
     /**
      * Need to know the environment so we can resolve
      * overloading/shadowing properly.
