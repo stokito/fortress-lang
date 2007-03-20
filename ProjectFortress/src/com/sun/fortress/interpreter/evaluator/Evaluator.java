@@ -162,7 +162,6 @@ import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.Useful;
 
-import dstm2.Thread;
 import java.util.concurrent.Callable;
 
 public class Evaluator extends EvaluatorBase<FValue> {
@@ -308,7 +307,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr e = x.getExpr();
         final Evaluator ev = new Evaluator(this);
-        return Thread.doIt(new Callable<FValue>() { public FValue call() {
+
+
+        return BaseTask.doIt(new Callable<FValue>() { public FValue call() {
 				   return e.accept(ev);}});
     }
 
