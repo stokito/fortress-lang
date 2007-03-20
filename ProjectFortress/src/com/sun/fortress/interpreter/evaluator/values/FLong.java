@@ -35,7 +35,7 @@ public class FLong extends FValue implements HasIntValue {
     setFtype(FTypeLong.T);
   }
 
- static final long negCached = 128;
+  static final long negCached = 128;
 
   static final FLong[] cached = {
       new FLong(-128),   new FLong(-127),   new FLong(-126),   new FLong(-125),
