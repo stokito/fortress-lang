@@ -64,7 +64,6 @@ public static final class Max extends Util.RR2R {
 }
 public static final class Pow extends Util.RR2R {
     protected double f(double x, double y) {
-        System.out.println("Float.Pow "+x+"^"+y);
         return Math.pow(x,y);
     }
 }
