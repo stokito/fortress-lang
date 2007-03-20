@@ -1,0 +1,57 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component rightOverload
+export Runnable
+
+(* This ought to succeed in the opposite way from wrongOverload. *)
+
+trait Sparse[\N extends Number, nat n, nat m\]
+  extends Array2[\N,0,n,0,m\]
+    get(i:ZZ32,j:ZZ32) = fail("Sparse get")
+    put(v:N, i:ZZ32, j:ZZ32) = fail("Sparse put")
+    replica[\U\]() = fail("Sparse replica")
+    mapReduce[\R\](f:((ZZ32,ZZ32),N)->R, j:(R,R)->R, z:R):R =
+          fail("Sparse mapReduce")
+end
+
+object Csr[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csc[\N,m,n\]()
+end
+
+object Csc[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csr[\N,m,n\]()
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Csr[\T,n,m\], other:Csc[\T,m,p\]):Csr[\T,n,p\] = do
+  println("OK: Csr DOT Csc")
+  me
+end
+
+mkMatrix[\nat n\]() : RR64[n,n] = do
+end
+
+run(args: String...): () = do
+  l = Csr[\RR64,1,1\]()
+  l DOT l.t()
+  ()
+end
+
+end
