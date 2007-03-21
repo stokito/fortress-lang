@@ -53,6 +53,11 @@ import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
+import dstm2.AtomicArray;
+import dstm2.Thread;
+import dstm2.atomic;
+import dstm2.factory.Factory;
+
 
 public class GenericFlatStorageMaker extends GenericConstructor {
 
@@ -173,7 +178,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
          public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
              FlatStorage fs = (FlatStorage) selfValue;
              int i = ((HasIntValue)args.get(0)).getInt();
-             FValue r = fs.a[i];
+             FValue r = fs.a.get(i).getValue();
              if (r==null) {
                  throw new ProgramError(loc,fs.getLexicalEnv(),
                         "Access to uninitialized element "+i+" of array "+fs);
@@ -195,7 +200,8 @@ public class GenericFlatStorageMaker extends GenericConstructor {
          public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
              FlatStorage fs = (FlatStorage) selfValue;
              // TODO type test.
-             fs.a[((HasIntValue)args.get(1)).getInt()] = args.get(0);
+             int ind = ((HasIntValue)args.get(1)).getInt();
+             fs.a.get(ind).setValue(args.get(0));
              return FVoid.V;
          }
 
@@ -225,16 +231,26 @@ public class GenericFlatStorageMaker extends GenericConstructor {
     }
 
     static class FlatStorage extends FObject {
+        /**
+         * Transactional Node factory.
+         */
+        static Factory<ANode> factory = Thread.makeFactory(ANode.class);
 
         public FlatStorage(FTypeObject selfType, BetterEnv lex_env, BetterEnv self_env, FType t, long n) {
             super(selfType, lex_env, self_env);
             this.t = t;
-            this.a = new FValue[(int) n];
+            this.a = new AtomicArray<ANode>(ANode.class, (int) n);
+            for (int i = 0; i < n; i++)
+                this.a.set(i,factory.create());
         }
 
         FType t;
-        FValue[] a;
-    }
+        AtomicArray<ANode> a;
 
+        @atomic public interface ANode {
+            FValue getValue();
+            void setValue(FValue value);
+	}
+    }
 
 }
