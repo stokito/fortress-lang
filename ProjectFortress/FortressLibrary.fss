@@ -245,6 +245,17 @@ reflect(z:ZZ32):NatParam = do
   end
 end
 
+(** Reflection of static type parameters for overloading purposes.
+    Works around shortcomings in the story on parametric overloading
+    (all overloadings must have the same parameters with the same
+    bounds).  Allows us to overload a function based on the parametric
+    type of an output. *)
+
+object __Proxy[\T extends (* U *) Any\]()
+    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
+  toString() = "__Proxy object, should not be user-visible."
+end
+
 (** Boilerplate code for Array *)
 
 fail(s:String) = do
@@ -337,10 +348,8 @@ __arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
    As it turns out we choose a to be the largest power of 2 < n.
 *)
 partition(x:ZZ32):(ZZ32,ZZ32) = do
-  t : ZZ32 = x
-  one : ZZ32 = 1  (* Work around bug in IntLiteral conversion *)
-  u : ZZ32 = t-one
-  m : ZZ32 := u RSHIFT 1
+  m: ZZ32 := x-1
+  m := m RSHIFT 1
   m BITOR= m RSHIFT 1
   m BITOR= m RSHIFT 2
   m BITOR= m RSHIFT 4
@@ -487,11 +496,11 @@ end
    defined in 0-indexed space.  m0 the stride within that array.
    Invariant: (s0-1) m0 + o0 - b_a) < s_a *)
 object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
-       (arr:Array[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
+       (arr:Array1[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
        extends Array1[\T, b0, s0\]
     index(i:ZZ32):T = i m0 + o0
     get(i:ZZ32):T = arr.get(index(i))
-    put(i:ZZ32):T = arr.put(index(i))
+    put(v:T,i:ZZ32): () = arr.put(v,index(i))
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
       o_n : ZZ32 = o - b0
       if o_n < 0 OR o_n > s0-s then
@@ -515,6 +524,27 @@ object __DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
   end
 end
 
+trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
+    add(v:Vector[\T,s0\]): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32):T => get(i) + v.get(i))
+    subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32):T => get(i) - v.get(i))
+    negate(): Vector[\T,s0\] = replica[\T\]().fill(fn (i:ZZ32):T => - get(i))
+    scale(t: T): Vector[\T,s0\] = replica[\T\]().fill(fn i => t get(i))
+    pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32):T => get(i) v.get(i))
+    dot(v: Vector[\T,s0\]): T =
+        mapReduce[\T\](fn (i:ZZ32, me_i:T):T => me_i v.get(i),
+                       fn (x,y)=>x+y,0)
+end
+
+object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
+  mem: FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
+  get(i:ZZ32):T = mem.get(i)
+  put(v:T, i:ZZ32) = mem.put(v,i)
+  replica[\U\]() = __DefaultVector[\T,s0\]()
+end
+
 (* builtinFactory1 must be a non-overloaded 0-parameter factory for
    0-indexed 1-D arrays.  The type parameters are enshrined in
    LHSEvaluator.java and NonPrimitive.java; the factory name is
@@ -522,66 +552,63 @@ end
    named in this file, with this type signature.  A similar thing is
    true for K-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
-    __DefaultArray1[\T,b0,s0\]()
+    if b0=0 then array1[\T,s0\]() else __DefaultArray1[\T,b0,s0\]() end
 
-array1[\T, nat s0\]():Array1[\T,0,s0\] = __DefaultArray1[\T,0,s0\]()
+array1[\T, nat s0\]():Array1[\T,0,s0\] =
+    typecase p = __Proxy[\T\]() of
+        __Proxy[\ZZ32\] => vector[\T,s0\]()
+        __Proxy[\ZZ64\] => vector[\T,s0\]()
+        __Proxy[\Integral\] => vector[\T,s0\]()
+        __Proxy[\RR64\] => vector[\T,s0\]()
+        __Proxy[\Number\] => vector[\T,s0\]()
+        else => __DefaultArray1[\T,0,s0\]()
+    end
 array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
 array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
 
 (* vector is the same as array1, but specialized to numeric type arguments *)
-vector[\T extends Number, nat s0\]():Array1[\T,0,s0\] = array1[\T,s0\]()
-vector[\T extends Number, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\](v)
-vector[\T extends Number, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\](f)
+vector[\T extends Number, nat s0\]():Vector[\T,s0\] = __DefaultVector[\T,s0\]()
+vector[\T extends Number, nat s0\](v:T):Vector[\T,s0\] =
+    vector[\T,s0\]().fill(v)
+vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\] =
+    vector[\T,s0\]().fill(f)
 
-(* For the moment we cannot define a distinct Vector subtrait of
-Array1, because there's no way to build a usable factory which
-distinguishes the array type at run time and constructs an instance of
-the appropriate subtrait (ordinary array or vector).  What we *really*
-want is conditional extension, so that *every* Array1 whose element
-type is a Number is treated as a vector, and there's a set of Array1
-methods which are defined iff T extends Number.  *)
 
 opr +[\ T extends Number, nat n, nat m \]
-     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):Array1[\T,0,n\] =
-  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) + other.get(i))
+     (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] = me.add(other)
 
 opr -[\ T extends Number, nat n, nat m \]
-     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):Array1[\T,0,n\] =
-  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) - other.get(i))
+     (me : Vector[\T,n\], other : Vector[\T,n\]):Vector[\T,n\] =
+    me.subtract(other)
 
 opr -[\ T extends Number, nat n, nat m \]
-     (me : Array1[\T,0,n\]):Array1[\T,0,n\] =
-  me.replica[\T\]().fill(fn (i:ZZ32):T => - me.get(i))
+     (me : Vector[\T,n\]):Vector[\T,n\] = me.negate()
 
 pmul[\ T extends Number, nat k \]
-    (a : Array1[\T,0,k\], b : Array1[\T,0,k\]):Array1[\T,0,k\] =
-  a.replica[\T\]().fill(fn (i:ZZ32):T => a.get(i) b.get(i))
+    (a : Vector[\T,k\], b : Vector[\T,k\]):Vector[\T,k\] = a.pmul(b)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):T =
-  me.mapReduce[\T\](fn (i:ZZ32, me_i:T):T => me_i other.get(i),fn (x,y)=>x+y,0)
+       (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (me : Array1[\T,0,n\], other : Array1[\T,0,n\]):T = me DOT other
+     (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (me : Array1[\T,0,n\], other : T) : Array1[\T,0,n\] =
-  me.replica[\T\]().fill(fn (i:ZZ32):T => me.get(i) other)
+       (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (me : Array1[\T,0,n\], other : T) : Array1[\T,0,n\] = me DOT other
+     (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-        (other : T, me : Array1[\T,0,n\]) : Array1[\T,0,n\] =
-  me.replica[\T\]().fill(fn (i:ZZ32):T => other me.get(i))
+        (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (other : T, me : Array1[\T,0,n\]) : Array1[\T,0,n\] = other DOT me
+     (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
-squaredNorm[\T extends Number, nat s0\](a:Array1[\T,0,s0\]):T = a DOT a
+squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
 
 opr [\ T extends Number, nat k \]
-    ||me : Array1[\T,0,k\]|| : RR64 = SQRT squaredNorm(me)
+    ||me : Vector[\T,k\]|| : RR64 = SQRT squaredNorm(me)
 
 (* Column-major reduction in 2 dimensions *)
 trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
@@ -795,25 +822,25 @@ opr *[\ T extends Number, nat n, nat m, nat p\]
 
 (* matrix-vector multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (me:Array2[\T,0,n,0,m\], v:Array1[\T,0,m\]):Array1[\T,0,n\] = do
+       (me:Array2[\T,0,n,0,m\], v:Vector[\T,m\]):Vector[\T,n\] = do
   row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => me[i,j] v_j,
                                    fn (a,b)=> a+b, 0)
   vector[\T,n\]().fill(row)
 end
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (me:Array2[\T,0,n,0,m\], v:Array1[\T,0,m\]):Array1[\T,0,n\] = me DOT v
+     (me:Array2[\T,0,n,0,m\], v:Vector[\T,m\]):Vector[\T,n\] = me DOT v
 
 (* vector-matrix multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (v:Array1[\T,0,n\], me:Array2[\T,0,n,0,m\]):Array1[\T,0,m\] = do
+       (v:Vector[\T,n\], me:Array2[\T,0,n,0,m\]):Vector[\T,m\] = do
   col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j me[j,i],
                                    fn (a,b)=> a+b, 0)
   vector[\T,m\]().fill(col)
 end
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (v:Array1[\T,0,n\], me:Array2[\T,0,n,0,m\]):Array1[\T,0,m\] = v DOT me
+     (v:Vector[\T,n\], me:Array2[\T,0,n,0,m\]):Vector[\T,m\] = v DOT me
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me : Array2[\T,0,n,0,m\], other : T) : Array2[\T,0,n,0,m\] =
