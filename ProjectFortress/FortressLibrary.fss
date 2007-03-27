@@ -19,6 +19,7 @@ component FortressLibrary
 export Executable
 
 pi = 3.141592653589793 (* Double whose sin is closest to 0 *)
+(* e = 2.7182818284590455 (* exp(1.0) *) *)
 infinity = 1.0 / 0.0
 
 builtinPrimitive[\T\](javaClass:String):T =
@@ -580,7 +581,7 @@ opr *[\ T extends Number, nat n, nat m, nat p \]
 squaredNorm[\T extends Number, nat s0\](a:Array1[\T,0,s0\]):T = a DOT a
 
 opr [\ T extends Number, nat k \]
-    ||me : Array1[\T,0,k\]|| : RR64 = sqrt(squaredNorm(me))
+    ||me : Array1[\T,0,k\]|| : RR64 = SQRT squaredNorm(me)
 
 (* Column-major reduction in 2 dimensions *)
 trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
@@ -1148,8 +1149,9 @@ opr >=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpre
 opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
 opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
 opr [\N extends Number\]|a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
-opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
-sqrt(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
+opr ^(a:Number, b:Number):RR64 = (*if a=e then exp(b) else pow(a,b) end
+pow(a:Number,b:Number):RR64 =*) builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+opr SQRT(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
 sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
 cos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
 tan(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
@@ -1200,6 +1202,8 @@ opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
 opr NOT(a:Boolean):Boolean = if a then false else true end
 opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
+opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
+opr <->(a: Boolean, b:Boolean):Boolean = a=b
 
 opr DOT[\T extends Number, nat n, nat m, nat p\](me:ZZ32,other:ZZ32):ZZ32 =
     builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")

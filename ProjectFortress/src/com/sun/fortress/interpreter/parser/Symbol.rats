@@ -103,7 +103,7 @@ private String OpName =
      !(accumulator / cross) opn:id &{FortressUtil.validOp(opn) } ;
 
 Op Op =
-     a1:(compOp / op !(equalsOp))
+     a1:(op !(equalsOp) / compOp)
      { yyValue = new Op(createSpan(yyStart, yyCount), a1); };
 
 String compOp =

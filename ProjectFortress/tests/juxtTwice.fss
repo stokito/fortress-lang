@@ -35,8 +35,8 @@ run(args:String...):() = do
   if n=/=2 then
     println("FAIL: Multiple evaluation set n to " n)
   end
-  u = n (n+1) sin 3 n x sqrt sqrt y
-  w = (n (n+1)) (sin (3 n x)) (sqrt (sqrt y))
+  u = n (n+1) sin 3 n x log log y
+  w = (n (n+1)) (sin (3 n x)) (log (log y))
   if u=/=w then
     println("FAIL: " u " =/= parenthesized equivalent " w)
   end

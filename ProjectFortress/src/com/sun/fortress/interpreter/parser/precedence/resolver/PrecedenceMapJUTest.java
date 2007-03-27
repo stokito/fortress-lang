@@ -35,7 +35,7 @@ public class PrecedenceMapJUTest extends TestCase {
     final PrecedenceMap pm = PrecedenceMap.T;
 
     public static void main(String[] args) {
-        junit.swingui.TestRunner.run(PrecedenceMapJUTest.class);
+        junit.textui.TestRunner.run(PrecedenceMapJUTest.class);
     }
 
     public PrecedenceMapJUTest() {
@@ -50,6 +50,11 @@ public class PrecedenceMapJUTest extends TestCase {
     Higher h = new Higher();
     Lower l = new Lower();
     None n = new None();
+
+    /* Unit test for missed operator. */
+    public void testImplies() {
+        assertEquals(true,pm.isOperator("=>"));
+    }
 
     public void testIsOperator() {
         for (String op : Operators.ops) {

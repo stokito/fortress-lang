@@ -636,7 +636,7 @@ other_operators
   rightwards double arrow with stroke
   leftwards double arrow
   upwards double arrow
-#  rightwards double arrow, =>
+  rightwards double arrow, =>
   downwards double arrow
   left right double arrow, <=>
   up down double arrow

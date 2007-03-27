@@ -207,10 +207,10 @@ pn[\nat order\](x:RR64):RR64[order] = do
   res
 end
 
-phi_norms(i:ZZ32):RR64 = sqrt (2.0 i + 1.0)
+phi_norms(i:ZZ32):RR64 = SQRT (2.0 i + 1.0)
 (*
 phi_norms : RR64[100] =
-  vector[\RR64,100\](fn (i:ZZ32) => sqrt (2.0 i + 1.0))
+  vector[\RR64,100\](fn (i:ZZ32) => SQRT (2.0 i + 1.0))
 *)
 
 (* Evaluate the shifted, normalized Legendre polys up to the given order at x,
@@ -460,7 +460,7 @@ object Function[\nat k\]
       split[\k\](c.hgT merge[\k\](s0,c.zero))
 
   mul(n : ZZ32, s_a:RR64[k], s_b:RR64[k]):LLeaf[\RR64[k],2\] = do
-      scale = sqrt(2.0^n)
+      scale = SQRT (2.0^n)
       m = (c.quad_phi s_a) BOXDOT (c.quad_phi s_b)
       lleaf2(scale (c.quad_phiWT m))
     end
@@ -507,7 +507,7 @@ object Function[\nat k\]
       evaluate(2 x, 2 mx, s.children[0])
     end
   evaluate(x : RR64, mx : RR64, s : LLeaf[\ RR64[k], 2 \]) : RR64 =
-    sqrt(mx) (s.val phi[\k\](x) )
+    (SQRT mx) (s.val phi[\k\](x) )
 
   apply(x:RR64):RR64 = do
     self.reconstruct()
@@ -515,7 +515,7 @@ object Function[\nat k\]
   end
 
   normSq():RR64 = do
-    (* sqrt Integral f(x)^2 *)
+    (* SQRT Integral f(x)^2 *)
     self.reconstruct()
     s.mapReduce[\RR64\](fn (x,y) => x+y, fn (v) => v v)
   end
@@ -613,7 +613,7 @@ function[\nat k\]
   rp = matrix[\RR64,k,k\]()
   rm = matrix[\RR64,k,k\]()
   for i <- 0#k, j <- 0#k do
-      gamma_ij = sqrt((2 i + 1) (2 j + 1))
+      gamma_ij = SQRT ((2 i + 1) (2 j + 1))
       iphase = if even i then 1.0 else -1.0 end
       jphase = if even j then 1.0 else -1.0 end
       Kij = if i <= j then 0.0 elif even (i-j) then 0.0 else 2.0 end
@@ -631,7 +631,7 @@ function[\nat k\]
   project(level : ZZ32, l : ZZ32) : RR64[ k ] = do
     (s,fv) = (vector[\RR64,k\](), vector[\RR64,k\]())
     h = (0.5)^level
-    scale = sqrt h
+    scale = SQRT h
     for mu <- 0#k do
       x = h (l + c.quad_x[mu])
       fv[mu] := scale f(x)
@@ -666,7 +666,7 @@ function[\nat k\]
 end
 
 opr [\T extends Number,nat k\]|| f : Function[\k\] || =
-    sqrt (f.normSq())
+    SQRT (f.normSq())
 
 opr DOT[\T extends Number,nat n,nat m,nat p\](a:Function[\n\],b:Function[\n\]) : Function[\n\] =
     a.mul(b)
@@ -740,7 +740,7 @@ testMe():() = do
   println(f.c.rp.toString())
   f.reconstruct()
   println(f.copy().toString())
-  rt2 = sqrt(2.0)
+  rt2 = SQRT 2.0
   ftv = f_test(rt2-1)
   println(f.apply(rt2-1) " ~\n" ftv " =\n" (1.0/rt2))
   println( ||f|| ) (* Should also match the above. *)
@@ -765,7 +765,7 @@ testMe():() = do
   println("f g")
   fg = f g
   println(fg.apply(rt2-1) " ~\n" (ftv DOT gtv))
-  println("f sqrt(2)")
+  println("f SQRT 2")
   f.reconstruct()
   rt2f = rt2 f
   f.compress()

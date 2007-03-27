@@ -159,7 +159,7 @@ mkMatrix[\nat n\]() : RR64[n,n] = do
   a lower-triangular positive matrix and multiplying by its
   transpose. *)
   lambda_inv = - 4 n / log n
-  rt2 = sqrt 2
+  rt2 = SQRT 2
   row(i:ZZ32):SparseVector[\RR64,n\] = do
     mem0 = array[\(ZZ32,RR64)\](n-i)
     j : ZZ32 := i

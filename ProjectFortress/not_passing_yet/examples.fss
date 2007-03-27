@@ -113,19 +113,19 @@ export Executable
   asArray(xs:Object...) = xs
 
   (* page 25 *)
-  x = sqrt(x) +
+  x = SQRT x +
       atan(y, x) +
       makeColor(red=5, green=3, blue=43) +
       processString(s, start=5, fin=43)
 
-   a = sqrt 2
+   a = SQRT 2
    b = sin x
    c = log log n
 
    (* page 24 *)
    BracketsIndicateSubscripts() : () = do
-   (-b + sqrt(bˆ2 - 4 a c)) / 2 a
-   nˆn eˆ(-n) sqrt(2 pi n)
+   (-b + SQRT(bˆ2 - 4 a c)) / 2 a
+   nˆn eˆ(-n) SQRT(2 pi n)
    a[k] b[n-k]
    x[1] y[2] - x[2] y[1]
    1/2 g tˆ2
@@ -391,7 +391,7 @@ DispatchExpr2() =
 
 (* page 42 *)
 
-f[\ nat n \] (x:Length^(2 n)): Length^n = sqrt(x)
+f[\ nat n \] (x:Length^(2 n)): Length^n = SQRT x
 
 (* NYI: dimensions and units
 dim Length
@@ -713,7 +713,7 @@ opr :() = ImplicitRange
 opr <| x:Vector, y:Vector |> = SUM[i <-  x.indices()] x[i] * y[i]
 
 (* vector space norm (may not be the most efficient) *)
-opr ||x:Vector|| = sqrt <| x, x |>
+opr ||x:Vector|| = SQRT <| x, x |>
 
 (* p. 77 *)
 

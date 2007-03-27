@@ -28,7 +28,8 @@ root(f:(RR64)->RR64, lo:RR64, hi:RR64) = do
   end
 
 run(args:String...):() = do
-    println(root(sin,3.0,3.2))
+    println("pi = " root(sin,3.0,3.2))
+    println("e = " exp(1.0))
     println(root((fn (x) => x^2-3),-1,3))
     println(root((fn (x) => x^2-x-1),0,3))
     println(root((fn (x) => x^2-4),-2,2))
