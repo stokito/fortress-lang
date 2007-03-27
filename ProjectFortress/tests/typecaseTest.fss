@@ -19,34 +19,37 @@ component fortress.typecaseTest.fss
 export Executable
 
 run(args:String...):()=do
-   typecase x = 5 of
-      String => print("fail ")
-      ZZ32 => print("pass ")
-      else => print("fail ")
-   end
-
-   typecase y = "One Two Three " of
+   typecase x = "One Two Three " of
       String => print("pass ")
-      ZZ32 => print("fail ")
-      else => print("fail ")
+      ZZ32 => print("FAIL ")
+      else => print("FAIL ")
    end
 
-   typecase z = 3.1415 of
-      String => print("fail ")
-      ZZ32 => print("fail ")
-      else => print("pass ")
-   end
-
-   typecase zz = 3.1415 of
-      String => print("fail ")
-      ZZ32 => print("fail ")
+   typecase x = 3.1415 of
+      String => print("FAIL ")
+      ZZ32 => print("FAIL ")
       Number => print("pass ")
    end
 
    typecase (a = 1, b = 3.1415, c = "Hurrah") of
-	(Number, Number, Number) => print("fail ")
+	(Number, Number, Number) => print("FAIL ")
 	(Number, Number, String) => print("pass ")
    end
 
+   (* Check that typecase returns a value! *)
+   q = typecase x = 3.1415 of
+         String => "FAIL "
+         ZZ32 => "FAIL "
+         else => "pass "
+       end
+   print(q)
+
+   (* From a clause, too. *)
+   p = typecase x = 5 of
+          String => "FAIL"
+          ZZ32 => "pass"
+          else => "FAIL"
+       end
+   println(p)
 end
 end

@@ -1301,13 +1301,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTypeCase(TypeCase x) {
-        Evaluator ev = new Evaluator(this);
+        Evaluator ev = new Evaluator(this, x);
         List<FType> res = evalTypeCaseOrDispatchBinding(ev, x);
-        boolean found = false;
-        List<TypeCaseClause> clauses = x.getClauses();
         FValue result = evVoid;
-        for (Iterator<TypeCaseClause> i = clauses.iterator(); i.hasNext();) {
-            TypeCaseClause c = i.next();
+        List<TypeCaseClause> clauses = x.getClauses();
+
+        for (TypeCaseClause c : clauses) {
             List<TypeRef> match = c.getMatch();
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
@@ -1315,28 +1314,24 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FType resTuple = FTypeTuple.make(res);
 
             if (resTuple.subtypeOf(matchTuple)) {
-                found = true;
                 List<Expr> body = c.getBody();
-                for (Iterator<Expr> j = body.iterator(); j.hasNext();) {
-                    Expr exp = j.next();
+                for (Expr exp : body) {
                     result = exp.accept(ev);
                 }
-                break;
+                return result;
             }
         }
 
-        if (found == false) {
-            Option<List<Expr>> el = x.getElse_();
-            if (el.isPresent()) {
-                List<Expr> elseClauses = el.getVal();
-                for (Iterator<Expr> i = elseClauses.iterator(); i.hasNext();) {
-                    Expr exp = i.next();
-                    exp.accept(ev);
-                }
-            } else
-                throw new MatchFailure();
+        Option<List<Expr>> el = x.getElse_();
+        if (el.isPresent()) {
+            List<Expr> elseClauses = el.getVal();
+            for (Expr exp : elseClauses) {
+                result = exp.accept(ev);
+            }
+            return result;
+        } else {
+            throw new MatchFailure();
         }
-        return result;
     }
 
     public FValue forTypeCaseClause(TypeCaseClause x) {
