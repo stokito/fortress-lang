@@ -408,8 +408,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             TupleTask.coInvoke(tasks);
             for (int i = 0; i < count; i++) {
-                if (tasks[i].causedException)
-	            throw new TaskError(tasks[i].err);
                 resList.add(tasks[i].getRes());
             }
         }

@@ -61,11 +61,18 @@ public abstract class BaseTask extends FJTask {
     public void abortTransaction() { Thread.getTransaction().abort();}
 
     public void finalizeTask() {
-	setCurrentTask(parent);
+        setCurrentTask(parent);
+        if (parent != null) {
+            if (causedException) {
+                parent.causedException = true;
+                parent.err = err;
+	    }
+        }
     }
 
     public BaseTask(BaseTask parent) {
         _thread = new Thread();
+        causedException = false;
         try {
             Class managerClass = Class.forName("dstm2.manager.BackoffManager");
             _thread.setContentionManagerClass(managerClass);
