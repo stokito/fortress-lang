@@ -15,27 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component seqLoop
+component XXXloopError
 export Executable
 
+object O(x:String)
+end
+
 run(args:String...) = do
-  a = vector[\ZZ32,100\]()
-  z : ZZ32 := 0
+  o = O("Should never print this")
+  r : ZZ32 := 0
+  s : ZZ32 := 0
   for i <- seq(0#100) do
-    (* Deliberately set up a race condition so that parallel execution
-       is *likely* to cause a failure.  It's hard to actually *guarantee*.
-       This test always succeeds if you set NumFortressThreads=1 before running.
-     *)
-    a[i] := z
-    z += 1
+    atomic r+=1
+    v = o.nonexistentfield
+    println("Should never reach here")
+    atomic s+=1
   end
-  if z=/=100 then
-    println("FAIL z = " z)
+  println(o.x)
+  if r=/=100 then
+    println("Buggy. r = " r)
   end
-  for i <- 0#100 do
-    if i=/=a[i] then
-      println("FAIL a[" i "] = " a[i])
-    end
+  if s=/=100 then
+    println("Very buggy. s = " s)
   end
 end
 

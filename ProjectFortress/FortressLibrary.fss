@@ -320,9 +320,10 @@ end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
-  size() : I
-  base() : I
+  size(): I
+  base(): I
   replica[\U\]():Array[\U,I\]
+(*  map[\U\](f:(I,E)->U):Array[\U,I\] *)
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
@@ -443,7 +444,12 @@ trait Array1[\T, nat b0, nat s0\]
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
-  replica[\U\]():Array1[\U,b0,s0\] = __DefaultArray1[\U,b0,s0\]()
+  replica[\U\]():Array1[\U,b0,s0\] = __builtinFactory1[\U,b0,s0\]()
+
+(*
+  assign(other:Array1[\T,b0,s0\]): Array1[\T,b0,s0\] =
+      fill(fn (i:ZZ32): T => get (i-b0))
+*)
 
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
     (object extends Reduction1[\(),s0\]
@@ -453,6 +459,11 @@ trait Array1[\T, nat b0, nat s0\]
      end).run()
     self
   end
+
+(*
+  map[\U\](f:(ZZ32,T)->U):Array1[\U,b0,s0\] =
+    replica[\U\]().fill(fn (i:ZZ32) => f(i, self.get(i-b0)))
+*)
 
   copy():Array1[\T,b0,s0\] = self.replica[\T\]().assign(self)
 
@@ -514,7 +525,6 @@ object __DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
   mem:FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
   get(i:ZZ32):T = mem.get(i)
   put(v:T, i:ZZ32) = mem.put(v,i)
-  replica[\U\]() = __DefaultArray1[\U,b0,s0\]()
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
     o0 : ZZ32 = o - b0
     if o0 < 0 OR o0 > s0-s then
@@ -542,7 +552,7 @@ object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
   mem: FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
   get(i:ZZ32):T = mem.get(i)
   put(v:T, i:ZZ32) = mem.put(v,i)
-  replica[\U\]() = __DefaultVector[\T,s0\]()
+  replica[\U\]() = array1[\T,s0\]()
 end
 
 (* builtinFactory1 must be a non-overloaded 0-parameter factory for
@@ -687,7 +697,14 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
      end).run()
     self
   end
-  replica[\U\]():Array2[\U,b0,s0,b1,s1\]
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
+      __builtinFactory2[\U,b0,s0,b1,s1\]()
+(*
+  assign(other: Array2[\T,b0,s0,b1,s1\]): Array2[\T,b0,s0,b1,s1\] =
+      fill(fn (i:ZZ32,j:ZZ32) => other.get(i-b0,j-b1))
+  map[\U\](f:((ZZ32,ZZ32),T)->U):Array2[\U,b0,s0,b1,s1\] =
+    self.replica[\U\]().fill(fn (i:ZZ32,j:ZZ32): U => f((i,j),get(i-b0,j-b1)))
+*)
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
   mapReduce[\R\](f:((ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
     (object extends Reduction2[\R,s0,s1\]
@@ -714,9 +731,6 @@ end
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
   mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
-
-  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = __DefaultArray2[\U,b0,s0,b1,s1\]()
-
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
   get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
 end
@@ -724,13 +738,29 @@ end
 object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
                        (mem:Array2[\T,b1,s1,b0,s0\])
     extends Array2[\T, b0, s0, b1, s1\]
-  replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
-      TransposedArray2[\U,b0,s0,b1,s1\](mem.replica[\U\]())
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = mem.replica[\U\]().t()
 
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
   get(i:ZZ32, j:ZZ32):T = mem.get(j,i)
   t() = mem
 end
+
+(*
+trait Matrix[\T, nat s0, nat s1\]()
+        extends Array2[\T, 0, s0, 0, s1\]
+    add(v:Vector[\T,s0\]): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) + v.get(i,j))
+    subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) - v.get(i,j))
+    negate(): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => - get(i,j))
+    scale(t: T): Vector[\T,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => t get(i,j))
+    mul[\ nat s2 \](b: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\]
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\]
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\]
+end
+*)
 
 __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
   __DefaultArray2[\T,b0,s0,b1,s1\]()
@@ -1222,8 +1252,11 @@ print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.St
 println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-print(a:Any):() = print(a.toString())
-println(a:Any):() = println(a.toString())
+print(a:Any):() = print("" a)
+println(a:Any):() = println("" a)
+(* 0-argument versions handle passing of () to single-argument versions. *)
+print():() = print("()")
+println():() = println("()")
 
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
