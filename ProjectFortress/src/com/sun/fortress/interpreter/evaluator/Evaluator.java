@@ -408,6 +408,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             TupleTask.coInvoke(tasks);
             for (int i = 0; i < count; i++) {
+                if (tasks[i].causedException) {
+                    Throwable t = tasks[i].getException();
+                    if (t instanceof Error) {
+                        throw (Error)t;
+                    } else if (t instanceof RuntimeException) {
+                        throw (RuntimeException)t;
+                    } else {
+                        throw new ProgramError(exprs.get(i),
+                                               "Wrapped Exception",t);
+                    }
+                }
                 resList.add(tasks[i].getRes());
             }
         }

@@ -446,10 +446,8 @@ trait Array1[\T, nat b0, nat s0\]
      etc.) but with a different element type. *)
   replica[\U\]():Array1[\U,b0,s0\] = __builtinFactory1[\U,b0,s0\]()
 
-(*
   assign(other:Array1[\T,b0,s0\]): Array1[\T,b0,s0\] =
-      fill(fn (i:ZZ32): T => get (i-b0))
-*)
+      fill(fn (i:ZZ32): T => other.get(i-b0))
 
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
     (object extends Reduction1[\(),s0\]
@@ -460,10 +458,8 @@ trait Array1[\T, nat b0, nat s0\]
     self
   end
 
-(*
   map[\U\](f:(ZZ32,T)->U):Array1[\U,b0,s0\] =
-    replica[\U\]().fill(fn (i:ZZ32) => f(i, self.get(i-b0)))
-*)
+    replica[\U\]().fill(fn (i:ZZ32) => f(i, get(i-b0)))
 
   copy():Array1[\T,b0,s0\] = self.replica[\T\]().assign(self)
 
@@ -536,13 +532,13 @@ end
 
 trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     add(v:Vector[\T,s0\]): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32):T => get(i) + v.get(i))
+        map[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
     subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32):T => get(i) - v.get(i))
-    negate(): Vector[\T,s0\] = replica[\T\]().fill(fn (i:ZZ32):T => - get(i))
-    scale(t: T): Vector[\T,s0\] = replica[\T\]().fill(fn i => t get(i))
+        map[\T\](fn (i:ZZ32, e: T):T => e - v.get(i))
+    negate(): Vector[\T,s0\] = map[\T\](fn (i:ZZ32, e: T):T => - e)
+    scale(t: T): Vector[\T,s0\] = map[\T\](fn (i,v) => t v)
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32):T => get(i) v.get(i))
+        map[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
     dot(v: Vector[\T,s0\]): T =
         mapReduce[\T\](fn (i:ZZ32, me_i:T):T => me_i v.get(i),
                        fn (x,y)=>x+y,0)
@@ -699,12 +695,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   end
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
-(*
-  assign(other: Array2[\T,b0,s0,b1,s1\]): Array2[\T,b0,s0,b1,s1\] =
-      fill(fn (i:ZZ32,j:ZZ32) => other.get(i-b0,j-b1))
   map[\U\](f:((ZZ32,ZZ32),T)->U):Array2[\U,b0,s0,b1,s1\] =
     self.replica[\U\]().fill(fn (i:ZZ32,j:ZZ32): U => f((i,j),get(i-b0,j-b1)))
-*)
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
   mapReduce[\R\](f:((ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
     (object extends Reduction2[\R,s0,s1\]
@@ -715,9 +707,9 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   put(v:T, i:ZZ32, j:ZZ32) : ()
   get(i:ZZ32, j:ZZ32):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
-  (* Copied here from Indexed. *)
-  assign(v:Array2[\T,b0,s0,b1,s1\]):Array2[\T,b0,s0,b1,s1\] =
-    fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
+  (* Copied here from Indexed, for better return type information. *)
+  assign(other: Array2[\T,b0,s0,b1,s1\]): Array2[\T,b0,s0,b1,s1\] =
+      fill(fn (i:ZZ32,j:ZZ32) => other.get(i-b0,j-b1))
   fill(v:T):Array2[\T,b0,s0,b1,s1\] = fill(fn (i:ZZ32,j:ZZ32):T => v)
   eq(o:Array2[\T,b0,s0,b1,s1\]):Boolean =
     (object extends Reduction2[\Boolean,s0,s1\]
@@ -745,29 +737,125 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   t() = mem
 end
 
-(*
-trait Matrix[\T, nat s0, nat s1\]()
-        extends Array2[\T, 0, s0, 0, s1\]
-    add(v:Vector[\T,s0\]): Vector[\T,s0\] =
+trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
+    add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
         replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) + v.get(i,j))
-    subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) - v.get(i,j))
-    negate(): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => - get(i,j))
-    scale(t: T): Vector[\T,s0\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => t get(i,j))
-    mul[\ nat s2 \](b: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\]
-    rmul(v: Vector[\T,s1\]): Vector[\T,s0\]
-    lmul(v: Vector[\T,s0\]): Vector[\T,s1\]
-end
+(*
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get i)
 *)
+    subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) - v.get(i,j))
+(*
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get i)
+*)
+    negate(): Matrix[\T,s0,s1\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => - get(i,j))
+(*
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => - e)
+*)
+    scale(t: T): Matrix[\T,s0,s1\] =
+        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => t get(i,j))
+(*
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => t e)
+*)
+    mul[\ nat s2 \](b: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
+        res = matrix[\T,s0,s2\]()
+        mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+            if k>=i AND k>=j then
+              if k=1 then
+                pr : T = me.get(a,b) other.get(b,c)
+                (* If this were atomic, we could parallelize j-partition. *)
+                res.put(res.get(a,c) + pr, a, c)
+              else
+                (k0,k1) = partition(k)
+                (mma(a,i,b,j,c,k0),mma(a,i,b,j,c+k0,k1))
+              end
+            elif j>=i then
+                (j0,j1) = partition(j)
+                mma(a,i,b,j0,c,k)
+                mma(a,i,b+j0,j1,c,k)
+            else
+                (i0,i1) = partition(i)
+                (mma(a,i0,b,j,c,k),mma(a+i0,i1,b,j,c,k))
+            end
+        mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+            if k>=i AND k>=j then
+              if k=1 then
+                res.put(me.get(a,b) other.get(b,c), a, c)
+              else
+                (k0,k1) = partition(k)
+                (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
+              end
+            elif j>=i then
+                (j0,j1) = partition(j)
+                mm(a,i,b,j0,c,k)
+                mma(a,i,b+j0,j1,c,k)
+            else
+                (i0,i1) = partition(i)
+                (mm(a,i0,b,j,c,k),mm(a+i0,i1,b,j,c,k))
+            end
+        if s0=0 OR s1=0 OR s2=0 then
+          res
+        else
+          mm(0,s0,0,s1,0,s2)
+          res
+        end
+      end
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
+        row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => me[i,j] v_j,
+                                         fn (a,b)=> a+b, 0)
+        vector[\T,s0\]().fill(row)
+      end
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
+        col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j me[j,i],
+                                         fn (a,b)=> a+b, 0)
+        vector[\T,s1\]().fill(col)
+      end
+    t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
+end
+
+(* Default matrix should match default array in column vs row-major. *)
+object __DefaultMatrix[\T, nat s0, nat s1\]()
+    extends Matrix[\T, s0, s1\]
+  mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
+  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
+  get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
+end
+
+object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
+        extends Matrix[\T, s0, s1\]
+    replica[\U\]():Array2[\U,0,s0,0,s1\] = mem.replica[\U\]().t()
+
+    put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
+    get(i:ZZ32, j:ZZ32):T = mem.get(j,i)
+    t(): Matrix[\T,s1,s0\] = mem
+    add(v:TransposedMatrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.add(v.t()).t()
+    subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.subtract(v.t()).t()
+    negate(): Matrix[\T,s0,s1\] = mem.negate().t()
+    scale(f: T): Matrix[\T,s0,s1\] = mem.scale(f).t()
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = mem.lmul(v)
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = mem.rmul(v)
+    mul[\nat s2\](v:TransposedMatrix[\T,s1,s2\]): Matrix[\T,s0,s2\] =
+        v.t().mul(mem).t()
+end
 
 __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
-  __DefaultArray2[\T,b0,s0,b1,s1\]()
+    if b0=0 AND b1=0 then
+        array2[\T,s0,s1\]()
+    else
+        __DefaultArray2[\T,b0,s0,b1,s1\]()
+    end
 
 (* array2 is a factory for 0-based 2-D arrays. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-  __DefaultArray2[\T,0,s0,0,s1\]()
+    typecase _ = __Proxy[\T\]() of
+        __Proxy[\ZZ32\] => matrix[\T,s0,s1\]()
+        __Proxy[\ZZ64\] => matrix[\T,s0,s1\]()
+        __Proxy[\Integral\] => matrix[\T,s0,s1\]()
+        __Proxy[\RR64\] => matrix[\T,s0,s1\]()
+        __Proxy[\Number\] => matrix[\T,s0,s1\]()
+        else => __DefaultArray2[\T,0,s0,0,s1\]()
+    end
 array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
   array2[\T,s0,s1\]().fill(v)
 array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
@@ -776,9 +864,9 @@ array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
 (* matrix is the same as array1, but specialized to numeric type
    arguments, except that the default value (if given) is used to
    construct a multiple of the identity matrix. *)
-matrix[\T extends Number, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-  __DefaultArray2[\T,0,s0,0,s1\]()
-matrix[\T extends Number, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
+matrix[\T extends Number, nat s0, nat s1\]():Matrix[\T,s0,s1\] =
+  __DefaultMatrix[\T,s0,s1\]()
+matrix[\T extends Number, nat s0, nat s1\](v:T):Matrix[\T,s0,s1\] =
   array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
 
 opr +[\ T extends Number, nat n, nat m \](
