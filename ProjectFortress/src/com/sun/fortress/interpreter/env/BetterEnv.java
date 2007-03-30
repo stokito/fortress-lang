@@ -479,7 +479,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //    }
 
     public boolean casValue(String str, FValue old_value, FValue new_value) {
-       throw new ProgramError("Cas on envs no longer supported");
+       throw new InterpreterError("Cas on envs no longer supported");
     }
 
 

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.env;
 
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -72,13 +73,13 @@ public class ReferenceCell extends IndirectionCell {
 
     public void storeValue(FValue f2) {
         if (node.getValue() != null)
-            throw new ProgramError("Internal error, second store of indirection cell");
+            throw new InterpreterError("Internal error, second store of indirection cell");
         node.setValue(f2);
     }
 
     public void storeType(FType f2) {
         if (theType != null)
-            throw new ProgramError("Internal error, second store of type");
+            throw new InterpreterError("Internal error, second store of type");
         theType = f2;
     }
 

@@ -72,7 +72,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  FType getVarType(String str) {
         FType x = getVarTypeNull(str);
         if (x == null)
-            throw new ProgramError("Missing value " + str);
+            throw new ProgramError("Missing type of " + str);
         else
             return x;
     }

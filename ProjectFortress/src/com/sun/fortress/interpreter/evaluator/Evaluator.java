@@ -172,7 +172,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue eval(Expr e) {
         return acceptNode(e);
     }
-    
+
     /**
      * Creates a new evaluator in a primitive environment.
      *
@@ -742,7 +742,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 ex.setWithin(e);
                 ex.setWhere(x);
                 throw ex;
-            } 
+            }
 //        } else if (fobj instanceof FObject) {
 //            FObject fobject = (FObject) fobj;
 //            // TODO Need to distinguish between public/private methods/fields
@@ -837,19 +837,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLabel(Label x) {
-        return NI("forLabel");
+        throw new InterpreterError(x,"label construct not yet implemented.");
     }
 
     public FValue forLetFn(LetFn x) {
-        return NI("forLetFn");
+        throw new InterpreterError(x,"forLetFn not implemented.");
     }
 
     public FValue forListComprehension(ListComprehension x) {
-        return NI("forListComprehension");
+        throw new InterpreterError(x,"list comprehensions not yet implemented.");
     }
 
     public FValue forListExpr(ListExpr x) {
-        return NI("forListExpr");
+        throw new InterpreterError(x,"list expressions not implemented.");
     }
 
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, Node loc) {
@@ -1384,7 +1384,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Id var = x.getVar();
         String s = var.getName();
         // debugPrint("forVarRefExpr " + s);
-         
+
         FValue res = e.getValueNull(s);
 
         if (res == null)

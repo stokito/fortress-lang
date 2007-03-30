@@ -41,7 +41,7 @@ mkMatrix[\nat n\]() : RR64[n,n] = do
   l = Csr[\RR64,n,n\](array1[\SparseVector[\RR64,n\],n\](row))
   (* We multiply by the transpose and hope the result is positive-definite.
      It will be with high probability. *)
-  l DOT l.t()
+  l l.t()
 end
 
 mkVector[\nat n\]() : RR64[n] = do
@@ -56,16 +56,16 @@ testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
   else
     println("dense OK")
   end
-  A2 = identity[\Csr[\RR64,n,n\]\](A DOT A.t())
-  D2 = D DOT D.t()
+  A2 = identity[\Csr[\RR64,n,n\]\](A A.t())
+  D2 = D D.t()
   if D2=/=A2 then
     println("FAIL: dense^2 =/= sparse^2\nD^2" D2 "\nA^2" A2)
   else
     println("dense^2 OK")
   end
   v = mkVector[\n\]()
-  Av = A DOT v
-  Dv = D DOT v
+  Av = A v
+  Dv = D v
   (* Small variations may occur based on summation order for dot
      product. *)
   if ||Dv - Av|| > 0.000000000001 then
@@ -90,7 +90,7 @@ conjGrad[\nat n, E extends Number\]
   rho: E := r DOT r
   p: E[n] := r
   for j <- seq(1#cgit) do
-    q = A DOT p
+    q = A p
     alpha = rho / (p DOT q)
     z += alpha p
     rho0 = rho

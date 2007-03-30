@@ -758,12 +758,12 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
 (*
         map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => t e)
 *)
-    mul[\ nat s2 \](b: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
+    mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
         res = matrix[\T,s0,s2\]()
         mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
             if k>=i AND k>=j then
               if k=1 then
-                pr : T = me.get(a,b) other.get(b,c)
+                pr : T = get(a,b) other.get(b,c)
                 (* If this were atomic, we could parallelize j-partition. *)
                 res.put(res.get(a,c) + pr, a, c)
               else
@@ -781,7 +781,7 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
         mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
             if k>=i AND k>=j then
               if k=1 then
-                res.put(me.get(a,b) other.get(b,c), a, c)
+                res.put(get(a,b) other.get(b,c), a, c)
               else
                 (k0,k1) = partition(k)
                 (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
@@ -802,12 +802,12 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
         end
       end
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
-        row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => me[i,j] v_j,
+        row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => get(i,j) v_j,
                                          fn (a,b)=> a+b, 0)
         vector[\T,s0\]().fill(row)
       end
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
-        col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j me[j,i],
+        col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j get(j,i),
                                          fn (a,b)=> a+b, 0)
         vector[\T,s1\]().fill(col)
       end
@@ -835,8 +835,10 @@ object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
     scale(f: T): Matrix[\T,s0,s1\] = mem.scale(f).t()
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = mem.lmul(v)
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = mem.rmul(v)
+(*  Can't overload generic methods yet, but this is preferable.
     mul[\nat s2\](v:TransposedMatrix[\T,s1,s2\]): Matrix[\T,s0,s2\] =
         v.t().mul(mem).t()
+*)
 end
 
 __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
@@ -869,112 +871,55 @@ matrix[\T extends Number, nat s0, nat s1\]():Matrix[\T,s0,s1\] =
 matrix[\T extends Number, nat s0, nat s1\](v:T):Matrix[\T,s0,s1\] =
   array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
 
-opr +[\ T extends Number, nat n, nat m \](
-          me:Array2[\T,0,n,0,m\], other:Array2[\T,0,n,0,m\])
-          : Array2[\T,0,n,0,m\] =
-    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => me[i,j] + other[i,j])
+opr +[\ T extends Number, nat n, nat m \]
+     (me:Matrix[\T,n,m\], other:Matrix[\T,n,m\]): Matrix[\T,n,m\] =
+        me.add(other)
 
-opr -[\ T extends Number, nat n, nat m \](
-          me:Array2[\T,0,n,0,m\], other:Array2[\T,0,n,0,m\])
-          : Array2[\T,0,n,0,m\] =
-    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => me[i,j] - other[i,j])
+opr -[\ T extends Number, nat n, nat m \]
+     (me:Matrix[\T,n,m\], other:Matrix[\T,n,m\]) : Matrix[\T,n,m\] =
+        me.subtract(other)
 
-opr -[\ T extends Number, nat n, nat m \](
-          me:Array2[\T,0,n,0,m\])
-          : Array2[\T,0,n,0,m\] =
-    me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32) => - me[i,j])
+opr -[\ T extends Number, nat n, nat m \]
+     (me:Matrix[\T,n,m\]): Matrix[\T,n,m\] =
+        me.negate()
 
 (* Matrix multiplication; used to use a cache-oblivious algorithm, but
    we ran into trouble due to lack of support for atomic increment of
    matrix elements. *)
-opr DOT[\ T extends Number, nat n, nat m, nat p\](
-        me:Array2[\T,0,n,0,m\], other:Array2[\T,0,m,0,p\])
-        : Array2[\T,0,n,0,p\] = do
-  res = matrix[\T,n,p\]()
-  mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
-      if k>=i AND k>=j then
-        if k=1 then
-          pr : T = me.get(a,b) other.get(b,c)
-          (* If this were atomic, we could parallelize j-partition. *)
-          res.put(res.get(a,c) + pr, a, c)
-        else
-          (k0,k1) = partition(k)
-          (mma(a,i,b,j,c,k0),mma(a,i,b,j,c+k0,k1))
-        end
-      elif j>=i then
-          (j0,j1) = partition(j)
-          mma(a,i,b,j0,c,k)
-          mma(a,i,b+j0,j1,c,k)
-      else
-          (i0,i1) = partition(i)
-          (mma(a,i0,b,j,c,k),mma(a+i0,i1,b,j,c,k))
-      end
-  mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
-      if k>=i AND k>=j then
-        if k=1 then
-          res.put(me.get(a,b) other.get(b,c), a, c)
-        else
-          (k0,k1) = partition(k)
-          (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
-        end
-      elif j>=i then
-          (j0,j1) = partition(j)
-          mm(a,i,b,j0,c,k)
-          mma(a,i,b+j0,j1,c,k)
-      else
-          (i0,i1) = partition(i)
-          (mm(a,i0,b,j,c,k),mm(a+i0,i1,b,j,c,k))
-      end
-  if n=0 OR m=0 OR p=0 then
-    res
-  else
-    mm(0,n,0,m,0,p)
-    res
-  end
-end
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
+        me.mul[\p\](other)
 
 opr *[\ T extends Number, nat n, nat m, nat p\]
-     (me:Array2[\T,0,n,0,m\], other:Array2[\T,0,m,0,p\]) : Array2[\T,0,n,0,p\] =
-  me DOT other
+     (me:Matrix[\T,n,m\], other:Array2[\T,0,m,0,p\]): Matrix[\T,n,p\] =
+        me.mul[\p\](other)
 
 
 (* matrix-vector multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (me:Array2[\T,0,n,0,m\], v:Vector[\T,m\]):Vector[\T,n\] = do
-  row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => me[i,j] v_j,
-                                   fn (a,b)=> a+b, 0)
-  vector[\T,n\]().fill(row)
-end
+       (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (me:Array2[\T,0,n,0,m\], v:Vector[\T,m\]):Vector[\T,n\] = me DOT v
+     (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
 (* vector-matrix multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (v:Vector[\T,n\], me:Array2[\T,0,n,0,m\]):Vector[\T,m\] = do
-  col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j me[j,i],
-                                   fn (a,b)=> a+b, 0)
-  vector[\T,m\]().fill(col)
-end
+       (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (v:Vector[\T,n\], me:Array2[\T,0,n,0,m\]):Vector[\T,m\] = v DOT me
+     (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (me : Array2[\T,0,n,0,m\], other : T) : Array2[\T,0,n,0,m\] =
-  me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => me[i,j] other)
+       (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (me : Array2[\T,0,n,0,m\], other : T) : Array2[\T,0,n,0,m\] =
-  me DOT other
+     (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (other : T, me : Array2[\T,0,n,0,m\]) : Array2[\T,0,n,0,m\] =
-  me.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => other me[i,j])
+       (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
 opr *[\ T extends Number, nat n, nat m, nat p \]
-     (other : T, me : Array2[\T,0,n,0,m\]) : Array2[\T,0,n,0,m\] =
-  other DOT me
+     (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
 trait Reduction3[\R,nat s0,nat s1,nat s2\] extends ReductionBase[\R\]
   toString():String = "Reduction3[\\R," s0 "," s1 "," s2 "\\]"

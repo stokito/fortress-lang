@@ -23,7 +23,7 @@ export Runnable
    definition of DOT in force in FortressLibrary.fss, not here. *)
 
 trait Sparse[\N extends Number, nat n, nat m\]
-  extends Array2[\N,0,n,0,m\]
+  extends Matrix[\N,n,m\]
     get(i:ZZ32,j:ZZ32) = do println("OK: sparse get"); 0 end
     put(v:N, i:ZZ32, j:ZZ32) = fail("Sparse put")
     replica[\U\]() = fail("Sparse replica")
