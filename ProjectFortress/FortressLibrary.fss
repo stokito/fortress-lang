@@ -219,6 +219,9 @@ identity[\T\](x:T):T = x
 (* Should we depracate tuple and use identity instead?  Decision: no. *)
 tuple[\T\](x:T):T = x
 
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
 (** Reflection for run-time integers into compile-time nat parameters *)
 trait NatParam
   (* comprises { N[\n\] } where { nat n } *)
@@ -323,7 +326,7 @@ trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
   size(): I
   base(): I
   replica[\U\]():Array[\U,I\]
-(*  map[\U\](f:(I,E)->U):Array[\U,I\] *)
+  map[\U\](f:(I,E)->U):Array[\U,I\]
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
@@ -739,25 +742,16 @@ end
 
 trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
     add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) + v.get(i,j))
-(*
+(*   This version of the code breaks horribly.
         map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get i)
 *)
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
     subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i,j) - v.get(i,j))
-(*
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get i)
-*)
+        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
     negate(): Matrix[\T,s0,s1\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => - get(i,j))
-(*
         map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => - e)
-*)
     scale(t: T): Matrix[\T,s0,s1\] =
-        replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => t get(i,j))
-(*
         map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => t e)
-*)
     mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
         res = matrix[\T,s0,s2\]()
         mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
@@ -1026,7 +1020,10 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
      end).run()
   (* Copied here from Indexed. *)
   assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) = fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
-  fill(v:T):T = fill(fn (i:ZZ32,j:ZZ32):T => v)
+  fill(v:T):T = fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T => v)
+  map[\U\](f:((ZZ32,ZZ32,ZZ32),T)->U): Array3[\U,b0,s0,b1,s1,b2,s2\] =
+    replica[\U\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):U =>
+                           f((i,j,k),get(i-b0,j-b1,k-b2)))
   eq(o:Array3[\T,b0,s0,b1,s1,b2,s2\]):Boolean =
     (object extends Reduction3[\Boolean,s0,s1,s2\]
        empty() = true
@@ -1071,50 +1068,76 @@ trait Monoid[\ T, opr OPLUS \]
     opr OPLUS(self, other:T):T
 end
 
-(* Ordinarily a Generator will define the generate method.
-   To generate an element, invoke m.  To generate an empty,
-   invoke r.zero().  To join two generated pieces a and b, invoke
-   r.join(a,b) *)
-trait Generator[\ E \]
-  getter size() : ZZ64
-  generate[\ R extends Monoid[\ R, OPLUS \], opr OPLUS \]
-          (bogus : R, body : E -> R):R
-  (* Requires SimplePairGenerator, which instantiates Monoid.
-     Blocked on bug fix for opr parameter instantiation in extends.
-  join[\ N \](other : Generator[\ N \]) : Generator[\ (E, N) \] =
-    SimplePairGenerator[\ E, N \](self, other)
-  *)
-end
-
-
-(*
-object SimplePairGenerator[\ A, B \]
-        (outer : Generator[\ A \], inner : Generator[\ B \])
-        extends Generator[\ (A, B) \]
-  generate[\ R extends Monoid[\ R, OPLUS, z \], opr OPLUS, ident z \]
-          (bogus : R, body : E -> R):R =
-    outer.generate(bogus,
-                   (fn (a : A) => inner.generate(bogus,
-                                                 (fn (b : B) => body (a,b)))))
-  join[\ N \](other : Generator[\ N \]) : Generator[\ ((A,B), N) \] =
-    SimpleMapGenerator(outer.join(inner.join(other)),
-                       (fn (a,(b,n)) => ((a,b),n)))
-end
-
-trait SimpleMapGenerator[\ A, B \]
-        (g : Generator[\ A \], f : A -> B)
-        extends Generator[\ B \]
-  generate[\ R extends Monoid[\ R, OPLUS, z \], opr OPLUS, ident z \]
-          (bogus : R, body : E -> R):R =
-    g.generate(bogus, (fn a => body(f(b))))
-  join[\ N \](other : Generator[\ N \]) : Generator[\ (B, N) \] =
-    SimpleMapGenerator(g.join(other), (fn (a,n) => (f(a),n)))
-end
-*)
-
 *************)
 
-(** NUMERIC primitives, down here to avoid ordering hosure. *)
+(* Simple mockup of Generators and Reductions. *)
+
+trait Reduction[\ R \]
+    empty(): R
+    join(a: R, b: R): R
+end
+
+object VoidReduction extends Reduction[\()\]
+    empty(): () = ()
+    join(a: (), b: ()): () = ()
+end
+
+object SumReduction[\N extends Number\]() extends Reduction[\N\]
+    empty(): N = 0
+    join(a: N, b: N): N = a+b
+end
+
+trait Generator[\E\]
+        excludes { ZZ32Range }
+    getter size(): ZZ32
+    generate[\R\](r: Reduction[\R\], m: E->R): R
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        SimplePairGenerator[\E,G\](self, g)
+    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](g,f)
+end
+
+(** Helpers for maps and cross products of generators.  These can be
+    quite a bit more sophisticated (for example, we can hoist maps
+    outwards if we think that'd be useful), but let's get this much
+    working first. *)
+
+object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
+        extends Generator[\F\]
+    getter size(): ZZ32 = g.size()
+    generate[\R\](r: Reduction[\R\], m: E->R): R =
+        g.generate[\R\](r, m COMPOSE f)
+    map[\G\](f': F->G): Generator[\G\] =
+        SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
+end
+
+object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
+        extends Generator[\(E,F)\]
+    getter size() = e.size() f.size()
+    generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
+        e.generate[\R\](r, fn (a: E): R =>
+                              f.generate[\R\](r, fn (b: F): R => m(a,b)))
+end
+
+(** Ranges, the simplest and most basic of all generators. *)
+object Range[\N extends Number\](lo:N, sz:N)
+        extends Generator[\N\]
+    size() = narrow(|\sz/|) MAX 0
+    generate[\R\](r: Reduction[\R\], m: N->R): R =
+        if sz < 1 then
+            r.empty()
+        else
+            gen(l,s) = if s>=2 then
+                           (s1,_) = partition(narrow|\s/|)
+                           r.join(gen(l,s1),gen(l+s1,s-s1))
+                       elif s>=1 then
+                           m(l)
+                       end
+            gen(lo,sz)
+        end
+end
+
+(***********************************************************
+ * NUMERIC primitives, down here to avoid ordering hosure. *)
 
 opr [\ N extends Number \]|x:N| = if x>=0 then x else -x end
 

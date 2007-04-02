@@ -1,0 +1,53 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component generatorTest
+export Executable
+
+tst(a:Number, b:Number, c:String): () =
+    if a=/=b then
+        fail(c ": " a "=/=" b)
+    else
+        println(c " OK")
+    end
+
+run(args:String...):() = do
+    r1 = Range[\ZZ32\](1,5)
+    r2 = Range[\RR64\](50.5, 9.59)
+    r3 = Range[\RR64\](7.999, 0.34)
+    r4 = Range[\RR64\](9.21, 1.57)
+    r5 = Range[\RR64\](12.5, 2.49)
+    sum = SumReduction[\ZZ32\]()
+    rum = SumReduction[\RR64\]()
+    tst(r1.size(), 5, "r1.size")
+    tst(r1.generate[\ZZ32\](sum, fn (x) => 1), r1.size(), "length 1#5")
+    tst(r1.generate[\ZZ32\](sum, identity[\ZZ32\]), 15, "sum 1#5")
+    tst(r2.size(), 9, "r2.size")
+    tst(r2.generate[\ZZ32\](sum, fn (x)=> 1), r2.size(), "length r2")
+    tst(r2.generate[\RR64\](rum, identity[\RR64\]), 454.5+36.0, "sum r2")
+    tst(r3.size(), 0, "r3.size")
+    tst(r3.generate[\ZZ32\](sum, fn (x)=> 1), r3.size(), "length r3")
+    tst(r3.generate[\RR64\](rum, identity[\RR64\]), 0, "sum r3")
+    tst(r4.size(), 1, "r4.size")
+    tst(r4.generate[\ZZ32\](sum, fn (x)=> 1), r4.size(), "length r4")
+    tst(r4.generate[\RR64\](rum, identity[\RR64\]), 9.21, "sum r4")
+    tst(r5.size(), 2, "r5.size")
+    tst(r5.generate[\ZZ32\](sum, fn (x)=> 1), r5.size(), "length r5")
+    tst(r5.generate[\RR64\](rum, identity[\RR64\]), 26.0, "sum r5")
+end
+
+end
