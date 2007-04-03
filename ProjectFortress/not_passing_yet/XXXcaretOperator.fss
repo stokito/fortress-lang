@@ -1,0 +1,14 @@
+component XXXcaretOperator
+
+export Executable
+
+run(args:String...) = do
+   temp1 = 5 7^2
+   if temp1 =/= 245 then
+    println("FAIL temp1 = " temp1)
+   end
+   temp2 = 5 7 ^ 2
+   println("FAIL temp2 = " temp2)
+end
+
+end
