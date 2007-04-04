@@ -53,7 +53,7 @@ instantiate Identifier   (Keyword, Symbol, Unicode, Spacing);
 instantiate Symbol       (DelimitedExpr, NoNewlineExpr, Type, Identifier,
                           Spacing, Keyword);
 instantiate Spacing      (Symbol);
-instantiate Keyword;
+instantiate Keyword      (Identifier);
 instantiate Unicode;
 
 header {

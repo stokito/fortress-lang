@@ -32,7 +32,7 @@ option setOfString(FORTRESS_KEYWORDS);
  */
         String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
 private String idstart = UnicodeIdStart / [_] ;
-private String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
+        String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdName  = a1:id &{!FortressUtil.validOp(a1) } ;
 
 Id Id = a1:IdName { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
