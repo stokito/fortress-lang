@@ -88,20 +88,20 @@ private Api Api = api w a1:DottedId a2:(w Imports)? a3:(w AbsDecls)? w end
        yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);
      };
 
-/* Imports ::= Import (wr Import)* */
-private List<Import> Imports = a1:Import a2s:(wr Import)*
+/* Imports ::= Import (br Import)* */
+private List<Import> Imports = a1:Import a2s:(br Import)*
      { yyValue = new ArrayList<Import>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
 /* Import ::=
-     import wr ImportFrom
-   | import wr AliasedDottedIds
+     import w ImportFrom
+   | import w AliasedDottedIds
  */
 private Import Import =
-     import wr ImportFrom
-   / import wr a1:AliasedDottedIds
+     import w ImportFrom
+   / import w a1:AliasedDottedIds
      { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
 
 /* ImportFrom ::=
@@ -212,15 +212,15 @@ private List<AliasedDottedId> AliasedDottedIdList =
        yyValue.addAll(a2s.list());
      };
 
-/* Exports ::= Export (wr Export)* */
-private List<Export> Exports = a1:Export a2s:(wr Export)*
+/* Exports ::= Export (br Export)* */
+private List<Export> Exports = a1:Export a2s:(br Export)*
      { yyValue = new ArrayList<Export>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
      };
 
-/* Export ::= export wr DottedIds */
-private Export Export = export wr a1:DottedIds
+/* Export ::= export w DottedIds */
+private Export Export = export w a1:DottedIds
      { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
 
 /* DottedIds ::=

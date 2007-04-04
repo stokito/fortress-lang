@@ -26,20 +26,39 @@ module Spacing(Symbol);
 
 import Symbol;
 
-private transient void Whitespace     = Space / Newline ;
-private transient void Space          = ' ' / '\t' / '\f' / Comment ;
-private transient void Newline        = '\r' '\n' / '\r' / '\n' ;
-private transient void Comment        = "(*" (w CommentContent)* w "*)" ;
-private transient void CommentContent = Comment / ('*' !')' / !'*' _ ) ;
+private String Whitespace = Space / Newline ;
+private String Space      = " "    / "\t" / "\f" / NoNewlineComment ;
+private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment   ;
+private String Comment    =
+     a1:"(*" a2s:(b1:wValue b2:CommentContent {yyValue = b1+b2;})* a3:wValue
+     a4:"*)"
+     { yyValue = a1;
+       for (Object s : a2s.list()) {
+         yyValue = yyValue + s;
+       }
+       yyValue = yyValue + a3 + a4;
+     } ;
+private String CommentContent =
+     Comment
+   / c:'*' !')'      { yyValue = ""+c; }
+   / c:_ &{c != '*'} { yyValue = ""+c; }
+   ;
+private String NewlineComment = Comment;
+private String NoNewlineComment =
+     Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r")
+               || yyValue.contains("\n")) };
 
-transient void w  = wr? ;         // whitespace optional
-transient void wr = Whitespace w; // whitespace required
+private String wValue  = yyValue:wrValue? { if (yyValue == null) yyValue = ""; };
+private String wrValue = a1:Whitespace a2:wValue { yyValue = a1 + a2; } ;
 
-transient void s  = sr? ;         // space optional
-transient void sr = Space s;      // space required
+transient void w  = wr? ;              // whitespace optional
+transient void wr = void:Whitespace w; // whitespace required
 
-transient void nl = s Newline w ; // required newline in whitespace
-transient void br = nl / s ";" w; // line break
+transient void s  = sr? ;              // space optional
+transient void sr = void:Space s;      // space required
+
+transient void nl = s void:Newline w ; // required newline in whitespace
+transient void br = nl / s ";" w;      // line break
 
 /* RectSeparator ::= w ;+ w /  sr / nl */
 Integer RectSeparator =

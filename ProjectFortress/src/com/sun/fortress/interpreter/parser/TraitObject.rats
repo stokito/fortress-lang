@@ -71,16 +71,16 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)+
      };
 
 /* TraitClause ::=
-     w Excludes
-   | w Comprises
-   | w Where
+     Excludes
+   | Comprises
+   | Where
  */
 private TraitClause TraitClause =
-     w a1:Excludes
+     a1:Excludes
      { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
-   / w a1:Comprises
+   / a1:Comprises
      { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
-   / w a1:Where
+   / a1:Where
      { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
 /* GoInATrait ::=
