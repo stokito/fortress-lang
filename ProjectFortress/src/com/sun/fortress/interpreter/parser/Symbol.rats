@@ -138,8 +138,8 @@ String singleOp =
 String op =
      OpName
    / multiOp
-   / singleOp
-   / exponentOp ;
+   / singleOp ;
+//   / exponentOp ;
 
 Op CompoundOp =
      a1:op equalsOp
