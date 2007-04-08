@@ -48,14 +48,26 @@ private String NoNewlineComment =
      Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r")
                || yyValue.contains("\n")) };
 
-private String wValue  = yyValue:wrValue? { if (yyValue == null) yyValue = ""; };
-private String wrValue = a1:Whitespace a2:wValue { yyValue = a1 + a2; } ;
+private String wValue  =
+   a1s:Whitespace*
+   { yyValue = "";
+     for (String s : (List<String>)a1s.list()) {
+       yyValue += s;
+     }
+   };
+private String wrValue =
+   a1s:Whitespace+
+   { yyValue = "";
+     for (String s : (List<String>)a1s.list()) {
+       yyValue += s;
+     }
+   };
 
-transient void w  = wr? ;              // whitespace optional
-transient void wr = void:Whitespace w; // whitespace required
+transient void w  = void:Whitespace*; // whitespace optional
+transient void wr = void:Whitespace+; // whitespace required
 
-transient void s  = sr? ;              // space optional
-transient void sr = void:Space s;      // space required
+transient void s  = void:Space*;      // space optional
+transient void sr = void:Space+;      // space required
 
 transient void nl = s void:Newline w ; // required newline in whitespace
 transient void br = nl / s ";" w;      // line break
