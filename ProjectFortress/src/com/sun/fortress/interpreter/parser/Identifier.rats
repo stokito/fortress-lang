@@ -56,8 +56,3 @@ DottedId DottedId =
      { yyValue = new DottedId(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2s:(dot Id)*
      { yyValue = new DottedId(createSpan(yyStart,yyCount), a1, a2s.list()); };
-
-/* BindId ::= Id | _ */
-Id BindId =
-     Id
-   / underscore { yyValue = new Id(createSpan(yyStart,yyCount), "_"); };

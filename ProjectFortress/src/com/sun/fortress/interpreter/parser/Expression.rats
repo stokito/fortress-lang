@@ -137,7 +137,7 @@ List<LHS> AssignLefts =
 /* AssignLeft ::=
      SubscriptExpr
    | FieldSelection
-   | BindId
+   | Id
    SubscriptExpr ::= Primay [ [w ExprList] w ]
    FieldSelection ::= Primary dot Id
  */
@@ -147,7 +147,7 @@ LHS AssignLeft =
       if (left instanceof LHS) yyValue = (LHS)left;
       else yyValue = null;
     }
-  / a1:BindId
+  / a1:Id
     { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
 
 constant transient Action<Expr> AssignLeftTail =

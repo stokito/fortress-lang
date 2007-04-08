@@ -235,8 +235,8 @@ private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
        yyValue.addAll(a2s.list());
      };
 
-/* Binding ::= BindId w = w Expr */
-private Binding Binding = a1:BindId w equals w a2:Expr
+/* Binding ::= Id w = w Expr */
+private Binding Binding = a1:Id w equals w a2:Expr
      { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */

@@ -28,9 +28,9 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* ValParam ::= BindId | ( [w Params] w ) */
+/* ValParam ::= Id | ( [w Params] w ) */
 List<Param> ValParam =
-     a1:BindId
+     a1:Id
      { yyValue = new ArrayList<Param>();
        yyValue.add(new Param(createSpan(yyStart,yyCount),
                              FortressUtil.emptyModifiers(), a1));
@@ -79,9 +79,9 @@ Param Keyword = a1:Param w equals w a2:Expr
                            a1.getName(), a1.getType(), Some.<Expr>make(a2));
      };
 
-/* Param ::= BindId [w IsType] | TypeRef */
+/* Param ::= Id [w IsType] | TypeRef */
 Param PlainParam =
-     a1:BindId a2:(w IsType)?
+     a1:Id a2:(w IsType)?
      { Option<TypeRef> ty;
        if (a2 == null) ty = None.<TypeRef>make();
        else            ty = Some.<TypeRef>make(a2);
