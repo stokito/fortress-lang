@@ -287,8 +287,7 @@ private List<DefOrDecl> AbsGoInATrait =
      };
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
-private List<DefOrDecl> AbsCoercions =
-     a1:AbsCoercion a2s:(br AbsCoercion)*
+private List<DefOrDecl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
      { yyValue = new ArrayList<DefOrDecl>();
        yyValue.add(a1);
        yyValue.addAll(a2s.list());
