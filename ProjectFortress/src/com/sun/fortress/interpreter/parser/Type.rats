@@ -30,16 +30,21 @@ import Spacing;
 /* IsType ::= : w TypeRef */
 TypeRef IsType = colon w TypeRef ;
 
-/* TypeRef and TraitType/ArrowType/DimType are mutually left recursive.
+/* NonArrowType, TraitType, and DimType are mutually left recursive.
    We've inlined them into each other and removed the left recursion. */
 /* TypeRef ::=
+     ArrowType
+   | NonArrowType
+
+   ArrowType ::= NonArrowType w -> w NonArrowType [w Throws]
+
+   NonArrowType ::=
      TraitType
-   | ArrowType
    | TupleType
    | ( [w TypeRef] w )
    | DimType
 
-     TraitType ::=
+   TraitType ::=
      DottedId [w [\ w StaticArgList w \]]
    | { w TypeRef w |-> w TypeRef w }
    | <| w TypeRef w |>
@@ -47,9 +52,7 @@ TypeRef IsType = colon w TypeRef ;
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
 
-     ArrowType ::= TypeRef w -> w TypeRef [w Throws]
-
-     DimType ::=
+   DimType ::=
      DimRef
    | TypeRef sr DimRef
    | TypeRef w . w DimRef
@@ -62,15 +65,28 @@ TypeRef IsType = colon w TypeRef ;
    | TypeRef w in w DimRef
  */
 constant transient TypeRef TypeRef =
+     ArrowType
+   / NonArrowType;
+
+/* ArrowType ::= NonArrowType w -> w NonArrowType [w Throws] */
+ArrowType ArrowType =
+     a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
+     { List<TypeRef> _throws;
+       if (a3 == null) _throws = FortressUtil.emptyTypeRefs();
+       else            _throws = a3;
+       yyValue = new ArrowType(createSpan(yyStart,yyCount), a1, a2, _throws);
+     };
+
+private TypeRef NonArrowType =
      TraitType
 /* ************************************************
  * Not Yet Implemented ***************************
    / DimType
 ************************************************ */
-   / seed:TypeRefFront list:TypeRefTail*
+   / seed:NonArrowTypeFront list:NonArrowTypeTail*
      { yyValue = (TypeRef)apply(list, seed); };
 
-private TypeRef TypeRefFront =
+private TypeRef NonArrowTypeFront =
      TupleType
    / openparen a1:(w TypeRef)? w closeparen
      { if (a1 == null) yyValue = new VoidType(createSpan(yyStart,yyCount));
@@ -86,7 +102,7 @@ private TypeRef TypeRefFront =
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 TypeRef TraitType =
-     seed:TraitTypeFront list:TypeRefTail*
+     seed:TraitTypeFront list:NonArrowTypeTail*
      { yyValue = (TypeRef)apply(list, seed); };
 
 private TypeRef TraitTypeFront =
@@ -102,10 +118,9 @@ private TypeRef TraitTypeFront =
    / openangle w a1:TypeRef w closeangle
      { yyValue = new ListType(createSpan(yyStart,yyCount), a1); };
 
-private constant transient Action<TypeRef> TypeRefTail =
+private constant transient Action<TypeRef> NonArrowTypeTail =
      ArrayTypeTail
    / MatrixTypeTail
-   / ArrowTypeTail
 /* ************************************************
  * Not Yet Implemented ***************************
    / sr        a1:DimRef
@@ -145,37 +160,6 @@ private constant inline Action<TypeRef> MatrixTypeTail =
            public TypeRef run(TypeRef base) {
                return new MatrixType(createSpan(yyStart,yyCount), (TypeRef)base,
                                      a1, a2s.list());
-           }};
-     };
-
-private constant inline Action<TypeRef> ArrowTypeTail =
-     w rightarrow w a1:TypeRef a2:(w Throws)?
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
-               List<TypeRef> _throws;
-               if (a2 == null) _throws = FortressUtil.emptyTypeRefs();
-               else            _throws = a2;
-               return new ArrowType(createSpan(yyStart,yyCount), (TypeRef)base,
-                                    a1, _throws);
-
-           }};
-     };
-
-/* ArrowType ::= TypeRef w -> w TypeRef [w Throws] */
-ArrowType ArrowType =
-     seed:(TraitTypeFront / TypeRefFront) list:ArrowTypeActionTail*
-     { yyValue = (ArrowType)apply(list, seed); };
-
-constant transient Action<TypeRef> ArrowTypeActionTail = ArrowTypeAction ;
-constant inline Action<TypeRef> ArrowTypeAction =
-     w rightarrow w a1:TypeRef a2:(w Throws)?
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
-               List<TypeRef> _throws;
-               if (a2 == null) _throws = FortressUtil.emptyTypeRefs();
-               else            _throws = a2;
-               return new ArrowType(createSpan(yyStart,yyCount), (TypeRef)base,
-                                    a1, _throws);
            }};
      };
 
