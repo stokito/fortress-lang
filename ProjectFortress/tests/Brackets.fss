@@ -36,9 +36,6 @@ opr <</ x:RR64 \>>:String = "<</" x "\\>>"
 (* opr | x:RR64 |:String = "|" x "|"
 opr || x:RR64 ||:String = "||" x "||" *)
 opr ||| x:RR64 |||:String = "|||" x "|||"
-opr // x:RR64 //:String = "//" x "//"
-
-opr ///(x:RR64, y:RR64):String = "" x " /// " y;
 
 run(Args:String...) = do
   println( <| 2.5 |> )
@@ -76,8 +73,6 @@ run(Args:String...) = do
   y : RR64[2] = [ -2.5 0.0 ]
   println( ||y|| )
   println( |||2.5||| )
-  println( //2.5// )
-  println(2.0 /// 0.5)
 
 end
 
