@@ -278,20 +278,16 @@ private List<Expr> Invariant =
        else            yyValue = a1;
      };
 
-/* CoercionClauses ::= [w Throws] [w CoercionWhere] w Contract */
-FnHeaderClause CoercionClauses =
-     a1:(w Throws)? a2:(w CoercionWhere)? a3:(w Contract)
-     { Option<List<TypeRef>>     throwsClause;
-       Option<List<WhereClause>> whereClause;
+/* CoercionClauses ::= [w CoercionWhere] w CoercionContract */
+FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
+     { Option<List<WhereClause>> whereClause;
        Option<Contract>          contractClause;
-       if (a1 == null) throwsClause   = None.<List<TypeRef>>make();
-       else            throwsClause   = Some.<TypeRef>makeSomeListOrNone(a1);
-       if (a2 == null) whereClause    = None.<List<WhereClause>>make();
-       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a2);
-       if (a3 == null) contractClause = None.<Contract>make();
-       else            contractClause = Some.<Contract>make(a3);
-       yyValue = new FnHeaderClause(throwsClause, whereClause, contractClause,
-                                    None.<TypeRef>make());
+       if (a1 == null) whereClause    = None.<List<WhereClause>>make();
+       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a1);
+       if (a2 == null) contractClause = None.<Contract>make();
+       else            contractClause = Some.<Contract>make(a2);
+       yyValue = new FnHeaderClause(None.<List<TypeRef>>make(), whereClause,
+                                    contractClause, None.<TypeRef>make());
      };
 
 /* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
@@ -315,6 +311,15 @@ private WhereClause CoercionWhereClause =
      WhereClause
    / a1:TypeRef w widens w or w coerces w a2:TypeRef
      { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
+
+/* CoercionContract ::= [w Ensures] [w Invariant] */
+Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
+     { if (a1 == null) a1 = FortressUtil.emptyEnsuresClauses();
+       if (a2 == null) a2 = FortressUtil.emptyExprs();
+       if (a1 == null && a2 == null) yyValue = null;
+       else yyValue = new Contract(createSpan(yyStart,yyCount),
+                                   FortressUtil.emptyExprs(), a1, a2);
+     };
 
 /* UniversalMod ::= private | test */
 private Modifier UniversalMod =

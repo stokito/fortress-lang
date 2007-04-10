@@ -164,14 +164,14 @@ public abstract class Modifier extends Node {
         }
     }
 
-    final static public class Widening extends Modifier implements MethodMod {
-        public Widening(Span span) {
+    final static public class Widens extends Modifier implements MethodMod {
+        public Widens(Span span) {
             super(span);
         }
 
         @Override
         public <T> T acceptInner(NodeVisitor<T> v) {
-            return v.forModifierWidening(this);
+            return v.forModifierWidens(this);
         }
     }
 

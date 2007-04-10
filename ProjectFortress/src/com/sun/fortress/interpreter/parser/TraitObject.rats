@@ -84,16 +84,28 @@ private TraitClause TraitClause =
      { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
 /* GoInATrait ::=
-     GoFrontInATrait [br GoBackInATrait]
-   | GoBackInATrait
+     [Coercions br] GoFrontInATrait [br GoBackInATrait]
+   | [Coercions br] GoBackInATrait
  */
 private List<DefOrDecl> GoInATrait =
-     a1:GoFrontInATrait a2:(br GoBackInATrait)?
+     a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
      { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.addAll(a1);
-       if (a2 != null) yyValue.addAll(a2);
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+       if (a3 != null) yyValue.addAll(a3);
      }
-   / GoBackInATrait ;
+   / a1:(Coercions br)? a2:GoBackInATrait
+     { yyValue = new ArrayList<DefOrDecl>();
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+     };
+
+/* Coercions ::= Coercion (br Coercion)* */
+private List<DefOrDecl> Coercions = a1:Coercion a2s:(br Coercion)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
 
 /* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
 private List<DefOrDecl> GoFrontInATrait =
@@ -203,16 +215,21 @@ Param Param :=
      };
 
 /* GoInAnObject ::=
-     GoFrontInAnObject [br GoBackInAnObject]
-   | GoBackInAnObject
+     [Coercions br] GoFrontInAnObject [br GoBackInAnObject]
+   | [Coercions br] GoBackInAnObject
  */
 List<DefOrDecl> GoInAnObject =
-     a1:GoFrontInAnObject a2:(br GoBackInAnObject)?
+     a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
      { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.addAll(a1);
-       if (a2 != null) yyValue.addAll(a2);
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+       if (a3 != null) yyValue.addAll(a3);
      }
-   / GoBackInAnObject ;
+   / a1:(Coercions br)? a2:GoBackInAnObject
+     { yyValue = new ArrayList<DefOrDecl>();
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+     };
 
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
 private List<DefOrDecl> GoFrontInAnObject =
@@ -253,16 +270,29 @@ AbsTraitDecl AbsTraitDecl = a1:TraitHeader a2:(w AbsGoInATrait)? w end
      };
 
 /* AbsGoInATrait ::=
-     AbsGoFrontInATrait [br AbsGoBackInATrait]
-   | AbsGoBackInATrait
+     [AbsCoercions br] AbsGoFrontInATrait [br AbsGoBackInATrait]
+   | [AbsCoercions br] AbsGoBackInATrait
  */
 private List<DefOrDecl> AbsGoInATrait =
-     a1:AbsGoFrontInATrait a2:(br AbsGoBackInATrait)?
+     a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
      { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.addAll(a1);
-       if (a2 != null) yyValue.addAll(a2);
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+       if (a3 != null) yyValue.addAll(a3);
      }
-   / AbsGoBackInATrait ;
+   / a1:(AbsCoercions br)? a2:AbsGoBackInATrait
+     { yyValue = new ArrayList<DefOrDecl>();
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+     };
+
+/* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
+private List<DefOrDecl> AbsCoercions =
+     a1:AbsCoercion a2s:(br AbsCoercion)*
+     { yyValue = new ArrayList<DefOrDecl>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s.list());
+     };
 
 /* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
 private List<DefOrDecl> AbsGoFrontInATrait =
@@ -286,10 +316,9 @@ private List<DefOrDecl> AbsGoBackInATrait =
        yyValue.addAll(a2s.list());
      };
 
-/* AbsGoesBackInATrait ::= AbsMdDecl | AbsCoercion | PropertyDecl */
+/* AbsGoesBackInATrait ::= AbsMdDecl | PropertyDecl */
 private DefOrDecl AbsGoesBackInATrait =
      AbsMdDecl
-   / AbsCoercion
    / PropertyDecl ;
 
 /* AbsObjectDecl ::= ObjectHeader [w AbsGoInAnObject] w end */
@@ -310,16 +339,21 @@ AbsObjectDecl AbsObjectDecl = a1:ObjectHeader a2:(w AbsGoInAnObject)? w a3:end
      };
 
 /* AbsGoInAnObject ::=
-     AbsGoFrontInAnObject [br AbsGoBackInAnObject]
-   | AbsGoBackInAnObject
+     [AbsCoercions br] AbsGoFrontInAnObject [br AbsGoBackInAnObject]
+   | [AbsCoercions br] AbsGoBackInAnObject
  */
 List<DefOrDecl> AbsGoInAnObject =
-     a1:AbsGoFrontInAnObject a2:(br AbsGoBackInAnObject)?
+     a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
      { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.addAll(a1);
-       if (a2 != null) yyValue.addAll(a2);
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+       if (a3 != null) yyValue.addAll(a3);
      }
-   / AbsGoBackInAnObject ;
+   / a1:(AbsCoercions br)? a2:AbsGoBackInAnObject
+     { yyValue = new ArrayList<DefOrDecl>();
+       if (a1 != null) yyValue.addAll(a1);
+       yyValue.addAll(a2);
+     };
 
 /* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */
 private List<DefOrDecl> AbsGoFrontInAnObject =
@@ -343,8 +377,7 @@ private List<DefOrDecl> AbsGoBackInAnObject =
        yyValue.addAll(a2s.list());
      };
 
-/* AbsGoesBackInAnObject ::= AbsMdDecl | AbsCoercion | PropertyDecl */
+/* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
 private DefOrDecl AbsGoesBackInAnObject =
      AbsMdDecl
-   / AbsCoercion
    / PropertyDecl ;

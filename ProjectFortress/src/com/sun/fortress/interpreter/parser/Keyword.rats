@@ -36,7 +36,7 @@ body {
         "BIG",          "SI_unit",      "absorbs",      "abstract",
         "also",         "api",          "as",           "asif",
         "at",           "atomic",       "bool",         "case",
-        "catch",        "coerces",      "coercion",     "component",
+        "catch",        "coerce",       "coerces",      "component",
         "comprises",    "default",      "dim",          "do",
         "elif",         "else",         "end",          "ensures",
         "except",       "excludes",     "exit",         "export",
@@ -52,7 +52,7 @@ body {
         "throws",       "trait",        "transient",    "try",
         "tryatomic",    "type",         "typecase",     "unit",
         "value",        "var",          "where",        "while",
-        "widening",     "widens",       "with",         "wrapped"
+        "widens",       "with",         "wrapped"
     });
   }
 }
@@ -85,8 +85,8 @@ transient void at = "at" !(idrest);
 transient void bool = "bool" !(idrest);
 transient void case = "case" !(idrest);
 transient void catch = "catch" !(idrest);
+transient void coerce = "coerce" !(idrest);
 transient void coerces = "coerces" !(idrest);
-transient void coercion = "coercion" !(idrest);
 transient void component = "component" !(idrest);
 transient void comprises = "comprises" !(idrest);
 transient void default = "default" !(idrest);
@@ -132,7 +132,6 @@ transient void type = "type" !(idrest);
 transient void typecase = "typecase" !(idrest);
 transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
-transient void widens = "widens" !(idrest);
 transient void with = "with" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
@@ -153,5 +152,5 @@ String transient = "transient" !(idrest);
 String unit = "unit" !(idrest);
 String value = "value" !(idrest);
 String var = "var" !(idrest);
-String widening = "widening" !(idrest);
+String widens = "widens" !(idrest);
 String wrapped = "wrapped" !(idrest);

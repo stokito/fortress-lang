@@ -114,7 +114,7 @@ Modifier.Transient
 Modifier.Unit
 Modifier.Value
 Modifier.Var
-Modifier.Widening
+Modifier.Widens
 Modifier.Wrapped
 MultiDimElement
 MultiDimRow

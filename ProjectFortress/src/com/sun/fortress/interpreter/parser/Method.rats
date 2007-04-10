@@ -35,10 +35,7 @@ FnDefOrDecl MdDecl =
      MdDef
    / AbsMdDecl ;
 
-/* MdDef ::=
-     [FnMods] MdHeaderFront FnHeaderClause w = w NoNewlineExpr
-   | Coercion
- */
+/* MdDef ::= [FnMods] MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
      a1:FnMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
@@ -55,8 +52,7 @@ FnDecl MdDef =
                       Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
                       a2.getParams(), a3.getReturnType(), throws_, where_,
                       contract, a4);
-     }
-   / Coercion ;
+     };
 
 /* AbsMdDecl ::= [abstract wr] [FnMods] MdHeaderFront FnHeaderClause */
 AbsFnDecl AbsMdDecl =
@@ -160,55 +156,54 @@ AbsFnDecl AbsGetterSetterDecl =
      };
 
 /* Coercion ::=
-     [widening w] coercion [w StaticParams] w ( w Id w IsType w )
-     CoercionClauses w = w NoNewlineExpr
+     coerce [w StaticParams] w ( w Id w IsType w ) CoercionClauses w [widens w]
+     = w NoNewlineExpr
  */
 FnDecl Coercion =
-     a1:(widening w)? coercion a2:(w StaticParams)? w openparen w a3:Id w
-       a4:IsType w closeparen a5:CoercionClauses w equals w a6:NoNewlineExpr
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null) mods.add(new Modifier.Widening(createSpan(yyStart,8)));
-       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       List<TypeRef>    throws_ = FortressUtil.getListVal(a5.getThrowsClause());
-       List<WhereClause> where_ = FortressUtil.getListVal(a5.getWhereClause());
+     coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
+     a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
+     { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
+       List<TypeRef>    throws_ = FortressUtil.getListVal(a4.getThrowsClause());
+       List<WhereClause> where_ = FortressUtil.getListVal(a4.getWhereClause());
        Contract contract;
-       if (a5.getContractClause().isPresent())
-           contract = (Contract)a5.getContractClause().getVal();
+       if (a4.getContractClause().isPresent())
+           contract = (Contract)a4.getContractClause().getVal();
        else
            contract = FortressUtil.emptyContract();
        List<Param> params = new ArrayList<Param>();
-       params.add(new Param(a3.getSpan(), FortressUtil.emptyModifiers(), a3,a4));
+       params.add(new Param(a2.getSpan(), FortressUtil.emptyModifiers(), a2,a3));
+       List<Modifier> mods = new ArrayList<Modifier>();
+       if (a5 != null) mods.add(new Modifier.Widens(createSpan(yyStart,8)));
        Span nameSpan = createSpan(yyStart+9,8);
        yyValue = new FnDecl(createSpan(yyStart,yyCount), mods, None.<Id>make(),
-                            new Fun(nameSpan, new Id(nameSpan, "coercion")),
-                            Some.<StaticParam>makeSomeListOrNone(a2),
+                            new Fun(nameSpan, new Id(nameSpan, "coerce")),
+                            Some.<StaticParam>makeSomeListOrNone(a1),
                             params, None.<TypeRef>make(), throws_, where_,
                             contract, a6);
      };
 
 /* AbsCoercion ::=
-     [widening w] coercion [w StaticParams] w ( w Id w IsType w )
-     CoercionClauses
+     coerce [w StaticParams] w ( w Id w IsType w ) CoercionClauses [w widens]
  */
 AbsFnDecl AbsCoercion =
-     a1:(widening w)? coercion a2:(w StaticParams)? w openparen w a3:Id w
-       a4:IsType w closeparen a5:CoercionClauses
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null) mods.add(new Modifier.Widening(createSpan(yyStart,8)));
-       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       List<TypeRef>    throws_ = FortressUtil.getListVal(a5.getThrowsClause());
-       List<WhereClause> where_ = FortressUtil.getListVal(a5.getWhereClause());
+     coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
+     a4:CoercionClauses a5:(w widens)?
+     { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
+       List<TypeRef>    throws_ = FortressUtil.getListVal(a4.getThrowsClause());
+       List<WhereClause> where_ = FortressUtil.getListVal(a4.getWhereClause());
        Contract contract;
-       if (a5.getContractClause().isPresent())
-           contract = (Contract)a5.getContractClause().getVal();
+       if (a4.getContractClause().isPresent())
+           contract = (Contract)a4.getContractClause().getVal();
        else
            contract = FortressUtil.emptyContract();
        List<Param> params = new ArrayList<Param>();
-       params.add(new Param(a3.getSpan(), FortressUtil.emptyModifiers(), a3,a4));
+       params.add(new Param(a2.getSpan(), FortressUtil.emptyModifiers(), a2,a3));
+       List<Modifier> mods = new ArrayList<Modifier>();
+       if (a5 != null) mods.add(new Modifier.Widens(createSpan(yyStart,8)));
        Span nameSpan = createSpan(yyStart+9,8);
        yyValue = new AbsFnDecl(createSpan(yyStart,yyCount), mods, new None<Id>(),
-                               new Fun(nameSpan, new Id(nameSpan, "coercion")),
-                               Some.<StaticParam>makeSomeListOrNone(a2),
+                               new Fun(nameSpan, new Id(nameSpan, "coerce")),
+                               Some.<StaticParam>makeSomeListOrNone(a1),
                                params, None.<TypeRef>make(), throws_, where_,
                                contract);
     };

@@ -44,7 +44,7 @@ import Spacing;
    UnitExpr ::=
      UnitRef
    | Expr w UnitRef
-   | Expr w . w UnitRef
+   | Expr w DOT w UnitRef
    | Expr w / w UnitRef
    | Expr w per w UnitRef
    | Expr w in w UnitRef
@@ -103,7 +103,7 @@ constant inline Action<Expr> AsIf =
 /* UnitExpr ::=
      UnitRef
    | Expr w UnitRef
-   | Expr w . w UnitRef
+   | Expr w DOT w UnitRef
    | Expr w / w UnitRef
    | Expr w per w UnitRef
    | Expr w in w UnitRef
@@ -139,7 +139,7 @@ List<LHS> AssignLefts =
    | FieldSelection
    | Id
    SubscriptExpr ::= Primay [ [w ExprList] w ]
-   FieldSelection ::= Primary dot Id
+   FieldSelection ::= Primary . Id
  */
 LHS AssignLeft =
     seed:PrimaryFront list:AssignLeftTail*
@@ -333,15 +333,14 @@ PureList<OpExpr> LooseInfix =
    | BaseExpr
    | LeftEncloser [w ExprList] w RightEncloser
    | Primary [ [w ExprList] w ]
-   | Primary dot Id [[\ w StaticArgList w \]] TupleExpr
-   | Primary dot Id [[\ w StaticArgList w \]] ( w )
-   | Primary dot Id
+   | Primary . Id [[\ w StaticArgList w \]] TupleExpr
+   | Primary . Id [[\ w StaticArgList w \]] ( w )
+   | Primary . Id
    | Primary ^ BaseExpr
    | Primary ExponentOp
    | Primary TupleExpr
    | Primary ( w )
    | Primary Primary
-   | TraitType dot coercion [[\ w StaticArgList w \]] ( w Expr w )
  */
 constant PureList<Expr> Primary =
      seed:PrimaryFront list:PrimaryTail*
@@ -358,12 +357,6 @@ Expr PrimaryFront =
      { if (a2 == null) a2 = new ArrayList<Expr>();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
      }
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:TraitType dot coercion
-     a2:(opendoublesquare w StaticArgList w closedoublesquare)?
-     openparen w a3:Expr w closeparen
-************************************************ */
    ;
 
 constant transient Action<PureList<Expr>> PrimaryTail =
