@@ -101,7 +101,7 @@ Param Param = PlainParam ;
      opr [w StaticParams] w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser) [w := w ( w SubscriptAssignParam w ) ]
    | opr [w StaticParams] w ValParam w Op
-   | opr w (Op | Encloser) [w StaticParams] w ValParam
+   | opr w (Op | ExponentOp | Encloser) [w StaticParams] w ValParam
  */
 FnHeaderFront OpHeaderFront =
      opr opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w opa3:Params w
@@ -131,7 +131,7 @@ FnHeaderFront OpHeaderFront =
        yyValue = new FnHeaderFront(new PostFix(createSpan(yyStart,yyCount), a3),
                                    a1, a2);
      }
-   / opr w a1:(Op / Encloser) a2:(w StaticParams)? w a3:ValParam
+   / opr w a1:(Op / ExponentOp / Encloser) a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(new Opr(createSpan(yyStart,yyCount), a1),
                                    a2, a3);

@@ -138,7 +138,7 @@
         <delete file="${parser}/Fortress.java"/>
         <delete file="${parser}/precedence/resolver/Operators.java"/>
         <delete file="FortressLibrary.ast"/>
-        <delete file="FortressLibrary.jst"/>
+        <delete file="FortressLibrary.tfs"/>
     </target>
 
     <!-- Generation of the NodeVisitor sources depends only on the java files
