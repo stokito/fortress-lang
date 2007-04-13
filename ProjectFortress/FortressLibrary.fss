@@ -1091,6 +1091,10 @@ trait Generator[\E\]
         excludes { ZZ32Range }
     getter size(): ZZ32
     generate[\R\](r: Reduction[\R\], m: E->R): R
+(*
+    generate[\R\](r: Reduction[\E\]): E =
+        generate[\R\](r, identity[\E\])
+*)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         SimplePairGenerator[\E,G\](self, g)
     map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](g,f)
@@ -1106,6 +1110,8 @@ object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
     getter size(): ZZ32 = g.size()
     generate[\R\](r: Reduction[\R\], m: E->R): R =
         g.generate[\R\](r, m COMPOSE f)
+    generate[\R\](r: Reduction[\F\]): F =
+        g.generate[\R\](r, f)
     map[\G\](f': F->G): Generator[\G\] =
         SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
 end
@@ -1135,6 +1141,10 @@ object Range[\N extends Number\](lo:N, sz:N)
             gen(lo,sz)
         end
 end
+
+range(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = Range[\ZZ32\](lo,sz)
+range(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = Range[\ZZ64\](lo,sz)
+range(lo:RR64, sz:RR64): Range[\RR64\] = Range[\RR64\](lo,sz)
 
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)

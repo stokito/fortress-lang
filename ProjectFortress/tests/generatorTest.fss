@@ -26,11 +26,11 @@ tst(a:Number, b:Number, c:String): () =
     end
 
 run(args:String...):() = do
-    r1 = Range[\ZZ32\](1,5)
-    r2 = Range[\RR64\](50.5, 9.59)
-    r3 = Range[\RR64\](7.999, 0.34)
-    r4 = Range[\RR64\](9.21, 1.57)
-    r5 = Range[\RR64\](12.5, 2.49)
+    r1 = range(1,5)
+    r2 = range(50.5, 9.59)
+    r3 = range(7.999, 0.34)
+    r4 = range(9.21, 1.57)
+    r5 = range(12.5, 2.49)
     sum = SumReduction[\ZZ32\]()
     rum = SumReduction[\RR64\]()
     tst(r1.size(), 5, "r1.size")
