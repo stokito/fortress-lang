@@ -45,10 +45,10 @@ run(args:String...) = do
   assertEq(i4 DOT v4, v4)
   assertEq(v3 DOT i3, v3)
   assertEq(v4 DOT i4, v4)
-  r4 : RR64[4] = [ 9 14 18 ]
-  assertEq(m0 DOT v4, r4)
-  r3 : RR64[3] = [ 2 3 5 31 ]
-  assertEq(v3 DOT m0, r3)
+  r3 : RR64[3] = [ 9 14 18 ]
+  assertEq(m0 DOT v4, r3)
+  r4 : RR64[4] = [ 2 3 5 31 ]
+  assertEq(v3 DOT m0, r4)
   assertEq(m0 DOT i4, m0)
   assertEq(i3 DOT m0, m0)
   assertEq(z3 DOT m0, z0)
