@@ -34,6 +34,7 @@ import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.PureList;
@@ -74,10 +75,14 @@ public class ASTUtil {
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
-        return new OprExpr(span,
-                           new Enclosing(FortressUtil.spanTwo(left, right),
-                                               left, right),
-                           args);
+        if (PrecedenceMap.T.matchedBrackets(left.getName(), right.getName()))
+            return new OprExpr(span,
+                               new Enclosing(FortressUtil.spanTwo(left, right),
+                                             left, right),
+                               args);
+        else
+            throw new ProgramError(right, "Mismatched Enclosers.");
+
     }
 
     // let chain (span : span) (first : expr) (links : (op * expr) list) : expr =

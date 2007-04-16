@@ -27,13 +27,13 @@ import Symbol;
 import Spacing;
 
 /* File ::=
-     CompilationUnit w
+     w CompilationUnit w
    | [w Imports] w Exports [w Decls] w
    | [w Imports] w AbsDecls w
    | w Imports [w AbsDecls] w
  */
 public CompilationUnit File =
-     CompilationUnit w
+     w CompilationUnit w
    / a1:(w Imports)? w a2:Exports a3:(w Decls)? w
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
@@ -66,12 +66,12 @@ public CompilationUnit File =
      };
 
 /* CompilationUnit ::=
-     w Component w
-   | w Api w
+     Component
+   | Api
  */
 private CompilationUnit CompilationUnit =
-     w Component w
-   / w Api w ;
+     Component
+   / Api ;
 
 /* Component ::= component w DottedId [w Imports] w Exports [w Decls] w end */
 private Component Component =
@@ -105,15 +105,15 @@ private Import Import =
      { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
 
 /* ImportFrom ::=
-     * [wr except wr Names] wr from wr DottedId
-   | AliasedNames wr from wr DottedId
+     * [w except w Names] w from w DottedId
+   | AliasedNames w from w DottedId
  */
 private ImportFrom ImportFrom =
-     star a1:(wr except wr Names)? wr from wr a2:DottedId
+     star a1:(w except w Names)? w from w a2:DottedId
      { if (a1 == null) a1 = Collections.<Name>emptyList();
        yyValue = new ImportStar(createSpan(yyStart,yyCount), a1, a2);
      }
-   / a1:AliasedNames wr from wr a2:DottedId
+   / a1:AliasedNames w from w a2:DottedId
      { yyValue = new ImportNames(createSpan(yyStart,yyCount), a2, a1); };
 
 /* Names ::= Name | { w NameList w } */
@@ -143,12 +143,12 @@ private List<AliasedName> AliasedNames =
    / opencurly w AliasedNameList w closecurly ;
 
 /* AliasedName ::=
-     Id [wr as wr DottedId]
+     Id [w as w DottedId]
    | opr w Op [w as w Op]
-   | opr w LeftEncloser w RightEncloser [w as w LeftEncloser w RightEncloser]
+   | opr w EncloserPair [w as w EncloserPair]
  */
 private AliasedName AliasedName =
-     a1:Id a2:(wr as wr DottedId)?
+     a1:Id a2:(w as w DottedId)?
      { if (a2 == null)
            yyValue = new AliasedName(createSpan(yyStart,yyCount), a1);
        else
@@ -163,16 +163,20 @@ private AliasedName AliasedName =
                                      new Opr(a1.getSpan(), a1),
                                      new Opr(a2.getSpan(), a2));
      }
-   / opr w a1:LeftEncloser w a2:RightEncloser
-       a3:(w as w left:LeftEncloser w right:RightEncloser
-            { yyValue = new Enclosing(createSpan(yyStart,yyCount),left,right); }
-          )?
+   / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
-       Enclosing enclosing = new Enclosing(FortressUtil.spanTwo(a1,a2), a1, a2);
-       if (a3 == null)
-           yyValue = new AliasedName(span, enclosing);
+       if (a2 == null)
+           yyValue = new AliasedName(span, a1);
        else
-           yyValue = new AliasedName(span, enclosing, (Enclosing)a3);
+           yyValue = new AliasedName(span, a1, a2);
+     };
+
+/* EncloserPair ::= LeftEncloser w RightEncloser */
+private Enclosing EncloserPair = a1:LeftEncloser w a2:RightEncloser
+     { if (PrecedenceMap.T.matchedBrackets(a1.getName(), a2.getName()))
+           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
+       else
+           throw new ProgramError(a2, "Mismatched Enclosers.");
      };
 
 /* AliasedNameList ::= AliasedName (w , w AliasedName)* */
@@ -194,9 +198,9 @@ private List<AliasedDottedId> AliasedDottedIds =
      }
    / opencurly w AliasedDottedIdList w closecurly ;
 
-/* AliasedDottedId ::= DottedId [wr as wr DottedId] */
+/* AliasedDottedId ::= DottedId [w as w DottedId] */
 private AliasedDottedId AliasedDottedId =
-     a1:DottedId a2:(wr as wr DottedId)?
+     a1:DottedId a2:(w as w DottedId)?
      { if (a2 == null)
            yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1);
        else
