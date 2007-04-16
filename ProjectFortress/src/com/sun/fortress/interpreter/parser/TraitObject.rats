@@ -43,27 +43,21 @@ TraitDecl TraitDecl = a1:TraitHeader a2:(w GoInATrait)? w end
      };
 
 /* TraitHeader ::=
-     [TraitMods] trait w Id [w StaticParams] [w Extends] [TraitClauses]
+     [TraitMods] trait w Id [w StaticParams] [w Extends] TraitClauses
  */
 private TraitHeader TraitHeader =
      a1:TraitMods? trait w a2:Id a3:(w StaticParams)? a4:(w Extends)?
-     a5:(TraitClauses)?
+     a5:TraitClauses
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = FortressUtil.emptyStaticParams();
        if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
-       if (a5 == null)
-           yyValue = new TraitHeader(a1, a2, a3, a4,
-                                     FortressUtil.emptyTypeRefs(),
-                                     None.<List<TypeRef>>make(),
-                                     None.<List<WhereClause>>make());
-       else
-           yyValue = new TraitHeader(a1, a2, a3, a4, a5.getExcludes(),
-                                     a5.getComprises(), a5.getWhere());
+       yyValue = new TraitHeader(a1, a2, a3, a4, a5.getExcludes(),
+                                 a5.getComprises(), a5.getWhere());
      };
 
 /* Each trait clause cannot appear more than once. */
-/* TraitClauses ::= (w TraitClause)+ */
-private TraitClauses TraitClauses = a1s:(w TraitClause)+
+/* TraitClauses ::= (w TraitClause)* */
+private TraitClauses TraitClauses = a1s:(w TraitClause)*
      { yyValue = new TraitClauses();
        for (TraitClause t : (List<TraitClause>)a1s.list()) {
          yyValue.set(t);
@@ -177,12 +171,12 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
      (ObjectParam w , w)* [ObjectVarargs w , w] ObjectKeyword (w , w ObjectKeyword)*
    | (ObjectParam w , w)*  ObjectVarargs
    |  ObjectParam (w , w ObjectParam)*
-   ObjectVarargs ::= transient wr Varargs
+   ObjectVarargs ::= transient w Varargs
    ObjectKeyword ::= ObjectParam w = w Expr
    ObjectParam   ::= [FldMods] Param
-                 |   transient wr Param
+                 |   transient w Param
  */
-Param Varargs := transient wr a1:VarargsParam
+Param Varargs := transient w a1:VarargsParam
      { List<Modifier> mods = new ArrayList<Modifier>(1);
        mods.add(new Modifier.Transient(createSpan(yyStart,9)));
        Option<TypeRef> ty_opt = a1.getType();
@@ -203,7 +197,7 @@ Param Param :=
        else
            yyValue = new Param(createSpan(yyStart,yyCount), a1, a2.getName());
      }
-   / a1:transient wr a2:PlainParam
+   / a1:transient w a2:PlainParam
      { List<Modifier> mods = new ArrayList<Modifier>(1);
        mods.add(new Modifier.Transient(createSpan(yyStart,9)));
        Option<TypeRef> ty_opt = a2.getType();

@@ -37,7 +37,7 @@ public class TraitClauses {
     private boolean setExcludes  = false;
     private boolean setComprises = false;
     private boolean setWhere     = false;
-       
+
     public TraitClauses() {}
 
     public List<TypeRef> getExcludes() {
