@@ -36,8 +36,11 @@ List<TypeRef> Extends = extends w TraitTypes ;
 /* Excludes ::= excludes w TraitTypes */
 List<TypeRef> Excludes = excludes w TraitTypes ;
 
-/* Comprises ::= comprises w ComprisingTypes */
-List<TypeRef> Comprises = comprises w ComprisingTypes ;
+/* Comprises ::= comprises w TraitTypes */
+List<TypeRef> Comprises = comprises w TraitTypes ;
+
+/* AbsComprises ::= comprises w ComprisingTypes */
+List<TypeRef> AbsComprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<TypeRef> TraitTypes =

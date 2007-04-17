@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ComprisesHidden
+component XXXComprisesHidden
 export Executable
 
 trait T comprises { ... }
