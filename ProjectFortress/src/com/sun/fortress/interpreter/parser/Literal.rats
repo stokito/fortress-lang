@@ -30,8 +30,6 @@ import Spacing;
    | NumericLiteral
    | CharLiteral
    | StringLiteral
-   | { w Entry (w , w Entry)* w }
-   | [ w RectElements w ]
  */
 Expr Literal =
      openparen w closeparen
@@ -39,7 +37,14 @@ Expr Literal =
    / NumericLiteral
    / CharLiteral
    / StringLiteral
-   / opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
+   ;
+
+/* Aggregate ::=
+     { w Entry (w , w Entry)* w }
+   | [ w RectElements w ]
+ */
+Expr Aggregate =
+     opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
      { List<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>> elements =
            new ArrayList<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>>();
        elements.add(new com.sun.fortress.interpreter.useful.Pair<Expr,Expr>(a1.getKey(), a1.getValue()));
@@ -89,7 +94,7 @@ StringLiteral StringLiteral = ["] a1:StringLiteralContent* ["]
 private String StringLiteralContent =
      EscapeSequence
    / a1:(!["\\] _)     { yyValue = String.valueOf(a1); };
-private String EscapeSequence = '\\' a1:[btnfr"'\\]
+private String EscapeSequence = '\\' a1:[btnfr"\\]
      { switch (a1) {
            case 'b': { yyValue = "\b"; break; }
            case 't': { yyValue = "\t"; break; }
@@ -97,10 +102,9 @@ private String EscapeSequence = '\\' a1:[btnfr"'\\]
            case 'f': { yyValue = "\f"; break; }
            case 'r': { yyValue = "\r"; break; }
            case '"': { yyValue = "\""; break; }
-           case '\'': { yyValue = "'"; break; }
            case '\\': { yyValue = "\\"; break; }
            default:   { yyValue = ""; }
        }
      };
 
-private transient String CharLiteralContent   = (!"'" _);
+private transient String CharLiteralContent   = '\\' [btnfr"\\] / (!"'" _);

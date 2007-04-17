@@ -32,7 +32,7 @@ import Symbol;
 import Spacing;
 
 /* DelimitedExpr ::=
-     TupleExpr
+     Parenthesized
    | object [w Extends] [w GoInAnObject] w end
    | Do
    | label w Id w BlockElems w end w Id
@@ -46,7 +46,7 @@ import Spacing;
    | try w BlockElems [w Catch] [w forbid w TraitTypes] [w finally w BlockElems] w end
  */
 Expr DelimitedExpr =
-     TupleExpr
+     Parenthesized
    / object a1:(w Extends)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyTypeRefs();
        if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
@@ -142,11 +142,11 @@ private Expr DoFront = do a1:(w BlockElems)?
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
 ************************************************ */
 
-/* TupleExpr ::=
+/* Parenthesized ::=
      ( w (Expr w , w)* [Expr w ... w , w] Binding (w , w Binding)* w )
    | NoKeyTuple
  */
-Expr TupleExpr =
+Expr Parenthesized =
      openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = new ArrayList<Expr>();
@@ -341,10 +341,11 @@ List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
        yyValue.addAll(a2s.list());
      };
 
-/* BaseExpr ::= NoKeyTuple | Literal | Id | self */
+/* BaseExpr ::= NoKeyTuple | Literal | Aggregate | Id | self */
 Expr BaseExpr =
      NoKeyTuple
    / Literal
+   / Aggregate
    / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); }
    / a1:self { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
 

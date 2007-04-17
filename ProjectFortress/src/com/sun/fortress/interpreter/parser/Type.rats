@@ -86,13 +86,6 @@ private TypeRef NonArrowType =
    / seed:NonArrowTypeFront list:NonArrowTypeTail*
      { yyValue = (TypeRef)apply(list, seed); };
 
-private TypeRef NonArrowTypeFront =
-     TupleType
-   / openparen a1:(w TypeRef)? w closeparen
-     { if (a1 == null) yyValue = new VoidType(createSpan(yyStart,yyCount));
-       else            yyValue = a1;
-     };
-
 /* TraitType ::=
      DottedId [w [\ w StaticArgList w \]]
    | { w TypeRef w |-> w TypeRef w }
@@ -117,6 +110,13 @@ private TypeRef TraitTypeFront =
      { yyValue = new MapType(createSpan(yyStart,yyCount), a1, a2); }
    / openangle w a1:TypeRef w closeangle
      { yyValue = new ListType(createSpan(yyStart,yyCount), a1); };
+
+private TypeRef NonArrowTypeFront =
+     TupleType
+   / openparen a1:(w TypeRef)? w closeparen
+     { if (a1 == null) yyValue = new VoidType(createSpan(yyStart,yyCount));
+       else            yyValue = a1;
+     };
 
 private constant transient Action<TypeRef> NonArrowTypeTail =
      ArrayTypeTail
