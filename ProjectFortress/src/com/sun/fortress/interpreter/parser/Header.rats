@@ -335,11 +335,10 @@ private Modifier TraitMod =
    / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
-/* TraitMods ::= TraitMod wr (TraitMod wr)* */
-List<Modifier> TraitMods = a1:TraitMod wr a2s:(TraitMod wr)*
+/* TraitMods ::= (TraitMod w)+ */
+List<Modifier> TraitMods = a1s:(TraitMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -353,11 +352,10 @@ private Modifier FnMod =
    / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
-/* FnMods ::= FnMod wr (FnMod wr)* */
-List<Modifier> FnMods = a1:FnMod wr a2s:(FnMod wr)*
+/* FnMods ::= (FnMod w)+ */
+List<Modifier> FnMods = a1s:(FnMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -367,11 +365,10 @@ private Modifier VarMod =
    / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
-/* VarMods ::= VarMod wr (VarMod wr)* */
-List<Modifier> VarMods = a1:VarMod wr a2s:(VarMod wr)*
+/* VarMods ::= (VarMod w)+ */
+List<Modifier> VarMods = a1s:(VarMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -383,11 +380,10 @@ private Modifier AbsFldMod =
    / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
-/* AbsFldMods ::= AbsFldMod wr (AbsFldMod wr)* */
-List<Modifier> AbsFldMods = a1:AbsFldMod wr a2s:(AbsFldMod wr)*
+/* AbsFldMods ::= (AbsFldMod w)+ */
+List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -397,11 +393,10 @@ private Modifier FldMod =
    / AbsFldMod ;
 
 /* Each modifier cannot appear more than once. */
-/* FldMods ::= FldMod wr (FldMod wr)* */
-List<Modifier> FldMods = a1:FldMod wr a2s:(FldMod wr)*
+/* FldMods ::= (FldMod w)+ */
+List<Modifier> FldMods = a1s:(FldMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -412,11 +407,10 @@ private Modifier ApiFldMod =
    / UniversalMod ;
 
 /* Each modifier cannot appear more than once. */
-/* ApiFldMods ::= ApiFldMod wr (ApiFldMod wr)* */
-List<Modifier> ApiFldMods = a1:ApiFldMod wr a2s:(ApiFldMod wr)*
+/* ApiFldMods ::= (ApiFldMod w)+ */
+List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -426,11 +420,10 @@ private Modifier LocalFnMod =
    / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
 
 /* Each modifier cannot appear more than once. */
-/* LocalFnMods ::= LocalFnMod wr (LocalFnMod wr)* */
-List<Modifier> LocalFnMods = a1:LocalFnMod wr a2s:(LocalFnMod wr)*
+/* LocalFnMods ::= (LocalFnMod w)+ */
+List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
      { yyValue = new ArrayList<Modifier>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
+       yyValue.addAll(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 

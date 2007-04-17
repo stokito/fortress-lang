@@ -108,12 +108,12 @@ private FnDecl LocalFnDecl =
    LocalVarWTypes ::=
      LocalVarWType
    | ( w LocalVarWType (w , w LocalVarWType)+ w )
-   LocalVarWType ::= [var wr] Id s : s TypeRef
+   LocalVarWType ::= [var w] Id s : s TypeRef
    LocalVarWoTypes ::=
      LocalVarWoType
    | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
    LocalVarWoType ::=
-     [var wr] Id
+     [var w] Id
    | Unpasting
  */
 DefOrDecl VarDecl :=
@@ -171,7 +171,7 @@ DefOrDecl VarDecl :=
 LocalVarDecl LocalVarDecl = a1:VarDecl
      { yyValue = (LocalVarDecl)a1; };
 
-LValue VarWType := a1:(var wr)? a2:Id s colon s a3:TypeRef
+LValue VarWType := a1:(var w)? a2:Id s colon s a3:TypeRef
      { List<Modifier> mods = new ArrayList<Modifier>();
        boolean mutability;
        if (a1 != null) {
@@ -185,7 +185,7 @@ LValue VarWType := a1:(var wr)? a2:Id s colon s a3:TypeRef
      };
 
 LValue VarWoType :=
-     a1:(var wr)? a2:Id
+     a1:(var w)? a2:Id
      { List<Modifier> mods = new ArrayList<Modifier>();
        boolean mutability;
        if (a1 != null) {
