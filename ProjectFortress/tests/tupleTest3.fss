@@ -24,10 +24,10 @@ if (x <= 1) then 1 else fib(x-1) + fib(x-2) end
 end
 
 run(args:String...):()=do
-	n = 12
+    n = 12
 
-	(a,b,c,d,e,f,g,h,i,j,k,l) = (fib n, fib n, fib n, fib n,
-					fib n, fib n, fib n, fib n,
-					fib n, fib n, fib n, fib n)
+    (a,b,c,d,e,f,g,h,i,j,k,l) = (fib n, fib n, fib n, fib n,
+                    fib n, fib n, fib n, fib n,
+                    fib n, fib n, fib n, fib n)
 end
 end

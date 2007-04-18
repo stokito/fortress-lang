@@ -20,8 +20,8 @@ component fortress.executable
 export Executable
 
 run(args:String...):()=do
-	y1 = 7;
-	y2 = 9;
-	(min_y,max_y) = (y1 MIN y2, y1 MAX y2)
-	end
+    y1 = 7;
+    y2 = 9;
+    (min_y,max_y) = (y1 MIN y2, y1 MAX y2)
+    end
 end

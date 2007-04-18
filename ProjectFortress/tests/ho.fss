@@ -20,9 +20,9 @@ component samples.ho
 export Executable
 
 map[\nat n,T\](f:T -> ZZ32,x:T^(n BY 1)):ZZ32^(n BY 1) = do
-	M : ZZ32^(n BY 1) = 0
-	for i <- 0#n do
-	  M[i,0] := f(x[i,0])
+    M : ZZ32^(n BY 1) = 0
+    for i <- 0#n do
+      M[i,0] := f(x[i,0])
     end
     M
 end

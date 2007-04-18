@@ -21,9 +21,9 @@ export Executable
 
 run(args:String...):()=do
 case 2+2  of
-	3 => print("fail")
-	7 => print("fail")
-	else => print("pass")
+    3 => print("fail")
+    7 => print("fail")
+    else => print("pass")
 end
 end
 end

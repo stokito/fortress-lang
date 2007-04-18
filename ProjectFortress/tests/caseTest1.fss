@@ -21,8 +21,8 @@ export Executable
 
 run(args:String...):()=do
 case 2 + 2 of
-	4 => print("it really is 4 (pass)")
-	5#2 => print("we were wrong again (fail)")
+    4 => print("it really is 4 (pass)")
+    5#2 => print("we were wrong again (fail)")
 end
 end
 end

@@ -116,11 +116,11 @@ private WhereClause WhereClause =
 
 /* NatConstraint ::=
      nat w Id
-   | NatRef w LT w NatRef
-   | NatRef w LE w NatRef
-   | NatRef w GT w NatRef
-   | NatRef w GE w NatRef
-   | NatRef w = w NatRef
+   | NatRef w <  w NatRef
+   | NatRef w <= w NatRef
+   | NatRef w >  w NatRef
+   | NatRef w >= w NatRef
+   | NatRef w =  w NatRef
    | ( w NatConstraint w )
  */
 private WhereNat NatConstraint =
@@ -128,11 +128,11 @@ private WhereNat NatConstraint =
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
-   / a1:NatRef w "LT":op w a2:NatRef
-   / a1:NatRef w "LE":op w a2:NatRef
-   / a1:NatRef w "GT":op w a2:NatRef
-   / a1:NatRef w "GE":op w a2:NatRef
-   / a1:NatRef w equals w a2:NatRef
+   / a1:NatRef w "<":op  w a2:NatRef
+   / a1:NatRef w "<=":op w a2:NatRef
+   / a1:NatRef w ">":op  w a2:NatRef
+   / a1:NatRef w ">=":op w a2:NatRef
+   / a1:NatRef w equals  w a2:NatRef
 ************************************************ */
    / openparen w NatConstraint w closeparen ;
 
@@ -144,11 +144,11 @@ private StaticArg NatRef = StaticArg;
 
 /* IntConstraint ::=
      int w Id
-   | NatRef w LT w NatRef
-   | NatRef w LE w NatRef
-   | NatRef w GT w NatRef
-   | NatRef w GE w NatRef
-   | NatRef w = w NatRef
+   | NatRef w <  w NatRef
+   | NatRef w <= w NatRef
+   | NatRef w >  w NatRef
+   | NatRef w >= w NatRef
+   | NatRef w =  w NatRef
    | ( w IntConstraint w )
  */
 private WhereNat IntConstraint =
@@ -156,11 +156,11 @@ private WhereNat IntConstraint =
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
-   / a1:NatRef w "LT":op w a2:NatRef
-   / a1:NatRef w "LE":op w a2:NatRef
-   / a1:NatRef w "GT":op w a2:NatRef
-   / a1:NatRef w "GE":op w a2:NatRef
-   / a1:NatRef w equals w a2:NatRef
+   / a1:NatRef w "<":op  w a2:NatRef
+   / a1:NatRef w "<=":op w a2:NatRef
+   / a1:NatRef w ">":op  w a2:NatRef
+   / a1:NatRef w ">=":op w a2:NatRef
+   / a1:NatRef w equals  w a2:NatRef
 ************************************************ */
    / openparen w IntConstraint w closeparen ;
 

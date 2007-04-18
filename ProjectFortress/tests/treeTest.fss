@@ -98,7 +98,7 @@ trait Tree
          n2 = t2.size()
          l2 = t2.getLeftChild()
          r2 = t2.getRightChild()
-	 if getWeight() n1 < n2 then balancedAdd(v2,concat3(v,t1,l2),r2)
+     if getWeight() n1 < n2 then balancedAdd(v2,concat3(v,t1,l2),r2)
          elif getWeight() n2 < n1 then balancedAdd(v1,l1,concat3(v,r1,t2))
          else Node(v,t1,t2) end
       end

@@ -18,12 +18,12 @@
 component fortress.executable
 export Executable
 
-	plus3(x:ZZ32) = do
-	x + 3
-	end
+    plus3(x:ZZ32) = do
+    x + 3
+    end
 
-	run(args:String...):()=do
-	y = plus3(2 2 2 2 - 3 2 2)
-	print(y)
-	end
+    run(args:String...):()=do
+    y = plus3(2 2 2 2 - 3 2 2)
+    print(y)
+    end
 end

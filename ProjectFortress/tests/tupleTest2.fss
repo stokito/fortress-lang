@@ -20,10 +20,10 @@ component fortress.executable
 export Executable
 
 run(args:String...):()=do
-	for i <- 1 # 10 do
-	   for j <- 1 # 10 do
-		(min,max) = (i MIN j, i MAX j)
-	   end
+    for i <- 1 # 10 do
+       for j <- 1 # 10 do
+        (min,max) = (i MIN j, i MAX j)
+       end
         end
 end
 end

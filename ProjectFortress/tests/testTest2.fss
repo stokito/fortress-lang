@@ -23,10 +23,10 @@ fact(x:ZZ32) = do
 end
 
 assert(y:Boolean) = do
-	if (NOT y) then
-	     println("Assertion Failed:")
-	     throw Error
-	end
+    if (NOT y) then
+         println("Assertion Failed:")
+         throw Error
+    end
 end
 
 test testFactorial1() = do
@@ -48,6 +48,6 @@ test testFactorial3() = do
 end
 
 run(args:String...):()=do
-	y = fact(10)
-	end
+    y = fact(10)
+    end
 end

@@ -19,14 +19,14 @@ component fortress.forTest2.fss
 export Executable
 
 a() = do
-	for i<-1#2 do
-	   println("Hello World");
+    for i<-1#2 do
+       println("Hello World");
         end
 end
 
 b() = do
        for i<-1#2 do
-	  a();
+      a();
        end
 end
 

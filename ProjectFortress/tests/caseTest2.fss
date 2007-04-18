@@ -21,8 +21,8 @@ export Executable
 
 run(args:String...):()=do
 case 2 + 4 of
-	4 => print("nope")
-	5#2 => print("yup")
+    4 => print("nope")
+    5#2 => print("yup")
 end
 end
 end

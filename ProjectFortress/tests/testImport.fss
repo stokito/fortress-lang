@@ -24,9 +24,9 @@ y:ZZ32 = 17
 z:ZZ32 = 11
 
 run(args:String...) = do
-	println("f(3) = " f(3))
-	println("y = " y)
-	println("z = " z)
+    println("f(3) = " f(3))
+    println("y = " y)
+    println("z = " z)
 end
 
 end

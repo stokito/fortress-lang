@@ -23,8 +23,8 @@ run(args:String...):()=do
 i = 7
 j = 9
 case largest of
-	i => print("fail")
-	j => print("pass")
+    i => print("fail")
+    j => print("pass")
 end
 end
 end

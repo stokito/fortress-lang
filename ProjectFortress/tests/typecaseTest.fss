@@ -32,8 +32,8 @@ run(args:String...):()=do
    end
 
    typecase (a = 1, b = 3.1415, c = "Hurrah") of
-	(Number, Number, Number) => print("FAIL ")
-	(Number, Number, String) => print("pass ")
+    (Number, Number, Number) => print("FAIL ")
+    (Number, Number, String) => print("pass ")
    end
 
    (* Check that typecase returns a value! *)
