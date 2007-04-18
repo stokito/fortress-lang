@@ -31,10 +31,18 @@ public class SubscriptExpr extends Expr implements LHS {
 
     List<Expr> subs;
 
-    public SubscriptExpr(Span span, Expr obj, List<Expr> subs) {
+    Option<Enclosing> op;
+
+    public SubscriptExpr(Span span, Expr obj, List<Expr> subs,
+                         Option<Enclosing> op) {
         super(span);
         this.obj = obj;
         this.subs = subs;
+        this.op = op;
+    }
+
+    public SubscriptExpr(Span span, Expr obj, List<Expr> subs) {
+        this(span, obj, subs, None.<Enclosing>make());
     }
 
     @Override

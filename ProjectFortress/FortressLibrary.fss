@@ -1133,7 +1133,7 @@ object Range[\N extends Number\](lo:N, sz:N)
             r.empty()
         else
             gen(l,s) = if s>=2 then
-                           (s1,_) = partition(narrow|\s/|)
+                           (s1,_) = partition(narrow |\s/|)
                            r.join(gen(l,s1),gen(l+s1,s-s1))
                        elif s>=1 then
                            m(l)

@@ -333,6 +333,7 @@ PureList<OpExpr> LooseInfix =
    | BaseExpr
    | LeftEncloser [w ExprList] w RightEncloser
    | Primary [ [w ExprList] w ]
+   | Primary LeftEncloser [w ExprList] w RightEncloser
    | Primary . Id [[\ w StaticArgList w \]] Parenthesized
    | Primary . Id [[\ w StaticArgList w \]] ( w )
    | Primary . Id
@@ -354,7 +355,7 @@ Expr PrimaryFront =
      }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
-     { if (a2 == null) a2 = new ArrayList<Expr>();
+     { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
      }
    ;
@@ -377,6 +378,19 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
                if (a1 == null) es = FortressUtil.emptyExprs();
                else            es = a1;
                return PureList.make((Expr)new SubscriptExpr(span, arr, es));
+           }};
+     }
+   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     { yyValue = new Action<PureList<Expr>>() {
+           public PureList<Expr> run(PureList<Expr> base) {
+               Span span = createSpan(yyStart,yyCount);
+               Expr arr = FortressUtil.buildPrimary((PureList<Expr>)base);
+               List<Expr> es;
+               if (a2 == null) es = FortressUtil.emptyExprs();
+               else            es = a2;
+               Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3), a1, a3);
+               return PureList.make((Expr)new SubscriptExpr(span, arr, es,
+                                                            Some.<Enclosing>make(op)));
            }};
      };
 
