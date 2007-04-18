@@ -72,8 +72,8 @@ transient void sr = void:Space+;      // space required
 transient void nl = s void:Newline w ; // required newline in whitespace
 transient void br = nl / s ";" w;      // line break
 
-/* RectSeparator ::= w ;+ w /  sr / nl */
+/* RectSeparator ::= (w ;)+ w /  sr / nl */
 Integer RectSeparator =
-     w a1s:semicolon+ w { yyValue = a1s.size() + 1; }
-   / sr                 { yyValue = 1; }
-   / nl                 { yyValue = 2; };
+     a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
+   / sr                   { yyValue = 1; }
+   / nl                   { yyValue = 2; };
