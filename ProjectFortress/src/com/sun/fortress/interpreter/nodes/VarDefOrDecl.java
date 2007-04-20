@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class VarDefOrDecl extends Node implements DefOrDecl {
 
+   
     /*
      * (non-Javadoc)
      *
@@ -112,4 +113,10 @@ public abstract class VarDefOrDecl extends Node implements DefOrDecl {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
+     */
+    public boolean isAFunctionalMethod() {
+        return false;
+    }
 }

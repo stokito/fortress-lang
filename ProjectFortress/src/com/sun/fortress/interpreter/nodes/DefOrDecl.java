@@ -29,6 +29,8 @@ public interface DefOrDecl extends HasAt {
     public Span getSpan();
 
     abstract public <T> T accept(NodeVisitor<T> v);
+
+    public boolean isAFunctionalMethod();
 }
 
 // / and def_or_decl =

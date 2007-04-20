@@ -330,17 +330,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     /**
      * Returns a list containing the evaluation of exprs.
+     * The expressions in the list should not be Lets.
      *
      * @param exprs
      * @return
      */
-    <T extends Expr> List<FValue> evalExprList(List<T> exprs) {
+     <T extends Expr> List<FValue> evalExprList(List<T> exprs) {
         List<FValue> res = new ArrayList<FValue>(exprs.size());
         return evalExprList(exprs, res);
     }
 
     /**
      * Appends the evaluation of exprs to res.
+     * The expressions in the list should not be Lets.
      *
      * @param <T>
      * @param exprs
@@ -355,8 +357,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     /**
-     * Returns the evaluation of a list of (general) exprs, wrapped up into a
-     * tuple. Does the "right thing" with LetExprs.
+     * Returns the evaluation of a list of (general) exprs, returning the
+     * result of evaluating the last expr in the list.
+     * Does the "right thing" with LetExprs.
      *
      * @param exprs
      * @param tag
@@ -433,44 +436,37 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forCaseClause");
     }
 
-    List<Expr> findLargest(List<CaseClause> clauses) {
+    CaseClause findLargest(List<CaseClause> clauses) {
         Iterator<CaseClause> i = clauses.iterator();
         CaseClause c = i.next();
         FValue max = c.getMatch().accept(this);
-        List<Expr> res = c.getBody();
+        CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
             FValue current = c.getMatch().accept(this);
             if (current.getInt() > max.getInt()) {
                 max = current;
-                res = c.getBody();
+                res = c;
             }
         }
         return res;
     }
 
-    List<Expr> findSmallest(List<CaseClause> clauses) {
+    CaseClause findSmallest(List<CaseClause> clauses) {
         Iterator<CaseClause> i = clauses.iterator();
         CaseClause c = i.next();
         FValue min = c.getMatch().accept(this);
-        List<Expr> res = c.getBody();
+        CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
             FValue current = c.getMatch().accept(this);
             if (current.getInt() < min.getInt()) {
                 min = current;
-                res = c.getBody();
+                res = c;
             }
         }
-        return res;
-    }
-
-    FValue evalClauseBody(List<Expr> body) {
-        FValue res = evVoid;
-        for (Iterator<Expr> j = body.iterator(); j.hasNext();)
-            res = j.next().accept(this);
         return res;
     }
 
@@ -478,11 +474,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<CaseClause> clauses = x.getClauses();
         CaseParam param = x.getParam();
 
-        if (param instanceof CaseParamLargest)
-            return evalClauseBody(findLargest(clauses));
-        else if (param instanceof CaseParamSmallest)
-            return evalClauseBody(findSmallest(clauses));
-        else {
+        if (param instanceof CaseParamLargest) {
+            CaseClause y = findLargest(clauses);
+            return evalExprList(y.getBody(), y);
+        } else if (param instanceof CaseParamSmallest) {
+            CaseClause y = findSmallest(clauses);
+            return evalExprList(y.getBody(), y);
+        } else {
             // Evaluate the parameter
             FValue paramValue = param.accept(this);
             // Assign a comparison function
@@ -506,11 +504,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
                 FBool success = (FBool) functionInvocation(vargs, actual, c);
                 if (success.getBool())
-                    return evalClauseBody(c.getBody());
+                    return evalExprList(c.getBody(), c);
             }
             Option<List<Expr>> _else = x.getElse_();
             if (_else.isPresent()) {
-                return evalClauseBody(_else.getVal());
+                // TODO need an Else node to hang a location on 
+                return evalExprList(_else.getVal(), x);
             }
             return evVoid;
         }
@@ -837,6 +836,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLabel(Label x) {
+        /* Don't forget to use a new evaluator/environment for the inner block. */
         throw new InterpreterError(x,"label construct not yet implemented.");
     }
 
@@ -1324,9 +1324,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
             if (resTuple.subtypeOf(matchTuple)) {
                 List<Expr> body = c.getBody();
-                for (Expr exp : body) {
-                    result = exp.accept(ev);
-                }
+                result = evalExprList(body, c);
                 return result;
             }
         }
@@ -1334,9 +1332,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Option<List<Expr>> el = x.getElse_();
         if (el.isPresent()) {
             List<Expr> elseClauses = el.getVal();
-            for (Expr exp : elseClauses) {
-                result = exp.accept(ev);
-            }
+            // TODO really ought to have a node, with a location, for this list
+            result = evalExprList(elseClauses, x);
             return result;
         } else {
             throw new MatchFailure();

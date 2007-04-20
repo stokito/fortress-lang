@@ -59,7 +59,9 @@ public class Constructor extends AnonymousConstructor {
     // that get rewritten.
     public HashSet<String> parameterNames = new HashSet<String>();
 
-    public Constructor(BetterEnv env, FTypeObject selfType, GenericDefWithParams def) {
+    public Constructor(BetterEnv env,
+            FTypeObject selfType,
+            GenericDefWithParams def) {
         this(env, selfType, (HasAt) def, new ConstructorFnName(def),
                 def.getDefs());
         addParamsToCollection(def, parameterNames);
@@ -68,31 +70,37 @@ public class Constructor extends AnonymousConstructor {
     /**
      * @param def
      */
-    static public void addParamsToCollection(HasParams def, Collection<String> parameterNames) {
+    static public void addParamsToCollection(
+          HasParams def, Collection<String> parameterNames) {
         addParamsToCollection(def.getParams(), parameterNames);
 
     }
-    static public void addParamsToCollection(Option<List<Param>> opt_params, Collection<String> parameterNames) {
+    static public void addParamsToCollection(
+          Option<List<Param>> opt_params, Collection<String> parameterNames) {
         if (opt_params.isPresent()) {
             addParamsToCollection(opt_params.getVal(), parameterNames);
         }
     }
-    static public void addParamsToCollection(List<Param> params, Collection<String> parameterNames) {
+    static public void addParamsToCollection(
+          List<Param> params, Collection<String> parameterNames) {
         for (Param p : params) {
                 if (!p.isTransient())
                     parameterNames.add(p.getName().getName());
        }
     }
-    static public void removeParamsFromCollection(ObjectDecl def, Collection<String> parameterNames) {
+    static public void removeParamsFromCollection(
+          ObjectDecl def, Collection<String> parameterNames) {
         removeParamsFromCollection(def.getParams(), parameterNames);
 
     }
-    static public void removeParamsFromCollection(Option<List<Param>> opt_params, Collection<String> parameterNames) {
+    static public void removeParamsFromCollection(
+          Option<List<Param>> opt_params, Collection<String> parameterNames) {
         if (opt_params.isPresent()) {
             removeParamsFromCollection(opt_params.getVal(), parameterNames);
         }
     }
-    static public void removeParamsFromCollection(List<Param> params, Collection<String> parameterNames) {
+    static public void removeParamsFromCollection(
+          List<Param> params,Collection<String> parameterNames) {
         for (Param p : params) {
             if (!p.isTransient())
                 parameterNames.remove(p.getName().getName());
@@ -103,7 +111,7 @@ public class Constructor extends AnonymousConstructor {
 
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
                 FnName name, List<? extends DefOrDecl> defs) {
-        super(env, selfType, def); // TODO verify that this is the proper evnvironment
+        super(env, selfType, def); // TODO verify that this is the proper env.
         this.cfn = name;
         this.defs = defs;
     }
@@ -129,9 +137,11 @@ public class Constructor extends AnonymousConstructor {
             new MultiMap<String, GenericMethod>();
 
         HashSet<String> fields = new HashSet<String>();
-         // HashMap<String, String> com.sun.fortress.interpreter.rewrite = new HashMap<String, String>();
+         // HashMap<String, String> com.sun.fortress.interpreter.rewrite =
+        //  new HashMap<String, String>();
 
-        BuildObjectEnvironment bt = new BuildObjectEnvironment(bte, selfType.getEnv(), fields);
+        BuildObjectEnvironment bt =
+            new BuildObjectEnvironment(bte, selfType.getEnv(), fields);
 
         // Inject methods into this environment
         // This should create new MethodClosures
@@ -158,7 +168,8 @@ public class Constructor extends AnonymousConstructor {
         // parameters so that the methods may be pseudo-instantiated
         // and plugged into the trait/object and overloading definition
         // machinery.
-        Map<String, List<FType>> genericArgs = new HashMap<String, List<FType>>();
+        Map<String, List<FType>> genericArgs =
+            new HashMap<String, List<FType>>();
         for (String s : generics.keySet() ) {
             // All the methods are similarly parameterized, so the
             // first generic in the set (generics is a multimap)
@@ -166,13 +177,16 @@ public class Constructor extends AnonymousConstructor {
             GenericMethod g = generics.get(s).iterator().next();
 
             Applicable ap = g.getDef();
-            List<FType> instantiationTypes = GenericMethodSet.createSymbolicInstantiation(bte, ap, getAt());
+            List<FType> instantiationTypes =
+                GenericMethodSet.createSymbolicInstantiation(bte, ap, getAt());
             genericArgs.put(s, instantiationTypes);
         }
 
         //  Find all the methods in selfType, using the containing environment
         // to give them meaning.
-        accumulateEnvMethods(signaturesToTraitsContainingMethods, generics, genericArgs, selfType, bte);
+        accumulateEnvMethods(
+          signaturesToTraitsContainingMethods,
+          generics, genericArgs, selfType, bte);
 
         // Accumulate all the trait methods, evaluated against their
         // trait environments.
@@ -181,7 +195,8 @@ public class Constructor extends AnonymousConstructor {
         for (FType t : extendedTraits) {
             FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers();
-            accumulateEnvMethods(signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
+            accumulateEnvMethods(
+             signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
         }
 
         // Check that all methods are defined, also check to see
@@ -197,7 +212,8 @@ public class Constructor extends AnonymousConstructor {
                 objectDefinesAny = true;
             if (isNotADef(sf, too))
                 throw new ProgramError("Object " + cfn.stringName() +
-                        " does not define method " + sf.getString() + " declared in " + too.getName());
+                        " does not define method " + sf.getString() +
+                        " declared in " + too.getName());
         }
 
         // Plan to iterate over traits at instantiation, and form closures
@@ -211,9 +227,11 @@ public class Constructor extends AnonymousConstructor {
         // Count traits and create an array of trait types, so that
         // the constructor can build things without thinking.
         // int traitCount = traitsToMethodSets.size() + (objectDefinesAny ? 0 : 1);
-        int traitCount = traitsToNamesReferenced.size() + (objectDefinesAny ? 0 : 1);
+        int traitCount =
+            traitsToNamesReferenced.size() + (objectDefinesAny ? 0 : 1);
 
-        HashMap<FTraitOrObject, Integer> traitToIndex = new HashMap<FTraitOrObject, Integer> ();
+        HashMap<FTraitOrObject, Integer> traitToIndex =
+            new HashMap<FTraitOrObject, Integer> ();
 
         traitArray = new FTraitOrObject[traitCount];
         // The cast is really checking the erased type.
@@ -226,22 +244,24 @@ public class Constructor extends AnonymousConstructor {
             if (too != selfType) {
                 traitArray[trait_i] = too;
                 traitToIndex.put(too, Integer.valueOf(trait_i));
-                traitNameReferenceArray[trait_i] = traitsToNamesReferenced.get(too);
+                traitNameReferenceArray[trait_i] =
+                    traitsToNamesReferenced.get(too);
                 trait_i ++;
             }
         }
 
         /* At construction time,
           1) create an array of environments (one per trait)
-          2) iterate over the methods, and assign each of them the appropiate environment
-             to form closures, setting the results aside.
+          2) iterate over the methods, and assign each of them the appropiate 
+             environment to form closures, setting the results aside.
           3) then form any overloads necessary
           4) then iterate over the traits, binding names to method values.
          */
         int signatureCount = signaturesToTraitsContainingMethods.size()+1;
         methodsArray = new MethodClosure[signatureCount];
         closuresArray = new MethodClosure[signatureCount];
-        HashMap<MethodClosure, Integer> methodsIndex = new HashMap<MethodClosure, Integer> ();
+        HashMap<MethodClosure, Integer> methodsIndex =
+            new HashMap<MethodClosure, Integer> ();
 
         traitIndexForMethod = new int[signatureCount];
         overloadMembership = new int[signatureCount];
@@ -278,7 +298,8 @@ public class Constructor extends AnonymousConstructor {
             MethodClosure mc = (MethodClosure) sf;
             FTraitOrObject too = ent.getValue();
 
-            Set<MethodClosure> s = namesToSignatureSets.putItem(sf.getFnName(), mc);
+            Set<MethodClosure> s =
+                namesToSignatureSets.putItem(sf.getFnName(), mc);
             if (s.size() == 2)
                 overloadCount++;
             methodsArray[sig_i] = mc;
@@ -301,7 +322,8 @@ public class Constructor extends AnonymousConstructor {
                 new OverloadedMethod(ent.getKey(), s, getWithin());
 
                 for (MethodClosure m : s) {
-                    overloadMembership[methodsIndex.get(m).intValue() ] = overloadIndex;
+                    overloadMembership[methodsIndex.get(m).intValue() ] =
+                        overloadIndex;
                 }
                 overloadIndex++;
             }
@@ -310,7 +332,8 @@ public class Constructor extends AnonymousConstructor {
         // Experimental early computation of this information.
         for (int i = 1; i < methodsArray.length; i++) {
             // Closure cl = methodsArray[i].completeClosure(trait_envs[traitIndexForMethod[i]]);
-            MethodClosure cl = methodsArray[i]; // .completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
+            MethodClosure cl = methodsArray[i];
+            // .completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
             closuresArray[i] = cl;
         }
 
@@ -435,7 +458,8 @@ public class Constructor extends AnonymousConstructor {
     }
 
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    public FValue applyInner(
+            List<FValue> args, HasAt loc, BetterEnv envForInference) {
         BetterEnv lex_env = getWithin();
         return applyConstructor(args, loc, lex_env);
     }
@@ -446,12 +470,13 @@ public class Constructor extends AnonymousConstructor {
      * of object expressions.
      *
      */
-    public FValue applyConstructor(List<FValue> args, HasAt loc, BetterEnv lex_env) {
-        // Problem -- we need to detach self-com.sun.fortress.interpreter.env from other com.sun.fortress.interpreter.env.
+    public FValue applyConstructor(
+            List<FValue> args, HasAt loc, BetterEnv lex_env) {
+        // Problem -- we need to detach self-env from other env.
         BetterEnv self_env = buildEnvFromParams(args, loc);
 
 
-        // BuildEnvironments be = new BuildObjectEnvironment(com.sun.fortress.interpreter.env);
+        // BuildEnvironments be = new BuildObjectEnvironment(env);
 
         /* For each trait that supplies at least one method,
          * construct an environment based on the trait.  To that
@@ -511,7 +536,7 @@ public class Constructor extends AnonymousConstructor {
         // Evaluate any vars defined inline within the environment.
 
         // TODO, crap, we need to build an environment for those, too.
-        // This means we probably need to com.sun.fortress.interpreter.rewrite their field references
+        // This means we probably need to rewrite their field references
         // to "self", and be sure it is defined in there.
         // BUT! we have not "made an object yet".
 

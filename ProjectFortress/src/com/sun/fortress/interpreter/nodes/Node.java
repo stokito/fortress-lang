@@ -138,4 +138,10 @@ public abstract class Node implements HasAt {
         n.originalIfReplaced = n;
     }
 
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
+     */
+    public boolean isAFunctionalMethod() {
+        return false;
+    }
 }

@@ -131,4 +131,4 @@ public abstract class ObjectDefOrDecl extends Node implements Generic,
         return new UnitIterable<String>(stringName());
     }
 
-}
+ }

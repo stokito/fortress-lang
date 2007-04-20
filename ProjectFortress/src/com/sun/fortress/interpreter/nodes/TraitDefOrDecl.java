@@ -133,4 +133,6 @@ public abstract class TraitDefOrDecl extends Node implements Generic, HasWhere {
      * @return
      */
     abstract public List<? extends DefOrDecl> getFns();
+
+
 }

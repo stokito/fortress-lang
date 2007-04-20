@@ -54,6 +54,7 @@ import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Generic;
+import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -98,7 +99,10 @@ import com.sun.fortress.interpreter.useful.Voidoid;
  * 
  * The first pass, applied to a node that contains things (for example, a
  * component contains top-level declarations, a trait contains method
- * declrations) it creates entries for those things in the bindInto environment.
+ * declarations) it creates entries for those things in the bindInto
+ * environment.  In the top-level environment, traits and objects export
+ * the names and definitions for the functional methods that they contain.
+ * 
  * The bindings created are not complete after the first pass.
  * 
  * The second pass completes the type initialization. For contained things that
@@ -107,6 +111,7 @@ import com.sun.fortress.interpreter.useful.Voidoid;
  * first and second passes. This includes singleton object types.
  * 
  * The third pass initializes functions and methods; these may depend on types.
+ * The third pass must extract functional methods from traits and objects.
  * 
  * The fourth pass performs value initialization. These may depend on functions.
  * This includes singleton object values.
@@ -666,7 +671,21 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // doDefs(interior, defs);
             }
         }
+        
+        scanForFunctionalMethodNames(x, x.getDefs(), ft, fname);
 
+    }
+
+    private void scanForFunctionalMethodNames(
+            Node x,
+            List<? extends DefOrDecl> defs,
+            FType ft,
+            String fname) {
+        for (DefOrDecl dod : defs) {
+            if (dod.isAFunctionalMethod())  {
+                System.err.println("Functional method " + dod);
+            }
+        }
     }
 
     private void forObjectDecl2(ObjectDecl x) {
@@ -938,19 +957,24 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Option<List<TypeRef>> bounds;
         // List<WhereClause> where;
 
+        String fname = name.getName();
+        
         if (staticParams.isPresent()) {
             if (pass == 1) {
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
+                scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
             }
         } else {
             if (pass == 1) {
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
-
+                scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
             } 
         }
+      
+
     }
     private void forTraitDecl2(TraitDecl x) {
         // TODO Auto-generated method stub

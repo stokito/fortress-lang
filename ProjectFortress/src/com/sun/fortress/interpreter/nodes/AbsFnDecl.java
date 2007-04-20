@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
+import com.sun.fortress.interpreter.glue.WellKnownNames;
+
 // /
 // / and fn_decl = fn_decl_rec node
 // / and fn_decl_rec =
@@ -65,4 +67,16 @@ public class AbsFnDecl extends FnDefOrDecl implements Decl, AbsDecl, Applicable 
         return null;
     }
     
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
+     */
+    public boolean isAFunctionalMethod() {
+        for (Param p : params) {
+            Id id = p.getName();
+            if (WellKnownNames.defaultSelfName.equals(id.getName()))
+                return true;
+        }
+        return false;
+    }
+
 }
