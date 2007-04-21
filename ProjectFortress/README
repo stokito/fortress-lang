@@ -195,6 +195,9 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
+* Numerals with radix specifiers (which implies that some numerals may be
+  recognized as identifiers)
+
 * Unicode names
 
 * Apis
