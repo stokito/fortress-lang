@@ -23,8 +23,8 @@ run(args:String...):()=do
    needleLength = 20
    numRows = 10
    tableHeight = needleLength numRows
-   var hits : RR64 = 0.0
-   var n : RR64 = 0.0
+   var hits : RR64 := 0.0
+   var n : RR64 := 0.0
 
    println("Starting parallel Buffons")
    recordTime(6.0)

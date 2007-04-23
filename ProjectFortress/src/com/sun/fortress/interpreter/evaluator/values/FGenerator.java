@@ -62,7 +62,7 @@ public class FGenerator extends FValue {
 
     public boolean hasNext() { return iterator.hasNext();}
 
-    public boolean hasOne() { return iterator.hasOne();}
+    public boolean hasAtMostOne() { return iterator.hasAtMostOne();}
 
     public FGenerator firstHalf() {
 	return new FGenerator(id, range.firstHalf());

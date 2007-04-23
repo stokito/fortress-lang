@@ -1,0 +1,25 @@
+component emptyLoop
+export Executable
+
+run(args:String...):() = do
+  for i <- 0#0 do
+    fail("First i loop, i=" i)
+  end
+  for i <- 0#(-1) do
+    fail("Second i loop, i=" i)
+  end
+  for i <- (-1)#0 do
+    fail("Third i loop, i=" i)
+  end
+  for i <- (-1)#(-1) do
+    fail("Fourth i loop, i=" i)
+  end
+  for i <- 1#0 do
+    fail("First i loop, i=" i)
+  end
+  for i <- 1#(-1) do
+    fail("Second i loop, i=" i)
+  end
+end
+
+end

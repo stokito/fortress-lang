@@ -33,8 +33,8 @@ public class FRangeIterator implements Iterator {
 	return FInt.make(index++);
     }
 
-    public boolean hasOne() {
-	return index == range.getBase() + range.getSize() - 1;
+    public boolean hasAtMostOne() {
+	return index >= range.getBase() + range.getSize() - 1;
     }
 
     public void remove() {

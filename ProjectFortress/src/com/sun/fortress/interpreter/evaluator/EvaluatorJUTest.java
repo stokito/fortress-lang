@@ -282,7 +282,7 @@ public class EvaluatorJUTest extends TestCase {
 	assertTrue(second.getSize() > 0);
         assertTrue(first.getSize() + second.getSize() == 10);
 	assertTrue(iter.hasNext());
-	assertTrue(!iter.hasOne());
+	assertTrue(!iter.hasAtMostOne());
 	assertTrue(((FInt)iter.next()).getInt() == 1);
 	assertTrue(((FInt)iter.next()).getInt() == 2);
 	assertTrue(((FInt)iter.next()).getInt() == 3);
@@ -292,7 +292,7 @@ public class EvaluatorJUTest extends TestCase {
 	assertTrue(((FInt)iter.next()).getInt() == 7);
 	assertTrue(((FInt)iter.next()).getInt() == 8);
 	assertTrue(((FInt)iter.next()).getInt() == 9);
-	assertTrue(iter.hasOne());
+	assertTrue(iter.hasAtMostOne());
 	assertTrue(((FInt)iter.next()).getInt() == 10);
 	FRange test2 = new FRange(1, 11);
 	first = test2.firstHalf();

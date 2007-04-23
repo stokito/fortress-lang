@@ -32,7 +32,7 @@ public class ForLoopTask extends BaseTask {
     public void run() {
         initTask();
         try {
-            if (fgen.isSequential() || fgen.hasOne()) {
+            if (fgen.isSequential() || fgen.hasAtMostOne()) {
                 while (fgen.update(body, new Evaluator(eval, body))) {
               /* update does all the work. */
      	        }

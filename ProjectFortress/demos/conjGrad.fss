@@ -21,8 +21,8 @@ export Executable
 
 mkMatrix[\nat n\]() : RR64[n,n] = do
   (* We generate a symmetric positive-definite matrix by generating
-  a lower-triangular positive matrix and multiplying by its
-  transpose. *)
+     a lower-triangular positive matrix and multiplying by its
+     transpose. *)
   lambda_inv = - 4 n / log n
   rt2 = SQRT 2
   row(i:ZZ32):SparseVector[\RR64,n\] = do
@@ -82,14 +82,16 @@ end
  * along with the approximate cartesian error of the solution.  This
  * method is considered superior to LU decomposition when A is
  * sparse, symmetric, and positive-definite. *)
-conjGrad[\nat n, E extends Number\]
-        (A: E[n,n], x: E[n]): (E[n], RR64) = do
-  cgit = 25
-  z: E[n] := vector[\RR64,n\](0)
-  r: E[n] := x
-  rho: E := r DOT r
-  p: E[n] := r
-  for j <- seq(1#cgit) do
+conjGrad[\Elt extends Number, nat N,
+          Vec extends Vector[\E,N\],
+          Mat extends Matrix[\E,N,N\]\]
+        (A: Mat, x: Vec): (Vec, RR64) = do
+  cgit_max = 25
+  z: Vec := x.replica[\Elt\]().fill(0)
+  r: Vec := x
+  p: Vec := r
+  rho: Elt := r DOT r
+  for j <- seq(1#cgit_max) do
     q = A p
     alpha = rho / (p DOT q)
     z += alpha p
@@ -107,8 +109,8 @@ end
 
 run(args:String...):() = do
   testSparse(mkMatrix[\16\]())
-  A : RR64[50,50] = mkMatrix[\50\]()
-  v : RR64[50] = mkVector[\50\]()
+  A = mkMatrix[\50\]()
+  v = mkVector[\50\]()
   println(A)
   println("v" v)
   (s,e) = conjGrad[\50,RR64\](A,v)
