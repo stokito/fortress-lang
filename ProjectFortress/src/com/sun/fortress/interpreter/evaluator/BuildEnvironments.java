@@ -702,13 +702,14 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             FType ft,
             String fname) {
         for (DefOrDecl dod : defs) {
-            if (dod.selfParameterIndex() >= 0)  {
+            int spi = dod.selfParameterIndex();
+            if (spi >= 0)  {
                 // If it is a functional method, it is definitely a FnDefOrDecl
                 FnDefOrDecl fndod = (FnDefOrDecl) dod;
-                System.err.println("Functional method " + dod);
+                // System.err.println("Functional method " + dod);
                 String fndodname = rawName(fndod);
                 if (pass == 1) {
-                    Simple_fcn cl = new FunctionalMethod(containing, fndod);
+                    Simple_fcn cl = new FunctionalMethod(containing, fndod, spi);
                     // TODO test and other modifiers
                     bindInto.putValueShadowFn(fndodname, cl);
                 } else if (pass == 3) {
