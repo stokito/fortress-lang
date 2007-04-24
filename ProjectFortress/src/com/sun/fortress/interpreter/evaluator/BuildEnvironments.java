@@ -858,8 +858,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
+	int index = 0;
 
-        FValue init_value = new LazilyEvaluatedCell(init, containing);
         for (LValue lv : lhs) {
             if (lv instanceof LValueBind) {
                 LValueBind lvb = (LValueBind) lv;
@@ -872,7 +872,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     if (lvb.getMutable()) {
                         bindInto.putVariablePlaceholder(sname);
                     } else {
-                        putValue(bindInto, sname, init_value);
+                        FValue init_val;
+                        if (init instanceof TupleExpr) {
+                            init_val = new LazilyEvaluatedCell(
+                                      ((TupleExpr)init).getExprs().get(index++),
+                                      containing);
+                        } else {
+                            init_val = new LazilyEvaluatedCell(init, containing);
+                        }
+                        putValue(bindInto, sname, init_val);
                     }
                  } catch (ProgramError pe) {
                     pe.setWithin(bindInto);
@@ -904,6 +912,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
+	int index = 0;
 
         for (LValue lv : lhs) {
             if (lv instanceof LValueBind) {
@@ -918,7 +927,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                                 : null;
                         
                 if (lvb.getMutable()) {
-                    FValue value = (new Evaluator(containing)).eval(init); 
+                    Expr rhs;
+                    if (init instanceof TupleExpr) {
+                        rhs = ((TupleExpr)init).getExprs().get(index++);
+                    } else {
+                        rhs = init;
+                    }
+                    FValue value = (new Evaluator(containing)).eval(rhs);
                      
                     // TODO When new environment are created, need to insert
                     // into containing AND bindInto
