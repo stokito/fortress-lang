@@ -153,4 +153,9 @@ public abstract class NativeApp implements Applicable {
     public int applicableCompareTo( Applicable other) {
         return Useful.compareClasses(this, other);
      }
+    
+    public int selfParameterIndex() {
+        return -1;
+    }
+
 }

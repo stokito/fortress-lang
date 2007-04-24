@@ -91,5 +91,9 @@ class NativeApplicable implements Applicable {
         if (x != 0) return x;
         return fnName.name().compareTo(na.getFnName().name());
      }
+    
+    public int selfParameterIndex() {
+        return -1;
+    }
 
 }

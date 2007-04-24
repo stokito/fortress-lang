@@ -258,6 +258,16 @@ public class Useful {
         return result;
     }
 
+    public static <T> List<T> removeIndex(int i, List<T> y) {
+        int l = y.size();
+        if (i == 0) return y.subList(1,l);
+        if (i == l-1) return y.subList(0,l-1);
+        ArrayList<T> result = new ArrayList<T>(y.size()-1);
+        result.addAll(y.subList(0, i));
+        result.addAll(y.subList(i+1, l));
+        return result;
+    }
+
     public static <T,U> List<U> prependMapped(T x, List<T> y, Fn<T,U> f) {
         ArrayList<U> result = new ArrayList<U>(1 + y.size());
         result.add(f.apply(x));

@@ -30,7 +30,11 @@ public interface DefOrDecl extends HasAt {
 
     abstract public <T> T accept(NodeVisitor<T> v);
 
-    public boolean isAFunctionalMethod();
+        /**
+         * Returns the index of the 'self' parameter in the list,
+         * or -1 if it does not appear.
+         */
+    public int selfParameterIndex();
 }
 
 // / and def_or_decl =

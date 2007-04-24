@@ -141,7 +141,7 @@ public abstract class Node implements HasAt {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
      */
-    public boolean isAFunctionalMethod() {
-        return false;
+    public int selfParameterIndex() {
+        return -1;
     }
 }

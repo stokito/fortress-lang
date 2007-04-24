@@ -45,6 +45,9 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
     List<WhereClause> where;
 
     Contract contract;
+
+    private boolean isAFunctionalMethodKnown;
+    private int cachedSelfParameterIndex = -1;
     
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
@@ -181,6 +184,29 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
         return new UnitIterable<String>(stringName());
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
+     */
+    public int selfParameterIndex() {
+        if (!isAFunctionalMethodKnown) {
+            int i = 0;
+            for (Param p : params) {
+                Id id = p.getName();
+                if (WellKnownNames.defaultSelfName.equals(id.getName())) {
+                    cachedSelfParameterIndex = i;
+                    break;
+                }
+                i++;
+
+            }
+            isAFunctionalMethodKnown = true;
+        }
+        return cachedSelfParameterIndex;
+    }
+
+    
 }
 
 // / and fn_def_or_decl =

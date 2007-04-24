@@ -88,18 +88,5 @@ public class FnDecl extends FnDefOrDecl implements Decl, Applicable {
             return super.getSelfName();
         }
     }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
-     */
-    public boolean isAFunctionalMethod() {
-        for (Param p : params) {
-            Id id = p.getName();
-            if (WellKnownNames.defaultSelfName.equals(id.getName()))
-                return true;
-        }
-        return false;
-    }
-
  
 }

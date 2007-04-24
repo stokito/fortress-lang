@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Hasher;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class MethodClosure extends Closure implements Method {
@@ -54,6 +55,18 @@ public class MethodClosure extends Closure implements Method {
 
     String self;
 
+        /**
+         * Method values have this filtering applied to them.
+         * This is necessary to create proper fm$whatever methods
+         * to be called by the functional method wrapper.
+         */
+    protected List<Parameter> adjustParameterList(List<Parameter> params2) {
+        int i = getDef().selfParameterIndex();
+        if (i == -1)
+            return params2;
+        return  Useful.removeIndex(i, params2);
+    }
+    
     public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
         args = conditionallyUnwrapTupledArgs(args);
         // This is a little over-tricky.  In theory, all instances of objectExpr from the same

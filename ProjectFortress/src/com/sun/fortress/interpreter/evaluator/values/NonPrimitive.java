@@ -51,7 +51,7 @@ public abstract class NonPrimitive extends Simple_fcn {
         super(within);
     }
 
-    protected List<Parameter> params;
+    private List<Parameter> params;
 
     private boolean lastParamIsRest;
 
@@ -68,10 +68,17 @@ public abstract class NonPrimitive extends Simple_fcn {
             throw new IllegalStateException(
                     "Attempted second set of constructor/function/method params");
         }
+        
+        params = adjustParameterList(params);
+        
         this.params = params;
         lastParamIsRest = params.size() > 0
                 && (params.get(params.size() - 1).getType() instanceof FTypeRest);
         setValueType();
+    }
+
+    protected List<Parameter> adjustParameterList(List<Parameter> params2) {
+        return params2;
     }
 
     abstract protected void setValueType();

@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionSet;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
@@ -365,11 +366,31 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return new FGenericFunction(e, x);
     }
 
+    /**
+     * Normalizing method names for possible different versions.
+     * For example, a functional method xyzzy translates to fm$xyzzy
+     * in trait/method scope.
+     * 
+     * @param x
+     * @return
+     */
+    private String normalizedName(FnDefOrDecl x) {
+        String fname = rawName(x);
+        if (x.selfParameterIndex() >= 0)
+            fname = "fm$"+fname;
+        return fname;
+    }
+    
+    private String rawName(FnDefOrDecl x) {
+        FnName name = x.getFnName();
+        String fname = name.name();
+        
+        return fname;
+    }
     
     private void forFnDecl1(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        FnName name = x.getFnName();
-        String fname = name.name();
+        String fname = normalizedName(x);
 
         if (optStaticParams.isPresent()) {
             FValue cl = newGenericClosure(containing, x);
@@ -402,11 +423,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
    private void forFnDecl2(FnDecl x) {
       
-    }
+   }
    private void forFnDecl3(FnDecl x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-       FnName name = x.getFnName();
-       String fname = name.name();
+       String fname = normalizedName(x);
 
        if (optStaticParams.isPresent()) {
            // GENERIC
@@ -682,8 +702,28 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             FType ft,
             String fname) {
         for (DefOrDecl dod : defs) {
-            if (dod.isAFunctionalMethod())  {
+            if (dod.selfParameterIndex() >= 0)  {
+                // If it is a functional method, it is definitely a FnDefOrDecl
+                FnDefOrDecl fndod = (FnDefOrDecl) dod;
                 System.err.println("Functional method " + dod);
+                String fndodname = rawName(fndod);
+                if (pass == 1) {
+                    Simple_fcn cl = new FunctionalMethod(containing, fndod);
+                    // TODO test and other modifiers
+                    bindInto.putValueShadowFn(fndodname, cl);
+                } else if (pass == 3) {
+                    Fcn fcn = (Fcn) containing.getValue(fndodname);
+
+                    if (fcn instanceof Closure) {
+                        Closure cl = (Closure) fcn;
+                        cl.finishInitializing();
+                    } else if (fcn instanceof OverloadedFunction) {
+                        // TODO it is correct to do this here, though it won't work yet.
+                        OverloadedFunction og = (OverloadedFunction) fcn;
+                        og.finishInitializing();
+
+                    }
+                }
             }
         }
     }
@@ -704,6 +744,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) containing.getType(fname);
+                FValue xxx = containing.getValue(fname);
                 Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
             }
@@ -726,19 +767,21 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Option<List<Param>> params = x.getParams();
 
         String fname = name.getName();
-        FType ft;
+        FType ft = containing.getType(fname);
 
         if (params.isPresent()) {
+            
             if (staticParams.isPresent()) {
                 // Do nothing.
             } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                FTypeObject fto = (FTypeObject) ft;
                 Constructor cl = (Constructor) containing.getValue(fname);
                 List<Parameter> fparams = EvalType.paramsToParameters(
                         containing, params.getVal());
                 cl.setParams(fparams);
                 cl.finishInitializing();
             }
+           
         } else {
             // If there are no parameters, it is a singleton.
             // TODO -  Blindly assuming a non-generic singleton.
@@ -747,9 +790,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     .getValue(obfuscated(fname));
             cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
-           
-
-        }
+         }
+        scanForFunctionalMethodNames(x, x.getDefs(), ft, fname);
     }
     private void forObjectDecl4(ObjectDecl x) {
 
@@ -956,25 +998,26 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<TypeRef> excludes;
         // Option<List<TypeRef>> bounds;
         // List<WhereClause> where;
-
+        FType ft;
+        
         String fname = name.getName();
         
         if (staticParams.isPresent()) {
-            if (pass == 1) {
+           
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
                 scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
-            }
+           ft = ftg;
         } else {
-            if (pass == 1) {
+           
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
                 scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
-            } 
+           ft = ftt;
         }
       
-
+        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
     }
     private void forTraitDecl2(TraitDecl x) {
         // TODO Auto-generated method stub
@@ -998,7 +1041,12 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         }
     }
     private void forTraitDecl3(TraitDecl x) {
+        Id name = x.getName();
+        FType ft =  containing.getType(name.getName());
+        String fname = name.getName();
+        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
     }
+    
     private void forTraitDecl4(TraitDecl x) {
     }
 
@@ -1250,8 +1298,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        FnName name = x.getFnName();
-        String fname = name.name();
+        String fname = normalizedName(x);
 
         if (optStaticParams.isPresent()) {
             // GENERIC
@@ -1278,8 +1325,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        FnName name = x.getFnName();
-        String fname = name.name();
+        String fname = normalizedName(x);
 
         if (optStaticParams.isPresent()) {
             // GENERIC

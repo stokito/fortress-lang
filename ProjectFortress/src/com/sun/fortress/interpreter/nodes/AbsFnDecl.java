@@ -67,16 +67,5 @@ public class AbsFnDecl extends FnDefOrDecl implements Decl, AbsDecl, Applicable 
         return null;
     }
     
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
-     */
-    public boolean isAFunctionalMethod() {
-        for (Param p : params) {
-            Id id = p.getName();
-            if (WellKnownNames.defaultSelfName.equals(id.getName()))
-                return true;
-        }
-        return false;
-    }
-
+   
 }
