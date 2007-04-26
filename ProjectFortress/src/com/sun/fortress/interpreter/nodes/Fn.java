@@ -139,5 +139,10 @@ public class Fn extends ValueExpr implements Decl, Applicable {
         return getFnName().name().compareTo(na.getFnName().name());
        
      }
+    
+    public String nameAsMethod() {
+        return getFnName().name();
+    }
+
 
 }

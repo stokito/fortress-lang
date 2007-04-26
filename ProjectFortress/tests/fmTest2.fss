@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fmTest1
+export Executable
+
+opr OPLUS(x:ZZ32,y:ZZ32):ZZ32 = x+y
+opr OTIMES(x:ZZ32,y:ZZ32):ZZ32 = x*y
+
+object rat(i:ZZ32, j:ZZ32)
+
+  (* Not sure why, but "self.i" fails below *)
+  opr OPLUS(self, other:rat):rat = rat(i OPLUS other.i, j OPLUS other.j)
+  opr OTIMES(self, other:rat):rat = rat(i OTIMES other.i, j OTIMES other.j)
+  opr OTIMES(self, other:ZZ32):rat = rat(i OTIMES other, j OTIMES other)
+  (* this next is not called, but it makes for a tricky overloading *)
+  opr OTIMES(other:ZZ32, self):rat = rat(self.i OTIMES other, self.j OTIMES other)
+  toString():String = "(" i ", " j ")"
+  area():ZZ32 = i OTIMES j
+end
+
+run(args:String...):()=do
+  a:rat = rat(1,0)
+  println a.toString()
+  
+  b:rat = rat(0,1)
+  println b.toString()
+  
+  c = a OPLUS b
+  println c.toString()
+
+  d = c OTIMES (2 OTIMES 2)
+  println d.toString()
+  
+end
+
+end

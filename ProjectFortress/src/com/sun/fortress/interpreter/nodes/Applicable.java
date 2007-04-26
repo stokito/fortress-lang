@@ -43,5 +43,5 @@ public interface Applicable extends HasAt {
      */
     // TODO this appears in DefOrDecl as well; that seems wrong.
     public int selfParameterIndex();
-    
+    public String nameAsMethod();
 }

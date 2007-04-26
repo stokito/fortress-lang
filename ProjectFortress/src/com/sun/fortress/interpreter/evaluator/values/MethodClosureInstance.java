@@ -25,7 +25,11 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.useful.HasAt;
 
-
+/**
+ * A MethodClosureInstance is the result of instantiating an object generic method.
+ * Its environment is unusual.
+ * @author chase
+ */
 public class MethodClosureInstance extends MethodClosure  implements MethodInstance {
 
     GenericMethod generator;

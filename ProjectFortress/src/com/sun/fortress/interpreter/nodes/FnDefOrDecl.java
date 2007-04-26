@@ -48,6 +48,7 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
 
     private boolean isAFunctionalMethodKnown;
     private int cachedSelfParameterIndex = -1;
+    private volatile String asMethodName;
     
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
@@ -206,6 +207,21 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
         return cachedSelfParameterIndex;
     }
 
+    public String nameAsFunction() {
+        return name.name();
+    }
+    
+    public String nameAsMethod() {
+        if (asMethodName == null) {
+            int spi = selfParameterIndex();
+
+            if (spi >= 0)
+                asMethodName = "fm$" + spi + "$" + name.name();
+            else
+                asMethodName = name.name();
+        }
+        return asMethodName;
+    }
     
 }
 

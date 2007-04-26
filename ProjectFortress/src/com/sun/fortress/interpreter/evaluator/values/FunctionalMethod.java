@@ -43,8 +43,8 @@ public class FunctionalMethod extends Closure {
         // Not quite right
          FObject self = (FObject) args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
-        
-        FValue cl = self.getSelfEnv().getValueNull(getDef().getFnName().name());
+        String mname = getDef().nameAsMethod();
+        FValue cl = self.getSelfEnv().getValueNull(mname);
         
         // TODO need to common this up with other method dispatch in Evaluator
         

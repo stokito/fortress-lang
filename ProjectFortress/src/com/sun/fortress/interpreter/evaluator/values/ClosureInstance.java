@@ -23,7 +23,11 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 
-
+/**
+ * When a generic function is instantiated, the result is a closure instance,
+ * which is very much like a closure.
+ * @author chase
+ */
 public class ClosureInstance extends Closure {
 
     public ClosureInstance(BetterEnv e, Applicable fndef, List<FType> args, FGenericFunction generator) {

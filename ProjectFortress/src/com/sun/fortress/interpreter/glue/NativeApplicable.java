@@ -95,5 +95,9 @@ class NativeApplicable implements Applicable {
     public int selfParameterIndex() {
         return -1;
     }
+    public String nameAsMethod() {
+        return getFnName().name();
+    }
+
 
 }

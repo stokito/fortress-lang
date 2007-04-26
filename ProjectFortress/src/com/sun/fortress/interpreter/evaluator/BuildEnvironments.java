@@ -366,31 +366,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return new FGenericFunction(e, x);
     }
 
-    /**
-     * Normalizing method names for possible different versions.
-     * For example, a functional method xyzzy translates to fm$xyzzy
-     * in trait/method scope.
-     * 
-     * @param x
-     * @return
-     */
-    private String normalizedName(FnDefOrDecl x) {
-        String fname = rawName(x);
-        if (x.selfParameterIndex() >= 0)
-            fname = "fm$"+fname;
-        return fname;
-    }
-    
-    private String rawName(FnDefOrDecl x) {
-        FnName name = x.getFnName();
-        String fname = name.name();
-        
-        return fname;
-    }
+
     
     private void forFnDecl1(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = normalizedName(x);
+        String fname = x.nameAsMethod();
 
         if (optStaticParams.isPresent()) {
             FValue cl = newGenericClosure(containing, x);
@@ -426,7 +406,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
    }
    private void forFnDecl3(FnDecl x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-       String fname = normalizedName(x);
+       String fname = x.nameAsMethod();
 
        if (optStaticParams.isPresent()) {
            // GENERIC
@@ -707,7 +687,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // If it is a functional method, it is definitely a FnDefOrDecl
                 FnDefOrDecl fndod = (FnDefOrDecl) dod;
                 // System.err.println("Functional method " + dod);
-                String fndodname = rawName(fndod);
+                String fndodname = fndod.nameAsFunction();
                 if (pass == 1) {
                     Simple_fcn cl = new FunctionalMethod(containing, fndod, spi);
                     // TODO test and other modifiers
@@ -1314,7 +1294,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = normalizedName(x);
+        String fname = x.nameAsMethod();
 
         if (optStaticParams.isPresent()) {
             // GENERIC
@@ -1341,7 +1321,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = normalizedName(x);
+        String fname = x.nameAsMethod();
 
         if (optStaticParams.isPresent()) {
             // GENERIC

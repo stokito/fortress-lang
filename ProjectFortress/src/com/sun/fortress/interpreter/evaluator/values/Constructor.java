@@ -235,7 +235,7 @@ public class Constructor extends AnonymousConstructor {
 
         traitArray = new FTraitOrObject[traitCount];
         // The cast is really checking the erased type.
-        traitNameReferenceArray = (Set<FnName>[]) new Set[traitCount];
+        traitNameReferenceArray = (Set<String>[]) new Set[traitCount];
 
         traitArray[0] = selfType;
         traitToIndex.put(selfType, Integer.valueOf(0));
@@ -299,7 +299,7 @@ public class Constructor extends AnonymousConstructor {
             FTraitOrObject too = ent.getValue();
 
             Set<MethodClosure> s =
-                namesToSignatureSets.putItem(sf.getFnName(), mc);
+                namesToSignatureSets.putItem(sf.asMethodName(), mc);
             if (s.size() == 2)
                 overloadCount++;
             methodsArray[sig_i] = mc;
@@ -313,7 +313,7 @@ public class Constructor extends AnonymousConstructor {
         // then it is overloaded.  If a method is part of an overload,
         // record its membership in the overloadIndex array.
         int overloadIndex = 1;
-        for (Map.Entry<FnName, Set<MethodClosure>> ent:
+        for (Map.Entry<String, Set<MethodClosure>> ent:
             namesToSignatureSets.entrySet()) {
             Set<MethodClosure> s = ent.getValue();
             if (s.size() > 1) {
@@ -406,7 +406,7 @@ public class Constructor extends AnonymousConstructor {
                 NI.nyi("Don't handle " + fv + " yet");
             }
             // Record the name to ensure that it is defined somewhere.
-            traitsToNamesReferenced.putItem(ft, ((Fcn)fv).getFnName());
+            traitsToNamesReferenced.putItem(ft, ((Fcn)fv).asMethodName());
         }
     }
 
@@ -439,13 +439,13 @@ public class Constructor extends AnonymousConstructor {
     MultiMap<FTraitOrObject, Simple_fcn> traitsToMethodSets =
         new MultiMap<FTraitOrObject, Simple_fcn>();
 
-    MultiMap<FnName, MethodClosure> namesToSignatureSets =
-        new MultiMap<FnName, MethodClosure>();
+    MultiMap<String, MethodClosure> namesToSignatureSets =
+        new MultiMap<String, MethodClosure>();
 
-    MultiMap<FTraitOrObject, FnName> traitsToNamesReferenced =
-        new MultiMap<FTraitOrObject, FnName>();
+    MultiMap<FTraitOrObject, String> traitsToNamesReferenced =
+        new MultiMap<FTraitOrObject, String>();
 
-    Set<FnName>[] traitNameReferenceArray;
+    Set<String>[] traitNameReferenceArray;
     FTraitOrObject[] traitArray;
     MethodClosure[] methodsArray;
     MethodClosure[] closuresArray;
@@ -514,15 +514,15 @@ public class Constructor extends AnonymousConstructor {
                 OverloadedMethod of = overloads[j];
                 if (of == null) {
                     // Overload in self_env
-                    of = new OverloadedMethod(cl.getFnName(), self_env);
-                    self_env.putValue(cl.getFnName().name(), of);
+                    of = new OverloadedMethod(cl.asMethodName(), self_env);
+                    self_env.putValue(cl.asMethodName(), of);
                     overloads[j] = of;
                 }
                 of.addOverload(cl);
             } else {
                 // Assertion -- by construction, illegal shadowing won't occur,
                 // because it is processed/detected in the overloading code.
-                self_env.putValueUnconditionally(cl.getFnName().name(), cl);
+                self_env.putValueUnconditionally(cl.asMethodName(), cl);
             }
         }
 

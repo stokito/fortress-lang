@@ -26,6 +26,11 @@ import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
+/**
+ * A PartiallyDefinedMethodInstance is the result of instantiating a trait generic method.
+ * Its environment is unusual.
+ * @author chase
+ */
 public class PartiallyDefinedMethodInstance extends PartiallyDefinedMethod  implements MethodInstance {
 
     GenericMethod generator;

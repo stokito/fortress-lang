@@ -68,6 +68,26 @@ abstract public class Fcn extends FConstructedValue {
     }
 
     abstract public FnName getFnName();
+    
+    /**
+     * Returns the name if this "function" is regarded as a method.
+     * Ought to throw an exception if it cannot be a method.
+     * 
+     * @return
+     */
+    public String asMethodName() {
+        return getFnName().name();
+    }
+
+    /**
+     * Returns the name if this "function" is regarded as a function.
+     * Ought to throw an exception if it cannot be a function.
+     * 
+     * @return
+     */
+    public String asFunctionName() {
+        return getFnName().name();
+    }
 
     static boolean anyAreSymbolic(List<FType> args) {
         for (FType t : args)

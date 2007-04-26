@@ -103,5 +103,14 @@ public class MethodClosure extends Closure implements Method {
 
     };
 
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.evaluator.values.Fcn#asMethodName()
+     */
+    @Override
+    public String asMethodName() {
+        // TODO Auto-generated method stub
+        return getDef().nameAsMethod();
+    }
+
 
 }
