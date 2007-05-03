@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-abstract public class Simple_fcn extends Fcn {
+abstract public class Simple_fcn extends SingleFcn {
     Simple_fcn(BetterEnv within) {
         super(within);
     }
@@ -37,11 +37,7 @@ abstract public class Simple_fcn extends Fcn {
 
     abstract public List<FType> getDomain();
 
-    public boolean argCountIsWrong(List<FValue> args) {
-        return args.size() != getDomain().size();
-    }
-
-    /**
+   /**
      * Returns can-this-function-be-called-now.
      * That is, does the function have all its types assigned?
      * @return

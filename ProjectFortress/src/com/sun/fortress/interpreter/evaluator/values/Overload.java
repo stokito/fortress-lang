@@ -41,7 +41,7 @@ public class Overload implements Comparable, HasAt {
         return fn.toString();
     }
 
-    public Overload(Simple_fcn fn) {
+    public Overload(SingleFcn fn) {
         this.fn = fn;
     }
 
@@ -50,14 +50,14 @@ public class Overload implements Comparable, HasAt {
     /**
      * @param fn The fn to set.
      */
-    public void setFn(Simple_fcn fn) {
+    public void setFn(SingleFcn fn) {
         this.fn = fn;
     }
 
     /**
      * @return Returns the fn.
      */
-    public Simple_fcn getFn() {
+    public SingleFcn getFn() {
         return fn;
     }
 
@@ -70,7 +70,7 @@ public class Overload implements Comparable, HasAt {
 
 
 
-    private Simple_fcn fn;
+    private SingleFcn fn;
 
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)

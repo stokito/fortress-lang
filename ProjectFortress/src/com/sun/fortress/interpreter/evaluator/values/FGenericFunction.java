@@ -38,9 +38,26 @@ import com.sun.fortress.interpreter.useful.Memo1P;
 import com.sun.fortress.interpreter.useful.NI;
 
 
-public class FGenericFunction extends Fcn
+public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
+     */
+    @Override
+    String at() {
+        return fndef.at();
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
+     */
+    @Override
+    public List<FType> getDomain() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.FValue#getString()

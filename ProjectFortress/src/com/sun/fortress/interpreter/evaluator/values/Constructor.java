@@ -128,10 +128,10 @@ public class Constructor extends AnonymousConstructor {
 
     public void finishInitializing(BetterEnv bte) {
 
-        GHashMap<Simple_fcn, FTraitOrObject>
+        GHashMap<SingleFcn, FTraitOrObject>
             signaturesToTraitsContainingMethods =
-                new GHashMap<Simple_fcn, FTraitOrObject>(
-                         Simple_fcn.signatureEquivalence);
+                new GHashMap<SingleFcn, FTraitOrObject>(
+                         SingleFcn.signatureEquivalence);
 
         MultiMap<String, GenericMethod> generics =
             new MultiMap<String, GenericMethod>();
@@ -178,7 +178,7 @@ public class Constructor extends AnonymousConstructor {
 
             Applicable ap = g.getDef();
             List<FType> instantiationTypes =
-                GenericMethodSet.createSymbolicInstantiation(bte, ap, getAt());
+                SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
             genericArgs.put(s, instantiationTypes);
         }
 
@@ -202,10 +202,10 @@ public class Constructor extends AnonymousConstructor {
         // Check that all methods are defined, also check to see
         // if the object defines any of them.
         boolean objectDefinesAny = false;
-        for (Map.Entry<Simple_fcn, FTraitOrObject> ent :
-                 (Set<Map.Entry<Simple_fcn, FTraitOrObject>>)
+        for (Map.Entry<SingleFcn, FTraitOrObject> ent :
+                 (Set<Map.Entry<SingleFcn, FTraitOrObject>>)
                      signaturesToTraitsContainingMethods.entrySet()) {
-            Simple_fcn sf = ent.getKey();
+            SingleFcn sf = ent.getKey();
             FTraitOrObject too = ent.getValue();
 
             if (too instanceof FTypeObject)
@@ -273,20 +273,20 @@ public class Constructor extends AnonymousConstructor {
         // and trait index.
         int sig_i = 1;
 
-        for (Map.Entry<Simple_fcn, FTraitOrObject> ent :
-            (Set<Map.Entry<Simple_fcn, FTraitOrObject>>)
+        for (Map.Entry<SingleFcn, FTraitOrObject> ent :
+            (Set<Map.Entry<SingleFcn, FTraitOrObject>>)
             signaturesToTraitsContainingMethods.entrySet()) {
 
-            Simple_fcn sf = ent.getKey();
+            SingleFcn sf = ent.getKey();
             /*
              * This is a moderate hack.  Because the methods for any
              * particular trait must obey the overloading rules individually,
              * overloaded things also get bound "as methods".  However, the
              * the rules for binding methods to actual objects behave as-if the
              * overloaded method is dismantled and separately overridden.  To
-             * take advantage of the Simple_fcn-specific machinery in
+             * take advantage of the SingleFcn-specific machinery in
              * OverloadedFunctions, the type signature of the "early" data
-             * structures in this process allow Simple_fcn's to appear, but
+             * structures in this process allow SingleFcn's to appear, but
              * now (right here) they had better be gone.
              *
              */
@@ -347,7 +347,7 @@ public class Constructor extends AnonymousConstructor {
       * @param too
       * @return
       */
-    private boolean isNotADef(Simple_fcn sf, FTraitOrObject too) {
+    private boolean isNotADef(SingleFcn sf, FTraitOrObject too) {
         if (too instanceof FTypeObject) return false;
         if (sf instanceof MethodClosure) {
             MethodClosure pdm = (MethodClosure) sf;
@@ -371,7 +371,7 @@ public class Constructor extends AnonymousConstructor {
      * @param e
      */
     private void accumulateEnvMethods(
-            GHashMap<Simple_fcn, FTraitOrObject> signaturesToTraitsContainingMethods,
+            GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods,
             MultiMap<String, GenericMethod> generics,
             Map<String, List<FType>> genericArgs, FTraitOrObject ft, BetterEnv e) {
         for (String s : e) {
@@ -383,7 +383,7 @@ public class Constructor extends AnonymousConstructor {
                 List<Overload> overloads = ((OverloadedFunction) fv)
                         .getOverloads();
                 for (Overload ov : overloads) {
-                    Simple_fcn sfcn = ov.getFn();
+                    SingleFcn sfcn = ov.getFn();
                     // extract below as method, call it here.
                     signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
                 }
@@ -436,8 +436,8 @@ public class Constructor extends AnonymousConstructor {
     FnName cfn;
     List<? extends DefOrDecl> defs;
 
-    MultiMap<FTraitOrObject, Simple_fcn> traitsToMethodSets =
-        new MultiMap<FTraitOrObject, Simple_fcn>();
+    MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
+        new MultiMap<FTraitOrObject, SingleFcn>();
 
     MultiMap<String, MethodClosure> namesToSignatureSets =
         new MultiMap<String, MethodClosure>();

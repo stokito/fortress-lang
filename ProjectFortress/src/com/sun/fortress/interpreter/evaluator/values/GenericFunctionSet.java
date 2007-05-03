@@ -47,8 +47,8 @@ public class GenericFunctionSet extends
     }
 
     OverloadedFunction oaf = null;
-    BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
-        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
+    BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
+        new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
 
     public OverloadedFunction getOverloadSymbolicFunction() {
         return oaf;
@@ -67,7 +67,7 @@ public class GenericFunctionSet extends
             Set<FGenericFunction> fns = getMethods();
             Applicable app = getAnApplicable();
             List<FType> iTypes =
-                createSymbolicInstantiation(getWithin(), app, app);
+                SingleFcn.createSymbolicInstantiation(getWithin(), app, app);
             this.oaf = instantiateOverloaded(fns, app.getFnName(), app, iTypes);
         }
     }
@@ -121,7 +121,7 @@ public class GenericFunctionSet extends
     public FValue applyInner(List<FValue> args, HasAt loc,
             BetterEnv envForInference) {
         
-        Simple_fcn best = cache.get(args);
+        SingleFcn best = cache.get(args);
         
         if (best == null) {
             best = inferAnInstance(args, loc, envForInference);
@@ -138,17 +138,17 @@ public class GenericFunctionSet extends
      * @return
      * @throws ProgramError
      */
-    private Simple_fcn inferAnInstance(List<FValue> args, HasAt loc, BetterEnv envForInference) throws ProgramError {
+    private SingleFcn inferAnInstance(List<FValue> args, HasAt loc, BetterEnv envForInference) throws ProgramError {
         final boolean TRACE = false;
             // I've inserted this code twice to find bugs - Jan
         OverloadedFunction oaf = getOverloadSymbolicFunction();
         List<Overload> ols = oaf.getOverloads();
-        Simple_fcn best = null;
+        SingleFcn best = null;
         List<FType> best_params = null;
         Evaluator ev = new Evaluator(envForInference);
         if (TRACE) System.err.println("applyInner "+this);
         for (Overload o : ols) {
-            Simple_fcn f = o.getFn();
+            SingleFcn f = o.getFn();
             if (f instanceof ClosureInstance) {
                 ClosureInstance ci = (ClosureInstance) f;
                 FGenericFunction gf = ci.getGenerator();

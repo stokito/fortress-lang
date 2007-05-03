@@ -42,8 +42,8 @@ public class OverloadedFunction extends Fcn {
     protected boolean finishedSecond = false;
     protected FnName fnName;
 
-    BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
-        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
+    BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
+        new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
 
     public String getString() {
 
@@ -82,7 +82,7 @@ public class OverloadedFunction extends Fcn {
             return;
 
         for (Overload ol : getOverloads()) {
-            Simple_fcn sfcn = ol.getFn();
+            SingleFcn sfcn = ol.getFn();
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
                 if (! cl.getFinished())
@@ -255,7 +255,7 @@ public class OverloadedFunction extends Fcn {
      * @param f1
      */
     private String parameterName(int i, Overload o) {
-        Simple_fcn f1 = o.getFn();
+        SingleFcn f1 = o.getFn();
         String s1;
         if (f1 instanceof NonPrimitive) {
             NonPrimitive np = (NonPrimitive) f1;
@@ -317,7 +317,7 @@ public class OverloadedFunction extends Fcn {
         finishInitializingSecondPart();
     }
 
-    public void addOverload(Simple_fcn fn) {
+    public void addOverload(SingleFcn fn) {
 //        if (finishedFirst && !fn.getFinished())
 //            throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
         addOverload(new Overload(fn));
@@ -347,7 +347,7 @@ public class OverloadedFunction extends Fcn {
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
        
-        Simple_fcn best_f = cache.get(args);
+        SingleFcn best_f = cache.get(args);
         
         if (best_f == null) {
             int best = bestMatchIndex(args);
