@@ -221,10 +221,10 @@ end
 
 single_R(val:ZZ32,  left:Tree, right:Tree):Node = do
    b = val
-   a = right.getVal()
-   x = right.getLeftChild()
-   y = right.getRightChild()
-   z = left
+   a = left.getVal()
+   x = left.getLeftChild()
+   y = left.getRightChild()
+   z = right
    Node(a,x,Node(b,y,z))
 end
 
