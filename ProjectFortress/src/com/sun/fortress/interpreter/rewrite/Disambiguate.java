@@ -227,7 +227,7 @@ public class Disambiguate extends Rewrite {
                 FTypeObject fto = new FTypeObject(name, e, oe);
                 e.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, e, oe);
-                Constructor con = new Constructor(e, fto, oe, new Fun(name), oe.getDefs());
+                Constructor con = new Constructor(e, fto, oe, new Fun(name), oe.getDefOrDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 e.putValue(name, con);
                 con.finishInitializing();
@@ -390,7 +390,7 @@ public class Disambiguate extends Rewrite {
                     // all the methods coming from traits are no longer
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     ObjectExpr oe = (ObjectExpr) node;
-                    List<? extends DefOrDecl> defs = oe.getDefs();
+                    List<? extends DefOrDecl> defs = oe.getDefOrDecls();
                     Option<List<TypeRef>> xtends = oe.getTraits();
                     // TODO wip
 
@@ -440,7 +440,7 @@ public class Disambiguate extends Rewrite {
                     // extended traits
                     // are mapped to "self".
                     ObjectDecl od = (ObjectDecl) node;
-                    List<? extends DefOrDecl> defs = od.getDefs();
+                    List<? extends DefOrDecl> defs = od.getDefOrDecls();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
                     Option<List<TypeRef>> xtends = od.getTraits();

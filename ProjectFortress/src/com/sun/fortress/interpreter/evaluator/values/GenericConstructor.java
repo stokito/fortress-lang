@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.nodes.GenericDefWithParams;
+import com.sun.fortress.interpreter.nodes.GenericDefOrDeclWithParams;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticArg;
@@ -42,14 +42,14 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
 
         public Constructor make(List<FType> args, HasAt within) {
             // Use the generic type to make the specific type
-            FTypeGeneric gt = (FTypeGeneric) env.getType(odef.stringName());
+            FTypeGeneric gt = (FTypeGeneric) env.getType(odefOrDecl.stringName());
             FTypeObject ft = (FTypeObject) gt.make(args, within);
 
             // Use the augmented environment from the specific type.
             BetterEnv clenv = ft.getEnv();
 
             // Build the constructor
-            Option<List<Param>> params = odef.getParams();
+            Option<List<Param>> params = odefOrDecl.getParams();
             List<Parameter> fparams =
                 EvalType.paramsToParameters(clenv, params.getVal());
 
@@ -67,21 +67,21 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
         return memo.make(l, within);
     }
 
-    public GenericConstructor(Environment env, GenericDefWithParams odef) {
+    public GenericConstructor(Environment env, GenericDefOrDeclWithParams odefOrDecl) {
         this.env = env;
-        this.odef = odef;
+        this.odefOrDecl = odefOrDecl;
 
     }
 
   Environment env;
-  GenericDefWithParams odef;
+  GenericDefOrDeclWithParams odefOrDecl;
 
-  public GenericDefWithParams getDef() {
-      return odef;
+  public GenericDefOrDeclWithParams getDefOrDecl() {
+      return odefOrDecl;
   }
 
   public String getString() {
-      return odef.toString();
+      return odefOrDecl.toString();
   }
 
   /**
@@ -91,14 +91,14 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
    * @return
    */
   protected Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {
-      Constructor cl = new Constructor(clenv, objectType, odef);
+      Constructor cl = new Constructor(clenv, objectType, odefOrDecl);
       cl.setParams(objectParams);
       cl.finishInitializing();
       return cl;
   }
 
   public FValue typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
-    List<StaticParam> params = odef.getStaticParams().getVal();
+    List<StaticParam> params = odefOrDecl.getStaticParams().getVal();
 
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {

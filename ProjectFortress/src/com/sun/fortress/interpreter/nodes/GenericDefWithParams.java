@@ -17,6 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public interface GenericDefWithParams extends GenericDef, HasParams {
+public interface GenericDefWithParams extends GenericDef, GenericDefOrDeclWithParams {
 
 }

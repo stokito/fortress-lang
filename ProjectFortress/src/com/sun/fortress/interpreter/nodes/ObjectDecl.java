@@ -48,7 +48,8 @@ public class ObjectDecl extends ObjectDefOrDecl implements GenericDefWithParams 
     /**
      * @return Returns the defs.
      */
-    public List<? extends DefOrDecl> getDefs() {
+    @Override
+    public List<? extends DefOrDecl> getDefOrDecls() {
         return defs;
     }
 

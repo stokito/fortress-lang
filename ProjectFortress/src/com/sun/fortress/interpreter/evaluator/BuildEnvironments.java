@@ -72,12 +72,14 @@ import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.Modifier;
+import com.sun.fortress.interpreter.nodes.ObjectDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TightJuxt;
+import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
 import com.sun.fortress.interpreter.nodes.TraitDecl;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.TypeAlias;
@@ -95,43 +97,43 @@ import com.sun.fortress.interpreter.useful.Voidoid;
 
 /**
  * This comment is not yet true; it is a goal.
- * 
+ *
  * BuildEnvironments is a multiple-pass visitor pattern.
- * 
+ *
  * The first pass, applied to a node that contains things (for example, a
  * component contains top-level declarations, a trait contains method
  * declarations) it creates entries for those things in the bindInto
  * environment.  In the top-level environment, traits and objects export
  * the names and definitions for the functional methods that they contain.
- * 
+ *
  * The bindings created are not complete after the first pass.
- * 
+ *
  * The second pass completes the type initialization. For contained things that
  * have internal structure (e.g., a trait within a top level list) this may
  * require a recursive visit, but with a newly allocated environment running its
  * first and second passes. This includes singleton object types.
- * 
+ *
  * The third pass initializes functions and methods; these may depend on types.
  * The third pass must extract functional methods from traits and objects.
- * 
+ *
  * The fourth pass performs value initialization. These may depend on functions.
  * This includes singleton object values.
- * 
+ *
  * The evaluation order is slightly relaxed to make the interpreter tractable;
  * value cells (and variable cells?) are initialized with thunks. (How do we
  * thunk a singleton object?)
- * 
+ *
  * It may be necessary to thunk the types as well; this is not yet entirely
  * clear because the type system is so complex. Because types already contain
  * references to their defining environment, this may proceed in an ad-hoc
  * fashion with lazy memoization.
- * 
+ *
  * Note that not all passes are required in all contexts; only the top level has
  * the combination of types, functions, variables, and unordered access.
  * Different initializations are assigned to different (numbered) passes so that
  * environment building in some contexts can skip passes (for example, skip the
  * type pass in any non-top-level environment).
- * 
+ *
  */
 public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
@@ -163,7 +165,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         assertPass(3);
         pass = 4;
     }
-    
+
     public void visit(CompilationUnit n) {
         acceptNode(n);
     }
@@ -196,7 +198,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     public BetterEnv getEnvironment() {
         return containing;
     }
-    
+
     static Closure instantiate(FGenericFunction x) {
         return null;
     }
@@ -211,7 +213,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forApi(com.sun.fortress.interpreter.nodes.Api)
      */
     @Override
@@ -219,9 +221,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         List<? extends DefOrDecl> decls = x.getDecls();
 
         switch (pass) {
-        case 1: 
-        case 2: 
-        case 3: 
+        case 1:
+        case 2:
+        case 3:
         case 4: doDefs(this, decls);break;
         }
        return null;
@@ -238,9 +240,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         List<? extends DefOrDecl> defs = x.getDefs();
         switch (pass) {
         case 1: forComponent1(x); break;
-        
-        case 2: 
-        case 3: 
+
+        case 2:
+        case 3:
         case 4: doDefs(this, defs);break;
         }
        return null;
@@ -271,7 +273,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             inner.acceptNode(def);
         }
     }
-    
+
     protected void doDefs(List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
             acceptNode(def);
@@ -290,11 +292,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             List<? extends DefOrDecl> defs, Set<String> fields) {
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, fields);
-        
+
         inner.doDefs1234(defs);
 
     }
-    
+
     public void doDefs1234(List<? extends DefOrDecl> defs) {
         doDefs(defs);
         doDefs234(defs);
@@ -367,7 +369,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
 
-    
+
     private void forFnDecl1(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = x.nameAsMethod();
@@ -402,7 +404,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
    private void forFnDecl2(FnDecl x) {
-      
+
    }
    private void forFnDecl3(FnDecl x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
@@ -446,10 +448,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
   }
    private void forFnDecl4(FnDecl x) {
    }
-   
+
  /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
      */
     @Override
@@ -615,7 +617,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<TypeRef> throws_;
         // List<WhereClause> where;
         // Contract contract;
-        // List<Decl> defs = x.getDefs();
+        // List<Decl> defs = x.getDefOrDecls();
         String fname = name.getName();
         FType ft;
         ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
@@ -653,9 +655,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // visit
                 // the interior environment.
                 // BetterEnv interior = new SpineEnv(e, x);
-                
+
                 // TODO - binding into "containing", or "bindInto"?
-                
+
                 Constructor cl = new Constructor(containing, (FTypeObject) ft,
                         x);
                 guardedPutValue(containing, obfuscated(fname), cl, x);
@@ -667,12 +669,12 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                         new VoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, sname, init_value);
-                
+
                 // doDefs(interior, defs);
             }
         }
-        
-        scanForFunctionalMethodNames(x, x.getDefs(), ft, fname);
+
+        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
 
     }
 
@@ -710,7 +712,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
     private void forObjectDecl2(ObjectDecl x) {
-      
+
         BetterEnv e = containing;
         Id name = x.getName();
 
@@ -733,7 +735,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             // If there are no parameters, it is a singleton.
             // Not clear we can evaluate it yet.
             FTypeObject fto = (FTypeObject) containing.getType(fname);
-            
+
             finishObjectTrait(x, fto);
 
         }
@@ -751,7 +753,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         FType ft = containing.getType(fname);
 
         if (params.isPresent()) {
-            
+
             if (staticParams.isPresent()) {
                 // Do nothing.
             } else {
@@ -762,17 +764,17 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 cl.setParams(fparams);
                 cl.finishInitializing();
             }
-           
+
         } else {
             // If there are no parameters, it is a singleton.
             // TODO -  Blindly assuming a non-generic singleton.
-            
+
             Constructor cl = (Constructor) containing
                     .getValue(obfuscated(fname));
             cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
          }
-        scanForFunctionalMethodNames(x, x.getDefs(), ft, fname);
+        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
     }
     private void forObjectDecl4(ObjectDecl x) {
 
@@ -784,24 +786,24 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         String fname = name.getName();
 
         if (params.isPresent()) {
-            
+
         } else {
             // TODO - Blindly assuming a non-generic singleton.
             // TODO - Need to insert the name much, much, earlier; this is too late.
-            
+
             String sname = name.getName();
             FValue value = bindInto.getValue(sname);
-            
+
 //            Constructor cl = (Constructor) containing
 //                    .getValue(obfuscated(fname));
-//            
+//
 //            guardedPutValue(containing, fname, cl.apply(java.util.Collections
 //                    .<FValue> emptyList(), x, e), x);
 
         }
     }
-            
-    
+
+
     private String obfuscated(String fname) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
@@ -809,7 +811,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDef(com.sun.fortress.interpreter.nodes.VarDecl)
      */
     @Override
@@ -881,7 +883,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     private void forVarDecl3(VarDecl x) {
 
-       
+
     }
 
     private void forVarDecl4(VarDecl x) {
@@ -905,7 +907,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 FType ft = type.isPresent() ?
                         (new EvalType(containing)).evalType(type.getVal())
                                 : null;
-                        
+
                 if (lvb.getMutable()) {
                     Expr rhs;
                     if (init instanceof TupleExpr) {
@@ -914,10 +916,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                         rhs = init;
                     }
                     FValue value = (new Evaluator(containing)).eval(rhs);
-                     
+
                     // TODO When new environment are created, need to insert
                     // into containing AND bindInto
-                    
+
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
@@ -953,23 +955,79 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
      */
     @Override
     public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+        switch (pass) {
+        case 1: forAbsTraitDecl1(x); break;
+        case 2: forAbsTraitDecl2(x); break;
+        case 3: forAbsTraitDecl3(x); break;
+        case 4: forAbsTraitDecl4(x); break;
+        }
+       return null;
+    }
+    private void forAbsTraitDecl1(AbsTraitDecl x) {
         // TODO Auto-generated method stub
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        // Id name;
-        // Option<List<StaticParam>> staticParams;
-        // Option<List<TypeRef>> extends_;
+        Id name = x.getName();
         // List<TypeRef> excludes;
         // Option<List<TypeRef>> bounds;
-        // List<WhereClause> wheres;
-        // List<AbsFnDecl> fns;
+        // List<WhereClause> where;
+        FType ft;
 
-        return super.forAbsTraitDecl(x);
+        String fname = name.getName();
+
+        if (staticParams.isPresent()) {
+
+                FTypeGeneric ftg = new FTypeGeneric(containing, x);
+                guardedPutType(name.getName(), ftg, x);
+                scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
+           ft = ftg;
+        } else {
+
+                BetterEnv interior = containing; // new BetterEnv(containing, x);
+                FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
+                guardedPutType(name.getName(), ftt, x);
+                scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
+           ft = ftt;
+        }
+
+        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
     }
+    private void forAbsTraitDecl2(AbsTraitDecl x) {
+        // TODO Auto-generated method stub
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        // List<Modifier> mods;
+        Id name = x.getName();
+        // List<TypeRef> excludes;
+        // Option<List<TypeRef>> bounds;
+        // List<WhereClause> where;
+
+        if (staticParams.isPresent()) {
+
+        } else {
+           {
+                FTypeTrait ftt = (FTypeTrait) containing
+                        .getType(name.getName());
+                BetterEnv interior = ftt.getEnv();
+                finishTrait(x, ftt, interior);
+
+            }
+        }
+    }
+    private void forAbsTraitDecl3(AbsTraitDecl x) {
+        Id name = x.getName();
+        FType ft =  containing.getType(name.getName());
+        String fname = name.getName();
+        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
+    }
+
+    private void forAbsTraitDecl4(AbsTraitDecl x) {
+    }
+
 
     /*
      * (non-Javadoc)
@@ -995,24 +1053,24 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Option<List<TypeRef>> bounds;
         // List<WhereClause> where;
         FType ft;
-        
+
         String fname = name.getName();
-        
+
         if (staticParams.isPresent()) {
-           
+
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
                 scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
            ft = ftg;
         } else {
-           
+
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
                 scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
            ft = ftt;
         }
-      
+
         scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
     }
     private void forTraitDecl2(TraitDecl x) {
@@ -1025,7 +1083,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<WhereClause> where;
 
         if (staticParams.isPresent()) {
-            
+
         } else {
            {
                 FTypeTrait ftt = (FTypeTrait) containing
@@ -1042,7 +1100,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         String fname = name.getName();
         scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
     }
-    
+
     private void forTraitDecl4(TraitDecl x) {
     }
 
@@ -1051,7 +1109,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      * @param ftt
      * @param interior
      */
-    public void finishTrait(TraitDecl x, FTypeTrait ftt, BetterEnv interior) {
+    public void finishTrait(TraitDefOrDecl x, FTypeTrait ftt, BetterEnv interior) {
         Option<List<TypeRef>> extends_ = x.getExtends_();
         interior = new BetterEnv(interior, x);
 
@@ -1066,7 +1124,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 
     }
-    
+
 
     /**
      * Processes a list of where clauses,
@@ -1150,7 +1208,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return et;
     }
 
-    public void finishObjectTrait(ObjectDecl x, FTypeObject ftt) {
+    public void finishObjectTrait(ObjectDefOrDecl x, FTypeObject ftt) {
         Option<List<TypeRef>> extends_ = x.getTraits();
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
@@ -1237,7 +1295,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return null;
     }
 
-    
+
 
     /*
      * (non-Javadoc)
@@ -1292,26 +1350,26 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
     private void forAbsFnDecl1(AbsFnDecl x) {
 
-        
+
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = x.nameAsMethod();
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-           
+
                 // TODO same treatment as regular functions.
                 FValue cl = newGenericClosure(containing, x);
                 // LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
                 bindInto.putValueShadowFn(fname, cl);
-           
+
 
         } else {
             // NOT GENERIC
-           
+
                 Simple_fcn cl = newClosure(containing, x);
                 // LINKER putOrOverloadOrShadow(x, containing, name, cl);
                 bindInto.putValueShadowFn(fname, cl);
-            
+
         }
 
     }
@@ -1319,17 +1377,17 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
     private void forAbsFnDecl3(AbsFnDecl x) {
 
-        
+
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = x.nameAsMethod();
 
         if (optStaticParams.isPresent()) {
             // GENERIC
-           
+
 
         } else {
             // NOT GENERIC
-            
+
                 Fcn fcn = (Fcn) containing.getValue(fname);
 
                 if (fcn instanceof Closure) {
@@ -1347,7 +1405,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     og.finishInitializing();
 
                 }
-            
+
         }
 
     }
@@ -1357,24 +1415,118 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
      */
     @Override
     public Voidoid forAbsObjectDecl(AbsObjectDecl x) {
-        // I think Decls are a no-op in the interpreter.
+        switch (pass) {
+        case 1: forAbsObjectDecl1(x); break;
+        case 2: forAbsObjectDecl2(x); break;
+        case 3: forAbsObjectDecl3(x); break;
+        case 4: forAbsObjectDecl4(x); break;
+        }
+       return null;
+    }
+    private void forAbsObjectDecl1(AbsObjectDecl x) {
         // List<Modifier> mods;
-        //
-        // Id name;
-        //
-        // Option<List<StaticParam>> staticParams;
-        // Option<List<Param>> params;
-        //        Option<List<TypeRef>> traits;
-        //        List<TypeRef> throws_;
-        //        List<WhereClause> where;
-        //        Contract contract;
-        //        List<AbsDecl> decls;
-        // TODO Auto-generated method stub
-        return null;
+
+        BetterEnv e = containing;
+        Id name = x.getName();
+
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        Option<List<Param>> params = x.getParams();
+
+        // List<TypeRef> throws_;
+        // List<WhereClause> where;
+        // Contract contract;
+        // List<Decl> defs = x.getDefOrDecls();
+        String fname = name.getName();
+        FType ft;
+        ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
+                : new FTypeObject(fname, e, x);
+
+        // Need to check for overloaded constructor.
+
+        guardedPutType(fname, ft, x);
+
+        if (params.isPresent()) {
+            if (staticParams.isPresent()) {
+                // A generic, not yet a constructor
+                GenericConstructor gen = new GenericConstructor(e, x);
+                guardedPutValue(containing, fname, gen, x);
+            } else {
+                // TODO need to deal with constructor overloading.
+
+                // If parameters are present, it is really a constructor
+                // BetterEnv interior = new SpineEnv(e, x);
+                Constructor cl = new Constructor(containing, (FTypeObject) ft,
+                        x);
+                guardedPutValue(containing, fname, cl, x);
+                // doDefs(interior, defs);
+            }
+
+        } else {
+            if (staticParams.isPresent()) {
+                // A parameterized singleton is a sort of generic value.
+                NI.nyi("Generic singleton objects");
+                GenericConstructor gen = new GenericConstructor(e, x);
+                guardedPutValue(containing, obfuscated(fname), gen, x);
+
+            } else {
+                // It is a singleton; do not expose the constructor, do
+                // visit
+                // the interior environment.
+                // BetterEnv interior = new SpineEnv(e, x);
+
+                // TODO - binding into "containing", or "bindInto"?
+
+                Constructor cl = new Constructor(containing, (FTypeObject) ft,
+                        x);
+                guardedPutValue(containing, obfuscated(fname), cl, x);
+
+                // doDefs(interior, defs);
+            }
+        }
+
+        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+
+    }
+
+    private void forAbsObjectDecl2(AbsObjectDecl x) {
+
+        BetterEnv e = containing;
+        Id name = x.getName();
+
+        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        Option<List<Param>> params = x.getParams();
+
+        String fname = name.getName();
+        FType ft;
+
+        if (params.isPresent()) {
+            if (staticParams.isPresent()) {
+                // Do nothing.
+            } else {
+                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                finishObjectTrait(x, fto);
+            }
+        } else {
+            // If there are no parameters, it is a singleton.
+            // Not clear we can evaluate it yet.
+            FTypeObject fto = (FTypeObject) containing.getType(fname);
+
+            finishObjectTrait(x, fto);
+
+        }
+
+    }
+    private void forAbsObjectDecl3(AbsObjectDecl x) {
+        Id name = x.getName();
+        String fname = name.getName();
+        FType ft = containing.getType(fname);
+        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+    }
+    private void forAbsObjectDecl4(AbsObjectDecl x) {
     }
 
     public BetterEnv getBindingEnv() {

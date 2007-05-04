@@ -17,10 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import java.util.List;
+public interface GenericDefOrDeclWithParams extends GenericDefOrDecl, HasParams {
 
-public interface HasParams {
-    public Option<List<Param>> getParams();
-
-    public List<? extends DefOrDecl> getDefOrDecls();
 }

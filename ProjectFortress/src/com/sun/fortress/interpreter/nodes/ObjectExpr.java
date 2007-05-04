@@ -74,7 +74,7 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
     /**
      * @return Returns the defs.
      */
-    public List<? extends DefOrDecl> getDefs() {
+    public List<? extends DefOrDecl> getDefOrDecls() {
         return defs;
     }
 

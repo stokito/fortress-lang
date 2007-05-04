@@ -33,7 +33,7 @@ import java.util.List;
 // / object_decl_decls : decl list;
 // / }
 // /
-public class AbsObjectDecl extends ObjectDefOrDecl implements AbsDecl {
+public class AbsObjectDecl extends ObjectDefOrDecl implements GenericDefOrDeclWithParams, AbsDecl {
     List<? extends DefOrDecl> decls;
 
     public AbsObjectDecl(Span span, List<Modifier> mods, Id name,
@@ -58,7 +58,8 @@ public class AbsObjectDecl extends ObjectDefOrDecl implements AbsDecl {
     /**
      * @return Returns the decls.
      */
-    public List<? extends DefOrDecl> getDecls() {
+    @Override
+    public List<? extends DefOrDecl> getDefOrDecls() {
         return decls;
     }
 }

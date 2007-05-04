@@ -17,6 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-public interface GenericDef extends Generic, Decl {
+public interface GenericDef extends GenericDefOrDecl, Decl {
 
 }

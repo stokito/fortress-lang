@@ -28,12 +28,12 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.Generic;
-import com.sun.fortress.interpreter.nodes.GenericDef;
+import com.sun.fortress.interpreter.nodes.GenericDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TraitDecl;
+import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.LazyFactory1P;
@@ -42,7 +42,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
-    public FTypeGeneric(BetterEnv e, GenericDef d) {
+    public FTypeGeneric(BetterEnv e, GenericDefOrDecl d) {
         super(d.stringName());
         env = e;
         def = d;
@@ -79,8 +79,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
             if (def instanceof DefOrDecl) {
                 DefOrDecl dod = (DefOrDecl) def;
-                if (dod instanceof TraitDecl) {
-                    TraitDecl td = (TraitDecl) dod;
+                if (dod instanceof TraitDefOrDecl) {
+                    TraitDefOrDecl td = (TraitDefOrDecl) dod;
                     FTypeTrait ftt = new FTypeTraitInstance(td.getName()
                             .getName(), clenv, FTypeGeneric.this, args);
                     FTraitOrObject old = map.put(args, ftt); // Must put
@@ -115,7 +115,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     throw new InterpreterError(within,
                             "Generic def-or-declaration surprise " + dod);
                 }
- 
+
                 return rval;
 
             } else {

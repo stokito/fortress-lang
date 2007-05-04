@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.nodes.ConstructorFnName;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.GenericDefWithParams;
+import com.sun.fortress.interpreter.nodes.GenericDefOrDeclWithParams;
 import com.sun.fortress.interpreter.nodes.HasParams;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.Option;
@@ -61,9 +61,9 @@ public class Constructor extends AnonymousConstructor {
 
     public Constructor(BetterEnv env,
             FTypeObject selfType,
-            GenericDefWithParams def) {
+            GenericDefOrDeclWithParams def) {
         this(env, selfType, (HasAt) def, new ConstructorFnName(def),
-                def.getDefs());
+                def.getDefOrDecls());
         addParamsToCollection(def, parameterNames);
     }
 
@@ -252,7 +252,7 @@ public class Constructor extends AnonymousConstructor {
 
         /* At construction time,
           1) create an array of environments (one per trait)
-          2) iterate over the methods, and assign each of them the appropiate 
+          2) iterate over the methods, and assign each of them the appropiate
              environment to form closures, setting the results aside.
           3) then form any overloads necessary
           4) then iterate over the traits, binding names to method values.
@@ -572,16 +572,16 @@ public class Constructor extends AnonymousConstructor {
     private void visitDefs(BuildEnvironments be) {
         be.doDefs1234(defs);
 //        be.secondPass();
-//        
+//
 //        be.doDefs(defs);
 //        be.getBindingEnv().bless();
-//        
+//
 //        be.thirdPass();
 //        be.doDefs(defs);
-//        
+//
 //        be.fourthPass();
 //        be.doDefs(defs);
-        
+
     }
 
     @Override

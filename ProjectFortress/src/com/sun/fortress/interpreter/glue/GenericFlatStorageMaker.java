@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.nodes.Contract;
 import com.sun.fortress.interpreter.nodes.Decl;
-import com.sun.fortress.interpreter.nodes.GenericDefWithParams;
+import com.sun.fortress.interpreter.nodes.GenericDefOrDeclWithParams;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.Modifier;
 import com.sun.fortress.interpreter.nodes.NatParam;
@@ -129,7 +129,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
 
     public GenericFlatStorageMaker(BetterEnv e) {
         super(e,bogusObjectDecl());
-        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDef()));
+        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDefOrDecl()));
     }
 
     /* (non-Javadoc)
@@ -144,7 +144,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         FType t = clenv.getType("T");
         Number n = clenv.getNat("m");
 
-        FlatStorageMaker cl = new FlatStorageMaker(clenv, objectType, getDef(), t, n);
+        FlatStorageMaker cl = new FlatStorageMaker(clenv, objectType, getDefOrDecl(), t, n);
         cl.setParams(objectParams);
 
         BetterEnv bte = new BetterEnv(cl.getWithin(), cl.getAt());
@@ -220,7 +220,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
             return new FlatStorage(selfType, lex_env, self_env, t, n);
         }
 
-        public FlatStorageMaker(BetterEnv clenv, FTypeObject objectType, GenericDefWithParams odef, FType t, Number n) {
+        public FlatStorageMaker(BetterEnv clenv, FTypeObject objectType, GenericDefOrDeclWithParams odef, FType t, Number n) {
             super(clenv, objectType, odef);
             this.t = t;
             this.n = n.longValue();

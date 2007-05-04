@@ -32,8 +32,7 @@ import java.util.List;
 // / trait_decl_fns : fn_decl list;
 // / }
 // /
-public class AbsTraitDecl extends TraitDefOrDecl implements AbsDecl {
-
+public class AbsTraitDecl extends TraitDefOrDecl implements GenericDefOrDecl, AbsDecl {
     List<? extends DefOrDecl> fns;
 
     public AbsTraitDecl(Span span, List<Modifier> mods, Id name,

@@ -1,0 +1,256 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Set
+export Set
+
+weight:ZZ32 = 4
+
+trait Tree[\E\] comprises {Node[\E\], Empty[\E\]}
+   size():ZZ32
+   empty():Boolean
+   getVal():E
+   getLeftChild():Tree[\E\]
+   getRightChild():Tree[\E\]
+   printTree():()
+   toString():String
+   member(x:E):Boolean
+   minimum():E
+   deleteMinimum():Tree[\E\] = do
+     (_, res) = removeMinimum()
+     res
+   end
+   removeMinimum():(E, Tree[\E\])
+   add(z:E):Tree[\E\]
+   delete(z:E):Tree[\E\]
+   balancedDelete(r:Tree[\E\]):Tree[\E\]
+
+   union(t2:Tree[\E\]):Tree[\E\]
+   intersection(t2:Tree[\E\]):Tree[\E\]
+   difference(t2:Tree[\E\]):Tree[\E\]
+   concat(t2:Tree[\E\]):Tree[\E\]
+   splitAt(x:E):(Tree[\E\],Boolean,Tree[\E\])
+   concat3(v:E, t2:Tree[\E\])
+end
+
+object Empty[\E\]() extends Tree[\E\]
+   size():ZZ32 = 0
+   empty():Boolean = true
+   getVal():E = getVal()
+   getLeftChild():Tree[\E\] = self
+   getRightChild():Tree[\E\] = self
+   printTree():() = print " Empty"
+   toString():String = "{}"
+   member(x:E):Boolean = false
+   minimum():E = minimum()
+   removeMinimum():(E, Tree[\E\]) = (minimum(), self)
+   add(z:E):Tree[\E\] = Node[\E\](z,self,self)
+   delete(z:E):Tree[\E\] = self
+   balancedAdd(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = Node[\E\](val,self,self)
+   balancedDelete(r:Tree[\E\]):Tree[\E\] = r
+   union(t2:Tree[\E\]):Tree[\E\] = t2
+   intersection(t2:Tree[\E\]):Tree[\E\] = self
+   difference(t2:Tree[\E\]):Tree[\E\] = self
+   concat(t2:Tree[\E\]):Tree[\E\] = t2
+   splitAt(x:E):(Tree[\E\],Boolean,Tree[\E\]) = (self, false, self)
+   concat3(v:E, t2:Tree[\E\]) = t2.add(v)
+end
+
+object Node[\E\](val:E,  left:Tree[\E\], right:Tree[\E\]) extends Tree[\E\]
+   sz:ZZ32 = 1 + left.size() + right.size()
+   size():ZZ32 = sz
+   empty():Boolean = false
+   getVal():E = val
+   getLeftChild():Tree[\E\] = left
+   getRightChild():Tree[\E\] = right
+
+   printTree():() = do
+      print("(")
+      print(val)
+      print(" ")
+      left.printTree()
+      right.printTree()
+      println(")")
+      end
+
+   toString():String = do
+      temp : Tree[\E\] := self
+      res : String := "{"
+      (min, delmin) = temp.removeMinimum()
+      res *= min
+      temp := delmin
+      while (NOT temp.empty()) do
+        (minn, delminn) = temp.removeMinimum()
+        res *= "," minn
+        temp := delminn
+      end
+      res "}"
+   end
+
+   member(z:E):Boolean = do
+      if (z = val) then true
+      elif (z < val) then left.member(z)
+      else right.member(z)
+      end
+   end
+
+   add(z:E):Tree[\E\] =
+      if   (z = val) then self
+      elif (z < val) then balancedAdd(val,left.add(z),right)
+      else balancedAdd(val,left,right.add(z))
+      end
+
+   delete(x:E):Tree[\E\] =
+       if   x < val then balancedAdd(val,left.delete(x),right)
+       elif val < x then balancedAdd(val,left,right.delete(x))
+       else              left.balancedDelete(right)
+       end
+
+   balancedDelete(r:Node[\E\]):Tree[\E\] = do
+     (min_elt, del_min) = r.removeMinimum()
+     balancedAdd(min_elt, self, del_min)
+   end
+   balancedDelete(r:Tree[\E\]):Tree[\E\] = self
+
+   minimum():E = do
+      if left.empty() then val else left.minimum() end
+   end
+
+   removeMinimum() =
+     if left.empty() then (val,right)
+     else
+       (min, delmin) = left.removeMinimum()
+       (min, balancedAdd(val,delmin,right))
+     end
+
+   union(t2:Node[\E\]):Tree[\E\] = do
+      (newl, _, newr) = t2.splitAt(val)
+      left.union(newl).concat3(val, right.union(newr))
+   end
+   union(t2:Tree[\E\]):Tree[\E\] = self
+
+   intersection(t2:Node[\E\]):Tree[\E\] = do
+      (newl, m, newr) = t2.splitAt(val)
+      (li, ri) = (left.intersection(newl), right.intersection(newr))
+      if m then li.concat3(val,ri) else li.concat(ri)
+      end
+   end
+   intersection(t2:Tree[\E\]):Tree[\E\] = t2
+
+   difference(t2:Node[\E\]):Tree[\E\] = do
+      (newl, m, newr) = t2.splitAt(val)
+      (li,ri) = (left.difference(newl), right.difference(newr))
+      if m then li.concat(ri) else li.concat3(val,ri) end
+   end
+   difference(t2:Tree[\E\]):Tree[\E\] = self
+
+   concat(t2:Node[\E\]):Tree[\E\] = do
+      (min, delmin) = t2.removeMinimum()
+      concat3(min, delmin)
+   end
+   concat(t2:Tree[\E\]):Tree[\E\] = self
+
+   splitAt(x:E):(Tree[\E\],Boolean,Tree[\E\]) =
+      if x < val then
+        (ll,m,rl) = left.splitAt(x)
+        (ll,m,rl.concat3(val,right))
+      elif val < x then
+        (lr,m,rr) = right.splitAt(x)
+        (left.concat3(val,lr),m,rr)
+      else (left,true,right)
+      end
+
+   concat3(v:E, t2:Node[\E\]) = do
+      v1 = val
+      n1 = sz
+      l1 = left
+      r1 = right
+      v2 = t2.getVal()
+      n2 = t2.size()
+      l2 = t2.getLeftChild()
+      r2 = t2.getRightChild()
+      if   weight n1 < n2 then balancedAdd(v2,concat3(v,l2),r2)
+      elif weight n2 < n1 then balancedAdd(v1,l1,r1.concat3(v,t2))
+      else Node[\E\](v,self,t2) end
+   end
+   concat3(v:E, t2:Tree[\E\]) = add(v)
+
+   balancedAdd(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = do
+      ln = left.size()
+      rn = right.size()
+      if ln + rn < weight then Node[\E\](val, left, right)
+      elif rn > weight ln then do
+         rl = right.getRightChild().getLeftChild()
+         rr = right.getRightChild().getRightChild()
+         rln = rl.size()
+         rrn = rr.size()
+         if rln < rrn then single_L(val, left, right) else double_L(val, left, right) end
+         end
+      elif ln > weight rn then do
+         ll = left.getLeftChild().getLeftChild()
+         lr = left.getLeftChild().getRightChild()
+         lln = ll.size()
+         lrn = lr.size()
+         if (lrn < lln) then single_R(val, left, right) else double_R(val,left,right) end
+         end
+      else Node[\E\](val,left,right) end
+   end
+
+   single_L(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = do
+      a = val
+      x = left
+      b = right.getVal()
+      y = right.getLeftChild()
+      z = right.getRightChild()
+      Node[\E\](b, Node[\E\](a, x, y), z)
+   end
+
+   single_R(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = do
+      b = val
+      a = left.getVal()
+      x = left.getLeftChild()
+      y = left.getRightChild()
+      z = right
+      Node[\E\](a,x,Node[\E\](b,y,z))
+   end
+
+   double_L(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = do
+      a = val
+      x = left
+      c = right.getVal()
+      b = right.getLeftChild().getVal()
+      y1 = right.getLeftChild().getLeftChild()
+      y2 = right.getLeftChild().getRightChild()
+      z = right.getRightChild()
+      println("double_L " a " " b)
+      Node[\E\](b, Node[\E\](a,x,y1),Node[\E\](c,y2,z))
+   end
+
+   double_R(val:E,  left:Tree[\E\], right:Tree[\E\]):Node[\E\] = do
+      c = val
+      a = left.getVal()
+      x = left.getLeftChild()
+      b = left.getRightChild().getVal()
+      y1 = left.getRightChild.getLeftChild()
+      y2 = left.getRightChild.getRightChild()
+      z = right
+      println("double_R " a " " b " " c)
+      Node[\E\](b, Node[\E\](a, x,y1), Node[\E\](c,y2,z))
+   end
+end
+
+end
