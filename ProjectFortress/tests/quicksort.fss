@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Quicksort
+import * from QuickSort
+export Executable
+
+arr:Array[\ZZ32,ZZ32\] := array[\ZZ32\](5)
+
+run(args:String...) = do
+  arr[0] := 5
+  arr[1] := 29
+  arr[2] := 10
+  arr[3] := -3
+  arr[4] := 8
+  quicksort[\ZZ32\](arr, 0, 4)
+  for i <- seq(0#arr.size()) do
+    print (arr[i] " ")
+  end
+  println ""
+end
+
+end

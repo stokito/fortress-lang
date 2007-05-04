@@ -1,0 +1,58 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component QuickSort
+export QuickSort
+
+(* http://en.wikipedia.org/wiki/Quicksort *)
+lessThan[\T\](x: ZZ32, y: ZZ32) = x < y
+lessThan[\T\](x: (ZZ32,String), y: (ZZ32,String)) =
+  do
+    (x1,x2) = x
+    (y1,y2) = y
+    x1 < y1
+  end
+
+swap[\T\](arr:Array[\T,ZZ32\], x: ZZ32, y: ZZ32) =
+  do
+    tmp = arr[x]
+    arr[x] := arr[y]
+    arr[y] := tmp
+  end
+mypartition[\T\](arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32) =
+  do
+    pivotValue = arr[pivotIndex]
+    swap[\T\](arr, pivotIndex, right)
+    storeIndex:ZZ32 := left
+    for i <- seq(left#(right-left)) do
+      if lessThan[\T\](arr[i], pivotValue)
+      then swap[\T\](arr, storeIndex, i)
+           storeIndex += 1
+      end
+    end
+    swap[\T\](arr, right, storeIndex)
+    storeIndex
+  end
+quicksort[\T\](arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32) =
+  if right > left
+  then pivotIndex = left
+       pivotNewIndex = mypartition(arr, left, right, pivotIndex)
+       quicksort(arr, left, pivotNewIndex-1)
+       quicksort(arr, pivotNewIndex+1, right)
+  end
+
+end
