@@ -17,11 +17,15 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
 import com.sun.fortress.interpreter.evaluator.values.FString;
+import com.sun.fortress.interpreter.evaluator.values.FBufferedReader;
+import com.sun.fortress.interpreter.evaluator.values.FBufferedWriter;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeFn1;
@@ -212,6 +216,52 @@ public class Util {
         protected final FValue act(FValue x) {
             f(x);
             return FVoid.V;
+        }
+    }
+
+    static public abstract class S2Fr extends NativeFn1 {
+        protected abstract BufferedReader f(String x);
+        protected final FValue act(FValue x) {
+            return FBufferedReader.make(f(x.getString()));
+        }
+    }
+
+    static public abstract class Fr2S extends NativeFn1 {
+        protected abstract String f(BufferedReader x);
+        protected final FValue act(FValue x) {
+            return FString.make(f(x.getBufferedReader()));
+        }
+    }
+
+    static public abstract class Fr2V extends NativeFn1 {
+        protected abstract void f(BufferedReader x);
+        protected final FValue act(FValue x) {
+            f(x.getBufferedReader());
+            return FVoid.V;
+        }
+    }
+
+    static public abstract class Fw2V extends NativeFn1 {
+        protected abstract void f(BufferedWriter x);
+        protected final FValue act(FValue x) {
+            f(x.getBufferedWriter());
+            return FVoid.V;
+        }
+    }
+
+    static public abstract class FwS2V extends NativeFn2 {
+        protected abstract void f(BufferedWriter x, String y);
+        protected final FValue act(FValue x, FValue y) {
+            f(x.getBufferedWriter(), y.getString());
+            return FVoid.V;
+
+        }
+    }
+
+    static public abstract class S2Fw extends NativeFn1 {
+        protected abstract BufferedWriter f(String x);
+        protected final FValue act(FValue x) {
+            return FBufferedWriter.make(f(x.getString()));
         }
     }
 }

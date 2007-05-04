@@ -18,7 +18,8 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.useful.EquivalenceClass;
@@ -35,6 +36,8 @@ public abstract class FValue {
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
+    public BufferedReader getBufferedReader() { throw new InterpreterError("getBufferedReader not implemented for " + getClass().getSimpleName()); }
+    public BufferedWriter getBufferedWriter() { throw new InterpreterError("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
     public int getInt() { throw new InterpreterError("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterError("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterError("getFloat not implemented for "  + getClass().getSimpleName());}
@@ -82,11 +85,11 @@ public abstract class FValue {
             public FType translate(FValue x) {
                 return x.type();
             }
-            
+
         }
-        
+
         static final public AsTypes asTypes = new AsTypes();
- 
+
         static final public class AsTypesList implements EquivalenceClass<List<FValue>, List<FType>> {
 
             public int compare(List<FValue> x, List<FType> y) {
@@ -130,18 +133,18 @@ public abstract class FValue {
 
             public List<FType> translate(List<FValue> x) {
                 return Useful.applyToAll(x, valToType);
-            }          
+            }
         }
-        
+
         static final public Fn<FValue, FType> valToType = new Fn<FValue, FType>() {
 
             @Override
             public FType apply(FValue x) {
                 return x.type();
             }
-            
+
         };
-        
+
         static final public AsTypesList asTypesList = new AsTypesList();
 
 

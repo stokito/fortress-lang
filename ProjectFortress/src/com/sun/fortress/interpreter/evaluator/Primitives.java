@@ -35,6 +35,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
 import com.sun.fortress.interpreter.evaluator.types.FTypeString;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
+import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedReader;
+import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
@@ -75,6 +77,8 @@ public class Primitives {
         install_type(env, "RR64", FTypeFloat.T);
         install_type(env, "Number", FTypeNumber.T);
         install_type(env, "ZZ32Range", FTypeRange.T);
+        install_type(env, "BufferedReader", FTypeBufferedReader.T);
+        install_type(env, "BufferedWriter", FTypeBufferedWriter.T);
 
         install_type(env, "IntLiteral", FTypeIntLiteral.T);
         install_type(env, "FloatLiteral", FTypeFloatLiteral.T);
