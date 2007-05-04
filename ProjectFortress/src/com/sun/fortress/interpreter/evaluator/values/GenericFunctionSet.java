@@ -111,7 +111,7 @@ public class GenericFunctionSet extends
         OverloadedFunction oaf = new OverloadedFunction(getAnApplicable()
                 .getFnName(), getWithin());
         for (FGenericFunction gf : fns) {
-            Simple_fcn sfcn = gf.typeApply(args, e, x, argValues);
+            Simple_fcn sfcn = gf.typeApply(e, x, argValues);
             oaf.addOverload(sfcn);
         }
         oaf.finishInitializingSecondPart();

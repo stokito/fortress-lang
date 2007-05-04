@@ -42,6 +42,8 @@ public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
+    volatile Simple_fcn symbolicInstantiation;
+    
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
@@ -55,8 +57,16 @@ public class FGenericFunction extends SingleFcn
      */
     @Override
     public List<FType> getDomain() {
-        // TODO Auto-generated method stub
-        return null;
+        if (symbolicInstantiation == null) {
+            synchronized (this) {
+                if (symbolicInstantiation == null) {
+                    List<FType> symbolic_static_args = createSymbolicInstantiation(getEnv(), fndef, fndef);
+                    symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
+                }
+            }
+        }
+        return symbolicInstantiation.getDomain();
+        
     }
 
     /* (non-Javadoc)
@@ -94,7 +104,7 @@ public class FGenericFunction extends SingleFcn
     }
 
      Memo1P<List<FType>, Simple_fcn, HasAt> memo = new Memo1P<List<FType>, Simple_fcn, HasAt>(new Factory());
-
+     
     public Simple_fcn make(List<FType> l, HasAt within) {
         return memo.make(l, within);
     }
@@ -120,7 +130,7 @@ public class FGenericFunction extends SingleFcn
         // to pass two parameters instead of one.
         ArrayList<FType> argValues = et.forStaticArgList(args);
 
-        return typeApply(args, e, within, argValues);
+        return typeApply(e, within, argValues);
     }
 
     /**
@@ -133,12 +143,12 @@ public class FGenericFunction extends SingleFcn
      * @return
      * @throws ProgramError
      */
-    Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt within, ArrayList<FType> argValues) throws ProgramError {
+    Simple_fcn typeApply(BetterEnv e, HasAt within, List<FType> argValues) throws ProgramError {
         List<StaticParam> params = fndef.getStaticParams().getVal();
 
         // Evaluate each of the args in e, inject into clenv.
-        if (args.size() != params.size() ) {
-            throw new ProgramError(within, e,  "Generic instantiation (size) mismatch, expected " + params + " got " + args);
+        if (argValues.size() != params.size() ) {
+            throw new ProgramError(within, e,  "Generic instantiation (size) mismatch, expected " + params + " got " + argValues);
         }
         return make(argValues, within);
     }

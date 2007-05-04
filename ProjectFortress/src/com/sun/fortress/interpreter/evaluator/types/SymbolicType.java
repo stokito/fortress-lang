@@ -22,9 +22,20 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.useful.NI;
 
 
 abstract public class SymbolicType extends FTypeTrait {
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#typeMatch(com.sun.fortress.interpreter.evaluator.values.FValue)
+     */
+    @Override
+    public boolean typeMatch(FValue val) {
+        NI.nyi("Symbolic types never do this, do they?");
+        return super.typeMatch(val);
+    }
 
     public SymbolicType(String name, BetterEnv interior) {
         super(name, interior, interior.getAt());
