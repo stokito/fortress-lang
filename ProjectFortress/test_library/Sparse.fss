@@ -21,7 +21,7 @@ export Sparse
 (*public*) trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = array[\T\](l).assign(v)
 
 (*public*) object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
-  extends Array1[\T,0,n\]
+  extends Vector[\T,n\]
     get(i:ZZ32):T = do
       b = mem.base()
       lo:ZZ32 := -1
@@ -42,44 +42,14 @@ export Sparse
       mem.mapReduce[\R\](f1,j,z)
     end
     scale(x:T):SparseVector[\T,n\] = do
-      elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; x y end
-      mem1 = mem.replica[\T\]().fill(elt)
+      elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; (j, x y) end
+      SparseVector[\T,n\](mem.map(elt))
     end
     toString():String = do
         elt(t:ZZ32,v:T):String = " " t "->" v
         join(a:String,b:String):String = a b
         "Sparse[" n "] = [" self.mapReduce[\String\](elt,join,"") "]"
      end
-end
-
-(*public*) opr DOT[\ T extends Number, nat n, nat m, nat p\]
-              (other:Array1[\T,0,n\],me:SparseVector[\T,n\]):T = me DOT other
-
-(*public*) opr DOT[\ T extends Number, nat n, nat m, nat p\]
-              (me: SparseVector[\T,n\], other: Array1[\T,0,n\]):T = do
-  me.mapReduce[\T\](fn (i:ZZ32,v:T):T => v other[i], fn (a,b)=>a+b, 0)
-end
-
-(*public*) opr DOT[\ T extends Number, nat n, nat m, nat p\]
-              (me:SparseVector[\T,n\],other:SparseVector[\T,n\]):T = do
-   (* We perform sparse vector-vector multiply serially due to the
-      absence of reduction variables, and the fact that this allows
-      us to do it with linear work. *)
-   i1 : ZZ32 := other.mem.base()
-   t1 = other.mem.size() + i1
-   (j1:ZZ32, v1:T) := (-2, 0)
-   res : T := 0
-   for i0 <- seq(me.mem.indices()) do
-     (j0,v0) = me.mem[i0]
-     while j0>j1 AND i1 < t1 do
-        (j1,v1) := other.mem[i1]
-        i1 += 1
-     end
-     if j0=j1 then
-        res += v0 v1
-     end
-   end
-   res
 end
 
 (*public*) sparse[\T extends Number,nat n\](me:Array1[\RR64,0,n\]):SparseVector[\RR64,n\] = do
@@ -99,7 +69,7 @@ end
 
 (*public*) object Csr[\N extends Number, nat n, nat m\]
                  (rows:Array1[\SparseVector[\N,m\],0,n\])
-  extends Array2[\N,0,n,0,m\]
+  extends Matrix[\N,n,m\]
     get(i:ZZ32,j:ZZ32) = (rows[i])[j]
     put(v:N, i:ZZ32, j:ZZ32) = fail("Csr is immutable")
     replica[\U\]() = fail("Csr replica undefined")
@@ -109,20 +79,34 @@ end
       rows.mapReduce[\R\](outer,j,z)
     end
     t() = Csc[\N,m,n\](rows)
-end
-
-(*public*) opr DOT[\ T extends Number, nat n, nat m, nat p\]
-              (me:Csr[\T,n,m\], other:Array1[\T,0,m\]):Array1[\T,0,n\] = do
-  res = me.rows.replica[\T\]()
-  row(i:ZZ32,r:SparseVector[\T,n\]):() = res.put(r DOT other,i)
-  j(l:(),r:()):() = ()
-  me.rows.mapReduce[\()\](row,j,())
-  res
+    mul[\nat p\](other: Matrix[\N,m,p\]) =
+      typecase other of
+        Csc[\N,m,p\] => do
+            (* This do block mystically transforms the following
+               function definition from a LetFn into some other
+               mysterious bit of actually-implemented AST instead. *)
+            row(i: ZZ32): SparseVector[\N,p\] = do
+              mem0 = array[\(ZZ32,RR64)\](p)
+              r = rows[i]
+              o : ZZ32 := 0
+              for j <- seq(0#p) do
+                d = r DOT other.cols[j]
+                if d=/=0 then
+                  mem0[o] := (j,d)
+                  o += 1
+                end
+              end
+              SparseVector[\RR64,n\](trim(mem0,o))
+            end
+            Csr[\N,n,p\](array1[\SparseVector[\N,p\],n\](row))
+          end
+        else => other.t().mul[\n\](self.t())
+      end
 end
 
 (*public*) object Csc[\N extends Number, nat n, nat m\]
                  (cols:Array1[\SparseVector[\N,n\],0,m\])
-  extends Array2[\N,0,n,0,m\]
+  extends Matrix[\N,n,m\]
     get(i:ZZ32,j:ZZ32) = (cols[j])[i]
     put(v:N, i:ZZ32, j:ZZ32) = fail("Csc is immutable")
     replica[\U\]() = fail("Csc replica undefined")
@@ -132,24 +116,6 @@ end
       cols.mapReduce[\R\](outer,j,z)
     end
     t() = Csr[\N,m,n\](cols)
-end
-
-(*public*) opr DOT[\ T extends Number, nat n, nat m, nat p\]
-              (me:Csr[\T,n,m\], other:Csc[\T,m,p\]):Csr[\T,n,p\] = do
-  row(i: ZZ32): SparseVector[\T,p\] = do
-    mem0 = array[\(ZZ32,RR64)\](p)
-    r = me.rows[i]
-    o : ZZ32 := 0
-    for j <- seq(0#p) do
-      d = r DOT other.cols[j]
-      if d=/=0 then
-        mem0[o] := (j,d)
-        o += 1
-      end
-    end
-    SparseVector[\RR64,n\](trim(mem0,o))
-  end
-  Csr[\T,n,p\](array1[\SparseVector[\T,p\],n\](row))
 end
 
 end

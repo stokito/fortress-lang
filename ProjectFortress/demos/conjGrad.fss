@@ -83,8 +83,8 @@ end
  * method is considered superior to LU decomposition when A is
  * sparse, symmetric, and positive-definite. *)
 conjGrad[\Elt extends Number, nat N,
-          Vec extends Vector[\E,N\],
-          Mat extends Matrix[\E,N,N\]\]
+          Vec extends Vector[\Elt,N\],
+          Mat extends Matrix[\Elt,N,N\]\]
         (A: Mat, x: Vec): (Vec, RR64) = do
   cgit_max = 25
   z: Vec := x.replica[\Elt\]().fill(0)
@@ -113,7 +113,7 @@ run(args:String...):() = do
   v = mkVector[\50\]()
   println(A)
   println("v" v)
-  (s,e) = conjGrad[\50,RR64\](A,v)
+  (s,e) = conjGrad[\RR64,50,Vector[\RR64,50\],Matrix[\RR64,50,50\]\](A,v)
   println("s" s)
   println("Error = " e)
 end
