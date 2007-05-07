@@ -840,41 +840,68 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
-	int index = 0;
+        LValue lv = lhs.get(0);
+        
+        if (lv instanceof LValueBind) {
+          LValueBind lvb = (LValueBind) lv;
+          Option<TypeRef> type = lvb.getType();
+          Id name = lvb.getName();
+          String sname = name.getName();
 
-        for (LValue lv : lhs) {
-            if (lv instanceof LValueBind) {
-                LValueBind lvb = (LValueBind) lv;
-                Option<TypeRef> type = lvb.getType();
-                Id name = lvb.getName();
-                String sname = name.getName();
+          try {
+              /* Ignore the type, until later */
+              if (lvb.getMutable()) {
+                  bindInto.putVariablePlaceholder(sname);
+              } else {
+                  FValue init_val = new LazilyEvaluatedCell(init, containing);
+                  putValue(bindInto, sname, init_val);
+              }
+           } catch (ProgramError pe) {
+              pe.setWithin(bindInto);
+              pe.setWhere(x);
+              throw pe;
+          }
 
-                try {
-                    /* Ignore the type, until later */
-                    if (lvb.getMutable()) {
-                        bindInto.putVariablePlaceholder(sname);
-                    } else {
-                        FValue init_val;
-                        if (init instanceof TupleExpr) {
-                            init_val = new LazilyEvaluatedCell(
-                                      ((TupleExpr)init).getExprs().get(index++),
-                                      containing);
-                        } else {
-                            init_val = new LazilyEvaluatedCell(init, containing);
-                        }
-                        putValue(bindInto, sname, init_val);
-                    }
-                 } catch (ProgramError pe) {
-                    pe.setWithin(bindInto);
-                    pe.setWhere(x);
-                    throw pe;
-                }
-
-            } else {
-                throw new InterpreterError(x,
-                        "Don't support arbitary LHS in Var decl yet");
-            }
-        }
+      } else {
+          throw new InterpreterError(x,
+                  "Don't support arbitary LHS in Var decl yet");
+      }
+        
+//	int index = 0;
+	
+//        for (LValue lv : lhs) {
+//            if (lv instanceof LValueBind) {
+//                LValueBind lvb = (LValueBind) lv;
+//                Option<TypeRef> type = lvb.getType();
+//                Id name = lvb.getName();
+//                String sname = name.getName();
+//
+//                try {
+//                    /* Ignore the type, until later */
+//                    if (lvb.getMutable()) {
+//                        bindInto.putVariablePlaceholder(sname);
+//                    } else {
+//                        FValue init_val;
+//                        if (init instanceof TupleExpr) {
+//                            init_val = new LazilyEvaluatedCell(
+//                                      ((TupleExpr)init).getExprs().get(index++),
+//                                      containing);
+//                        } else {
+//                            init_val = new LazilyEvaluatedCell(init, containing);
+//                        }
+//                        putValue(bindInto, sname, init_val);
+//                    }
+//                 } catch (ProgramError pe) {
+//                    pe.setWithin(bindInto);
+//                    pe.setWhere(x);
+//                    throw pe;
+//                }
+//
+//            } else {
+//                throw new InterpreterError(x,
+//                        "Don't support arbitary LHS in Var decl yet");
+//            }
+//        }
     }
 
     private void forVarDecl2(VarDecl x) {
@@ -894,9 +921,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
-	int index = 0;
-
-        for (LValue lv : lhs) {
+	// int index = 0;
+        LValue lv = lhs.get(0);
+        
+        
+         {
             if (lv instanceof LValueBind) {
                 LValueBind lvb = (LValueBind) lv;
 
@@ -909,12 +938,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                                 : null;
 
                 if (lvb.getMutable()) {
-                    Expr rhs;
-                    if (init instanceof TupleExpr) {
-                        rhs = ((TupleExpr)init).getExprs().get(index++);
-                    } else {
-                        rhs = init;
-                    }
+                    Expr rhs = init;
+                    
                     FValue value = (new Evaluator(containing)).eval(rhs);
 
                     // TODO When new environment are created, need to insert

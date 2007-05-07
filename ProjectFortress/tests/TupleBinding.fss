@@ -20,7 +20,20 @@ component TupleBinding
 export Executable
 
 (key, val):(String, ZZ32) = ("test", 8)
+baz = ("first", "second")
+(foo, bar) = baz
 
-run(args:String...) = println key
+ick(a:String, b:String) = do
+  println a; println b
+end
+
+run(args:String...) = do
+  println key
+  println val
+  println foo
+  println bar
+  
+  ick baz
+  end
 
 end

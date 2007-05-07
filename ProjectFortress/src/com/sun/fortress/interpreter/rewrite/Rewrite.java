@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -28,6 +29,7 @@ import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
 import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.NodeReflection;
 import com.sun.fortress.interpreter.nodes.None;
+import com.sun.fortress.interpreter.nodes.RewriteHackList;
 import com.sun.fortress.interpreter.nodes.Some;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.useful.Pair;
@@ -152,7 +154,7 @@ public abstract class Rewrite extends NodeReflection {
         return replacement != null ? replacement : n;
     }
 
-     /**
+    /**
      * VisitObject each element of the list, returning a different
      * list if there has been a change, otherwise returning the same
      * list.
@@ -170,10 +172,15 @@ public abstract class Rewrite extends NodeReflection {
                     replacement = new ArrayList<T>(list.size());
                     for (int j = 0; j < i; j++)
                         replacement.add(list.get(j));
+                }
+            }
+            if (replacement != null) {
+                if (p instanceof RewriteHackList) {
+                    // Ugh.  We can only take this reflection/generics thing so far.
+                    replacement.addAll( (Collection<? extends T>) ((RewriteHackList)p).getNodes());
+                } else {
                     replacement.add(p);
                 }
-            } else {
-                replacement.add(p);
             }
         }
         return replacement == null ? list : replacement;

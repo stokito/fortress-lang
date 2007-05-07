@@ -46,6 +46,7 @@ import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.IdType;
+import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LetFn;
 import com.sun.fortress.interpreter.nodes.LocalVarDecl;
 import com.sun.fortress.interpreter.nodes.Node;
@@ -54,6 +55,7 @@ import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
+import com.sun.fortress.interpreter.nodes.RewriteHackList;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
@@ -63,6 +65,7 @@ import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.useful.BATree;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.StringComparer;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 /**
@@ -214,6 +217,12 @@ public class Disambiguate extends Rewrite {
     boolean atTopLevelInsideTraitOrObject = false; // true immediately within a trait/object
 
     /**
+     * Used to generate temporary names when rewriting (for example)
+     * tuple initializations.
+     */
+    int tempCount = 0;
+    
+    /**
      * Adds, to the supplied environment, constructors for any object
      * expressions encountered the tree(s) processed by this Disambiguator.
      * @param e
@@ -362,7 +371,30 @@ public class Disambiguate extends Rewrite {
 
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
-                    // Leave VarDecl alone, probably, because it gets properly
+                    VarDecl vd = (VarDecl) node;
+                    List<LValue> lhs = vd.getLhs();
+                    
+                    if (lhs.size() > 1) {
+                        // Introduce a temporary, then initialize elements
+                        // piece-by-piece.
+                        Expr init = vd.getInit();
+                        init = (Expr) visitNode(init);
+                        lhs = (List<LValue>) visitList(lhs);
+                        ArrayList<Node> newdecls = new ArrayList(1+lhs.size());
+                        String temp = "t$" + (++tempCount);
+                        Span at = vd.getSpan();
+                        VarDecl new_vd = new VarDecl(at, new Id(at, temp), init);
+                        newdecls.add(new_vd);
+                        int element_index = 0;
+                        for (LValue lv : lhs) {
+                            newdecls.add(new VarDecl(at, Useful.list(lv),
+                                    new FieldSelection(at, init,
+                                            new Id(at, "$" + element_index))));
+                            element_index++;
+                        }
+                        return new RewriteHackList(newdecls);
+                    }
+                    // Leave singleton VarDecl alone, probably, because it gets properly
                     // handled
                     // at the enclosing block.
 
@@ -420,14 +452,14 @@ public class Disambiguate extends Rewrite {
 
                 } else if (node instanceof LocalVarDecl) {
                     atTopLevelInsideTraitOrObject = false;
-                    // defined var is no longer eligible for com.sun.fortress.interpreter.rewrite.
+                    // defined var is no longer eligible for rewrite.
                     //LocalVarDecl lb = (LocalVarDecl) node;
                     //List<LValue> lvals = lb.getLhs();
                     // TODO wip
 
                 } else if (node instanceof LetFn) {
                     atTopLevelInsideTraitOrObject = false;
-                    // defined var is no longer eligible for com.sun.fortress.interpreter.rewrite.
+                    // defined var is no longer eligible for rewrite.
                     LetFn lf = (LetFn) node;
                     List<FnDecl> defs = lf.getFns();
                     defsToLocals(defs);

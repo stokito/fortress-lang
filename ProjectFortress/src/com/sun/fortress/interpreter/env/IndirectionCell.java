@@ -26,6 +26,8 @@ public class IndirectionCell extends FConstructedValue {
     protected volatile FValue theValue;
     public String toString() {
         if (theValue==null) return "null";
+        if (theValue instanceof IndirectionCell)
+            return "Uninitialized " + theValue.getClass().getSimpleName();
         return theValue.toString();
     }
 

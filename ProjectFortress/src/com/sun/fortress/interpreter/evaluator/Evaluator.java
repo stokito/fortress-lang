@@ -731,7 +731,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Selectable selectable = (Selectable) fobj;
             /*
              * Selectable was introduced to make it not necessary
-             * to know whether a.b was file b of object a, or member
+             * to know whether a.b was field b of object a, or member
              * b of api a (or api name prefix, extended).
              */
 //          TODO Need to distinguish between public/private methods/fields
