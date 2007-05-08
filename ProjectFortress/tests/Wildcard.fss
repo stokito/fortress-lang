@@ -1,0 +1,10 @@
+component Wildcard
+
+export Executable
+
+run(args:String...) = do
+  _ = println "first _"
+  _ = println "second _"
+end
+
+end

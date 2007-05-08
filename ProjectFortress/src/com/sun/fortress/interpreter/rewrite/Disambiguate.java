@@ -393,7 +393,7 @@ public class Disambiguate extends Rewrite {
                             element_index++;
                         }
                         return new RewriteHackList(newdecls);
-                    }
+                    } 
                     // Leave singleton VarDecl alone, probably, because it gets properly
                     // handled
                     // at the enclosing block.

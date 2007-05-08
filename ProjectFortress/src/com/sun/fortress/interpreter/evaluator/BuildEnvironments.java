@@ -374,16 +374,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = x.nameAsMethod();
 
+        FValue cl;
+        
         if (optStaticParams.isPresent()) {
-            FValue cl = newGenericClosure(containing, x);
-            bindInto.putValueShadowFn(fname, cl);
-            //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
-
+             cl = newGenericClosure(containing, x);
         } else {
             // NOT GENERIC
-
-            Simple_fcn cl = newClosure(containing, x);
-            // Search for test modifier
+            cl = newClosure(containing, x);
+            
+            // Search for test modifier -- can't we have a generic test modifier?
             List<Modifier> mods = x.getMods();
             if (!mods.isEmpty()) {
                 for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
@@ -394,12 +393,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     }
                 }
             }
-            // TODO this isn't right if it was a test function.
-            // it belongs in a different namespace if it is.
-            bindInto.putValueShadowFn(fname, cl);
-            //LINKER putOrOverloadOrShadow(x, containing, name, cl);
-
         }
+        // TODO this isn't right if it was a test function.
+        // it belongs in a different namespace if it is.
+        bindInto.putValueShadowFn(fname, cl);
+        //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
 
     }
 
@@ -420,7 +418,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                    GenericFunctionSet gfs = (GenericFunctionSet) fcn;
                    gfs.finishInitializing();
                }
-
            }
 
        } else {

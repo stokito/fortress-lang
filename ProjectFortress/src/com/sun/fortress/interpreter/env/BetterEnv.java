@@ -240,6 +240,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     private <Result> BATreeNode<String, Result> put(BATreeNode<String, Result> table, String index, Result value, String what) {
+        if ("_".equals(index))
+            return table;
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
         } else {
@@ -256,6 +258,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     private <Result> BATreeNode<String, Result> putNoShadow(BATreeNode<String, Result> table, String index, Result value, String what) {
+        if ("_".equals(index))
+            return table;
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
         } else {
@@ -343,7 +347,19 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                 /*
                  * Lots of overloading combinations
                  */
-                if (fvo instanceof GenericMethodSet) {
+                if (fvo instanceof Simple_fcn) {
+                    Simple_fcn gm = (Simple_fcn)fvo;
+                    OverloadedFunction gms = new OverloadedFunction(gm.getFnName(), this);
+                    gms.addOverload(gm);
+                     if (value instanceof Simple_fcn) {
+                         gms.addOverload((Simple_fcn) value);
+                    } else if (value instanceof OverloadedFunction) {
+                        gms.addOverloads((OverloadedFunction) value);
+                    } else {
+                        throw new ProgramError("Overload of Simple_fcn " + fvo + " with inconsistent " + value);
+                    }
+                     return table.add(index, gms, comparator);
+                 } else if (fvo instanceof GenericMethodSet) {
                     if (value instanceof GenericMethod) {
                         ((GenericMethodSet)fvo).addOverload((GenericMethod) value);
                     } else if (value instanceof GenericMethodSet) {
@@ -397,20 +413,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     }
                     
                     
-               } else if (fvo instanceof Simple_fcn) {
-                   Simple_fcn gm = (Simple_fcn)fvo;
-                   OverloadedFunction gms = new OverloadedFunction(gm.getFnName(), this);
-                   gms.addOverload(gm);
-                    if (value instanceof Simple_fcn) {
-                        gms.addOverload((Simple_fcn) value);
-                   } else if (value instanceof OverloadedFunction) {
-                       gms.addOverloads((OverloadedFunction) value);
-                   } else {
-                       throw new ProgramError("Overload of Simple_fcn " + fvo + " with inconsistent " + value);
-                   }
-                    return table.add(index, gms, comparator);
-                   
-                } else {
+               } else {
                     throw new RedefinitionError(what, index, original.getValue(), value);
                 }
                 /*
@@ -685,6 +688,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putValue(String str, FValue f2) {
+        if ("_".equals(str))
+            return;
         if (f2 instanceof Fcn)
             var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
         else 
