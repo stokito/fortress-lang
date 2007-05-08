@@ -65,19 +65,19 @@ trait Maybe[\T\] extends MaybeType comprises { Nothing[\T\], Just[\T\] }
 end
 
 object Just[\T\](x:T) extends {Maybe[\T\]}
-  isJust() = true
-  unJust() = x
+  getter toString():String = "Just(" x ")"
+  getter isJust() = true
+  getter unJust() = x
   eq(o:Just[\T\]) = (x=o.unJust())
-  toString():String = "Just(" x ")"
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
 object Nothing[\T\]() extends { Maybe[\T\] }
-  isJust() = false
-  unJust() = throw UnJustNothing
+  getter isJust() = false
+  getter unJust() = throw UnJustNothing
+  getter toString():String = "Nothing"
   eq(o:Nothing[\T\]) = true
-  toString():String = "Nothing"
 end
 
 opr =(x:MaybeType, y:MaybeType) = x.eq(y)
@@ -225,7 +225,8 @@ opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
 (** Reflection for run-time integers into compile-time nat parameters *)
 trait NatParam
   (* comprises { N[\n\] } where { nat n } *)
-  toZZ() : ZZ32
+  getter toZZ() : ZZ32
+  getter toString() = n.toString()
 end
 
 value object N[\nat n\]() extends { NatParam }
@@ -256,7 +257,7 @@ end
 
 object __Proxy[\T extends (* U *) Any\]()
     (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-  toString() = "__Proxy object, should not be user-visible."
+  getter toString() = "__Proxy object, should not be user-visible."
 end
 
 (** Boilerplate code for Array *)
@@ -310,23 +311,21 @@ using type I to obtain elements with type E.  For this to really work
 the way we want for arrays, we'll need better parameterization of
 types with tuples. *)
 
-trait Indexed[\T extends Indexed[\T, E, I\], E, I\] extends HasRank
+trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
+    extends { HasRank, Generator[\(I,E)\] }
   opr[i:I] : E
   opr[i:I]:=(v:E) : ()
   assign(v:T):T = fill(fn (i:I):E => v[i])
   fill(f:I->E):T
   fill(v:E):T = fill(fn (i:I):E => v)
   copy():T
-  mapReduce[\R\](f:(I,E)->R, j:(R,R)->R, z:R):R
-  reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (i:I,e:E)=>e, j, z)
 end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
-  size(): I
-  base(): I
+  getter size(): I
+  getter base(): I
   replica[\U\]():Array[\U,I\]
-  map[\U\](f:(I,E)->U):Array[\U,I\]
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
@@ -373,34 +372,13 @@ hierarchy.  The simplest instance of a reduction defines three functions:
 Every reduction provides dimension-specific join methods and a run()
 method which runs the reduction.  *)
 
-trait ReductionBase[\T\]
-  empty():T
-  join(a:T,b:T):T
-  run():T
-end
-
-trait Reduction1[\T, nat s\] extends ReductionBase[\T\]
-  toString():String = "Reduction1[\\T," s "\\]"
-  leaf(i:ZZ32):T
-  run() =
-    if s=0 then empty() else
-        runInnerLoop(b:ZZ32,n:ZZ32) =
-          if n=1 then leaf(b)
-          else
-            (n0,n1) = partition(n)
-            join(runInnerLoop(b,n0),runInnerLoop(b+n0,n1))
-          end
-        runInnerLoop(0,s)
-    end
-end
-
 trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
               Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
-  size():ZZ32 = s0
-  base():ZZ32 = b0
-  toString() = do
+  getter size():ZZ32 = s0
+  getter base():ZZ32 = b0
+  getter toString() = do
     r = "[" b0 "#" s0 "] = ["
     if s0=0 then
       r "]"
@@ -452,33 +430,21 @@ trait Array1[\T, nat b0, nat s0\]
   assign(other:Array1[\T,b0,s0\]): Array1[\T,b0,s0\] =
       fill(fn (i:ZZ32): T => other.get(i-b0))
 
+  generate[\R\](r: Reduction[\R\],m: (ZZ32,T)->R): R =
+    Range[\ZZ32\](0,s0).generate[\R\](r, fn (i: ZZ32): R => m(b0+i,get(i)))
+
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
-    (object extends Reduction1[\(),s0\]
-       empty()= ()
-       join(a:(),b:()):() = ()
-       leaf(a:ZZ32):() = put(f(a+b0),a)
-     end).run()
+    Range[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
     self
   end
 
-  map[\U\](f:(ZZ32,T)->U):Array1[\U,b0,s0\] =
-    replica[\U\]().fill(fn (i:ZZ32) => f(i, get(i-b0)))
+  copy():Array1[\T,b0,s0\] = replica[\T\]().assign(self)
 
-  copy():Array1[\T,b0,s0\] = self.replica[\T\]().assign(self)
-
-  mapReduce[\R\](f:(ZZ32,T)->R, j:(R,R)->R, z:R):R =
-    (object extends Reduction1[\R,s0\]
-       empty() = z
-       join(a:R,b:R):R = j(a,b)
-       leaf(i:ZZ32):R = f(i+b0,get(i))
-     end).run()
+  map[\R\](f:(ZZ32,T)->R): R =
+      replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
 
   eq(o:Array1[\T,b0,s0\]):Boolean =
-    (object extends Reduction1[\Boolean,s0\]
-       empty():Boolean = true
-       join(a:Boolean,b:Boolean):Boolean = a AND b
-       leaf(i:ZZ32):Boolean = (get(i) = o.get(i))
-     end).run()
+    generate[\Boolean\](AndReduction, fn (i: ZZ32,e: T): Boolean => e=o.get(i))
 end
 
 (* A 1-D subarray, defined wrt underlying FlatStorage.
@@ -490,7 +456,7 @@ object __SubArray1[\T, nat b0, nat s0, nat l0\]
        extends Array1[\T, b0, s0\]
     index(i:ZZ32):T = i m0 + o0
     get(i:ZZ32):T = mem.get(index(i))
-    put(v:T, i:ZZ32):T = mem.put(index(i))
+    put(v:T, i:ZZ32):T = mem.put(v,index(i))
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
       o_n : ZZ32 = o - b0
       if o_n < 0 OR o_n > s0-s then
@@ -619,41 +585,13 @@ squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
 opr [\ T extends Number, nat k \]
     ||me : Vector[\T,k\]|| : RR64 = SQRT squaredNorm(me)
 
-(* Column-major reduction in 2 dimensions *)
-trait Reduction2[\T, nat s0, nat s1\] extends ReductionBase[\T\]
-  toString()="Reduction2[\\T," s0 "," s1 "\\]"
-  join(l:T,r:T):T = join0(l,r)
-  join0(l:T,r:T):T = join(l,r)
-  join1(l:T,r:T):T = join(l,r)
-  empty():T
-  leaf(a:ZZ32,b:ZZ32):T
-  run():T =
-    if s0=/=0 AND s1=/=0 then
-      rr(a0:ZZ32,sz0:ZZ32,a1:ZZ32,sz1:ZZ32):T =
-        if sz1 >= sz0 then
-          if sz1 = 1 then
-            leaf(a0,a1)
-          else
-            (sz_l,sz_r) = partition(sz1)
-            join1(rr(a0,sz0,a1,sz_l),rr(a0,sz0,a1+sz_l,sz_r))
-          end
-        else
-            (sz_t,sz_b) = partition(sz0)
-            join0(rr(a0,sz_t,a1,sz1),rr(a0+sz_t,sz_b,a1,sz1))
-        end
-      rr(0,s0,0,s1)
-    else
-      empty()
-    end
-end
-
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\],
               Indexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
-  size():(ZZ32,ZZ32) = (s0,s1)
-  base():(ZZ32,ZZ32) = (b0,b1)
-  toString() = do
+  getter size():(ZZ32,ZZ32) = (s0,s1)
+  getter base():(ZZ32,ZZ32) = (b0,b1)
+  getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
       for j <- seq(0#s1) do
@@ -688,25 +626,18 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[x:ZZ32,y:ZZ32] : T = self.get(offset(x,y))
   opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset t; self.put(v,i,j) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
+  indices(): Generator[\(ZZ32,ZZ32)\] =
+      Range[\ZZ32\](b0,s0).cross[\ZZ32\](Range[\ZZ32\](b1,s1))
   fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
-    (object extends Reduction2[\(),s0,s1\]
-       join(l:(),r:()):() = ()
-       empty():() = ()
-       leaf(a0:ZZ32,a1:ZZ32):() = put(f(a0+b0,a1+b1),a0,a1)
-     end).run()
-    self
-  end
+      indices().loop(fn (a:ZZ32, b:ZZ32): () => put(f(a,b),a-b0, b-b1))
+      self
+    end
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
-  map[\U\](f:((ZZ32,ZZ32),T)->U):Array2[\U,b0,s0,b1,s1\] =
-    self.replica[\U\]().fill(fn (i:ZZ32,j:ZZ32): U => f((i,j),get(i-b0,j-b1)))
+  generate[\R\](r: Reduction[\R\], m: ((ZZ32,ZZ32),T)->R): R =
+      indices().generate[\R\](r,
+                              fn (a:ZZ32, b:ZZ32): R => m((a,b),get(a-b0,b-b0)))
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
-  mapReduce[\R\](f:((ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
-    (object extends Reduction2[\R,s0,s1\]
-       join(l:R,r:R):R = j(l,r)
-       empty() = z
-       leaf(a0:ZZ32,a1:ZZ32):R = f((a0+b0,a1+b1),get(a0,a1))
-     end).run()
   put(v:T, i:ZZ32, j:ZZ32) : ()
   get(i:ZZ32, j:ZZ32):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
@@ -714,12 +645,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   assign(other: Array2[\T,b0,s0,b1,s1\]): Array2[\T,b0,s0,b1,s1\] =
       fill(fn (i:ZZ32,j:ZZ32) => other.get(i-b0,j-b1))
   fill(v:T):Array2[\T,b0,s0,b1,s1\] = fill(fn (i:ZZ32,j:ZZ32):T => v)
+  map[\R\](f:((ZZ32,ZZ32),T)->R): R =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f((i,j),get(i-b0,j-b1)))
   eq(o:Array2[\T,b0,s0,b1,s1\]):Boolean =
-    (object extends Reduction2[\Boolean,s0,s1\]
-       empty():Boolean = true
-       join(a:Boolean,b:Boolean):Boolean = a AND b
-       leaf(i:ZZ32,j:ZZ32):Boolean = (get(i,j) = o.get(i,j))
-     end).run()
+    generate[\Boolean\](AndReduction,
+                        fn (i:(ZZ32,ZZ32),e:T): Boolean => e = o.get(i))
 end
 
 (* Default array is column-major, but we could switch it. *)
@@ -915,47 +845,16 @@ opr DOT[\ T extends Number, nat n, nat m, nat p \]
 opr *[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
-trait Reduction3[\R,nat s0,nat s1,nat s2\] extends ReductionBase[\R\]
-  toString():String = "Reduction3[\\R," s0 "," s1 "," s2 "\\]"
-  join(l:R,r:R):R = join0(l,r)
-  join0(l:R,r:R):R = join(l,r)
-  join1(l:R,r:R):R = join(l,r)
-  join2(l:R,r:R):R = join(l,r)
-  leaf(a0:ZZ32,a1:ZZ32,z2:ZZ32):R
-  run() =
-    if s0=0 OR s1=0 OR s2=0 then
-      empty()
-    else
-      rr(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
-        if k>=i AND k>=j then
-          if k=1 then
-            leaf(a+b0,b+b1,c+b2)
-          else
-            (k0,k1) = partition(k)
-            join(rr(a,i,b,j,c,k0),rr(a,i,b,j,c+k0,k1))
-          end
-        elif j>=i then
-            (j0,j1) = partition(j)
-            join(rr(a,i,b,j0,c,k),rr(a,i,b+j0,j1,c,k))
-        else
-            (i0,i1) = partition(i)
-            join(rr(a,i0,b,j,c,k),rr(a+i0,i1,b,j,c,k))
-        end
-      rr(0,s0,0,s1,0,s2)
-    end
-end
-
-
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
             Array[\T,(ZZ32,ZZ32,ZZ32)\],
             Indexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
 
-  size():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
-  base():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
+  getter size():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
+  getter base():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
 
-  toString():String = do
+  getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
     row(i,j) =
         for k <- seq(0#s2) do
@@ -1001,35 +900,40 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     self.put(v,a,b,c)
   end
 
+  indices():Generator[\(ZZ32,ZZ32,ZZ32)\] = do
+      g0 = Range[\ZZ32\](b0,s0)
+      g1 = Range[\ZZ32\](b1,s1)
+      g2 = Range[\ZZ32\](b2,s2)
+      m(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do (j,k) = jk; (i,j,k) end
+      g0.cross(g1.cross(g2)).map(m)
+    end
+
+  generate[\R\](r:Reduction[\R\], m:((ZZ32,ZZ32,ZZ32),T)->R): R = do
+      g0 = Range[\ZZ32\](b0,s0)
+      g1 = Range[\ZZ32\](b1,s1)
+      g2 = Range[\ZZ32\](b2,s2)
+      mm(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+          (j,k) = jk
+          m((i,j,k),get(i-b0,j-b1,k-b2))
+        end
+      g0.cross(g1.cross(g2)).generate[\R\](r,mm)
+    end
+
   fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
-    (object extends Reduction3[\(),s0,s1,s2\]
-       empty():() = ()
-       join(l:(),r:()):() = ()
-       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):() =
-         put(a0,a1,a2,f(a0+b0,a1+b1,a2+b2))
-     end).run()
+    indices().loop(fn (i:ZZ32,j:ZZ32,k:ZZ32):() => put(f(i,j,k),i-b0,j-b0,k-b0))
     self
   end
   replica[\U\]():Array3[\T,b0,s0,b1,s1,b2,s2\]
   copy():Array3[\T,b0,s0,b1,s1,b2,s2\] = self.replica[\T\]().assign(self)
-  mapReduce[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R, j:(R,R)->R, z:R):R =
-    (object extends Reduction3[\R,s0,s1,s2\]
-       empty():R = z
-       join(l:R, r:R):R = j(l,r)
-       leaf(a0:ZZ32,a1:ZZ32,a2:ZZ32):R = f((a0+b0,a1+b1,a2+b2),get(a0,a1,a2))
-     end).run()
-  (* Copied here from Indexed. *)
-  assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) = fill(fn (i:ZZ32,j:ZZ32):T => v[i,j])
-  fill(v:T):T = fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T => v)
-  map[\U\](f:((ZZ32,ZZ32,ZZ32),T)->U): Array3[\U,b0,s0,b1,s1,b2,s2\] =
-    replica[\U\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):U =>
-                           f((i,j,k),get(i-b0,j-b1,k-b2)))
+  assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) =
+      fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T =>
+               put(v.get(i-b0,j-b1,k-b2),i-b0,j-b1,k-b2))
+  map[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R): R =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):R =>
+                              f((i,j,k),get(i-b0,j-b1,k-b2)))
   eq(o:Array3[\T,b0,s0,b1,s1,b2,s2\]):Boolean =
-    (object extends Reduction3[\Boolean,s0,s1,s2\]
-       empty() = true
-       join(a,b) = a AND b
-       leaf(i:ZZ32,j:ZZ32,k:ZZ32):R = (get(i,j,k) = o.get(i,j,k))
-     end).run()
+      generate[\Boolean\](AndReduction,
+                          fn (i:(ZZ32,ZZ32,ZZ32),e:T) => e = o[i])
 end
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
@@ -1078,13 +982,21 @@ trait Reduction[\ R \]
 end
 
 object VoidReduction extends Reduction[\()\]
+    getter toString() = "VoidReduction"
     empty(): () = ()
     join(a: (), b: ()): () = ()
 end
 
 object SumReduction[\N extends Number\]() extends Reduction[\N\]
+    getter toString() = "SumReduction"
     empty(): N = 0
     join(a: N, b: N): N = a+b
+end
+
+object AndReduction extends Reduction[\Boolean\]
+    getter toString() = "AndReduction"
+    empty(): Boolean = true
+    join(a: Boolean, b: Boolean): Boolean = a AND b
 end
 
 trait Generator[\E\]
@@ -1092,12 +1004,25 @@ trait Generator[\E\]
     getter size(): ZZ32
     generate[\R\](r: Reduction[\R\], m: E->R): R
 (*
+    No overloaded generic methods yet.  We call this reduce instead.
+    Similarly with loop.  These could all be variants of generate.
     generate[\R\](r: Reduction[\E\]): E =
         generate[\R\](r, identity[\E\])
 *)
+    mapReduce[\R\](m: E->R, j:(R,R)->R, z:R): R = do
+      r = object extends Reduction[\R\]
+            getter toString()="mapReduce.Reduction"
+            empty() = z
+            join(a:R, b:R): R = j(a,b)
+          end
+      generate[\R\](r, m)
+    end
+    reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
+    reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
+    loop(f:E->()): () = generate[\()\](VoidReduction, f)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         SimplePairGenerator[\E,G\](self, g)
-    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](g,f)
+    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
 end
 
 (** Helpers for maps and cross products of generators.  These can be
@@ -1108,7 +1033,8 @@ end
 object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
         extends Generator[\F\]
     getter size(): ZZ32 = g.size()
-    generate[\R\](r: Reduction[\R\], m: E->R): R =
+    getter toString() = "SimpleMappedGenerator(" g ",f)"
+    generate[\R\](r: Reduction[\R\], m: F->R): R =
         g.generate[\R\](r, m COMPOSE f)
     generate[\R\](r: Reduction[\F\]): F =
         g.generate[\R\](r, f)
@@ -1119,6 +1045,7 @@ end
 object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
         extends Generator[\(E,F)\]
     getter size() = e.size() f.size()
+    getter toString()=(e ".cross(" f ")" )
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
         e.generate[\R\](r, fn (a: E): R =>
                               f.generate[\R\](r, fn (b: F): R => m(a,b)))
@@ -1127,7 +1054,8 @@ end
 (** Ranges, the simplest and most basic of all generators. *)
 object Range[\N extends Number\](lo:N, sz:N)
         extends Generator[\N\]
-    size() = narrow(|\sz/|) MAX 0
+    getter size() = narrow(|\sz/|) MAX 0
+    getter toString()="Range(" lo "#" sz ")"
     generate[\R\](r: Reduction[\R\], m: N->R): R =
         if sz < 1 then
             r.empty()

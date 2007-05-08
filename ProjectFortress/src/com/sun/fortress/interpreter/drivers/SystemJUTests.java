@@ -24,7 +24,7 @@ public class SystemJUTests {
      
     public static void main(String[] args) {
         
-        junit.swingui.TestRunner.run(SystemJUTests.class);
+        junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() {

@@ -90,11 +90,11 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
      *            the implicitTypeParameters to set
      */
     public void setImplicitTypeParameters(
-            BATree<String, StaticParam> implicit_type_arameters) {
+            BATree<String, StaticParam> implicit_type_parameters) {
         if (this.staticParams != null) {
             throw new Error("Second set");
         }
-        this.implicitTypeParameters = implicit_type_arameters;
+        this.implicitTypeParameters = implicit_type_parameters;
         staticArgs = new ArrayList<StaticArg>(implicitTypeParameters.size());
 
         if (implicitTypeParameters.size() == 0) {
@@ -129,8 +129,17 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
      *            the genSymName to set
      */
     public void setGenSymName(String genSymName) {
+        /* Arr, here be dragons.  We actually re-initialize the
+         * FortressLibrary AST by running a new Disambiguate pass when
+         * we do our unit tests.  As we do so, we call setGenSymName again. */
         if (this.genSymName != null) {
-            throw new Error("Second set");
+            if (!(this.genSymName.equals(genSymName))) {
+                throw new Error("Second set\n"+
+                                "Object expr:\n"+this+"\n"+
+                                "genSymName "+this.genSymName+"\n"+
+                                "trying to reset to "+genSymName);
+            }
+            this.staticParams = null;
         }
         this.genSymName = genSymName;
     }
