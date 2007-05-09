@@ -20,7 +20,7 @@ export Map
 
 weight:ZZ32 = 3
 
-trait Tree[\Key,Val\] comprises {Node[\Key,Val\], Empty[\Key,Val\]}
+trait Tree[\Key,Val\] comprises {Node[\Key,Val\], EmptyNode[\Key,Val\]}
   size():ZZ32
   empty():Boolean
   getPair():(Key, Val)
@@ -43,7 +43,7 @@ trait Tree[\Key,Val\] comprises {Node[\Key,Val\], Empty[\Key,Val\]}
   balancedAdd(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\]
 end
 
-object Empty[\Key,Val\]() extends Tree[\Key,Val\]
+object EmptyNode[\Key,Val\]() extends Tree[\Key,Val\]
   size():ZZ32 = 0
   empty():Boolean = true
   getPair():(Key, Val) = getPair()
@@ -51,7 +51,7 @@ object Empty[\Key,Val\]() extends Tree[\Key,Val\]
   getVal():Val = getVal()
   getLeftChild():Tree[\Key,Val\] = self
   getRightChild():Tree[\Key,Val\] = self
-  printTree():() = print "Empty"
+  printTree():() = print "EmptyNode"
   toString():String = "{}"
   member(x:Key): Maybe[\Val\] = Nothing[\Val\]()
   removeMinimum():((Key,Val), Tree[\Key,Val\]) = removeMinimum()

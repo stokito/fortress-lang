@@ -1,0 +1,135 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component List
+export List
+
+trait List[\alpha\] comprises {Cons[\alpha\], Empty[\alpha\]}
+   length(): ZZ32
+   cons(x: alpha): List[\alpha\] = Cons[\alpha\](x, self)
+   append(xs: List[\alpha\]): List[\alpha\]
+   append(n: ZZ32, xs: List[\alpha\]): List[\alpha\]
+   contains(x: alpha): Boolean
+   containsAll(xs: List[\alpha\]): Boolean
+   isEmpty(): Boolean
+   filter(p: alpha -> Boolean): List[\alpha\]
+   map[\beta\](f: alpha -> beta): List[\beta\]
+   process(proc: alpha -> ()): ()
+   foldL[\beta\](start: beta, f:(beta, alpha) -> beta): beta
+   foldR[\beta\](f:(alpha, beta) -> beta, start:beta): beta
+   remove(x: alpha): List[\alpha\]
+   union(xs: List[\alpha\]): List[\alpha\]
+   intersection(xs: List[\alpha\]): List[\alpha\]
+   difference(x: List[\alpha\]): List[\alpha\]
+   zip[\beta, gamma\](f: (alpha,beta) -> gamma, xs: List[\beta\]): List[\gamma\]
+   forAll(p: alpha -> Boolean): Boolean
+   exists(p: alpha -> Boolean): Boolean
+   subList(m: ZZ32, n: ZZ32): List[\alpha\]
+   reverse(): List[\alpha\]
+ end
+
+object Empty[\alpha\]() extends List[\alpha\]
+   length() = 0
+   append(xs: List[\alpha\]): List[\alpha\] = xs
+   append(n: ZZ32, xs: List[\alpha\]): List[\alpha\] =
+     if n = 0 then xs
+     else append(n,xs)
+     end
+   contains(x: alpha) = false
+   containsAll(xs: List[\alpha\]) = xs.isEmpty()
+   isEmpty() = true
+   filter(p: alpha -> Boolean) = self
+   map[\beta\](f: alpha -> beta): List[\beta\] = self
+   process(proc: alpha -> ()) = ()
+   foldL[\beta\](start: beta,f: (beta, alpha) -> beta): beta = start
+   foldR[\beta\](f: (alpha, beta) -> beta,start: beta): beta = start
+   remove(x: alpha): List[\alpha\] = self
+   union(xs: List[\alpha\]): List[\alpha\] = xs
+   intersection(xs: List[\alpha\]): List[\alpha\] = self
+   difference(xs: List[\alpha\]): List[\alpha\] = xs
+   zip[\beta,gamma\](f: (alpha,beta) -> gamma, xs: List[\beta\]): List[\gamma\] =
+     if xs.isEmpty() then xs else zip[\beta,gamma\](f,xs) end
+   forAll(p: alpha -> Boolean) = true
+   exists(p: alpha -> Boolean) = false
+   subList(m: ZZ32, n: ZZ32): List[\alpha\] =
+     if m = n then self
+     else subList(m,n) end
+   reverse(): List[\alpha\] = self
+end
+
+object Cons[\alpha\](hd',tl') extends List[\alpha\]
+  len = 1 + tl'.length()
+  length() = len
+  hd(): alpha = hd'
+  tl(): List[\alpha\] = tl'
+  eltAt(n: ZZ32): alpha = if n = 0 then hd' else tl'.eltAt(n-1) end
+  append(xs: List[\alpha\]): List[\alpha\] = tl'.append(xs).cons(hd')
+  append(n:ZZ32, xs: List[\alpha\]): List[\alpha\] =
+    if n = 0 then xs.append(self)
+    else tl'.append(n-1,xs).cons(hd') end
+  contains(x: alpha) = (x = hd') OR tl'.contains(x)
+  containsAll(xs: List[\alpha\]) =
+     if xs.isEmpty() then true
+     else self.contains(xs.hd()) AND self.containsAll(xs.tl()) end
+  indexOf(x: alpha) = if x = hd' then 0 else 1 + tl'.indexOf(x) end
+  lastIndexOf(x: alpha) = len - 1 - self.reverse().indexOf(x)
+  isEmpty() = false
+  filter(p: alpha -> Boolean): List[\alpha\] =
+    if p hd' then tl'.filter(p).cons(hd') else tl'.filter(p) end
+  map[\beta\](f: alpha -> beta): List[\beta\] = tl'.map(f).cons(f hd')
+  process(proc: alpha -> ()) = do
+    proc hd'
+    tl'.process(proc)
+  end
+  foldL[\beta\](start: beta, f: (beta, alpha) -> beta): beta =
+    tl'.foldL[\beta\](f(start,hd'), f)
+  foldR[\beta\](f: (alpha, beta) -> beta, start: beta): beta =
+    f(hd', tl'.foldR[\beta\](f, start))
+  remove(x: alpha): List[\alpha\] =
+    if x = hd' then tl'.remove(x)
+    else tl'.remove(x).cons(hd') end
+  removeAt(n: ZZ32): List[\alpha\] =
+    if n = 0 then tl' else tl'.removeAt(n-1).cons(hd') end
+  union(xs: List[\alpha\]): List[\alpha\] = xs.append(self)
+  intersection(xs: List[\alpha\]): List[\alpha\] =
+    if xs.contains(hd') then tl'.intersection(xs).cons(hd')
+    else tl'.intersection(xs) end
+  difference(xs: List[\alpha\]): List[\alpha\] =
+    if xs.contains(hd') then tl'.difference(xs.remove(hd'))
+    else tl'.difference(xs).cons(hd') end
+  zip[\beta,gamma\](f: (alpha,beta) -> gamma, xs: List[\beta\]): List[\gamma\] =
+    tl'.zip[\beta,gamma\](f,xs.tl()).cons(f(hd',xs.hd()))
+  forAll(p: alpha -> Boolean) = (p hd') AND tl'.forAll(p)
+  exists(p: alpha -> Boolean) = (p hd') OR tl'.exists(p)
+  updateHd(x: alpha): List[\alpha\] = Cons[\alpha\](x,tl')
+  updateTl(xs: List[\alpha\]): List[\alpha\] = Cons[\alpha\](hd',xs)
+  subList(m: ZZ32, n: ZZ32): List[\alpha\] =
+    if m = 0 then prefix(n) else tl'.subList(m-1,n) end
+  prefix(n) =
+    if n = 0 then Empty[\alpha\]()
+    else Cons[\alpha\](hd',tl'.prefix(n-1)) end
+  reverse(): List[\alpha\] =
+    tl'.reverse().append(Cons[\alpha\](hd',Empty[\alpha\]()))
+end
+
+concat[\alpha\](xs: List[\List[\alpha\]\]) =
+  typecase xs of
+    Empty[\alpha\] => Empty[\alpha\]()
+    Cons[\alpha\]  => concat(xs.tl()).append(xs.hd())
+  end
+
+end

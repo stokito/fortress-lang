@@ -21,13 +21,17 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 public class Parameter {
   String param_name;
   FType param_type;
-  public Parameter(String pname, FType ptype) {
+  boolean is_mutable;
+
+  public Parameter(String pname, FType ptype, boolean mutable) {
     param_name = pname;
     param_type = ptype;
+    is_mutable = mutable;
   }
 
   public String getName() { return param_name;}
   public FType  getType() { return param_type;}
+  public boolean getMutable() { return is_mutable;}
 
   public String toString() {
       return param_name+":"+param_type;

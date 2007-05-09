@@ -64,8 +64,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     private BATreeNode<String, SApi> api_env;
     private BATreeNode<String, SComponent> cmp_env;
     private BATreeNode<String, Declaration> dcl_env;
-    
-    
+
+
     static public boolean verboseDump = true;
 
     /** Names noted for possible future overloading */
@@ -73,7 +73,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     int namesPutCount;
     boolean blessed; /* until blessed, cannot be copied */
     private boolean topLevel;
-    
+
     /** Where created */
     HasAt within;
 
@@ -88,7 +88,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         Primitives.installPrimitives(this);
         return this;
     }
-    
+
     public void visit(Visitor2<String, FType> vt,
                       Visitor2<String, Number> vn,
                       Visitor2<String, Number> vi,
@@ -99,7 +99,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         if (int_env != null) int_env.visit(vi);
         if (var_env != null) var_env.visit(vv);
         if (bool_env != null) bool_env.visit(vb);
-    
+
     }
 
     public void visit(Visitor2<String, Object> v) {
@@ -108,9 +108,9 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         if (int_env != null) int_env.visit(v);
         if (var_env != null) var_env.visit(v);
         if (bool_env != null) bool_env.visit(v);
-    
+
     }
-    
+
     public void bless() {
         blessed = true;
     }
@@ -122,11 +122,11 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     public void setTopLevel() {
         topLevel = true;
     }
-    
+
     public boolean isTopLevel() {
         return topLevel;
     }
-    
+
     public static BetterEnv empty() {
         return new BetterEnv("Empty");
     }
@@ -240,8 +240,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     private <Result> BATreeNode<String, Result> put(BATreeNode<String, Result> table, String index, Result value, String what) {
-        if ("_".equals(index))
-            return table;
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
         } else {
@@ -258,8 +256,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     private <Result> BATreeNode<String, Result> putNoShadow(BATreeNode<String, Result> table, String index, Result value, String what) {
-        if ("_".equals(index))
-            return table;
         if (table == null) {
             return new BATreeNode<String, Result> (index, value);
         } else {
@@ -303,7 +299,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     throw new InterpreterError("Duplicate entry in table, but not in table.");
                 }
                 FValue fvo = original.getValue();
-                
+
                 if (fvo instanceof IndirectionCell) {
                     // TODO Need to push the generic type Result into IndirectionCell, etc.
                     // This yucky code is "correct" because IndirectionCell extends FValue,
@@ -323,16 +319,16 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                         throw new RedefinitionError(what, index, original.getValue(), value);
                     }
                 }
-                
+
                 /* ic is a function, do an overloading on it.
                  * Because of wholesale symbol import via linking,
                  * it is possible to combine a pair of overloadings.
-                 * 
+                 *
                  * This is all going to get simpler in the future,
                  * when overloading gets more complicated (allowing mixed
                  * generic and non-generic overloading).
                  */
-                
+
                 Fcn fcn_fvo = (Fcn) fvo;
                 if (fcn_fvo.getWithin() != value.getWithin() &&
                     ! (fcn_fvo.getWithin().isTopLevel() &&  value.getWithin().isTopLevel()) ) {
@@ -342,8 +338,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                      */
                     noteName(index);
                     return new_table;
-                } 
-                
+                }
+
                 /*
                  * Lots of overloading combinations
                  */
@@ -366,8 +362,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                         ((GenericMethodSet)fvo).addOverloads((GenericMethodSet) value);
                     } else {
                         throw new ProgramError("Overload of GenericMethodSet " + fvo + " with inconsistent " + value);
-                    } 
-                   
+                    }
+
                 } else if (fvo instanceof GenericMethod) {
                     GenericMethod gm = (GenericMethod)fvo;
                     GenericMethodSet gms = new GenericMethodSet(gm.getFnName(), this);
@@ -380,7 +376,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                         throw new ProgramError("Overload of GenericMethod " + fvo + " with inconsistent " + value);
                     }
                     return table.add(index, gms, comparator);
-                    
+
                 } else if (fvo instanceof GenericFunctionSet) {
                     if (value instanceof FGenericFunction) {
                         ((GenericFunctionSet)fvo).addOverload((FGenericFunction) value);
@@ -389,7 +385,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     } else {
                         throw new ProgramError("Overload of GenericFunctionSet " + fvo + " with inconsistent " + value);
                     }
-                    
+
                 } else if (fvo instanceof FGenericFunction) {
                     FGenericFunction gm = (FGenericFunction)fvo;
                     GenericFunctionSet gms = new GenericFunctionSet(gm.getFnName(), this);
@@ -402,7 +398,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                         throw new ProgramError("Overload of FGenericFunction " + fvo + " with inconsistent " + value);
                     }
                     return table.add(index, gms, comparator);
-                        
+
                 } else if (fvo instanceof OverloadedFunction) {
                    if (value instanceof Simple_fcn) {
                        ((OverloadedFunction)fvo).addOverload((Simple_fcn) value);
@@ -411,8 +407,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     } else {
                         throw new ProgramError("Overload of OverloadedFunction " + fvo + " with inconsistent " + value);
                     }
-                    
-                    
+
+
                } else {
                     throw new RedefinitionError(what, index, original.getValue(), value);
                 }
@@ -448,7 +444,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         throw new ProgramError(loc, this, "Cannot assign to immutable " + str);
 
     }
-    
+
     public void storeType(HasAt loc, String str, FType f2) {
         FValue v = get(var_env, str);
         if (v instanceof ReferenceCell) {
@@ -608,17 +604,17 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
         return v;
     }
-    
+
     /**
      * Completely uninterpreted value, only to be used when
      * initializing from imports.
-     * 
+     *
      * @param s
      * @return
      */
     public FValue getValueRaw(String s) {
         FValue v = get(var_env, s);
-           
+
         return v;
     }
 
@@ -688,18 +684,16 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putValue(String str, FValue f2) {
-        if ("_".equals(str))
-            return;
         if (f2 instanceof Fcn)
             var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
-        else 
+        else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
 
     public void putValueShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
             var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
-        else 
+        else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
 

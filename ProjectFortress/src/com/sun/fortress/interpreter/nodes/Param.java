@@ -148,6 +148,15 @@ public class Param extends Node implements
         return false;
     }
 
+    public boolean isMutable() {
+        for (Modifier m : mods) {
+            if (m instanceof Modifier.Var || m instanceof Modifier.Settable) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int compareTo(Param o) {
         int x = getName().getName().compareTo(o.getName().getName());
         if (x != 0) return x;
@@ -156,7 +165,7 @@ public class Param extends Node implements
         // TODO default expr, mods, must enter into comparison also.
         return x;
     }
-    
+
     public static ListComparer<Param> listComparer =
         new ListComparer<Param>();
 

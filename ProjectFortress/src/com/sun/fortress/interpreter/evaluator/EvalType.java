@@ -83,7 +83,7 @@ public class EvalType extends NodeVisitor<FType> {
     public FType evalType(TypeRef t) {
         return acceptNode(t);
     }
-    
+
     public static FType getFTypeFromOption(Option<TypeRef> t, BetterEnv e) {
         if (t.isPresent())
             return getFType(t.getVal(), e);
@@ -176,7 +176,7 @@ public class EvalType extends NodeVisitor<FType> {
             String pname = id.getName();
             Option<TypeRef> type = in_p.getType();
             FType ptype = e.getFTypeFromOption(type);
-            Parameter fp = new Parameter(pname, ptype);
+            Parameter fp = new Parameter(pname, ptype, in_p.isMutable());
             fparams.add(i++, fp);
         }
         return fparams;

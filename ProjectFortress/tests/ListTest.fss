@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ListTest
+import * from List
+export Executable
+
+list  = Cons[\ZZ32\](3, Cons[\ZZ32\](5, Cons[\ZZ32\](7, Empty[\ZZ32\]())))
+list' = Cons[\ZZ32\](8, Cons[\ZZ32\](6, Cons[\ZZ32\](4, Empty[\ZZ32\]())))
+
+prElt = fn x => print(x " ")
+fiveOrMore = fn x => x > 4
+
+run(args:String...):() = do
+  println("legth = " list.length())
+  println("hd = " list.hd())
+  println("list.tl().eltAt(1) = " list.tl().eltAt(1))
+  l = list.append(list')
+  println("Does an even list contain 3? " list'.contains(3))
+  println("Even: " l.containsAll(list'))
+  println("indexOf(8) = " l.indexOf(8))
+  println("lastIndexOf(8) = " l.lastIndexOf(8))
+  println("Is an odd list empty? " list.isEmpty())
+  l.filter(fiveOrMore).map(fn x => x * 10).process(prElt); println ""
+  println(l.foldL[\ZZ32\](0, fn (res, i) => res * 10 + i))
+  println(l.foldR[\ZZ32\](fn (i, res) => res * 10 + i, 0))
+  l.remove(7).process(prElt); println ""
+  l.removeAt(2).process(prElt); println ""
+  l.union(list').intersection(list).process(prElt); println ""
+  l.difference(list).process(prElt); println ""
+  list.zip[\ZZ32,ZZ32\](fn (x,y) => x * 10 + y, list').process(prElt); println ""
+  println("Exists a five or more: " l.exists(fiveOrMore))
+  println("All five or more: " l.forAll(fiveOrMore))
+  l.updateHd(10).updateTl(list').reverse().subList(0, 3).process(prElt)
+  println ""
+end
+
+end

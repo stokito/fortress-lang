@@ -15,28 +15,30 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Map
+component Wildcards
 
-trait Tree[\Key,Val\] comprises {Node[\Key,Val\], EmptyNode[\Key,Val\]}
-  size():ZZ32
-  empty():Boolean
-  getPair():(Key, Val)
-  getKey():Key
-  getVal():Val
-  getLeftChild():Tree[\Key,Val\]
-  getRightChild():Tree[\Key,Val\]
-  printTree():()
-  toString():String
-  member(x:Key): Maybe[\Val\]
-  add(k:Key, v:Val):Tree[\Key,Val\]
-  update(k:Key, v:Val):Tree[\Key,Val\]
-  delete(k:Key):Tree[\Key,Val\]
+export Executable
+
+_ = println "top-level variable test"
+
+object O(settable mutable: ZZ32)
+  x = do mutable := 3; 0 end
+  _ = println "TEST"
+  _ = mutable := 5
 end
 
-object EmptyNode[\Key,Val\]() extends Tree[\Key,Val\] end
-
-object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
-                       right:Tree[\Key,Val\]) extends Tree[\Key,Val\]
+object P
+  var mutable:ZZ32 := 3
 end
+
+run(args:String...) = do
+  println O(1).mutable
+  println O(1).x
+  var x:ZZ32 = 7
+  _ = println "first _"
+  _ = println "second _"
+  _ = x := 8
+  println x
+  end
 
 end

@@ -375,13 +375,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         String fname = x.nameAsMethod();
 
         FValue cl;
-        
+
         if (optStaticParams.isPresent()) {
              cl = newGenericClosure(containing, x);
         } else {
             // NOT GENERIC
             cl = newClosure(containing, x);
-            
+
             // Search for test modifier -- can't we have a generic test modifier?
             List<Modifier> mods = x.getMods();
             if (!mods.isEmpty()) {
@@ -838,12 +838,14 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
         LValue lv = lhs.get(0);
-        
+
         if (lv instanceof LValueBind) {
           LValueBind lvb = (LValueBind) lv;
           Option<TypeRef> type = lvb.getType();
           Id name = lvb.getName();
           String sname = name.getName();
+          if ("_".equals(sname))
+              sname = sname + name.at();
 
           try {
               /* Ignore the type, until later */
@@ -863,9 +865,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
           throw new InterpreterError(x,
                   "Don't support arbitary LHS in Var decl yet");
       }
-        
+
 //	int index = 0;
-	
+
 //        for (LValue lv : lhs) {
 //            if (lv instanceof LValueBind) {
 //                LValueBind lvb = (LValueBind) lv;
@@ -920,8 +922,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Expr init = x.getInit();
 	// int index = 0;
         LValue lv = lhs.get(0);
-        
-        
+
+
          {
             if (lv instanceof LValueBind) {
                 LValueBind lvb = (LValueBind) lv;
@@ -929,6 +931,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 Option<TypeRef> type = lvb.getType();
                 Id name = lvb.getName();
                 String sname = name.getName();
+                if ("_".equals(sname))
+                    sname = sname + name.at();
 
                 FType ft = type.isPresent() ?
                         (new EvalType(containing)).evalType(type.getVal())
@@ -936,7 +940,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 if (lvb.getMutable()) {
                     Expr rhs = init;
-                    
+
                     FValue value = (new Evaluator(containing)).eval(rhs);
 
                     // TODO When new environment are created, need to insert
@@ -961,9 +965,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
-                                    "TypeRef mismatch binding " + value + " (type "
-                                            + value.type() + ") to " + name + " (type "
-                                            + ft + ")");
+                                 "TypeRef mismatch binding " + value + " (type "
+                                 + value.type() + ") to " + name + " (type "
+                                 + ft + ")");
                         }
                     }
                 }
