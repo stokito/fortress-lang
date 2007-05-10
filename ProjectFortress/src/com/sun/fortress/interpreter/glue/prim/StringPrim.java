@@ -45,6 +45,10 @@ public static final class GreaterEq extends Util.SS2B {
     protected boolean f(String x, String y) { return x.compareTo(y)>=0; }
 }
 
+public static final class Substring extends Util.SZZ2S {
+    protected String f(String x, int y, int z) { return x.substring(y, z); }
+}
+
 public static final class Print extends Util.S2V {
     protected void f(String x) { System.out.print(x); }
 }

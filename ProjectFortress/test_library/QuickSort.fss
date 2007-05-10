@@ -19,27 +19,19 @@ component QuickSort
 export QuickSort
 
 (* http://en.wikipedia.org/wiki/Quicksort *)
-lessThan[\T\](x: ZZ32, y: ZZ32) = x < y
-lessThan[\T\](x: (ZZ32,String), y: (ZZ32,String)) =
-  do
-    (x1,x2) = x
-    (y1,y2) = y
-    x1 < y1
-  end
-
 swap[\T\](arr:Array[\T,ZZ32\], x: ZZ32, y: ZZ32) =
   do
     tmp = arr[x]
     arr[x] := arr[y]
     arr[y] := tmp
   end
-mypartition[\T\](arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32) =
+mypartition[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32) =
   do
     pivotValue = arr[pivotIndex]
     swap[\T\](arr, pivotIndex, right)
     storeIndex:ZZ32 := left
     for i <- seq(left#(right-left)) do
-      if lessThan[\T\](arr[i], pivotValue)
+      if lt(arr[i], pivotValue)
       then swap[\T\](arr, storeIndex, i)
            storeIndex += 1
       end
@@ -47,12 +39,12 @@ mypartition[\T\](arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32) =
     swap[\T\](arr, right, storeIndex)
     storeIndex
   end
-quicksort[\T\](arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32) =
+quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32) =
   if right > left
   then pivotIndex = left
-       pivotNewIndex = mypartition(arr, left, right, pivotIndex)
-       quicksort(arr, left, pivotNewIndex-1)
-       quicksort(arr, pivotNewIndex+1, right)
+       pivotNewIndex = mypartition(lt, arr, left, right, pivotIndex)
+       quicksort(lt, arr, left, pivotNewIndex-1)
+       quicksort(lt, arr, pivotNewIndex+1, right)
   end
 
 end

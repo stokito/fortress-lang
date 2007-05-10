@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+import com.sun.fortress.interpreter.glue.NativeFn3;
 
 
 /**
@@ -194,6 +195,12 @@ public class Util {
         protected abstract boolean f(String x, String y);
         protected final FValue act(FValue x, FValue y) {
             return FBool.make(f(x.getString(),y.getString()));
+        }
+    }
+    static public abstract class SZZ2S extends NativeFn3 {
+        protected abstract String f(String x, int y, int z);
+        protected final FValue act(FValue x, FValue y, FValue z) {
+            return FString.make(f(x.getString(), y.getInt(), z.getInt()));
         }
     }
 

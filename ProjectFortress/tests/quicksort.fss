@@ -27,7 +27,7 @@ run(args:String...) = do
   arr[2] := 10
   arr[3] := -3
   arr[4] := 8
-  quicksort[\ZZ32\](arr, 0, 4)
+  quicksort[\ZZ32\](fn (x:ZZ32, y:ZZ32) => x < y, arr, 0, 4)
   for i <- seq(0#arr.size()) do
     print (arr[i] " ")
   end
