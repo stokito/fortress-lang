@@ -21,7 +21,8 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.StaticArg;
+import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
 
 /**
@@ -36,8 +37,13 @@ abstract public class FTypeNat extends FType {
         // TODO Auto-generated constructor stub
     }
 
-    public void unify(BetterEnv env, Set<TypeParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
+    /*
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+     *      com.sun.fortress.interpreter.nodes.TypeRef)
+     */
+    @Override
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         throw new ProgramError(val,env,"Can't unify nat parameter "+this+" and  type argument "+val);
     }
 

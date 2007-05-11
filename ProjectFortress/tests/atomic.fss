@@ -21,10 +21,10 @@ export Executable
 
 run(args:String...):()=do
    var count : ZZ32 = 0
-   for i <- 1#3000 do
+   for i <- 1#300 do
       atomic do count+= 1 end
    end
-   if count=/=3000 then
+   if count=/=300 then
      println("FAIL: count = " count)
    end
 end

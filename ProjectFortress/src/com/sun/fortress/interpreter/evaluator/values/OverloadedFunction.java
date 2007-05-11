@@ -381,11 +381,17 @@ public class OverloadedFunction extends Fcn {
             if (o.getParams() == null) {
                 throw new InterpreterError("Unfinished overloaded function " + this);
             }
-           if (!o.getFn().argCountIsWrong(args) &&
-                argsMatchTypes(args,  o) &&
+            List<FValue> oargs = o.getFn().fixupArgCount(args);
+            if (oargs != null &&
+                argsMatchTypes(oargs,  o) &&
                 (best == -1 || moreSpecificThan(i, best))) {
                     best = i;
             }
+        }
+        if (best == -1) {
+            // TODO add checks for COERCE, right here.
+            throw new ProgramError("Failed to find matching overload, args = " +
+                                   Useful.listInParens(args) + ", overload = " + this);
         }
         return best;
     }

@@ -262,12 +262,12 @@ end
 (************************************************************)
 
 run(args:String...):() = do
-  testSparse(mkMatrix[\2\]())
-  A = mkMatrix[\10\]()
-  v = mkVector[\10\]()
+  testSparse(mkMatrix[\16\]())
+  A = mkMatrix[\50\]()
+  v = mkVector[\50\]()
   println(A)
   println("v" v)
-  (s,e) = conjGrad[\RR64,10,Vector[\RR64,10\],Matrix[\RR64,10,10\]\](A,v)
+  (s,e) = conjGrad[\RR64,50,Vector[\RR64,50\],Matrix[\RR64,50,50\]\](A,v)
   println("s" s)
   println("Error = " e)
 end

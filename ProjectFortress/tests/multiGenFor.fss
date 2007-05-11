@@ -25,10 +25,15 @@ run(args:String...):()=do
   for i <- 0#10, j <- 10#10 do
     a[i,j-10] := i + i j
   end
-  for i <- 0#10, j <- 10#10 do
+  s : ZZ32 := 0
+  for i <- seq(0#10), j <- seq(10#10) do
+    s += 1
     if a[i,j-10] =/= i + i j then
-      println("FAIL " i "," j " = " a[i,j-10])
+      fail("FAIL " i "," j " = " a[i,j-10])
     end
+  end
+  if s =/= 100 then
+    fail("FAIL s = " s)
   end
 end
 

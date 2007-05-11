@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
+import java.util.Collections;
 
 import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
@@ -67,6 +68,10 @@ public class Param extends Node implements
 
     public Param(Span s, List<Modifier> mods, Id name) {
         this(s, mods, name, new None<TypeRef>(), new None<Expr>());
+    }
+
+    public Param(Id name) {
+        this(name.getSpan(), Collections.<Modifier>emptyList(), name);
     }
 
     @Override

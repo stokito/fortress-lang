@@ -50,13 +50,30 @@ public class Span {
     public Span() {
         begin = new SourceLocRats();
         end = new SourceLocRats();
-        props = new ArrayList<String>();
+        props = new ArrayList<String>(0);
     }
 
     public Span(SourceLoc b, SourceLoc e) {
         begin = b;
         end = e;
-        props = new ArrayList<String>();
+        props = new ArrayList<String>(0);
+    }
+
+    /** Span which includes both the given spans.  Assumption: they're
+     * from the same file.  If this is not true, the results will be
+     * unpredictable. */
+    public Span(Span a, Span b) {
+        if (a.getBegin().getLine() < b.getBegin().getLine()) {
+            begin = a.getBegin();
+        } else {
+            begin = b.getBegin();
+        }
+        if (a.getEnd().getLine() < b.getEnd().getLine()) {
+            end = b.getEnd();
+        } else {
+            end = a.getEnd();
+        }
+        props = new ArrayList<String>(0);
     }
 
     /**

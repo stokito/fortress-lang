@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
@@ -30,9 +31,11 @@ import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
-
+import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class NonPrimitive extends Simple_fcn {
+
+    static final List<FValue> VOID_ARG = Collections.singletonList((FValue)FVoid.V);
 
     /*
      * (non-Javadoc)
@@ -54,7 +57,7 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     private boolean lastParamIsRest;
 
-    boolean hasRest() {
+    protected boolean hasRest() {
         return lastParamIsRest;
     }
 
@@ -104,10 +107,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      * Do not bother calling this if you also call buildEnvFromParams.
      */
     public void typecheckParams(List<FValue> args, HasAt loc) {
-        if (argCountIsWrong(args))
-            throw new ProgramError(loc, within,
-                    "Incorrect number of arguments, expected " + params.size()
-                            + ", got " + args.size());
+        args = fixupArgCount(args,loc);
         Iterator<FValue> argsIter = args.iterator();
         Iterator<Parameter> paramsIter = params.iterator();
         for (int i = 1; paramsIter.hasNext(); i++) {
@@ -164,11 +164,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     public BetterEnv buildEnvFromParams(List<FValue> args, BetterEnv env,
             HasAt loc) throws Error {
         // TODO Here is where we deal with rest parameters.
-        if (argCountIsWrong(args))
-            throw new ProgramError(loc, env,
-                    "Incorrect number of arguments, expected " + params.size()
-                            + ", got " + args.size());
-
+        args = fixupArgCount(args,loc);
         Iterator<FValue> argsIter = args.iterator();
         FValue arg = null;
         int i = 0;
@@ -229,14 +225,40 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     /**
      * @param args
-     * @return
+     * @return fixed up arguments; throws ProgramError if different lengths.
      */
-    public boolean argCountIsWrong(List<FValue> args) {
-        if (this.params==null) {
-            throw new ProgramError(this.getAt(),
-                                   "Calling argCountIsWrong on "+getAt().stringName()+" with null params");
+    public List<FValue> fixupArgCount(List<FValue> args0, HasAt loc) {
+        List<FValue> args = fixupArgCount(args0);
+        if (args==null) {
+            throw new ProgramError(loc,
+                                   "Incorrect number of arguments, expected "+
+                                   Useful.listInParens(params) + ", got " + 
+                                   Useful.listInParens(args0));
         }
-        return hasRest() ? args.size() + 1 < params.size()
-                : args.size() != params.size();
+        return args;
+    }
+
+    /**
+     * @param args
+     * @return fixed up arguments, or null if different lengths.
+     */
+    public List<FValue> fixupArgCount(List<FValue> args) {
+        if (this.params==null) {
+            throw new InterpreterError(this.getAt(),
+                                      "Calling fixupArgCount on "+getAt().stringName()+" with null params");
+        }
+        if (args.size() == params.size()) return args;
+        if (hasRest() && args.size() + 1 >= params.size()) {
+            return args;
+        }
+        if (params.size()==1 && args.size()==0) {
+            /* Obscure screw case: a type parameter was instantiated
+             * with void, or we declared a single parameter of type
+             * ().  This is satisfied by a 0-ary application.  Rather
+             * than checking thoroughly, we return a singleton void
+             * and let the enclosing test catch it. */
+            return VOID_ARG;
+        }
+        return null;
     }
 }

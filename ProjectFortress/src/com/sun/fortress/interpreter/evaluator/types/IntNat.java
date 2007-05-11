@@ -22,7 +22,8 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.BaseNatType;
-import com.sun.fortress.interpreter.nodes.StaticArg;
+import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.Factory1;
 import com.sun.fortress.interpreter.useful.Memo1;
@@ -119,19 +120,20 @@ public class IntNat extends FTypeNat {
         return String.valueOf(getValue());
     }
 
-    /* @see com.sun.fortress.interpreter.evaluator.types.FTypeNat#unify()
+    /*
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+     *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    public void unify(BetterEnv env, Set<TypeParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+        if (FType.DUMP_UNIFY)
+            System.out.println("unifying IntNat "+this+" and "+val);
         if (val instanceof BaseNatType) {
             BaseNatType n = (BaseNatType) val;
-            if (n.getValue() != this.getValue()) {
-                throw new ProgramError(val,env,"Actual nat type "+this+" does not match declared type "+val);
-            }
+            return (n.getValue() == this.getValue());
         } else {
-            /* Eventually handle more fiddly cases here. */
-            super.unify(env,tp_set,abm,val);
+            return false;
         }
     }
 }

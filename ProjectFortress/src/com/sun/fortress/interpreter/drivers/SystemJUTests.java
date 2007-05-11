@@ -21,9 +21,9 @@ import junit.framework.TestSuite;
 
 public class SystemJUTests {
 
-     
+
     public static void main(String[] args) {
-        
+
         junit.textui.TestRunner.run(suite());
     }
 

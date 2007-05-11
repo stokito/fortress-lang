@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.SourceLoc;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 
@@ -35,7 +36,7 @@ public class TypeCheckerJUTest extends TestCase {
 
     public void testForVarRefExpr() {
         try {
-            Expr e = new VarRefExpr(new Span(null, null), "var_not_found");
+            Expr e = new VarRefExpr(new Span((SourceLoc)null, null), "var_not_found");
             e.accept(new TypeChecker());
         }
         catch (Error e) {

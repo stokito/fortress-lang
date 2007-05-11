@@ -48,6 +48,10 @@ public class Fn extends ValueExpr implements Decl, Applicable {
         afn = new AnonymousFnName(span);
     }
 
+    public Fn(Span span, List<Param> params, Expr body) {
+        this(span,params,new None(),Collections.<TypeRef>emptyList(), body);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof Fn) {

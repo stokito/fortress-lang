@@ -21,6 +21,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.nodes.ArrowType;
+import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.Factory2;
 import com.sun.fortress.interpreter.useful.Fn2;
 import com.sun.fortress.interpreter.useful.Memo2;
@@ -131,6 +137,32 @@ public class FTypeArrow extends FType {
             return Useful.<FType, FType, FType>setProduct(this.domain.join(fta_other.domain),
                     this.range.meet(fta_other.range), makerObject);
         } else return Collections.<FType>emptySet();
+    }
+
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+        if (FType.DUMP_UNIFY)
+            System.out.println("unify arrow "+this+" and "+val);
+        if (!(val instanceof ArrowType)) {
+            System.out.println("       non-arrow");
+            return false;
+        }
+        ArrowType arr = (ArrowType) val;
+        try {
+            range.unify(env, tp_set, abm, arr.getRange());
+            ABoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
+            List<TypeRef> valdom = arr.getDomain();
+            if (domain instanceof FTypeTuple) {
+                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom);
+            } else if (valdom.size()==1) {
+                domain.unify(env, tp_set, dual, valdom.get(0));
+            } else {
+                return false;
+            }
+        } catch (ProgramError p) {
+            return false;
+        }
+        return true;
     }
 
 }

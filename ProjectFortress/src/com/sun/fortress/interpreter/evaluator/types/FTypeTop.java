@@ -32,7 +32,7 @@ public class FTypeTop extends FTypeTrait {
     private final static Set<FType> SingleSet = Useful.<FType>set(T);
 
     private FTypeTop() {
-        super("Top",BetterEnv.empty(),new HasAt.FromString("Built in"));
+        super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"));
     }
 
     @Override

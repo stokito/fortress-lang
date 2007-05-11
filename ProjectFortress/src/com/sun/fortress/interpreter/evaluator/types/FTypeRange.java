@@ -25,6 +25,7 @@ public class FTypeRange extends FType {
     public FTypeRange(int x, int y) {
         super("Range");
         this.x = x; this.y = y;
+        cannotBeExtended = true;
     }
     final int x, y;
     String lazyName;

@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.RestType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TupleType;
@@ -291,33 +292,49 @@ public class FTypeTuple extends FType {
         }
     }
 
-    @Override
-    public void unify(BetterEnv env, Set<StaticParam> tp_set,
-                      ABoundingMap<String, FType, TypeLatticeOps> abm,
-                      TypeRef val) {
-        if (!(val instanceof TupleType)) {
-            super.unify(env,tp_set,abm,val);
-            return;
-        }
-        TupleType tup = (TupleType) val;
-        if (!(tup.getKeywords().isEmpty())) return;
+    /** Unify a tuple type with a list of TypeRef.
+     *  This gets used here and in FTypeArrow.
+     */
+    public boolean unifyTuple(BetterEnv env, Set<StaticParam> tp_set,
+                              ABoundingMap<String, FType, TypeLatticeOps> abm,
+                              List<TypeRef> vals) {
         Iterator<FType> ftIterator = l.iterator();
-        Iterator<TypeRef> trIterator = tup.getElements().iterator();
+        Iterator<TypeRef> trIterator = vals.iterator();
         FType ft = null;
         TypeRef tr = null;
-        while (ftIterator.hasNext() && trIterator.hasNext()) {
-            ft = ftIterator.next();
-            tr = trIterator.next();
-            ft.unify(env,tp_set,abm,tr);
+        try {
+            while (ftIterator.hasNext() && trIterator.hasNext()) {
+                ft = ftIterator.next();
+                tr = trIterator.next();
+                ft.unify(env,tp_set,abm,tr);
+            }
+            while (tr instanceof RestType && ftIterator.hasNext()) {
+                ft = ftIterator.next();
+                ft.unify(env,tp_set,abm,tr);
+            }
+            while (ft instanceof FTypeRest && trIterator.hasNext()) {
+                tr = trIterator.next();
+                ft.unify(env,tp_set,abm,tr);
+            }
+        } catch (ProgramError p) {
+            return false;
         }
-        while (tr instanceof RestType && ftIterator.hasNext()) {
-            ft = ftIterator.next();
-            ft.unify(env,tp_set,abm,tr);
-        }
-        while (ft instanceof FTypeRest && trIterator.hasNext()) {
-            tr = trIterator.next();
-            ft.unify(env,tp_set,abm,tr);
-        }
+        return true;
+    }
+
+    /*
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+     *      com.sun.fortress.interpreter.nodes.TypeRef)
+     */
+    @Override
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+        if (FType.DUMP_UNIFY)
+            System.out.println("unify tuple "+this+" and "+val);
+        if (!(val instanceof TupleType)) return false;
+        TupleType tup = (TupleType) val;
+        if (!(tup.getKeywords().isEmpty())) return false;
+        return unifyTuple(env, tp_set, abm, tup.getElements());
     }
 
 }

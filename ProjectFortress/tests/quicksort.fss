@@ -28,10 +28,14 @@ run(args:String...) = do
   arr[3] := -3
   arr[4] := 8
   quicksort[\ZZ32\](fn (x:ZZ32, y:ZZ32) => x < y, arr, 0, 4)
-  for i <- seq(0#arr.size()) do
-    print (arr[i] " ")
+  for i <- arr.indices() do
+    if i > 0 then
+      if arr[i-1] > arr[i] then
+        println("FAIL: arr[" (i-1) "]=" arr[i-1] ", arr[" i "]=" arr[i] )
+      end
+    end
   end
-  println ""
+  println(arr)
 end
 
 end

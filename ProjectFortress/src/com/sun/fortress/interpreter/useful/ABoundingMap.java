@@ -43,7 +43,7 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
         this(new BATree<T,U>(comparator), lattice_operations, null);
     }
 
-    ABoundingMap<T,U,L> copy() {
+    public ABoundingMap<T,U,L> copy() {
         return new ABoundingMap<T,U,L>(table.copy(), lattice, null);
     }
 
@@ -53,7 +53,7 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
 //        this(new HashMap<T,U>(), lattice_operations, null);
 //    }
 //
-    public BoundingMap<T, U, L> dual() {
+    public ABoundingMap<T, U, L> dual() {
         if (dualMap == null) {
             synchronized(table) {
                 if (dualMap == null)
@@ -85,6 +85,12 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
 
     public U put(T k, U v) {
         return joinPut(k, v);
+    }
+
+    /** Used for backtracking during unification */
+    public void assign(ABoundingMap<T,U,L> replacement) {
+        table = replacement.table.copy();
+        dualMap = null;
     }
 
     @Override

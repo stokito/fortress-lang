@@ -62,18 +62,18 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
     protected FValue functionInvocation(List<FValue> args, Fcn foo, Node loc) {
         if (foo instanceof FGenericFunction) {
             FGenericFunction gen = (FGenericFunction) foo;
-            
+
 // This caching did not seem to help performance.
-// 
+//
 //            Simple_fcn sfcn = gen.cache.get(args);
-//            
+//
 //            if (sfcn == null) {
 //                sfcn = inferAndInstantiateGenericFunction(args, gen, loc);
 //                gen.cache.syncPut(args, sfcn);
 //            }
-//            
+//
 //            foo = sfcn;
-            
+
             foo = inferAndInstantiateGenericFunction(args, gen, loc);
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
         }
@@ -82,8 +82,8 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
 
     /**
      * Given args, infers the appropriate instantiation of a generic function.
-     * 
-     * 
+     *
+     *
      * @param args
      * @param appliedThing
      * @param loc

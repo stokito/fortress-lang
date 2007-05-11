@@ -156,7 +156,7 @@ public class GenericFunctionSet extends
                     f = ev.inferAndInstantiateGenericFunction(args, gf, loc);
                 } catch (ProgramError ex) {
                     if (TRACE) System.err.println("Rejecting "+f);
-                    if (TRACE) ex.printStackTrace();
+                    // if (TRACE) ex.printStackTrace();
                     /* When unification fails, we assume the instance
                      * can't possibly match.  There really ought to be
                      * a distinct UnificationError so that we can
@@ -166,9 +166,9 @@ public class GenericFunctionSet extends
             }
             if (TRACE) System.err.println("Considering "+f);
             List<FType> candidate_params = f.getDomain();
-            if (!f.argCountIsWrong(args)
-                    && OverloadedFunction
-                            .argsMatchTypes(args, candidate_params)) {
+            List<FValue> fargs = f.fixupArgCount(args);
+            if (fargs != null &&
+                OverloadedFunction.argsMatchTypes(fargs, candidate_params)) {
                 if (best == null) {
                     if (TRACE) System.err.println("First match");
                     best = f;

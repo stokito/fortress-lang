@@ -17,14 +17,20 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.nodes.ParamType;
+import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
-import com.sun.fortress.interpreter.useful.NI;
 
 
 /**
@@ -46,18 +52,20 @@ public class FTypeTraitInstance extends FTypeTrait implements GenericTypeInstanc
     final private FTypeGeneric generic;
     final private List<FType> args;
 
+    @Override
     public FTypeGeneric getGeneric() { return generic; }
+
+    @Override
     public List<FType> getTypeParams() { return args; }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.types.FType#unify(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap, com.sun.fortress.interpreter.nodes.TypeRef)
+    /*
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+     *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    public void unify(BetterEnv e, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        // TODO Auto-generated method stub
-        // System.out.println("Unify "+this+"\nwith "+val);
-        NI.nyi();
-        super.unify(e, tp_set, abm, val);
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+        return unifyNonVarGeneric(env,tp_set,abm,val);
     }
 
 }

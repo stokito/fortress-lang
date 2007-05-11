@@ -52,12 +52,11 @@ public class OverloadJUTest extends TestCase {
             assertTrue(idx >= 0);
             assertEquals(result, clauses.get(idx));
         }
-        catch (ProgramError pe)
-            {
-                assertFalse("CompilationUnit error related to overloading: " + pe.getMessage(),
-                            pe.getMessage().contains("Overloading"));
-                fail();
-            }
+        catch (ProgramError pe) {
+            assertFalse("CompilationUnit error related to overloading: " +
+                        pe.getMessage(), pe.getMessage().contains("verload"));
+            fail();
+        }
 
     }
 
@@ -67,11 +66,10 @@ public class OverloadJUTest extends TestCase {
             assertTrue("Dispatch found candidate "+idx+ " when it shouldn't",
                        idx == -1);
         }
-        catch (ProgramError pe)
-            {
-                assertTrue("CompilationUnit error was not related to overloading",
-                           pe.getMessage().contains("Overloading"));
-            }
+        catch (ProgramError pe) {
+            assertTrue("CompilationUnit error was not related to overloading: "+
+                       pe.getMessage(), pe.getMessage().contains("verload"));
+        }
     }
 
     private int overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {

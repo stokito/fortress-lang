@@ -29,6 +29,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -43,13 +44,16 @@ import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
 import com.sun.fortress.interpreter.nodes.Fn;
 import com.sun.fortress.interpreter.nodes.FnDecl;
+import com.sun.fortress.interpreter.nodes.For;
 import com.sun.fortress.interpreter.nodes.Fun;
+import com.sun.fortress.interpreter.nodes.Generator;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.IdType;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LetFn;
 import com.sun.fortress.interpreter.nodes.LocalVarDecl;
 import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.None;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Option;
@@ -58,30 +62,37 @@ import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TightJuxt;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.useful.BATree;
+import com.sun.fortress.interpreter.useful.BASet;
+import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.StringComparer;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
 /**
- * Rewrite the AST to "disambiguate" (given known interpreter treatment of
- * constructors) references to surrounding local variables and object/trait
- * members.
+ * Rewrite the AST to "disambiguate" (given known interpreter
+ * treatment of constructors) references to surrounding local
+ * variables and object/trait members.  Also rewrite the AST to
+ * eliminate generator lists where they occur.  These are desugared in
+ * accordance with section 32.8 "Use and definition of Generators" of
+ * the Fortress Language Specification.
  *
- * The most important thing to know is that there are two treatments of lexical
- * context; top level, and not.  This can also be carved into "object" and "trait",
- * where top level object and not top level object are treated alike.  (The
- * interpreter does it this way, it could be done the other way.)  For
- * not-top-level, local variables are tied to "self" (rewritten to "*self")
- * so that there need only be set of methods.  Otherwise, if the local
- * environment were tied to the methods (thus, closures) there could be very
- * many of them, and to the extent that a ground type identifies a fixed set
- * of methods, very many types, which thus complicates overloading, etc.
+ * The most important thing to know is that there are two treatments
+ * of lexical context; top level, and not.  This can also be carved
+ * into "object" and "trait", where top level object and not top level
+ * object are treated alike.  (The interpreter does it this way, it
+ * could be done the other way.)  For not-top-level, local variables
+ * are tied to "self" (rewritten to "*self") so that there need only
+ * be set of methods.  Otherwise, if the local environment were tied
+ * to the methods (thus, closures) there could be very many of them,
+ * and to the extent that a ground type identifies a fixed set of
+ * methods, very many types, which thus complicates overloading, etc.
  *
  * Trait/top-level methods can be closures, because there is only one
  * top-level environment, hence no multiplication of methods/types.
@@ -106,7 +117,9 @@ public class Disambiguate extends Rewrite {
 
     public final static String PARENT_NAME = WellKnownNames.secretParentName;
 
-       public class Thing {
+    public final static Id LOOP_ID = Id.make(WellKnownNames.loopMethod);
+
+    public class Thing {
         int nestedness;
 
         Thing() {
@@ -221,7 +234,7 @@ public class Disambiguate extends Rewrite {
      * tuple initializations.
      */
     int tempCount = 0;
-    
+
     /**
      * Adds, to the supplied environment, constructors for any object
      * expressions encountered the tree(s) processed by this Disambiguator.
@@ -307,7 +320,6 @@ public class Disambiguate extends Rewrite {
         int savedObjectNestingDepth = objectNestingDepth;
         String savedSelfName = currentSelfName;
 
-
         if (node instanceof Component) {
             // Iterate over definitions, collecting mapping from name
             // to node.
@@ -373,7 +385,7 @@ public class Disambiguate extends Rewrite {
                     atTopLevelInsideTraitOrObject = false;
                     VarDecl vd = (VarDecl) node;
                     List<LValue> lhs = vd.getLhs();
-                    
+
                     if (lhs.size() > 1) {
                         // Introduce a temporary, then initialize elements
                         // piece-by-piece.
@@ -504,6 +516,10 @@ public class Disambiguate extends Rewrite {
                     Node n = visitNode(node);
                     inTrait = false;
                     return n;
+                } else if (node instanceof For) {
+                    For f = (For)node;
+                    return visitGeneratorList(f, f.getGens(),
+                                              LOOP_ID, f.getBody());
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }
@@ -529,6 +545,27 @@ public class Disambiguate extends Rewrite {
                 currentSelfName = savedSelfName;
             }
 
+    }
+
+    /**
+     * @param loc   Containing context
+     * @param gens  Generators in generator list
+     * @return single generator equivalent to the generator list
+     */
+    Expr visitGeneratorList(HasAt loc, List<Generator> gens,
+                                 Id what, Expr body) {
+        Span span = body.getSpan();
+        for (int i = gens.size()-1; i >= 0; i--) {
+            Generator g = gens.get(i);
+            Expr loopSel = new FieldSelection(g.getSpan(), g.getInit(), what);
+            List<Id> binds = g.getBind();
+            List<Param> params = new ArrayList(binds.size());
+            for (Id b : binds) params.add(new Param(b));
+            Expr loopBody = new Fn(span,params,body);
+            span = new Span(span, g.getSpan());
+            body = new TightJuxt(span, Useful.list(loopSel,loopBody));
+        }
+        return (Expr)visitNode(body);
     }
 
     /**

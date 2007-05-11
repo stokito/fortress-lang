@@ -31,17 +31,24 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Hasher;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class SingleFcn extends Fcn {
 
     public SingleFcn(BetterEnv within) {
         super(within);
     }
-    
+
     abstract String at();
     abstract public List<FType> getDomain();
-    public boolean argCountIsWrong(List<FValue> args) {
-        return args.size() != getDomain().size();
+
+    public List<FValue> fixupArgCount(List<FValue> args) {
+        System.out.println("Naive fixupArgCount "+this+
+                           "("+this.getClass()+")"+
+                           " of "+Useful.listInParens(args));
+        int dsz = getDomain().size();
+        if (args.size() == dsz) return args;
+        return null;
     }
 
     // NOTE: I believe it is ok for functions to use object identity for

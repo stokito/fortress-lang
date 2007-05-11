@@ -233,6 +233,16 @@ value object N[\nat n\]() extends { NatParam }
   toZZ() = n
 end
 
+(* Empty object which stands in for E in order to allow us to use
+ * the weak type inference provided by the interpreter rather than
+ * explicit type instantiation.  This is necessary when there
+ * are other arguments where we're relying on overloading and
+ * instantiation, such as arguments of type N[\n\].
+ *
+ * See __arr'() and array() below. *)
+value object Standin[\E\]()
+end
+
   __refl'[\nat r, nat b\](x:ZZ32):NatParam =
     if x=0 then N[\r\]()
     elif (x REM (b+b)) = 0 then
@@ -330,19 +340,19 @@ end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
    run-time-determined size. *)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(array1[\E,0\](),reflect(x))
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(Standin[\E\](),reflect(x))
 array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-   __arr'(array1[\E,0\](),reflect(x), reflect(y))
+   __arr'(Standin[\E\](),reflect(x), reflect(y))
 array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-   __arr'(array1[\E,0\](),reflect(x), reflect(y), reflect(z))
+   __arr'(Standin[\E\](),reflect(x), reflect(y), reflect(z))
 
 (* This should be local to array, but we don't support local
    parametric methods in the language spec at all at the moment. *)
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\]):Array1[\E,0,n\] =
+__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\]):Array1[\E,0,n\] =
    array1[\E,n\]()
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\]):
+__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
-__arr'[\E, nat n, nat m, nat p\](w:Array1[\E,0,0\],x:N[\n\],y:N[\m\],z:N[\p\]):
+__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -394,7 +404,7 @@ trait Array1[\T, nat b0, nat s0\]
   get(i:ZZ32):T
   put(v:T, i:ZZ32)
 
-  indices():ZZ32Range = b0#s0
+  indices():Range[\ZZ32\] = b0#s0
 
   (* Offset converts from b0 indexing to 0 indexing,
      bounds checking en route *)
@@ -417,11 +427,11 @@ trait Array1[\T, nat b0, nat s0\]
   __subarray[\nat b, nat s, nat o\]
             (_:N[\b\],_:N[\o\],_:N[\s\]):Array1[\T,b,s\] = subarray[\b,s,o\]()
 
-  opr[r:ZZ32Range]:Array[\T,ZZ32\] = do
-      (b,s) = (reflect(rangeBase(r)), reflect(rangeSize(r)))
+  opr[r:Range[\ZZ32\]]:Array[\T,ZZ32\] = do
+      (b,s) = (reflect(r.base()), reflect(r.size()))
       self.__subarray(N[\0\],b,s)
     end
-  opr[r:ZZ32Range]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
+  opr[r:Range[\ZZ32\]]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
@@ -431,10 +441,14 @@ trait Array1[\T, nat b0, nat s0\]
       fill(fn (i:ZZ32): T => other.get(i-b0))
 
   generate[\R\](r: Reduction[\R\],m: (ZZ32,T)->R): R =
-    Range[\ZZ32\](0,s0).generate[\R\](r, fn (i: ZZ32): R => m(b0+i,get(i)))
+    ParRange[\ZZ32\](0,s0).generate[\R\](r, fn (i: ZZ32): R => m(b0+i,get(i)))
+
+  seq(): SequentialGenerator[\(ZZ32,T)\] =
+    SeqRange[\ZZ32\](0,s0).map[\(ZZ32,T)\](fn (i: ZZ32): (ZZ32,T) =>
+                                              (b0+i,get(i)))
 
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
-    Range[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
+    ParRange[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
     self
   end
 
@@ -627,7 +641,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset t; self.put(v,i,j) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
   indices(): Generator[\(ZZ32,ZZ32)\] =
-      Range[\ZZ32\](b0,s0).cross[\ZZ32\](Range[\ZZ32\](b1,s1))
+      ParRange[\ZZ32\](b0,s0).cross[\ZZ32\](ParRange[\ZZ32\](b1,s1))
   fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
       indices().loop(fn (a:ZZ32, b:ZZ32): () => put(f(a,b),a-b0, b-b1))
       self
@@ -635,8 +649,13 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
   generate[\R\](r: Reduction[\R\], m: ((ZZ32,ZZ32),T)->R): R =
-      indices().generate[\R\](r,
-                              fn (a:ZZ32, b:ZZ32): R => m((a,b),get(a-b0,b-b0)))
+      ParRange[\ZZ32\](0,s0).cross[\ZZ32\](
+          ParRange[\ZZ32\](0,s1)).generate[\R\](
+              r, fn (a:ZZ32, b:ZZ32): R => m((a+b0,b+b1),get(a,b)))
+  seq(): SequentialGenerator[\((ZZ32,ZZ32),T)\] =
+      SeqRange[\ZZ32\](0,s0).cross[\ZZ32\](
+          SeqRange[\ZZ32\](0,s1)).map[\((ZZ32,ZZ32),T)\](
+              fn (a:ZZ32, b:ZZ32): ((ZZ32,ZZ32),T) => ((a+b0,b+b1),get(a,b)))
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
   put(v:T, i:ZZ32, j:ZZ32) : ()
   get(i:ZZ32, j:ZZ32):T
@@ -815,7 +834,7 @@ opr DOT[\ T extends Number, nat n, nat m, nat p\]
         me.mul[\p\](other)
 
 opr *[\ T extends Number, nat n, nat m, nat p\]
-     (me:Matrix[\T,n,m\], other:Array2[\T,0,m,0,p\]): Matrix[\T,n,p\] =
+     (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
         me.mul[\p\](other)
 
 
@@ -901,22 +920,33 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   end
 
   indices():Generator[\(ZZ32,ZZ32,ZZ32)\] = do
-      g0 = Range[\ZZ32\](b0,s0)
-      g1 = Range[\ZZ32\](b1,s1)
-      g2 = Range[\ZZ32\](b2,s2)
+      g0 = ParRange[\ZZ32\](b0,s0)
+      g1 = ParRange[\ZZ32\](b1,s1)
+      g2 = ParRange[\ZZ32\](b2,s2)
       m(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do (j,k) = jk; (i,j,k) end
       g0.cross(g1.cross(g2)).map(m)
     end
 
   generate[\R\](r:Reduction[\R\], m:((ZZ32,ZZ32,ZZ32),T)->R): R = do
-      g0 = Range[\ZZ32\](b0,s0)
-      g1 = Range[\ZZ32\](b1,s1)
-      g2 = Range[\ZZ32\](b2,s2)
+      g0 = ParRange[\ZZ32\](0,s0)
+      g1 = ParRange[\ZZ32\](0,s1)
+      g2 = ParRange[\ZZ32\](0,s2)
       mm(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
           (j,k) = jk
-          m((i,j,k),get(i-b0,j-b1,k-b2))
+          m((b0+i,b1+j,b2+k),get(i,j,k))
         end
       g0.cross(g1.cross(g2)).generate[\R\](r,mm)
+    end
+
+  seq(): SequentialGenerator[\((ZZ32,ZZ32,ZZ32),T)\] = do
+      g0 = SeqRange[\ZZ32\](0,s0)
+      g1 = SeqRange[\ZZ32\](0,s1)
+      g2 = SeqRange[\ZZ32\](0,s2)
+      mm(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+          (j,k) = jk
+          ((b0+i,b1+j,b2+k),get(i,j,k))
+        end
+      g0.cross(g1.cross(g2)).map[\((ZZ32,ZZ32,ZZ32),T)\](mm)
     end
 
   fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
@@ -993,14 +1023,33 @@ object SumReduction[\N extends Number\]() extends Reduction[\N\]
     join(a: N, b: N): N = a+b
 end
 
+(** TODO: AndReduction and OrReduction have natural zeros, and could
+ *  take advantage of early exit.
+ *
+ *  In the absence of full algebraic fanciness, we might still use
+ *  label/exit on a thunked domain to achieve the same effect, in
+ *  effect pushing the control into the reduction operator itself.
+ *)
+
 object AndReduction extends Reduction[\Boolean\]
     getter toString() = "AndReduction"
     empty(): Boolean = true
     join(a: Boolean, b: Boolean): Boolean = a AND b
 end
 
-trait Generator[\E\]
-        excludes { ZZ32Range }
+object OrReduction extends Reduction[\Boolean\]
+    getter toString() = "OrReduction"
+    empty(): Boolean = false
+    join(a: Boolean, b: Boolean): Boolean = a OR b
+end
+
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
+    getter toString()="mapReduce.Reduction"
+    empty() = z
+    join(a:R, b:R): R = j(a,b)
+end
+
+trait Generator[\E\] (* excludes { ZZ32Range } *)
     getter size(): ZZ32
     generate[\R\](r: Reduction[\R\], m: E->R): R
 (*
@@ -1010,12 +1059,7 @@ trait Generator[\E\]
         generate[\R\](r, identity[\E\])
 *)
     mapReduce[\R\](m: E->R, j:(R,R)->R, z:R): R = do
-      r = object extends Reduction[\R\]
-            getter toString()="mapReduce.Reduction"
-            empty() = z
-            join(a:R, b:R): R = j(a,b)
-          end
-      generate[\R\](r, m)
+      generate[\R\](MapReduceReduction[\R\](j,z), m)
     end
     reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
     reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
@@ -1023,6 +1067,19 @@ trait Generator[\E\]
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         SimplePairGenerator[\E,G\](self, g)
     map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
+    seq(): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+    contains(x: E): Boolean =
+        generate[\Boolean\](OrReduction, fn (y: E) => x=y)
+end
+
+opr IN[\R\](x:R, g:Generator[\R\]) = g.contains(x)
+opr NOTIN[\R\](x:R, g:Generator[\R\]) = NOT (g.contains(x))
+
+seq[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
+sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
+
+trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    seq() = self
 end
 
 (** Helpers for maps and cross products of generators.  These can be
@@ -1033,13 +1090,14 @@ end
 object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
         extends Generator[\F\]
     getter size(): ZZ32 = g.size()
-    getter toString() = "SimpleMappedGenerator(" g ",f)"
+    getter toString() = g ".map(f)"
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         g.generate[\R\](r, m COMPOSE f)
-    generate[\R\](r: Reduction[\F\]): F =
+    reduce(r: Reduction[\F\]): F =
         g.generate[\R\](r, f)
     map[\G\](f': F->G): Generator[\G\] =
         SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
+    seq() = SimpleMappedGenerator[\E,F\](g.seq(),f)
 end
 
 object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
@@ -1049,30 +1107,86 @@ object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
         e.generate[\R\](r, fn (a: E): R =>
                               f.generate[\R\](r, fn (b: F): R => m(a,b)))
+    seq() = SimplePairGenerator[\E,F\](e.seq(),f.seq())
 end
 
-(** Ranges, the simplest and most basic of all generators. *)
-object Range[\N extends Number\](lo:N, sz:N)
-        extends Generator[\N\]
+(** Helper for serializing generators naively.  This code should make
+ *  obvious that naive seq is *VERY INEFFICIENT*.  It
+ *  constructs a function closure whose size is proportional to
+ *  g.size(), and then executes that closure.  This trick is old hat
+ *  to lambda-calculus wonks, but pretty unfamiliar to the common man.
+ *
+ *  Basically each element takes in the accumulated value a from the element
+ *  to its left.  This is joined with the result of mapping on the
+ *  current element value, and that result is returned.  Join simply
+ *  reverse-composes the functions for its subtrees, so the output of the left
+ *  subtree is fed to the right subtree.
+ *
+ *  Note that a similar trick can be used to reverse and sequentialize
+ *  a generator (use forward function composition rather than reverse
+ *  composition, and flipping around the join at the leaves). *)
+
+object NaiveSeqGenerator[\E\](g: Generator[\E\])
+        extends SequentialGenerator[\E\]
+    size() = g.size()
+    toString() = "seq(" g.toString() ")"
+    generate[\R\](r: Reduction[\R\], m:E->R): R = do
+      rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
+      id(x:R):R = x
+      mp(x:E):R->R = fn (a:R):R => r.join(a,m(x))
+      f : R -> R = g.mapReduce[\R->R\](mp,rcompose,id)
+      mt : R = r.empty()
+      f mt
+    end
+end
+
+(** ParRanges and SeqRanges, the simplest and most basic of all generators. *)
+trait Range[\N extends Number\] extends Generator[\N\]
+    getter size():N
+    getter base():N
+end
+object ParRange[\N extends Number\](lo:N, sz:N)
+        extends Range[\N\]
     getter size() = narrow(|\sz/|) MAX 0
-    getter toString()="Range(" lo "#" sz ")"
+    getter base() = lo
+    getter toString()= lo "#" sz
     generate[\R\](r: Reduction[\R\], m: N->R): R =
         if sz < 1 then
             r.empty()
         else
             gen(l,s) = if s>=2 then
-                           (s1,_) = partition(narrow |\s/|)
-                           r.join(gen(l,s1),gen(l+s1,s-s1))
-                       elif s>=1 then
+                           (s1,s2) = partition(narrow |\s/|)
+                           r.join(gen(l,s1),gen(l+s1,s2))
+                       else
                            m(l)
                        end
             gen(lo,sz)
         end
+    seq() = SeqRange[\N\](base(),size())
+end
+object SeqRange[\N extends Number\](lo:N, sz:N)
+        extends { Range[\N\], SequentialGenerator[\N\] }
+    getter size() = sz
+    getter base() = lo
+    getter toString() = "seq(" lo "#" sz ")"
+    generate[\R\](r: Reduction[\R\], m: N->R): R = do
+        h : N = lo + sz
+        gen(l:N,rf:R) = if l < h then
+                            gen(l+1,r.join(rf,m(l)))
+                        else
+                            rf
+                        end
+        gen(lo,r.empty())
+      end
 end
 
-range(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = Range[\ZZ32\](lo,sz)
-range(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = Range[\ZZ64\](lo,sz)
-range(lo:RR64, sz:RR64): Range[\RR64\] = Range[\RR64\](lo,sz)
+range(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
+range(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)
+range(lo:RR64, sz:RR64): Range[\RR64\] = ParRange[\RR64\](lo,sz)
+
+opr #(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
+opr #(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)
+opr #(lo:RR64, sz:RR64): Range[\RR64\] = ParRange[\RR64\](lo,sz)
 
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
@@ -1105,12 +1219,6 @@ opr MIN(a:ZZ32, b:ZZ32):ZZ32 = if a <= b then a else b end
 opr MAX(a:ZZ32, b:ZZ32):ZZ32 = if b <= a then a else b end
 opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
 widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
-opr #(a:ZZ32, b:ZZ32):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$MkRange")
-rangeBase(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RangeBase")
-rangeSize(a:ZZ32Range):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RangeSize")
-elementOf(a:ZZ32, b:ZZ32Range):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ElementOf")
-seq(a:ZZ32Range):ZZ32Range = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sequential")
-sequential(a:ZZ32Range):ZZ32Range = seq(a)
 
 nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
 printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")

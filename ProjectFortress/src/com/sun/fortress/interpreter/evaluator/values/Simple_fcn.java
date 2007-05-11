@@ -37,7 +37,7 @@ abstract public class Simple_fcn extends SingleFcn {
 
     abstract public List<FType> getDomain();
 
-   /**
+    /**
      * Returns can-this-function-be-called-now.
      * That is, does the function have all its types assigned?
      * @return

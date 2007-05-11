@@ -39,6 +39,8 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 abstract public class FType implements Comparable<FType> {
 
+    protected static final boolean DUMP_UNIFY = false;
+
     static Comparator<FType> comparator = new Comparator<FType>() {
 
         public int compare(FType arg0, FType arg1) {
@@ -103,6 +105,7 @@ abstract public class FType implements Comparable<FType> {
      * @return
      */
     public boolean typeMatch(FValue val) {
+        // System.out.println(name+".typeMatch("+val+")");
         if (val == null)
             return false;
         if (val.type() == null)
@@ -391,19 +394,54 @@ abstract public class FType implements Comparable<FType> {
         return candidate.size() < current.size() && !(candidate.get(candidate.size()-1) instanceof FTypeRest);
     }
 
-    public void unify(BetterEnv env, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+        if (DUMP_UNIFY) {
+            System.out.println("unify FType "+this+" and "+val);
+            System.out.println("    ("+this.getClass().getName()+")");
+        }
+        return (val instanceof IdType &&
+                name.equals(((IdType)val).getName().toString()));
+    }
+
+    /** One-sided unification of this fully-computed FType with a signature.
+     * @param tp_set  The type variables which are subject to unification.
+     * @param abm     Map of bounds on these variables (if any), updated.
+     * @param val   The signature to be unified with.
+     *
+     * Does most of the boilerplate work of unification, including
+     * variable unification and supertype chasing (in topological
+     * order).  The stuff which varies between types is found in
+     * unifyNonVar; this is why that method is overridable while this
+     * one is final.
+     */
+    public final void unify(BetterEnv env, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (val instanceof RestType) {
             val = ((RestType) val).getType();
         }
+        /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
+            String nm = id_val.getName().toString();
             for (StaticParam tp : tp_set) {
                 String k = tp.getName();
-                if (k.equals(id_val.getName().toString())) {
+                if (k.equals(nm)) {
+                    if (DUMP_UNIFY) System.out.println("Recording "+k+"="+this);
                     abm.joinPut(k, this);
+                    return;
                 }
             }
         }
-     }
+        /* We want to unify with the most specific subtype possible, so */
+        ABoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
+        for (FType t : getTransitiveExtends()) {
+            if (t.unifyNonVar(env, tp_set, abm, val)) return;
+            if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val);
+            abm.assign(savedAbm);
+        }
+        throw new ProgramError(val,env,"Cannot unify "+this+"("+
+                                       this.getClass()+")\n  with "+ val +
+                                       "("+val.getClass()+")");
+    }
 
 }

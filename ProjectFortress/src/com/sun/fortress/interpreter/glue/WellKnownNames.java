@@ -34,4 +34,8 @@ public class WellKnownNames {
     public static String setTrait = "Set";
     public static String setMaker = "SetMaker";
     public static String setElementTypeName = "T";
+
+    public static String loopMethod = "loop";
+    public static String generateMethod = "generate";
+    public static String generatorCross = "cross";
 }

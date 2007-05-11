@@ -46,54 +46,24 @@ public class FTypeObjectInstance extends FTypeObject implements
 
     final private List<FType> args;
 
+    @Override
     public FTypeGeneric getGeneric() {
         return generic;
     }
 
+    @Override
     public List<FType> getTypeParams() {
         return args;
     }
 
     /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.evaluator.types.FType#unify(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
      *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    public void unify(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        if (val instanceof ParamType) {
-            ParamType pt = (ParamType) val;
-            TypeRef val_generic = pt.getGeneric();
-            List<StaticArg> val_args = pt.getArgs();
-            // TODO Auto-generated method stub
-            List<FType> ets = this.getTransitiveExtends();
-            EvalType eval_type = new EvalType(env);
-            FType eval_val_generic = eval_type.evalType(val_generic);
-            for (FType t : ets) {
-                if (t instanceof GenericTypeInstance) {
-                    GenericTypeInstance gti = (GenericTypeInstance) t;
-                    FTypeGeneric g = gti.getGeneric();
-                    List<FType> gp = gti.getTypeParams();
-                    if (g == eval_val_generic) {
-                        Iterator<StaticArg> val_args_iterator = val_args.iterator();
-                        for (FType param_ftype: gp) {
-                            StaticArg targ = val_args_iterator.next();
-                            if (targ instanceof TypeArg) {
-                                param_ftype.unify(env, tp_set, abm, ((TypeArg) targ).getType());
-                            } else if (param_ftype instanceof FTypeNat) {
-                                param_ftype.unify(env, tp_set, abm, targ);
-                            } else {
-                                throw new InterpreterError(val,env,"Can't yet unify non-type parameters to object expressions "+this+" and "+val);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            super.unify(env, tp_set, abm, val);
-        }
+        return unifyNonVarGeneric(env,tp_set,abm,val);
     }
 
 }
