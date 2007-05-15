@@ -204,6 +204,12 @@ public class Util {
         }
     }
 
+    static public abstract class S2Z extends NativeFn1 {
+        protected abstract int f(String x);
+        protected final FValue act(FValue x) {
+            return FInt.make(f(x.getString()));
+        }
+    }
     static public abstract class S2V extends NativeFn1 {
         protected abstract void f(String x);
         protected final FValue act(FValue x) {
