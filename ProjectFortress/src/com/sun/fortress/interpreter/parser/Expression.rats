@@ -537,22 +537,12 @@ List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
      };
 
 /* Generator ::=
-     Id w <- w Expr
-   | ( w Id w , w IdList w ) w <- w Expr
+     IdOrIdTuple w <- w Expr
    | Expr
  */
 Generator Generator =
-     a1:Id w leftarrow w a2:Expr
-     { List<Id> ids = new ArrayList<Id>();
-       ids.add(a1);
-       yyValue = new Generator(createSpan(yyStart,yyCount), ids, a2);
-     }
-   / openparen w a1:Id w comma w a2s:IdList w closeparen w leftarrow w a3:Expr
-     { List<Id> ids = new ArrayList<Id>();
-       ids.add(a1);
-       ids.addAll(a2s);
-       yyValue = new Generator(createSpan(yyStart,yyCount), ids, a3);
-     }
+     a1:IdOrIdTuple w leftarrow w a2:Expr
+     { yyValue = new Generator(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Expr
      { yyValue = new Generator(createSpan(yyStart,yyCount),
                                Collections.<Id>emptyList(), a1);

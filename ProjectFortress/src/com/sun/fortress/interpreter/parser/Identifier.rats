@@ -44,6 +44,21 @@ List<Id> IdList = a1:Id a2s:(w comma w Id)*
        yyValue.addAll(a2s.list());
      };
 
+/* IdOrIdTuple ::=
+     Id
+   | "(" w Id w "," w IdList w ")"
+ */
+List<Id> IdOrIdTuple =
+     a1:Id
+     { yyValue = new ArrayList<Id>();
+       yyValue.add(a1);
+     }
+   / openparen w a1:Id w comma w a2s:IdList w closeparen
+     { yyValue = new ArrayList<Id>();
+       yyValue.add(a1);
+       yyValue.addAll(a2s);
+     };
+
 /* Name ::= Id | opr w Op */
 Name Name =
      a1:Id       { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
