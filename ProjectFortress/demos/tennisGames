@@ -1,0 +1,53 @@
+(* This file records the games played in this term.
+   The games are record between two lines: "begin" and "end".
+   Each line records either a single or a double game.
+   The first person in a single game is the winner.
+   The first two people in a double game is the winners.
+   If any of the players is a new player,
+   each player should be annotated whether the player is an old member:
+     "박승찬 false 변재섭 true", for example
+ *)
+
+begin
+양소림  고아라  오채린  송은희
+양소림  고아라  송은희  진선영
+박승찬  변재섭
+박승찬  송은희  지현수  양소림
+진선영  오채린  유은진  고아라
+박승찬  지현수  김종성  김성일
+박승찬  고아라  김성일  지현수
+박승찬  정호일  기철수  남현석
+유은진  송은희  오채린  양소림
+남현석  송은희  유은진  양소림
+지현수  김성일
+기철수  지현수  정호일  김종성
+박승찬  윤태이  김성일  정호일
+박승찬  윤태이  지현수  정호일
+김종성  제동직
+지현수  정호일
+박승찬  정호일  변재섭  배진우
+박승찬  오채린  제동직  고아라
+허참  변재섭  이용수  배진우
+기철수  김일국  허참  김종성
+양소림  이민정  윤태이  송은희
+양소림 지현수 변재섭 배진우
+송은희 지현수 정호일 양소림
+박승찬 송은희 허참 윤태이
+박승찬 이수원 제동직 배진우
+박승찬 송은희 허참 배진우
+허참 배진우 이수원 주영일
+윤태이 제동직 이순정 김성일
+기철수 김일국  김종성 지현수
+윤태이 이순정
+김성일 기철수 주영일 허참
+오왕열 지현수
+지현수 오왕열 박승찬 정호일
+주영일 기철수 허참 김성일
+박승찬 정호일
+양소림 이용수 이수원 정호일
+이용수 오왕열 김종성 양소림
+지현수 오왕열 기철수 김종성
+박승찬 지현수 기철수 김일국
+박승찬 이용수 오왕열 지현수
+박승찬 송은희 지현수 양소림
+end

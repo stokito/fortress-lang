@@ -20,51 +20,51 @@ export Map
 
 weight:ZZ32 = 3
 
-trait Tree[\Key,Val\] comprises {Node[\Key,Val\], EmptyNode[\Key,Val\]}
+trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   size():ZZ32
   empty():Boolean
   getPair():(Key, Val)
   getKey():Key
   getVal():Val
-  getLeftChild():Tree[\Key,Val\]
-  getRightChild():Tree[\Key,Val\]
+  getLeftChild():TreeMap[\Key,Val\]
+  getRightChild():TreeMap[\Key,Val\]
   printTree():()
   toString():String
   member(x:Key): Maybe[\Val\]
-  deleteMinimum():Tree[\Key,Val\] = do
+  deleteMinimum():TreeMap[\Key,Val\] = do
     (_, res) = self.removeMinimum()
     res
   end
-  removeMinimum():((Key,Val), Tree[\Key,Val\])
-  add(k:Key, v:Val):Tree[\Key,Val\]
-  update(k:Key, v:Val):Tree[\Key,Val\]
-  delete(k:Key):Tree[\Key,Val\]
-  balancedDelete(r:Tree[\Key,Val\]):Tree[\Key,Val\]
-  balancedAdd(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\]
+  removeMinimum():((Key,Val), TreeMap[\Key,Val\])
+  add(k:Key, v:Val):TreeMap[\Key,Val\]
+  update(k:Key, v:Val):TreeMap[\Key,Val\]
+  delete(k:Key):TreeMap[\Key,Val\]
+  balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\]
+  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
 end
 
-object EmptyNode[\Key,Val\]() extends Tree[\Key,Val\]
+object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   size():ZZ32 = 0
   empty():Boolean = true
   getPair():(Key, Val) = getPair()
   getKey():Key = getKey()
   getVal():Val = getVal()
-  getLeftChild():Tree[\Key,Val\] = self
-  getRightChild():Tree[\Key,Val\] = self
-  printTree():() = print "EmptyNode"
+  getLeftChild():TreeMap[\Key,Val\] = self
+  getRightChild():TreeMap[\Key,Val\] = self
+  printTree():() = print "EmptyMap"
   toString():String = "{}"
   member(x:Key): Maybe[\Val\] = Nothing[\Val\]()
-  removeMinimum():((Key,Val), Tree[\Key,Val\]) = removeMinimum()
-  add(k:Key, v:Val):Tree[\Key,Val\] = Node[\Key,Val\]((k,v), self, self)
-  update(k:Key, v:Val):Tree[\Key,Val\] = add(k, v)
-  delete(k:Key):Tree[\Key,Val\] = self
-  balancedDelete(r:Tree[\Key,Val\]):Tree[\Key,Val\] = r
-  balancedAdd(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] =
-    Node[\Key,Val\](x,self,self)
+  removeMinimum():((Key,Val), TreeMap[\Key,Val\]) = removeMinimum()
+  add(k:Key, v:Val):TreeMap[\Key,Val\] = NodeMap[\Key,Val\]((k,v), self, self)
+  update(k:Key, v:Val):TreeMap[\Key,Val\] = add(k, v)
+  delete(k:Key):TreeMap[\Key,Val\] = self
+  balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\] = r
+  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+    NodeMap[\Key,Val\](x,self,self)
 end
 
-object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
-                       right:Tree[\Key,Val\]) extends Tree[\Key,Val\]
+object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
+                          right:TreeMap[\Key,Val\]) extends TreeMap[\Key,Val\]
   sz:ZZ32 = 1 + left.size() + right.size()
   (key, val) = tuple(pair)
 
@@ -74,8 +74,8 @@ object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
   getPair():(Key, Val) = pair
   getKey():Key = key
   getVal():Val = val
-  getLeftChild():Tree[\Key,Val\] = left
-  getRightChild():Tree[\Key,Val\] = right
+  getLeftChild():TreeMap[\Key,Val\] = left
+  getRightChild():TreeMap[\Key,Val\] = right
 
   printTree():() = do
     print("((")
@@ -89,7 +89,7 @@ object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
   end
 
   toString():String = do
-    temp:Tree[\Key,Val\] := self
+    temp:TreeMap[\Key,Val\] := self
     res:String := "{"
     (two, delmin) = temp.removeMinimum()
     (k, v) = two
@@ -117,34 +117,34 @@ object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
       (min, balancedAdd(pair,delmin,right))
     end
 
-  add(k:Key, v:Val):Tree[\Key,Val\] =
+  add(k:Key, v:Val):TreeMap[\Key,Val\] =
     if   k = key then self
     elif k < key then balancedAdd(pair,left.add(k,v),right)
     else balancedAdd(pair,left,right.add(k,v))
     end
 
-  update(k:Key, v:Val):Tree[\Key,Val\] =
-    if   k = key then Node[\Key,Val\]((k,v), left, right)
-    elif k < key then Node[\Key,Val\](pair, left.update(k,v), right)
-    else Node[\Key,Val\](pair, left, right.update(k,v))
+  update(k:Key, v:Val):TreeMap[\Key,Val\] =
+    if   k = key then NodeMap[\Key,Val\]((k,v), left, right)
+    elif k < key then NodeMap[\Key,Val\](pair, left.update(k,v), right)
+    else NodeMap[\Key,Val\](pair, left, right.update(k,v))
     end
 
-  delete(k:Key):Tree[\Key,Val\] =
+  delete(k:Key):TreeMap[\Key,Val\] =
     if   k < key then balancedAdd(pair,left.delete(k),right)
     elif key < k then balancedAdd(pair,left,right.delete(k))
     else              left.balancedDelete(right)
     end
 
-  balancedDelete(r:Node[\Key,Val\]):Tree[\Key,Val\] = do
+  balancedDelete(r:NodeMap[\Key,Val\]):TreeMap[\Key,Val\] = do
     (min_elt, del_min) = r.removeMinimum()
     balancedAdd(min_elt, self, del_min)
   end
-  balancedDelete(r:Tree[\Key,Val\]):Tree[\Key,Val\] = self
+  balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\] = self
 
-  balancedAdd(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] = do
+  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] = do
     ln = left.size()
     rn = right.size()
-    if ln + rn < weight then Node[\Key,Val\](x, left, right)
+    if ln + rn < weight then NodeMap[\Key,Val\](x, left, right)
     elif rn > weight ln then
       r = right.getRightChild()
       rl = r.getLeftChild()
@@ -165,32 +165,34 @@ object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
       then single_R(x, left, right)
       else double_R(x, left, right)
       end
-    else Node[\Key,Val\](x, left, right) end
+    else NodeMap[\Key,Val\](x, left, right) end
   end
 
-  single_L(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] =
-    Node[\Key,Val\](right.getPair(),
-                    Node[\Key,Val\](x, left, right.getLeftChild()),
-                    right.getRightChild())
+  single_L(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+    NodeMap[\Key,Val\](right.getPair(),
+                       NodeMap[\Key,Val\](x, left, right.getLeftChild()),
+                       right.getRightChild())
 
-  single_R(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] =
-    Node[\Key,Val\](left.getPair(),
-                    left.getLeftChild(),
-                    Node[\Key,Val\](x,left.getRightChild(),right))
+  single_R(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+    NodeMap[\Key,Val\](left.getPair(),
+                       left.getLeftChild(),
+                       NodeMap[\Key,Val\](x,left.getRightChild(),right))
 
-  double_L(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] =
-    Node[\Key,Val\](right.getLeftChild().getPair(),
-                    Node[\Key,Val\](x,left,right.getLeftChild().getLeftChild()),
-                    Node[\Key,Val\](right.getPair(),
-                                    right.getLeftChild().getRightChild(),
-                                    right.getRightChild()))
+  double_L(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+    NodeMap[\Key,Val\](right.getLeftChild().getPair(),
+                       NodeMap[\Key,Val\](x, left,
+                                          right.getLeftChild().getLeftChild()),
+                       NodeMap[\Key,Val\](right.getPair(),
+                                          right.getLeftChild().getRightChild(),
+                                          right.getRightChild()))
 
-  double_R(x:(Key,Val), left:Tree[\Key,Val\], right:Tree[\Key,Val\]):Node[\Key,Val\] =
-    Node[\Key,Val\](left.getRightChild().getPair(),
-                    Node[\Key,Val\](left.getPair(),
-                                    left.getLeftChild(),
-                                    left.getRightChild().getLeftChild()),
-                    Node[\Key,Val\](x,left.getRightChild().getRightChild(),right))
+  double_R(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
+    NodeMap[\Key,Val\](left.getRightChild().getPair(),
+                       NodeMap[\Key,Val\](left.getPair(),
+                                          left.getLeftChild(),
+                                          left.getRightChild().getLeftChild()),
+                       NodeMap[\Key,Val\](x,left.getRightChild().getRightChild(),
+                                          right))
 end
 
 end

@@ -17,25 +17,25 @@
 
 api Set
 
-trait Tree[\E\] comprises {Node[\E\], Empty[\E\]}
+trait TreeSet[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    size():ZZ32
    empty():Boolean
    getVal():E
-   getLeftChild():Tree[\E\]
-   getRightChild():Tree[\E\]
+   getLeftChild():TreeSet[\E\]
+   getRightChild():TreeSet[\E\]
    printTree():()
    toString():String
    member(x:E):Boolean
    minimum():E
-   add(x:E):Tree[\E\]
-   delete(x:E):Tree[\E\]
-   union(t2:Tree[\E\]):Tree[\E\]
-   intersection(t2:Tree[\E\]):Tree[\E\]
-   difference(t2:Tree[\E\]):Tree[\E\]
+   add(x:E):TreeSet[\E\]
+   delete(x:E):TreeSet[\E\]
+   union(t2:TreeSet[\E\]):TreeSet[\E\]
+   intersection(t2:TreeSet[\E\]):TreeSet[\E\]
+   difference(t2:TreeSet[\E\]):TreeSet[\E\]
 end
 
-object Empty[\E\]() extends Tree[\E\] end
+object EmptySet[\E\]() extends TreeSet[\E\] end
 
-object Node[\E\](val:E,  left:Tree[\E\], right:Tree[\E\]) extends Tree[\E\] end
+object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeSet[\E\] end
 
 end

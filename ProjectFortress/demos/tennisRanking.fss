@@ -1,0 +1,665 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component TennisRanking
+import * from Set
+import * from Map
+import * from List
+import * from QuickSort
+export Executable
+
+(* Tennis Ranking System
+   1. Read the ranking result of the previous term.
+   2. Read the game results played in this term.
+   3. Calculate the new ranking result for this term.
+   4. Write the new ranking result, MVPs, MEPs, and MIPs of this term.
+      Each line of the ranking result includes:
+        the ranking,
+        the player's name,
+        the number of games won and lost in the season so far,
+        the number of games won and lost in this term,
+        the number of games played in the season so far,
+        the number of games played in this term,
+        the points earned in the season so far, and
+        the points earned in this term.
+      MVP (Most Valuable  Player): who earned the points the most
+      MEP (Most Energetic Player): who played the games  the most
+      MIP (Most Improved  Player): who rose   the ranks  the most
+
+   Rules to calculuate the ranking
+   1. Every player begins with 1000 points at the very beginng of the season.
+   2. A new term starts in 2 weeks.
+   3. Existing members who have not played any games yet are not included in
+      the ranking system.
+   4. New members can join the system any time.
+   5. A game is either a singles game or a doubles game.
+   6. If the ranking difference between the two teams is bigger than 10,
+      the game is considered invalid; it is not considered when the points are
+      calculated.
+   7. For each singles game, the players get the following points:
+      winner: 10 (winner's ranking - loser's ranking) + 100
+      loser :  5 (loser's ranking - winner's ranking) -  50
+   8. For each doubles game, the players get the following points:
+      winners: 5 (sum of winners' rankings - sum of losers' rankings) + 100
+      losers : diff = sum of winners' rankings - sum of losers' rankings
+               if diff > 0 OR even(diff)
+               then -5 (diff DIV 2)   - 50
+               else -5 (diff DIV 2)+1 - 50
+   9. if any player has never played any game before this term,
+      then ranking differences are ignored.
+  10. If the same teams play more than once with the same combinationin a term,
+      only the first game is considered valid.
+  11. If a player does not play any game in a term, the player gets -50 penalties.
+ *)
+
+(* Global variables and constants *)
+maxPlayers = 40         (* maximum number of players *)
+numPlayers:ZZ32 := 0    (* number of players possibly with new members *)
+oldPoints = 450 (* the current points for old members not yet played any game *)
+database:TreeMap[\String,Player\] := EmptyMap[\String,Player\]()
+tableBegin =
+  "-------------------------------------------------------------------"
+gamesBegin = "begin"
+gamesEnd   = "end"
+
+(* String manipulation *********************************)
+(* Read n words and return the remaining string *)
+readWord(line: String, n: ZZ32) =
+  if n > 0
+  then (_, s) = readWord line
+       readWord(s, n-1)
+  else line
+  end
+
+(* Read a word which does not include any whitespaces
+   and return the word and the remaining string *)
+readWord(line: String) =
+  if line = "" then ("", "")
+  else
+    s: String := substring(line, 0, 1)
+    i: ZZ32 := 0
+    while(s   = " ") do i += 1; s := substring(line, i, i+1) end
+    j: ZZ32 := i
+    while(s =/= " ") do j += 1; s := if j >= length(line) then " "
+                                     else substring(line, j, j+1) end
+    end
+    (substring(line, i, j), substring(line, j, length(line)))
+  end
+
+twoToStr(rank) = if rank < 10 then " " rank else rank end
+
+digits = EmptySet[\String\]().add("0").add("1").add("2").add("3").add("4").add("5").add("6").add("7").add("8").add("9")
+opr EXISTS[\T\](x:T, set:NodeSet[\T\]) = set.member(x)
+
+isDigit(s: String) =
+  case s EXISTS of
+    digits => true
+    else   => false
+  end
+
+oneStr2int(s: String) =
+  case s of
+    "0" => 0
+    "1" => 1
+    "2" => 2
+    "3" => 3
+    "4" => 4
+    "5" => 5
+    "6" => 6
+    "7" => 7
+    "8" => 8
+    "9" => 9
+    " " => 0
+    else => println s
+            die "Invalid digit:" (* throwing an exception: Not Yet Implemented *)
+  end
+str2int(s: String) =
+  do
+    result: ZZ32 := 0
+    for i <- seq(0#length(s)) do
+      result := 10 result + oneStr2int(substring(s, i, i+1))
+    end
+    result
+  end
+
+(* Tennis players *************************************************************)
+object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
+              initPoints:ZZ32)
+  preRanking : ZZ32 := initRanking
+  ranking    : ZZ32 := initRanking
+
+  totalWon   : ZZ32 := initWon
+  totalLost  : ZZ32 := initLost
+  totalGames : ZZ32 := totalWon + totalLost
+  totalPoints: ZZ32 := initPoints
+
+  thisWon   : ZZ32 := 0
+  thisLost  : ZZ32 := 0
+  thisGames : ZZ32 := 0
+  thisPoints: ZZ32 := 0
+
+  (* Me.played.member("you") returns
+     either Nothing()    // I haven't played with/against you
+     or     Just(tree)   // I have    played with/against you
+                         //   if ("", "") exists in tree
+                         //   then I have played a singles game with you
+                         //   if ("a", "b") exists in tree
+                         //   then I have played a doubles game with you
+                         //        against "a" and "b"
+   *)
+  played:TreeMap[\String,TreeMap[\String,String\]\] :=
+    EmptyMap[\String,TreeMap[\String,String\]\]()
+
+  (* Has played a singles game with this player? *)
+  playedSingle(against: String) =
+    do
+      maybeAgainstGames = played.member(against)
+      if maybeAgainstGames.isJust()
+      then maybeAgainstGames.unJust().member("").isJust()
+      else false end
+    end
+
+  (* Has played a doubles game with these players? *)
+  playedDouble(team: String, against1: String, against2: String) =
+    do
+      maybeWithGames = played.member(team)
+      if maybeWithGames.isJust()
+      then withGames = maybeWithGames.unJust()
+           if withGames.member(against1).isJust()
+           then withGames.member(against1).unJust() = against2
+           else if withGames.member(against2).isJust()
+                then withGames.member(against2).unJust() = against1
+                else false end
+           end
+      else false end
+    end
+
+  (* Played a singles game with this player. *)
+  doneSingle(against: String) =
+    do
+      maybeAgainstGames = played.member(against)
+      againstGames:TreeMap[\String,String\] :=
+        if maybeAgainstGames.isJust()
+        then maybeAgainstGames.unJust()
+        else EmptyMap[\String,String\]() end
+      againstGames := againstGames.add("","")
+      played := played.update(against, againstGames)
+    end
+
+  (* Played a doubles game with these players. *)
+  doneDouble(team: String, against1: String, against2: String) =
+    do
+      maybeWithGames = played.member(team)
+      withGames:TreeMap[\String,String\] :=
+        if maybeWithGames.isJust()
+        then maybeWithGames.unJust()
+        else EmptyMap[\String,String\]() end
+      withGames := withGames.add(against1,against2)
+      played := played.update(team, withGames)
+    end
+
+  tostring():String =
+    name "    " (twoToStr totalWon) " / " totalLost " (" thisWon " / " thisLost ")      " (totalWon+totalLost) " (" (thisWon+thisLost) ")       " totalPoints " (" thisPoints ")\n"
+
+(* toString() returns the following:
+     ranking  name  totalWon / totalLost (thisWon / thisLost)  totalgames (thisGames)  totalPoints (thisPoints)
+ *)
+  toString():String = (twoToStr ranking) "  " (tostring())
+
+(* toStringTie() does not return the ranking *)
+  toStringTie():String = "    " (tostring())
+
+end
+
+(* Database initialization ****************************************************)
+init(name:String, ranking:ZZ32, wonGames:ZZ32, lostGames:ZZ32, points:ZZ32) =
+  database := database.add(name, Player(name,ranking,wonGames,lostGames,points))
+
+initialize(fin: BufferedReader) =
+  do
+    toSortInit:Array[\(String,ZZ32,ZZ32,ZZ32,ZZ32),ZZ32\] :=
+               array[\(String,ZZ32,ZZ32,ZZ32,ZZ32)\](maxPlayers)
+    indexInit: ZZ32 := 0
+    line: String := inFileRead(fin)
+    (* read an old ranking result in the order of ranking *)
+    while (line =/= tableBegin) do
+      line := inFileRead(fin)
+    end
+    line := inFileRead(fin)
+
+(* each line includes the following:
+     ranking  name  totalWon / totalLost (thisWon / thisLost)  totalgames (thisGames)  totalPoints (thisPoints)
+ *)
+    order: ZZ32 := 0
+    while (line =/= "") do
+      var s: String
+      (s, line) := readWord line
+      if isDigit(substring(s, 0, 1))
+      then order := str2int s; (s, line) := readWord line end
+      (ranking, name) = (order, s) (* if there's a tie, get the previous rank *)
+      (s, line) := readWord line; wonGames  = str2int s
+      (s, line) := readWord line
+      (s, line) := readWord line; lostGames = str2int s
+      line := readWord(line, 5)
+      (s, line) := readWord line; points    = str2int s
+      toSortInit[indexInit] := (name, ranking, wonGames, lostGames, points)
+      indexInit += 1
+      line := inFileRead(fin)
+    end
+    (* initialize a database in the order of names instead of any order
+       due to the current status of the interpreter; the StackOverflow
+       exception is thrown if the database is initialized in any order
+     *)
+    lt(x: (String,ZZ32,ZZ32,ZZ32,ZZ32), y: (String,ZZ32,ZZ32,ZZ32,ZZ32)) =
+      do
+        (x1, _, _, _, _) = x
+        (y1, _, _, _, _) = y
+        x1 < y1
+      end
+    quicksort[\(String,ZZ32,ZZ32,ZZ32,ZZ32)\](lt, toSortInit, 0, indexInit-1)
+    for i <- seq(0#indexInit) do
+      init(toSortInit[i])
+    end
+  end
+
+(* Add games ******************************************************************)
+(* Read games in this term *)
+addGames(fin: BufferedReader, fout: BufferedWriter) =
+  do
+    line: String := inFileRead(fin)
+    while (line =/= gamesBegin) do
+      line := inFileRead(fin)
+    end
+    line := inFileRead(fin)
+    while (line =/= gamesEnd) do
+      var (player1, player2): String...
+      (player1, line) := readWord line
+      (player2, line) := readWord line
+      if player2 = "false" OR player2 = "true" (* exists a new player *)
+      then player1Old = player2
+           var player2Old: String
+           (player2   , line) := readWord line
+           (player2Old, line) := readWord line
+           if line = "" (* a singles game *)
+           then addGame(fout, player1, player1Old, player2, player2Old)
+           else var (player3, player3Old, player4, player4Old): String...
+                    (player3   , line) := readWord line
+                    (player3Old, line) := readWord line
+                    (player4   , line) := readWord line
+                    (player4Old, line) := readWord line
+                addGame(fout, player1, player1Old, player2, player2Old,
+                              player3, player3Old, player4, player4Old)
+           end
+      else if line = "" (* a singles game *)
+           then addGame(fout, player1, player2)
+           else var (player3, player4): String...
+                    (player3, line) := readWord line
+                    (player4, line) := readWord line
+                addGame(fout, player1, player2, player3, player4)
+           end
+      end
+      line := inFileRead(fin)
+    end
+  end
+
+(* Add a new player; if this player is an old member then begins with oldPoints
+  otherwise 1000 points *)
+new(name:String, old:Boolean) =
+  do
+    init(name, 0, 0, 0, if old then oldPoints else 1000 end)
+    numPlayers += 1
+    database.member(name).unJust()
+  end
+
+wonGame(player: Player, points: ZZ32) =
+  do
+    player.thisWon     += 1
+    player.totalWon    += 1
+    player.thisGames   += 1
+    player.totalGames  +=1
+    player.thisPoints  += points
+    player.totalPoints += points
+    player
+  end
+
+lostGame(player: Player, points: ZZ32) =
+  do
+    player.thisLost    += 1
+    player.totalLost   += 1
+    player.thisGames   += 1
+    player.totalGames  += 1
+    player.thisPoints  += points
+    player.totalPoints += points
+    player
+  end
+
+(* singles games ****************************************)
+won(player: Player, against: Player, points: ZZ32) =
+  do
+    winner: Player := wonGame(player, points)
+    winner.doneSingle(against.name)
+    database := database.update(winner.name, winner)
+  end
+
+lost(player: Player, against: Player, points: ZZ32) =
+  do
+    loser: Player := lostGame(player, points)
+    loser.doneSingle(against.name)
+    database := database.update(loser.name, loser)
+  end
+
+(* It is a valid game if ranking differences between two players are less than 10
+   and they have never player before in this term.
+ *)
+validGame(winner: Player, loser: Player, diff: ZZ32) =
+  (|diff| <= 10, NOT(winner.playedSingle(loser.name)))
+
+addGame(fout: BufferedWriter,
+        winnerName: String, winnerOld: Boolean,
+        loserName : String, loserOld : Boolean) =
+  do
+    (* if a player has never played any game before this term,
+       then add the player first *)
+    maybeWinner = database.member(winnerName)
+    maybeLoser  = database.member(loserName)
+    winner = if maybeWinner.isJust() then maybeWinner.unJust()
+             else new(winnerName, winnerOld) end
+    loser  = if maybeLoser.isJust() then maybeLoser.unJust()
+             else new(loserName,  loserOld) end
+    (* if any player has never played any game before this term,
+       then ranking differences are ignored *)
+    diff   = if winner.ranking = 0 OR loser.ranking = 0
+             then 0 else winner.ranking - loser.ranking end
+    (validDiff, notPlayed) = validGame(winner, loser, diff)
+    (* a winner gets "10 diff + 100" points and
+       a loser loses  "5 diff +  50" points *)
+    if validDiff AND notPlayed
+    then won(winner, loser, 10 diff + 100)
+         lost(loser, winner, -5 diff - 50)
+    else if NOT(validDiff)
+         then outFileWrite(fout, "Invalid game: " winnerName " vs " loserName
+                                 " has " |diff| " ranking differences. \n")
+         else outFileWrite(fout, "Invalid game: " winnerName " vs " loserName
+                                 " has played before. \n")
+         end
+    end
+  end
+addGame(fout: BufferedWriter, winnerName: String, loserName: String) =
+  if database.member(winnerName).isJust()
+  then if database.member(loserName).isJust()
+       then addGame(fout, winnerName, true, loserName, true)
+       else println loserName " is a new member!"; die end
+  else println winnerName " is a new member!"; die end
+
+(* doubles games ****************************************)
+won(player1: Player, player2: Player, against1: Player, against2: Player,
+    points: ZZ32) =
+  do
+    winner1: Player := wonGame(player1, points)
+    winner2: Player := wonGame(player2, points)
+    winner1.doneDouble(player2.name, against1.name, against2.name)
+    winner2.doneDouble(player1.name, against1.name, against2.name)
+    database := database.update(winner1.name, winner1)
+    database := database.update(winner2.name, winner2)
+  end
+
+lost(player1: Player, player2: Player, against1: Player, against2: Player,
+     points: ZZ32) =
+  do
+    loser1: Player := lostGame(player1, points)
+    loser2: Player := lostGame(player2, points)
+    loser1.doneDouble(player2.name, against1.name, against2.name)
+    loser2.doneDouble(player1.name, against1.name, against2.name)
+    database := database.update(loser1.name, loser1)
+    database := database.update(loser2.name, loser2)
+  end
+
+(* It is a valid game if ranking differences between winners and losers are
+   less than 20 and they have never player before in this term.
+ *)
+validGame(winner1: Player, winner2: Player, loser1: Player, loser2: Player,
+          diff: ZZ32) =
+  (|diff| <= 20,
+   NOT(winner1.playedDouble(winner2.name, loser1.name, loser2.name)))
+
+addGame(fout: BufferedWriter,
+        winnerName1: String, winnerOld1: Boolean,
+        winnerName2: String, winnerOld2: Boolean,
+        loserName1 : String, loserOld1 : Boolean,
+        loserName2 : String, loserOld2 : Boolean) =
+  do
+    (* if a player has never played any game before this term,
+       then add the player first *)
+    maybeWinner1 = database.member(winnerName1)
+    maybeWinner2 = database.member(winnerName2)
+    maybeLoser1  = database.member(loserName1)
+    maybeLoser2  = database.member(loserName2)
+    winner1 = if maybeWinner1.isJust() then maybeWinner1.unJust()
+              else new(winnerName1, winnerOld1) end
+    winner2 = if maybeWinner2.isJust() then maybeWinner2.unJust()
+              else new(winnerName2, winnerOld2) end
+    loser1  = if maybeLoser1.isJust() then maybeLoser1.unJust()
+              else new(loserName1,  loserOld1) end
+    loser2  = if maybeLoser2.isJust() then maybeLoser2.unJust()
+              else new(loserName2,  loserOld2) end
+    (* if any player has never played any game before this term,
+       then ranking differences are ignored *)
+    diff = if winner1.ranking = 0 OR winner2.ranking = 0 OR
+              loser1.ranking  = 0 OR loser2.ranking  = 0
+           then 0
+           else ((winner1.ranking + winner2.ranking) -
+                 (loser1.ranking  + loser2.ranking))
+           end
+    (validDiff, notPlayed) = validGame(winner1, winner2, loser1, loser2, diff)
+    (* winners get                 "5 diff + 100" points and
+       losers lose approximately "2.5 diff +  50" points *)
+    even(z: ZZ32) = (z REM 2 = 0)
+    if validDiff AND notPlayed
+    then won(winner1, winner2, loser1, loser2, 5 diff + 100)
+         lost(loser1, loser2, winner1, winner2,
+              5 (if diff > 0 OR even(diff) then -(diff DIV 2)
+                 else -(diff DIV 2)+1 end) - 50)
+    else if NOT(validDiff)
+         then outFileWrite(fout, "Invalid game: " winnerName1 "/" winnerName2
+                                 " vs " loserName1 "/" loserName2 " has " |diff|
+                                 " ranking differences. \n")
+         else outFileWrite(fout, "Invalid game: " winnerName1 "/" winnerName2
+                                 " vs " loserName1 "/" loserName2 " has "
+                                 "played before. \n")
+         end
+    end
+  end
+addGame(fout: BufferedWriter,
+        winnerName1: String, winnerName2: String,
+        loserName1 : String, loserName2 : String) =
+  if database.member(winnerName1).isJust()
+  then if database.member(winnerName2).isJust()
+       then if database.member(loserName1).isJust()
+            then if database.member(loserName2).isJust()
+                 then addGame(fout, winnerName1, true, winnerName2, true,
+                                    loserName1 , true, loserName2 , true)
+                 else println loserName2 " is a new member!"; die end
+            else println loserName1 " is a new member!"; die end
+       else println winnerName2 " is a new member!"; die end
+  else println winnerName1 " is a new member!"; die end
+
+(* Print result ***************************************************************)
+(* MVP(Most Valuable Players): the biggest points earned in this term *)
+mvp: ZZ32 := 0          (* points earned in this term *)
+mvpPlayers: List[\String\] := Empty[\String\]()
+
+(* MEP(Most Energetic Players): the biggest games played in this term *)
+mep: ZZ32 := 0          (* games played in this term *)
+mepPlayers: List[\String\] := Empty[\String\]()
+
+(* MIP(Most Improved Players): the biggest differences in old and new rankings *)
+mip: ZZ32 := 0          (* old ranking minus new ranking *)
+mipPlayers: List[\String\] := Empty[\String\]()
+
+(* Print the new ranking result while finding MVP and MEP players. *)
+printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
+  do
+    (_,top) = arr[0]
+    (* the current ranking *)
+    ranking: ZZ32 := 1
+    (* the points of the previous player *)
+    points : ZZ32 := database.member(top).unJust().totalPoints + 10
+    for i <- seq(0#numPlayers) do
+      (_,v) = arr[i]
+      player = database.member(v).unJust()
+      (* print a player with the new ranking result *)
+      if player.totalPoints = points
+      then player.ranking := ranking
+           outFileWrite(fout, player.toStringTie())
+      else player.ranking := i+1; ranking := i+1; points := player.totalPoints
+           outFileWrite(fout, player.toString())
+      end
+      (* find MVP players *)
+      if player.thisPoints = mvp
+      then mvpPlayers := mvpPlayers.cons(player.name) end
+      (* find MEP players *)
+      if player.thisGames = mep
+      then mepPlayers := mepPlayers.cons(player.name) end
+      (* find the biggest differences in old and new rankings *)
+      diff = player.preRanking - player.ranking
+      if diff > mip then mip := diff end
+      database := database.update(v, player)
+    end
+  end
+
+(* Print the MVP, MEP, and MIP players *)
+printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
+  do
+    (* find MIP players *)
+    for i <- seq(0#numPlayers) do
+      (_,v) = arr[i]
+      player = database.member(v).unJust()
+      if player.preRanking - player.ranking = mip
+      then mipPlayers := mipPlayers.cons(player.name) end
+    end
+
+    (* print MVP players and their points earned in this term *)
+    outFileWrite(fout, "MVP: ")
+    while (NOT mvpPlayers.isEmpty()) do
+      outFileWrite(fout, mvpPlayers.hd' " ")
+      mvpPlayers := mvpPlayers.tl'
+    end
+    outFileWrite(fout, "(" mvp " points)\n")
+
+    (* print MEP players and their games played in this term *)
+    outFileWrite(fout, "MEP: ")
+    while (NOT mepPlayers.isEmpty()) do
+      outFileWrite(fout, mepPlayers.hd' " ")
+      mepPlayers := mepPlayers.tl'
+    end
+    outFileWrite(fout, "(" mep " games)\n")
+
+    (* print MEP players and their old and new rankings *)
+    outFileWrite(fout, "MIP: ")
+    while (NOT mipPlayers.isEmpty()) do
+      player = database.member(mipPlayers.hd').unJust()
+      outFileWrite(fout, (player.name " (ranking " player.preRanking " => "
+                          player.ranking ") "))
+      mipPlayers := mipPlayers.tl'
+    end
+  end
+
+(* Print the result of this term *)
+printResult(fout: BufferedWriter, previous: String, today: String) =
+  do
+    (* print a header *)
+    outFileWrite(fout, "\n" previous " ~ " today "\n\n")
+    outFileWrite(fout, "순위  선수         승패            경기수            포인트\n")
+    outFileWrite(fout, tableBegin "\n")
+
+    (* 1. If a player did not play any game in this term, then -50 penalties.
+       2. Find the biggest points earned in this term to find MVP players.
+       3. Find the biggest games  played in this term to find MEP players.
+       4. Prepare to calculate a new ranking result.
+     *)
+    toSortResult:Array[\(ZZ32,String),ZZ32\] := array[\(ZZ32,String)\](numPlayers)
+    index: ZZ32 := 0
+    visitDatabase(t: TreeMap[\String,Player\]) =
+      if NOT t.empty() then
+        v = t.getVal()
+        (* if never played any game in this term, then -50 penalties *)
+        if v.thisGames = 0
+        then v.thisPoints  -= 50
+             v.totalPoints -= 50
+             database := database.update(v.name, v)
+        end
+        if v.thisPoints > mvp then mvp := v.thisPoints end
+        if v.thisGames  > mep then mep := v.thisGames  end
+        key = - v.totalPoints
+        toSortResult[index] := (key, v.name)
+        index += 1
+        visitDatabase(t.getLeftChild())
+        visitDatabase(t.getRightChild())
+      end
+    visitDatabase(database)
+
+    (* calculuate a new ranking result *)
+    lt(x: (ZZ32, String), y: (ZZ32, String)) =
+      do
+        (x1, _) = x
+        (y1, _) = y
+        x1 < y1
+      end
+    quicksort[\(ZZ32,String)\](lt, toSortResult, 0, toSortResult.size()-1)
+
+    (* print the new ranking result *)
+    printTable(fout, toSortResult)
+    outFileWrite(fout, "\n\n")
+
+    (* print the MVP, MEP, and MIP players *)
+    printMvpMepMip(fout, toSortResult)
+    outFileWrite(fout, "\n\n")
+  end
+
+printUsage() =
+  do
+    println "Usage: ./fortress TennisRanking.fss inFile outFile gamesFile"
+    println "   inFile:  input file to read  the ranking result of the previous term"
+    println "  outFile: output file to print the ranking result of this term"
+    println " gameFile:  input file to read  the games   played in this term"
+  end
+
+run(args:String...) = do
+  if args.size() =/= 3
+  then printUsage()
+  else (* initialize *)
+       previous = args[0]
+       today    = args[1]
+       games    = args[2]
+       fin : BufferedReader := inFileOpen previous
+       fout: BufferedWriter = outFileOpen today
+       initialize(fin)
+       inFileClose(fin)
+       numPlayers := database.size()
+
+       (* add this term's games *)
+       fin := inFileOpen games
+       addGames(fin, fout)
+       inFileClose(fin)
+
+       (* finalize *)
+       printResult(fout, previous, today)
+       outFileClose(fout)
+  end
+end
+
+end

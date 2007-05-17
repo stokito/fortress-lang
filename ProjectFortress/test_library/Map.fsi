@@ -17,26 +17,26 @@
 
 api Map
 
-trait Tree[\Key,Val\] comprises {Node[\Key,Val\], EmptyNode[\Key,Val\]}
+trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   size():ZZ32
   empty():Boolean
   getPair():(Key, Val)
   getKey():Key
   getVal():Val
-  getLeftChild():Tree[\Key,Val\]
-  getRightChild():Tree[\Key,Val\]
+  getLeftChild():TreeMap[\Key,Val\]
+  getRightChild():TreeMap[\Key,Val\]
   printTree():()
   toString():String
   member(x:Key): Maybe[\Val\]
-  add(k:Key, v:Val):Tree[\Key,Val\]
-  update(k:Key, v:Val):Tree[\Key,Val\]
-  delete(k:Key):Tree[\Key,Val\]
+  add(k:Key, v:Val):TreeMap[\Key,Val\]
+  update(k:Key, v:Val):TreeMap[\Key,Val\]
+  delete(k:Key):TreeMap[\Key,Val\]
 end
 
-object EmptyNode[\Key,Val\]() extends Tree[\Key,Val\] end
+object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\] end
 
-object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
-                       right:Tree[\Key,Val\]) extends Tree[\Key,Val\]
+object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
+                          right:TreeMap[\Key,Val\]) extends TreeMap[\Key,Val\]
 end
 
 end

@@ -19,7 +19,7 @@ component MapTest
 import * from Map
 export Executable
 
-database:Tree[\String,ZZ32\] := EmptyNode[\String,ZZ32\]()
+database:TreeMap[\String,ZZ32\] := EmptyMap[\String,ZZ32\]()
 
 init(name:String, ranking: ZZ32) = database := database.add(name, ranking)
 
