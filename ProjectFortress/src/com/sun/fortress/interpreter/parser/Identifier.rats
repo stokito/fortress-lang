@@ -39,10 +39,7 @@ Id Id = a1:IdName { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
 /* IdList ::= Id (w , w Id)* */
 List<Id> IdList = a1:Id a2s:(w comma w Id)*
-     { yyValue = new ArrayList<Id>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* IdOrIdTuple ::=
      Id
@@ -50,14 +47,9 @@ List<Id> IdList = a1:Id a2s:(w comma w Id)*
  */
 List<Id> IdOrIdTuple =
      a1:Id
-     { yyValue = new ArrayList<Id>();
-       yyValue.add(a1);
-     }
+     { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:Id w comma w a2s:IdList w closeparen
-     { yyValue = new ArrayList<Id>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s);
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s); };
 
 /* Name ::= Id | opr w Op */
 Name Name =

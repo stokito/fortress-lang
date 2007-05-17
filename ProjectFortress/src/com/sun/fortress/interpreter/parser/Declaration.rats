@@ -28,10 +28,7 @@ import Spacing;
 
 /* Decls ::= Decl (br Decl)* */
 List<DefOrDecl> Decls = a1:Decl a2s:(br Decl)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Decl ::=
      TraitDecl
@@ -60,10 +57,7 @@ private DefOrDecl Decl =
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsDecl ::=
      AbsTraitDecl

@@ -31,24 +31,25 @@ import Identifier;
 import Keyword;
 import Spacing;
 
-/* TraitDecl ::= TraitHeader TraitClauses [w GoInATrait] w end  */
-TraitDecl TraitDecl = a1:TraitHeader a2:TraitClauses a3:(w GoInATrait)? w end
-     { if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+/* TraitDecl ::= TraitMods? TraitHeader TraitClauses (w GoInATrait)? w end  */
+TraitDecl TraitDecl =
+     a1:TraitMods? a2:TraitHeader a3:TraitClauses a4:(w GoInATrait)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
        yyValue =
-        new TraitDecl(createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
-                      Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
-                      Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
-                      a2.getExcludes(), a2.getComprises(),
-                      FortressUtil.getListVal(a2.getWhere()), a3);
+        new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
+                      Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
+                      Some.<TypeRef>makeSomeListOrNone(a2.getExtendsClause()),
+                      a3.getExcludes(), a3.getComprises(),
+                      FortressUtil.getListVal(a3.getWhere()), a4);
      };
 
-/* TraitHeader ::= [TraitMods] trait w Id [w StaticParams] [w Extends] */
+/* TraitHeader ::= trait w Id (w StaticParams)? (w Extends)? */
 private TraitHeader TraitHeader =
-     a1:TraitMods? trait w a2:Id a3:(w StaticParams)? a4:(w Extends)?
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a3 == null) a3 = FortressUtil.emptyStaticParams();
-       if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
-       yyValue = new TraitHeader(a1, a2, a3, a4);
+     trait w a1:Id a2:(w StaticParams)? a3:(w Extends)?
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
+       yyValue = new TraitHeader(a1, a2, a3);
      };
 
 /* Each trait clause cannot appear more than once. */
@@ -56,7 +57,7 @@ private TraitHeader TraitHeader =
 private TraitClauses TraitClauses = a1s:(w TraitClause)*
      { yyValue = new TraitClauses();
        for (TraitClause t : (List<TraitClause>)a1s.list()) {
-         yyValue.set(t);
+           yyValue.set(t);
        }
      };
 
@@ -66,16 +67,13 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
    | Where
  */
 private TraitClause TraitClause =
-     a1:Excludes
-     { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
-   / a1:Comprises
-     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
-   / a1:Where
-     { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
+     a1:Excludes  { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
+   / a1:Comprises { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
+   / a1:Where     { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
 /* GoInATrait ::=
-     [Coercions br] GoFrontInATrait [br GoBackInATrait]
-   | [Coercions br] GoBackInATrait
+     (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
+   | (Coercions br)? GoBackInATrait
  */
 private List<DefOrDecl> GoInATrait =
      a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
@@ -92,18 +90,12 @@ private List<DefOrDecl> GoInATrait =
 
 /* Coercions ::= Coercion (br Coercion)* */
 private List<DefOrDecl> Coercions = a1:Coercion a2s:(br Coercion)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
 private List<DefOrDecl> GoFrontInATrait =
      a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesFrontInATrait ::= AbsFldDecl | GetterSetterDecl | PropertyDecl */
 private DefOrDecl GoesFrontInATrait =
@@ -114,99 +106,74 @@ private DefOrDecl GoesFrontInATrait =
 /* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
 private List<DefOrDecl> GoBackInATrait =
      a1:GoesBackInATrait a2s:(br GoesBackInATrait)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesBackInATrait ::= MdDecl | PropertyDecl */
 private DefOrDecl GoesBackInATrait =
      MdDecl
    / PropertyDecl ;
 
-/* ObjectDecl ::= ObjectHeader [w GoInAnObject] w end */
-ObjectDecl ObjectDecl = a1:ObjectHeader a2:(w GoInAnObject)? w end
-     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+/* ObjectDecl ::= ObjectMods? ObjectHeader (w GoInAnObject)? w end */
+ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
        Contract contract;
-       FnHeaderClause fhc = a1.getFnHeaderClause();
+       FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> o = fhc.getContractClause();
        if (o.isPresent()) contract = (Contract)o.getVal();
        else               contract = FortressUtil.emptyContract();
        yyValue = new ObjectDecl
-           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
-            a1.getParams(),
-            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+           (createSpan(yyStart,yyCount), a1, a2.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
+            a2.getParams(),
+            Some.<TypeRef>makeSomeListOrNone(a2.getExtendsClause()),
             FortressUtil.getListVal(fhc.getThrowsClause()),
-            FortressUtil.getListVal(fhc.getWhereClause()), contract, a2);
+            FortressUtil.getListVal(fhc.getWhereClause()), contract, a3);
      };
 
 /* ObjectHeader ::=
-     [ObjectMods] object w Id [w StaticParams] [w ObjectValParam] [w Extends]
-     FnClauses
+     object w Id (w StaticParams)? (w ObjectValParam)? (w Extends)? FnClauses
  */
 private ObjectHeader ObjectHeader =
-     a1:ObjectMods? object w a2:Id a3:(w StaticParams)?
-     a4:(w ObjectValParam)? a5:(w Extends)? a6:FnClauses
+     object w a1:Id a2:(w StaticParams)?
+     a3:(w ObjectValParam)? a4:(w Extends)? a5:FnClauses
      { Option<List<Param>> params;
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a3 == null) a3 = FortressUtil.emptyStaticParams();
-       if (a4 == null) params = None.<List<Param>>make();
-       else            params = Some.<List<Param>>make(a4);
-       if (a5 == null) a5 = FortressUtil.emptyTypeRefs();
-       yyValue = new ObjectHeader(a1, a2, a3, params, a5, a6);
+       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       if (a3 == null) params = None.<List<Param>>make();
+       else            params = Some.<List<Param>>make(a3);
+       if (a4 == null) a4 = FortressUtil.emptyTypeRefs();
+       yyValue = new ObjectHeader(a1, a2, params, a4, a5);
      };
 
-/* ObjectValParam ::= ( [w ObjectParams] w ) */
+/* ObjectValParam ::= ( (w ObjectParams)? w ) */
 private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
      { if (a1 == null) yyValue = FortressUtil.emptyParams();
        else yyValue = a1;
      };
 
 /* ObjectParams  ::=
-     (ObjectParam w , w)* [ObjectVarargs w , w] ObjectKeyword (w , w ObjectKeyword)*
+     (ObjectParam w , w)* (ObjectVarargs w , w)? ObjectKeyword (w , w ObjectKeyword)*
    | (ObjectParam w , w)*  ObjectVarargs
    |  ObjectParam (w , w ObjectParam)*
    ObjectVarargs ::= transient w Varargs
    ObjectKeyword ::= ObjectParam w = w Expr
-   ObjectParam   ::= [FldMods] Param
+   ObjectParam   ::= ParamFldMods? Param
                  |   transient w Param
  */
-Param Varargs := transient w a1:VarargsParam
-     { List<Modifier> mods = new ArrayList<Modifier>(1);
-       mods.add(new Modifier.Transient(createSpan(yyStart,9)));
-       Option<TypeRef> ty_opt = a1.getType();
-       if (ty_opt.isPresent())
-           yyValue = new Param(createSpan(yyStart,yyCount),
-                               mods, a1.getName(), (TypeRef)ty_opt.getVal());
-       else
-           yyValue = new Param(createSpan(yyStart,yyCount), mods, a1.getName());
-     };
+Param Varargs := transient w yyValue:VarargsParam
+     { yyValue.setMods(FortressUtil.mkList(
+                    (Modifier)new Modifier.Transient(createSpan(yyStart,9)))); };
 
 Param Param :=
-     a1:FldMods? a2:PlainParam
-     { if (a1 == null) a1 = Collections.<Modifier>emptyList();
-       Option<TypeRef> ty_opt = a2.getType();
-       if (ty_opt.isPresent())
-           yyValue = new Param(createSpan(yyStart,yyCount), a1, a2.getName(),
-                               (TypeRef)ty_opt.getVal());
-       else
-           yyValue = new Param(createSpan(yyStart,yyCount), a1, a2.getName());
-     }
-   / a1:transient w a2:PlainParam
-     { List<Modifier> mods = new ArrayList<Modifier>(1);
-       mods.add(new Modifier.Transient(createSpan(yyStart,9)));
-       Option<TypeRef> ty_opt = a2.getType();
-       if (ty_opt.isPresent())
-           yyValue = new Param(createSpan(yyStart,yyCount),
-                               mods, a2.getName(), (TypeRef)ty_opt.getVal());
-       else
-           yyValue = new Param(createSpan(yyStart,yyCount), mods, a2.getName());
-     };
+     a1:ParamFldMods? yyValue:PlainParam
+     { if (a1 != null) yyValue.setMods(a1); }
+   / a1:transient w yyValue:PlainParam
+     { yyValue.setMods(FortressUtil.mkList(
+                    (Modifier)new Modifier.Transient(createSpan(yyStart,9)))); };
 
 /* GoInAnObject ::=
-     [Coercions br] GoFrontInAnObject [br GoBackInAnObject]
-   | [Coercions br] GoBackInAnObject
+     (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
+   | (Coercions br)? GoBackInAnObject
  */
 List<DefOrDecl> GoInAnObject =
      a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
@@ -224,10 +191,7 @@ List<DefOrDecl> GoInAnObject =
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
 private List<DefOrDecl> GoFrontInAnObject =
      a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesFrontInAnObject ::= FldDecl | GetterSetterDef | PropertyDecl */
 private DefOrDecl GoesFrontInAnObject =
@@ -238,26 +202,24 @@ private DefOrDecl GoesFrontInAnObject =
 /* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
 private List<DefOrDecl> GoBackInAnObject =
      a1:GoesBackInAnObject a2s:(br GoesBackInAnObject)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesBackInAnObject ::= MdDef | PropertyDecl */
 private DefOrDecl GoesBackInAnObject =
      MdDef
    / PropertyDecl ;
 
-/* AbsTraitDecl  ::= TraitHeader AbsTraitClauses [w AbsGoInATrait] w end */
+/* AbsTraitDecl  ::= AbsTraitMods? TraitHeader AbsTraitClauses (w AbsGoInATrait)? w end */
 AbsTraitDecl AbsTraitDecl =
-     a1:TraitHeader a2:AbsTraitClauses a3:(w AbsGoInATrait)? w end
-     { if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+     a1:AbsTraitMods? a2:TraitHeader a3:AbsTraitClauses a4:(w AbsGoInATrait)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
        yyValue = new AbsTraitDecl
-           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
-            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
-            a2.getExcludes(), a2.getComprises(),
-            FortressUtil.getListVal(a2.getWhere()), a3);
+           (createSpan(yyStart,yyCount), a1, a2.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
+            Some.<TypeRef>makeSomeListOrNone(a2.getExtendsClause()),
+            a3.getExcludes(), a3.getComprises(),
+            FortressUtil.getListVal(a3.getWhere()), a4);
      };
 
 
@@ -284,8 +246,8 @@ private TraitClause AbsTraitClause =
      { yyValue = new Where(createSpan(yyStart,yyCount), a1); };
 
 /* AbsGoInATrait ::=
-     [AbsCoercions br] AbsGoFrontInATrait [br AbsGoBackInATrait]
-   | [AbsCoercions br] AbsGoBackInATrait
+     (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
+   | (AbsCoercions br)? AbsGoBackInATrait
  */
 private List<DefOrDecl> AbsGoInATrait =
      a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
@@ -302,18 +264,12 @@ private List<DefOrDecl> AbsGoInATrait =
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
 private List<DefOrDecl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
 private List<DefOrDecl> AbsGoFrontInATrait =
      a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesFrontInATrait ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
 private DefOrDecl AbsGoesFrontInATrait =
@@ -324,36 +280,35 @@ private DefOrDecl AbsGoesFrontInATrait =
 /* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
 private List<DefOrDecl> AbsGoBackInATrait =
      a1:AbsGoesBackInATrait a2s:(br AbsGoesBackInATrait)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesBackInATrait ::= AbsMdDecl | PropertyDecl */
 private DefOrDecl AbsGoesBackInATrait =
      AbsMdDecl
    / PropertyDecl ;
 
-/* AbsObjectDecl ::= ObjectHeader [w AbsGoInAnObject] w end */
-AbsObjectDecl AbsObjectDecl = a1:ObjectHeader a2:(w AbsGoInAnObject)? w a3:end
-     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+/* AbsObjectDecl ::= AbsObjectMods? ObjectHeader (w AbsGoInAnObject)? w end */
+AbsObjectDecl AbsObjectDecl =
+     a1:AbsObjectMods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
        Contract contract;
-       FnHeaderClause fhc = a1.getFnHeaderClause();
+       FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> o = fhc.getContractClause();
        if (o.isPresent()) contract = (Contract)o.getVal();
        else               contract = FortressUtil.emptyContract();
        yyValue = new AbsObjectDecl
-           (createSpan(yyStart,yyCount), a1.getMods(), a1.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a1.getStaticParams()),
-            a1.getParams(),
-            Some.<TypeRef>makeSomeListOrNone(a1.getExtendsClause()),
+           (createSpan(yyStart,yyCount), a1, a2.getName(),
+            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
+            a2.getParams(),
+            Some.<TypeRef>makeSomeListOrNone(a2.getExtendsClause()),
             FortressUtil.getListVal(fhc.getThrowsClause()),
-            FortressUtil.getListVal(fhc.getWhereClause()), contract, a2);
+            FortressUtil.getListVal(fhc.getWhereClause()), contract, a3);
      };
 
 /* AbsGoInAnObject ::=
-     [AbsCoercions br] AbsGoFrontInAnObject [br AbsGoBackInAnObject]
-   | [AbsCoercions br] AbsGoBackInAnObject
+     (AbsCoercions br)? AbsGoFrontInAnObject (br AbsGoBackInAnObject)?
+   | (AbsCoercions br)? AbsGoBackInAnObject
  */
 List<DefOrDecl> AbsGoInAnObject =
      a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
@@ -371,10 +326,7 @@ List<DefOrDecl> AbsGoInAnObject =
 /* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */
 private List<DefOrDecl> AbsGoFrontInAnObject =
      a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesFrontInAnObject ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
 private DefOrDecl AbsGoesFrontInAnObject =
@@ -385,10 +337,7 @@ private DefOrDecl AbsGoesFrontInAnObject =
 /* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
 private List<DefOrDecl> AbsGoBackInAnObject =
      a1:AbsGoesBackInAnObject a2s:(br AbsGoesBackInAnObject)*
-     { yyValue = new ArrayList<DefOrDecl>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
 private DefOrDecl AbsGoesBackInAnObject =

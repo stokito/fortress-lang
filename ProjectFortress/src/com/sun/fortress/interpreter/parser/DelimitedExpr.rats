@@ -33,17 +33,17 @@ import Spacing;
 
 /* DelimitedExpr ::=
      Parenthesized
-   | object [w Extends] [w GoInAnObject] w end
+   | object (w Extends)? (w GoInAnObject)? w end
    | Do
    | label w Id w BlockElems w end w Id
    | while w Expr w Do
    | for w GeneratorList w DoFront w end
-   | if w Expr w then w BlockElems [w Elifs] [w Else] w end
-   | ( w if w Expr w then w BlockElems [w Elifs] w Else [w end] w )
-   | case w Expr [w Op] w of w CaseClauses [w CaseElse] w end
-   | case w (largest | smallest) [w Op] w of w CaseClauses w end
-   | typecase w TypecaseBindings w of w TypecaseClauses [br CaseElse] w end
-   | try w BlockElems [w Catch] [w forbid w TraitTypes] [w finally w BlockElems] w end
+   | if w Expr w then w BlockElems (w Elifs)? (w Else)? w end
+   | ( w if w Expr w then w BlockElems (w Elifs)? w Else (w end)? w )
+   | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
+   | case w (largest | smallest) (w Op)? w of w CaseClauses w end
+   | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
+   | try w BlockElems (w Catch)? (w forbid w TraitTypes)? (w finally w BlockElems)? w end
  */
 Expr DelimitedExpr =
      Parenthesized
@@ -68,8 +68,7 @@ Expr DelimitedExpr =
    / if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
      { Expr body = FortressUtil.doBlock(a2);
        IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
-       List<IfClause> clauses = new ArrayList<IfClause>();
-       clauses.add(ic);
+       List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        Option<Expr> elseC;
        if (a4 == null) elseC = None.<Expr>make();
@@ -80,8 +79,7 @@ Expr DelimitedExpr =
        (w end)? w closeparen
      { Expr body = FortressUtil.doBlock(a2);
        IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
-       List<IfClause> clauses = new ArrayList<IfClause>();
-       clauses.add(ic);
+       List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = new If(createSpan(yyStart,yyCount),clauses,Some.<Expr>make(a4));
      }
@@ -113,7 +111,7 @@ Expr DelimitedExpr =
        yyValue = new TypeCase(createSpan(yyStart,yyCount), a1, a2, caseElse);
      }
    / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
-        a4:(w finally w BlockElems)? w end
+     a4:(w finally w BlockElems)? w end
      { Option<CatchExpr> catch_;
        Option<Expr> finally_;
        if (a2 == null) catch_ = None.<CatchExpr>make();
@@ -132,7 +130,7 @@ Expr Do = yyValue:DoFront w end ;
 a1s:(DoFront w also w)* a2:DoFront w end
 ************************************************ */
 
-/* DoFront ::= [at w Expr w] [atomic w] do [w BlockElems] */
+/* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
 private Expr DoFront = do a1:(w BlockElems)?
      { if (a1 == null) a1 = FortressUtil.emptyExprs();
        yyValue = FortressUtil.doBlock(a1);
@@ -143,14 +141,13 @@ private Expr DoFront = do a1:(w BlockElems)?
 ************************************************ */
 
 /* Parenthesized ::=
-     ( w (Expr w , w)* [Expr w ... w , w] Binding (w , w Binding)* w )
+     ( w (Expr w , w)* (Expr w ... w , w)? Binding (w , w Binding)* w )
    | NoKeyTuple
  */
 Expr Parenthesized =
      openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
-     { List<Expr> es = new ArrayList<Expr>();
-       es.addAll(a1s.list());
+     { List<Expr> es = FortressUtil.mkList(a1s.list());
        if (a2 != null) es.add(new VarargsExpr(a2.getSpan(), a2));
        List<com.sun.fortress.interpreter.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.interpreter.useful.Pair<Id,Expr>>();
        ks.add(new com.sun.fortress.interpreter.useful.Pair<Id,Expr>(a3.getName(), a3.getInit()));
@@ -167,9 +164,8 @@ Expr Parenthesized =
  */
 Expr NoKeyTuple =
      openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { List<Expr> es = new ArrayList<Expr>();
-       es.addAll(a1s.list());
-       es.add(new VarargsExpr(a2.getSpan(), a2));
+     { List<Expr> es = FortressUtil.mkList(a1s.list(),
+                                           new VarargsExpr(a2.getSpan(), a2));
        yyValue = new TupleExpr(createSpan(yyStart,yyCount), es);
      }
    / openparen w a1s:(Expr w comma w)* a2:Expr w closeparen
@@ -177,19 +173,14 @@ Expr NoKeyTuple =
            a2.setInParentheses();
            yyValue = a2;
        } else {
-           List<Expr> es = new ArrayList<Expr>();
-           es.addAll(a1s.list());
-           es.add(a2);
+           List<Expr> es = FortressUtil.mkList(a1s.list(), a2);
            yyValue = new TupleExpr(createSpan(yyStart,yyCount), es);
        }
      };
 
 /* Elifs ::= Elif (w Elif)* */
 List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
-     { yyValue = new ArrayList<IfClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Elif ::= elif w Expr w then w BlockElems */
 private IfClause Elif = elif w a1:Expr w then w a2:BlockElems
@@ -203,10 +194,7 @@ Expr Else = else w a1:BlockElems
 
 /* CaseClauses ::= CaseClause (br CaseClause)* */
 private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
-     { yyValue = new ArrayList<CaseClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CaseElse ::= else w => w BlockElems */
 List<Expr> CaseElse = else w match w BlockElems ;
@@ -219,21 +207,16 @@ List<Expr> CaseElse = else w match w BlockElems ;
 private List<Binding> TypecaseBindings =
      openparen w BindingList w closeparen
    / a1:Binding
-     { yyValue = new ArrayList<Binding>();
-       yyValue.add(a1);
-     }
+     { yyValue = FortressUtil.mkList(a1); }
    / a1:Id
-     { yyValue = new ArrayList<Binding>();
-       yyValue.add(new Binding(createSpan(yyStart,yyCount), a1,
-                               new VarRefExpr(a1.getSpan(), a1)));
+     { yyValue = FortressUtil.mkList(
+                         new Binding(createSpan(yyStart,yyCount), a1,
+                                     new VarRefExpr(a1.getSpan(), a1)));
      };
 
 /* BindingList ::= Binding (w , w Binding)*  */
 private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
-     { yyValue = new ArrayList<Binding>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Binding ::= Id w = w Expr */
 private Binding Binding = a1:Id w equals w a2:Expr
@@ -242,10 +225,7 @@ private Binding Binding = a1:Id w equals w a2:Expr
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypeCaseClause> TypecaseClauses =
      a1:TypecaseClause a2s:(br TypecaseClause)*
-     { yyValue = new ArrayList<TypeCaseClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* TypecaseClause ::= TypecaseTypeRefs w => w BlockElems */
 TypeCaseClause TypecaseClause =
@@ -259,9 +239,7 @@ TypeCaseClause TypecaseClause =
 List<TypeRef> TypecaseTypeRefs =
      openparen w TypeRefList w closeparen
    / a1:TypeRef
-     { yyValue = new ArrayList<TypeRef>();
-       yyValue.add(a1);
-     };
+     { yyValue = FortressUtil.mkList(a1); };
 
 /* Catch ::= catch w Id w CatchClauses */
 CatchExpr Catch = catch w a1:Id w a2:CatchClauses
@@ -269,10 +247,7 @@ CatchExpr Catch = catch w a1:Id w a2:CatchClauses
 
 /* CatchClauses ::= CatchClause (br CatchClause)* */
 private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
-     { yyValue = new ArrayList<CatchClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CatchClause ::= TraitType w => w BlockElems */
 private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
@@ -295,9 +270,7 @@ Comprehension Comprehension =
      { yyValue = new ListComprehension(createSpan(yyStart,yyCount), a2, a1); }
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
        w closesquare
-     { List<RectCompClause> clauses = new ArrayList<RectCompClause>();
-       clauses.add(a1);
-       clauses.addAll(a2s.list());
+     { List<RectCompClause> clauses = FortressUtil.mkList(a1, a2s.list());
        yyValue = new RectComprehension(createSpan(yyStart,yyCount), clauses);
      };
 
@@ -316,13 +289,11 @@ Entry Entry = a1:Expr w mapsto w a2:Expr
  */
 com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
      a1:IdOrInt w mapsto w a2:Expr
-     { List<Expr> exprs = new ArrayList<Expr>();
-       exprs.add(a1);
+     { List<Expr> exprs = FortressUtil.mkList(a1);
        yyValue = new com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr>(exprs, a2);
      }
    / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w a3:Expr
-     { List<Expr> exprs = new ArrayList<Expr>();
-       exprs.add(a1);
+     { List<Expr> exprs = FortressUtil.mkList(a1);
        for (Expr i : a2) {
            exprs.add(i);
        }
@@ -336,10 +307,7 @@ Expr IdOrInt =
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
-     { yyValue = new ArrayList<Expr>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* BaseExpr ::= NoKeyTuple | Literal | Aggregate | Id | self */
 Expr BaseExpr =
@@ -351,7 +319,4 @@ Expr BaseExpr =
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
-     { yyValue = new ArrayList<Expr>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };

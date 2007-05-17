@@ -37,7 +37,7 @@ import Spacing;
    | OpExpr
    | DelimitedExpr
    | FlowExpr
-   | fn w ValParam [w IsType] [w Throws] w => w Expr
+   | fn w ValParam (w IsType)? (w Throws)? w => w Expr
    | Expr w as w TypeRef
    | Expr w asif w TypeRef
    | UnitExpr
@@ -125,20 +125,15 @@ Tree UnitExpr =
  */
 List<LHS> AssignLefts =
      openparen w a1:AssignLeft a2s:(w comma w AssignLeft)* w closeparen
-     { yyValue = new ArrayList<LHS>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     }
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); }
    / a1:AssignLeft
-     { yyValue = new ArrayList<LHS>();
-       yyValue.add(a1);
-     };
+     { yyValue = FortressUtil.mkList(a1); };
 
 /* AssignLeft ::=
      SubscriptExpr
    | FieldSelection
    | Id
-   SubscriptExpr ::= Primay [ [w ExprList] w ]
+   SubscriptExpr ::= Primay [ (w ExprList)? w ]
    FieldSelection ::= Primary . Id
  */
 LHS AssignLeft =
@@ -331,11 +326,11 @@ PureList<OpExpr> LooseInfix =
      Comprehension
    | Id [\ w StaticArgList w \]
    | BaseExpr
-   | LeftEncloser [w ExprList] w RightEncloser
-   | Primary [ [w ExprList] w ]
-   | Primary LeftEncloser [w ExprList] w RightEncloser
-   | Primary . Id [[\ w StaticArgList w \]] Parenthesized
-   | Primary . Id [[\ w StaticArgList w \]] ( w )
+   | LeftEncloser (w ExprList)? w RightEncloser
+   | Primary [ (w ExprList)? w ]
+   | Primary LeftEncloser (w ExprList)? w RightEncloser
+   | Primary . Id ([\ w StaticArgList w \])? Parenthesized
+   | Primary . Id ([\ w StaticArgList w \])? ( w )
    | Primary . Id
    | Primary ^ BaseExpr
    | Primary ExponentOp
@@ -400,11 +395,9 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv, a1),
-                                                rcv, a1);
-               if (a2 != null) {
+               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),rcv,a1);
+               if (a2 != null)
                    mth = new TypeApply(createSpan(yyStart,yyCount), mth, a2);
-               }
                return PureList.make(a3, mth);
 
            }};
@@ -414,13 +407,10 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv, a1),
-                                             rcv, a1);
-               if (a2 != null) {
+               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),rcv,a1);
+               if (a2 != null)
                    mth = new TypeApply(createSpan(yyStart,yyCount), mth, a2);
-               }
-               Expr arg = new VoidLiteral(a1.getSpan());
-               return PureList.make(arg, mth);
+               return PureList.make(new VoidLiteral(a1.getSpan()), mth);
            }};
      };
 
@@ -488,8 +478,8 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
      };
 
 /* FlowExpr ::=
-     exit [w Id] [w with w Expr]
-   | Accumulator [w [ w GeneratorList w ]] w Expr
+     exit (w Id)? (w with w Expr)?
+   | Accumulator (w [ w GeneratorList w ])? w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
    | spawn w Expr
@@ -531,10 +521,7 @@ Expr AtomicBack =
 
 /* GeneratorList ::= Generator (w , w Generator)* */
 List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
-     { yyValue = new ArrayList<Generator>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Generator ::=
      IdOrIdTuple w <- w Expr

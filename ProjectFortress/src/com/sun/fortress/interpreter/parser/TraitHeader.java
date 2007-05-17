@@ -23,29 +23,21 @@ package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.Modifier;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class TraitHeader {
 
-    private List<Modifier> mods;
     private Id name;
     private List<StaticParam> staticParams;
     private List<TypeRef> extendsClause;
 
-    public TraitHeader(List<Modifier> mods, Id name,
-                       List<StaticParam> staticParams,
+    public TraitHeader(Id name, List<StaticParam> staticParams,
                        List<TypeRef> extendsClause) {
-        this.mods = mods;
         this.name = name;
         this.staticParams = staticParams;
         this.extendsClause = extendsClause;
-    }
-
-    public List<Modifier> getMods() {
-        return mods;
     }
 
     public Id getName() {
@@ -61,8 +53,7 @@ public class TraitHeader {
     }
 
     public int hashCode() {
-        return MagicNumbers.hashList(mods, MagicNumbers.m)
-            + name.hashCode() * MagicNumbers.n
+        return name.hashCode() * MagicNumbers.n
             + MagicNumbers.hashList(staticParams, MagicNumbers.e)
             + MagicNumbers.hashList(extendsClause, MagicNumbers.l);
     }
@@ -70,8 +61,7 @@ public class TraitHeader {
     public boolean equals(Object o) {
         if (o.getClass().equals(this.getClass())) {
             TraitHeader th = (TraitHeader) o;
-            return mods.equals(th.getMods())
-                && name.equals(th.getName())
+            return name.equals(th.getName())
                 && staticParams.equals(th.getStaticParams())
                 && extendsClause.equals(th.getExtendsClause());
         }

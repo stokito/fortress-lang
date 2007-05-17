@@ -30,7 +30,7 @@ import Spacing;
    | NoNewlineOpExpr
    | DelimitedExpr
    | NoNewlineFlowExpr
-   | fn w ValParam [w IsType] [w Throws] w => w NoNewlineExpr
+   | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
    | NoNewlineExpr s as w TypeRef
    | NoNewlineExpr s asif w TypeRef
    | NoNewlineUnitExpr
@@ -42,8 +42,8 @@ import Spacing;
    | NoNewlineExpr s per w UnitRef
    | NoNewlineExpr s in w UnitRef
    NoNewlineFlowExpr ::=
-     exit [w Id] [w with w NoNewlineExpr]
-   | Accumulator [w [ w GeneratorList w ] w] w NoNewlineExpr
+     exit (w Id)? (w with w NoNewlineExpr)?
+   | Accumulator (w [ w GeneratorList w ] w)? w NoNewlineExpr
    | atomic w NoNewlineAtomicBack
    | tryatomic w NoNewlineAtomicBack
    | spawn w NoNewlineExpr
@@ -193,8 +193,5 @@ PureList<OpExpr> LooseInfix := ...
    | NoNewlineExpr
  */
 List<Generator> GeneratorList := a1:Generator a2s:(s comma w Generator)*
-     { yyValue = new ArrayList<Generator>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 List<Generator> NoNewlineGeneratorList = GeneratorList ;

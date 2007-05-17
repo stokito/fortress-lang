@@ -36,19 +36,19 @@ TypeRef IsType = colon w TypeRef ;
      ArrowType
    | NonArrowType
 
-   ArrowType ::= NonArrowType w -> w NonArrowType [w Throws]
+   ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)?
 
    NonArrowType ::=
      TraitType
    | TupleType
-   | ( [w TypeRef] w )
+   | ( (w TypeRef)? w )
    | DimType
 
    TraitType ::=
-     DottedId [w [\ w StaticArgList w \]]
+     DottedId (w [\ w StaticArgList w \])?
    | { w TypeRef w |-> w TypeRef w }
    | <| w TypeRef w |>
-   | TypeRef w [ [w ArraySize] w ]
+   | TypeRef w [ (w ArraySize)? w ]
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
 
@@ -68,13 +68,11 @@ constant transient TypeRef TypeRef =
      ArrowType
    / NonArrowType;
 
-/* ArrowType ::= NonArrowType w -> w NonArrowType [w Throws] */
+/* ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)? */
 ArrowType ArrowType =
      a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { List<TypeRef> _throws;
-       if (a3 == null) _throws = FortressUtil.emptyTypeRefs();
-       else            _throws = a3;
-       yyValue = new ArrowType(createSpan(yyStart,yyCount), a1, a2, _throws);
+     { if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
+       yyValue = new ArrowType(createSpan(yyStart,yyCount), a1, a2, a3);
      };
 
 private TypeRef NonArrowType =
@@ -87,10 +85,10 @@ private TypeRef NonArrowType =
      { yyValue = (TypeRef)apply(list, seed); };
 
 /* TraitType ::=
-     DottedId [w [\ w StaticArgList w \]]
+     DottedId (w [\ w StaticArgList w \])?
    | { w TypeRef w |-> w TypeRef w }
    | <| w TypeRef w |>
-   | TypeRef w [ [w ArraySize] w ]
+   | TypeRef w [ (w ArraySize)? w ]
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
@@ -101,10 +99,8 @@ TypeRef TraitType =
 private TypeRef TraitTypeFront =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else {
-           TypeRef generic = new IdType(a1.getSpan(), a1);
-           yyValue = new ParamType(createSpan(yyStart,yyCount), generic, a2);
-       }
+       else yyValue = new ParamType(createSpan(yyStart,yyCount),
+                                    new IdType(a1.getSpan(), a1), a2);
      }
    / opencurly w a1:TypeRef w mapsto w a2:TypeRef w closecurly
      { yyValue = new MapType(createSpan(yyStart,yyCount), a1, a2); }
@@ -164,7 +160,7 @@ private constant inline Action<TypeRef> MatrixTypeTail =
      };
 
 /* TupleType ::=
-     ( w (TypeRef w , w)* [TypeRef w ... w , w] KeywordType (w , w KeywordType)* w )
+     ( w (TypeRef w , w)* (TypeRef w ... w , w)? KeywordType (w , w KeywordType)* w )
    | ( w (TypeRef w , w)* TypeRef w ... w )
    | SimpleTupleType
  */
@@ -178,8 +174,7 @@ TypeRef TupleType =
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2);
      }
    / openparen w a1s:(TypeRef w comma w)* a2:TypeRef w ellipses w closeparen
-     { List<TypeRef> ts = new ArrayList<TypeRef>();
-       ts.addAll(a1s.list());
+     { List<TypeRef> ts = FortressUtil.mkList(a1s.list());
        ts.add(new RestType(createSpan(yyStart,yyCount), a2));
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts);
      }
@@ -192,18 +187,13 @@ private KeywordType KeywordType = a1:Id w equals w a2:TypeRef
 /* SimpleTupleType ::= ( w TypeRef w , w TypeRefList w ) */
 TupleType SimpleTupleType =
      openparen w a1:TypeRef w comma w a2:TypeRefList w closeparen
-     { List<TypeRef> ts = new ArrayList<TypeRef>();
-       ts.add(a1);
-       ts.addAll(a2);
+     { List<TypeRef> ts = FortressUtil.mkList(a1, a2);
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts);
      };
 
 /* TypeRefList ::= TypeRef (w , w TypeRef)* */
 List<TypeRef> TypeRefList = a1:TypeRef a2s:(w comma w TypeRef)*
-     { yyValue = new ArrayList<TypeRef>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* DimType ::=
      DimRef
@@ -235,10 +225,7 @@ StaticArg DimRef = StaticArg ;
 
 /* StaticArgList ::= StaticArg (w , w StaticArg)*  */
 List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
-     { yyValue = new ArrayList<StaticArg>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* StaticArg ::=
      Number
@@ -310,9 +297,7 @@ private constant inline Action<StaticArg> SumStaticArg =
      w plus w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               List<StaticArg> vs = new ArrayList<StaticArg>();
-               vs.add((StaticArg)base);
-               vs.add(a1);
+               List<StaticArg> vs = FortressUtil.mkList((StaticArg)base, a1);
                return new SumNatType(createSpan(yyStart,yyCount), vs);
            }};
      };
@@ -321,9 +306,7 @@ private constant inline Action<StaticArg> ProductStaticArg =
      (w DOT w / sr) a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               List<StaticArg> vs = new ArrayList<StaticArg>();
-               vs.add((StaticArg)base);
-               vs.add(a1);
+               List<StaticArg> vs = FortressUtil.mkList((StaticArg)base, a1);
                return new ProductNatType(createSpan(yyStart,yyCount), vs);
            }};
      };
@@ -365,15 +348,13 @@ Tree DUPostOp =
 
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
 private FixedDim ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
-     { List<ExtentRange> es = new ArrayList<ExtentRange>();
-       es.add(a1);
-       es.addAll(a2s.list());
+     { List<ExtentRange> es = FortressUtil.mkList(a1, a2s.list());
        yyValue = new FixedDim(createSpan(yyStart,yyCount), es);
      };
 
 /* ExtentRange ::=
-     [StaticArg w] # [w StaticArg]
-   | [StaticArg w] : [w StaticArg]
+     (StaticArg w)? # (w StaticArg)?
+   | (StaticArg w)? : (w StaticArg)?
    | StaticArg
  */
 ExtentRange ExtentRange =

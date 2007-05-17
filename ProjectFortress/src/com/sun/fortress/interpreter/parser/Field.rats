@@ -27,39 +27,15 @@ import Identifier;
 import Spacing;
 
 /* FldDecl ::=
-     FldWTypes w InitVal
-   | FldWoTypes w = w NoNewlineExpr
-   | FldWoTypes w : w TypeRef w ... w InitVal
-   | FldWoTypes w : w SimpleTupleType w InitVal
+     FldMods? FldWTypes w InitVal
+   | FldMods? IdOrIdTuple w = w NoNewlineExpr
+   | FldMods? IdOrIdTuple w : w TypeRef w ... w InitVal
+   | FldMods? IdOrIdTuple w : w SimpleTupleType w InitVal
    FldWTypes ::=
      FldWType
    | ( w FldWType (w , w FldWType)+ w )
-   FldWType ::= [FldMods] Id w IsType
-   FldWoTypes ::=
-     FldWoType
-   | ( w FldWoType (w , w FldWoType)+ w )
-   FldWoType ::= [FldMods] Id
+   FldWType ::= Id w IsType
  */
 DefOrDecl FldDecl = VarDecl ;
 
-LValue VarWType := a1:FldMods? a2:Id w a3:IsType
-     { if (a1 == null)
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    Some.<TypeRef>make(a3),
-                                    FortressUtil.emptyModifiers(), false);
-       else
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    Some.<TypeRef>make(a3), a1,
-                                    FortressUtil.getMutable(a1));
-     };
-
-LValue VarWoType := a1:FldMods? a2:Id
-     { if (a1 == null)
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    None.<TypeRef>make(),
-                                    FortressUtil.emptyModifiers(), false);
-       else
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    None.<TypeRef>make(), a1,
-                                    FortressUtil.getMutable(a1));
-     };
+List<Modifier> VarMods := FldMods ;

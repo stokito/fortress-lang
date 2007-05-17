@@ -34,30 +34,23 @@ import Spacing;
 
 /* BlockElems ::=
      BlockElem br BlockElems
-   | BlockElem [w ;]
+   | BlockElem (w ;)?
  */
 List<Expr> BlockElems =
      a1:BlockElem br a2:BlockElems
-     { yyValue = new ArrayList<Expr>();
-       yyValue.add(a1);
-       yyValue.addAll(a2);
-     }
+     { yyValue = FortressUtil.mkList(a1, a2); }
    / a1:BlockElem
      &(w Elifs / w Else / br CaseClause / br TypecaseTypeRefs / br CaseElse
      / w end / w Catch / w forbid / w finally)
-     { yyValue = new ArrayList<Expr>();
-       yyValue.add(a1);
-     }
+     { yyValue = FortressUtil.mkList(a1); }
    / a1:BlockElem w semicolon
      &(w Elifs / w Else / w CaseClause / w TypecaseTypeRefs / w CaseElse
      / w end / w Catch / w forbid / w finally)
-     { yyValue = new ArrayList<Expr>();
-       yyValue.add(a1);
-     };
+     { yyValue = FortressUtil.mkList(a1); };
 
 /* BlockElem ::=
      LocalVarFnDecl
-   | NoNewlineExpr [s , w NoNewlineGeneratorList]
+   | NoNewlineExpr (s , w NoNewlineGeneratorList)?
  */
 private Expr BlockElem =
      LocalVarFnDecl
@@ -70,133 +63,115 @@ private Expr BlockElem =
 /* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
 private LetExpr LocalVarFnDecl =
      a1:LocalFnDecl a2s:(br LocalFnDecl)*
-     { List<FnDecl> fns = new ArrayList<FnDecl>();
-       fns.add(a1);
-       fns.addAll(a2s.list());
+     { List<FnDecl> fns = FortressUtil.mkList(a1, a2s.list());
        yyValue = new LetFn(createSpan(yyStart,yyCount), fns,
                            FortressUtil.emptyExprs());
      }
    / LocalVarDecl ;
 
 /* LocalFnDecl ::=
-     [LocalFnMods] FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+     LocalFnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
 private FnDecl LocalFnDecl =
      a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w
      a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
-       List<WhereClause> where_ = FortressUtil.getListVal(a3.getWhereClause());
-       Contract contract;
-       if (a3.getContractClause().isPresent())
-           contract = (Contract)a3.getContractClause().getVal();
-       else
-           contract = FortressUtil.emptyContract();
-       yyValue =
-         new FnDecl(createSpan(yyStart,yyCount),a1,None.<Id>make(),a2.getName(),
-                    Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-                    a2.getParams(), a3.getReturnType(), throws_, where_,
-                    contract, a4);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
      };
 
 /* LocalVarDecl ::=
-     LocalVarWTypes s InitVal
-   | LocalVarWTypes
-   | LocalVarWoTypes s = s NoNewlineExpr
-   | LocalVarWoTypes s : s TypeRef s ... [s InitVal]
-   | LocalVarWoTypes s : s SimpleTupleType [s InitVal]
+     (var w)? LocalVarWTypes s InitVal
+   | (var w)? LocalVarWTypes
+   | (var w)? LocalVarWoTypes s = s NoNewlineExpr
+   | (var w)? LocalVarWoTypes s : s TypeRef s ... (s InitVal)?
+   | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
    LocalVarWTypes ::=
      LocalVarWType
    | ( w LocalVarWType (w , w LocalVarWType)+ w )
-   LocalVarWType ::= [var w] Id s : s TypeRef
+   LocalVarWType ::= Id s : s TypeRef
    LocalVarWoTypes ::=
      LocalVarWoType
    | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
    LocalVarWoType ::=
-     [var w] Id
+     Id
    | Unpasting
  */
 DefOrDecl VarDecl :=
-     a1:VarWTypes s a2:InitVal
-     { if (a2.getB()) FortressUtil.setMutable(a1);
-       yyValue = new LocalVarDecl(createSpan(yyStart,yyCount), a1,
-                                  Some.<Expr>make(a2.getA()),
-                                  FortressUtil.emptyExprs());
+     a1:(var w)? a2:VarWTypes s a3:InitVal
+     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       else if (a3.getB()) FortressUtil.setMutable(a2);
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
+                                             a3.getA());
      }
-   / a1:VarWTypes
-     { yyValue = new LocalVarDecl(createSpan(yyStart,yyCount), a1,
-                                  None.<Expr>make(),FortressUtil.emptyExprs());
+   / a1:(var w)? a2:VarWTypes
+     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2);
      }
-   / a1:VarWoTypes s equals s a2:NoNewlineExpr
-     { yyValue = new LocalVarDecl(createSpan(yyStart,yyCount), a1,
-                                  Some.<Expr>make(a2),
-                                  FortressUtil.emptyExprs());
+   / a1:(var w)? a2:VarWoTypes s equals s a3:NoNewlineExpr
+     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
      }
-   / a1:VarWoTypes s colon s a2:TypeRef s ellipses a3:(s InitVal)?
-     { for (LValue v : a1) {
-           if (v instanceof LValueBind)
-               ((LValueBind)v).setType(a2);
-           else
-               throw new ProgramError(v, "LValueBind is expected.");
+   / a1:(var w)? a2:VarWoTypes s colon s a3:TypeRef s ellipses a4:(s InitVal)?
+     { Option<Expr> init;
+       if (a1 != null) {
+           FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
+           if (a4 == null) init = None.<Expr>make();
+           else            init = Some.<Expr>make(a4.getA());
+       } else {
+           if (a4 == null) {
+               init = None.<Expr>make();
+               FortressUtil.setType(a2, a3);
+           } else {
+               init = Some.<Expr>make(a4.getA());
+               if (a4.getB()) FortressUtil.setMutableAndType(a2, a3);
+               else FortressUtil.setType(a2, a3);
+           }
        }
-       Option<Expr> init;
-       if (a3 == null) init = None.<Expr>make();
-       else          { init = Some.<Expr>make(a3.getA());
-                       if (a3.getB()) FortressUtil.setMutable(a1);
-                     }
-       yyValue = new LocalVarDecl(createSpan(yyStart,yyCount), a1, init,
-                                  FortressUtil.emptyExprs());
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
+                                             init);
      }
-   / a1:VarWoTypes s colon s a2:SimpleTupleType a3:(s InitVal)?
+   / a1:(var w)? a2:VarWoTypes s colon s a3:SimpleTupleType a4:(s InitVal)?
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a2.getElements();
-       if (a1.size() != tys.size())
+       List<TypeRef> tys = a3.getElements();
+       Option<Expr> init;
+       if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
-       int ind = 0;
-       for (LValue v : a1) {
-           if (v instanceof LValueBind) {
-               ((LValueBind)v).setType(tys.get(ind));
-               ind += 1;
-           } else
-               throw new ProgramError(v, "LValueBind is expected.");
+       if (a1 != null) {
+           FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
+           if (a4 == null) init = None.<Expr>make();
+           else            init = Some.<Expr>make(a4.getA());
+       } else {
+           if (a4 == null) {
+               init = None.<Expr>make();
+               FortressUtil.setType(a2, tys);
+           } else {
+               init = Some.<Expr>make(a4.getA());
+               if (a4.getB()) FortressUtil.setMutableAndType(a2, tys);
+               else FortressUtil.setType(a2, tys);
+           }
        }
-       Option<Expr> init;
-       if (a3 == null) init = None.<Expr>make();
-       else          { init = Some.<Expr>make(a3.getA());
-                       if (a3.getB()) FortressUtil.setMutable(a1);
-                     }
-       yyValue = new LocalVarDecl(span, a1, init, FortressUtil.emptyExprs());
+       yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      };
 LocalVarDecl LocalVarDecl = a1:VarDecl
      { yyValue = (LocalVarDecl)a1; };
 
-LValue VarWType := a1:(var w)? a2:Id s colon s a3:TypeRef
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       boolean mutability;
-       if (a1 != null) {
-           mods.add(new Modifier.Var(createSpan(yyStart,3)));
-           mutability = true;
-       } else {
-           mutability = false;
-       }
-       yyValue = new LValueBind(createSpan(yyStart,yyCount),
-                                a2, Some.<TypeRef>make(a3), mods, mutability);
-     };
+LValue VarWType := a1:Id s colon s a2:TypeRef
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
-LValue VarWoType :=
-     a1:(var w)? a2:Id
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       boolean mutability;
-       if (a1 != null) {
-           mods.add(new Modifier.Var(createSpan(yyStart,3)));
-           mutability = true;
-       } else {
-           mutability = false;
-       }
-       yyValue = new LValueBind(createSpan(yyStart,yyCount),
-                                a2, None.<TypeRef>make(), mods, mutability);
-     }
+/* VarWoTypes ::=
+     VarWoType
+   | ( w VarWoType (w , w VarWoType)+ w )
+ */
+List<LValue> VarWoTypes =
+     a1:VarWoType
+     { yyValue = FortressUtil.mkList(a1); }
+   / openparen w a1:VarWoType a2s:(w comma w VarWoType)+ w closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+LValue VarWoType =
+     a1:Id
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount), a1); }
    / Unpasting ;
 
 /* Unpasting ::= [ w UnpastingElems w ] */
@@ -208,12 +183,11 @@ private Unpasting Unpasting = opensquare w UnpastingElems w closesquare ;
  */
 private Unpasting UnpastingElems =
      a1:UnpastingElem a2:RectSeparator a3:UnpastingElems
-     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount), a1, a2,
-                                            a3); }
+     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount),a1,a2,a3); }
    / UnpastingElem ;
 
 /* UnpastingElem ::=
-     Id [w [ w UnpastingDim w ]]
+     Id (w [ w UnpastingDim w ])?
    | Unpasting
  */
 private Unpasting UnpastingElem =
@@ -230,10 +204,7 @@ private Unpasting UnpastingElem =
 /* UnpastingDim ::= ExtentRange (w BY w ExtentRange)+  */
 private List<ExtentRange> UnpastingDim =
      a1:ExtentRange a2s:(w cross w ExtentRange)+
-     { yyValue = new ArrayList<ExtentRange>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */
 CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems

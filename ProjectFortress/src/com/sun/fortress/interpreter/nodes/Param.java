@@ -70,6 +70,10 @@ public class Param extends Node implements
         this(s, mods, name, new None<TypeRef>(), new None<Expr>());
     }
 
+    public Param(Id name, TypeRef type) {
+        this(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
+    }
+
     public Param(Id name) {
         this(name.getSpan(), Collections.<Modifier>emptyList(), name);
     }
@@ -123,11 +127,19 @@ public class Param extends Node implements
         return defaultExpr;
     }
 
+    public void setDefaultExpr(Expr e) {
+        defaultExpr = Some.<Expr>make(e);
+    }
+
     /**
      * @return Returns the mods.
      */
     public List<Modifier> getMods() {
         return mods;
+    }
+
+    public void setMods(List<Modifier> m) {
+        mods = m;
     }
 
     /**

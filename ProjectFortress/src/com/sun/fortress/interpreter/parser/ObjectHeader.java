@@ -23,7 +23,6 @@ package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.Modifier;
 import com.sun.fortress.interpreter.nodes.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -32,27 +31,20 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class ObjectHeader {
 
-    private List<Modifier> mods;
     private Id name;
     private List<StaticParam> staticParams;
     private Option<List<Param>> params;
     private List<TypeRef> extendsClause;
     private FnHeaderClause fnHeaderClause;
 
-    public ObjectHeader(List<Modifier> mods, Id name,
-                        List<StaticParam> staticParams,
+    public ObjectHeader(Id name, List<StaticParam> staticParams,
                         Option<List<Param>> params, List<TypeRef> extendsClause,
                         FnHeaderClause fnHeaderClause) {
-        this.mods = mods;
         this.name = name;
         this.staticParams = staticParams;
         this.params = params;
         this.extendsClause = extendsClause;
         this.fnHeaderClause = fnHeaderClause;
-    }
-
-    public List<Modifier> getMods() {
-        return mods;
     }
 
     public Id getName() {
@@ -76,8 +68,7 @@ public class ObjectHeader {
     }
 
     public int hashCode() {
-        return MagicNumbers.hashList(mods, MagicNumbers.m)
-            + name.hashCode() * MagicNumbers.n
+        return name.hashCode() * MagicNumbers.n
             + MagicNumbers.hashList(staticParams, MagicNumbers.e)
             + params.hashCode() * MagicNumbers.a
             + MagicNumbers.hashList(extendsClause, MagicNumbers.l)
@@ -87,8 +78,7 @@ public class ObjectHeader {
     public boolean equals(Object o) {
         if (o.getClass().equals(this.getClass())) {
             ObjectHeader oh = (ObjectHeader) o;
-            return mods.equals(oh.getMods())
-                && name.equals(oh.getName())
+            return name.equals(oh.getName())
                 && staticParams.equals(oh.getStaticParams())
                 && params.equals(oh.getParams())
                 && extendsClause.equals(oh.getExtendsClause())

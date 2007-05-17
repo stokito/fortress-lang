@@ -23,9 +23,9 @@ module MethodParam(Param, Keyword);
 modify Param;
 import Keyword;
 
-/* MdValParam ::= ( [w MdParams] w )
+/* MdValParam ::= ( (w MdParams)? w )
    MdParams ::=
-     (MdParam w , w)* [Varargs w , w] MdKeyword (w , w MdKeyword)*
+     (MdParam w , w)* (Varargs w , w)? MdKeyword (w , w MdKeyword)*
    | (MdParam w , w)*  Varargs
    |  MdParam (w , w MdParam)*
    MdKeyword ::= MdParam w = w Expr
@@ -39,7 +39,4 @@ List<Param> ValParam := openparen a1:(w Params)? w closeparen
 Param Param :=
      PlainParam
    / a1:self
-     { yyValue = new Param(createSpan(yyStart,yyCount),
-                           FortressUtil.emptyModifiers(),
-                           new Id(createSpan(yyStart,yyCount),"self"));
-     };
+     { yyValue = new Param(new Id(createSpan(yyStart,yyCount),"self")); };

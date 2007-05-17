@@ -34,7 +34,7 @@ private String Comment    =
      a4:"*)"
      { yyValue = a1;
        for (Object s : a2s.list()) {
-         yyValue = yyValue + s;
+         yyValue += s;
        }
        yyValue = yyValue + a3 + a4;
      } ;

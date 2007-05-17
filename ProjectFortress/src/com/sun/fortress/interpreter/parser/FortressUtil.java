@@ -26,30 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.Block;
-import com.sun.fortress.interpreter.nodes.Contract;
-import com.sun.fortress.interpreter.nodes.Decl;
-import com.sun.fortress.interpreter.nodes.EnsuresClause;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
-import com.sun.fortress.interpreter.nodes.LValue;
-import com.sun.fortress.interpreter.nodes.LValueBind;
-import com.sun.fortress.interpreter.nodes.LetExpr;
-import com.sun.fortress.interpreter.nodes.Modifier;
-import com.sun.fortress.interpreter.nodes.MultiDim;
-import com.sun.fortress.interpreter.nodes.MultiDimElement;
-import com.sun.fortress.interpreter.nodes.MultiDimRow;
-import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.Span;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TightJuxt;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes.Unpasting;
-import com.sun.fortress.interpreter.nodes.UnpastingBind;
-import com.sun.fortress.interpreter.nodes.UnpastingSplit;
-import com.sun.fortress.interpreter.nodes.WhereClause;
+import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Cons;
 import com.sun.fortress.interpreter.useful.Pair;
 import com.sun.fortress.interpreter.useful.PureList;
@@ -103,6 +80,39 @@ public final class FortressUtil {
     public static <T> List<T> getListVal(Option<List<T>> o) {
         if (o.isPresent()) return (List<T>)o.getVal();
         else               return Collections.<T>emptyList();
+    }
+
+    public static <T> List<T> mkList(T first) {
+        List<T> l = new ArrayList<T>();
+        l.add(first);
+        return l;
+    }
+
+    public static <T> List<T> mkList(List<T> all) {
+        List<T> l = new ArrayList<T>();
+        l.addAll(all);
+        return l;
+    }
+
+    public static <T> List<T> mkList(T first, T second) {
+        List<T> l = new ArrayList<T>();
+        l.add(first);
+        l.add(second);
+        return l;
+    }
+
+    public static <T> List<T> mkList(T first, List<T> rest) {
+        List<T> l = new ArrayList<T>();
+        l.add(first);
+        l.addAll(rest);
+        return l;
+    }
+
+    public static <T> List<T> mkList(List<T> rest, T last) {
+        List<T> l = new ArrayList<T>();
+        l.addAll(rest);
+        l.add(last);
+        return l;
     }
 
     private static void multiple(Modifier m) {
@@ -188,12 +198,263 @@ public final class FortressUtil {
 
     public static void setMutable(List<LValue> vars) {
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-                ((LValueBind)l).setMutable();
-            } else {
-                throw new ProgramError(l, "Unpasting cannot be mutable.");
-            }
+            if (l instanceof LValueBind) ((LValueBind)l).setMutable();
+            else throw new ProgramError(l, "Unpasting cannot be mutable.");
         }
+    }
+
+    public static void setMutable(List<LValue> vars, Span span) {
+        for (LValue l : vars) {
+           if (l instanceof LValueBind) {
+               List<Modifier> mods = new ArrayList<Modifier>();
+               mods.add(new Modifier.Var(span));
+               ((LValueBind)l).setMods(mods);
+           } else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static void setType(List<LValue> vars, TypeRef ty) {
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) ((LValueBind)l).setType(ty);
+            else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static void setType(List<LValue> vars, List<TypeRef> tys) {
+        int ind = 0;
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) {
+                ((LValueBind)l).setType(tys.get(ind));
+                ind += 1;
+            } else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static void setMutableAndType(List<LValue> vars, TypeRef ty) {
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) {
+                LValueBind lv = (LValueBind)l;
+                lv.setMutable();
+                lv.setType(ty);
+            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+        }
+    }
+
+    public static void setMutableAndType(List<LValue> vars, Span span,
+                                         TypeRef ty) {
+        for (LValue l : vars) {
+           if (l instanceof LValueBind) {
+               List<Modifier> mods = new ArrayList<Modifier>();
+               mods.add(new Modifier.Var(span));
+               LValueBind lv = (LValueBind)l;
+               lv.setMods(mods);
+               lv.setType(ty);
+           } else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static void setMutableAndType(List<LValue> vars, List<TypeRef> tys) {
+        int ind = 0;
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) {
+                LValueBind lv = (LValueBind)l;
+                lv.setMutable();
+                lv.setType(tys.get(ind));
+                ind += 1;
+            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+        }
+    }
+
+    public static void setMutableAndType(List<LValue> vars, Span span,
+                                         List<TypeRef> tys) {
+        int ind = 0;
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) {
+               List<Modifier> mods = new ArrayList<Modifier>();
+               mods.add(new Modifier.Var(span));
+               LValueBind lv = (LValueBind)l;
+               lv.setMods(mods);
+               lv.setType(tys.get(ind));
+               ind += 1;
+            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+        }
+    }
+
+    public static void setMods(List<LValue> vars, List<Modifier> mods) {
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) ((LValueBind)l).setMods(mods);
+            else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static void setModsAndMutable(List<LValue> vars, List<Modifier> mods) {
+        for (LValue l : vars) {
+            if (l instanceof LValueBind) {
+                LValueBind lv = (LValueBind)l;
+                lv.setMods(mods);
+                lv.setMutable();
+           }
+            else throw new ProgramError(l, "LValueBind is expected.");
+        }
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
+                                       Option<TypeRef> ty, boolean mutable) {
+        List<LValue> lvs = new ArrayList<LValue>();
+        for (Id id : ids) {
+            lvs.add(new LValueBind(id.getSpan(), id, ty, mods, mutable));
+        }
+        return lvs;
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
+                                       TypeRef ty, boolean mutable) {
+        return ids2Lvs(ids, mods, Some.<TypeRef>make(ty), mutable);
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, TypeRef ty,
+                                       boolean mutable) {
+        return ids2Lvs(ids, FortressUtil.emptyModifiers(), Some.<TypeRef>make(ty),
+                mutable);
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods) {
+        return ids2Lvs(ids, mods, None.<TypeRef>make(), false);
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids) {
+        return ids2Lvs(ids, FortressUtil.emptyModifiers(), None.<TypeRef>make(), false);
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
+                                       List<TypeRef> tys, boolean mutable) {
+        List<LValue> lvs = new ArrayList<LValue>();
+        int ind = 0;
+        for (Id id : ids) {
+            lvs.add(new LValueBind(id.getSpan(), id,
+                                   Some.<TypeRef>make(tys.get(ind)),
+                                   mods, mutable));
+            ind += 1;
+        }
+        return lvs;
+    }
+
+    public static List<LValue> ids2Lvs(List<Id> ids, List<TypeRef> tys,
+                                       boolean mutable) {
+        return ids2Lvs(ids, FortressUtil.emptyModifiers(), tys, mutable);
+    }
+
+    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
+                                        Option<Id> receiver,
+                                        FnHeaderFront fhf, FnHeaderClause fhc) {
+        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        Contract contract;
+        if (fhc.getContractClause().isPresent())
+             contract = (Contract)fhc.getContractClause().getVal();
+        else contract = FortressUtil.emptyContract();
+        return new AbsFnDecl(span, mods, receiver, fhf.getName(),
+                             Some.<StaticParam>makeSomeListOrNone(fhf.getStaticParams()),
+                             fhf.getParams(), fhc.getReturnType(), throws_,
+                             where_, contract);
+    }
+
+    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
+                                        FnHeaderFront fhf, FnHeaderClause fhc) {
+        return mkAbsFnDecl(span, mods, None.<Id>make(), fhf, fhc);
+    }
+
+    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
+                                        FnName name, List<StaticParam> sparams,
+                                        List<Param> params,
+                                        FnHeaderClause fhc) {
+        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        Contract contract;
+        if (fhc.getContractClause().isPresent())
+             contract = (Contract)fhc.getContractClause().getVal();
+        else contract = FortressUtil.emptyContract();
+        return new AbsFnDecl(span, mods, None.<Id>make(), name,
+                             Some.<StaticParam>makeSomeListOrNone(sparams),
+                             params, None.<TypeRef>make(), throws_,
+                             where_, contract);
+    }
+
+    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
+                                        FnName name, List<Param> params,
+                                        TypeRef ty) {
+        return new AbsFnDecl(span, mods, None.<Id>make(), name,
+                             Some.<StaticParam>makeSomeListOrNone(
+                                               FortressUtil.emptyStaticParams()),
+                             params, Some.<TypeRef>make(ty),
+                             FortressUtil.emptyTypeRefs(),
+                             FortressUtil.emptyWhereClauses(),
+                             FortressUtil.emptyContract());
+    }
+
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+                                  Option<Id> receiver, FnHeaderFront fhf,
+                                  FnHeaderClause fhc, Expr expr) {
+        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        Contract contract;
+        if (fhc.getContractClause().isPresent())
+             contract = (Contract)fhc.getContractClause().getVal();
+        else contract = FortressUtil.emptyContract();
+        return new FnDecl(span, mods, receiver, fhf.getName(),
+                          Some.<StaticParam>makeSomeListOrNone(fhf.getStaticParams()),
+                          fhf.getParams(), fhc.getReturnType(), throws_, where_,
+                          contract, expr);
+    }
+
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods, FnName name,
+                                  List<StaticParam> sparams, List<Param> params,
+                                  FnHeaderClause fhc, Expr expr) {
+        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        Contract contract;
+        if (fhc.getContractClause().isPresent())
+             contract = (Contract)fhc.getContractClause().getVal();
+        else contract = FortressUtil.emptyContract();
+        return new FnDecl(span, mods, None.<Id>make(), name,
+                          Some.<StaticParam>makeSomeListOrNone(sparams),
+                          params, None.<TypeRef>make(), throws_, where_,
+                          contract, expr);
+    }
+
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+                                  FnHeaderFront fhf, FnHeaderClause fhc,
+                                  Expr expr) {
+        return mkFnDecl(span, mods, None.<Id>make(), fhf, fhc, expr);
+    }
+
+    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
+                                              Option<Expr> expr) {
+        return new LocalVarDecl(span, lvs, expr, emptyExprs());
+    }
+    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
+                                              Expr expr) {
+        return new LocalVarDecl(span, lvs, Some.<Expr>make(expr), emptyExprs());
+    }
+    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
+        return new LocalVarDecl(span, lvs, None.<Expr>make(), emptyExprs());
+    }
+
+    public static LValueBind mkLValueBind(Span span, Id id, TypeRef ty) {
+        return new LValueBind(span, id, Some.<TypeRef>make(ty), emptyModifiers(),
+                              false);
+    }
+    public static LValueBind mkLValueBind(Span span, Id id) {
+        return new LValueBind(span, id, None.<TypeRef>make(), emptyModifiers(),
+                              false);
+    }
+    public static LValueBind mkLValueBind(Id id, TypeRef ty,
+                                          List<Modifier> mods) {
+        return new LValueBind(id.getSpan(), id, Some.<TypeRef>make(ty), mods,
+                              getMutable(mods));
+    }
+    public static LValueBind mkLValueBind(Id id, TypeRef ty) {
+        return mkLValueBind(id, ty, emptyModifiers());
     }
 
 // let rec multi_dim_cons (expr : expr)

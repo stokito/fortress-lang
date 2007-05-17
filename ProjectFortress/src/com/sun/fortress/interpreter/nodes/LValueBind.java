@@ -114,6 +114,14 @@ public class LValueBind extends LValue implements LHS {
         return mods;
     }
 
+    public void setMods(List<Modifier> mds) {
+        mods = mds;
+        for (Modifier m : mods) {
+            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+                mutable = true;
+        }
+    }
+
     public boolean getMutable() {
         return mutable;
     }

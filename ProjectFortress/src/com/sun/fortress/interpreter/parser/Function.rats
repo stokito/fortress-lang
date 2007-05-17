@@ -30,74 +30,49 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* FnDecl ::= FnDef | AbsFnDecl */
-Decl FnDecl =
-     FnDef
-   / AbsFnDecl ;
-
-/* FnDef ::= [FnMods] FnHeaderFront FnHeaderClause w = w NoNewlineExpr */
-FnDecl FnDef =
-     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
-       List<WhereClause> where_ = FortressUtil.getListVal(a3.getWhereClause());
-       Contract contract;
-       if (a3.getContractClause().isPresent())
-           contract = (Contract)a3.getContractClause().getVal();
-       else
-           contract = FortressUtil.emptyContract();
-       yyValue =
-         new FnDecl(createSpan(yyStart,yyCount),a1,None.<Id>make(),a2.getName(),
-                    Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-                    a2.getParams(), a3.getReturnType(), throws_, where_,
-                    contract, a4);
-     };
-
-/* AbsFnDecl ::=
-     [FnMods] FnHeaderFront FnHeaderClause
-   | Name w : w ArrowType
+/* FnDecl ::=
+   FnMods? FnHeaderFront FnHeaderClause (w = w NoNewlineExpr)?
+ | FnSig
  */
-AbsFnDecl AbsFnDecl =
-     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause
+Decl FnDecl =
+     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause a4:(w void:equals w NoNewlineExpr)?
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       List<TypeRef>    throws_ = FortressUtil.getListVal(a3.getThrowsClause());
-       List<WhereClause> where_ = FortressUtil.getListVal(a3.getWhereClause());
-       Contract contract;
-       if (a3.getContractClause().isPresent())
-           contract = (Contract)a3.getContractClause().getVal();
-       else
-           contract = FortressUtil.emptyContract();
-       yyValue =
-       new AbsFnDecl(createSpan(yyStart,yyCount), a1, None.<Id>make(),
-                     a2.getName(),
-                     Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-                     a2.getParams(), a3.getReturnType(), throws_, where_,
-                     contract);
+       Span span = createSpan(yyStart,yyCount);
+       if (a4 == null) yyValue = FortressUtil.mkAbsFnDecl(span, a1, a2, a3);
+       else            yyValue = FortressUtil.mkFnDecl(span, a1, a2, a3, a4);
      }
-   / a1:Name w colon w a2:ArrowType
+   / FnSig ;
+
+/* FnSig ::= Name w : w ArrowType */
+AbsFnDecl FnSig =
+     a1:Name w colon w a2:ArrowType
      { List<Modifier> mods = FortressUtil.emptyModifiers();
-       List<Param> params = FortressUtil.emptyParams();
+       List<Param>  params = FortressUtil.emptyParams();
        for (TypeRef i : a2.getDomain()) {
            params.add(new Param(i.getSpan(), mods, new Id(i.getSpan(), "_"), i));
        }
-       yyValue = new AbsFnDecl(createSpan(yyStart,yyCount), mods,
-                               None.<Id>make(), (FnName)a1,
-                               Some.<StaticParam>makeSomeListOrNone
-                                   (FortressUtil.emptyStaticParams()),
-                               params, Some.<TypeRef>make(a2.getRange()),
-                               FortressUtil.emptyTypeRefs(),
-                               FortressUtil.emptyWhereClauses(),
-                               FortressUtil.emptyContract());
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
+                                          (FnName)a1, params, a2.getRange());
      };
 
+/* AbsFnDecl ::=
+     AbsFnMods? FnHeaderFront FnHeaderClause
+   | FnSig
+ */
+AbsFnDecl AbsFnDecl =
+     a1:AbsFnMods? a2:FnHeaderFront a3:FnHeaderClause
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+     }
+   / FnSig ;
+
 /* FnHeaderFront ::=
-     Id [w StaticParams] w ValParam
+     Id (w StaticParams)? w ValParam
    | OpHeaderFront
  */
 FnHeaderFront FnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount), a1),
-                                   a2, a3);
+       yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount),a1),a2,a3);
      }
    / OpHeaderFront ;

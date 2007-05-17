@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
     Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -32,9 +32,9 @@ import Symbol;
 import Spacing;
 
 /* DimUnitDecl ::=
-     dim w Id [w = w DimRef] [w default w Id]
-   | (unit | SI_unit) w Id (wr Id)* [w : w DimRef] [w = w NoNewlineExpr]
-   | dim w Id [w = w DimRef] s (unit | SI_unit) w Id (wr Id)* [w = w NoNewlineExpr]
+     dim w Id (w = w DimRef)? (w default w Id)?
+   | (unit | SI_unit) w Id (wr Id)* (w : w DimRef)? (w = w NoNewlineExpr)?
+   | dim w Id (w = w DimRef)? s (unit | SI_unit) w Id (wr Id)* (w = w NoNewlineExpr)?
  */
 /* ************************************************
  * Not Yet Implemented ***************************
@@ -60,7 +60,7 @@ Dimension DimUnitDecl =
      };
 ************************************************ */
 
-/* TypeAlias ::= type w Id [w StaticParams] w = w TypeRef */
+/* TypeAlias ::= type w Id (w StaticParams)? w = w TypeRef */
 TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:TypeRef
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
@@ -69,13 +69,13 @@ TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:TypeRef
 /* TestDecl ::= test w Id w [ w GeneratorList w ] w = w NoNewlineExpr */
 TestDecl TestDecl =
      test w a1:Id w opensquare w a2:GeneratorList w closesquare w equals w
-       a3:NoNewlineExpr
+     a3:NoNewlineExpr
      { yyValue = new TestDecl(createSpan(yyStart,yyCount), a1, a2, a3); };
 
-/* PropertyDecl ::= property [w Id w =] [w FORALL w ValParam] w NoNewlineExpr */
+/* PropertyDecl ::= property (w Id w =)? (w FORALL w ValParam)? w NoNewlineExpr */
 PropertyDecl PropertyDecl =
      property a1:(w Id w void:equals)? a2:(w FORALL w ValParam)? w
-       a3:NoNewlineExpr
+     a3:NoNewlineExpr
      { Option<Id> id;
        if (a1 == null) id = None.<Id>make();
        else            id = Some.<Id>make(a1);
@@ -88,7 +88,7 @@ PropertyDecl PropertyDecl =
  */
 ExternalSyntax ExternalSyntax =
      syntax w a1:OpenExpander w a2:Id w a3:CloseExpander w equals w
-       a4:NoNewlineExpr
+     a4:NoNewlineExpr
      { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
 
 /* OpenExpander ::= Id | LeftEncloser */

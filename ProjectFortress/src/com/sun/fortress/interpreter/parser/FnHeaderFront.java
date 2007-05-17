@@ -62,6 +62,11 @@ public class FnHeaderFront {
         this(None.<Id>make(), name, staticParams, params1, None.<Param>make());
     }
 
+    public FnHeaderFront(FnName name, List<Param> params1) {
+        this(None.<Id>make(), name, FortressUtil.emptyStaticParams(), params1,
+             None.<Param>make());
+    }
+
     public Option<Id> getReceiver() {
         return receiver;
     }

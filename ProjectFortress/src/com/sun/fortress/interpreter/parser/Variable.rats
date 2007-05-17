@@ -30,42 +30,66 @@ import Symbol;
 import Spacing;
 
 /* VarDecl ::=
-     VarWTypes w InitVal
-   | VarWoTypes w = w NoNewlineExpr
-   | VarWoTypes w : w TypeRef w ... w InitVal
-   | VarWoTypes w : w SimpleTupleType w InitVal
+     VarMods? VarWTypes w InitVal
+   | VarMods? IdOrIdTuple w = w NoNewlineExpr
+   | VarMods? IdOrIdTuple w : w TypeRef w ... w InitVal
+   | VarMods? IdOrIdTuple w : w SimpleTupleType w InitVal
  */
 DefOrDecl VarDecl =
-     a1:VarWTypes w a2:InitVal
-     { if (a2.getB()) FortressUtil.setMutable(a1);
-       yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2.getA());
-     }
-   / a1:VarWoTypes w equals w a2:NoNewlineExpr
-     { yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:VarWoTypes w colon w a2:TypeRef w ellipses w a3:InitVal
-     { for (LValue v : a1) {
-           if (v instanceof LValueBind) ((LValueBind)v).setType(a2);
-           else throw new ProgramError(v, "LValueBind is expected.");
+     a1:VarMods? a2:VarWTypes w a3:InitVal
+     { if (a1 != null) {
+           if (a3.getB()) FortressUtil.setModsAndMutable(a2, a1);
+           else FortressUtil.setMods(a2, a1);
+       } else {
+           if (a3.getB()) FortressUtil.setMutable(a2);
        }
-       if (a3.getB()) FortressUtil.setMutable(a1);
-       yyValue = new VarDecl(createSpan(yyStart,yyCount), a1, a3.getA());
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
-   / a1:VarWoTypes w colon w a2:SimpleTupleType w a3:InitVal
+   / a1:VarMods? a2:IdOrIdTuple w equals w a3:NoNewlineExpr
+     { List<LValue> lvs;
+       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
+       else lvs = FortressUtil.ids2Lvs(a2);
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a3);
+     }
+   / a1:VarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses w a4:InitVal
+     { List<LValue> lvs;
+       if (a1 != null) {
+           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
+           else           lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
+       } else {
+           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a3, true);
+           else           lvs = FortressUtil.ids2Lvs(a2, a3, false);
+       }
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a4.getA());
+     }
+   / a1:VarMods? a2:IdOrIdTuple w colon w a3:SimpleTupleType w a4:InitVal
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a2.getElements();
-       if (a1.size() != tys.size())
+       List<TypeRef> tys = a3.getElements();
+       if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
-       int ind = 0;
-       for (LValue v : a1) {
-           if (v instanceof LValueBind) {
-               ((LValueBind)v).setType(tys.get(ind));
-               ind += 1;
-           } else throw new ProgramError(v, "LValueBind is expected.");
+       List<LValue> lvs;
+       if (a1 != null) {
+           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
+           else           lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
+       } else {
+           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, tys, true);
+           else           lvs = FortressUtil.ids2Lvs(a2, tys, false);
        }
-       if (a3.getB()) FortressUtil.setMutable(a1);
-       yyValue = new VarDecl(span, a1, a3.getA());
+       yyValue = new VarDecl(span, lvs, a4.getA());
      };
+
+/* Each modifier cannot appear more than once. */
+/* VarMods ::= (VarMod w)+ */
+List<Modifier> VarMods = a1s:(VarMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* VarMod ::= AbsVarMod | private */
+private Modifier VarMod =
+     AbsVarMod
+   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
 
 /* VarWTypes ::=
      VarWType
@@ -73,85 +97,54 @@ DefOrDecl VarDecl =
  */
 List<LValue> VarWTypes =
      a1:VarWType
-     { yyValue = new ArrayList<LValue>();
-       yyValue.add(a1);
-     }
+     { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:VarWType a2s:(w comma w VarWType)+ w closeparen
-     { yyValue = new ArrayList<LValue>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* VarWType ::= [VarMods] Id w IsType */
-LValue VarWType = a1:VarMods? a2:Id w a3:IsType
-     { if (a1 == null)
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    Some.<TypeRef>make(a3),
-                                    FortressUtil.emptyModifiers(), false);
-       else
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    Some.<TypeRef>make(a3), a1,
-                                    FortressUtil.getMutable(a1));
-     };
-
-/* VarWoTypes ::=
-     VarWoType
-   | ( w VarWoType (w , w VarWoType)+ w )
- */
-List<LValue> VarWoTypes =
-     a1:VarWoType
-     { yyValue = new ArrayList<LValue>();
-       yyValue.add(a1);
-     }
-   / openparen w a1:VarWoType a2s:(w comma w VarWoType)+ w closeparen
-     { yyValue = new ArrayList<LValue>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
-
-/* VarWoType ::= [VarMods] Id */
-LValue VarWoType = a1:VarMods? a2:Id
-     { if (a1 == null)
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    None.<TypeRef>make(),
-                                    FortressUtil.emptyModifiers(), false);
-       else
-           yyValue = new LValueBind(createSpan(yyStart,yyCount), a2,
-                                    None.<TypeRef>make(), a1,
-                                    FortressUtil.getMutable(a1));
-     };
+/* VarWType ::= Id w IsType */
+LValue VarWType = a1:Id w a2:IsType
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* InitVal ::= (=|:=) w NoNewlineExpr */
 com.sun.fortress.interpreter.useful.Pair<Expr,Boolean> InitVal = a1:(equals / colonequals) w a2:NoNewlineExpr
      { yyValue = new com.sun.fortress.interpreter.useful.Pair<Expr,Boolean>(a2, a1.equals(":=")); };
 
 /* AbsVarDecl ::=
-     VarWTypes
-   | VarWoTypes w : w TypeRef w ...
-   | VarWoTypes w : w SimpleTupleType
+     AbsVarMods? VarWTypes
+   | AbsVarMods? IdOrIdTuple w : w TypeRef w ...
+   | AbsVarMods? IdOrIdTuple w : w SimpleTupleType
  */
 AbsVarDecl AbsVarDecl =
-     a1:VarWTypes
-     { yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1); }
-   / a1:VarWoTypes w colon w a2:TypeRef w ellipses
-     { for (LValue v : a1) {
-           if (v instanceof LValueBind) ((LValueBind)v).setType(a2);
-           else throw new ProgramError(v, "LValueBind is expected.");
-       }
-       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a1);
+     a1:AbsVarMods? a2:VarWTypes
+     { if (a1 != null) FortressUtil.setMods(a2, a1);
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
-   / a1:VarWoTypes w colon w a2:SimpleTupleType
+   / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses
+     { List<LValue> lvs;
+       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
+       else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
+     }
+   / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:SimpleTupleType
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a2.getElements();
-       if (a1.size() != tys.size())
+       List<TypeRef> tys = a3.getElements();
+       if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
-       int ind = 0;
-       for (LValue v : a1) {
-           if (v instanceof LValueBind) {
-               ((LValueBind)v).setType(tys.get(ind));
-               ind += 1;
-           } else throw new ProgramError(v, "LValueBind is expected.");
-       }
-       yyValue = new AbsVarDecl(span, a1);
+       List<LValue> lvs;
+       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
+       else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
+       yyValue = new AbsVarDecl(span, lvs);
      };
+
+/* Each modifier cannot appear more than once. */
+/* AbsVarMods ::= (AbsVarMod w)+ */
+List<Modifier> AbsVarMods = a1s:(AbsVarMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* AbsVarMod ::= var | test */
+private Modifier AbsVarMod =
+     a1:var  { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / a1:test { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };

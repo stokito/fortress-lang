@@ -44,25 +44,16 @@ List<TypeRef> AbsComprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<TypeRef> TraitTypes =
-     a1:TraitType
-     { yyValue = new ArrayList<TypeRef>(1);
-       yyValue.add(a1);
-     }
+     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / opencurly w TraitTypeList w closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
 private List<TypeRef> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
-     { yyValue = new ArrayList<TypeRef>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
 private List<TypeRef> ComprisingTypes =
-     a1:TraitType
-     { yyValue = new ArrayList<TypeRef>(1);
-       yyValue.add(a1);
-     }
+     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / opencurly w ComprisingTypeList w closecurly ;
 
 /* ComprisingTypeList ::=
@@ -73,10 +64,7 @@ private List<TypeRef> ComprisingTypeList =
      ellipses
      { yyValue = FortressUtil.emptyTypeRefs(); }
    / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
-     { yyValue = new ArrayList<TypeRef>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Where ::= where w { w WhereClauseList w } */
 List<WhereClause> Where =
@@ -85,10 +73,7 @@ List<WhereClause> Where =
 /* WhereClauseList ::= WhereClause (w , w WhereClause)* */
 private List<WhereClause> WhereClauseList =
      a1:WhereClause a2s:(w comma w WhereClause)*
-     { yyValue = new ArrayList<WhereClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* WhereClause ::=
      Id w Extends
@@ -204,7 +189,7 @@ private WhereUnit UnitConstraint =
    / a1:UnitRef w equals w a2:UnitRef
 ************************************************ */
 
-/* FnHeaderClause ::= [w IsType] FnClauses */
+/* FnHeaderClause ::= (w IsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
      { Option<TypeRef> returnType;
        if (a1 == null) returnType = None.<TypeRef>make();
@@ -213,7 +198,7 @@ FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
                                     a2.getContractClause(), returnType);
      };
 
-/* FnClauses ::= [w Throws] [w Where] Contract */
+/* FnClauses ::= (w Throws)? (w Where)? Contract */
 FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
      { Option<List<TypeRef>>     throwsClause;
        Option<List<WhereClause>> whereClause;
@@ -236,7 +221,7 @@ private List<TypeRef> MayTraitTypes =
      opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
    / TraitTypes ;
 
-/* Contract ::= [w Requires] [w Ensures] [w Invariant] */
+/* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
      a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
      { if (a1 == null) a1 = FortressUtil.emptyExprs();
@@ -246,13 +231,13 @@ Contract Contract =
        else yyValue = new Contract(createSpan(yyStart,yyCount), a1, a2, a3);
      };
 
-/* Requires ::= requires w { [w ExprList] w } */
+/* Requires ::= requires w { (w ExprList)? w } */
 private List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyExprs();
        else            yyValue = a1;
      };
 
-/* Ensures  ::= ensures w { [w ProvidedList] w } */
+/* Ensures  ::= ensures w { (w ProvidedList)? w } */
 private List<EnsuresClause> Ensures =
      ensures w opencurly a1:(w ProvidedList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyEnsuresClauses();
@@ -261,12 +246,9 @@ private List<EnsuresClause> Ensures =
 
 /* ProvidedList ::= Provided (w , w Provided)* */
 private List<EnsuresClause> ProvidedList = a1:Provided a2s:(w comma w Provided)*
-     { yyValue = new ArrayList<EnsuresClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Provided ::= Expr [w provided w Expr] */
+/* Provided ::= Expr (w provided w Expr)? */
 private EnsuresClause Provided = a1:Expr a2:(w provided w Expr)?
      { Option<Expr> ensures;
        if (a2 == null) ensures = None.<Expr>make();
@@ -274,14 +256,14 @@ private EnsuresClause Provided = a1:Expr a2:(w provided w Expr)?
        yyValue = new EnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
      };
 
-/* Invariant::= invariant w { [w ExprList] w } */
+/* Invariant::= invariant w { (w ExprList)? w } */
 private List<Expr> Invariant =
      invariant w opencurly a1:(w ExprList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyExprs();
        else            yyValue = a1;
      };
 
-/* CoercionClauses ::= [w CoercionWhere] w CoercionContract */
+/* CoercionClauses ::= (w CoercionWhere)? w CoercionContract */
 FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
      { Option<List<WhereClause>> whereClause;
        Option<Contract>          contractClause;
@@ -301,10 +283,7 @@ private List<WhereClause> CoercionWhere =
  */
 private List<WhereClause> CoercionWhereClauseList =
      a1:CoercionWhereClause a2s:(w comma w CoercionWhereClause)*
-     { yyValue = new ArrayList<WhereClause>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CoercionWhereClause ::=
      WhereClause
@@ -315,7 +294,7 @@ private WhereClause CoercionWhereClause =
    / a1:TypeRef w widens w or w coerces w a2:TypeRef
      { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
 
-/* CoercionContract ::= [w Ensures] [w Invariant] */
+/* CoercionContract ::= (w Ensures)? (w Invariant)? */
 Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
      { if (a1 == null) a1 = FortressUtil.emptyEnsuresClauses();
        if (a2 == null) a2 = FortressUtil.emptyExprs();
@@ -324,93 +303,66 @@ Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
                                    FortressUtil.emptyExprs(), a1, a2);
      };
 
-/* UniversalMod ::= private | test */
-private Modifier UniversalMod =
-     a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); }
-   / a1:test    { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
-
-/* TraitMod ::= value | UniversalMod */
-private Modifier TraitMod =
-     a1:value   { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
-   / UniversalMod ;
-
 /* Each modifier cannot appear more than once. */
 /* TraitMods ::= (TraitMod w)+ */
 List<Modifier> TraitMods = a1s:(TraitMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
+     { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
+
+/* TraitMod ::= AbsTraitMod | private */
+private Modifier TraitMod =
+     AbsTraitMod
+   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
+
+/* Each modifier cannot appear more than once. */
+/* AbsTraitMods ::= (AbsTraitMod w)+ */
+List<Modifier> AbsTraitMods = a1s:(AbsTraitMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* AbsTraitMod ::= value | test */
+private Modifier AbsTraitMod =
+     a1:value { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
+   / a1:test  { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* ObjectMods ::= TraitMods */
 List<Modifier> ObjectMods = TraitMods ;
 
-/* FnMod ::= LocalFnMod | UniversalMod */
-private Modifier FnMod =
-     LocalFnMod
-   / UniversalMod ;
+/* Each modifier cannot appear more than once. */
+/* AbsObjectMods ::= AbsTraitMods */
+List<Modifier> AbsObjectMods = AbsTraitMods ;
 
 /* Each modifier cannot appear more than once. */
 /* FnMods ::= (FnMod w)+ */
 List<Modifier> FnMods = a1s:(FnMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
+     { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* VarMod ::= var | UniversalMod */
-private Modifier VarMod =
-     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
-   / UniversalMod ;
+/* FnMod ::= AbsFnMod | private */
+private Modifier FnMod =
+     AbsFnMod
+   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
-/* VarMods ::= (VarMod w)+ */
-List<Modifier> VarMods = a1s:(VarMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
+/* AbsFnMods ::= (AbsFnMod w)+ */
+List<Modifier> AbsFnMods = a1s:(AbsFnMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* AbsFldMod ::= hidden | settable | wrapped | UniversalMod */
-private Modifier AbsFldMod =
-     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
-   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
-   / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
-   / UniversalMod ;
+/* AbsFnMod ::= LocalFnMod | test */
+private Modifier AbsFnMod =
+     LocalFnMod
+   / a1:test { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
-/* AbsFldMods ::= (AbsFldMod w)+ */
-List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* FldMod ::= var | AbsFldMod */
-private Modifier FldMod =
-     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
-   / AbsFldMod ;
-
-/* Each modifier cannot appear more than once. */
-/* FldMods ::= (FldMod w)+ */
-List<Modifier> FldMods = a1s:(FldMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* ApiFldMod ::= hidden | settable | UniversalMod */
-private Modifier ApiFldMod =
-     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
-   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
-   / UniversalMod ;
-
-/* Each modifier cannot appear more than once. */
-/* ApiFldMods ::= (ApiFldMod w)+ */
-List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
+/* LocalFnMods ::= (LocalFnMod w)+ */
+List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
@@ -420,12 +372,56 @@ private Modifier LocalFnMod =
    / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
 
 /* Each modifier cannot appear more than once. */
-/* LocalFnMods ::= (LocalFnMod w)+ */
-List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
-     { yyValue = new ArrayList<Modifier>();
-       yyValue.addAll(a1s.list());
+/* ParamFldMods ::= (ParamFldMod w)+ */
+List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
+
+/* ParamFldMod ::= var | hidden | settable | wrapped */
+private Modifier ParamFldMod =
+     a1:var      { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
+   / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount));};
+
+/* Each modifier cannot appear more than once. */
+/* FldMods ::= (FldMod w)+ */
+List<Modifier> FldMods = a1s:(FldMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* FldMod ::= var | AbsFldMod */
+private Modifier FldMod =
+     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / AbsFldMod ;
+
+/* Each modifier cannot appear more than once. */
+/* AbsFldMods ::= (AbsFldMod w)+ */
+List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* AbsFldMod ::= ApiFldMod | wrapped | private */
+private Modifier AbsFldMod =
+     ApiFldMod
+   / a1:wrapped { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
+   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
+
+/* Each modifier cannot appear more than once. */
+/* ApiFldMods ::= (ApiFldMod w)+ */
+List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* ApiFldMod ::= hidden | settable | test */
+private Modifier ApiFldMod =
+     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
+   / a1:test     { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* StaticParams ::= [\ w StaticParamList w \] */
 List<StaticParam> StaticParams =
@@ -434,18 +430,15 @@ List<StaticParam> StaticParams =
 /* StaticParamList ::= StaticParam (w , w StaticParam)* */
 private List<StaticParam> StaticParamList =
      a1:StaticParam a2s:(w comma w StaticParam)*
-     { yyValue = new ArrayList<StaticParam>();
-       yyValue.add(a1);
-       yyValue.addAll(a2s.list());
-     };
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* StaticParam ::=
-     Id [w Extends] [w absorbs w unit]
+     Id (w Extends)? (w absorbs w unit)?
    | nat w Id
    | int w Id
    | bool w Id
    | dim w Id
-   | unit w Id [w : w DimRef] [w absorbs w unit]
+   | unit w Id (w : w DimRef)? (w absorbs w unit)?
    | opr w Op
    | ident w Id
 */
