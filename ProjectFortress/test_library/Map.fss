@@ -93,12 +93,12 @@ object Node[\Key,Val\](pair:(Key,Val), left:Tree[\Key,Val\],
     res:String := "{"
     (two, delmin) = temp.removeMinimum()
     (k, v) = two
-    res *= k "|->" v
+    res DOT= k "|->" v
     temp := delmin
     while (NOT temp.empty()) do
       (twoo, delminn) = temp.removeMinimum()
       (kk,vv) = twoo
-      res *= ", " kk "|->" vv
+      res DOT= ", " kk "|->" vv
       temp := delminn
     end
     res "}"

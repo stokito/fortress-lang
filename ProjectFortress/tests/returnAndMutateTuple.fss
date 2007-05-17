@@ -18,7 +18,7 @@
 component returnAndMutateTuple
 export Executable
 
-f(x:ZZ32) : (ZZ32, ZZ32) = (x + 1, x * 2)
+f(x:ZZ32) : (ZZ32, ZZ32) = (x + 1, 2 x)
 
 run(args:String...) = do
   (a:ZZ32,b:ZZ32) := f(5)

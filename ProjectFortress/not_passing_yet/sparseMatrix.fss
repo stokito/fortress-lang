@@ -28,7 +28,7 @@ trait Sparse[\T extends {Numeric}, nat m, nat n\]
     mul(v) = do
       r := Array1[\T,n\](0)
       for e,i,j <- elements do
-        atomic do r[i] += e * v[j] end
+        atomic do r[i] += e v[j] end
       end
       r
     end
@@ -91,7 +91,7 @@ object SparseRow[\T extends {Numeric}, nat m, nat n\]
 
 (*
   mul(v) =
-    [ [i] = SUM[(e,j) <- row.elements] e.val * v[e.pos] |
+    [ [i] = SUM[(e,j) <- row.elements] e.val v[e.pos] |
           (row, i) <- rows.indices ]
 *)
 end
@@ -128,7 +128,7 @@ object SparseCol[\T extends {Numeric}, nat m, nat n\]
     r = [ j |-> 0 | j <- 1#n ]
     for c,j <- cols.elements,
         e,i <- c.elements do
-      r[e.pos] += e.val * v[j]
+      r[e.pos] += e.val v[j]
     end
     r
   end

@@ -177,6 +177,7 @@ public final class FortressUtil {
         return (c == '_' || Character.isUpperCase(c));
     }
     public static boolean validOp(String s) {
+        if (s.equals("juxtaposition")) return true;
         int length = s.length();
         if (length < 2 || compoundOp(s)) return false;
         char start = s.charAt(0);

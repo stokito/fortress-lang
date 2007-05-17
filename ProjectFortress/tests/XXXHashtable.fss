@@ -54,8 +54,8 @@ end
 object DefaultArray2[\T, nat s0, nat s1\]() extends Array2[\T, 0, s0, 0, s1\]
   mem:Array1[\T, 0, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
 
-  opr[i:ZZ32, j:ZZ32] : T = self.mem.get(s1*i+j)
-  opr[i:ZZ32, j:ZZ32]:= (v:T) = self.mem.put(v, s1*i+j)
+  opr[i:ZZ32, j:ZZ32] : T = self.mem.get((s1 i)+j)
+  opr[i:ZZ32, j:ZZ32]:= (v:T) = self.mem.put(v, (s1 i)+j)
 end
 
 

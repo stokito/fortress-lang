@@ -596,19 +596,19 @@ pmul[\ T extends Number, nat k \]
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
         (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
 
 squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
@@ -850,7 +850,7 @@ opr DOT[\ T extends Number, nat n, nat m, nat p\]
        (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
         me.mul[\p\](other)
 
-opr *[\ T extends Number, nat n, nat m, nat p\]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p\]
      (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
         me.mul[\p\](other)
 
@@ -859,26 +859,26 @@ opr *[\ T extends Number, nat n, nat m, nat p\]
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
 
 (* vector-matrix multiplication *)
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
 
 opr DOT[\ T extends Number, nat n, nat m, nat p \]
        (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
@@ -1216,7 +1216,9 @@ opr +[\ T extends Number, nat n, nat m \]
      (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
 opr -[\ T extends Number, nat n, nat m \]
      (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
 opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
 opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
@@ -1256,7 +1258,9 @@ opr +[\ T extends Number, nat n, nat m \]
      (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
 opr -[\ T extends Number, nat n, nat m \]
      (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
 opr DIV(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
 opr REM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
@@ -1282,7 +1286,9 @@ opr +[\ T extends Number, nat n, nat m \]
      (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
 opr -[\ T extends Number, nat n, nat m \]
      (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+     (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
 opr DIV(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
 opr REM(a:Integral,b:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
@@ -1313,7 +1319,9 @@ opr +[\ T extends Number, nat n, nat m \]
      (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
 opr -[\ T extends Number, nat n, nat m \]
      (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
 opr /(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
 opr =(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
@@ -1345,19 +1353,33 @@ truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.pr
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
 opr [\N extends Number\]|x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
 
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
      (a:Any, b:String):String = a.toString() b
-opr *[\ T extends Number, nat n, nat m, nat p \]
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (a:Any, b:String):String = a.toString() b
+opr DOT[\ T extends Number, nat n, nat m, nat p \]
+     (a:String, b:Any):String = a b.toString()
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (a:String, b:Any):String = a b.toString()
 opr =(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Eq")
 opr <(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Less")
@@ -1395,14 +1417,6 @@ opr NOT(a:Boolean):Boolean = if a then false else true end
 opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
 opr <->(a: Boolean, b:Boolean):Boolean = a=b
-
-opr DOT[\T extends Number, nat n, nat m, nat p\](me:ZZ32,other:ZZ32):ZZ32 =
-    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (x:Integral, y:Integral):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-       (x:Number, y:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-
 opr +[\ T extends Number, nat n, nat m \](x:T) = x
 
 end

@@ -91,11 +91,11 @@ object Node[\E\](val:E,  left:Tree[\E\], right:Tree[\E\]) extends Tree[\E\]
       temp : Tree[\E\] := self
       res : String := "{"
       (min, delmin) = temp.removeMinimum()
-      res *= min
+      res DOT= min
       temp := delmin
       while (NOT temp.empty()) do
         (minn, delminn) = temp.removeMinimum()
-        res *= "," minn
+        res DOT= "," minn
         temp := delminn
       end
       res "}"

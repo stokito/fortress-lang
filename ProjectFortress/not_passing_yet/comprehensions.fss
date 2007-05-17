@@ -28,7 +28,7 @@ run(args:String...):() = ()
   list_comp_two = <|a^b | a<-2#2,b<-1#4|>
 
   map_comp_one = { i - j |-> j - i | i <- 1 # 10 , j <- 1 # 1 }
-  map_comp_two = {a^b|->a*b | a<-2#2,b<-1#4}
+  map_comp_two = {a^b|->a b | a<-2#2,b<-1#4}
 
   array_comp_big = [ (x,y,1) |-> 0.0 | x <- 1#xSize, y <- 1#ySize
                      (1,y,z) |-> 0.0 | y <- 1#ySize, z <- 2#zSize

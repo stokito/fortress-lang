@@ -98,7 +98,7 @@ export Executable
   a = [ (x,y,1) |-> 0.0 | x  <- 1#xSize, y <- 1#ySize
         (1,y,z) |-> 0.0 | y  <- 1#ySize, z <- 2#zSize
         (x,1,z) |-> 0.0 | x  <- 2#xSize, z <- 2#zSize
-        (x,y,z) |-> x+y*z | x <- 2#xSize, y <- 2#ySize, z <- 2#zSize ]
+        (x,y,z) |-> x+(y z) | x <- 2#xSize, y <- 2#ySize, z <- 2#zSize ]
 
  (* page 23 *)
 
@@ -569,7 +569,7 @@ spawnex():() = do
         a[i]
     end
     w = spawn do
-        v.vlue() * 17
+        v.vlue() 17
     end
 end
 
@@ -710,7 +710,7 @@ opr :() = ImplicitRange
 *)
 
 (* angle bracket notation for inner product *)
-opr <| x:Vector, y:Vector |> = SUM[i <-  x.indices()] x[i] * y[i]
+opr <| x:Vector, y:Vector |> = SUM[i <-  x.indices()] x[i] y[i]
 
 (* vector space norm (may not be the most efficient) *)
 opr ||x:Vector|| = SQRT <| x, x |>

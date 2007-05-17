@@ -22,13 +22,13 @@ export Executable
 (* This tests functional methods, among other things *)
 object WrapZZ(n : ZZ32)
   opr +(self, o:WrapZZ) = WrapZZ(n + o.n)
-  opr *(self, o:WrapZZ) = WrapZZ(n * o.n)
+  opr juxtaposition(self, o:WrapZZ) = WrapZZ(n o.n)
 end
 
 run(args:String...):() = do
   x : WrapZZ = WrapZZ(5)
   y : WrapZZ = WrapZZ(7)
-  z = x * y
+  z = x y
   w = x + y
   print("z = " z.n "\nw = " w.n "\n")
   if z.n =/= 35 OR w.n =/= 12 then

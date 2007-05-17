@@ -508,7 +508,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             Option<List<Expr>> _else = x.getElse_();
             if (_else.isPresent()) {
-                // TODO need an Else node to hang a location on 
+                // TODO need an Else node to hang a location on
                 return evalExprList(_else.getVal(), x);
             }
             return evVoid;
@@ -873,7 +873,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // distinction based on the resulting value.
         // We do not handle functional methods, and overlap therewith, at all.
         List<Expr> exprs = x.getExprs();
-        FValue times = e.getValue("*");
+        FValue times = e.getValue("juxtaposition");
         if (exprs.size() == 0)
             throw new InterpreterError(x,"empty juxtaposition");
         List<FValue> evaled = evalExprListParallel(exprs);

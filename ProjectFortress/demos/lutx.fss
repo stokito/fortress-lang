@@ -108,9 +108,9 @@ end
 
 run(args:String...):() = do
   a : RR64[6,6] = matrix[\RR64,6,6\]()
-  a.fill(fn (i,j) => if j <= i then 7.0-i else 7*6*5*2.0 end)
+  a.fill(fn (i,j) => if j <= i then 7.0-i else 7 6 5 2.0 end)
   mtest(a)
-  a.fill(fn (i,j) => if j >= i then 7.0-j else 7*6*5*2.0 end)
+  a.fill(fn (i,j) => if j >= i then 7.0-j else 7 6 5 2.0 end)
   mtest(a)
 end
 

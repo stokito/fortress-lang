@@ -43,16 +43,16 @@ body {
         "extends",      "finally",      "fn",           "for",
         "forbid",       "from",         "getter",       "hidden",
         "ident",        "if",           "import",       "in",
-        "int",          "invariant",    "io",           "juxtaposition",
-        "label",        "largest",      "nat",          "object",
-        "of",           "opr",          "or",           "private",
-        "property",     "provided",     "requires",     "self",
-        "settable",     "setter",       "smallest",     "spawn",
-        "syntax",       "test",         "then",         "throw",
-        "throws",       "trait",        "transient",    "try",
-        "tryatomic",    "type",         "typecase",     "unit",
-        "value",        "var",          "where",        "while",
-        "widens",       "with",         "wrapped"
+        "int",          "invariant",    "io",           "label",
+        "largest",      "nat",          "object",       "of",
+        "opr",          "or",           "private",      "property",
+        "provided",     "requires",     "self",         "settable",
+        "setter",       "smallest",     "spawn",        "syntax",
+        "test",         "then",         "throw",        "throws",
+        "trait",        "transient",    "try",          "tryatomic",
+        "type",         "typecase",     "unit",         "value",
+        "var",          "where",        "while",        "widens",
+        "with",         "wrapped"
     });
   }
 }
@@ -66,7 +66,6 @@ transient void inverse = "inverse" !(idrest);
 transient void per = "per" !(idrest);
 transient void square = "square" !(idrest);
 transient void squared = "squared" !(idrest);
-transient void juxtaposition = "juxtaposition" !(idrest);
 transient void goto = "goto" !(idrest);
 transient void idiom = "idiom" !(idrest);
 transient void public = "public" !(idrest);

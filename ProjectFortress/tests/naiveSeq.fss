@@ -54,12 +54,12 @@ run(args:String...):() = do
     tst(s1,66,"actualSum")
     v : ZZ32 := 0
     for i <- seq(r1) do
-      v := 2 * v + i
+      v := 2 v + i
     end
     tst(v,4083,"2v+i")
     w : ZZ32 := 0
     for i <- seq(1#11) do
-      w := 2 * w + i
+      w := 2 w + i
     end
     tst(v,w,"1#11")
   end

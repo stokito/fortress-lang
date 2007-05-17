@@ -25,7 +25,7 @@ assert(a : Boolean): () =
 run(Args:String...) = do
   println(3 + 5 DIV 4)
   println(3 + 5 / 4)
-  println(3 + 5 * 4)
+  println(3 + 5   4)
 
   assert(5 DIV 2 = 2)
   assert( (5 DIV 2 + 1) = 3)

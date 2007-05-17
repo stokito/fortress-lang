@@ -19,7 +19,7 @@ component fmTest1
 export Executable
 
 opr OPLUS(x:ZZ32,y:ZZ32):ZZ32 = x+y
-opr OTIMES(x:ZZ32,y:ZZ32):ZZ32 = x*y
+opr OTIMES(x:ZZ32,y:ZZ32):ZZ32 = x y
 
 object rat(i:ZZ32, j:ZZ32)
 
@@ -36,16 +36,16 @@ end
 run(args:String...):()=do
   a:rat = rat(1,0)
   println a.toString()
-  
+
   b:rat = rat(0,1)
   println b.toString()
-  
+
   c = a OPLUS b
   println c.toString()
 
   d = c OTIMES (2 OTIMES 2)
   println d.toString()
-  
+
 end
 
 end

@@ -28,8 +28,8 @@ end
 
 opr +[\ T extends Number, nat n, nat m \]
      (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n + o.n,s.a)
-opr *[\ T extends Number, nat n, nat m, nat p \]
-     (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n * o.n,s.a)
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n o.n,s.a)
 
 run(args:String...):() = do
   x : WrapZZ[\RR64\] = WrapZZ[\RR64\](5,17.0)

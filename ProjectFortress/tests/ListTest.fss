@@ -35,14 +35,14 @@ run(args:String...):() = do
   println("indexOf(8) = " l.indexOf(8))
   println("lastIndexOf(8) = " l.lastIndexOf(8))
   println("Is an odd list empty? " list.isEmpty())
-  l.filter(fiveOrMore).map(fn x => x * 10).process(prElt); println ""
-  println(l.foldL[\ZZ32\](0, fn (res, i) => res * 10 + i))
-  println(l.foldR[\ZZ32\](fn (i, res) => res * 10 + i, 0))
+  l.filter(fiveOrMore).map(fn x => 10 x).process(prElt); println ""
+  println(l.foldL[\ZZ32\](0, fn (res, i) => 10 res + i))
+  println(l.foldR[\ZZ32\](fn (i, res) => 10 res + i, 0))
   l.remove(7).process(prElt); println ""
   l.removeAt(2).process(prElt); println ""
   l.union(list').intersection(list).process(prElt); println ""
   l.difference(list).process(prElt); println ""
-  list.zip[\ZZ32,ZZ32\](fn (x,y) => x * 10 + y, list').process(prElt); println ""
+  list.zip[\ZZ32,ZZ32\](fn (x,y) => 10 x + y, list').process(prElt); println ""
   println("Exists a five or more: " l.exists(fiveOrMore))
   println("All five or more: " l.forAll(fiveOrMore))
   l.updateHd(10).updateTl(list').reverse().subList(0, 3).process(prElt)

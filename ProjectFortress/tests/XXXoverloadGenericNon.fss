@@ -27,12 +27,12 @@ object WrapZZ(n : ZZ32)
 end
 
 opr +(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n + o.n)
-opr *(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n * o.n)
+opr juxtaposition(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n o.n)
 
 run(args:String...):() = do
   x : WrapZZ = WrapZZ(5)
   y : WrapZZ = WrapZZ(7)
-  z = x * y
+  z = x y
   w = x + y
   print("z = " z.n "\nw = " w.n "\n")
   if z.n =/= 35 OR w.n =/= 12 then
