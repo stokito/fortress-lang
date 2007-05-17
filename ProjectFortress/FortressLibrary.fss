@@ -222,7 +222,14 @@ tuple[\T\](x:T):T = x
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
 
-(** Reflection for run-time integers into compile-time nat parameters *)
+(** Reflection for run-time integers into compile-time nat parameters.
+ *
+ *  Basically you can call the function reflect(n) and it will return
+ *  an instance of NatParam.  But every instance of NatParam is an
+ *  object N[\n\], so we can write a function which takes N[\n\] and
+ *  pass it a NatParam; within that function n becomes a static nat
+ *  parameter.
+ *)
 trait NatParam
   (* comprises { N[\n\] } where { nat n } *)
   getter toZZ() : ZZ32
@@ -243,6 +250,15 @@ end
 value object Standin[\E\]()
 end
 
+(* Inner loop of reflect, hoisted to top level because of incomplete
+ * implementation of generic local functions.  This basically
+ * decomposes the argument x into binary digits, and does the same
+ * operations on the static parameter r as it does so.
+ *
+ * Really this just proves that it can be done without extending the
+ * language.  Having proven that, we ought to build it in and document
+ * it in the spec for clarity and sanity's sake.
+ *)
   __refl'[\nat r, nat b\](x:ZZ32):NatParam =
     if x=0 then N[\r\]()
     elif (x REM (b+b)) = 0 then
@@ -251,6 +267,7 @@ end
       __refl'[\r+b, b+b\](x-b)
     end
 
+(* Actually convert a ZZ32 into a NatParam. *)
 reflect(z:ZZ32):NatParam = do
   if z < 0 then
     fail("reflect(" z "): " negative argument)
@@ -608,7 +625,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
-      for j <- seq(0#s1) do
+      for j <- sequential(0#s1) do
          r := r " " get(i,j)
       end
     if s0 = 0 then
@@ -616,7 +633,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     else
       r := r "\n["
       row(0)
-      for i <- seq(1#(s0-1)) do
+      for i <- sequential(1#(s0-1)) do
         r := r "\n "
         row(i)
       end
@@ -876,12 +893,12 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
     row(i,j) =
-        for k <- seq(0#s2) do
+        for k <- sequential(0#s2) do
           r := r " " get(i,j,k)
         end
     plane(i) =
       if s1 > 0 then
-        for j <- seq(0#(s1-1)) do
+        for j <- sequential(0#(s1-1)) do
           row(i,j)
         end
       end
@@ -890,7 +907,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     else
       r := r "\n[ "
       plane(0)
-      for i <- seq(1#(s0-1)) do
+      for i <- sequential(1#(s0-1)) do
         r := r ";;\n  "
         plane(i)
       end

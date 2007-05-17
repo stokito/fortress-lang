@@ -35,9 +35,9 @@ opr MAXMIN[\N extends Number, I extends Integral\](a:(N,I),b:(N,I)):(N,I) = do
   end
 end
 
-object Lower[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
-    extends Array2[\N,0,n,0,n\]
-  replica[\U\]():Array2[\U,0,n,0,n\] = mem.replica[\U\]()
+object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
+    extends Matrix[\N,n,n\]
+  replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
   put(v:N, i:ZZ32, j:ZZ32) : () = do
     println("Lower triangular matrices are immutable.")
     if true then die end
@@ -45,11 +45,11 @@ object Lower[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
   get(i:ZZ32,j:ZZ32):N = if i=j then 1 elif i>=j then mem.get(i,j) else 0 mem.get(i,j) end
 end
 
-lower[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\]) = Lower[\N,n\](mem)
+lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\]) = Lower[\N,n\](mem)
 
-object Upper[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
-    extends Array2[\N,0,n,0,n\]
-  replica[\U\]():Array2[\U,0,n,0,n\] = mem.replica[\U\]()
+object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
+    extends Matrix[\N,n,n\]
+  replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
   put(v:N, i:ZZ32, j:ZZ32) : () = do
     println("Upper triangular matrices are immutable.")
     if true then die end
@@ -57,11 +57,11 @@ object Upper[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\])
   get(i:ZZ32,j:ZZ32):N = if i<=j then mem.get(i,j) else 0 mem.get(i,j) end
 end
 
-upper[\N extends Number, nat n\](mem:Array2[\N,0,n,0,n\]) = Upper[\N,n\](mem)
+upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\]) = Upper[\N,n\](mem)
 
-lutx[\nat n\](A:Array2[\RR64,0,n,0,n\]):
-    (Array2[\RR64,0,n,0,n\],Array1[\ZZ32,0,n\]) = do
-  p : Array1[\ZZ32,0,n\] = vector[\ZZ32,n\](identity[\ZZ32\])
+lutx[\nat n\](A:Matrix[\RR64,n,n\]):
+    (Matrix[\RR64,n,n\],Vector[\ZZ32,n\]) = do
+  p : Vector[\ZZ32,n\] = vector[\ZZ32,n\](identity[\ZZ32\])
   for k <- seq(0#n-1) do
     rest = k+1 # n-k-1
     t:(RR64,ZZ32) := (|A[k,k]|,k)
@@ -88,7 +88,7 @@ lutx[\nat n\](A:Array2[\RR64,0,n,0,n\]):
   (lower(A),upper(A),p)
 end
 
-showPerm[\nat n\](a:Array1[\ZZ32,0,n\]):() = do
+showPerm[\nat n\](a:Vector[\ZZ32,n\]):() = do
   print("[")
   for i <- seq(0#n) do
     print(" " i "->" a[i])
