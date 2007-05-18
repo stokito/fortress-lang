@@ -124,8 +124,8 @@ oneStr2int(s: String) =
     "8" => 8
     "9" => 9
     " " => 0
-    else => println s
-            die "Invalid digit:" (* throwing an exception: Not Yet Implemented *)
+    else => println "Invalid digit: " s
+            die (* throwing an exception: Not Yet Implemented *)
   end
 str2int(s: String) =
   do
@@ -330,7 +330,7 @@ wonGame(player: Player, points: ZZ32) =
     player.thisWon     += 1
     player.totalWon    += 1
     player.thisGames   += 1
-    player.totalGames  +=1
+    player.totalGames  += 1
     player.thisPoints  += points
     player.totalPoints += points
     player
@@ -632,7 +632,7 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
 
 printUsage() =
   do
-    println "Usage: ./fortress TennisRanking.fss inFile outFile gamesFile"
+    println "Usage: ./fortress demos/tennisRanking.fss inFile outFile gamesFile"
     println "   inFile:  input file to read  the ranking result of the previous term"
     println "  outFile: output file to print the ranking result of this term"
     println " gameFile:  input file to read  the games   played in this term"
