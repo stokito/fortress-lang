@@ -50,9 +50,9 @@ public class ABoundingMapJUTest extends TestCase {
      */
     public void testMeetPut() {
         Long o = abm.meetPut("3", Long.valueOf(11));
-        assertEquals(o, null);
-        o = abm.meetPut("3", Long.valueOf(7));
         assertEquals(o.longValue(), 11);
+        o = abm.meetPut("3", Long.valueOf(7));
+        assertEquals(o.longValue(), 3);
         o = abm.get("3");
         assertEquals(o.longValue(), 3);
 
@@ -61,7 +61,7 @@ public class ABoundingMapJUTest extends TestCase {
         o = abm.get("3");
         assertEquals(o.longValue(), 3);
         o = abm.meetPut("3", ops.zero());
-        assertEquals(o.longValue(), 3);
+        assertEquals(o.longValue(), 0);
         o = abm.get("3");
         assertEquals(o, ops.zero());
 
@@ -73,9 +73,9 @@ public class ABoundingMapJUTest extends TestCase {
      */
     public void testJoinPut() {
         Long o = abm.joinPut("15", Long.valueOf(11));
-        assertEquals(o, null);
-        o = abm.joinPut("15", Long.valueOf(7));
         assertEquals(o.longValue(), 11);
+        o = abm.joinPut("15", Long.valueOf(7));
+        assertEquals(o.longValue(), 15);
         o = abm.get("15");
         assertEquals(o.longValue(), 15);
 
@@ -85,7 +85,7 @@ public class ABoundingMapJUTest extends TestCase {
         o = abm.get("15");
         assertEquals(o.longValue(), 15);
         o = abm.joinPut("15", ops.one());
-        assertEquals(o.longValue(), 15);
+        assertEquals(o.longValue(), ops.one().longValue());
         o = abm.get("15");
         assertEquals(o, ops.one());
 

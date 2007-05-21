@@ -175,7 +175,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
           * @see com.sun.fortress.interpreter.evaluator.values.MethodClosure#applyMethod(java.util.List, com.sun.fortress.interpreter.evaluator.values.FObject, com.sun.fortress.interpreter.useful.HasAt)
           */
          @Override
-         public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
+         public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
              FlatStorage fs = (FlatStorage) selfValue;
              int i = ((HasIntValue)args.get(0)).getInt();
              FValue r = fs.a.get(i).getValue();
@@ -197,7 +197,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
           * @see com.sun.fortress.interpreter.evaluator.values.MethodClosure#applyMethod(java.util.List, com.sun.fortress.interpreter.evaluator.values.FObject, com.sun.fortress.interpreter.useful.HasAt)
           */
          @Override
-         public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
+         public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
              FlatStorage fs = (FlatStorage) selfValue;
              // TODO type test.
              int ind = ((HasIntValue)args.get(1)).getInt();

@@ -22,20 +22,30 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.nodes.FnName;
+import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
+import com.sun.fortress.interpreter.nodes.StaticArg;
+import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes.TypeApply;
 import com.sun.fortress.interpreter.useful.BATreeEC;
+import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.Memo1P;
 import com.sun.fortress.interpreter.useful.Ordinal;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-public class OverloadedFunction extends Fcn {
+public class  OverloadedFunction extends Fcn
+    implements Factory1P<List<FType>, Fcn, HasAt>{
 
     protected List<Overload> overloads = new ArrayList<Overload>();
     protected boolean finishedFirst = false;
@@ -91,6 +101,9 @@ public class OverloadedFunction extends Fcn {
             } else if (sfcn instanceof Dummy_fcn) {
                 // Primitives are all ready
 
+            } else if (sfcn instanceof FGenericFunction) {
+                // no finishInitializing for these guys, yet
+
             } else {
                 throw new InterpreterError(
                             "Expected a closure or primitive, instead got "
@@ -121,6 +134,20 @@ public class OverloadedFunction extends Fcn {
                 Overload o1 = overloads.get(i);
                 Overload o2 = overloads.get(j);
 
+                SingleFcn f1 = o1.getFn();
+                SingleFcn f2 = o2.getFn();
+                
+                boolean samePartition = false;
+                
+                // Spot the case where two generics have equal static parameter lists
+                if (f1 instanceof ClosureInstance && f2 instanceof ClosureInstance) {
+                    FGenericFunction g1 = ((ClosureInstance) f1).getGenerator();
+                    FGenericFunction g2 = ((ClosureInstance) f2).getGenerator();
+                    if (FGenericFunction.genComparer.compare(g1, g2) == 0) {
+                        samePartition = true;
+                    }
+                }
+                
                 List<FType> pl1 = o1.getParams();
                 List<FType> pl2 = o2.getParams();
 
@@ -350,7 +377,7 @@ public class OverloadedFunction extends Fcn {
         SingleFcn best_f = cache.get(args);
         
         if (best_f == null) {
-            int best = bestMatchIndex(args);
+            int best = bestMatchIndex(args, loc, envForInference);
 
             if (best == -1) {
                 // TODO add checks for COERCE, right here.
@@ -370,28 +397,52 @@ public class OverloadedFunction extends Fcn {
      * Returns index of best match for args among the overloaded functions.
      *
      * @param args
+     * @param envForInference 
+     * @param loc 
      * @return
      * @throws Error
      */
-    public int bestMatchIndex(List<FValue> args) throws Error {
+    public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
         if (!finishedSecond) throw new InterpreterError("Cannot call before 'setFinished()'");
         int best = -1;
+        SingleFcn best_sfn = null;
+        
         for (int i = 0; i < overloads.size(); i++) {
             Overload o = overloads.get(i);
             if (o.getParams() == null) {
                 throw new InterpreterError("Unfinished overloaded function " + this);
             }
-            List<FValue> oargs = o.getFn().fixupArgCount(args);
-            if (oargs != null &&
-                argsMatchTypes(oargs,  o) &&
-                (best == -1 || moreSpecificThan(i, best))) {
-                    best = i;
+            SingleFcn sfn = o.getFn();
+
+            List<FValue> oargs = args;
+            
+            if (sfn instanceof FGenericFunction) {
+                FGenericFunction gsfn = (FGenericFunction) sfn;
+                try {
+                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
+                } catch (ProgramError pe) {
+                    continue; // No match, means no dice.
+                }
+                
             }
+            
+            oargs = sfn.fixupArgCount(args);
+            
+            // Non-generic, old code.
+            if (oargs != null &&
+                argsMatchTypes(oargs,  sfn.getDomain()) &&
+                        (best == -1 ||
+                         best == i ||
+                         FType.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
+                    best = i;
+                    best_sfn = sfn;
+            }
+            
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
             throw new ProgramError("Failed to find matching overload, args = " +
-                                   Useful.listInParens(args) + ", overload = " + this);
+                    Useful.listInParens(args) + ", overload = " + this);
         }
         return best;
     }
@@ -461,5 +512,97 @@ public class OverloadedFunction extends Fcn {
         finishedFirst = true;
 
     }
+    
+    /* This code gives overloaded functions the interface of a set of generic
+     * functions.
+     * 
+     */
+
+    private class Factory implements Factory1P<List<FType>, Fcn, HasAt> {
+
+        public Fcn make(List<FType> args, HasAt within) {
+            // TODO finish this.
+            
+            SingleFcn   f = null;
+            OverloadedFunction of = null;
+            
+            for (Overload ol : getOverloads()) {
+                SingleFcn sfcn = ol.getFn();
+                if (sfcn instanceof FGenericFunction) {
+                    FGenericFunction gf = (FGenericFunction) sfcn;
+                    
+                    // Check that args matches the static parameters of the generic function
+                    // TODO -- can a generic instantiation result in an unfulfillable overloading?
+                    
+                    if (compatible(args, gf.getFnDefOrDecl().getStaticParams().getVal())) {
+
+                        SingleFcn tf = gf.typeApply(within, args);
+                        if (f == null) {
+                            f = tf;
+                        } else if (of == null) {
+                            of = new OverloadedFunction(getFnName(), 
+                                    getWithin());
+                            of.addOverload(f);
+                            of.addOverload(tf);
+                        } else {
+                            of.addOverload(tf);
+                        }
+                    }
+
+                }
+            }
+           if (of != null) {
+               of.finishInitializing();
+               return of;
+           }
+           if (f != null) return f;
+           throw new ProgramError("No matches for instantiation of overloaded " + OverloadedFunction.this + " with " + args);
+        }
+    }
+
+     Memo1P<List<FType>, Fcn, HasAt> memo = new Memo1P<List<FType>, Fcn, HasAt>(new Factory());
+     
+    public Fcn make(List<FType> l, HasAt within) {
+        return memo.make(l, within);
+    }
+
+     
+    public static boolean compatible(List<FType> args, List<StaticParam> val) {
+       if (args.size() != val.size()) return false;
+       for (int i = 0; i < args.size(); i++) {
+           // TODO need to make this check more comprehensive and detailed.
+           FType a = args.get(i);
+           StaticParam p = val.get(i);
+           if (p instanceof SimpleTypeParam) {
+               if (a instanceof FTypeNat) return false;
+           }
+       }
+       return true;
+    }
+
+    public Fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt within) {
+        EvalType et = new EvalType(e);
+        // TODO Can combine these two functions if we enhance the memo and factory
+        // to pass two parameters instead of one.
+        ArrayList<FType> argValues = et.forStaticArgList(args);
+
+        return typeApply(e, within, argValues);
+    }
+
+    /**
+     * Same as typeApply, but with the types evaliated already.
+     *
+     * @param args
+     * @param e
+     * @param within
+     * @param argValues
+     * @return
+     * @throws ProgramError
+     */
+    Fcn typeApply(BetterEnv e, HasAt within, List<FType> argValues) throws ProgramError {
+        // Need to filter for matching generics in the overloaded type.
+        return make(argValues, within);
+    }
+
 
 }

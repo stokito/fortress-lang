@@ -68,14 +68,14 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
                 l.add(FInt.make(indices[i]));
             }
         }
-        putter.applyMethod(l,array,at);
+        putter.applyMethod(l,array,at, null);
     }
 
     public void put(FValue what, int index) {
         l.clear();
         l.add(what);
         l.add(FInt.make(index));
-        putter.applyMethod(l,array,at);
+        putter.applyMethod(l,array,at, null);
     }
 
     public FValue get(int[] indices, int indices_depth) {
@@ -90,7 +90,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
                 l.add(FInt.make(indices[i]));
             }
         }
-        return getter.applyMethod(l,array,at);
+        return getter.applyMethod(l,array,at, null);
     }
 
     public int dim() {

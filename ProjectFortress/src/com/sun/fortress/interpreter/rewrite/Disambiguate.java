@@ -50,6 +50,7 @@ import com.sun.fortress.interpreter.nodes.Generator;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.IdType;
 import com.sun.fortress.interpreter.nodes.LValue;
+import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.LetFn;
 import com.sun.fortress.interpreter.nodes.LocalVarDecl;
 import com.sun.fortress.interpreter.nodes.Node;
@@ -356,9 +357,13 @@ public class Disambiguate extends Rewrite {
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);
                     }
-
                     return newName(vre, s);
-
+                } else if (node instanceof LValueBind) {
+                    LValueBind lvb = (LValueBind) node;
+                    Id id = lvb.getName();
+                    if ("_".equals(id.getName())) {
+                        return new LValueBind(lvb, new Id(id.getSpan(), "_$" + id.getSpan() ));
+                    }
                 } else if (node instanceof IdType) {
                     IdType vre = (IdType) node;
 

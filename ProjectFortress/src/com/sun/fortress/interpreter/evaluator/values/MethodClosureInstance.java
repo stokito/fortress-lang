@@ -45,7 +45,8 @@ public class MethodClosureInstance extends MethodClosure  implements MethodInsta
         return genericEnv;
     }
 
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
+    @Override
+    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
         // This is a little over-tricky.  In theory, all instances of objectExpr from the same
         // "place" are environment-free, and instead they snag their environments from self.

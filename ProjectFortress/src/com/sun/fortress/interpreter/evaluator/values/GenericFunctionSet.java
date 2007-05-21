@@ -24,6 +24,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
@@ -153,7 +154,7 @@ public class GenericFunctionSet extends
                 ClosureInstance ci = (ClosureInstance) f;
                 FGenericFunction gf = ci.getGenerator();
                 try {
-                    f = ev.inferAndInstantiateGenericFunction(args, gf, loc);
+                    f = EvaluatorBase.inferAndInstantiateGenericFunction(args, gf, loc, envForInference);
                 } catch (ProgramError ex) {
                     if (TRACE) System.err.println("Rejecting "+f);
                     // if (TRACE) ex.printStackTrace();

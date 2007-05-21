@@ -22,16 +22,22 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes.Applicable;
+import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
+import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
@@ -99,5 +105,49 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         }
         return null;
     }
+    
+    protected void forFnDecl3(FnDecl x) {
+        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        String fname = x.nameAsMethod();
+
+        if (optStaticParams.isPresent()) {
+            // GENERIC
+            // This blows up because the type is not instantiated.
+//            {
+//                // Why isn't this the right thing to do?
+//                // FGenericFunction is (currently) excluded from this treatment.
+//                FValue fcn = containing.getValue(fname);
+//                
+//                if (fcn instanceof OverloadedFunction) {
+//                    OverloadedFunction og = (OverloadedFunction) fcn;
+//                    og.finishInitializing();
+//
+//                }
+//            }
+
+        } else {
+            // NOT GENERIC
+            {
+                Fcn fcn = (Fcn) containing.getValue(fname);
+
+                if (fcn instanceof Closure) {
+                    // This is only loosely paired with the
+                    // first pass; dealing with overloading tends to
+                    // break up the 1-1 relationship between the two.
+                    // However, because of the way that scopes nest,
+                    // it is possible (I think) that f could be overloaded
+                    // in an inner scope but not overloaded in an outer
+                    // scope.
+                    Closure cl = (Closure) fcn;
+                    cl.finishInitializing();
+                } else if (fcn instanceof OverloadedFunction) {
+                    OverloadedFunction og = (OverloadedFunction) fcn;
+                    og.finishInitializing();
+
+                }
+            }
+        }
+   }
+
 
 }

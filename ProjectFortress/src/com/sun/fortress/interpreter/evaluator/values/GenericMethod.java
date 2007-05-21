@@ -129,6 +129,7 @@ public class GenericMethod extends MethodClosure implements
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
+        
         ArrayList<FType> argValues = et.forStaticArgList(args);
         return make(argValues, within);
     }

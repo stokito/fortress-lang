@@ -75,7 +75,8 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
         subscriptsAndValue.add(value);
         evaluator.evalExprList(subs, subscriptsAndValue);
-        cl.applyMethod(subscriptsAndValue, array, x);
+        // TODO verify that 'e' is proper inference environment
+        cl.applyMethod(subscriptsAndValue, array, x, evaluator.e);
         return null;
     }
 

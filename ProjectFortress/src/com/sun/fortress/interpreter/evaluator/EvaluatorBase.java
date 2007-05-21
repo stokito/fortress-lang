@@ -74,7 +74,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
 //
 //            foo = sfcn;
 
-            foo = inferAndInstantiateGenericFunction(args, gen, loc);
+            foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
         }
         return foo.apply(args, loc, e);
@@ -90,8 +90,8 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
      * @return
      * @throws ProgramError
      */
-    public  Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
-            FGenericFunction appliedThing, HasAt loc) throws ProgramError {
+    public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
+            FGenericFunction appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
         FGenericFunction bar = (FGenericFunction) appliedThing;
         Option<List<StaticParam>> otparams = bar.getFnDefOrDecl()
                 .getStaticParams();
@@ -107,6 +107,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
         for (FValue a : args) {
             p = pit.hasNext() ? pit.next() : p;
             Option<TypeRef> t = p.getType();
+            // why can't we just skip if missing?
             if (!t.isPresent())
                 throw new ProgramError(loc,
                         "Parameter needs type for generic resolution");

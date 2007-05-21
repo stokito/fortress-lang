@@ -156,7 +156,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         return f.data2;
     }
 
-
     public BATree2Node<T, U, V> getEntry(int k) {
         if (k < 0 || k >= size())
             throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
@@ -285,8 +284,8 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             return null;
         return old.getObject(k, comp).asPair();
     }
-
-    /**
+    
+     /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
      * @param k
@@ -339,4 +338,23 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         return new EntrySet<T,U,V>(root, comp);
     }
 
+    /* Slightly more efficient (fewer allocations) versions of get/put */
+    
+    public BATree2Node<T, U, V> getNode(T k) {
+        if (root == null) return null;
+        BATree2Node<T, U, V> f = root.getObject(k, comp);
+        if (f == null) return null;
+        return f;
+    }
+    public void putPair(T k, U d1, V d2) {
+        if (root == null) {
+            root = new BATree2Node<T, U, V>(k,d1, d2,null, null);
+           return;
+        }
+        BATree2Node<T, U, V> old = root;
+        root = root.add(k,d1, d2, comp);
+    }
+
+
+    
 }

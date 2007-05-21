@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.useful;
 public class LongBitsLatticeOps implements LatticeOps<Long> {
 
     public LatticeOps<Long> dual() {
-        return new DualLattice<Long>(this);
+        return VD;
     }
 
     public Long join(Long x, Long y) { /* up */
@@ -49,5 +49,6 @@ public class LongBitsLatticeOps implements LatticeOps<Long> {
     }
 
     public static final LongBitsLatticeOps V = new LongBitsLatticeOps();
+    public static final LatticeOps<Long> VD = new DualLattice<Long>(V);
 
 }

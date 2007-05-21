@@ -74,7 +74,8 @@ public class PartiallyDefinedMethod extends MethodClosure {
 
     }
 
-    public FValue applyMethod(List<FValue> args0, FObject selfValue, HasAt loc) {
+    @Override
+    public FValue applyMethod(List<FValue> args0, FObject selfValue, HasAt loc, BetterEnv envForInference) {
         List<FValue> args = conditionallyUnwrapTupledArgs(args0);
         // TraitMethods do not get their environment from the object.
         Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(evaluationEnv, args, loc));

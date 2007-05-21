@@ -111,7 +111,7 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
         }
     }
 
-    BATreeNode<T,U> root;
+    volatile BATreeNode<T,U> root;
     Comparator<T> comp;
 
     public BATree(Comparator<T> c) {
@@ -250,6 +250,33 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
                 return null;
         }
         return old.getObject(k, comp).data;
+    }
+
+    /**
+     * Puts a value only if there is no data present.
+     * Returns the data that is actually in the tree.
+     * @param k
+     * @param d
+     * @return
+     */
+    public U syncPutIfMissing(T k, U d) {
+        BATreeNode<T, U> next;
+        synchronized (this) {
+            if (root == null) {
+                root = new BATreeNode<T, U>(k, d, null, null);
+                return d;
+            }
+           
+            next = root.add(k, d, comp);
+
+            // Performance hack; if it wasn't there, then the tree got bigger.
+            if (next.weight == root.weight) 
+                return root.getObject(k, comp).getValue();
+            
+            root = next;
+            return d;
+        }
+       
     }
 
     public void clear() {

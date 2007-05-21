@@ -43,9 +43,9 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
    static int lastBest;
 
-   public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
+   public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
 
-        int best = bestMatchIndex(args);
+        int best = bestMatchIndex(args, loc, envForInference);
         lastBest = best;
 
         if (best == -1) {
@@ -55,7 +55,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
                          Useful.listInParens(args) + ", overload = " + this);
         }
 
-        return ((Method)overloads.get(best).getFn()).applyMethod(args, selfValue, loc);
+        return ((Method)overloads.get(best).getFn()).applyMethod(args, selfValue, loc, envForInference);
     }
 
 

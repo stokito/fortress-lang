@@ -41,6 +41,7 @@
     <property name="build.classpath" location="${build}"/>
     <property name="precedence" location="${parser}/precedence"/>
     <property name="junit" location="${basedir}/third_party/junit"/>
+    <property name="junitMem" value="256m"/>
     <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar:${junit}/junit.jar"/>
     <property environment="env"/>
 
@@ -266,6 +267,7 @@
                haltonfailure="off"
                showoutput="yes"
                fork="true"
+               maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
@@ -294,6 +296,7 @@
                haltonfailure="off"
                showoutput="yes"
                fork="true"
+               maxmemory="${junitMem}"
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
@@ -323,6 +326,7 @@
                haltonfailure="off"
                showoutput="yes"
                fork="true"
+               maxmemory="${junitMem}"
                errorProperty="not.passing.yet"
                failureProperty="not.passing.yet">
             <classpath>

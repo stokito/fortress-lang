@@ -48,12 +48,12 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.GenericFunctionSet;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.MethodInstance;
+import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -508,7 +508,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             Option<List<Expr>> _else = x.getElse_();
             if (_else.isPresent()) {
-                // TODO need an Else node to hang a location on
+                // TODO need an Else node to hang a location on 
                 return evalExprList(_else.getVal(), x);
             }
             return evVoid;
@@ -1083,7 +1083,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         singleton.add(null);
         for (FValue v : evaled) {
             singleton.set(0, v);
-            mw.call(singleton);
+            mw.call(singleton, e);
         }
         return theArray;
     }
@@ -1128,7 +1128,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         Method cl = (Method) ixing;
         List<FValue> subscripts = evalExprListParallel(subs);
-        return cl.applyMethod(subscripts, array, x);
+        return cl.applyMethod(subscripts, array, x, e);
     }
 
     public FValue forSubscriptOp(SubscriptOp x) {
@@ -1196,7 +1196,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         // if the parameters are non-symbolic.
                         GenericMethod gm = ((MethodInstance) cl).getGenerator();
                         return (gm.typeApply(args, e, x)).applyMethod(
-                                evalInvocationArgs(exprs), fobject, x);
+                                evalInvocationArgs(exprs), fobject, x, e);
 
                     } else {
                         throw new ProgramError(x, fobject.getSelfEnv(),
@@ -1245,7 +1245,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         "undefined method/field " + fld.getName());
             else if (cl instanceof Method) {
                 return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
-                        fobject, x);
+                        fobject, x, e);
             } else if (cl instanceof Fcn) {
                 Fcn fcl = (Fcn) cl;
                 // Ordinary closure, assigned to a field.
@@ -1440,8 +1440,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return ((FGenericFunction) g).typeApply(args, e, x);
         } else if (g instanceof GenericConstructor) {
             return ((GenericConstructor) g).typeApply(args, e, x);
-        } else if (g instanceof GenericFunctionSet) {
-            return ((GenericFunctionSet) g).typeApply(args, e, x);
+        } else if (g instanceof OverloadedFunction) {
+            return((OverloadedFunction) g).typeApply(args, e, x);
         }
         return super.forTypeApply(x);
     }

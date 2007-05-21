@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.ArrayList;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
@@ -41,7 +42,7 @@ public class MethodWrapper {
         this.at = at;
     }
 
-    public FValue call(ArrayList<FValue> l) {
-        return mc.applyMethod(l,self,at);
+    public FValue call(ArrayList<FValue> l, BetterEnv envForInference) {
+        return mc.applyMethod(l,self,at, envForInference);
     }
 }

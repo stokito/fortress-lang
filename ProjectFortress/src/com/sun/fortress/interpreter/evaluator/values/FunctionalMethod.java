@@ -49,7 +49,7 @@ public class FunctionalMethod extends Closure {
         // TODO need to common this up with other method dispatch in Evaluator
         
         if (cl instanceof Method) {
-            return ((Method) cl).applyMethod(args, self, loc);
+            return ((Method) cl).applyMethod(args, self, loc, envForInference);
         }
         return NI.nyi("Functional method apply, method = " + cl);
  

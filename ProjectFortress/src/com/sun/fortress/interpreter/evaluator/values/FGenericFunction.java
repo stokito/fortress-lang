@@ -23,6 +23,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod.GenericComparer;
@@ -31,6 +32,7 @@ import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.useful.BATree;
 import com.sun.fortress.interpreter.useful.BATreeEC;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -44,7 +46,7 @@ public class FGenericFunction extends SingleFcn
 
     volatile Simple_fcn symbolicInstantiation;
     
-    /* (non-Javadoc)
+   /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
     @Override
@@ -60,7 +62,16 @@ public class FGenericFunction extends SingleFcn
         if (symbolicInstantiation == null) {
             synchronized (this) {
                 if (symbolicInstantiation == null) {
-                    List<FType> symbolic_static_args = createSymbolicInstantiation(getEnv(), fndef, fndef);
+                    List<FType> symbolic_static_args = symbolicStaticsByPartition.get(this);
+                    if (symbolic_static_args == null) {
+                        /* TODO This is not quite right, because we risk
+                         * identifying two functions whose where clauses are
+                         * interpreted differently in two different environments.
+                         */
+                        symbolic_static_args =
+                            symbolicStaticsByPartition.syncPutIfMissing(this,
+                                    createSymbolicInstantiation(getEnv(), fndef, fndef));
+                    }
                     symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
                 }
             }
@@ -152,12 +163,16 @@ public class FGenericFunction extends SingleFcn
         }
         return make(argValues, within);
     }
+    
+    Simple_fcn typeApply(HasAt within, List<FType> argValues) throws ProgramError {
+        return make(argValues, within);
+    }
 
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         // TODO Auto-generated method stub
-        NI.ni();
-        return null;
+        Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
+        return foo.apply(args, loc, envForInference);
     }
 
     @Override
@@ -201,6 +216,7 @@ public class FGenericFunction extends SingleFcn
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
-    
+    volatile static BATree<FGenericFunction, List<FType>>
+    symbolicStaticsByPartition = new BATree<FGenericFunction, List<FType>>(genComparer);
 
 }

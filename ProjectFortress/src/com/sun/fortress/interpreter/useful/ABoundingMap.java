@@ -66,21 +66,24 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
     public U meetPut(T k, U v) {
         U old = table.get(k);
         if (old != null) {
-            table.put(k, lattice.meet(old, v));
+            v = lattice.meet(old, v);
+            table.put(k, v);
         } else {
             table.put(k, v);
+            return v;
         }
-        return old;
+        return v;
     }
     /** puts max/union of v and old */
     public U joinPut(T k, U v) {
         U old = table.get(k);
         if (old != null) {
-            table.put(k, lattice.join(old, v));
+            v = lattice.join(old, v);
+            table.put(k, v);
         } else {
             table.put(k, v);
         }
-        return old;
+        return v;
     }
 
     public U put(T k, U v) {

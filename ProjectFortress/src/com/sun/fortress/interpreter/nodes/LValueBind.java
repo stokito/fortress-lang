@@ -50,6 +50,10 @@ public class LValueBind extends LValue implements LHS {
         }
 
     };
+    
+    public LValueBind(LValueBind old, Id name) {
+        this(old.span, name, old.type, old.mods, old.mutable);
+    }
 
     public LValueBind(Span span, Id name, Option<TypeRef> type) {
         super(span);

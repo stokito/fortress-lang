@@ -41,7 +41,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.GenericFunctionSet;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethodSet;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -404,7 +403,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
    private void forFnDecl2(FnDecl x) {
 
    }
-   private void forFnDecl3(FnDecl x) {
+   // Overridden in BuildTraitEnvironment
+   protected void forFnDecl3(FnDecl x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
        String fname = x.nameAsMethod();
 
@@ -414,9 +414,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                // Why isn't this the right thing to do?
                // FGenericFunction is (currently) excluded from this treatment.
                FValue fcn = containing.getValue(fname);
-               if (fcn instanceof GenericFunctionSet) {
-                   GenericFunctionSet gfs = (GenericFunctionSet) fcn;
-                   gfs.finishInitializing();
+               
+               if (fcn instanceof OverloadedFunction) {
+                   OverloadedFunction og = (OverloadedFunction) fcn;
+                   og.finishInitializing();
+
                }
            }
 

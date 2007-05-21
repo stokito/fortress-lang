@@ -82,7 +82,7 @@ public class OverloadJUTest extends TestCase {
         List<FValue> vals = new ArrayList<FValue>();
         for(FType t: dynamic_types)
             vals.add(new DummyValue(t));
-        return fcn.bestMatchIndex(vals);
+        return fcn.bestMatchIndex(vals, null, null);
     }
 
     private <T> List<T> l(T... args) { return Arrays.asList(args); }
