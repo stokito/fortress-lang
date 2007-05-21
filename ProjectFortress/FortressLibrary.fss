@@ -561,7 +561,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
     if b0=0 then array1[\T,s0\]() else __DefaultArray1[\T,b0,s0\]() end
 
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
-    typecase p = __Proxy[\T\]() of
+    typecase _ = __Proxy[\T\]() of
         __Proxy[\ZZ32\] => vector[\T,s0\]()
         __Proxy[\ZZ64\] => vector[\T,s0\]()
         __Proxy[\Integral\] => vector[\T,s0\]()

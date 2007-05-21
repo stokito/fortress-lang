@@ -160,8 +160,6 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Id name = x.getName();
         Option<TypeRef> type = x.getType();
         String s = name.getName();
-        if ("_".equals(s))
-            s = s + name.at();
         boolean mutable = x.getMutable();
 
         // Here we have an LHS context

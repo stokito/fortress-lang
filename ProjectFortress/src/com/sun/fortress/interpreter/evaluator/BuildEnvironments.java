@@ -414,7 +414,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                // Why isn't this the right thing to do?
                // FGenericFunction is (currently) excluded from this treatment.
                FValue fcn = containing.getValue(fname);
-               
+
                if (fcn instanceof OverloadedFunction) {
                    OverloadedFunction og = (OverloadedFunction) fcn;
                    og.finishInitializing();
@@ -846,8 +846,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
           Option<TypeRef> type = lvb.getType();
           Id name = lvb.getName();
           String sname = name.getName();
-          if ("_".equals(sname))
-              sname = sname + name.at();
 
           try {
               /* Ignore the type, until later */
@@ -933,8 +931,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 Option<TypeRef> type = lvb.getType();
                 Id name = lvb.getName();
                 String sname = name.getName();
-                if ("_".equals(sname))
-                    sname = sname + name.at();
 
                 FType ft = type.isPresent() ?
                         (new EvalType(containing)).evalType(type.getVal())
