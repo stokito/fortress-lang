@@ -88,7 +88,7 @@ private TypeRef NonArrowType =
      DottedId (w [\ w StaticArgList w \])?
    | { w TypeRef w |-> w TypeRef w }
    | <| w TypeRef w |>
-   | TypeRef w [ (w ArraySize)? w ]
+   | TypeRef [ (w ArraySize)? w ]
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
@@ -132,7 +132,7 @@ private constant transient Action<TypeRef> NonArrowTypeTail =
    ;
 
 private constant inline Action<TypeRef> ArrayTypeTail =
-     w opensquare a1:(w ArraySize)? w closesquare
+     opensquare a1:(w ArraySize)? w closesquare
      { yyValue = new Action<TypeRef>() {
            public TypeRef run(TypeRef base) {
                Option<FixedDim> indices;
@@ -367,8 +367,6 @@ ExtentRange ExtentRange =
        else            size = Some.<TypeRef>make(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
-/* ************************************************
- * Not Yet Implemented ***************************
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
      { Option<TypeRef> base;
        Option<TypeRef> size;
@@ -378,7 +376,6 @@ ExtentRange ExtentRange =
        else            size = Some.<TypeRef>make(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
-************************************************ */
    / a1:StaticArg
      { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
                                  None.<TypeRef>make(), Some.<TypeRef>make(a1));

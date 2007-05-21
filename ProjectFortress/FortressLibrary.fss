@@ -1205,6 +1205,10 @@ opr #(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
 opr #(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)
 opr #(lo:RR64, sz:RR64): Range[\RR64\] = ParRange[\RR64\](lo,sz)
 
+opr :(lo:ZZ32, hi:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,hi-lo+1)
+opr :(lo:ZZ64, hi:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,hi-lo+1)
+opr :(lo:RR64, hi:RR64): Range[\RR64\] = ParRange[\RR64\](lo,hi-lo+1)
+
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 

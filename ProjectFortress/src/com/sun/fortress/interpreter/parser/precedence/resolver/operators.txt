@@ -314,7 +314,7 @@ plain_comparison
   greater-than overlapping less-than
   greater-than beside less-than
   number sign
-#  colon
+  colon
 
 subset_comparison_operators
   subset of, subset
