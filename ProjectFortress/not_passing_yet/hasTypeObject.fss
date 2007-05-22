@@ -16,8 +16,11 @@
  ******************************************************************************)
 
 component Mumble
+export Executable
 
 (* The version of "ignore" we *ought* to be using in the library. *)
 preferredIgnore(x:Object):() = ()
+
+run(args:String...):() = ignore(args)
 
 end
