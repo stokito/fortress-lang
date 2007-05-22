@@ -146,12 +146,12 @@ Op CompoundOp =
 String doublerightarrow = "=>" &(w NoNewlineExpr w match);
 
 /* The operator "BY" should not be used with ExtentRange. */
-String crossOp = "BY" &(w ExtentRange);
+String crossOp = "BY":OpName &(w ExtentRange);
 
-String caret = "^";
+String caret = "^":exponentOp;
 String colonequals = ":=";
 String equals = "=" (!op);
-String equalsOp = "=";
+String equalsOp = "=":singleOp;
 String semicolon = ";";
 
 transient void closecurly = "}";
@@ -159,26 +159,27 @@ transient void closeangle = "|>";
 transient void closesquare = "]";
 transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
-transient void colon = ":" !(colonequals);
+transient void colon = ":" (!op);
+transient void colonOp = ":":singleOp;
 transient void cross = "BY";
-transient void DOT = "DOT";
+transient void DOT = "DOT":OpName;
 transient void ellipses = "...";
 transient void emptylist = "()";
 transient void leftarrow  = !(multiOp) "<-";
 transient void mapsto =  "|->";
 transient void match = "=>";
-transient void minus = "-";
+transient void minus = "-":singleOp;
 transient void one = "1";
-transient void opencurly = "{";
-transient void openangle = "<|";
+transient void opencurly = "{":leftEncloser;
+transient void openangle = "<|":leftEncloser;
 transient void opendoublesquare = "[\\";
 transient void openparen = !(leftEncloser) "(";
-transient void opensquare = "[";
-transient void plus = "+";
-transient void pound = "#";
+transient void opensquare = "[":leftEncloser;
+transient void plus = "+":singleOp;
+transient void pound = "#":singleOp;
+transient void slash = "/":singleOp;
+transient void star = "*":singleOp;
 transient void rightarrow = "->";
-transient void slash = "/";
-transient void star = "*";
 transient void underscore = "_";
 
 transient void comma = ",";
