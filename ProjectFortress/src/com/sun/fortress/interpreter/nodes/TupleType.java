@@ -20,6 +20,8 @@ package com.sun.fortress.interpreter.nodes;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.interpreter.useful.Useful;
+
 // / and arrow_type = arrow_type_rec node
 // / and arrow_type_rec =
 // / {
@@ -52,6 +54,11 @@ public class TupleType extends TypeRef {
 
     TupleType(Span span) {
         super(span);
+    }
+
+    @Override
+    public String toString() {
+        return Useful.listInParens(getElements());
     }
 
     /**

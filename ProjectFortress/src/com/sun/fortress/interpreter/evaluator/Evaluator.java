@@ -910,9 +910,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within MultiDimRows, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-        NI.na("This is actually a bug.");
-        Evaluator notInPaste = new Evaluator(this);
-        return x.getElement().accept(notInPaste);
+        throw new InterpreterError(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+        // Evaluator notInPaste = new Evaluator(this);
+        // return x.getElement().accept(notInPaste);
     }
 
     /**

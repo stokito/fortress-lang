@@ -22,7 +22,7 @@ export Executable
 
 (* Need this to get excludes relationship that ought to be
    derived automatically for any two object types. *)
-   
+
 trait notRR64 excludes {RR64} end
 
 trait super extends {notRR64} end

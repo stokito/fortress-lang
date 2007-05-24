@@ -24,5 +24,13 @@ object O
   opr[i:ZZ32]   : String = "SubscriptedExpr: []"
 end
 
-run(args:String...) = if O[0] = O(/0/) then println "Wrong!" else "OK" end
+run(args:String...) = if O[0] = O(/0/) then
+                        println "WRONG!"
+                        println O[0]
+                        println O(/0/)
+                      else
+                        println "OK"
+                      end
+end
+
 end

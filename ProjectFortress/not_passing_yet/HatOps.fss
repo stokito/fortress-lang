@@ -18,14 +18,16 @@
 component HatOps
 export Executable
 
-(* Not even parsing yet *)
+object A
+end
 
-a = A^T
-a = A^TH
-a = A^TT
-a = A^(Tx)
-
-a = A^*
-a = A^n
+run(args:String...):() = do
+  a = A^T
+  b = A^TH
+  c = A^TT
+  d = A^(Tx)
+  e = A^*
+  f = A^n
+end
 
 end

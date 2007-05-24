@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component Mumble
+export Executable
 
 f(x : ZZ64) : Object = do
     v : Object = x
@@ -26,5 +27,7 @@ g(x: Rank[\3\]) : Object = do
     v : Object = x
     v
   end
+
+run(args:String...):() = ()
 
 end

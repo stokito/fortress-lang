@@ -48,8 +48,48 @@ default; right now they instead extend Any by default.
 
 *)
 
+(** Equality *)
+
+(* Eventually make = a functional method, once we have a proper object
+   hierarchy. *)
 opr =(a:Any, b:Any):Boolean = false
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+
+(** Generator
+ * Note that more complex derived generators are specified further
+ * down. *)
+
+trait Generator[\E\]
+    (* Minimal complete definition is the following two methods: *)
+    getter size(): ZZ32
+    generate[\R\](r: Reduction[\R\], m: E->R): R
+
+    (* Combining generators to produce new generators *)
+    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
+    seq(): Generator[\E\] = NaiveSeqGenerator[\E\](self)
+        (* You might think this should yield SequentialGenerator[\E\],
+           but that turns out not to be true for SimpleMappedGenerator
+           and SimplePairGenerator in the absence of conditional
+           extension or where clauses. *)
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        SimplePairGenerator[\E,G\](self, g)
+
+    (* Derived generation operations *)
+    mapReduce[\R\](m: E->R, j:(R,R)->R, z:R): R =
+        generate[\R\](MapReduceReduction[\R\](j,z), m)
+    reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
+    reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
+    loop(f:E->()): () = generate[\()\](VoidReduction, f)
+end
+
+(* Operations which use generation internally *)
+opr IN[\E\](x: E, this: Generator[\E\]): Boolean =
+    this.generate[\Boolean\](OrReduction, fn (y: E) => x=y)
+opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN self)
+
+seq[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
+sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
+
 
 (** Maybe type *)
 
@@ -60,27 +100,54 @@ trait MaybeType excludes { Number }
   eq(o:MaybeType):Boolean = false
 end
 
-trait Maybe[\T\] extends MaybeType comprises { Nothing[\T\], Just[\T\] }
+trait Maybe[\T\]
+    extends { MaybeType, SequentialGenerator[\T\]}
+    comprises { Nothing[\T\], Just[\T\] }
   getter unJust() : T throws UnJustNothing
 end
 
 object Just[\T\](x:T) extends {Maybe[\T\]}
-  getter toString():String = "Just(" x ")"
-  getter isJust() = true
-  getter unJust() = x
-  eq(o:Just[\T\]) = (x=o.unJust())
+    getter size()=1
+    getter toString():String = "Just(" x ")"
+    getter isJust() = true
+    getter unJust() = x
+    eq(o:Just[\T\]) = (x=o.unJust())
+    generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
+
+    map[\G\](f: T->G): Generator[\G\] = Just[\G\](f(x))
+    cross[\G\](g: Just[\G\]): Generator[\(T,G)\] =
+        Just[\(T,G)\](x,g.unJust())
+
+    mapReduce[\R\](m: T->R, _:(R,R)->R, _:R): R = m(x)
+    reduce(_:(T,T)->T, _:T):T = x
+    reduce(_: Reduction[\T\]):T = x
+    loop(f:T->()): () = f(x)
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
 object Nothing[\T\]() extends { Maybe[\T\] }
-  getter isJust() = false
-  getter unJust() = throw UnJustNothing
-  getter toString():String = "Nothing"
-  eq(o:Nothing[\T\]) = true
+    getter size()=0
+    getter isJust() = false
+    getter unJust() = throw UnJustNothing
+    getter toString():String = "Nothing"
+    eq(o:Nothing[\T\]) = true
+    generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+
+    map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]()
+
+    mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
+    reduce(_:(T,T)->T, z:T):T = z
+    reduce(r: Reduction[\T\]):T = r.empty()
+    loop(f:T->()): () = ()
 end
 
 opr =(x:MaybeType, y:MaybeType) = x.eq(y)
+opr IN[\E\](x: E, g: Nothing[\E\]): Boolean = false
+opr NOTIN[\E\](x: E, g: Nothing[\E\]): Boolean = true
+opr IN[\E\](x: E, g: Just[\E\]): Boolean = x=g.unJust()
+opr NOTIN[\E\](x: E, g: Just[\E\]): Boolean = x=/=g.unJust()
 
 (** Exception hierarchy *)
 
@@ -212,7 +279,7 @@ instanceOf[\T\](x:Any):Boolean =
 
 (** Useful functions *)
 
-ignore(x:Any):() = ()
+ignore(_:Any):() = ()
 
 identity[\T\](x:T):T = x
 
@@ -238,16 +305,6 @@ end
 
 value object N[\nat n\]() extends { NatParam }
   toZZ() = n
-end
-
-(* Empty object which stands in for E in order to allow us to use
- * the weak type inference provided by the interpreter rather than
- * explicit type instantiation.  This is necessary when there
- * are other arguments where we're relying on overloading and
- * instantiation, such as arguments of type N[\n\].
- *
- * See __arr'() and array() below. *)
-value object Standin[\E\]()
 end
 
 (* Inner loop of reflect, hoisted to top level because of incomplete
@@ -357,19 +414,19 @@ end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
    run-time-determined size. *)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(Standin[\E\](),reflect(x))
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr'(__Proxy[\E\](),reflect(x))
 array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-   __arr'(Standin[\E\](),reflect(x), reflect(y))
+   __arr'(__Proxy[\E\](),reflect(x), reflect(y))
 array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-   __arr'(Standin[\E\](),reflect(x), reflect(y), reflect(z))
+   __arr'(__Proxy[\E\](),reflect(x), reflect(y), reflect(z))
 
 (* This should be local to array, but we don't support local
    parametric methods in the language spec at all at the moment. *)
-__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\]):Array1[\E,0,n\] =
+__arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\]):Array1[\E,0,n\] =
    array1[\E,n\]()
-__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\],y:N[\m\]):
+__arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
-__arr'[\E, nat n, nat m, nat p\](w:Standin[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
+__arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -462,7 +519,7 @@ trait Array1[\T, nat b0, nat s0\]
 
   seq(): SequentialGenerator[\(ZZ32,T)\] =
     SeqRange[\ZZ32\](0,s0).map[\(ZZ32,T)\](fn (i: ZZ32): (ZZ32,T) =>
-                                              (b0+i,get(i)))
+                                              (b0+i,self.get(i)))
 
   fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
     ParRange[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
@@ -672,7 +729,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   seq(): SequentialGenerator[\((ZZ32,ZZ32),T)\] =
       SeqRange[\ZZ32\](0,s0).cross[\ZZ32\](
           SeqRange[\ZZ32\](0,s1)).map[\((ZZ32,ZZ32),T)\](
-              fn (a:ZZ32, b:ZZ32): ((ZZ32,ZZ32),T) => ((a+b0,b+b1),get(a,b)))
+              fn (a:ZZ32, b:ZZ32): ((ZZ32,ZZ32),T)=>((a+b0,b+b1),self.get(a,b)))
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
   put(v:T, i:ZZ32, j:ZZ32) : ()
   get(i:ZZ32, j:ZZ32):T
@@ -1066,35 +1123,6 @@ object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     join(a:R, b:R): R = j(a,b)
 end
 
-trait Generator[\E\] (* excludes { ZZ32Range } *)
-    getter size(): ZZ32
-    generate[\R\](r: Reduction[\R\], m: E->R): R
-(*
-    No overloaded generic methods yet.  We call this reduce instead.
-    Similarly with loop.  These could all be variants of generate.
-    generate[\R\](r: Reduction[\E\]): E =
-        generate[\R\](r, identity[\E\])
-*)
-    mapReduce[\R\](m: E->R, j:(R,R)->R, z:R): R = do
-      generate[\R\](MapReduceReduction[\R\](j,z), m)
-    end
-    reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
-    reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
-    loop(f:E->()): () = generate[\()\](VoidReduction, f)
-    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
-        SimplePairGenerator[\E,G\](self, g)
-    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
-    seq(): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
-    contains(x: E): Boolean =
-        generate[\Boolean\](OrReduction, fn (y: E) => x=y)
-end
-
-opr IN[\R\](x:R, g:Generator[\R\]) = g.contains(x)
-opr NOTIN[\R\](x:R, g:Generator[\R\]) = NOT (g.contains(x))
-
-seq[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
-sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
-
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq() = self
 end
@@ -1112,7 +1140,7 @@ object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
         g.generate[\R\](r, m COMPOSE f)
     reduce(r: Reduction[\F\]): F =
         g.generate[\R\](r, f)
-    map[\G\](f': F->G): Generator[\G\] =
+    map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
     seq() = SimpleMappedGenerator[\E,F\](g.seq(),f)
 end
@@ -1146,7 +1174,7 @@ end
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     size() = g.size()
-    toString() = "seq(" g.toString() ")"
+    toString() = "sequential(" g.toString() ")"
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
       id(x:R):R = x
@@ -1162,6 +1190,11 @@ trait Range[\N extends Number\] extends Generator[\N\]
     getter size():N
     getter base():N
 end
+opr IN[\E\](x: E, r: Range[\E\]): Boolean = do
+        b = r.base()
+        b <= x AND (x-b < r.size())
+    end
+
 object ParRange[\N extends Number\](lo:N, sz:N)
         extends Range[\N\]
     getter size() = narrow(|\sz/|) MAX 0
@@ -1172,14 +1205,64 @@ object ParRange[\N extends Number\](lo:N, sz:N)
             r.empty()
         else
             gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(narrow |\s/|)
+                           (s1,s2) = partition(s)
                            r.join(gen(l,s1),gen(l+s1,s2))
                        else
                            m(l)
                        end
-            gen(lo,sz)
+            gen(lo,narrow |\sz/|)
         end
     seq() = SeqRange[\N\](base(),size())
+
+    mapReduce[\R\](m: N->R, j:(R,R)->R, z:R): R =
+        if sz < 1 then
+            z
+        else
+            gen(l,s) = if s>=2 then
+                           (s1,s2) = partition(s)
+                           j(gen(l,s1),gen(l+s1,s2))
+                       else
+                           m(l)
+                       end
+            gen(lo,narrow |\sz/|)
+        end
+    reduce(j:(N,N)->N, z:N):N =
+        if sz < 1 then
+            z
+        else
+            gen(l,s) = if s>=2 then
+                           (s1,s2) = partition(s)
+                           j(gen(l,s1),gen(l+s1,s2))
+                       else
+                           l
+                       end
+            gen(lo,narrow |\sz/|)
+        end
+    reduce(r: Reduction[\N\]):N =
+        if sz < 1 then
+            r.empty()
+        else
+            gen(l,s) = if s>=2 then
+                           (s1,s2) = partition(s)
+                           r.join(gen(l,s1),gen(l+s1,s2))
+                       else
+                           l
+                       end
+            gen(lo,narrow |\sz/|)
+        end
+    loop(f:N->()): () =
+        if sz < 1 then
+            ()
+        else
+            gen(l,s) = if s>=2 then
+                           (s1,s2) = partition(s)
+                           (gen(l,s1),gen(l+s1,s2))
+                           ()
+                       else
+                           f(l)
+                       end
+            gen(lo,narrow |\sz/|)
+        end
 end
 object SeqRange[\N extends Number\](lo:N, sz:N)
         extends { Range[\N\], SequentialGenerator[\N\] }
@@ -1196,10 +1279,6 @@ object SeqRange[\N extends Number\](lo:N, sz:N)
         gen(lo,r.empty())
       end
 end
-
-range(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
-range(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)
-range(lo:RR64, sz:RR64): Range[\RR64\] = ParRange[\RR64\](lo,sz)
 
 opr #(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
 opr #(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)

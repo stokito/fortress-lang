@@ -687,7 +687,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             if (spi >= 0)  {
                 // If it is a functional method, it is definitely a FnDefOrDecl
                 FnDefOrDecl fndod = (FnDefOrDecl) dod;
-                // System.err.println("Functional method " + dod);
+                // System.err.println("Functional method " + dod + " pass "+pass);
                 String fndodname = fndod.nameAsFunction();
                 if (pass == 1) {
                     Simple_fcn cl = new FunctionalMethod(containing, fndod, spi);
@@ -773,7 +773,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
          }
-        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+         scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
     }
     private void forObjectDecl4(ObjectDecl x) {
 

@@ -46,10 +46,12 @@ end
 
 opr[\T\] {x:T...} = do
    s:Set[\T\] := emptySet[\T\]()
-   for i <- 0#x.size() do
-      println("x[" i "]=" x[i])
-      s := s.add(x[i])
+   print("{ ")
+   for (_,v) <- seq(x) do
+      print(v " ")
+      s := s.add(v)
    end
+   println("}")
    s
 end
 
@@ -61,10 +63,12 @@ opr[\T, int b0, int b1, nat s\] <|x:Array1[\T, b0, s\], y:Array1[\T, b1, s\]|>:T
    a
 end
 
+(*
 trait U
-  f(self, U) (* type for parameter, no name *)
+  f(self, _:U) (* type for parameter, no name *)
   g(self, u):U = u (* type for parameter, no name *)
 end
+*)
 
 object rng z:ZZ32 = 0 end (* Parsing test for SR *)
 (* object rng z:ZZ32 = 0; end (* FAILS *) *)
@@ -95,7 +99,7 @@ run(args:String...):()=do
    ip:ZZ32 = <| a1, a2 |>
    println("ip=" ip);
 
-   s1:Set[\ZZ32\] = { 1, 2, 3, 4 } (* Fails, set of IntLiteral! *)
+   s1:Set[\ZZ32\] = { 1, 2, 3, 4 } (* Now succeeds *)
 
 
 end

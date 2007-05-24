@@ -16,10 +16,13 @@
  ******************************************************************************)
 
 component extendNumber
+export Runnable
 
 (* We ought to be able to extend the builtin type Number. *)
 
 object Infinity extends Number
 end
+
+run(args:String...):() = ()
 
 end
