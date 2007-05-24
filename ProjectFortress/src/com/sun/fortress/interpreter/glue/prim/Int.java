@@ -108,6 +108,17 @@ public static final class Eq extends Util.ZZ2B {
 public static final class LessEq extends Util.ZZ2B {
     protected boolean f(int x, int y) { return x<=y; }
 }
+public static final class Partition extends Util.Z2Z {
+    protected int f(int u) {
+        int m = (u-1) >> 1;
+        m |= m >> 1;
+        m |= m >> 2;
+        m |= m >> 4;
+        m |= m >> 8;
+        m |= m >> 16;
+        return m+1;
+    }
+}
 public static final class Pow extends NativeFn2 {
     protected FValue act(FValue x, FValue y) {
         int base = x.getInt();

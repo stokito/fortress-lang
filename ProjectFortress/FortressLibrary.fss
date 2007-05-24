@@ -161,6 +161,10 @@ end
 
 (*********  Commented out until we actually make exceptions work.
 
+object FailCalled(s:String) extends UncheckedException
+  toString(): String = "FAIL: " s
+end
+
 (* also referred to as DivideByZeroException *)
 object DivisionByZero extends UncheckedException
 end
@@ -349,7 +353,7 @@ end
 fail(s:String) = do
    println("FAIL: " s)
    printTaskTrace()
-   if true then die end
+   if true then throw FailCalled(s) end
 end
 
 oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
@@ -435,14 +439,7 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
    As it turns out we choose a to be the largest power of 2 < n.
 *)
 partition(x:ZZ32):(ZZ32,ZZ32) = do
-  m: ZZ32 := x-1
-  m := m RSHIFT 1
-  m BITOR= m RSHIFT 1
-  m BITOR= m RSHIFT 2
-  m BITOR= m RSHIFT 4
-  m BITOR= m RSHIFT 8
-  m BITOR= m RSHIFT 16
-  m += 1
+  m = partitionL(x)
   (m,x-m)
 end
 
@@ -1321,6 +1318,7 @@ opr MIN(a:ZZ32, b:ZZ32):ZZ32 = if a <= b then a else b end
 opr MAX(a:ZZ32, b:ZZ32):ZZ32 = if b <= a then a else b end
 opr ^(a:ZZ32, b:Integral):Number = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
 widen(a:ZZ32):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToLong")
+partitionL(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Partition")
 
 nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
 printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")
