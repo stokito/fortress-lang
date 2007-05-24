@@ -40,7 +40,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 abstract public class FType implements Comparable<FType> {
 
-    protected static final boolean DUMP_UNIFY = true;
+    protected static final boolean DUMP_UNIFY = false;
 
     static Comparator<FType> comparator = new Comparator<FType>() {
 
