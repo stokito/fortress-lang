@@ -55,7 +55,7 @@ public class TypeLatticeOps implements LatticeOps<FType> {
     }
 
     public FType zero() {
-        return NI.nyi("We haven't defined a bottom type yet.");
+        return BottomType.T;
     }
 
     public final static LatticeOps<FType> V = new TypeLatticeOps();

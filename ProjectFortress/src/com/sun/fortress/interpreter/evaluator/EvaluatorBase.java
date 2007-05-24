@@ -38,7 +38,9 @@ import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.LatticeIntervalMap;
 import com.sun.fortress.interpreter.useful.StringComparer;
 
 
@@ -99,8 +101,10 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
         List<Param> params = bar.getFnDefOrDecl().getParams();
         // The types of the actual parameters ought to unify with the
         // types of the formal parameters.
-        ABoundingMap<String, FType, TypeLatticeOps> abm = new ABoundingMap<String, FType, TypeLatticeOps>(
-                TypeLatticeOps.V, StringComparer.V);
+        BoundingMap<String, FType, TypeLatticeOps> abm = new
+          ABoundingMap
+          //LatticeIntervalMap
+          <String, FType, TypeLatticeOps>(TypeLatticeOps.V, StringComparer.V);
         Iterator<Param> pit = params.iterator();
         Param p = null;
         Set<StaticParam> tp_set = new HashSet<StaticParam>(tparams);

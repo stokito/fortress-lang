@@ -91,8 +91,8 @@ public class ABoundingMap<T, U, L extends LatticeOps<U>> extends AbstractMap<T, 
     }
 
     /** Used for backtracking during unification */
-    public void assign(ABoundingMap<T,U,L> replacement) {
-        table = replacement.table.copy();
+    public void assign(BoundingMap<T,U,L> replacement) {
+        table = ((ABoundingMap<T,U,L>)replacement).table.copy();
         dualMap = null;
     }
 

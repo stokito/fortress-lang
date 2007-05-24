@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TupleType;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.Factory1;
 import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.Memo1C;
@@ -296,7 +297,7 @@ public class FTypeTuple extends FType {
      *  This gets used here and in FTypeArrow.
      */
     public boolean unifyTuple(BetterEnv env, Set<StaticParam> tp_set,
-                              ABoundingMap<String, FType, TypeLatticeOps> abm,
+                              BoundingMap<String, FType, TypeLatticeOps> abm,
                               List<TypeRef> vals) {
         Iterator<FType> ftIterator = l.iterator();
         Iterator<TypeRef> trIterator = vals.iterator();
@@ -328,7 +329,7 @@ public class FTypeTuple extends FType {
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val);
         if (!(val instanceof TupleType)) return false;

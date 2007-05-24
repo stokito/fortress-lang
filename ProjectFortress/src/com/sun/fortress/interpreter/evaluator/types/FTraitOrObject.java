@@ -34,6 +34,8 @@ import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
+import com.sun.fortress.interpreter.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.TopSort;
 import com.sun.fortress.interpreter.useful.TopSortItemImpl;
@@ -207,7 +209,7 @@ abstract public class FTraitOrObject extends FType {
      * implement GenericTypeInstance.  They should override
      * unifyNonVar with a call to this method.
      */
-    protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+    protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify GT/O  "+this+" and "+val);
         if (!(val instanceof ParamType)) {
@@ -220,19 +222,28 @@ abstract public class FTraitOrObject extends FType {
             return false;
         }
         Iterator<StaticArg> val_args_iterator = pt.getArgs().iterator();
+        TypeRef a = null;
+        FType t = null;
         try {
             for (FType param_ftype: getTypeParams()) {
                 StaticArg targ = val_args_iterator.next();
+                t = param_ftype;
                 if (targ instanceof TypeArg) {
+                    a = ((TypeArg)targ).getType();
                     param_ftype.unify(env, tp_set, abm,
                                       ((TypeArg)targ).getType());
                 } else if (param_ftype instanceof FTypeNat) {
+                    a = targ;
                     param_ftype.unify(env, tp_set, abm, targ);
                 } else {
                     throw new InterpreterError(val,e,"Can't handle unification of parameters "+this+" and "+val);
                 }
             }
         } catch (ProgramError p) {
+            return false;
+        } catch (EmptyLatticeIntervalError p) {
+            if (DUMP_UNIFY)
+                System.out.println("Interval went empty unifying " + t + " and " + a);
             return false;
         }
         return true;

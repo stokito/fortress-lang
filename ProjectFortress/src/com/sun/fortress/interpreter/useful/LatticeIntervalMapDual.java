@@ -42,7 +42,7 @@ public class LatticeIntervalMapDual<T, U, L extends LatticeOps<U>> extends
         super(new BATree2<T,U, U>(comparator), lattice_operations, null);
     }
 
-    LatticeIntervalMapDual<T,U,L> copy() {
+    public LatticeIntervalMapDual<T,U,L> copy() {
         return new LatticeIntervalMapDual<T,U,L>(table.copy(), lattice);
     }
    
@@ -67,6 +67,18 @@ public class LatticeIntervalMapDual<T, U, L extends LatticeOps<U>> extends
     protected void putPair(T k, U lower, U upper) {
         table.putPair(k, upper, lower);
     }
+
+    /** Used for backtracking during unification */
+    public void assign(BoundingMap<T,U,L> replacement) {
+        if (replacement instanceof LatticeIntervalMapDual) {
+            LatticeIntervalMapDual<T,U,L> lim = (LatticeIntervalMapDual<T,U,L>) replacement;
+            table = lim.table;
+            dualMap = null;
+        } else {
+            throw new Error("Replacement must be LatticeIntervalMapDual");
+        }
+    }
+ 
 
 
 }

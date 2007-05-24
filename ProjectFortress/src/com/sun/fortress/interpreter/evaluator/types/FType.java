@@ -33,13 +33,14 @@ import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.BASet;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
 abstract public class FType implements Comparable<FType> {
 
-    protected static final boolean DUMP_UNIFY = false;
+    protected static final boolean DUMP_UNIFY = true;
 
     static Comparator<FType> comparator = new Comparator<FType>() {
 
@@ -395,7 +396,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (DUMP_UNIFY) {
             System.out.println("unify FType "+this+" and "+val);
             System.out.println("    ("+this.getClass().getName()+")");
@@ -415,7 +416,7 @@ abstract public class FType implements Comparable<FType> {
      * unifyNonVar; this is why that method is overridable while this
      * one is final.
      */
-    public final void unify(BetterEnv env, Set<StaticParam> tp_set, ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (val instanceof RestType) {
             val = ((RestType) val).getType();
         }
@@ -433,7 +434,7 @@ abstract public class FType implements Comparable<FType> {
             }
         }
         /* We want to unify with the most specific subtype possible, so */
-        ABoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
+        BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
             if (t.unifyNonVar(env, tp_set, abm, val)) return;
             if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val);

@@ -24,6 +24,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 
 /**
  * Various things that may appear as a "nat" parameter to a
@@ -43,7 +44,7 @@ abstract public class FTypeNat extends FType {
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         throw new ProgramError(val,env,"Can't unify nat parameter "+this+" and  type argument "+val);
     }
 

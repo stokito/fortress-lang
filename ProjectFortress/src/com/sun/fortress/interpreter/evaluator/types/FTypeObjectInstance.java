@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 
 
 public class FTypeObjectInstance extends FTypeObject implements
@@ -62,7 +63,7 @@ public class FTypeObjectInstance extends FTypeObject implements
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         return unifyNonVarGeneric(env,tp_set,abm,val);
     }
 

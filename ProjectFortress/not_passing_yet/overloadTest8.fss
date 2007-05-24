@@ -34,16 +34,17 @@ x:ZZ32 := 0
 
 f[\S extends super\](o:S) = do println("f(O) called"); x += 1; end
 
-f(p:P) = do println("f(P) called"); x += 4; end
+f(p:P) = do println("f(P) called"); x += 16; end
 
-f(y:RR64) = do println("f(RR64) called"); x += 2; end
+f(y:RR64) = do println("f(RR64) called"); x += 4; end
 
 
 run(args:String...):() = do
   f(1.0)
   f(O)
   f(P)
-  println( if x=7 then "PASS" else "FAIL" end )
+  println("x=" x)
+  println( if x=21 then "PASS" else "FAIL" end )
 end
 
 end

@@ -74,7 +74,7 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
      */
     private void checkOrdered(U lower, U upper) throws Error {
         if (! leq(lower, upper))
-            throw new Error("Empty lattice interval");
+            throw new EmptyLatticeIntervalError();
     }
     /** puts max/union of v and old */
     public U joinPut(T k, U v) {
@@ -114,7 +114,7 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
      */
      public U get(Object k) {
         BATree2Node<T,U,U> old = table.getNode((T)k);
-        return lower(old);
+        return old == null ? null : lower(old);
     }
 
      /**
@@ -122,20 +122,24 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
       */
       public U getLower(Object k) {
          BATree2Node<T,U,U> old = table.getNode((T)k);
-         return lower(old);
+         return old == null ? null : lower(old);
      }
 
       /**
-       * Returns the lower (bottom) end of an interval.
+       * Returns the upper (top) end of an interval.
        */
        public U getUpper(Object k) {
           BATree2Node<T,U,U> old = table.getNode((T)k);
-          return upper(old);
+          return old == null ? null : upper(old);
       }
 
       @Override
     public Set<java.util.Map.Entry<T, U>> entrySet() {
         throw new Error("unimplemented");
     }
+      
+      /** Used for backtracking during unification */
+      abstract public void assign(BoundingMap<T,U,L> replacement);
+   
 
 }

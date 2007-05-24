@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.nodes.ArrowType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
+import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.Factory2;
 import com.sun.fortress.interpreter.useful.Fn2;
 import com.sun.fortress.interpreter.useful.Memo2;
@@ -139,8 +140,9 @@ public class FTypeArrow extends FType {
         } else return Collections.<FType>emptySet();
     }
 
+    @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            ABoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify arrow "+this+" and "+val);
         if (!(val instanceof ArrowType)) {
@@ -150,7 +152,7 @@ public class FTypeArrow extends FType {
         ArrowType arr = (ArrowType) val;
         try {
             range.unify(env, tp_set, abm, arr.getRange());
-            ABoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
+            BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
             List<TypeRef> valdom = arr.getDomain();
             if (domain instanceof FTypeTuple) {
                 ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom);

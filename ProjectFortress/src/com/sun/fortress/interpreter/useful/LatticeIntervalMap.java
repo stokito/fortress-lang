@@ -9,7 +9,6 @@ import java.util.Comparator;
 public class LatticeIntervalMap <T, U, L extends LatticeOps<U>> extends
      LatticeIntervalMapBase<T, U, L> implements BoundingMap<T, U, L> {
     
- 
     public LatticeIntervalMap(BATree2<T, U, U> table2, LatticeOps<U> lattice_operations,
             LatticeIntervalMapDual<T, U, L> supplied_dual) {
         super(table2, lattice_operations, supplied_dual);
@@ -23,7 +22,7 @@ public class LatticeIntervalMap <T, U, L extends LatticeOps<U>> extends
         super(new BATree2<T,U, U>(comparator), lattice_operations, null);
     }
 
-    LatticeIntervalMap<T,U,L> copy() {
+    public LatticeIntervalMap<T,U,L> copy() {
         return new LatticeIntervalMap<T,U,L>(table.copy(), lattice, null);
     }
    
@@ -48,5 +47,17 @@ public class LatticeIntervalMap <T, U, L extends LatticeOps<U>> extends
     protected void putPair(T k, U lower, U upper) {
         table.putPair(k, lower, upper);
     }
-   
+    
+    /** Used for backtracking during unification */
+    public void assign(BoundingMap<T,U,L> replacement) {
+        if (replacement instanceof LatticeIntervalMap) {
+            LatticeIntervalMap<T,U,L> lim = (LatticeIntervalMap<T,U,L>) replacement;
+            table = lim.table;
+            dualMap = null;
+        } else {
+            throw new Error("Replacement must be LatticeIntervalMap");
+        }
+    }
+ 
+    
 }
