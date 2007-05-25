@@ -32,11 +32,11 @@ import Spacing;
 
 /* MdDecl ::=
    MdDef
- | (abstract w)? FnMods? MdHeaderFront FnHeaderClause
+ | (abstract w)? MdMods? MdHeaderFront FnHeaderClause
  */
 FnDefOrDecl MdDecl =
      MdDef
-   / a1:(abstract w)? a2:FnMods? a3:MdHeaderFront a4:FnHeaderClause
+   / a1:(abstract w)? a2:MdMods? a3:MdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new Modifier.Abstract(createSpan(yyStart,8)));
@@ -45,17 +45,17 @@ FnDefOrDecl MdDecl =
                                           a3.getReceiver(), a3, a4);
      };
 
-/* MdDef ::= FnMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
+/* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
-     a1:FnMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     a1:MdMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
                                        a2.getReceiver(), a2, a3, a4);
      };
 
-/* AbsMdDecl ::= (abstract w)? AbsFnMods? MdHeaderFront FnHeaderClause */
+/* AbsMdDecl ::= (abstract w)? AbsMdMods? MdHeaderFront FnHeaderClause */
 AbsFnDecl AbsMdDecl =
-     a1:(abstract w)? a2:AbsFnMods? a3:MdHeaderFront a4:FnHeaderClause
+     a1:(abstract w)? a2:AbsMdMods? a3:MdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new Modifier.Abstract(createSpan(yyStart,8)));
@@ -65,25 +65,16 @@ AbsFnDecl AbsMdDecl =
      };
 
 /* MdHeaderFront ::=
-     (Receiver.)?Id (w StaticParams)? w MdValParam
+     Id (w StaticParams)? w MdValParam
    | OpHeaderFront
  */
 private FnHeaderFront MdHeaderFront =
-     a1:(Receiver dot)? a2:Id a3:(w StaticParams)? w a4:ValParam
-     { Option<Id> receiver;
-       if (a1 == null) receiver = None.<Id>make();
-       else            receiver = Some.<Id>make(a1);
-       if (a3 == null) a3 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(receiver,
-                                   new Fun(createSpan(yyStart,yyCount), a2),
-                                   a3, a4);
+     a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount), a1),
+                                   a2, a3);
      }
    / OpHeaderFront ;
-
-/* Receiver ::= Id | self */
-private Id Receiver =
-     Id
-   / self { yyValue = new Id(createSpan(yyStart,yyCount), "self"); };
 
 /* GetterSetterDecl ::=
    GetterSetterDef

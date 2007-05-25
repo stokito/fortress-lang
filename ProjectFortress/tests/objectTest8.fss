@@ -37,14 +37,16 @@ object A(i:ZZ32, j:ZZ32) extends T
      getJ():ZZ32 = j
 
 
-  b(k:ZZ32):T = object extends {T,U}
-     m:ZZ32 = k
-     x:ZZ32 = 7
-     getI():ZZ32 = m
-     getJ():ZZ32 = i+j+1
-     notself.getMyX():ZZ32 = notself.x
-     getMyXAlt():ZZ32 = x+1
-     notself.getParentX():ZZ32 = self.x
+  b(k:ZZ32):T = do outer = self
+                   object extends {T,U}
+                        m:ZZ32 = k
+                        x:ZZ32 = 7
+                        getI():ZZ32 = m
+                        getJ():ZZ32 = i+j+1
+                        getMyX():ZZ32 = x
+                        getMyXAlt():ZZ32 = x+1
+                        getParentX():ZZ32 = outer.x
+                   end
   end
 
 end

@@ -25,8 +25,8 @@ object A(i:ZZ32, j:ZZ32)
   f:() -> A := g (* A closure-valued field, initially g *)
 
   id():A = self
-  self.getI():ZZ32 = self.i
-  notself.getZ():ZZ32 = j
+  getI():ZZ32 = self.i
+  getZ():ZZ32 = j
 
   setF(g) = do f := g; end (* Update the closure-valued field *)
 end

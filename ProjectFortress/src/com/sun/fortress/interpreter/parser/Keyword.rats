@@ -42,10 +42,10 @@ body {
         "except",       "excludes",     "exit",         "export",
         "extends",      "finally",      "fn",           "for",
         "forbid",       "from",         "getter",       "hidden",
-        "ident",        "if",           "import",       "in",
-        "int",          "invariant",    "io",           "label",
-        "largest",      "nat",          "object",       "of",
-        "opr",          "or",           "private",      "property",
+        "if",           "import",       "in",           "int",
+        "invariant",    "io",           "label",        "largest",
+        "nat",          "object",       "of",           "opr",
+        "or",           "override",     "private",      "property",
         "provided",     "requires",     "self",         "settable",
         "setter",       "smallest",     "spawn",        "syntax",
         "test",         "then",         "throw",        "throws",
@@ -104,7 +104,6 @@ transient void fn = "fn" !(idrest);
 transient void for = "for" !(idrest);
 transient void forbid = "forbid" !(idrest);
 transient void from = "from" !(idrest);
-transient void ident = "ident" !(idrest);
 transient void if = "if" !(idrest);
 transient void import = "import" !(idrest);
 transient void in = "in" !(idrest);
@@ -141,6 +140,7 @@ String getter = "getter" !(idrest);
 String hidden = "hidden" !(idrest);
 String io = "io" !(idrest);
 String largest = "largest" !(idrest);
+String override = "override" !(idrest);
 String private = "private" !(idrest);
 String self = "self" !(idrest);
 String settable = "settable" !(idrest);

@@ -299,7 +299,7 @@ DispatchExpr2() =
 
   (* page 33 *)
   trait Catalyst extends {Molecule}
-    self.catalyze(reaction: Reaction): ()
+    catalyze(reaction: Reaction): ()
   end
 
   trait Molecule

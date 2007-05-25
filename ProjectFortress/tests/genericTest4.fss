@@ -20,8 +20,8 @@ export Executable
 
 object A[\T\](i:ZZ32, j:ZZ32)
   eff(x:T):ZZ32 = f(x) (* I think this uses interpreter-only sleight-of-type *)
-  self.getI():ZZ32 = self.i
-  notself.getZ():ZZ32 = j
+  getI():ZZ32 = i
+  getZ():ZZ32 = j
 end
 
 var c1:ZZ32 = 0

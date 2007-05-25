@@ -17,19 +17,6 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-// / type universal_mod = [ `Static | `Test | `Shared ]
-// / type trait_mod = [ `Private | `Value | universal_mod ]
-// / type object_mod = trait_mod
-// / type fn_mod = [ `Atomic | `IO | `Private | `Pure | universal_mod ]
-// / type method_mod = [ `Getter | `Setter | `Abstract | fn_mod ]
-// / type var_mod = [ `Unit | `Var | universal_mod ]
-// / type field_mod = [ `Hidden | `Settable | `Var | `Wrapped |
-// universal_mod ]
-// / type param_mod = [ `In | `Out | `InOut | `Transient | universal_mod ]
-// / type modifier =
-// / [ trait_mod | object_mod | fn_mod | method_mod | var_mod
-// / | field_mod | param_mod ] node
-// /
 public abstract class Modifier extends Node {
 
     /*
@@ -161,6 +148,17 @@ public abstract class Modifier extends Node {
         @Override
         public <T> T acceptInner(NodeVisitor<T> v) {
             return v.forModifierPure(this);
+        }
+    }
+
+    final static public class OverrideM extends Modifier implements MethodMod {
+        public OverrideM(Span span) {
+            super(span);
+        }
+
+        @Override
+        public <T> T acceptInner(NodeVisitor<T> v) {
+            return v.forModifierOverrideM(this);
         }
     }
 

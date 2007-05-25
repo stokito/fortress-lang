@@ -19,8 +19,8 @@ component objectTest2
 export Executable
 
 object A(i:ZZ32, j:ZZ32)
-  self.getI():ZZ32 = i
-  notself.getZ():ZZ32 = j
+  getI():ZZ32 = i
+  getZ():ZZ32 = j
 end
 
 run(args:String...):()=do

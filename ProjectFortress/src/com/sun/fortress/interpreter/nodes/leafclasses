@@ -72,7 +72,6 @@ Fun
 Generator
 GeneratedExpr
 Id
-IdentParam
 IdType
 If
 IfClause
@@ -103,6 +102,7 @@ Modifier.In
 Modifier.InOut
 Modifier.IO
 Modifier.Out
+Modifier.OverrideM
 Modifier.Private
 Modifier.Pure
 Modifier.Settable

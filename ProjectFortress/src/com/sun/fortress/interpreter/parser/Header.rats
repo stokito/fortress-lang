@@ -313,7 +313,7 @@ List<Modifier> TraitMods = a1s:(TraitMod w)+
 /* TraitMod ::= AbsTraitMod | private */
 private Modifier TraitMod =
      AbsTraitMod
-   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
+   / private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* AbsTraitMods ::= (AbsTraitMod w)+ */
@@ -324,8 +324,8 @@ List<Modifier> AbsTraitMods = a1s:(AbsTraitMod w)+
 
 /* AbsTraitMod ::= value | test */
 private Modifier AbsTraitMod =
-     a1:value { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
-   / a1:test  { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
+     value { yyValue = new Modifier.Value(createSpan(yyStart,yyCount)); }
+   / test  { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* ObjectMods ::= TraitMods */
@@ -334,6 +334,30 @@ List<Modifier> ObjectMods = TraitMods ;
 /* Each modifier cannot appear more than once. */
 /* AbsObjectMods ::= AbsTraitMods */
 List<Modifier> AbsObjectMods = AbsTraitMods ;
+
+/* Each modifier cannot appear more than once. */
+/* MdMods ::= (MdMod w)+ */
+List<Modifier> MdMods = a1s:(MdMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* MdMod ::= FnMod | override */
+private Modifier MdMod =
+     FnMod
+   / override { yyValue = new Modifier.OverrideM(createSpan(yyStart,yyCount)); };
+
+/* Each modifier cannot appear more than once. */
+/* AbsMdMods ::= (AbsMdMod w)+ */
+List<Modifier> AbsMdMods = a1s:(AbsMdMod w)+
+     { yyValue = FortressUtil.mkList(a1s.list());
+       FortressUtil.noDuplicate(yyValue);
+     };
+
+/* AbsMdMod ::= AbsMdMod | override */
+private Modifier AbsMdMod =
+     AbsFnMod
+   / override { yyValue = new Modifier.OverrideM(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* FnMods ::= (FnMod w)+ */
@@ -345,7 +369,7 @@ List<Modifier> FnMods = a1s:(FnMod w)+
 /* FnMod ::= AbsFnMod | private */
 private Modifier FnMod =
      AbsFnMod
-   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
+   / private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* AbsFnMods ::= (AbsFnMod w)+ */
@@ -357,7 +381,7 @@ List<Modifier> AbsFnMods = a1s:(AbsFnMod w)+
 /* AbsFnMod ::= LocalFnMod | test */
 private Modifier AbsFnMod =
      LocalFnMod
-   / a1:test { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
+   / test { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* LocalFnMods ::= (LocalFnMod w)+ */
@@ -368,8 +392,8 @@ List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
 
 /* LocalFnMod ::= atomic | io */
 private Modifier LocalFnMod =
-     a1:atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
-   / a1:io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
+     atomic { yyValue = new Modifier.Atomic(createSpan(yyStart,yyCount)); }
+   / io     { yyValue = new Modifier.IO(createSpan(yyStart,yyCount)); } ;
 
 /* Each modifier cannot appear more than once. */
 /* ParamFldMods ::= (ParamFldMod w)+ */
@@ -380,10 +404,10 @@ List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
 
 /* ParamFldMod ::= var | hidden | settable | wrapped */
 private Modifier ParamFldMod =
-     a1:var      { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
-   / a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
-   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
-   / a1:wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount));};
+     var      { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+   / hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount)); }
+   / wrapped  { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* FldMods ::= (FldMod w)+ */
@@ -394,7 +418,7 @@ List<Modifier> FldMods = a1s:(FldMod w)+
 
 /* FldMod ::= var | AbsFldMod */
 private Modifier FldMod =
-     a1:var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
+     var { yyValue = new Modifier.Var(createSpan(yyStart,yyCount)); }
    / AbsFldMod ;
 
 /* Each modifier cannot appear more than once. */
@@ -407,8 +431,8 @@ List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
 /* AbsFldMod ::= ApiFldMod | wrapped | private */
 private Modifier AbsFldMod =
      ApiFldMod
-   / a1:wrapped { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
-   / a1:private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
+   / wrapped { yyValue = new Modifier.Wrapped(createSpan(yyStart,yyCount)); }
+   / private { yyValue = new Modifier.Private(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= (ApiFldMod w)+ */
@@ -419,9 +443,9 @@ List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
 
 /* ApiFldMod ::= hidden | settable | test */
 private Modifier ApiFldMod =
-     a1:hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
-   / a1:settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount));}
-   / a1:test     { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
+     hidden   { yyValue = new Modifier.Hidden(createSpan(yyStart,yyCount)); }
+   / settable { yyValue = new Modifier.Settable(createSpan(yyStart,yyCount)); }
+   / test     { yyValue = new Modifier.Test(createSpan(yyStart,yyCount)); };
 
 /* StaticParams ::= [\ w StaticParamList w \] */
 List<StaticParam> StaticParams =
@@ -440,7 +464,6 @@ private List<StaticParam> StaticParamList =
    | dim w Id
    | unit w Id (w : w DimRef)? (w absorbs w unit)?
    | opr w Op
-   | ident w Id
 */
 private StaticParam StaticParam =
      a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
@@ -461,5 +484,4 @@ private StaticParam StaticParam =
  * Not Yet Implemented ***************************
    / unit w a1:Id a2:(w colon w DimRef)? a3:(w absorbs w unit)?
 ************************************************ */
-   / opr  w a1:Op { yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);}
-   / ident w a1:Id { yyValue = new IdentParam(createSpan(yyStart,yyCount),a1); };
+   / opr  w a1:Op {yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);};

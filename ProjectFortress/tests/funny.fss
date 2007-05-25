@@ -20,8 +20,8 @@ export Executable
 
 object A(i:ZZ32, j:ZZ32)
   id():A = self
-  self.getI():ZZ32 = self.i
-  notself.getZ():ZZ32 = j
+  getI():ZZ32 = self.i
+  getZ():ZZ32 = j
 end
 
 t(f:(ZZ32->ZZ32), i:ZZ32) = do
