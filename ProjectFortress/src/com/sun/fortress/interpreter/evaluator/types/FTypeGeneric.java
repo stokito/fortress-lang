@@ -88,8 +88,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                                                                 // expose for
                                                                 // second pass.
 
+                    be.scanForFunctionalMethodNames(ftt, td.getFns(), true);
                     be.secondPass();
                     be.finishTrait(td, ftt, clenv);
+                    be.thirdPass();
+                    be.scanForFunctionalMethodNames(ftt, td.getFns(), true);
                     rval = ftt;
                 } else if (dod instanceof ObjectDecl) {
                     ObjectDecl td = (ObjectDecl) dod;
@@ -98,8 +101,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
+                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
+                    be.thirdPass();
+                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
                     rval = fto;
                 } else if (dod instanceof ObjectExpr) {
                     ObjectExpr td = (ObjectExpr) dod;
@@ -107,15 +113,21 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                             clenv, FTypeGeneric.this, args);
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
-
+                    
+                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
+                    be.thirdPass();
+                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
+
                     rval = fto;
                 } else {
                     throw new InterpreterError(within,
                             "Generic def-or-declaration surprise " + dod);
                 }
 
+               
+                
                 return rval;
 
             } else {

@@ -330,8 +330,10 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                  */
 
                 Fcn fcn_fvo = (Fcn) fvo;
-                if (fcn_fvo.getWithin() != value.getWithin() &&
-                    ! (fcn_fvo.getWithin().isTopLevel() &&  value.getWithin().isTopLevel()) ) {
+                if (! shadowIfDifferent && // true for functional methods
+                    fcn_fvo.getWithin() != value.getWithin() &&
+                    ! (fcn_fvo.getWithin().isTopLevel() &&  value.getWithin().isTopLevel()) // for imports from another api
+                    ) {
                     /*
                      * If defined in a different environment, shadow
                      * instead of overloading.
@@ -671,6 +673,13 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     public void putValueShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
             var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
+        else
+            var_env = putNoShadow(var_env, str, f2, "Var/value");
+     }
+
+    public void putValueNoShadowFn(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true);
         else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }

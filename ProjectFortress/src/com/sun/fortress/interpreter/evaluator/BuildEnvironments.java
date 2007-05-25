@@ -54,6 +54,7 @@ import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Generic;
+import com.sun.fortress.interpreter.nodes.GenericDefWithParams;
 import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
@@ -673,15 +674,20 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             }
         }
 
-        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getDefOrDecls());
 
     }
 
-    private void scanForFunctionalMethodNames(
-            Node x,
+    public void scanForFunctionalMethodNames(
+            FType x,
+            List<? extends DefOrDecl> defs) {
+        scanForFunctionalMethodNames(x, defs, false);
+    }
+    
+    public void scanForFunctionalMethodNames(
+            FType x,
             List<? extends DefOrDecl> defs,
-            FType ft,
-            String fname) {
+            boolean bogus) {
         for (DefOrDecl dod : defs) {
             int spi = dod.selfParameterIndex();
             if (spi >= 0)  {
@@ -690,9 +696,30 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // System.err.println("Functional method " + dod + " pass "+pass);
                 String fndodname = fndod.nameAsFunction();
                 if (pass == 1) {
-                    Simple_fcn cl = new FunctionalMethod(containing, fndod, spi);
+                    Fcn cl;
+                    // If the container is generic, then we create an empty
+                    // top-level overloading, to be filled in as the container
+                    // is instantiated.
+                    // TODO this is not good enough, nesting of object expressions
+                    // may mess us up.  Actually -- it may not, it looks like
+                    // implicit type parameters are made explicit.
+                    
+                    //if (x.getStaticParams().isPresent()) {
+                    if (x instanceof FTypeGeneric) {
+                        cl = new OverloadedFunction(fndod.getFnName(), containing);
+                    } else {
+                        // Note that the instantiation of a generic comes here too
+                        cl = new FunctionalMethod(containing, fndod, spi);
+                    }
+                    
                     // TODO test and other modifiers
-                    bindInto.putValueShadowFn(fndodname, cl);
+                    
+                    // Traits and objects are already defined at the top level
+                    // Instantiated generics are intended to hit the overloaded
+                    // function from the top level, and enhance it with this new
+                    // overloading.
+                    // TOTO -- is it possible that a tricky shadowing could break this?
+                    bindInto.putValueNoShadowFn(fndodname, cl);
                 } else if (pass == 3) {
                     Fcn fcn = (Fcn) containing.getValue(fndodname);
 
@@ -773,7 +800,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
          }
-         scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getDefOrDecls());
     }
     private void forObjectDecl4(ObjectDecl x) {
 
@@ -1008,18 +1035,18 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
-                scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
+                // scanForFunctionalMethodNames(ftg, x.getFns(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
-                scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
+                // scanForFunctionalMethodNames(ftt, x.getFns(), ftt);
            ft = ftt;
         }
 
-        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getFns());
     }
     private void forAbsTraitDecl2(AbsTraitDecl x) {
         // TODO Auto-generated method stub
@@ -1046,7 +1073,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Id name = x.getName();
         FType ft =  containing.getType(name.getName());
         String fname = name.getName();
-        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getFns());
     }
 
     private void forAbsTraitDecl4(AbsTraitDecl x) {
@@ -1084,18 +1111,18 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 FTypeGeneric ftg = new FTypeGeneric(containing, x);
                 guardedPutType(name.getName(), ftg, x);
-                scanForFunctionalMethodNames(x, x.getFns(), ftg, fname);
+                //scanForFunctionalMethodNames(ftg, x.getFns(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
                 FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
                 guardedPutType(name.getName(), ftt, x);
-                scanForFunctionalMethodNames(x, x.getFns(), ftt, fname);
+                //scanForFunctionalMethodNames(ftt, x.getFns(), ftt);
            ft = ftt;
         }
 
-        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getFns());
     }
     private void forTraitDecl2(TraitDecl x) {
         // TODO Auto-generated method stub
@@ -1122,7 +1149,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Id name = x.getName();
         FType ft =  containing.getType(name.getName());
         String fname = name.getName();
-        scanForFunctionalMethodNames(x, x.getFns(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getFns());
     }
 
     private void forTraitDecl4(TraitDecl x) {
@@ -1512,7 +1539,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             }
         }
 
-        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getDefOrDecls());
 
     }
 
@@ -1548,7 +1575,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         Id name = x.getName();
         String fname = name.getName();
         FType ft = containing.getType(fname);
-        scanForFunctionalMethodNames(x, x.getDefOrDecls(), ft, fname);
+        scanForFunctionalMethodNames(ft, x.getDefOrDecls());
     }
     private void forAbsObjectDecl4(AbsObjectDecl x) {
     }
