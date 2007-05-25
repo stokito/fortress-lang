@@ -407,6 +407,8 @@ trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
   fill(f:I->E):T
   fill(v:E):T = fill(fn (i:I):E => v)
   copy():T
+  indices(): Generator[\I\] = self.map[\I\](fn (i:I, e:E): I => i)
+  elements(): Generator[\E\] = self.map[\E\](fn (i:I, e:E): E => e)
 end
 
 (* Array whose bounds are implicit rather than static. *)
@@ -1078,6 +1080,7 @@ end
 (* Simple mockup of Generators and Reductions. *)
 
 trait Reduction[\ R \]
+    getter toString() = "A Reduction without a toString() of its own"
     empty(): R
     join(a: R, b: R): R
 end
@@ -1267,13 +1270,24 @@ object SeqRange[\N extends Number\](lo:N, sz:N)
     getter base() = lo
     getter toString() = "seq(" lo "#" sz ")"
     generate[\R\](r: Reduction[\R\], m: N->R): R = do
-        h : N = lo + sz
-        gen(l:N,rf:R) = if l < h then
-                            gen(l+1,r.join(rf,m(l)))
-                        else
-                            rf
-                        end
-        gen(lo,r.empty())
+        h = lo + sz
+        l : N := lo
+        acc : R = r.empty()
+        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        while l < h do
+            acc := r.join(acc, m(l))
+            l += 1
+        end
+        acc
+      end
+    loop(f: N->()): () = do
+        h = lo + sz
+        l : N := lo
+        (* DO NOT DEFINE THIS USING RECURSION!!! *)
+        while l < h do
+            f(l)
+            l += 1
+        end
       end
 end
 
