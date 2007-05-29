@@ -35,7 +35,7 @@ export Executable
  *
  * Some initial facts are known positively or negatively, possibly
  * including some of the 10.  If the total number of known facts
- * exceeds 10, and there's more than twice as many facts of one type,
+ * is >= 10, and there's more than twice as many facts of one type,
  * that type has "won" and the simulation ends.
  *
  * We record a histogram of outcomes.  Ticks are daily for a year.
@@ -132,8 +132,8 @@ object Entity(settable positivity: ZZ32,
         negFacts = initFacts[0]
         totFacts = negFacts+initFacts[1]
         filler(i:ZZ32): ZZ32 =
-            if i < negFacts then factPos
-            elif i < totFacts then factNeg
+            if i < negFacts then factNeg
+            elif i < totFacts then factPos
             else factUnk end
         array1[\ZZ32,10\](filler)
       end
@@ -158,7 +158,7 @@ object Entity(settable positivity: ZZ32,
         facts[fact] := kind
         outcome = eventToOutcome(kind)
         known[outcome] += 1
-        if known[0]+known[1] > 10 AND
+        if known[0]+known[1] >= 10 AND
            (known[outcome] >= 2 known[otherOutcome(outcome)]) then
             Stats.record(time, outcome)
             true
@@ -206,7 +206,7 @@ run(args:String...):() = do
         entity = Entity(0,known,kfacts)
         while NOT entity.tick() do
         end
-        println(entity)
+        (* println(entity) *)
     end
     println(Stats)
 end
