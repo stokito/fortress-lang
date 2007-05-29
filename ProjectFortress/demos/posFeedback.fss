@@ -30,8 +30,8 @@ export Executable
  * There is a bank of 10 facts.  Each time a transition occurs a fact
  * is "learned" uniformly at random.  Assume a positive transition
  * (negative works the same way).  If the chosen fact is known
- * positively.  If it is unknown it becomes known positively.  If it is
- * known negatively, it becomes unknown.
+ * positively nothing happens.  If it is unknown it becomes known
+ * positively.  If it is known negatively, it becomes unknown.
  *
  * Some initial facts are known positively or negatively, possibly
  * including some of the 10.  If the total number of known facts
