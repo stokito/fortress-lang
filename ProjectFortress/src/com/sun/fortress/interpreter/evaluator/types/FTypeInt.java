@@ -23,19 +23,19 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeInt extends FType {
-    public final static FTypeInt T = new FTypeInt();
+    public final static FTypeInt ONLY = new FTypeInt();
     protected FTypeInt() {
         super("ZZ32");
         cannotBeExtended = true;
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeLong.T, FTypeIntegral.T,
-                                  FTypeFloat.T, FTypeNumber.T);
+        return Useful.<FType>list(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
+                                  FTypeFloat.ONLY, FTypeNumber.ONLY);
     }
 
     public boolean subtypeOf(FType other) {
-        return (T==other || FTypeLong.T.subtypeOf(other));
+        return (ONLY==other || FTypeLong.ONLY.subtypeOf(other));
     }
 
 }

@@ -50,7 +50,7 @@ public class BaseNodeMaker {
         System.out.println(INDENT + "public T NI(com.sun.fortress.interpreter.useful.HasAt x, String s) {");
         
         System.out.println(INDENT + INDENT +
-                            "throw new Error(this.getClass().getName() + \".\" + s + \"not implemented (@\" + x.at()+ \")\");");
+                            "throw new Error(this.getClass().getName() + \".\" + s + \" not implemented (@\" + x.at()+ \")\");");
         System.out.println(INDENT + "}");
 
         String line = lines.readLine();

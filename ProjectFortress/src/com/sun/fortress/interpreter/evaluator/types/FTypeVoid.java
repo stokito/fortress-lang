@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Collections;
 
 public class FTypeVoid extends FTypeTuple {
-    public final static FTypeVoid T = new FTypeVoid();
+    public final static FTypeVoid ONLY = new FTypeVoid();
 
     private FTypeVoid() {
         super(Collections.<FType>emptyList());

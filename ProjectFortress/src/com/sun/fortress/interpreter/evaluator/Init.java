@@ -55,25 +55,25 @@ public class Init {
         FortressTests.reset();
         IntNat.reset();
 
-        FTypeVoid.T.resetState();
-        FTypeTop.T.resetState();
-        FTypeDynamic.T.resetState();
+        FTypeVoid.ONLY.resetState();
+        FTypeTop.ONLY.resetState();
+        FTypeDynamic.ONLY.resetState();
 
-        FTypeBool.T.resetState();
-        FTypeChar.T.resetState();
+        FTypeBool.ONLY.resetState();
+        FTypeChar.ONLY.resetState();
 
-        FTypeInt.T.resetState();
-        FTypeFloat.T.resetState();
-        FTypeString.T.resetState();
-        FTypeNumber.T.resetState();
-        FTypeIntegral.T.resetState();
-	FTypeLong.T.resetState();
-	BottomType.T.resetState();
-	FTypeRange.T.resetState();
+        FTypeInt.ONLY.resetState();
+        FTypeFloat.ONLY.resetState();
+        FTypeString.ONLY.resetState();
+        FTypeNumber.ONLY.resetState();
+        FTypeIntegral.ONLY.resetState();
+ FTypeLong.ONLY.resetState();
+ BottomType.ONLY.resetState();
+ FTypeRange.ONLY.resetState();
 
-        FTypeIntLiteral.T.resetState();
-        FTypeFloatLiteral.T.resetState();
-        FTypeStringLiteral.T.resetState();
+        FTypeIntLiteral.ONLY.resetState();
+        FTypeFloatLiteral.ONLY.resetState();
+        FTypeStringLiteral.ONLY.resetState();
 
     }
 

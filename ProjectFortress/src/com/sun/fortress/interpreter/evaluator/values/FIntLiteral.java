@@ -60,7 +60,7 @@ public class FIntLiteral extends FValue implements HasIntValue {
         }
     }
 
-    public FType type() { return FTypeIntLiteral.T; }
+    public FType type() { return FTypeIntLiteral.ONLY; }
 
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 

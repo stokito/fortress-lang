@@ -27,9 +27,9 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeTop extends FTypeTrait {
-    public final static FTypeTop T = new FTypeTop();
-    private final static List<FType> SingleT = Useful.<FType>list(T);
-    private final static Set<FType> SingleSet = Useful.<FType>set(T);
+    public final static FTypeTop ONLY = new FTypeTop();
+    private final static List<FType> SingleT = Useful.<FType>list(ONLY);
+    private final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
 
     private FTypeTop() {
         super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"));
@@ -72,7 +72,7 @@ public class FTypeTop extends FTypeTrait {
 
     @Override
     public boolean equals(Object other) {
-        return (other==T);
+        return (other==ONLY);
     }
 
     @Override

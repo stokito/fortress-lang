@@ -236,7 +236,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     protected final boolean commonSubtypeOf(FType other) {
-        return (this == other || other == FTypeDynamic.T || other==FTypeTop.T);
+        return (this == other || other == FTypeDynamic.ONLY || other==FTypeTop.ONLY);
     }
 
     /**
@@ -246,7 +246,7 @@ abstract public class FType implements Comparable<FType> {
      */
     @SuppressWarnings(value={"unchecked"})
     public boolean subtypeOf(FType other) {
-        if (other == FTypeDynamic.T || other == FTypeTop.T)
+        if (other == FTypeDynamic.ONLY || other == FTypeTop.ONLY)
             return true;
         Class us = getClass();
         Class them = other.getClass();

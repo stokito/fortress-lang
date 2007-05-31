@@ -49,7 +49,7 @@ import com.sun.fortress.interpreter.useful.Useful;
  */
 public class PrecedenceMap {
 
-    public static final PrecedenceMap T = new PrecedenceMap();
+    public static final PrecedenceMap ONLY = new PrecedenceMap();
 
     private static final class IPair implements Comparable<IPair> {
         private final CanonOp a;
@@ -165,7 +165,7 @@ public class PrecedenceMap {
 
     /* For unit testing only. */
     public static void reset() {
-        T.clear();
+        ONLY.clear();
     }
 
     private PrecedenceMap() {

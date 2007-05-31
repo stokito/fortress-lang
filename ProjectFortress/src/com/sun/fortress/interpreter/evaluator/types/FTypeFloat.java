@@ -23,17 +23,17 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeFloat extends FType {
-    public final static FTypeFloat T = new FTypeFloat();
+    public final static FTypeFloat ONLY = new FTypeFloat();
     protected FTypeFloat() {
         super("RR64");
         cannotBeExtended = true;
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeNumber.T);
+        return Useful.<FType>list(this, FTypeNumber.ONLY);
     }
 
     public boolean subtypeOf(FType other) {
-        return (T==other || FTypeNumber.T.subtypeOf(other));
+        return (ONLY==other || FTypeNumber.ONLY.subtypeOf(other));
     }
 }

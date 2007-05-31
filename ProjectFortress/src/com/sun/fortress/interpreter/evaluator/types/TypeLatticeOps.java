@@ -51,11 +51,11 @@ public class TypeLatticeOps implements LatticeOps<FType> {
     }
 
     public FType one() {
-        return FTypeDynamic.T;
+        return FTypeDynamic.ONLY;
     }
 
     public FType zero() {
-        return BottomType.T;
+        return BottomType.ONLY;
     }
 
     public final static LatticeOps<FType> V = new TypeLatticeOps();

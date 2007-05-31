@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class FTypeRange extends FType {
-    public final static FTypeRange T = new FTypeRange(Integer.MIN_VALUE,
+    public final static FTypeRange ONLY = new FTypeRange(Integer.MIN_VALUE,
                                                       Integer.MAX_VALUE);
     public FTypeRange(int x, int y) {
         super("Range");

@@ -187,7 +187,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
          }
 
          GetterMethod(BetterEnv env, FType t) {
-             super(env, t, "get", Useful.<FType>list(FTypeInt.T), t);
+             super(env, t, "get", Useful.<FType>list(FTypeInt.ONLY), t);
          }
      }
 
@@ -206,7 +206,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
          }
 
          SetterMethod(BetterEnv env, FType t) {
-             super(env, t, "put", Useful.list(t, FTypeInt.T), FTypeVoid.T);
+             super(env, t, "put", Useful.list(t, FTypeInt.ONLY), FTypeVoid.ONLY);
          }
      }
 
@@ -250,7 +250,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         @atomic public interface ANode {
             FValue getValue();
             void setValue(FValue value);
-	}
+ }
     }
 
 }

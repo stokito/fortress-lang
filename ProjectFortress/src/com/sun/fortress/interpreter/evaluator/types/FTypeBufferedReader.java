@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 public class FTypeBufferedReader extends FType {
-    public final static FTypeBufferedReader T = new FTypeBufferedReader();
+    public final static FTypeBufferedReader ONLY = new FTypeBufferedReader();
     protected FTypeBufferedReader() {
         super("BufferedReader");
         cannotBeExtended = true;

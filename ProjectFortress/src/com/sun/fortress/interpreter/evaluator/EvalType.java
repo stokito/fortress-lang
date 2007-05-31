@@ -88,14 +88,14 @@ public class EvalType extends NodeVisitor<FType> {
         if (t.isPresent())
             return getFType(t.getVal(), e);
         else
-            return FTypeDynamic.T;
+            return FTypeDynamic.ONLY;
     }
 
     public  FType getFTypeFromOption(Option<TypeRef> t) {
         if (t.isPresent())
             return getFType(t.getVal());
         else
-            return FTypeDynamic.T;
+            return FTypeDynamic.ONLY;
     }
 
     public static FType getFTypeFromList(List<TypeRef> l, BetterEnv e) {
@@ -110,7 +110,7 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     public static List<FType> getFTypeListFromList(List<TypeRef> l, BetterEnv e) {
-	EvalType et = new EvalType(e);
+ EvalType et = new EvalType(e);
         return et.getFTypeListFromList(l);
     }
 
@@ -147,7 +147,7 @@ public class EvalType extends NodeVisitor<FType> {
     private static List<FType> getFTypeListFromNonEmptyList(List<TypeRef> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
         for (TypeRef t : l) a.add(t.accept(et));
-	return a;
+ return a;
     }
 
     public static FType getFType(TypeRef t, BetterEnv e) {
@@ -232,8 +232,8 @@ public class EvalType extends NodeVisitor<FType> {
             FType a = args.get(i);
             StaticParam p = params.get(i);
 
-            if (a == BottomType.T || a == null) {
-                guardedPutType(p.getName(), BottomType.T, what, clenv);
+            if (a == BottomType.ONLY || a == null) {
+                guardedPutType(p.getName(), BottomType.ONLY, what, clenv);
                 // TODO need to undefine the nats and bools
                 // This means that our choice to use the Java types Boolean etc was wrong,
                 // because they lack lattice structure.
@@ -313,7 +313,7 @@ public class EvalType extends NodeVisitor<FType> {
         env = _env;
     }
 
-    public FType forVoidType(VoidType v) { return FTypeVoid.T; }
+    public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
     public FType forRestType(RestType rt) {
         return FTypeRest.make(rt.getType().accept(this));
@@ -447,10 +447,10 @@ public class EvalType extends NodeVisitor<FType> {
     public FType forMatrixType(MatrixType x) {
         FType elt_type = x.getElement().accept(this);
         List<ExtentRange> dimensions = x.getDimensions();
-	List<TypeRange> typeRanges = new ArrayList<TypeRange>();
-	for (ExtentRange extent : dimensions) {
-	    typeRanges.add(extentRangeToTypeRange(extent));
-	}
+ List<TypeRange> typeRanges = new ArrayList<TypeRange>();
+ for (ExtentRange extent : dimensions) {
+     typeRanges.add(extentRangeToTypeRange(extent));
+ }
         return new FTypeMatrix(elt_type, typeRanges);
     }
 

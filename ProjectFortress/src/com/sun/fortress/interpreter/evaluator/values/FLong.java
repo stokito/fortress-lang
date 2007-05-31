@@ -25,7 +25,7 @@ public class FLong extends FValue implements HasIntValue {
       // TODO Throw an error on out-of-range conversion?
       return (int) val;
   }
-  public FType type() { return FTypeLong.T; }
+  public FType type() { return FTypeLong.ONLY; }
   public long getLong() {return (long)val;}
   public double getFloat() { return (double) val;}
   public String getString() {return Long.toString(val);}

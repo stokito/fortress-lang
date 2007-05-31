@@ -29,6 +29,8 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.typechecker.TypeChecker;
+import com.sun.fortress.interpreter.typechecker.TypeError;
 
 public class fs {
 
@@ -80,6 +82,14 @@ public class fs {
         System.err.println("" + (System.currentTimeMillis() - begin)
                 + " milliseconds");
     }
+    
+    public static boolean check(CompilationUnit p) {
+        try { TypeChecker.check(p); return true; }
+        catch (TypeError e) {
+            System.err.println("Static error: " + e);
+            return false;
+        }
+    }
 
     static volatile CompilationUnit p;
     static boolean verbose = false;
@@ -87,6 +97,7 @@ public class fs {
     static boolean tryRats = false;
     static String explicitParser = null;
     static boolean parseOnly = false;
+    static boolean checkOnly = false;
     static boolean libraryTest = false;
     static boolean test = false;
     static boolean pause = false;
@@ -117,9 +128,11 @@ public class fs {
                 } else if ("-pause".equalsIgnoreCase(s)) {
                     pause = true;
                 } else if ("-parseOnly".equalsIgnoreCase(s)) {
-		    parseOnly = true;
+                  parseOnly = true;
+                } else if ("-checkOnly".equalsIgnoreCase(s)) {
+                  checkOnly = true;
                 } else if ("-libraryTest".equalsIgnoreCase(s)) {
-		    libraryTest = true;
+                  libraryTest = true;
                 } else if ("-v".equalsIgnoreCase(s)) {
                     verbose = true;
                 } else if ("-t".equalsIgnoreCase(s)) {
@@ -168,69 +181,76 @@ public class fs {
      * @param s
      */
     private static void parseAndRun(String s) {
-        timeStamp = Useful.timeStamp();
-
+      timeStamp = Useful.timeStamp();
+      
 //        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
 //                + basename(s) + "." + timeStamp + SXP_SUFFIX;
 //        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
 //        boolean keepTemp = keep;
-
-        try {
-
-              if (verbose)
-                    System.err.println("Parsing " + s + " with Rats!");
-		long begin = System.currentTimeMillis();
-                p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
-		System.err.println("Parsing " + s + " with the Rats! parser: "
-				   + (System.currentTimeMillis() - begin)
-				   + " milliseconds");
-
-
-            if (doAst) {
-                String astFile = basename(s) + JAVA_AST_SUFFIX;
-                if (verbose)
-                    System.err.println("Writing ast to " + astFile);
-
-                BufferedWriter fout = Useful
-                        .utf8BufferedFileWriter(astFile);
-                Appendable out = fout;
-
-                (new Printer(true, true, true)).dump(p, out, 0);
-                if (fout != null)
-                    fout.close();
-            }
-            if (test) {
-                if (verbose)
-                    System.err.println("Running Tests");
-                runTests = true;
-            }
-
-	    if (parseOnly) {
-                /* Skip interpreting. */
-            } else if (p==null) {
-                /* Indicate an error occurred. */
-                System.err.println("FAIL: Syntax error.");
-            } else {
-		if (verbose)
-		    System.err.println("Interpreting");
-
+      
+      try {
+        
+        if (verbose) System.err.println("Parsing " + s + " with Rats!");
+        long begin = System.currentTimeMillis();
+        p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
+        System.err.println("Parsing " + s + " with the Rats! parser: "
+                             + (System.currentTimeMillis() - begin)
+                             + " milliseconds");
+        
+        
+        if (doAst) {
+          String astFile = basename(s) + JAVA_AST_SUFFIX;
+          if (verbose)
+            System.err.println("Writing ast to " + astFile);
+          
+          BufferedWriter fout = Useful
+            .utf8BufferedFileWriter(astFile);
+          Appendable out = fout;
+          
+          (new Printer(true, true, true)).dump(p, out, 0);
+          if (fout != null)
+            fout.close();
+        }
+        if (test) {
+          if (verbose)
+            System.err.println("Running Tests");
+          runTests = true;
+        }
+        
+        if (parseOnly) {
+          /* Skip interpreting. */
+        } else if (p==null) {
+          /* Indicate an error occurred. */
+          System.err.println("FAIL: Syntax error.");
+        } else {
+          if (verbose)
+            System.err.println("Checking");
+          
+          boolean typesafe = check(p);
+          
+          if (typesafe && !checkOnly) {
+            
+            if (verbose)
+              System.err.println("Interpreting");
+            
             runInterpreter(p, runTests, listArgs);
             p = null;
-	    }
-
-        } catch (Throwable th) {
-            synchronized (Throwable.class) {
-                // keepTemp = true;
-                th.printStackTrace();
-                if (th instanceof ProgramError) {
-                    System.out
-                            .println("\n--------Fortress error appears below--------\n");
-                    ((ProgramError) th).printInterpreterStackTrace(System.out);
-                    System.out.println();
-                    System.out.println(th.getMessage());
-                }
-            }
+          }
         }
+        
+      } catch (Throwable th) {
+        synchronized (Throwable.class) {
+          // keepTemp = true;
+          th.printStackTrace();
+          if (th instanceof ProgramError) {
+            System.out
+              .println("\n--------Fortress error appears below--------\n");
+            ((ProgramError) th).printInterpreterStackTrace(System.out);
+            System.out.println();
+            System.out.println(th.getMessage());
+          }
+        }
+      }
 //        if (!keepTemp) {
 //            // (new File(tmpFile)).delete();
 //        }

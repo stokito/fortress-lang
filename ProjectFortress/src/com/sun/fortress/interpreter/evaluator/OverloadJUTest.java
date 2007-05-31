@@ -88,11 +88,11 @@ public class OverloadJUTest extends TestCase {
     private <T> List<T> l(T... args) { return Arrays.asList(args); }
 
     // some convenience bindings
-    static final FType Int = FTypeInt.T;
-    static final FType Integral = FTypeIntegral.T;
-    static final FType Float = FTypeFloat.T;
-    static final FType String = FTypeString.T;
-    static final FType Number = FTypeNumber.T;
+    static final FType Int = FTypeInt.ONLY;
+    static final FType Integral = FTypeIntegral.ONLY;
+    static final FType Float = FTypeFloat.ONLY;
+    static final FType String = FTypeString.ONLY;
+    static final FType Number = FTypeNumber.ONLY;
 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()

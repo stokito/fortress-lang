@@ -130,7 +130,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
         for (StaticParam tp : tparams) {
             FType t = abm.get(tp.getName());
             if (t == null)
-                t = BottomType.T;
+                t = BottomType.ONLY;
             tl.add(t);
         }
         Simple_fcn sfcn = bar.make(tl, loc);

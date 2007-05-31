@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class FInt extends FValue implements HasIntValue {
   private final int val;
-  public FType type() {return FTypeInt.T;}
+  public FType type() {return FTypeInt.ONLY;}
   public int getInt() {return val;}
   public long getLong() {return (long)val;}
   public double getFloat() { return (double) val;}

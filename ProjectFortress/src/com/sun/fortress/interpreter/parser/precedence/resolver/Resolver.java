@@ -73,7 +73,7 @@ public class Resolver {
   //       tri_subgroup; tri_contains;
   //       ]
   private static boolean chains(Op op) {
-      return PrecedenceMap.T.isChain(op.getName());
+      return PrecedenceMap.ONLY.isChain(op.getName());
   }
 
   // let precedence (one : op) (two : op) : precedence =
@@ -84,7 +84,7 @@ public class Resolver {
   //         | Some (`Higher | `Lower | `Equal as prec) -> prec
   //         | None -> `None
   private static Precedence precedence(Op op1, Op op2) {
-      return PrecedenceMap.T.get(op1.getName(), op2.getName());
+      return PrecedenceMap.ONLY.get(op1.getName(), op2.getName());
   }
 
   //(* Given a list of exprs and ops, ensure that the ops are a valid chaining *)
@@ -103,7 +103,7 @@ public class Resolver {
             public String apply(ExprOpPair p) { return p.getB().getName(); }
         });
 
-        if (!PrecedenceMap.T.isValidChaining(names.toJavaList())) {
+        if (!PrecedenceMap.ONLY.isValidChaining(names.toJavaList())) {
             PureList<Op> ops = links.map(new Fn<ExprOpPair,Op>() {
                 public Op apply(ExprOpPair pair) { return pair.getB(); }
             });

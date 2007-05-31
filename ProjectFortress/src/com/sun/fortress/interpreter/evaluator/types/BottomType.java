@@ -23,6 +23,6 @@ public class BottomType extends FType {
         super(s);
     }
 
-    static public BottomType T = new BottomType("An explicitly undefined type");
+    static public BottomType ONLY = new BottomType("BottomType");
 
 }

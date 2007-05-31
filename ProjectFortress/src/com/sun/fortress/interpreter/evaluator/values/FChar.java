@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeChar;
 
 public class FChar extends FValue {
   private final char val;
-  public FType type() {return FTypeChar.T;}
+  public FType type() {return FTypeChar.ONLY;}
   public String getString() {return Character.toString(val);}
   public char getChar() {return val;}
   FChar(char x) {

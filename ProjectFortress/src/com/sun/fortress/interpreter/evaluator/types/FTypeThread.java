@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 public class FTypeThread extends FType { 
-   public final static FTypeThread T = new FTypeThread();
+   public final static FTypeThread ONLY = new FTypeThread();
    protected FTypeThread() {
        super("Thread");
    }

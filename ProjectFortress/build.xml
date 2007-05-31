@@ -141,6 +141,9 @@
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
+        <delete>
+            <fileset dir="src" includes="**/*.class" />
+        </delete>
     </target>
 
     <!-- Generation of the NodeVisitor sources depends only on the java files
@@ -280,7 +283,10 @@
             <formatter type="plain" usefile="false"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
                 <fileset dir="${build}">
-                    <include name="**/*${testPattern}.class"/>
+                    <and>
+                      <filename name="**/*${testPattern}*/**" />
+                      <filename name="**/*JUTest.class" />
+                    </and>
                     <exclude name="**/*$*.class"/>
                 </fileset>
              </batchtest>

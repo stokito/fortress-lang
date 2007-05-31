@@ -17,12 +17,13 @@
 
 package com.sun.fortress.interpreter.typechecker;
 import junit.framework.TestCase;
+import java.io.File;
+import java.io.IOException;
 
+import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.SourceLoc;
-import com.sun.fortress.interpreter.nodes.Span;
-import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.useful.Useful;
 
 public class TypeCheckerJUTest extends TestCase {
 
@@ -34,16 +35,19 @@ public class TypeCheckerJUTest extends TestCase {
         Init.initializeEverything();
     }
 
-    public void testForVarRefExpr() {
-        try {
-            Expr e = new VarRefExpr(new Span((SourceLoc)null, null), "var_not_found");
-            e.accept(new TypeChecker());
+    private static final String[] valid = {
+        "varTest"
+    };
+    
+    private static final String[] invalid = {
+        "XXXvarTest"
+    };
+    
+    public void testValid() throws IOException {
+        for (String name : valid) {
+            String f = "tests" + File.separator + name + ".fss";
+            CompilationUnit c = Driver.parseToJavaAst(f, Useful.utf8BufferedFileReader(f));
+            TypeChecker.check(c);
         }
-        catch (Error e) {
-            return;
-        }
-        fail("Typechecking succeeded for unbound variable.");
-
     }
-
 }

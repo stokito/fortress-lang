@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
 
 public class FFloat extends FValue {
     private final double val;
-    public FType type() {return FTypeFloat.T;}
+    public FType type() {return FTypeFloat.ONLY;}
     public double getFloat() {return val;}
     public String getString() {return Double.toString(val);}
     public String toString() {

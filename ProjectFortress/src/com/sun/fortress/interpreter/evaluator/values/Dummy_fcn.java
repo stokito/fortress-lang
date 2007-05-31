@@ -49,7 +49,7 @@ public class Dummy_fcn extends Simple_fcn {
         super(BetterEnv.empty());
         allocationSite = Useful.backtrace(2, 3);
         this.domain = _params;
-        setFtype(FTypeArrow.make(_params, FTypeVoid.T));
+        setFtype(FTypeArrow.make(_params, FTypeVoid.ONLY));
     }
 
     public List<FType> getDomain() {return domain;}

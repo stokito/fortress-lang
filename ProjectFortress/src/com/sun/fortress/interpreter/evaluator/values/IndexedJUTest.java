@@ -86,7 +86,7 @@ public class IndexedJUTest extends TestCase {
     public void testIndexed() {
         IUOTuple y = A3(0, 4,3,2);
         y.finish();
-        Indexed x = new Indexed(y, FTypeInt.T);
+        Indexed x = new Indexed(y, FTypeInt.ONLY);
         assertEquals(3, x.dim());
         assertEquals(4, x.size(0));
         assertEquals(3, x.size(1));
@@ -100,7 +100,7 @@ public class IndexedJUTest extends TestCase {
     public void testPut() {
         IUOTuple y = A3(0, 4,3,2);
         y.finish();
-        Indexed x = new Indexed(y, FTypeInt.T);
+        Indexed x = new Indexed(y, FTypeInt.ONLY);
         int[] indices = new int[3];
 
         for (int i = 0; i < 4; i++)
@@ -117,7 +117,7 @@ public class IndexedJUTest extends TestCase {
     public void testGet() {
         IUOTuple y = A3(0, 4,3,2);
         y.finish();
-        Indexed x = new Indexed(y, FTypeInt.T);
+        Indexed x = new Indexed(y, FTypeInt.ONLY);
         int[] indices = new int[3];
 
         for (int i = 0; i < 4; i++)
@@ -142,8 +142,8 @@ public class IndexedJUTest extends TestCase {
     public void testCopyToIndexedIntArrayInt() {
         IUOTuple y = A3(0, 4,3,2);
         y.finish();
-        Indexed x = new Indexed(y, FTypeInt.T);
-        Indexed z = new Indexed(y, FTypeInt.T);
+        Indexed x = new Indexed(y, FTypeInt.ONLY);
+        Indexed z = new Indexed(y, FTypeInt.ONLY);
         int[] indices = new int[3];
 
         for (int i = 0; i < 4; i++)
@@ -174,8 +174,8 @@ public class IndexedJUTest extends TestCase {
     public void testCopyToIUOTuple() {
         IUOTuple y = A3(0,4,3,2);
         y.finish();
-        Indexed x = new Indexed(y, FTypeInt.T);
-        Indexed z = new Indexed(y, FTypeInt.T);
+        Indexed x = new Indexed(y, FTypeInt.ONLY);
+        Indexed z = new Indexed(y, FTypeInt.ONLY);
         int[] indices = new int[3];
 
         for (int i = 0; i < 4; i++)

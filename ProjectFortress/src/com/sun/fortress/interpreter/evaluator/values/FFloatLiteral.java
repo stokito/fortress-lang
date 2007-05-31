@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeFloatLiteral;
 public class FFloatLiteral extends FValue {
     private final String value;
 
-    public FType type() { return FTypeFloatLiteral.T; }
+    public FType type() { return FTypeFloatLiteral.ONLY; }
 
     public String getString() { return value; } // TODO Sam left this undone, not sure if intentional
 

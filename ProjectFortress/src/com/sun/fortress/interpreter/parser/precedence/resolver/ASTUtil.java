@@ -75,7 +75,7 @@ public class ASTUtil {
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
-        if (PrecedenceMap.T.matchedBrackets(left.getName(), right.getName()))
+        if (PrecedenceMap.ONLY.matchedBrackets(left.getName(), right.getName()))
             return new OprExpr(span,
                                new Enclosing(FortressUtil.spanTwo(left, right),
                                              left, right),

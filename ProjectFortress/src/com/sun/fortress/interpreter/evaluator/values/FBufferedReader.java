@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class FBufferedReader extends FValue {
     private final BufferedReader val;
-    public FType type() {return FTypeBufferedReader.T;}
+    public FType type() {return FTypeBufferedReader.ONLY;}
     public BufferedReader getBufferedReader() {return val;}
     public String toString() {
         return "BufferedReader";

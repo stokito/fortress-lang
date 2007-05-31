@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 public class FTypeBool extends FType {
-    public final static FTypeBool T = new FTypeBool();
+    public final static FTypeBool ONLY = new FTypeBool();
     private FTypeBool() {
         super("Boolean");
         cannotBeExtended = true;

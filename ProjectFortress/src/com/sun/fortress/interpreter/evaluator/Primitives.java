@@ -58,19 +58,19 @@ public class Primitives {
     }
 
     public static void installPrimitives(BetterEnv env) {
-        install_type(env, "ZZ32", FTypeInt.T);
-        install_type(env, "ZZ64", FTypeLong.T);
-        install_type(env, "Integral", FTypeIntegral.T);
-        install_type(env, "String", FTypeString.T);
-        install_type(env, "Boolean", FTypeBool.T);
-        install_type(env, "RR64", FTypeFloat.T);
-        install_type(env, "Number", FTypeNumber.T);
-        // install_type(env, "ZZ32Range", FTypeRange.T);
-        install_type(env, "BufferedReader", FTypeBufferedReader.T);
-        install_type(env, "BufferedWriter", FTypeBufferedWriter.T);
+        install_type(env, "ZZ32", FTypeInt.ONLY);
+        install_type(env, "ZZ64", FTypeLong.ONLY);
+        install_type(env, "Integral", FTypeIntegral.ONLY);
+        install_type(env, "String", FTypeString.ONLY);
+        install_type(env, "Boolean", FTypeBool.ONLY);
+        install_type(env, "RR64", FTypeFloat.ONLY);
+        install_type(env, "Number", FTypeNumber.ONLY);
+        // install_type(env, "ZZ32Range", FTypeRange.ONLY);
+        install_type(env, "BufferedReader", FTypeBufferedReader.ONLY);
+        install_type(env, "BufferedWriter", FTypeBufferedWriter.ONLY);
 
-        install_type(env, "IntLiteral", FTypeIntLiteral.T);
-        install_type(env, "FloatLiteral", FTypeFloatLiteral.T);
+        install_type(env, "IntLiteral", FTypeIntLiteral.ONLY);
+        install_type(env, "FloatLiteral", FTypeFloatLiteral.ONLY);
 
         install_value(env, "true", FBool.TRUE);
         install_value(env, "false", FBool.FALSE);
@@ -79,27 +79,27 @@ public class Primitives {
         install_type(env, "true", new Bool("true", FBool.TRUE));
         install_type(env, "false", new Bool("false", FBool.FALSE));
 
-        install_type(env, "Any", FTypeTop.T);
+        install_type(env, "Any", FTypeTop.ONLY);
 
-        FTypeNumber.T.addExclude(FTypeString.T);
-        FTypeNumber.T.addExclude(FTypeBool.T);
-        FTypeInt.T.addExclude(FTypeString.T);
-        FTypeInt.T.addExclude(FTypeFloat.T);
-        FTypeInt.T.addExclude(FTypeFloatLiteral.T);
-        FTypeInt.T.addExclude(FTypeBool.T);
-        FTypeInt.T.addExclude(FTypeLong.T);
-        FTypeLong.T.addExclude(FTypeString.T);
-        FTypeLong.T.addExclude(FTypeFloat.T);
-        FTypeLong.T.addExclude(FTypeFloatLiteral.T);
-        FTypeLong.T.addExclude(FTypeBool.T);
-        FTypeIntegral.T.addExclude(FTypeString.T);
-        FTypeIntegral.T.addExclude(FTypeFloat.T);
-        FTypeIntegral.T.addExclude(FTypeFloatLiteral.T);
-        FTypeIntegral.T.addExclude(FTypeBool.T);
-        FTypeFloat.T.addExclude(FTypeString.T);
-        FTypeFloat.T.addExclude(FTypeBool.T);
-        FTypeString.T.addExclude(FTypeBool.T);
-        FTypeString.T.addExclude(FTypeIntLiteral.T);
-        FTypeString.T.addExclude(FTypeFloatLiteral.T);
+        FTypeNumber.ONLY.addExclude(FTypeString.ONLY);
+        FTypeNumber.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeInt.ONLY.addExclude(FTypeString.ONLY);
+        FTypeInt.ONLY.addExclude(FTypeFloat.ONLY);
+        FTypeInt.ONLY.addExclude(FTypeFloatLiteral.ONLY);
+        FTypeInt.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeInt.ONLY.addExclude(FTypeLong.ONLY);
+        FTypeLong.ONLY.addExclude(FTypeString.ONLY);
+        FTypeLong.ONLY.addExclude(FTypeFloat.ONLY);
+        FTypeLong.ONLY.addExclude(FTypeFloatLiteral.ONLY);
+        FTypeLong.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeIntegral.ONLY.addExclude(FTypeString.ONLY);
+        FTypeIntegral.ONLY.addExclude(FTypeFloat.ONLY);
+        FTypeIntegral.ONLY.addExclude(FTypeFloatLiteral.ONLY);
+        FTypeIntegral.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeFloat.ONLY.addExclude(FTypeString.ONLY);
+        FTypeFloat.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeString.ONLY.addExclude(FTypeBool.ONLY);
+        FTypeString.ONLY.addExclude(FTypeIntLiteral.ONLY);
+        FTypeString.ONLY.addExclude(FTypeFloatLiteral.ONLY);
     }
 }

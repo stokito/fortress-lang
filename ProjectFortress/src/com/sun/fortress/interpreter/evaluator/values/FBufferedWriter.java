@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class FBufferedWriter extends FValue {
     private final BufferedWriter val;
-    public FType type() {return FTypeBufferedWriter.T;}
+    public FType type() {return FTypeBufferedWriter.ONLY;}
     public BufferedWriter getBufferedWriter() {return val;}
     public String toString() {
         return "BufferedWriterFileOpen";

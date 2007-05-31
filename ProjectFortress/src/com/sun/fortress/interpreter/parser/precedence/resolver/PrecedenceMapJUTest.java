@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class PrecedenceMapJUTest extends TestCase {
-    final PrecedenceMap pm = PrecedenceMap.T;
+    final PrecedenceMap pm = PrecedenceMap.ONLY;
 
     public static void main(String[] args) {
         junit.textui.TestRunner.run(PrecedenceMapJUTest.class);

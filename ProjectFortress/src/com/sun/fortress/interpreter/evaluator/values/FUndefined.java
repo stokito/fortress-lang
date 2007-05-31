@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 
 public class FUndefined extends FValue {
     public final static FUndefined theUndefined = new FUndefined();
-    public FType type() { return FTypeDynamic.T; }
+    public FType type() { return FTypeDynamic.ONLY; }
     public String getString() {return "Undefined";}
     private FUndefined() {  }
 }

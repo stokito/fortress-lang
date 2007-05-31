@@ -22,17 +22,17 @@ import java.util.List;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class FTypeFloatLiteral extends FType {
-    public final static FTypeFloatLiteral T = new FTypeFloatLiteral();
+    public final static FTypeFloatLiteral ONLY = new FTypeFloatLiteral();
     private FTypeFloatLiteral() {
         super("FloatLiteral");
         cannotBeExtended = true;
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeNumber.T, FTypeFloat.T);
+        return Useful.<FType>list(this, FTypeNumber.ONLY, FTypeFloat.ONLY);
     }
 
     public boolean subtypeOf(FType other) {
-        return (T==other || FTypeFloat.T.subtypeOf(other));
+        return (ONLY==other || FTypeFloat.ONLY.subtypeOf(other));
     }
 }

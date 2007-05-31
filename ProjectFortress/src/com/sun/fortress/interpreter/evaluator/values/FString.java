@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.nodes.Unprinter;
 
 public class FString extends FValue {
     private final String val;
-    public FType type() {return FTypeString.T;}
+    public FType type() {return FTypeString.ONLY;}
     public String getString() {return val;}
     public String toString() {
         return "\"" + Unprinter.enQuote(val) + "\"";

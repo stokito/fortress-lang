@@ -893,7 +893,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                   "Don't support arbitary LHS in Var decl yet");
       }
 
-//	int index = 0;
+// int index = 0;
 
 //        for (LValue lv : lhs) {
 //            if (lv instanceof LValueBind) {
@@ -947,7 +947,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
-	// int index = 0;
+ // int index = 0;
         LValue lv = lhs.get(0);
 
 
@@ -979,7 +979,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                                             + ft + ")");
                         }
                     } else {
-                        ft = FTypeDynamic.T;
+                        ft = FTypeDynamic.ONLY;
                     }
                     /* Finally, can finish this initialiation. */
                     bindInto.storeType(x, sname, ft);

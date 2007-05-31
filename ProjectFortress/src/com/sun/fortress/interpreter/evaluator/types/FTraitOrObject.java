@@ -66,7 +66,7 @@ abstract public class FTraitOrObject extends FType {
         if (this.extends_ != null)
             throw new IllegalStateException("Second set of extends");
         if (extends_.size()==0) {
-            extends_ = FTypeTop.T.getTransitiveExtends();
+            extends_ = FTypeTop.ONLY.getTransitiveExtends();
         }
         this.extends_ = extends_;
         // Here we need to add things to where clauses

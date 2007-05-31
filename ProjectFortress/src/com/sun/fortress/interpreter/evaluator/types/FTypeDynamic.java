@@ -28,8 +28,8 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeDynamic extends FType {
-    public final static FTypeDynamic T = new FTypeDynamic();
-    public final static Set<FType> SingleT = Useful.<FType>set(T);
+    public final static FTypeDynamic ONLY = new FTypeDynamic();
+    public final static Set<FType> SingleT = Useful.<FType>set(ONLY);
 
     private FTypeDynamic() {
         super("Dynamic");

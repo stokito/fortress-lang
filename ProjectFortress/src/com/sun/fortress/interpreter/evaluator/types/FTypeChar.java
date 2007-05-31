@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 public class FTypeChar extends FType {
-    public static final FType T = new FTypeChar();
+    public static final FType ONLY = new FTypeChar();
 
     private FTypeChar() {
         super("Character");

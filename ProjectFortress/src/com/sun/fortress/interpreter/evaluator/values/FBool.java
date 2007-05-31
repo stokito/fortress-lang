@@ -30,7 +30,7 @@ public class FBool extends FValue {
     private final String name;
 
     public FType type() {
-        return FTypeBool.T;
+        return FTypeBool.ONLY;
     }
 
     static public FBool make(boolean b) {
