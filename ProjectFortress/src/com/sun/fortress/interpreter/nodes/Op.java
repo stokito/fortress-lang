@@ -25,8 +25,8 @@ public class Op extends Node {
     String name;
 
     public Op(Span span, String name) {
- super(span);
- this.name = PrecedenceMap.ONLY.canon(name);
+        super(span);
+        this.name = PrecedenceMap.ONLY.canon(name);
     }
 
     @Override

@@ -110,7 +110,7 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     public static List<FType> getFTypeListFromList(List<TypeRef> l, BetterEnv e) {
- EvalType et = new EvalType(e);
+        EvalType et = new EvalType(e);
         return et.getFTypeListFromList(l);
     }
 
@@ -147,7 +147,7 @@ public class EvalType extends NodeVisitor<FType> {
     private static List<FType> getFTypeListFromNonEmptyList(List<TypeRef> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
         for (TypeRef t : l) a.add(t.accept(et));
- return a;
+        return a;
     }
 
     public static FType getFType(TypeRef t, BetterEnv e) {
@@ -447,10 +447,10 @@ public class EvalType extends NodeVisitor<FType> {
     public FType forMatrixType(MatrixType x) {
         FType elt_type = x.getElement().accept(this);
         List<ExtentRange> dimensions = x.getDimensions();
- List<TypeRange> typeRanges = new ArrayList<TypeRange>();
- for (ExtentRange extent : dimensions) {
-     typeRanges.add(extentRangeToTypeRange(extent));
- }
+        List<TypeRange> typeRanges = new ArrayList<TypeRange>();
+        for (ExtentRange extent : dimensions) {
+            typeRanges.add(extentRangeToTypeRange(extent));
+        }
         return new FTypeMatrix(elt_type, typeRanges);
     }
 

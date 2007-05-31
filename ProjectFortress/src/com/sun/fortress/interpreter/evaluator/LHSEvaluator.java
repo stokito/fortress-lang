@@ -110,8 +110,8 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
     public void debugPrint(String debugString) {if (debug) System.out.println(debugString);}
 
     public Voidoid forVarRefExpr(VarRefExpr x) {
- Id var = x.getVar();
- String s = var.getName();
+        Id var = x.getVar();
+        String s = var.getName();
         Environment e = evaluator.e;
         FType ft = e.getVarTypeNull(s);
         if (ft != null) {
@@ -122,7 +122,7 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
             }
         }
         e.assignValue(x, s, value);
- return null;
+        return null;
     }
 
     /* (non-Javadoc)

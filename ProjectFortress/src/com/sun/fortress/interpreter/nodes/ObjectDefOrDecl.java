@@ -138,4 +138,4 @@ public abstract class ObjectDefOrDecl extends Node implements Generic,
      * @return
      */
     abstract public List<? extends DefOrDecl> getDefOrDecls();
- }
+}

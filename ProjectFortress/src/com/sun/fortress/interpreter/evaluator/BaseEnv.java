@@ -47,19 +47,19 @@ abstract public class BaseEnv implements Environment {
         return casValue(string(f1), old_value, new_value);
     }
 
-     final public void putValue(FValue f1, FValue f2) {
-         putValue(string(f1), f2);
-     }
+    final public void putValue(FValue f1, FValue f2) {
+        putValue(string(f1), f2);
+    }
 
-     final public  FValue getValue(FValue f1) {
-         return getValue(string(f1));
-     }
+    final public  FValue getValue(FValue f1) {
+        return getValue(string(f1));
+    }
 
-     public void assignValue(HasAt loc, String str, FValue f2) {
-         // TODO track down references, catch error, and fix.
-         if (hasValue(str)) putValueUnconditionally(str, f2);
-         else throw new ProgramError(loc,this,"Cannot assign to unbound " + str);
-     }
+    public void assignValue(HasAt loc, String str, FValue f2) {
+        // TODO track down references, catch error, and fix.
+        if (hasValue(str)) putValueUnconditionally(str, f2);
+        else throw new ProgramError(loc,this,"Cannot assign to unbound " + str);
+    }
 
     abstract public void putValueUnconditionally(String str, FValue f2);
- }
+}

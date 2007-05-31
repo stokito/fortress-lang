@@ -67,9 +67,9 @@ public class Init {
         FTypeString.ONLY.resetState();
         FTypeNumber.ONLY.resetState();
         FTypeIntegral.ONLY.resetState();
- FTypeLong.ONLY.resetState();
- BottomType.ONLY.resetState();
- FTypeRange.ONLY.resetState();
+        FTypeLong.ONLY.resetState();
+        BottomType.ONLY.resetState();
+        FTypeRange.ONLY.resetState();
 
         FTypeIntLiteral.ONLY.resetState();
         FTypeFloatLiteral.ONLY.resetState();

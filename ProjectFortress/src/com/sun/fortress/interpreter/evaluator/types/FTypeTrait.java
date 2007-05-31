@@ -34,22 +34,21 @@ public class FTypeTrait extends FTraitOrObject {
      */
     BetterEnv methodEnv;
 
- public FTypeTrait(String name, BetterEnv interior, HasAt at) {
-      super(name, interior, at);
+    public FTypeTrait(String name, BetterEnv interior, HasAt at) {
+        super(name, interior, at);
+    }
 
-   }
+    protected void finishInitializing() {
+        BetterEnv interior = getEnv();
+        methodEnv = new BetterEnv(interior, interior.getAt());
+        methodEnv.bless();
+    }
 
- protected void finishInitializing() {
-     BetterEnv interior = getEnv();
-     methodEnv = new BetterEnv(interior, interior.getAt());
-     methodEnv.bless();
- }
-
- public BetterEnv getMethodExecutionEnv() {
-     if (methodEnv == null) {
-         throw new InterpreterError("Internal error, get of unset methodEnv");
-     }
-     return methodEnv;
- }
+    public BetterEnv getMethodExecutionEnv() {
+        if (methodEnv == null) {
+            throw new InterpreterError("Internal error, get of unset methodEnv");
+        }
+        return methodEnv;
+    }
 
 }

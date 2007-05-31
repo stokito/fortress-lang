@@ -250,7 +250,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         @atomic public interface ANode {
             FValue getValue();
             void setValue(FValue value);
- }
+        }
     }
 
 }

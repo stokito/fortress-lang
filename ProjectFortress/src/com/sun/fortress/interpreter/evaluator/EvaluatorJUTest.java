@@ -272,35 +272,35 @@ public class EvaluatorJUTest extends TestCase {
   // }
 
     public void testFRange() {
- FRange test1 = new FRange(1, 10);
- FRange first = test1.firstHalf();
- FRangeIterator iter = new FRangeIterator(test1);
- FRange second = test1.secondHalf();
- assertTrue(first.getBase() == 1);
- assertTrue(first.getSize() > 0);
- assertTrue(second.getBase() == first.getBase() + first.getSize());
- assertTrue(second.getSize() > 0);
+        FRange test1 = new FRange(1, 10);
+        FRange first = test1.firstHalf();
+        FRangeIterator iter = new FRangeIterator(test1);
+        FRange second = test1.secondHalf();
+        assertTrue(first.getBase() == 1);
+        assertTrue(first.getSize() > 0);
+        assertTrue(second.getBase() == first.getBase() + first.getSize());
+        assertTrue(second.getSize() > 0);
         assertTrue(first.getSize() + second.getSize() == 10);
- assertTrue(iter.hasNext());
- assertTrue(!iter.hasAtMostOne());
- assertTrue(((FInt)iter.next()).getInt() == 1);
- assertTrue(((FInt)iter.next()).getInt() == 2);
- assertTrue(((FInt)iter.next()).getInt() == 3);
- assertTrue(((FInt)iter.next()).getInt() == 4);
- assertTrue(((FInt)iter.next()).getInt() == 5);
- assertTrue(((FInt)iter.next()).getInt() == 6);
- assertTrue(((FInt)iter.next()).getInt() == 7);
- assertTrue(((FInt)iter.next()).getInt() == 8);
- assertTrue(((FInt)iter.next()).getInt() == 9);
- assertTrue(iter.hasAtMostOne());
- assertTrue(((FInt)iter.next()).getInt() == 10);
- FRange test2 = new FRange(1, 11);
- first = test2.firstHalf();
- second = test2.secondHalf();
- assertTrue(first.getBase() == 1);
- assertTrue(first.getSize() > 0);
- assertTrue(second.getBase() == first.getBase() + first.getSize());
- assertTrue(second.getSize() > 0);
+        assertTrue(iter.hasNext());
+        assertTrue(!iter.hasAtMostOne());
+        assertTrue(((FInt)iter.next()).getInt() == 1);
+        assertTrue(((FInt)iter.next()).getInt() == 2);
+        assertTrue(((FInt)iter.next()).getInt() == 3);
+        assertTrue(((FInt)iter.next()).getInt() == 4);
+        assertTrue(((FInt)iter.next()).getInt() == 5);
+        assertTrue(((FInt)iter.next()).getInt() == 6);
+        assertTrue(((FInt)iter.next()).getInt() == 7);
+        assertTrue(((FInt)iter.next()).getInt() == 8);
+        assertTrue(((FInt)iter.next()).getInt() == 9);
+        assertTrue(iter.hasAtMostOne());
+        assertTrue(((FInt)iter.next()).getInt() == 10);
+        FRange test2 = new FRange(1, 11);
+        first = test2.firstHalf();
+        second = test2.secondHalf();
+        assertTrue(first.getBase() == 1);
+        assertTrue(first.getSize() > 0);
+        assertTrue(second.getBase() == first.getBase() + first.getSize());
+        assertTrue(second.getSize() > 0);
         assertTrue(first.getSize() + second.getSize() == 11);
     }
     public void testEnvironment() {
@@ -312,15 +312,15 @@ public class EvaluatorJUTest extends TestCase {
         // Copy inherits outer, shadowing is not allowed.
         s.putValueUnconditionally("x", FInt.make(9));
         assertTrue(e.getValue("x").getInt() == 7);
- assertEquals(9, s.getValue("x").getInt());
+        assertEquals(9, s.getValue("x").getInt());
     }
 
     public static Test suite() {
- return new TestSuite(EvaluatorJUTest.class);
+        return new TestSuite(EvaluatorJUTest.class);
     }
 
     public static void main(String args[]) {
- junit.textui.TestRunner.run(suite());
+        junit.textui.TestRunner.run(suite());
     }
 
     /* (non-Javadoc)

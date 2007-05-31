@@ -25,4 +25,4 @@ public final class Voidoid {
     private Voidoid() {
         throw new Error("Don't try to get cute with reflection.");
     }
- }
+}
