@@ -129,10 +129,11 @@ public class Disambiguate extends Rewrite {
         Expr replacement(VarRefExpr original) {
             return original;
         }
+        public String toString() { return "Thing@"+nestedness; }
     }
 
     class Local extends Thing {
-
+        public String toString() { return "Local@"+nestedness; }
     }
 
     /**
@@ -145,6 +146,8 @@ public class Disambiguate extends Rewrite {
         Trait(TraitDefOrDecl dod) {
             defOrDecl = dod;
         }
+        public String toString() { return "Trait="+defOrDecl; }
+        
     }
 
     class Member extends Thing {
@@ -156,7 +159,8 @@ public class Disambiguate extends Rewrite {
                                 objectNestingDepth - nestedness), original.getVar());
         return fs;
         }
-    }
+        public String toString() { return "Member@"+nestedness; }
+        }
 
     class SelfRewrite extends Thing {
         SelfRewrite(String s) {
@@ -168,7 +172,8 @@ public class Disambiguate extends Rewrite {
                     objectNestingDepth - nestedness);
             return e;
         }
-
+        public String toString() { return "Self("+s+")@"+nestedness; }
+        
     }
 
     /**
@@ -629,7 +634,9 @@ public class Disambiguate extends Rewrite {
     private void paramsToLocals(List<? extends Param> params) {
         for (Param d : params) {
             String s = d.getName().getName();
-            e.put(s, new Local());
+            // "self" is not a local.
+            if (! s.equals(currentSelfName))
+                e.put(s, new Local());
         }
     }
 
