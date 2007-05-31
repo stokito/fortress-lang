@@ -226,7 +226,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         case 3:
         case 4: doDefs(this, decls);break;
         }
-       return null;
+        return null;
 
     }
 
@@ -245,7 +245,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         case 3:
         case 4: doDefs(this, defs);break;
         }
-       return null;
+        return null;
     }
 
     public Voidoid forComponentDefs(Component x) {
@@ -1377,11 +1377,43 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      */
     @Override
     public Voidoid forAbsVarDecl(AbsVarDecl x) {
-        // List<Modifier> mods;
-        // Id name;
-        // TypeRef type;
-        // TODO Auto-generated method stub
+        switch (pass) {
+        case 1: doAbsVarDecl(x); break;
+        case 2:
+        case 3:
+        case 4: break;
+        }
         return null;
+    }
+
+    private void doAbsVarDecl(AbsVarDecl x) {
+        List<LValue> lhs = x.getLhs();
+
+        // List<Modifier> mods;
+        // Id name = x.getName();
+        // Option<TypeRef> type = x.getType();
+        LValue lv = lhs.get(0);
+
+        if (lv instanceof LValueBind) {
+            LValueBind lvb = (LValueBind) lv;
+            Id name = lvb.getName();
+            String sname = name.getName();
+
+            try {
+                /* Assumption: we only care for APIs, for which this
+                 * is a placeholder. */
+                FValue init_val = new LazilyEvaluatedCell(null, null);
+                putValue(bindInto, sname, init_val);
+            } catch (ProgramError pe) {
+                pe.setWithin(bindInto);
+                pe.setWhere(x);
+                throw pe;
+            }
+
+        } else {
+            throw new InterpreterError(x,
+                           "Don't support arbitary LHS in Var decl yet");
+        }
     }
 
     /*

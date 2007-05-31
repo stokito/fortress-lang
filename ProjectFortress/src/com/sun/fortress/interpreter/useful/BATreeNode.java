@@ -34,18 +34,18 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
         }
 
         public String recursiveToString() {
-            return recursiveToStringBuffer(new StringBuffer(), false).toString();
+            return recursiveToStringBuffer(new StringBuffer(), false, " ").toString();
         }
 
-        public StringBuffer recursiveToStringBuffer(StringBuffer b, boolean withParens) {
+        public StringBuffer recursiveToStringBuffer(StringBuffer b, boolean withParens, String sep) {
             if (left != null || right != null) {
                 if (withParens)
                     b.append("(");
                 if (left != null)
-                    left.recursiveToStringBuffer(b, withParens).append(" ");
+                    left.recursiveToStringBuffer(b, withParens, sep).append(sep);
                 toStringBuffer(b);
                 if (right != null)
-                    right.recursiveToStringBuffer(b.append(" "), withParens);
+                    right.recursiveToStringBuffer(b.append(sep), withParens, sep);
 
                 if (withParens)
                     b.append(")");

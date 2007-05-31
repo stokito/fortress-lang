@@ -58,8 +58,8 @@ private String greaters = ">" (sd ">")*;
 private String encloser = !(bar) bars !([*.>/\\] / "->") ;
 
 private String leftEncloser =
-      leftEncloserMulti &{ PrecedenceMap.T.isLeft(yyValue) }
-   / c:_ &{c != '|' && PrecedenceMap.T.isLeft(""+c)} { yyValue = ""+c; }
+      leftEncloserMulti &{ PrecedenceMap.ONLY.isLeft(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)} { yyValue = ""+c; }
    ;
 
 private String leftEncloserMulti =
@@ -72,8 +72,8 @@ private String leftEncloserMulti =
    ;
 
 private String rightEncloser =
-      rightEncloserMulti &{ PrecedenceMap.T.isRight(yyValue) }
-   / c:_ &{c != '|' && PrecedenceMap.T.isRight(""+c)} { yyValue = ""+c; }
+      rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)} { yyValue = ""+c; }
    ;
 
 private String rightEncloserMulti =
@@ -129,7 +129,7 @@ String multiOp =
 
 String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
-     a1:_ &{ PrecedenceMap.T.isOperator("" + a1) }
+     a1:_ &{ PrecedenceMap.ONLY.isOperator("" + a1) }
      { yyValue = "" + a1; } ;
 
 String op =

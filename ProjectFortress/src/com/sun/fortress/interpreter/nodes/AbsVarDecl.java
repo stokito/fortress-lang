@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
+import com.sun.fortress.interpreter.useful.Useful;
 
 // / and var_decl = var_decl_rec node
 // / and var_decl_rec =
@@ -41,6 +42,11 @@ public class AbsVarDecl extends VarDefOrDecl implements AbsDecl {
 
     AbsVarDecl(Span span) {
         super(span);
+    }
+
+    @Override
+    public String toString() {
+        return "abs "+Useful.listInParens(getLhs())+getSpan();
     }
 
     /**

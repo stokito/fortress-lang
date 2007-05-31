@@ -32,9 +32,9 @@ run(args:String...):()=do
   var z:ZZ32 = 0
   var y:ZZ32 = 1
   f = fn (x:ZZ32):ZZ32 => do z+=2; x-y; end
-  g (x:ZZ32):ZZ32 = if x < 2 then x else first= g(f x);
-                                         second = g(f (f x));
-                                         first+second end
+  g (x:ZZ32):ZZ32 = if x < 2 then x else fst= g(f x);
+                                         snd = g(f (f x));
+                                         fst+snd end
 
   println("g(4)=" g(4))
   println("z=" z)

@@ -104,26 +104,26 @@ public abstract class Node implements HasAt {
         p.dump(this, appendable, 0);
     }
 
-        /**
-         * The externally accessible "accept" method for the vistor pattern
-         * @param <T>
-         * @param v
-         * @return
-         */
-   public final <T> T accept(NodeVisitor<T> v) {
+    /**
+     * The externally accessible "accept" method for the vistor pattern
+     * @param <T>
+     * @param v
+     * @return
+     */
+    public final <T> T accept(NodeVisitor<T> v) {
         return acceptInner(v);
     }
 
-     /**
-      * The internal accept method, that all leaf nodes should implement.
-      * 
-      * @param <T>
-      * @param v
-      * @return
-      */
-     abstract <T> T acceptInner(NodeVisitor<T> v);
-     
-     /**
+    /**
+     * The internal accept method, that all leaf nodes should implement.
+     *
+     * @param <T>
+     * @param v
+     * @return
+     */
+    abstract <T> T acceptInner(NodeVisitor<T> v);
+
+    /**
      * @return Returns the span.
      */
     public Span getSpan() {

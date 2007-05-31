@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.interpreter.useful.Useful;
 
 
 // / and var_def = var_def_rec node
@@ -66,6 +67,11 @@ public class VarDecl extends VarDefOrDecl implements Decl {
     public VarDecl(Span s, Id name, Expr init) {
         this(s, name, Collections.<Modifier> emptyList(), new None<TypeRef>(),
                 init);
+    }
+
+    @Override
+    public String toString() {
+        return Useful.listInParens(getLhs())+"="+init+getSpan();
     }
 
     @Override

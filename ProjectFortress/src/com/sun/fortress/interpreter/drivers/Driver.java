@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -497,17 +498,21 @@ public class Driver {
             add_as = alias.getVal().name();
         }
         try {
-            if (api_e.getNatNull(s) != null)
+            if (api_e.getNatNull(s) != null) {
                 e.putNat(add_as, NI.cnnf(from_e.getNatNull(s)));
-            if (api_e.getIntNull(s) != null)
+            }
+            if (api_e.getIntNull(s) != null) {
                 e.putInt(add_as, NI.cnnf(from_e.getIntNull(s)));
-            if (api_e.getBoolNull(s) != null)
+            }
+            if (api_e.getBoolNull(s) != null) {
                 e.putBool(add_as, NI.cnnf(from_e.getBoolNull(s)));
-            if (api_e.getTypeNull(s) != null)
+            }
+            if (api_e.getTypeNull(s) != null) {
                 e.putType(add_as, NI.cnnf(from_e.getTypeNull(s)));
-
-            if (api_e.getValueRaw(s) != null)
+            }
+            if (api_e.getValueRaw(s) != null) {
                 e.putValue(add_as, NI.cnnf(from_e.getValueRaw(s)));
+            }
         } catch (CheckedNullPointerException ex) {
             throw new ProgramError("Import of " + name + " from api " + a
                     + " not found in implementing component " + c);
@@ -546,7 +551,7 @@ public class Driver {
                 DottedId source = ix.getSource();
                 ensureApiImplemented(linker, pile, source);
             } else {
-
+                throw new InterpreterError(i,"Unrecognized import");
             }
         }
     }

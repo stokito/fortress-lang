@@ -18,9 +18,10 @@
 component Foo
   export Foo
 
+  x:ZZ32 = 3
   y:ZZ32 = 1
   z:ZZ32 = 99
 
-  f(x:ZZ32) = x + y
+  f(a:ZZ32) = a + y
 
 end

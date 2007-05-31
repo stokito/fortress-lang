@@ -163,7 +163,7 @@ private AliasedName AliasedName =
 
 /* EncloserPair ::= LeftEncloser w RightEncloser */
 private Enclosing EncloserPair = a1:LeftEncloser w a2:RightEncloser
-     { if (PrecedenceMap.T.matchedBrackets(a1.getName(), a2.getName()))
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getName(), a2.getName()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
            throw new ProgramError(a2, "Mismatched Enclosers.");

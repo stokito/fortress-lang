@@ -92,6 +92,15 @@ public class LValueBind extends LValue implements LHS {
     }
 
     @Override
+    public String toString() {
+        String r="";
+        if (type.isPresent()) {
+            r = ":"+type.getVal();
+        }
+        return name+r;
+    }
+
+    @Override
     public <T> T acceptInner(NodeVisitor<T> v) {
         return v.forLValueBind(this);
     }

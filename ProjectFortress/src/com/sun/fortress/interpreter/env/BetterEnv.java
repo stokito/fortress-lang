@@ -486,14 +486,15 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             a.append("Not within anything.\n");
         }
         if (verboseDump) {
-        dumpOne(a, type_env, "Types: ");
-        dumpOne(a, nat_env, "Nats: ");
-        dumpOne(a, int_env, "Ints: ");
-        dumpOne(a, var_env, "Vars: ");
-        dumpOne(a, bool_env, "Bools: ");
-        dumpOne(a, api_env, "Apis: ");
-        dumpOne(a, cmp_env, "Components: ");
-        dumpOne(a, dcl_env, "Declarations: ");
+            dumpOne(a, type_env, "Types:\n  ");
+            dumpOne(a, nat_env, "\nNats:\n  ");
+            dumpOne(a, int_env, "\nInts:\n  ");
+            dumpOne(a, var_env, "\nVars:\n  ");
+            dumpOne(a, bool_env, "\nBools:\n  ");
+            dumpOne(a, api_env, "\nApis:\n  ");
+            dumpOne(a, cmp_env, "\nComponents:\n  ");
+            dumpOne(a, dcl_env, "\nDeclarations:\n  ");
+            a.append("\n");
         } else if (parent != null) {
             parent.dump(a);
         }
@@ -502,8 +503,14 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     private <Result> void dumpOne(Appendable a, BATreeNode<String, Result> m, String s) throws IOException {
         if (m != null) {
-             a.append(s).append(m.recursiveToString()); a.append(Printer.nl);
-
+            a.append(s);
+            if (a instanceof StringBuffer) {
+                m.recursiveToStringBuffer((StringBuffer)a,false,"\n  ");
+            } else {
+                StringBuffer sb =
+                    m.recursiveToStringBuffer(new StringBuffer(),false,"\n  ");
+                a.append(sb.toString());
+            }
         }
 
     }

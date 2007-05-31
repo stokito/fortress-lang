@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component nativeTestFn
+import * from Constants
 export Executable
 
 testFn(x:ZZ32, y:RR64):String = builtinPrimitive("com.sun.fortress.interpreter.glue.TestFn");

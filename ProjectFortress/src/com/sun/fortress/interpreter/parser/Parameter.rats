@@ -93,7 +93,7 @@ FnHeaderFront OpHeaderFront =
        if (left.equals("[") && right.equals("]")) {
            if (opa5 == null) name = new SubscriptOp(span);
            else              name = new SubscriptAssign(span);
-       } else if (PrecedenceMap.T.matchedBrackets(left, right))
+       } else if (PrecedenceMap.ONLY.matchedBrackets(left, right))
            name = new Enclosing(span, opa2, opa4);
        else
            throw new ProgramError(opa2,

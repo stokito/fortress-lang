@@ -18,10 +18,6 @@
 component FortressLibrary
 export Executable
 
-pi = 3.141592653589793 (* Double whose sin is closest to 0 *)
-(* e = 2.7182818284590455 (* exp(1.0) *) *)
-infinity = 1.0 / 0.0
-
 builtinPrimitive[\T\](javaClass:String):T =
   fail ("Implementation should not invoke builtinPrimitive " javaClass)
 
@@ -62,6 +58,7 @@ opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 trait Generator[\E\]
     (* Minimal complete definition is the following two methods: *)
     getter size(): ZZ32
+    getter empty(): Boolean = size()=0
     generate[\R\](r: Reduction[\R\], m: E->R): R
 
     (* Combining generators to produce new generators *)
@@ -82,7 +79,7 @@ trait Generator[\E\]
     loop(f:E->()): () = generate[\()\](VoidReduction, f)
 end
 
-(* Operations which use generation internally *)
+(* Operations which use generation internally.  Should be functional methods. *)
 opr IN[\E\](x: E, this: Generator[\E\]): Boolean =
     this.generate[\Boolean\](OrReduction, fn (y: E) => x=y)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN self)
@@ -292,6 +289,13 @@ tuple[\T\](x:T):T = x
 
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+(* Retrieve values from tuples in a well-typed way. *)
+first[\T\](t:T, u:Any...): T = t
+
+second[\A,T\](a:A, t:T, u:Any...): T = t
+
+third[\A,B,T\](a:A, b:B, t:T, u:Any...): T = t
 
 (** Reflection for run-time integers into compile-time nat parameters.
  *
@@ -1142,7 +1146,7 @@ object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
         g.generate[\R\](r, f)
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
-    seq() = SimpleMappedGenerator[\E,F\](g.seq(),f)
+    seq() = SimpleMappedGenerator[\E,F\](sequential(g),f)
 end
 
 object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
@@ -1152,7 +1156,7 @@ object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
         e.generate[\R\](r, fn (a: E): R =>
                               f.generate[\R\](r, fn (b: F): R => m(a,b)))
-    seq() = SimplePairGenerator[\E,F\](e.seq(),f.seq())
+    seq() = SimplePairGenerator[\E,F\](sequential(e),seqential(f))
 end
 
 (** Helper for serializing generators naively.  This code should make

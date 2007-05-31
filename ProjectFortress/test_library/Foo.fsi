@@ -17,5 +17,6 @@
 
 api Foo
   f(x:ZZ32)
+  x:ZZ32
   z:ZZ32
 end

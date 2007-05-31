@@ -34,12 +34,12 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 public class ComponentWrapper {
     CompilationUnit p;
-    
+
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
-    
+
     BuildEnvironments be;
     Disambiguate dis;
-    
+
     int visitState;
     private final static int UNVISITED=0, POPULATED=1, TYPED=2, FUNCTIONED=3, FINISHED=4;
 
@@ -65,6 +65,11 @@ public class ComponentWrapper {
         exports.put(api.getComponent().getName().toString(),api);
     }
 
+    @Override
+    public String toString() {
+        return ("Wrapper for "+p.toString()+" exports: "+exports);
+    }
+
     public boolean populated() {
         return visitState > UNVISITED;
     }
@@ -79,16 +84,16 @@ public class ComponentWrapper {
 
     /**
      * Inject names into all the appropriate environments.
-     * 
+     *
      * This populates both the component environment and all the
      * API environments.  The relationship between these two
      * environments is a little delicate and probably is not yet
      * implemented correctly.
-     * 
+     *
      * A separate API environment must be maintained to ensure that
      * imports are filtered through the API, and do not inadvertently
      * pick up names from the implementing component.
-     * 
+     *
      * Currently, the API names are not additionally initialized,
      * though that may need to change.
      *
@@ -98,47 +103,47 @@ public class ComponentWrapper {
             return;
 
         visitState = POPULATED;
-        
+
         p = populateOne(p, be);
-        
+
         for (ComponentWrapper api: exports.values()) {
             api.populateEnvironment();
         }
     }
 
     /**
-     * 
+     *
      */
     private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments be) {
         dis = new Disambiguate();
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
-        
+
         return cu;
     }
 
     public void initTypes() {
         if (visitState == POPULATED) {
             visitState = TYPED;
-            
+
             be.secondPass();
-            
+
             be.visit(p);
 
-        } else 
+        } else
             throw new IllegalStateException("Must be populated before init types");
     }
 
     public void initFuncs() {
         if (visitState == TYPED) {
             visitState = FUNCTIONED;
-            
+
             be.thirdPass();
-            
+
             be.visit(p);
 
-        } else 
+        } else
             throw new IllegalStateException("Must be typed before init funcs");
     }
 
@@ -153,7 +158,7 @@ public class ComponentWrapper {
                  * TODO Need to figure out why this works (or seems to).
                  */
             dis.registerObjectExprs(be.getEnvironment());
-            
+
         } else if (visitState == UNVISITED)
             throw new IllegalStateException("Must be populated, typed, and functioned before init vars");
     }
@@ -169,7 +174,7 @@ public class ComponentWrapper {
     /**
      * Returns the component wrapper for the API apiname that this component
      * exports.
-     * 
+     *
      * @param from_apiname
      * @return
      */

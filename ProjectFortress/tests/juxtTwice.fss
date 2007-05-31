@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component juxtTwice
+import { pi } from Constants
 export Executable
 
 (* It looks like the first component of a loose juxtaposition is being
