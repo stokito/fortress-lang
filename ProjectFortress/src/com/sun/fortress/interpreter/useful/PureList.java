@@ -70,7 +70,15 @@ public abstract class PureList<T> {
    public abstract int size();
    public abstract <U> PureList<U> map(Fn<T,U> fn);
    public abstract boolean contains(T candidate);
-   public abstract PureList<T> cons(T elt);
+   
+   public final PureList<T> cons(T... elts) { 
+     PureList<T> result = this;
+     for (int i = elts.length - 1; i >= 0; i--) {
+       result = new Cons<T>(elt, result);
+     }
+     return result;
+   }
+   
    public abstract PureList<T> append(PureList<T> that);
    public PureList<T> reverse() { return reverse(new Empty<T>()); }
    public abstract PureList<T> reverse(PureList<T> result);

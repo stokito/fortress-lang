@@ -56,7 +56,6 @@ public class Cons<T> extends PureList<T> {
    public boolean contains(T candidate) {
      return getFirst().equals(candidate) || getRest().contains(candidate);
    }
-   public PureList<T> cons(T elt) { return new Cons<T>(elt, this); }
    public PureList<T> append(PureList<T> that) { return getRest().append(that).cons(getFirst()); }
    public PureList<T> reverse() { return reverse(new Empty<T>()); }
    public PureList<T> reverse(PureList<T> result) { return getRest().reverse(result.cons(getFirst())); }
