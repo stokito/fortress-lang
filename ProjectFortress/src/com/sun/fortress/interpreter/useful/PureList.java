@@ -74,7 +74,7 @@ public abstract class PureList<T> {
    public final PureList<T> cons(T... elts) { 
      PureList<T> result = this;
      for (int i = elts.length - 1; i >= 0; i--) {
-       result = new Cons<T>(elt, result);
+       result = new Cons<T>(elts[i], result);
      }
      return result;
    }
