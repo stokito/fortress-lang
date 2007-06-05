@@ -25,6 +25,11 @@ import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.useful.Useful;
 
+/**
+ * Tests that specific files in the tests directory contain static errors.  Ensuring that
+ * all files in "tests" that don't start with "XXX" pass type checking is done by the 
+ * drivers/SystemJUTests test.  All "XXX" files not listed below are expected to only have runtime errors.
+ */
 public class TypeCheckerJUTest extends TestCase {
 
     /* (non-Javadoc)
@@ -35,19 +40,22 @@ public class TypeCheckerJUTest extends TestCase {
         Init.initializeEverything();
     }
 
-    private static final String[] valid = {
-        "varTest"
+    private static final String[] typeErrors = {
+        "UndefinedVar",
+        "EmptyBlock"
     };
     
-    private static final String[] invalid = {
-        "XXXvarTest"
-    };
-    
-    public void testValid() throws IOException {
-        for (String name : valid) {
-            String f = "tests" + File.separator + name + ".fss";
+    public void testTypeErrors() throws IOException {
+        for (String name : typeErrors) {
+            String f = "type_errors" + File.separator + name + ".fss";
             CompilationUnit c = Driver.parseToJavaAst(f, Useful.utf8BufferedFileReader(f));
-            TypeChecker.check(c);
+            try {
+                TypeChecker.check(c);
+                fail("Checked " + f + " without a type error");
+            }
+            catch (TypeError e) {
+                System.err.println(f + " OK");
+            }
         }
     }
 }
