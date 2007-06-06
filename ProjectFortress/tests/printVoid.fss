@@ -19,6 +19,6 @@ component printVoid
 export Executable
 
 run(args:String...) = do
-  print("")
+  print("test")
 end
 end
