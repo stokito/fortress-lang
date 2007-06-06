@@ -51,15 +51,10 @@ any platform that has working installations of all of the following:
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/
 
-In addition, you must set the following environment variables:
-
-JAVA_HOME must refer to the root of your Java installation.
-ANT_HOME must refer to the root of your Ant installation.
-
 To build this code, run the following command from directory
 ProjectFortress:
 
-./ant clean compile
+ant clean compile
 
 It is necessary to run the local bash script "./ant" because this
 script passes command-line arguments to Ant that must be read before
