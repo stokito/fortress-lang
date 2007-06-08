@@ -56,6 +56,8 @@ public abstract class NonPrimitive extends Simple_fcn {
     private List<Parameter> params;
 
     private boolean lastParamIsRest;
+    
+    private volatile List<FType> cachedDomain;
 
     protected boolean hasRest() {
         return lastParamIsRest;
@@ -98,7 +100,15 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     @Override
     public List<FType> getDomain() {
-        return typeListFromParameters(getParams());
+        if (cachedDomain == null) {
+            synchronized (this) {
+                if (cachedDomain == null) {
+                    List<FType> l = typeListFromParameters(getParams());
+                    cachedDomain = l;
+                }
+            }
+        }
+        return cachedDomain;
     }
 
     /**

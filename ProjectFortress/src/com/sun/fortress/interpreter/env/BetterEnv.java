@@ -42,7 +42,6 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethodSet;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
@@ -357,29 +356,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                         throw new ProgramError("Overload of Simple_fcn " + fvo + " with inconsistent " + value);
                     }
                      return table.add(index, gms, comparator);
-                 } else if (fvo instanceof GenericMethodSet) {
-                    if (value instanceof GenericMethod) {
-                        ((GenericMethodSet)fvo).addOverload((GenericMethod) value);
-                    } else if (value instanceof GenericMethodSet) {
-                        ((GenericMethodSet)fvo).addOverloads((GenericMethodSet) value);
-                    } else {
-                        throw new ProgramError("Overload of GenericMethodSet " + fvo + " with inconsistent " + value);
-                    }
-
-                } else if (fvo instanceof GenericMethod) {
-                    GenericMethod gm = (GenericMethod)fvo;
-                    GenericMethodSet gms = new GenericMethodSet(gm.getFnName(), this);
-                    gms.addOverload(gm);
-                    if (value instanceof GenericMethod) {
-                        gms.addOverload((GenericMethod) value);
-                    } else if (value instanceof GenericMethodSet) {
-                        gms.addOverloads((GenericMethodSet) value);
-                    } else {
-                        throw new ProgramError("Overload of GenericMethod " + fvo + " with inconsistent " + value);
-                    }
-                    return table.add(index, gms, comparator);
-
-                } else if (fvo instanceof OverloadedFunction) {
+                 } else if (fvo instanceof OverloadedFunction) {
                    if (value instanceof SingleFcn) {
                        ((OverloadedFunction)fvo).addOverload((SingleFcn) value);
                     } else if (value instanceof OverloadedFunction) {

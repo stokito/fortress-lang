@@ -42,7 +42,6 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethodSet;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -709,7 +708,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                         cl = new OverloadedFunction(fndod.getFnName(), containing);
                     } else {
                         // Note that the instantiation of a generic comes here too
-                        cl = new FunctionalMethod(containing, fndod, spi);
+                        cl = new FunctionalMethod(containing, fndod, spi, x);
                     }
                     
                     // TODO test and other modifiers

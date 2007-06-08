@@ -396,12 +396,6 @@ public class Constructor extends AnonymousConstructor {
             } else if (fv instanceof MethodClosure) {
                 signaturesToTraitsContainingMethods.putIfAbsent
                     ((MethodClosure) fv, ft);
-            } else if (fv instanceof GenericMethodSet) {
-                Set<GenericMethod> gs = generics.get(s);
-                for (GenericMethod gfv : gs) {
-                    MethodClosure sfcn = gfv.make(genericArgs.get(s), gfv.getAt());
-                    signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
-                }
             } else {
                 NI.nyi("Don't handle " + fv + " yet");
             }
@@ -418,9 +412,6 @@ public class Constructor extends AnonymousConstructor {
             if (fv instanceof GenericMethod) {
                 // TODO This is VERY approximate
                 generics.putItem(s, (GenericMethod) fv);
-            } else if (fv instanceof GenericMethodSet) {
-                // TODO  This is VERY approximate
-                generics.putItems(s, ((GenericMethodSet) fv).getMethods());
             } else {
                 // do nothing
             }

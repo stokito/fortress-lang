@@ -52,7 +52,7 @@ public abstract class FValue {
     }
 
     // map "select type"
-    static protected List<FType> typeListFromParameters(List<Parameter> params) {
+    protected List<FType> typeListFromParameters(List<Parameter> params) {
         ArrayList<FType> al = new ArrayList<FType>(params.size());
         for (Parameter p : params) al.add(p.param_type);
         return al;
