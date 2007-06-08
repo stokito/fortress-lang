@@ -31,7 +31,6 @@ import com.sun.fortress.interpreter.nodes.IdType;
 import com.sun.fortress.interpreter.nodes.RestType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.BASet;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.MagicNumbers;

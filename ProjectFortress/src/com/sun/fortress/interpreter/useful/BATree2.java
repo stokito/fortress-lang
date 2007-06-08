@@ -351,7 +351,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             root = new BATree2Node<T, U, V>(k,d1, d2,null, null);
            return;
         }
-        BATree2Node<T, U, V> old = root;
         root = root.add(k,d1, d2, comp);
     }
 

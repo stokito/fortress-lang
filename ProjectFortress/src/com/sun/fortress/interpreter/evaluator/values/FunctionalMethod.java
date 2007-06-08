@@ -24,7 +24,6 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.useful.AssignedList;
@@ -36,7 +35,6 @@ public class FunctionalMethod extends Closure {
     
     int selfParameterIndex;
     private FType selfParameterType;
-    private List<FType> cachedDomain;
     
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Closure#applyInner(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)

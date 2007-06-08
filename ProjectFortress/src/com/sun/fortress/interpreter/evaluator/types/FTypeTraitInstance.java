@@ -17,20 +17,12 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.ParamType;
-import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 
 

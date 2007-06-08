@@ -31,7 +31,6 @@ import com.sun.fortress.interpreter.nodes.RestType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TupleType;
 import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.Factory1;
 import com.sun.fortress.interpreter.useful.ListComparer;

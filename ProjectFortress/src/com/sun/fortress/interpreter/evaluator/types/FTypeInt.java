@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.VarArgs;
 
 
 public class FTypeInt extends FType {
@@ -30,8 +31,10 @@ public class FTypeInt extends FType {
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
-                                  FTypeFloat.ONLY, FTypeNumber.ONLY);
+        // only called once, cached by caller, don't bother to cache.
+        return  Useful.<FType>list(VarArgs.make(this, FTypeLong.ONLY, FTypeIntegral.ONLY,
+                                  FTypeFloat.ONLY, FTypeNumber.ONLY));
+        
     }
 
     public boolean subtypeOf(FType other) {

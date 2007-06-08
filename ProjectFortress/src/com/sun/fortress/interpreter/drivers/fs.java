@@ -36,7 +36,7 @@ public class fs {
 
     static final String SXP_SUFFIX = ".sxp";
 
-    static final String JAVA_AST_SUFFIX = ".jst";
+    static final String JAVA_AST_SUFFIX = ".tfs";
 
     static String timeStamp;
 

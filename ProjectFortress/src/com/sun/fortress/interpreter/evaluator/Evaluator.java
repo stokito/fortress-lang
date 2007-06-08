@@ -261,7 +261,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // we can't pass the lhses to the numerous functions
                 // which expect a List<Expr>---for example TupleExpr
                 // or evalExprListParallel!  This is extremely annoying!
-                List<FValue> lhsComps = new ArrayList(lhsSize);
+                List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
                 for (LHS lhs : lhses) {
                     // This should occur in parallel!!!
                     lhsComps.add(lhs.accept(this));
@@ -1283,7 +1283,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (rest.size()==1) {
             FValue val = rest.get(0);
             if (val instanceof FVoid) {
-                rest = new ArrayList(0);
+                rest = new ArrayList<FValue>(0);
             } else if (val instanceof FTuple) {
                 rest = ((FTuple) val).getVals();
             }

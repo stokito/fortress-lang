@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealPrecedence;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.VarArgs;
 
 
 /* The following file is the automatially-generated list of operator
@@ -469,8 +470,8 @@ public class PrecedenceMap {
      * section numbers, so David tells me.
      */
 
-    static Set<String> c_2_2() {
-        return Useful.union(
+   static Set<String> c_2_2() {
+        return Useful.union(VarArgs.make(
                       Operators.p_multiplication_and_division,
                       Operators.p_addition_and_subtraction,
                       Operators.p_dot_above_multiplication_and_division,
@@ -481,12 +482,12 @@ public class PrecedenceMap {
                       Operators.p_circled_addition_and_subtraction,
                       Operators.p_squared_multiplication_and_division,
                       Operators.p_squared_addition_and_subtraction,
-                      Operators.p_misc_addition);
+                      Operators.p_misc_addition));
     }
 
     static Set<String> c_2_3() {
-        return Useful.set("MAX", "MIN", "REM", "MOD", "GCD",
-                          "LCM", "CHOOSE", "per");
+        return Useful.set(VarArgs.make("MAX", "MIN", "REM", "MOD", "GCD",
+                          "LCM", "CHOOSE", "per"));
     }
 
     static Set<String> c_2_4() {
@@ -553,12 +554,13 @@ public class PrecedenceMap {
     }
 
     static Set<String> c_3_8() {
-        return Useful.union( Operators.p_relational_misc );
+        return Operators.p_relational_misc ;
     }
 
+    @SuppressWarnings("unchecked") // varargs of generic
     static Set<String> c_3() {
-        return Useful.union( c_3_1(), c_3_2(), c_3_3(), c_3_4(),
-                             c_3_5(), c_3_6(), c_3_7(), c_3_8());
+        return Useful.union(VarArgs.make( c_3_1(), c_3_2(), c_3_3(), c_3_4(),
+                             c_3_5(), c_3_6(), c_3_7(), c_3_8()));
     }
 
     static Set<String> c_4() {

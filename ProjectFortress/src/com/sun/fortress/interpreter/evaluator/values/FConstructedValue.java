@@ -16,14 +16,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.useful.EquivalenceClass;
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.Useful;
 
 
 public abstract class FConstructedValue extends FValue {

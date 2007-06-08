@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.useful;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -91,10 +92,10 @@ public class UsefulJUTest extends TestCase {
         x = Useful.setProduct( Useful.set(Useful.list("a"), Useful.list("b")),
                                Useful.set(Useful.list("c"), Useful.list("d")) ,
                                listAppender);
-        assertEquals( Useful.set(Useful.list("a", "c"),
+        assertEquals( Useful.set(VarArgs.make(Useful.list("a", "c"),
                                  Useful.list("a", "d"),
                                  Useful.list("b", "c"),
-                                 Useful.list("b", "d")), x);
+                                 Useful.list("b", "d"))), x);
         System.out.println(x);
 
     }
@@ -169,10 +170,8 @@ public class UsefulJUTest extends TestCase {
     }
 
     public void testUnion() {
-        Set<List<String>> nullSet = Useful.<List<String>>set();
-        assertEquals(nullSet, Useful.union());
-        assertEquals(nullSet, Useful.union(nullSet));
-        assertEquals(nullSet, Useful.union(nullSet));
+        Collection<List<String>> nullSet = Useful.<List<String>>set();
+        assertEquals(nullSet, Useful.union(nullSet, nullSet));
         assertEquals(houseSeaEmpty, Useful.union(house,sea,empty));
         assertEquals(houseSeaEmpty, Useful.union(houseSea,empty));
         assertEquals(houseSeaEmpty, Useful.union(house,Useful.union(sea,empty)));

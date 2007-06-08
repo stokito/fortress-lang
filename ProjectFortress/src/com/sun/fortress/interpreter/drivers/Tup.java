@@ -32,7 +32,7 @@ public class Tup extends MainBase {
             System.err.println("-fileout directs unparsed output to basename.suffix");
         }
         Tup t = new Tup();
-        t.inSuffix = ".jst";
+        t.inSuffix = ".tfs";
         t.doit(args);
     }
 

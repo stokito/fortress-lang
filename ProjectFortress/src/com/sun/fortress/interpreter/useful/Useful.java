@@ -215,24 +215,78 @@ public class Useful {
 
     }
 
-    public static <T> Set<T> set(T... x) {
+    public static <T> Set<T> set(Iterable<T> xs) {
       HashSet<T> result = new HashSet<T>();
-      for (int i = 0; i < x.length; i++) {
-        result.add(x[i]);
+      
+      for (T x : xs) {
+          if (x != null) result.add(x);
       }
       return result;
     }
 
-    /* Union, treating null as empty. */
-    public static <T> Set<T> union(Collection<T>... xs) {
-        if (xs.length==0) return Collections.<T>emptySet();;
+    public static <T> Set<T> set() {
+        return Collections.emptySet();
+      }
+
+    public static <T> Set<T> set(T x1) {
         HashSet<T> result = new HashSet<T>();
-        for (int i = 0; i < xs.length; i++) {
-            if (xs[i] != null) result.addAll(xs[i]);
+        result.add(x1);
+        return result;
+      }
+
+    public static <T> Set<T> set(T x1, T x2) {
+        HashSet<T> result = new HashSet<T>();
+        result.add(x1);
+        result.add(x2);
+         return result;
+      }
+
+    public static <T> Set<T> set(T x1, T x2, T x3) {
+        HashSet<T> result = new HashSet<T>();
+        result.add(x1);
+        result.add(x2);
+        result.add(x3);
+        return result;
+      }
+
+
+    
+    /* Union, treating null as empty. */
+    public static <T> Set<T> union(Iterable<? extends Collection<T>>  xs) {
+        HashSet<T> result = new HashSet<T>();
+        for (Collection<T> x : xs) {
+            if (x != null) result.addAll(x);
         }
         return result;
     }
 
+    public static <T> Set<T> union(Collection<T> x1, Collection<T> x2, Collection<T> x3, Collection<T> x4) {
+        HashSet<T> result = new HashSet<T>();
+        result.addAll(x1);
+        result.addAll(x2);
+        result.addAll(x3);
+        result.addAll(x4);
+        return result;
+    }
+
+    public static <T> Set<T> union(Collection<T> x1, Collection<T> x2, Collection<T> x3) {
+        HashSet<T> result = new HashSet<T>();
+        result.addAll(x1);
+        result.addAll(x2);
+        result.addAll(x3);
+        return result;
+    }
+
+    public static <T> Set<T> union(Collection<T> x1, Collection<T> x2) {
+        HashSet<T> result = new HashSet<T>();
+        result.addAll(x1);
+        result.addAll(x2);
+        return result;
+    }
+
+    // Don't support singleton or empty unions -- singletons lead to type
+    // signature clashes with the varargs case.
+    
     /**
      * @param l
      * @param j
@@ -243,15 +297,54 @@ public class Useful {
         return j < s ? l.get(j) : l.get(s - 1);
     }
 
-    public static <T> List<T> list(T... x) {
-      ArrayList<T> result = new ArrayList<T>(x.length);
-      for (int i = 0; i < x.length; i++) {
-        result.add(x[i]);
+    public static <T> List<T> list(Iterable<T> xs) {
+        ArrayList<T> result;
+        if (xs instanceof Collection<?>) {
+            result = new ArrayList<T>(((Collection<?>)xs).size());
+        } else {
+            result = new ArrayList<T>();
+        }
+        for (T x : xs) {
+            result.add(x);
+        }
+        return result;
       }
-      return result;
-    }
 
-    public static <T> List<T> prepend(T x, List<T> y) {
+    public static <T> List<T> list(T x1, T x2, T x3, T x4) {
+        ArrayList<T> result = new ArrayList<T>(4);
+        result.add(x1);
+        result.add(x2);
+        result.add(x3);
+        result.add(x4);
+        return result;
+      }
+
+    public static <T> List<T> list(T x1, T x2, T x3) {
+        ArrayList<T> result = new ArrayList<T>(3);
+        result.add(x1);
+        result.add(x2);
+        result.add(x3);
+        return result;
+      }
+
+    public static <T> List<T> list(T x1, T x2) {
+        ArrayList<T> result = new ArrayList<T>(2);
+        result.add(x1);
+        result.add(x2);
+        return result;
+      }
+
+    public static <T> List<T> list(T x1) {
+        ArrayList<T> result = new ArrayList<T>(1);
+        result.add(x1);
+        return result;
+      }
+
+    public static <T> List<T> list() {
+        return Collections.emptyList();
+      }
+
+      public static <T> List<T> prepend(T x, List<T> y) {
         ArrayList<T> result = new ArrayList<T>(1 + y.size());
         result.add(x);
         result.addAll(y);
@@ -275,12 +368,31 @@ public class Useful {
         return result;
     }
 
-    public static <T> List<T> concat(Collection<T>... xs) {
+    public static <T> List<T> concat(Iterable<Collection<T>> xs) {
         ArrayList<T> result = new ArrayList<T>();
-        for (int i = 0; i < xs.length; i++) {
-            result.addAll(xs[i]);
+        
+        for (Collection<T> x : xs ) {
+            result.addAll(x);
         }
         result.trimToSize();
+        return result;
+    }
+
+    public static <T> List<T> concat(Collection<T> x1, Collection<T>x2) {
+        ArrayList<T> result = new ArrayList<T>();
+        result.addAll(x1);
+        result.addAll(x2);
+        result.trimToSize();
+        return result;
+    }
+
+    public static <T> List<T> concat(Collection<T> x1) {
+        ArrayList<T> result = new ArrayList<T>(x1);
+       return result;
+    }
+
+    public static <T> List<T> concat() {
+        ArrayList<T> result = new ArrayList<T>();
         return result;
     }
 
@@ -489,8 +601,8 @@ public class Useful {
     }
 
     public static int compareClasses(Object x, Object y) {
-        Class a = x.getClass();
-        Class b = y.getClass();
+        Class<? extends Object> a = x.getClass();
+        Class<? extends Object> b = y.getClass();
         if (a == b) return 0;
         if (a.isAssignableFrom(b)) return -1;
         if (b.isAssignableFrom(a)) return 1;

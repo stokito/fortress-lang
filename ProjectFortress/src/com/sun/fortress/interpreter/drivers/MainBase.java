@@ -51,7 +51,7 @@ public abstract class MainBase {
 
     String inSuffix = ".sexp";
 
-    String outSuffix = ".jst";
+    String outSuffix = ".tfs";
 
     List<String> fortressArgs = new ArrayList<String>();
 

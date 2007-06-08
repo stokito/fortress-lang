@@ -46,7 +46,7 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
         this.defs = defs;
     }
 
-    // Needs to be private to prevent inclusion in JST serialized form.
+    // Needs to be private to prevent inclusion in serialized Fortress AST (.tfs/.tfi) form.
     private BATree<String, StaticParam> implicitTypeParameters;
 
     private String genSymName;

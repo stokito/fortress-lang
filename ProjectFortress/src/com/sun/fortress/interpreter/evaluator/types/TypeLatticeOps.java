@@ -22,7 +22,6 @@ import java.util.Set;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.DualLattice;
 import com.sun.fortress.interpreter.useful.LatticeOps;
-import com.sun.fortress.interpreter.useful.NI;
 
 
 public class TypeLatticeOps implements LatticeOps<FType> {

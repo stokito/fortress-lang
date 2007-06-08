@@ -151,7 +151,7 @@ public class FileTests {
 
         public void testFile() throws Throwable {
             System.out.println(s + " test");
-            BufferedReader br = new BufferedReader(new FileReader(d + "/" + s + ".jst"));
+            BufferedReader br = new BufferedReader(new FileReader(d + "/" + s + ".tfs"));
             Lex lex = new Lex(br);
             Unprinter up = new Unprinter(lex);
             lex.name(); // Inhale opening parentheses
@@ -180,8 +180,8 @@ public class FileTests {
                     int l = s.lastIndexOf(".fss");
                     System.err.println("Adding " + s);
                     suite.addTest(new FSSTest(dirname, s.substring(0, l), failsOnly));
-                } else if (s.endsWith(".jst")) {
-                    int l = s.lastIndexOf(".jst");
+                } else if (s.endsWith(".tfs")) {
+                    int l = s.lastIndexOf(".tfs");
                     suite.addTest(new JSTTest(dirname, s.substring(0, l)));
                 } else {
                     System.out.println("Not compiling file " + s);

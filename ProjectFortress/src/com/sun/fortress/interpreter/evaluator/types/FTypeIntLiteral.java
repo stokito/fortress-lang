@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.VarArgs;
 
 public class FTypeIntLiteral extends FType {
     public final static FTypeIntLiteral ONLY = new FTypeIntLiteral();
@@ -29,7 +30,7 @@ public class FTypeIntLiteral extends FType {
     }
 
     protected List<FType> computeTransitiveExtends() {
-        return Useful.<FType>list(this, FTypeInt.ONLY, FTypeLong.ONLY, FTypeIntegral.ONLY, FTypeFloat.ONLY, FTypeNumber.ONLY);
+        return Useful.<FType>list(VarArgs.make(this, FTypeInt.ONLY, FTypeLong.ONLY, FTypeIntegral.ONLY, FTypeFloat.ONLY, FTypeNumber.ONLY));
     }
 
     public boolean subtypeOf(FType other) {

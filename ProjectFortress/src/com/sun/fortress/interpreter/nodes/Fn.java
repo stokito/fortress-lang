@@ -49,7 +49,7 @@ public class Fn extends ValueExpr implements Decl, Applicable {
     }
 
     public Fn(Span span, List<Param> params, Expr body) {
-        this(span,params,new None(),Collections.<TypeRef>emptyList(), body);
+        this(span,params,new None<TypeRef>(),Collections.<TypeRef>emptyList(), body);
     }
 
     @Override

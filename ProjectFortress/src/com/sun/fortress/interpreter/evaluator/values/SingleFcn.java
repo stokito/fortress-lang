@@ -13,8 +13,6 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn.NameEquivalence;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn.SignatureEquivalence;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.IntParam;

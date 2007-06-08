@@ -23,15 +23,36 @@ package com.sun.fortress.interpreter.useful;
  * therefore unsuitable for certain programming tasks.
  */
 public abstract class PureList<T> {
-   public static <T> PureList<T> make(T... elts) {
-      PureList<T> result = new Empty<T>();
-      for (int i = elts.length - 1; i >= 0; i--) {
-         result = result.cons(elts[i]);
-      }
-      return result;
-   }
+    public static <T> PureList<T> make(T e1, T e2, T e3, T... elts) {
+        PureList<T> result = new Empty<T>();
+        for (int i = elts.length - 1; i >= 0; i--) {
+           result = result.cons(elts[i]);
+        }
+        result = result.cons(e3);
+        result = result.cons(e2);
+        result = result.cons(e1);
+        return result;
+     }
 
-   public static <T> PureList<T> fromJavaList(java.util.List<T> elts) {
+    public static <T> PureList<T> make(T e1, T e2) {
+        PureList<T> result = new Empty<T>();
+        result = result.cons(e2);
+        result = result.cons(e1);
+        return result;
+     }
+
+    public static <T> PureList<T> make(T e1) {
+        PureList<T> result = new Empty<T>();
+        result = result.cons(e1);
+        return result;
+     }
+
+    public static <T> PureList<T> make() {
+        PureList<T> result = new Empty<T>();
+        return result;
+     }
+
+     public static <T> PureList<T> fromJavaList(java.util.List<T> elts) {
      PureList<T> result = new Empty<T>();
      for (T elt : elts) {
        result = result.cons(elt);
@@ -71,14 +92,35 @@ public abstract class PureList<T> {
    public abstract <U> PureList<U> map(Fn<T,U> fn);
    public abstract boolean contains(T candidate);
    
-   public final PureList<T> cons(T... elts) { 
-     PureList<T> result = this;
-     for (int i = elts.length - 1; i >= 0; i--) {
-       result = new Cons<T>(elts[i], result);
+   public final PureList<T> cons(T e1, T e2, T e3, T... elts) { 
+       PureList<T> result = this;
+       for (int i = elts.length - 1; i >= 0; i--) {
+         result = new Cons<T>(elts[i], result);
+       }
+       result = new Cons<T>(e3, result);
+       result = new Cons<T>(e2, result);
+       result = new Cons<T>(e1, result);
+       return result;
      }
-     return result;
-   }
-   
+     
+   public final PureList<T> cons(T e1, T e2) { 
+       PureList<T> result = this;
+       result = new Cons<T>(e2, result);
+       result = new Cons<T>(e1, result);
+       return result;
+     }
+     
+   public PureList<T> cons(T e1) { 
+       PureList<T> result = this;
+       result = new Cons<T>(e1, result);
+       return result;
+     }
+     
+     public final PureList<T> cons() { 
+       PureList<T> result = this;
+       return result;
+     }
+     
    public abstract PureList<T> append(PureList<T> that);
    public PureList<T> reverse() { return reverse(new Empty<T>()); }
    public abstract PureList<T> reverse(PureList<T> result);

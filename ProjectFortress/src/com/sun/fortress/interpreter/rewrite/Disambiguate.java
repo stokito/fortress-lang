@@ -402,7 +402,7 @@ public class Disambiguate extends Rewrite {
                         Expr init = vd.getInit();
                         init = (Expr) visitNode(init);
                         lhs = (List<LValue>) visitList(lhs);
-                        ArrayList<Node> newdecls = new ArrayList(1+lhs.size());
+                        ArrayList<Node> newdecls = new ArrayList<Node>(1+lhs.size());
                         String temp = "t$" + (++tempCount);
                         Span at = vd.getSpan();
                         VarDecl new_vd = new VarDecl(at, new Id(at, temp), init);
@@ -569,7 +569,7 @@ public class Disambiguate extends Rewrite {
             Generator g = gens.get(i);
             Expr loopSel = new FieldSelection(g.getSpan(), g.getInit(), what);
             List<Id> binds = g.getBind();
-            List<Param> params = new ArrayList(binds.size());
+            List<Param> params = new ArrayList<Param>(binds.size());
             for (Id b : binds) params.add(new Param(b));
             Expr loopBody = new Fn(span,params,body);
             span = new Span(span, g.getSpan());

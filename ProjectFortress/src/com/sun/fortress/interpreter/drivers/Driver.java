@@ -522,7 +522,7 @@ public class Driver {
 
     /**
      * For each imported API, checks to see if it is already "linked". If not,
-     * "finds" it (looks for apiname.fss/apiname.jst) and reads it in and sticks
+     * "finds" it (looks for apiname.fss/apiname.tfs) and reads it in and sticks
      * it in the "pile".
      * 
      * For each component, also reads in the corresponding APIs so that we know

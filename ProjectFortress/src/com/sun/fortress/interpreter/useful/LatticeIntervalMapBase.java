@@ -20,11 +20,8 @@
  */
 package com.sun.fortress.interpreter.useful;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 import java.util.AbstractMap;
-import java.util.Comparator;
+import java.util.Set;
 
 public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> extends
         AbstractMap<T, U> implements BoundingMap<T, U, L> {
