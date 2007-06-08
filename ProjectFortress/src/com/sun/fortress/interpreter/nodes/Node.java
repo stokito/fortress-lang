@@ -24,7 +24,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
-public abstract class Node implements HasAt {
+public abstract class Node implements HasAt, NodeVisitorHost {
     Span span;
 
     List<String> props;

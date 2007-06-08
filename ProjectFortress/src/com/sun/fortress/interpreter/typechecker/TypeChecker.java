@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
+import java.util.List;
+import java.util.LinkedList;
 import com.sun.fortress.interpreter.useful.PureList;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
@@ -38,6 +40,12 @@ public class TypeChecker extends NodeVisitor<FType> {
 
     public TypeChecker(PureList<String> _e) {
         this.e = _e;
+    }
+    
+    private List<FType> checkList(List<? extends NodeVisitorHost> hosts) {
+        List<FType> result = new LinkedList<FType>();
+        for (NodeVisitorHost h : hosts) result.add(h.accept(this));
+        return result;
     }
     
     public FType NI(com.sun.fortress.interpreter.useful.HasAt x, String s) {
@@ -69,7 +77,7 @@ public class TypeChecker extends NodeVisitor<FType> {
         return BottomType.ONLY;
     }
     
-    // Expressions:
+    /******** Expressions: **********/
     
     public FType forLocalVarDecl(LocalVarDecl d) {
         // LocalVarDecl(Span span, List<Expr> body, List<LValue> lhs, Option<Expr> rhs)
@@ -98,6 +106,22 @@ public class TypeChecker extends NodeVisitor<FType> {
         String s = v.getVar().getName();
         if (! e.contains(s))
             throw new TypeError("Reference to undefined variable: " + s, v);
+        return BottomType.ONLY;
+    }
+    
+    public FType forAssignment(Assignment a) {
+        List<FType> left = checkList(a.getLhs());
+        FType right = a.getRhs().accept(this);
+        // TODO: check for coercions
+        //if (!Types.isSubtype(right, left))
+        //    throw new TypeError("Type " + left + " is not assignable to type " + right);
+        return FTypeVoid.ONLY;
+    }
+    
+    public FType forSubscriptExpr(SubscriptExpr s) {
+        FType obj = s.getObj().accept(this);
+        List<FType> subs = checkList(s.getSubs());
+        // TODO: application
         return BottomType.ONLY;
     }
     

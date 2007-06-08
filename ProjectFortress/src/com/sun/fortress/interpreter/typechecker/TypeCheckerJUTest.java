@@ -42,7 +42,9 @@ public class TypeCheckerJUTest extends TestCase {
 
     private static final String[] typeErrors = {
         "UndefinedVar",
-        "EmptyBlock"
+        "EmptyBlock",
+        "UndefinedArrayRef",
+        "UndefinedNestedRef"
     };
     
     public void testTypeErrors() throws IOException {
