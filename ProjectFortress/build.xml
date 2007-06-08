@@ -228,8 +228,8 @@
         </javac>
     </target>
 
-    <target name="compileCommon" depends="init"
-     description="Compile interpreter-indepedent code.">
+    <target name="compileLint" depends="visitorGen, parser, compileCommonLint, operatorsGen"
+     description="Compile all interpreter code.">
         <depend srcdir="${src}"
          destdir="${build}"
          closure="yes"
@@ -240,20 +240,66 @@
             source="1.5"
             debug="true"
             classpath="${compile.classpath}">
-
             <!-- Uncomment the following line to print unchecked warnings
-                 (here and in the 'compile' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
-            <include name="${blahblahblah}/useful/*.java"/>
-            <include name="${blahblahblah}/unicode/*.java"/>
-
-            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
-            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
-            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+                 (here and in the 'compileCommon' target. -->
+            <compilerarg value="-Xlint:unchecked"/>
+            <include name="**/*.java"/>
+            <exclude name="${blahblahblah}/useful/*.java"/>
+            <exclude name="${blahblahblah}/unicode/*.java"/>
         </javac>
     </target>
 
-    <target name="jar" depends="compile"
+	   <target name="compileCommon" depends="init"
+	     description="Compile interpreter-indepedent code.">
+	        <depend srcdir="${src}"
+	         destdir="${build}"
+	         closure="yes"
+	         cache="${basedir}/.dependencies"/>
+	        <javac
+	            srcdir="${src}"
+	            destdir="${build}"
+	            source="1.5"
+	            debug="true"
+	            classpath="${compile.classpath}">
+
+	            <!-- Uncomment the following line to print unchecked warnings
+	                 (here and in the 'compile' target. -->
+	            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+	            <include name="${blahblahblah}/useful/*.java"/>
+	            <include name="${blahblahblah}/unicode/*.java"/>
+
+	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
+	            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
+	            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+	        </javac>
+	    </target>
+
+	   <target name="compileCommonLint" depends="init"
+	     description="Compile interpreter-indepedent code.">
+	        <depend srcdir="${src}"
+	         destdir="${build}"
+	         closure="yes"
+	         cache="${basedir}/.dependencies"/>
+	        <javac
+	            srcdir="${src}"
+	            destdir="${build}"
+	            source="1.5"
+	            debug="true"
+	            classpath="${compile.classpath}">
+
+	            <!-- Uncomment the following line to print unchecked warnings
+	                 (here and in the 'compile' target. -->
+	            <compilerarg value="-Xlint:unchecked"/>
+	            <include name="${blahblahblah}/useful/*.java"/>
+	            <include name="${blahblahblah}/unicode/*.java"/>
+
+	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
+	            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
+	            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+	        </javac>
+	    </target>
+
+	    <target name="jar" depends="compile"
             description="Package up the interpreter in a jar.">
         <jar
             destfile="../components/fortress/FORTRESS/lib/interpreter.jar"
