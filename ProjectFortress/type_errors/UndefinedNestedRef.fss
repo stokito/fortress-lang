@@ -19,7 +19,6 @@ component UndefinedNestedRef
 export Executable
 
 run(args:String...):() = do
-  z
   atomic do
     if true then 34
     elif

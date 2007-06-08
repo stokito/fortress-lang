@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.nodes.*;
 
 
 public class TypeChecker extends NodeVisitor<FType> {
+    public final Types typeAnalyzer = Types.ONLY;
 
     public static void check(CompilationUnit p) throws TypeError {
         p.accept(new TypeChecker());
@@ -113,7 +114,7 @@ public class TypeChecker extends NodeVisitor<FType> {
         List<FType> left = checkList(a.getLhs());
         FType right = a.getRhs().accept(this);
         // TODO: check for coercions
-        //if (!Types.isSubtype(right, left))
+        //if (!typeAnalyzer.isSubtype(right, left))
         //    throw new TypeError("Type " + left + " is not assignable to type " + right);
         return FTypeVoid.ONLY;
     }
@@ -125,6 +126,34 @@ public class TypeChecker extends NodeVisitor<FType> {
         return BottomType.ONLY;
     }
     
+    public FType forAtomicExpr(AtomicExpr ae) {
+        return ae.getExpr().accept(this);
+    }
+    
+    public FType forIf(If e) {
+        List<FType> clauseTypes = new LinkedList<FType>();
+        
+        for (IfClause clause : e.getClauses()) {
+            FType testType = clause.getTest().accept(this);
+            FType bodyType = clause.getBody().accept(this);
+            
+            if (! typeAnalyzer.isSubtype(testType, typeAnalyzer.BOOLEAN)) { 
+                throw new TypeError("Test in if clause is not a Boolean", clause.getTest()); 
+            }
+            clauseTypes.add(bodyType);
+        }
+        Option<Expr> else_ = e.getElse_();
+        if (else_.isPresent()) {
+            clauseTypes.add(else_.getVal().accept(this));
+        }
+        return typeAnalyzer.union(clauseTypes);
+    }
+    
+    public FType forLabel(Label e) {
+        // TODO: Add e.getName() to environment for use by exit
+        // (but don't do this unti we're testing for it!)
+        return e.getBody().accept(this);
+    }
 //    public FType forTightJuxt
-
+                                  
 }
