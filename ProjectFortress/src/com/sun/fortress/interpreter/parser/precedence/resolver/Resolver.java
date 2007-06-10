@@ -329,7 +329,7 @@ public class Resolver {
           throw new ReadError(span,
                               "Precedence mismatch: " +
                               ((TightInfix)prefix[0]).getOp().toString() +
-                              "and juxtaposition.");
+                              " and juxtaposition.");
         }
       }
       if (opExprs.size() >= 2) {
@@ -495,7 +495,7 @@ public class Resolver {
             Op op = ((JuxtInfix)second).getOp();
             throw new ReadError(op.getSpan(),
                                 "Interpreted " + op.getName() +
-                                "with no right operand as infix.");
+                                " with no right operand as infix.");
           }
         }
       }
@@ -532,6 +532,7 @@ public class Resolver {
     throws ReadError
   {
     if (frame instanceof NonChain) {
+System.out.println("finishInfixFrame: NonChain");
       // frame instanceof Loose || frame instanceof Tight
       Op op = ((NonChain)frame).getOp();
       PureList<Expr> exprs = ((NonChain)frame).getExprs();
@@ -541,6 +542,7 @@ public class Resolver {
                               op, args.toJavaList());
     }
     else { // frame instanceof TightChain || frame instanceof LooseChain
+System.out.println("finishInfixFrame: Chain");
       PureList<ExprOpPair> links = ((Chain)frame).getLinks();
       ensureValidChaining(links);
 
@@ -641,6 +643,7 @@ public class Resolver {
                           PureList<InfixFrame> stack)
     throws ReadError
   {
+System.out.println("looseInfixStack: "+op.getName());
     if (stack.isEmpty()) {
       return PureList.<InfixFrame>make(new Loose(op,PureList.make(e)));
     }
@@ -685,7 +688,7 @@ public class Resolver {
             throw new ReadError(FortressUtil.spanTwo(_op, op),
                                 "Loose operators " + _op.getName()
                                   + " and " + op.getName() +
-                                "have incomparable precedence.");
+                                " have incomparable precedence.");
           }
         }
       }
@@ -715,7 +718,7 @@ public class Resolver {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Loose operators " + _op.getName()
                                 + " and " + op.getName() +
-                              "have incomparable precedence.");
+                              " have incomparable precedence.");
         }
       }
       else { // frame instanceof TightChain
@@ -789,6 +792,7 @@ public class Resolver {
                           PureList<InfixFrame> stack)
     throws ReadError
   {
+System.out.println("tightInfixStack: "+op.getName());
     if (stack.isEmpty()) {
       return PureList.<InfixFrame>make(new Tight(op, PureList.make(e)));
     }
@@ -832,7 +836,7 @@ public class Resolver {
             throw new ReadError(FortressUtil.spanTwo(_op, op),
                                 "Tight operators " + _op.getName()
                                   + " and " + op.getName() +
-                                "have incomparable precedence.");
+                                " have incomparable precedence.");
           }
         }
       }
@@ -863,7 +867,7 @@ public class Resolver {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Tight operators " + _op.getName()
                                 + " and " + op.getName() +
-                              "have incomparable precedence.");
+                              " have incomparable precedence.");
         }
       }
       else { // frame instanceof LooseChain
@@ -918,6 +922,7 @@ public class Resolver {
                           PureList<InfixFrame> stack)
     throws ReadError
   {
+System.out.println("looseChainStack: "+op.getName());
     if (stack.isEmpty()) {
       InfixFrame frame = new LooseChain(PureList.make(new ExprOpPair(e,op)));
 
@@ -1003,6 +1008,7 @@ public class Resolver {
   private static PureList<InfixFrame> tightChainStack(Expr e, Op op,
                           PureList<InfixFrame> stack)
     throws ReadError {
+System.out.println("tightChainStack: "+op.getName());
     if (stack.isEmpty()) {
       InfixFrame frame = new LooseChain(PureList.make(new ExprOpPair(e,op)));
 
