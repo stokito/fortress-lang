@@ -261,7 +261,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // we can't pass the lhses to the numerous functions
                 // which expect a List<Expr>---for example TupleExpr
                 // or evalExprListParallel!  This is extremely annoying!
-                List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
+                List<FValue> lhsComps = new ArrayList(lhsSize);
                 for (LHS lhs : lhses) {
                     // This should occur in parallel!!!
                     lhsComps.add(lhs.accept(this));
@@ -508,7 +508,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             Option<List<Expr>> _else = x.getElse_();
             if (_else.isPresent()) {
-                // TODO need an Else node to hang a location on 
+                // TODO need an Else node to hang a location on
                 return evalExprList(_else.getVal(), x);
             }
             return evVoid;
@@ -986,6 +986,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return getOpr(x);
     }
 
+    public FValue forPostFix(PostFix x) {
+        return getOpr(x);
+    }
+
     public FValue forOp(Op op) {
         try {
             return e.getValue(op.getName());
@@ -1047,10 +1051,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
         return res;
-    }
-
-    public FValue forPostFix(PostFix x) {
-        return FString.make(x.name());
     }
 
     public FValue forRectCompClause(RectCompClause x) {
@@ -1283,7 +1283,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (rest.size()==1) {
             FValue val = rest.get(0);
             if (val instanceof FVoid) {
-                rest = new ArrayList<FValue>(0);
+                rest = new ArrayList(0);
             } else if (val instanceof FTuple) {
                 rest = ((FTuple) val).getVals();
             }
