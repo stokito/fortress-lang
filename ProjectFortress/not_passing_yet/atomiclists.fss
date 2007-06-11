@@ -1,0 +1,41 @@
+component atomiclists
+export Executable
+
+trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
+   car():E
+   cdr():List[\E\]
+   cons(x:E):List[\E\]
+   empty():Boolean
+   toString():()
+   count():ZZ32
+end
+
+object Empty[\E\]() extends List[\E\]
+   car():E = do ThrowError(" Empty List has no car") car() end
+   cdr():List[\E\] = do ThrowError(" Empty List has no cdr") cdr() end   
+   cons(z:E) =  Elem[\E\](z, self)
+   toString() = " Empty"
+   empty() = true
+   count() = 0
+end
+
+object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
+   car():E = val
+   cdr():List[\E\] = rest
+   cons(z:E) = Elem[\E\](z,self)
+   toString() = " " val ", " rest.toString()
+   empty() = false
+   count() = 1 + cdr().count()
+end
+
+run(args:String...):()=do
+   init:List[\ZZ32\] := Empty[\ZZ32\]()
+   for i<-1#100 do
+      atomic do
+         init := init.cons(i)
+      end
+   end
+   if init.count() = 100 then println("Pass") else println("Fail") end
+
+end
+end

@@ -41,7 +41,7 @@
     <property name="build.classpath" location="${build}"/>
     <property name="precedence" location="${parser}/precedence"/>
     <property name="junit" location="${basedir}/third_party/junit"/>
-    <property name="junitMem" value="256m"/>
+    <property name="junitMem" value="512m"/>
     <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${dstm2}/dstm2.jar:${bcel}/bcel-5.2.jar:${junit}/junit.jar"/>
     <property environment="env"/>
 
