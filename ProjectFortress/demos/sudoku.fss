@@ -20,10 +20,10 @@ component Sudoku
 import * from Set
 export Executable
 
-emptySet = Empty[\ZZ32\]()
+emptySet = EmptySet[\ZZ32\]()
 
-initialSet():Tree[\ZZ32\] = do
-   init:Tree[\ZZ32\] = emptySet
+initialSet():TreeSet[\ZZ32\] = do
+   init:TreeSet[\ZZ32\] = emptySet
    init := init.add(1)
    init := init.add(2)
    init := init.add(3)
@@ -36,15 +36,15 @@ initialSet():Tree[\ZZ32\] = do
    init
 end
 
-singleton(arg:ZZ32):Tree[\ZZ32\] = do
-   s:Tree[\ZZ32\] = emptySet
+singleton(arg:ZZ32):TreeSet[\ZZ32\] = do
+   s:TreeSet[\ZZ32\] = emptySet
    s := s.add(arg)
    s
 end
 
 (* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
-removeElement(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
-   s:Tree[\ZZ32\] = b[i,j]
+removeElement(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
+   s:TreeSet[\ZZ32\] = b[i,j]
    if s.member(elem) then      (* Don't delete the element being removed! *)
       r = s.delete(elem)
       if NOT r.empty() then
@@ -53,18 +53,18 @@ removeElement(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    end
 end
 
-propagateRow(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+propagateRow(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
       removeElement(b,i,k,elem)
    end
 
 
-propagateColumn(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+propagateColumn(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
      removeElement(b,k,j,elem)
    end
 
-propagateSquare(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
+propagateSquare(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
    starti:ZZ32 = narrow(truncate(i/3)) 3
    startj:ZZ32 = narrow(truncate(j/3)) 3
    for k <-starti#3, l <- startj#3 do
@@ -72,14 +72,14 @@ propagateSquare(b:Tree[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
    end
 end
 
-propagateSingleton(board:Tree[\ZZ32\][9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
+propagateSingleton(board:TreeSet[\ZZ32\][9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
    propagateRow(board, i, j, elem)
    propagateColumn(board, i, j, elem)
    propagateSquare(board, i, j, elem)
 end
 
 (* This version involves a barrier between propagation steps. *)
-propagate(board:Tree[\ZZ32\][9,9]):() = do
+propagate(board:TreeSet[\ZZ32\][9,9]):() = do
    prevUnsolved : ZZ32 := 82
    unsolved : ZZ32 := 81
    while unsolved > 0 AND unsolved < prevUnsolved do
@@ -100,8 +100,8 @@ propagate(board:Tree[\ZZ32\][9,9]):() = do
 end
 
 run(args:String...):()=do
-   init:Tree[\ZZ32\] = initialSet()
-   board:Tree[\ZZ32\][9,9] = [singleton(8) init singleton(6) singleton(1) init singleton(9) singleton(3) init singleton(5) ;
+   init:TreeSet[\ZZ32\] = initialSet()
+   board:TreeSet[\ZZ32\][9,9] = [singleton(8) init singleton(6) singleton(1) init singleton(9) singleton(3) init singleton(5) ;
                       init singleton(9) init init singleton(8) init singleton(4) init init;
                       init singleton(7) singleton(1) init init init init init singleton(6);
                       init init init singleton(9) singleton(2) init singleton(5) singleton(3) init;
