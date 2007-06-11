@@ -532,7 +532,6 @@ public class Resolver {
     throws ReadError
   {
     if (frame instanceof NonChain) {
-System.out.println("finishInfixFrame: NonChain");
       // frame instanceof Loose || frame instanceof Tight
       Op op = ((NonChain)frame).getOp();
       PureList<Expr> exprs = ((NonChain)frame).getExprs();
@@ -542,7 +541,6 @@ System.out.println("finishInfixFrame: NonChain");
                               op, args.toJavaList());
     }
     else { // frame instanceof TightChain || frame instanceof LooseChain
-System.out.println("finishInfixFrame: Chain");
       PureList<ExprOpPair> links = ((Chain)frame).getLinks();
       ensureValidChaining(links);
 
@@ -643,7 +641,6 @@ System.out.println("finishInfixFrame: Chain");
                           PureList<InfixFrame> stack)
     throws ReadError
   {
-System.out.println("looseInfixStack: "+op.getName());
     if (stack.isEmpty()) {
       return PureList.<InfixFrame>make(new Loose(op,PureList.make(e)));
     }
@@ -792,7 +789,6 @@ System.out.println("looseInfixStack: "+op.getName());
                           PureList<InfixFrame> stack)
     throws ReadError
   {
-System.out.println("tightInfixStack: "+op.getName());
     if (stack.isEmpty()) {
       return PureList.<InfixFrame>make(new Tight(op, PureList.make(e)));
     }
@@ -922,7 +918,6 @@ System.out.println("tightInfixStack: "+op.getName());
                           PureList<InfixFrame> stack)
     throws ReadError
   {
-System.out.println("looseChainStack: "+op.getName());
     if (stack.isEmpty()) {
       InfixFrame frame = new LooseChain(PureList.make(new ExprOpPair(e,op)));
 
@@ -1008,7 +1003,6 @@ System.out.println("looseChainStack: "+op.getName());
   private static PureList<InfixFrame> tightChainStack(Expr e, Op op,
                           PureList<InfixFrame> stack)
     throws ReadError {
-System.out.println("tightChainStack: "+op.getName());
     if (stack.isEmpty()) {
       InfixFrame frame = new LooseChain(PureList.make(new ExprOpPair(e,op)));
 
