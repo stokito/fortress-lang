@@ -73,6 +73,8 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.Visitor2;
+import com.sun.fortress.interpreter.typechecker.TypeChecker;
+import com.sun.fortress.interpreter.typechecker.TypeError;
 
 public class Driver {
 
@@ -136,6 +138,18 @@ public class Driver {
         }
     }
 
+    /**
+     * Perform static analysis on the given program.
+     * @return  {@code true} iff the program is considered well-formed by the type checker.
+     */
+    public static boolean check(CompilationUnit p) {
+        try { TypeChecker.check(p); return true; }
+        catch (TypeError e) {
+            System.err.println("Static error" + e.getLocation() + ": " + e.getMessage());
+            return false;
+        }
+    }
+    
     /**
      * Runs a command and captures its output and errors streams.
      * 

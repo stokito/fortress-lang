@@ -29,8 +29,6 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.typechecker.TypeChecker;
-import com.sun.fortress.interpreter.typechecker.TypeError;
 
 public class fs {
 
@@ -83,14 +81,6 @@ public class fs {
                 + " milliseconds");
     }
     
-    public static boolean check(CompilationUnit p) {
-        try { TypeChecker.check(p); return true; }
-        catch (TypeError e) {
-            System.err.println("Static error: " + e);
-            return false;
-        }
-    }
-
     static volatile CompilationUnit p;
     static boolean verbose = false;
     static boolean keep = false;
@@ -226,7 +216,7 @@ public class fs {
           if (verbose)
             System.err.println("Checking");
           
-          boolean typesafe = check(p);
+          boolean typesafe = Driver.check(p);
           
           if (typesafe && !checkOnly) {
             

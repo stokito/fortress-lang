@@ -25,4 +25,7 @@ public class TypeError extends RuntimeException {
         super(msg);
         n = _n;
     }
+    
+    public String getLocation() { return n.getSpan().toString(); }
+    
 }

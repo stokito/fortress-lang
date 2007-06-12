@@ -69,7 +69,8 @@ public class FileTests {
                     Annotations anns = new Annotations(fssFile);
                     CompilationUnit p;
                     p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
-
+                    if (!Driver.check(p)) { throw new Exception("Static error"); }
+                    
                     if (anns.compile) {
                         // oldOut.print(" COMPILING"); oldOut.flush();
                         Driver.evalComponent(p);
@@ -178,7 +179,7 @@ public class FileTests {
             if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {
                     int l = s.lastIndexOf(".fss");
-                    System.err.println("Adding " + s);
+                    //System.err.println("Adding " + s);
                     suite.addTest(new FSSTest(dirname, s.substring(0, l), failsOnly));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");

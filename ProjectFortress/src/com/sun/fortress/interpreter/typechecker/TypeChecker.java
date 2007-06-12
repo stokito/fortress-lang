@@ -61,7 +61,16 @@ public class TypeChecker extends NodeVisitor<FType> {
     public FType forComponent(Component c) {
         // Component(Span span, DottedId name, List<Import> imports, List<Export> exports,
         //           List<? extends DefOrDecl> defs)
-        for (DefOrDecl d : c.getDefs()) d.accept(this);
+        if (c.getImports().isEmpty()) { // TODO: handle imports
+            for (DefOrDecl d : c.getDefs()) { // TODO: implement these things
+                if (d instanceof ObjectDefOrDecl || d instanceof TraitDefOrDecl ||
+                    d instanceof VarDefOrDecl || d instanceof PropertyDecl ||
+                    d instanceof TestDecl) {
+                    return BottomType.ONLY;
+                }
+            }
+            for (DefOrDecl d : c.getDefs()) d.accept(this);
+        }
         return BottomType.ONLY;
     }
     
@@ -72,9 +81,15 @@ public class TypeChecker extends NodeVisitor<FType> {
     
     public FType forFnDecl(FnDecl d) {
         // FnDecl(Span span, List<Modifier> mods, FnName name, Option<List<StaticParam>> staticParams,
-        //        List<param> params, Option<TypeRef> returnType, List<TypeRef> throwss,
+        //        List<Param> params, Option<TypeRef> returnType, List<TypeRef> throwss,
         //        List<WhereClause> where, Contract contract, Expr body)
-        d.getBody().accept(this);
+        if (!d.getStaticParams().isPresent()) { // TODO: static param bindings
+            PureList<String> newEnv = e;
+            for (Param p : d.getParams()) {
+                newEnv = newEnv.cons(p.getName().getName());
+            }
+            d.getBody().accept(new TypeChecker(newEnv));
+        }
         return BottomType.ONLY;
     }
     
@@ -96,17 +111,25 @@ public class TypeChecker extends NodeVisitor<FType> {
     
     public FType forBlock(Block b) {
         // Block(Span span, List<Expr> exprs)
-        if (b.getExprs().isEmpty()) throw new TypeError("Block is empty", b);
+        // TODO: make sure the spec allows an empty block
         FType result = FTypeVoid.ONLY;
         for (Expr e : b.getExprs()) result = e.accept(this);
         return result;
     }
+    
+    // TODO: eliminate this
+    private static final java.util.Set<String> LIB_NAMES = new java.util.HashSet<String>();
+    static {
+        LIB_NAMES.add("true");
+        LIB_NAMES.add("false");
+    }        
 
     public FType forVarRefExpr(VarRefExpr v) {
         // VarRefExpr(Span span, Id var)
         String s = v.getVar().getName();
-        if (! e.contains(s))
+        if (! e.contains(s) && !LIB_NAMES.contains(s)) {
             throw new TypeError("Reference to undefined variable: " + s, v);
+        }
         return BottomType.ONLY;
     }
     
