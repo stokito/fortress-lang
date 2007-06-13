@@ -166,6 +166,7 @@ import java.util.concurrent.Callable;
 
 public class Evaluator extends EvaluatorBase<FValue> {
     boolean debug = false;
+    int transactionNestingCount = 0;
 
     final public static FVoid evVoid = FVoid.V;
 
@@ -210,6 +211,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     protected Evaluator(Evaluator e2) {
         super(e2.e);
         debug = e2.debug;
+        transactionNestingCount = e2.transactionNestingCount;        
     }
 
     public void debugPrint(String debugString) {
@@ -306,11 +308,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr e = x.getExpr();
-        final Evaluator ev = new Evaluator(this);
-
-
-        return BaseTask.doIt(new Callable<FValue>() { public FValue call() {
-				   return e.accept(ev);}});
+        final Evaluator current = new Evaluator(this);
+        transactionNestingCount += 1;
+	FValue res = BaseTask.doIt(new Callable<FValue>() { public FValue call() {
+					    Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
+                                            return e.accept(ev);}});
+        transactionNestingCount -= 1;
+        return res;
     }
 
     public FValue forTryAtomicExpr(TryAtomicExpr x) {
@@ -402,6 +406,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
+	} else if (transactionNestingCount > 0) {
+	  for (Expr exp : exprs) {
+	      resList.add(exp.accept(this));
+	  }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;

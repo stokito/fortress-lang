@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
@@ -54,7 +55,6 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
 import dstm2.AtomicArray;
-import dstm2.Thread;
 import dstm2.atomic;
 import dstm2.factory.Factory;
 
@@ -234,7 +234,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         /**
          * Transactional Node factory.
          */
-        static Factory<ANode> factory = Thread.makeFactory(ANode.class);
+        static Factory<ANode> factory = FortressTaskRunner.makeFactory(ANode.class);
 
         public FlatStorage(FTypeObject selfType, BetterEnv lex_env, BetterEnv self_env, FType t, long n) {
             super(selfType, lex_env, self_env);

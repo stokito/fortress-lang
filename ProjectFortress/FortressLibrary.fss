@@ -1510,6 +1510,12 @@ println(a:Any):() = println("" a)
 print():() = print("()")
 println():() = println("()")
 
+(* These are useful temporary hacks for debugging multi-threaded programs *)
+printThreadInfo(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
+printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
+ThrowError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
+
+
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
 opr NOT(a:Boolean):Boolean = if a then false else true end

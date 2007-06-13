@@ -19,13 +19,12 @@ package com.sun.fortress.interpreter.env;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
-import dstm2.Thread;
 import dstm2.atomic;
 import dstm2.factory.Factory;
-
 
 
 /**
@@ -35,7 +34,7 @@ import dstm2.factory.Factory;
 public class ReferenceCell extends IndirectionCell {
     private FType theType;
     protected FNode node;
-    static Factory<FNode> factory = Thread.makeFactory(FNode.class);
+    static Factory<FNode> factory = FortressTaskRunner.makeFactory(FNode.class);
 
 
     ReferenceCell(FType t, FValue v) {

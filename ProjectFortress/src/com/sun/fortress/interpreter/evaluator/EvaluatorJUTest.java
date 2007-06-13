@@ -25,6 +25,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 import com.sun.fortress.interpreter.evaluator.types.FTypeFloat;
@@ -33,8 +35,6 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FRangeIterator;
 import com.sun.fortress.interpreter.useful.HasAt;
-
-import dstm2.Thread;
 
 public class EvaluatorJUTest extends TestCase {
 
@@ -46,7 +46,11 @@ public class EvaluatorJUTest extends TestCase {
     return new BufferedReader(new StringReader(s));
   }
 
+  FortressTaskRunnerGroup group;
+
   public void testEnvironment2() throws IOException {
+      group = new FortressTaskRunnerGroup(1);
+
       BetterEnv e = BetterEnv.primitive();
       e.bless();
       BetterEnv s = new BetterEnv(e, "s");
@@ -329,16 +333,7 @@ public class EvaluatorJUTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         Init.initializeEverything();
-      // Setup transactional memory
-        Thread _thread = new Thread();
-        try {
-            Class managerClass = Class.forName("dstm2.manager.BackoffManager");
-            _thread.setContentionManagerClass(managerClass);
-            _thread.setAdapterClass("dstm2.factory.ofree.Adapter");
-        } catch (ClassNotFoundException ex) {
-            System.out.println("UhOh Contention Manager not found");
-            System.exit(0);
-        }
-
+        // We need to initialize the transactional memory stuff before we
+	// access any reference cells.
     }
 }

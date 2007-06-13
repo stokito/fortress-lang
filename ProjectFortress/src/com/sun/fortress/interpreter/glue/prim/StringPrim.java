@@ -17,9 +17,11 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 import com.sun.fortress.interpreter.glue.NativeFn0;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+
 
 /**
  * Functions from String.
@@ -63,6 +65,19 @@ public static final class PrintTaskTrace extends NativeFn0 {
     protected FValue act() {
         BaseTask.getCurrentTask().printTaskTrace();
         return FVoid.V;
+    }
+}
+
+public static final class PrintThreadInfo extends Util.S2V {
+    protected void f(String x) {
+          System.out.println(" Thread " + Thread.currentThread().getName() + " operating on value " + x);
+    }
+}
+
+public static final class ThrowError extends Util.S2V {
+    protected void f(String x) {
+        String msg = " Thread " + Thread.currentThread().getName() + " got error " + x;
+        throw new ProgramError(msg);
     }
 }
 
