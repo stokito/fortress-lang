@@ -17,13 +17,17 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-// / and while_expr = while_expr_rec node
-// / and while_expr_rec =
-// / {
-// / while_expr_test : expr;
-// / while_expr_body : expr;
-// / }
-// /
+/**
+ * A 'while' loop is parsed into an element of this class.
+ * 
+ * DelimitedExpr ::= while Expr Do 
+ * 
+ * Simple example:
+ * 
+ * while true do 
+ *   x += 1
+ * end
+ */
 public class While extends FlowExpr {
 
     Expr test;

@@ -19,13 +19,18 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
-// / and generator = generator_rec node
-// / and generator_rec =
-// / {
-// / generator_bind : id list;
-// / generator_init : expr;
-// / }
-// /
+/* Generator bindings (as occur in 'for' loop expressions, for example) 
+ * are parsed to instances of this class. 
+ * 
+ * Generator ::= Id ? Expr 
+ *             | ( Id , IdList ) ? Expr 
+ *             | Expr 
+ * IdList ::= Id( , Id)? 
+ *
+ * Simple example:
+ * 
+ * i <- 0#10
+ */
 public class Generator extends Node {
 
     List<Id> bind;

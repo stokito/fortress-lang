@@ -32,35 +32,23 @@ import com.sun.fortress.interpreter.useful.Useful;
  */
 public class TypeCheckerJUTest extends TestCase {
 
-    /* (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
-     */
-    @Override
+    /* @Override */
     protected void setUp() throws Exception {
         Init.initializeEverything();
     }
+  
 
-    private static final String[] typeErrors = {
-        "UndefinedVar",
-        "UndefinedArrayRef",
-        "UndefinedNestedRef"
-    };
-    
-    public void testTypeErrors() throws IOException {
-        boolean failed = false;
+    private void checkErrorCount(String filePrefix, int expectedCount) throws IOException {
+        String fileName = "type_errors" + File.separator + filePrefix + ".fss";
+        CompilationUnit c = Driver.parseToJavaAst(fileName);
+        TypeCheckerResult result = TypeChecker.check(c);
         
-        for (String name : typeErrors) {
-            String f = "type_errors" + File.separator + name + ".fss";
-            CompilationUnit c = Driver.parseToJavaAst(f, Useful.utf8BufferedFileReader(f));
-            TypeCheckerResult result = TypeChecker.check(c);
-            if (result.isValid()) {
-                System.err.println("Checked " + f + " without a type error!");
-                failed = true;
-            }
-            else {
-                System.err.println(f + " OK");
-            }
-        }
-        assertFalse("Some static errors were not caught!", failed);
+        assertEquals("Incorrect number of static errors reported.", expectedCount, result.errorCount());
     }
+    
+    public void testUndefinedVar() throws IOException       { checkErrorCount("UndefinedVar", 1); }
+    public void testUndefinedArrayRef() throws IOException  { checkErrorCount("UndefinedArrayRef", 1); }
+    public void testUndefinedNestedRef() throws IOException { checkErrorCount("UndefinedNestedRef", 1); }
+    public void testUndefinedRefInLoop() throws IOException { checkErrorCount("UndefinedRefInLoop", 1); }
+        
 }

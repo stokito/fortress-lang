@@ -305,14 +305,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         return FVoid.V;
     }
-
+    
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr e = x.getExpr();
         final Evaluator current = new Evaluator(this);
         transactionNestingCount += 1;
-	FValue res = BaseTask.doIt(new Callable<FValue>() { public FValue call() {
-					    Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
-                                            return e.accept(ev);}});
+        
+        FValue res = BaseTask.doIt (
+            new Callable<FValue>() { 
+                public FValue call() {
+                    Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
+                    return e.accept(ev);
+                }
+            }
+        );
         transactionNestingCount -= 1;
         return res;
     }
@@ -406,10 +412,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
-	} else if (transactionNestingCount > 0) {
-	  for (Expr exp : exprs) {
-	      resList.add(exp.accept(this));
-	  }
+ } else if (transactionNestingCount > 0) {
+   for (Expr exp : exprs) {
+       resList.add(exp.accept(this));
+   }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
@@ -1097,7 +1103,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forSpawn(Spawn x) {
-	Expr body = x.getBody();
+ Expr body = x.getBody();
         // ignore region for now
         Option<Expr> region = x.getRegion();
         return new FThread(body, this);

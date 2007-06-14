@@ -19,14 +19,15 @@ package com.sun.fortress.interpreter.typechecker;
 
 import java.util.List;
 import java.util.LinkedList;
-import com.sun.fortress.interpreter.useful.PureList;
 
+import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.PureList;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.nodes.*;
 
 
-public class TypeChecker extends NodeVisitor<TypeCheckerResult> {
+public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
     public final Types typeAnalyzer = Types.ONLY;
 
     public static TypeCheckerResult check(CompilationUnit p) {
@@ -130,7 +131,7 @@ public class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         // VarRefExpr(Span span, Id var)
         String s = v.getVar().getName();
         if ((!e.contains(s)) && (!LIB_NAMES.contains(s))) {
-            return new TypeCheckerResult(new TypeError("Reference to undefined variable: " + s, v));
+            return new TypeCheckerResult(new TypeError("Reference to undefined variable " + s, v));
         }
         return TypeCheckerResult.VALID;
     }
@@ -186,6 +187,19 @@ public class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         // TODO: Add e.getName() to environment for use by exit
         // (but don't do this unti we're testing for it!)
         return e.getBody().accept(this);
+    }
+    
+    public TypeCheckerResult forFor(For e) {
+        TypeCheckerResult genResults = TypeCheckerResult.VALID;
+        PureList<String> newVars = PureList.make();
+        
+        for (Generator gen : e.getGens()) {
+            for (Id id : gen.getBind()) {
+                newVars = newVars.cons(id.getName());
+            }
+            genResults = genResults.combine(gen.accept(this));
+        }
+        return genResults.combine(e.getBody().accept(new TypeChecker(this.e.append(newVars))));
     }
 //    public TypeCheckerResult forTightJuxt
                                   

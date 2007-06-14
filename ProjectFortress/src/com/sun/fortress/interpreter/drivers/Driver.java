@@ -139,6 +139,13 @@ public class Driver {
             return null;
         }
     }
+    
+    /** 
+     * Convenience method for calling parseToJavaAst with a default BufferedReader.
+     */
+    public static CompilationUnit parseToJavaAst(String reportedFileName) throws IOException {
+        return parseToJavaAst(reportedFileName, Useful.utf8BufferedFileReader(reportedFileName));
+    }
 
     /**
      * Perform static analysis on the given program.
@@ -149,10 +156,13 @@ public class Driver {
         PureList<TypeError> errors = result.getErrors();
         
         for (TypeError error : errors) {
-            System.err.println("Static error" + error.getLocation() + ": " + error.getMessage());
+            System.err.println("STATIC ERROR: " + error.getMessage() + error.getLocation());
         }
         if (result.hasErrors()) {
-            System.err.println("THERE WERE " + errors.size() + " STATIC ERRORS");
+            int errorCount = result.errorCount();
+            if (errorCount == 1) { System.err.println("THERE WAS " + errors.size() + " STATIC ERROR"); }
+            else { System.err.println("THERE WERE " + errors.size() + " STATIC ERRORS"); }
+                
         }
         return result;
     }

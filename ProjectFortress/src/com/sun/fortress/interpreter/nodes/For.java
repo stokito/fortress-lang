@@ -19,13 +19,18 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
-// / and for_expr = for_expr_rec node
-// / and for_expr_rec =
-// / {
-// / for_expr_gens : generator list;
-// / for_expr_body : expr;
-// / }
-// /
+/* For loops are parsed into elements of this class.
+ * 
+ * Syntax: 
+ *   DelimitedExpr ::= for GeneratorList DoFront end 
+ *   DoFront ::= ( at Expr)? ( atomic )? do BlockElems? 
+ * 
+ * Simple example:
+ * 
+ * for i <- 0#9 do
+ *   huh
+ * end
+ */
 public class For extends FlowExpr {
 
     List<Generator> gens;
