@@ -16,6 +16,8 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.useful;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Class Empty, a component of the List<T> composite hierarchy.
@@ -70,5 +72,12 @@ public class Empty<T> extends PureList<T> {
    public final int hashCode() {
       if (! _hasHashCode) { _hashCode = generateHashCode(); _hasHashCode = true; }
       return _hashCode;
+   }
+   public Iterator<T> iterator() {
+       return new Iterator<T>() {
+           public boolean hasNext() { return false; }
+           public T next() { throw new NoSuchElementException("Attempt to call next on iterator of an Empty PureList"); }
+           public void remove() { throw new UnsupportedOperationException("Attempt to remove from an Empty PureList"); }
+       };
    }
 }

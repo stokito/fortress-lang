@@ -16,21 +16,19 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.useful;
+import java.util.Iterator;
 
 /**
  * This class is an implementation of purely functional lists,
  * unlike those in java.util, which are mutable lists and are
  * therefore unsuitable for certain programming tasks.
  */
-public abstract class PureList<T> {
-    public static <T> PureList<T> make(T e1, T e2, T e3, T... elts) {
+public abstract class PureList<T> implements Iterable<T> {
+    public static <T> PureList<T> make(T... elts) {
         PureList<T> result = new Empty<T>();
         for (int i = elts.length - 1; i >= 0; i--) {
            result = result.cons(elts[i]);
         }
-        result = result.cons(e3);
-        result = result.cons(e2);
-        result = result.cons(e1);
         return result;
      }
 
@@ -124,4 +122,5 @@ public abstract class PureList<T> {
    public abstract PureList<T> append(PureList<T> that);
    public PureList<T> reverse() { return reverse(new Empty<T>()); }
    public abstract PureList<T> reverse(PureList<T> result);
+   public abstract Iterator<T> iterator();
 }

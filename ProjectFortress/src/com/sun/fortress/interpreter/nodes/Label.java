@@ -17,13 +17,18 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-// / and label_expr = label_expr_rec node
-// / and label_expr_rec =
-// / {
-// / label_expr_name : id;
-// / label_expr_body : expr;
-// / }
-// /
+/**
+ * Labeled expressions are parsed into elements of this class.
+ * 
+ * DelimitedExpr ::= label Id BlockElems end Id 
+ * FlowExpr ::= exit Id? ( with Expr)? 
+ * 
+ * Simple example:
+ * label I95 
+ *   if goingTo (Sun) 
+ *   then exit I95 with x32B 
+ * end
+ */
 public class Label extends FlowExpr {
     Id name;
 

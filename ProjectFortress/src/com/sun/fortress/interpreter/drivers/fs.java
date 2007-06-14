@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Printer;
+import com.sun.fortress.interpreter.typechecker.TypeCheckerResult;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class fs {
@@ -216,9 +217,9 @@ public class fs {
           if (verbose)
             System.err.println("Checking");
           
-          boolean typesafe = Driver.check(p);
+          TypeCheckerResult tcResult = Driver.check(p);
           
-          if (typesafe && !checkOnly) {
+          if (tcResult.isValid() && !checkOnly) {
             
             if (verbose)
               System.err.println("Interpreting");

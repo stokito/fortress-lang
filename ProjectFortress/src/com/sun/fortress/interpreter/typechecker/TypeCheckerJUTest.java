@@ -47,16 +47,20 @@ public class TypeCheckerJUTest extends TestCase {
     };
     
     public void testTypeErrors() throws IOException {
+        boolean failed = false;
+        
         for (String name : typeErrors) {
             String f = "type_errors" + File.separator + name + ".fss";
             CompilationUnit c = Driver.parseToJavaAst(f, Useful.utf8BufferedFileReader(f));
-            try {
-                TypeChecker.check(c);
-                fail("Checked " + f + " without a type error");
+            TypeCheckerResult result = TypeChecker.check(c);
+            if (result.isValid()) {
+                System.err.println("Checked " + f + " without a type error!");
+                failed = true;
             }
-            catch (TypeError e) {
+            else {
                 System.err.println(f + " OK");
             }
         }
+        assertFalse("Some static errors were not caught!", failed);
     }
 }

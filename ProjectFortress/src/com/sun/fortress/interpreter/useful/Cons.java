@@ -16,6 +16,8 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.useful;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Class Cons, a component of the List<T> composite hierarchy.
@@ -95,5 +97,21 @@ public class Cons<T> extends PureList<T> {
    public final int hashCode() {
       if (! _hasHashCode) { _hashCode = generateHashCode(); _hasHashCode = true; }
       return _hashCode;
+   }
+   public Iterator<T> iterator() {
+       return new Iterator<T>() {
+           private PureList<T> current = Cons.this;
+           
+           public boolean hasNext() { return ! current.isEmpty(); }
+           public T next() { 
+               if (current.isEmpty()) { throw new NoSuchElementException("Attempt to take next at end of iterator"); }
+               else {
+                   Cons<T> _current = (Cons<T>) current;
+                   current = _current.getRest();
+                   return _current.getFirst();
+               }
+           }
+           public void remove() { throw new UnsupportedOperationException("Attempt to remove from iterator on a PureList"); }
+       };
    }
 }

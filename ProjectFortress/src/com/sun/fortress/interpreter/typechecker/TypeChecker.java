@@ -26,11 +26,11 @@ import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.nodes.*;
 
 
-public class TypeChecker extends NodeVisitor<FType> {
+public class TypeChecker extends NodeVisitor<TypeCheckerResult> {
     public final Types typeAnalyzer = Types.ONLY;
 
-    public static void check(CompilationUnit p) throws TypeError {
-        p.accept(new TypeChecker());
+    public static TypeCheckerResult check(CompilationUnit p) {
+        return p.accept(new TypeChecker());
     }
 
     private final PureList<String> e;
@@ -43,14 +43,14 @@ public class TypeChecker extends NodeVisitor<FType> {
         this.e = _e;
     }
     
-    private List<FType> checkList(List<? extends NodeVisitorHost> hosts) {
-        List<FType> result = new LinkedList<FType>();
+    private List<TypeCheckerResult> checkList(List<? extends NodeVisitorHost> hosts) {
+        List<TypeCheckerResult> result = new LinkedList<TypeCheckerResult>();
         for (NodeVisitorHost h : hosts) result.add(h.accept(this));
         return result;
     }
     
-    public FType NI(com.sun.fortress.interpreter.useful.HasAt x, String s) {
-        return BottomType.ONLY;
+    public TypeCheckerResult NI(com.sun.fortress.interpreter.useful.HasAt x, String s) {
+        return TypeCheckerResult.VALID;
     }
     
     private TypeChecker extend(PureList<String> names) {
@@ -58,28 +58,30 @@ public class TypeChecker extends NodeVisitor<FType> {
     }
     
 
-    public FType forComponent(Component c) {
+    public TypeCheckerResult forComponent(Component c) {
         // Component(Span span, DottedId name, List<Import> imports, List<Export> exports,
         //           List<? extends DefOrDecl> defs)
+        TypeCheckerResult result = TypeCheckerResult.VALID; // Components are innocent until proven guilty.       
+        
         if (c.getImports().isEmpty()) { // TODO: handle imports
             for (DefOrDecl d : c.getDefs()) { // TODO: implement these things
                 if (d instanceof ObjectDefOrDecl || d instanceof TraitDefOrDecl ||
                     d instanceof VarDefOrDecl || d instanceof PropertyDecl ||
                     d instanceof TestDecl) {
-                    return BottomType.ONLY;
+                    return TypeCheckerResult.VALID;
                 }
             }
-            for (DefOrDecl d : c.getDefs()) d.accept(this);
+            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.accept(this)); }
         }
-        return BottomType.ONLY;
+        return result;   
     }
     
-    public FType forApi(Api a) {
+    public TypeCheckerResult forApi(Api a) {
         // Api(Span span, DottedId name, List<Import> imports, List<? extends DefOrDecl> defs)
-        return BottomType.ONLY;
+        return TypeCheckerResult.VALID;
     }
     
-    public FType forFnDecl(FnDecl d) {
+    public TypeCheckerResult forFnDecl(FnDecl d) {
         // FnDecl(Span span, List<Modifier> mods, FnName name, Option<List<StaticParam>> staticParams,
         //        List<Param> params, Option<TypeRef> returnType, List<TypeRef> throwss,
         //        List<WhereClause> where, Contract contract, Expr body)
@@ -88,32 +90,32 @@ public class TypeChecker extends NodeVisitor<FType> {
             for (Param p : d.getParams()) {
                 newEnv = newEnv.cons(p.getName().getName());
             }
-            d.getBody().accept(new TypeChecker(newEnv));
+            return d.getBody().accept(new TypeChecker(newEnv)); // TODO: Check result of body
         }
-        return BottomType.ONLY;
+        return TypeCheckerResult.VALID;
     }
     
     /******** Expressions: **********/
     
-    public FType forLocalVarDecl(LocalVarDecl d) {
+    public TypeCheckerResult forLocalVarDecl(LocalVarDecl d) {
         // LocalVarDecl(Span span, List<Expr> body, List<LValue> lhs, Option<Expr> rhs)
         PureList<String> newEnv = e;
         for (LValue l : d.getLhs()) {
             if (l instanceof LValueBind) newEnv = newEnv.cons(((LValueBind) l).getName().getName());
-            else if (l instanceof Unpasting) return FTypeVoid.ONLY; // TODO: handle
+            else if (l instanceof Unpasting) return TypeCheckerResult.VALID; // TODO: handle
         }
         TypeChecker newChecker = new TypeChecker(newEnv);
         
-        FType result = FTypeVoid.ONLY;
-        for (Expr e : d.getBody()) result = e.accept(newChecker);
+        TypeCheckerResult result = TypeCheckerResult.VALID;
+        for (Expr e : d.getBody()) { result = result.combine(e.accept(newChecker)); }
         return result;
     }
     
-    public FType forBlock(Block b) {
+    public TypeCheckerResult forBlock(Block b) {
         // Block(Span span, List<Expr> exprs)
         // TODO: make sure the spec allows an empty block
-        FType result = FTypeVoid.ONLY;
-        for (Expr e : b.getExprs()) result = e.accept(this);
+        TypeCheckerResult result = TypeCheckerResult.VALID;
+        for (Expr e : b.getExprs()) { result = result.combine(e.accept(this)); }
         return result;
     }
     
@@ -124,59 +126,67 @@ public class TypeChecker extends NodeVisitor<FType> {
         LIB_NAMES.add("false");
     }        
 
-    public FType forVarRefExpr(VarRefExpr v) {
+    public TypeCheckerResult forVarRefExpr(VarRefExpr v) {
         // VarRefExpr(Span span, Id var)
         String s = v.getVar().getName();
-        if (! e.contains(s) && !LIB_NAMES.contains(s)) {
-            throw new TypeError("Reference to undefined variable: " + s, v);
+        if ((!e.contains(s)) && (!LIB_NAMES.contains(s))) {
+            return new TypeCheckerResult(new TypeError("Reference to undefined variable: " + s, v));
         }
-        return BottomType.ONLY;
+        return TypeCheckerResult.VALID;
     }
     
-    public FType forAssignment(Assignment a) {
-        List<FType> left = checkList(a.getLhs());
-        FType right = a.getRhs().accept(this);
+    public TypeCheckerResult forAssignment(Assignment a) {
+        List<TypeCheckerResult> left = checkList(a.getLhs());
+        TypeCheckerResult right = a.getRhs().accept(this);
         // TODO: check for coercions
         //if (!typeAnalyzer.isSubtype(right, left))
-        //    throw new TypeError("Type " + left + " is not assignable to type " + right);
-        return FTypeVoid.ONLY;
+        //    return new TypeCheckerResult(new TypeError("Type " + left + " is not assignable to type " + right));
+        return right.combine(TypeCheckerResult.combine(PureList.fromJavaList(left))); 
     }
     
-    public FType forSubscriptExpr(SubscriptExpr s) {
-        FType obj = s.getObj().accept(this);
-        List<FType> subs = checkList(s.getSubs());
+    public TypeCheckerResult forSubscriptExpr(SubscriptExpr s) {
+        TypeCheckerResult obj = s.getObj().accept(this);
+        List<TypeCheckerResult> subs = checkList(s.getSubs());
         // TODO: application
-        return BottomType.ONLY;
+        return obj.combine(TypeCheckerResult.combine(PureList.fromJavaList(subs))); 
     }
     
-    public FType forAtomicExpr(AtomicExpr ae) {
+    public TypeCheckerResult forAtomicExpr(AtomicExpr ae) {
         return ae.getExpr().accept(this);
     }
     
-    public FType forIf(If e) {
-        List<FType> clauseTypes = new LinkedList<FType>();
+    public TypeCheckerResult forIf(If e) {
+        TypeCheckerResult result = TypeCheckerResult.VALID;
+        
+        // Collect all clause type results in a list so we can return the union
+        // of all clause types as the type of this If.
+        List<TypeCheckerResult> clauseTypes = new LinkedList<TypeCheckerResult>();
         
         for (IfClause clause : e.getClauses()) {
-            FType testType = clause.getTest().accept(this);
-            FType bodyType = clause.getBody().accept(this);
+            TypeCheckerResult testType = clause.getTest().accept(this);
+            TypeCheckerResult bodyType = clause.getBody().accept(this);
             
-            if (! typeAnalyzer.isSubtype(testType, typeAnalyzer.BOOLEAN)) { 
-                throw new TypeError("Test in if clause is not a Boolean", clause.getTest()); 
-            }
+//            if (! typeAnalyzer.isSubtype(testType, typeAnalyzer.BOOLEAN)) { 
+//                return new TypeCheckerResult(new TypeError("Test in if clause is not a Boolean", clause.getTest()); 
+//            }
             clauseTypes.add(bodyType);
+            result = result.combine(testType.combine(bodyType));
         }
         Option<Expr> else_ = e.getElse_();
         if (else_.isPresent()) {
-            clauseTypes.add(else_.getVal().accept(this));
+            TypeCheckerResult elseResult = else_.getVal().accept(this);
+            clauseTypes.add(elseResult);
+            result = result.combine(elseResult);
         }
-        return typeAnalyzer.union(clauseTypes);
+        return result;
+//      return typeAnalyzer.union(clauseTypes); // TODO: Compute return type (we need a test for this).
     }
     
-    public FType forLabel(Label e) {
+    public TypeCheckerResult forLabel(Label e) {
         // TODO: Add e.getName() to environment for use by exit
         // (but don't do this unti we're testing for it!)
         return e.getBody().accept(this);
     }
-//    public FType forTightJuxt
+//    public TypeCheckerResult forTightJuxt
                                   
 }

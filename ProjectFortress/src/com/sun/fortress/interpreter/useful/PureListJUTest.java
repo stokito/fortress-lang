@@ -15,33 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.useful;
 
-/**
- * Atomic expressions are parsed into elements of this class.
- */
-public class AtomicExpr extends FlowExpr {
+import junit.framework.TestCase;
 
-    Expr expr;
-
-    public AtomicExpr(Span span, Expr expr) {
-        super(span);
-        this.expr = expr;
-    }
-
-    @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
-        return v.forAtomicExpr(this);
-    }
-
-    AtomicExpr(Span span) {
-        super(span);
-    }
-
-    /**
-     * @return Returns the expr.
-     */
-    public Expr getExpr() {
-        return expr;
+public class PureListJUTest extends TestCase {
+    public void testIterator() {
+        PureList<Integer> list = PureList.make(0,1,2,3);
+        Object[] array = list.toArray();
+        int counter = 0;
+        for (int elt : list) {
+            counter++;
+            assertTrue("PureList iterator not returning correct elements", elt == array[elt]);
+        }
+        assertEquals("Incorrect number of iterations over list.", 4, counter);
     }
 }

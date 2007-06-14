@@ -19,6 +19,24 @@ package com.sun.fortress.interpreter.nodes;
 
 import java.util.List;
 
+/**
+ * Do expressions are parsed into elements of this class. 
+ * 
+ * Do ::= (DoFront also )? DoFront end 
+ * DoFront ::= ( at Expr)? atomic ? do BlockElems? 
+ * BlockElems ::= BlockElem+ 
+ * BlockElem ::= LocalVarFnDecl 
+ *             | Expr( , GeneratorList)? 
+ * LocalVarFnDecl ::= LocalFnDecl+ 
+ * | LocalVarDecl 
+ * 
+ * Simple example:
+ * do 
+ *   y = x 
+ *   z = 2x 
+ *   y + z 
+ * end 
+ */
 public class Block extends FlowExpr {
     List<Expr> exprs;
 
