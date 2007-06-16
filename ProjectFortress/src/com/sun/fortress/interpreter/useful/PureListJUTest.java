@@ -26,7 +26,8 @@ public class PureListJUTest extends TestCase {
         int counter = 0;
         for (int elt : list) {
             counter++;
-            assertTrue("PureList iterator not returning correct elements", elt == array[elt]);
+            assertTrue("PureList iterator not returning correct elements",
+                    elt == ((Integer)array[elt]).intValue());
         }
         assertEquals("Incorrect number of iterations over list.", 4, counter);
     }

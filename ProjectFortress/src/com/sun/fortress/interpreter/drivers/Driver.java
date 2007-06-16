@@ -147,6 +147,7 @@ public class Driver {
         return parseToJavaAst(reportedFileName, Useful.utf8BufferedFileReader(reportedFileName));
     }
 
+
     /**
      * Perform static analysis on the given program.
      * @return  {@code true} iff the program is considered well-formed by the type checker.
@@ -158,6 +159,7 @@ public class Driver {
         for (TypeError error : errors) {
             System.err.println("STATIC ERROR: " + error.getMessage() + error.getLocation());
         }
+
         if (result.hasErrors()) {
             int errorCount = result.errorCount();
             if (errorCount == 1) { System.err.println("THERE WAS " + errors.size() + " STATIC ERROR"); }
@@ -280,7 +282,7 @@ public class Driver {
          * from component C's imported APIs to their implementing components).
          * Each component will be paired with its top level environment (TLE).
          * 
-         * phase 1: for each component, prepare the TLE by creating all name
+         * phase 1: for each component, prepare its TLE by creating all name
          * slots (nothing in the slots will is initialized AT ALL -- it's all
          * thunks, empty mutables, and uninitialized types).
          * 

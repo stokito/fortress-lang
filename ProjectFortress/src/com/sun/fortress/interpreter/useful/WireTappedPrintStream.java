@@ -21,22 +21,58 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+/**
+ * Acts like a Printstream, but optionally delays any actual printing of the
+ * output, and saves a copy for replay and/or inspection.  Can be used to
+ * implement optional logging of output/error for code that uses System.{out,err}
+ * (for example, junit).
+ * 
+ * @author chase
+ */
 public class WireTappedPrintStream extends PrintStream {
 
+    /**
+     * The stream to which writes ultimately are directed.
+     */
     PrintStream tappee;
-    int limit;
+    
+    /**
+     * Receives writes to this PrintStream.
+     */
     ByteArrayOutputStream s;
+    
+    /**
+     * If true, writes to the wiretapped stream are not released to tappee
+     * until flush(true) is called.
+     */
     boolean postponePassthrough;
+    
+    /**
+     * If postponePassthrough, then this is the index of the first postponed
+     * byte.
+     */
     int postponeStart;
 
     public static final int DEFAULT_BYTE_LIMIT = 65536;
 
+    /**
+     * Creates a wire-tapped PrintStream that does not delay printing.
+     * @param tappee the PrintStream to which output should be flushed.
+     * @return
+     */
     public static WireTappedPrintStream make(PrintStream tappee) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         return new WireTappedPrintStream(bos, tappee, false);
     }
 
-    public static WireTappedPrintStream make(PrintStream tappee, boolean postponePassthrough) {
+    /**
+     * Creates a wire-tapped PrintStream delays printing if postponePassthrough
+     * is true.
+     * @param tappee the PrintStream to which output should be flushed.
+     * @param postponePassthrough do, or don't, postpone actual printing.
+     * @return
+     */
+   public static WireTappedPrintStream make(PrintStream tappee, boolean postponePassthrough) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         return new WireTappedPrintStream(bos, tappee, postponePassthrough);
     }
@@ -48,6 +84,12 @@ public class WireTappedPrintStream extends PrintStream {
         this.postponePassthrough = postponePassthrough;
     }
 
+    /**
+     * Obtains all output as a string,
+     * including both already released and not yet released.
+     * 
+     * @return
+     */
     public String getString() {
         flush();
         return s.toString();
@@ -62,6 +104,13 @@ public class WireTappedPrintStream extends PrintStream {
         tappee.close();
     }
 
+    /**
+     * Sets all streams to flushed state, and optionally releases postponed output
+     * to the wiretapped stream before flushing.
+     * 
+     * @param releasePostponed if true, released postponed output
+     * @throws IOException
+     */
     public void flush(boolean releasePostponed) throws IOException {
         super.flush();
         if (releasePostponed && postponePassthrough) {
@@ -110,6 +159,4 @@ public class WireTappedPrintStream extends PrintStream {
         if (!postponePassthrough)
             tappee.write(arg0);
     }
-
-
 }
