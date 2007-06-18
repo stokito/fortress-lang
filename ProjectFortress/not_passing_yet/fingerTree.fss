@@ -94,10 +94,10 @@ end
 
 trait D13[\E\] extends { D03[\E\], D14[\E\] }
     comprises { D12[\E\], D23[\E\] }
-  cons(e:E) : D24[\E\]
-  snoc(e:E) : D24[\E\]
   getter uncons() : (E,D02[\E\])
   getter unsnoc() : (D02[\E\],E)
+  cons(e:E) : D24[\E\]
+  snoc(e:E) : D24[\E\]
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
   nodes2(x:D14[\E\]):D13[\D23[\E\]\]
 end
@@ -120,20 +120,20 @@ end
 
 trait D12[\E\] extends { D02[\E\], D13[\E\] }
     comprises { D1[\E\], D2[\E\] }
-  cons(e:E) : D34[\E\]
-  snoc(e:E) : D34[\E\]
   getter uncons() : (E,D01[\E\])
   getter unsnoc() : (D01[\E\],E)
+  cons(e:E) : D34[\E\]
+  snoc(e:E) : D34[\E\]
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
   nodes2(x:D14[\E\]):D12[\D23[\E\]\]
 end
 
 trait D23[\E\] extends { D13[\E\], D24[\E\] }
     comprises { D2[\E\], D3[\E\] }
-  cons(e:E) : D34[\E\]
-  snoc(e:E) : D34[\E\]
   getter uncons() : (E,D12[\E\])
   getter unsnoc() : (D12[\E\],E)
+  cons(e:E) : D34[\E\]
+  snoc(e:E) : D34[\E\]
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
   nodes2(x:D14[\E\]):D13[\D23[\E\]\]
 end
