@@ -39,7 +39,8 @@ export Executable
       MVP (Most Valuable  Player): who earned the points the most
       MEP (Most Energetic Player): who played the games  the most
       MIP (Most Improved  Player): who rose   the ranks  the most
-
+ *)
+(* 
    Rules to calculuate the ranking
    1. Every player begins with 1000 points at the very beginng of the season.
    2. A new term starts in 2 weeks.
