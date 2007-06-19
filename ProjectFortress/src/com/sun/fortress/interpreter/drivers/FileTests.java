@@ -62,7 +62,7 @@ public class FileTests {
 
             try {
                 try {
-                    oldOut.print(f); oldOut.print(" "); oldOut.flush();
+                    oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     String s = f.replaceFirst(".*/", "");
                     String tmpFile = "/tmp/" + s + ".ast";
                     String fssFile = f + ".fss";

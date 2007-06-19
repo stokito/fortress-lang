@@ -58,7 +58,7 @@ public abstract class TcWrapper extends TestCase implements TestListener {
         
         System.setErr(oldErr);
         System.setOut(oldOut);
-        System.out.println(this.toString() + (anyFail ? " FAIL" : " OK"));
+        System.out.println("  " + this.toString() + (anyFail ? " FAIL" : " OK"));
         try {
             wt_err.flush(anyFail);
             wt_out.flush(anyFail);
