@@ -19,7 +19,7 @@ component mm.fss
 export Executable
 
 MA32(a:ZZ32[32,32],b:ZZ32[32,32]):ZZ32[32,32] = do
-   var result:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
+   var result:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
    for i<-0#32 do
       for j<-0#32 do
          result[i,j] := a[i,j] + b[i,j]
@@ -29,7 +29,7 @@ MA32(a:ZZ32[32,32],b:ZZ32[32,32]):ZZ32[32,32] = do
 end
 
 MA16(a:ZZ32[16,16],b:ZZ32[16,16]):ZZ32[16,16] = do
-   var result:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
+   var result:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
    for i<-0#16 do
       for j<-0#16 do
          result[i,j] := a[i,j] + b[i,j]
@@ -39,7 +39,7 @@ MA16(a:ZZ32[16,16],b:ZZ32[16,16]):ZZ32[16,16] = do
 end
 
 MA8(a:ZZ32[8,8],b:ZZ32[8,8]):ZZ32[8,8] = do
-   var result:ZZ32[8,8] =  _DefaultArray2[\ZZ32, 0, 8, 0, 8\]()
+   var result:ZZ32[8,8] =  matrix[\ZZ32, 8, 8\]()
    for i<-0#8 do
       for j<-0#8 do
          result[i,j] := a[i,j] + b[i,j]
@@ -69,14 +69,14 @@ result
 end
 
 MM64(a:ZZ32[64,64],b:ZZ32[64,64]):ZZ32[64,64] = do
-   var A00:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var A01:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var A10:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var A11:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var B00:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var B01:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var B10:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
-   var B11:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
+   var A00:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var A01:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var A10:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var A11:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var B00:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var B01:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var B10:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
+   var B11:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
 
   for i<-0#32 do
       for j<-0#32 do
@@ -108,7 +108,7 @@ MM64(a:ZZ32[64,64],b:ZZ32[64,64]):ZZ32[64,64] = do
 
    (C00,C01,C10,C11) = (MA32(P0,P1),MA32(P2,P3),MA32(P4,P5),MA32(P6,P7))
 
-   var c:ZZ32[64,64] = _DefaultArray2[\ZZ32, 0, 64, 0, 64\]()
+   var c:ZZ32[64,64] = matrix[\ZZ32, 64, 64\]()
 
    for i<-0#32 do
       for j<-0#32 do
@@ -134,14 +134,14 @@ MM64(a:ZZ32[64,64],b:ZZ32[64,64]):ZZ32[64,64] = do
 end
 
 MM32(a:ZZ32[32,32],b:ZZ32[32,32]):ZZ32[32,32] = do
-   var A00:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var A01:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var A10:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var A11:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var B00:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var B01:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var B10:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
-   var B11:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
+   var A00:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var A01:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var A10:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var A11:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var B00:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var B01:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var B10:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
+   var B11:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
 
   for i<-0#16 do
       for j<-0#16 do
@@ -173,7 +173,7 @@ MM32(a:ZZ32[32,32],b:ZZ32[32,32]):ZZ32[32,32] = do
 
    (C00,C01,C10,C11) = (MA16(P0,P1),MA16(P2,P3),MA16(P4,P5),MA16(P6,P7))
 
-   var c:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]()
+   var c:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]()
    for i<-0#16 do
       for j<-0#16 do
          c[i,j] := C00[i,j]
@@ -261,7 +261,7 @@ MM16(a:ZZ32[16,16],b:ZZ32[16,16]):ZZ32[16,16] = do
 
    (C00,C01,C10,C11) = (MA8(P0,P1),MA8(P2,P3),MA8(P4,P5),MA8(P6,P7))
 
-   var c:ZZ32[16,16] = _DefaultArray2[\ZZ32, 0, 16, 0, 16\]()
+   var c:ZZ32[16,16] = matrix[\ZZ32, 16, 16\]()
    for i<-0#8 do
       for j<-0#8 do
          c[i,j] := C00[i,j]
@@ -450,11 +450,11 @@ MM2(a:ZZ32[2,2],b:ZZ32[2,2]):ZZ32[2,2] = do
 end
 
 run(args:String...):()=do
-   var a:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]() (* all 9 *)
+   var a:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]() (* all 9 *)
    for i <- 0#32 do for j <- 0#32 do
      a[i,j] := 1
      end end
-   var b:ZZ32[32,32] = _DefaultArray2[\ZZ32, 0, 32, 0, 32\]() (* all 1 *)
+   var b:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]() (* all 1 *)
    for i <- 0#32 do for j <- 0#32 do
      b[i,j] := 9
    end end
