@@ -16,28 +16,27 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.typechecker;
-import junit.framework.TestCase;
+
 import java.io.File;
 import java.io.IOException;
+
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.TcWrapper;
 
 /**
  * Tests that specific files in the tests directory contain static errors.  Ensuring that
  * all files in "tests" that don't start with "XXX" pass type checking is done by the 
  * drivers/SystemJUTests test.  All "XXX" files not listed below are expected to only have runtime errors.
  */
-public class TypeCheckerJUTest extends TestCase {
-
-    /* @Override */
-    protected void setUp() throws Exception {
-        Init.initializeEverything();
-    }
-  
-
+public class TypeCheckerJUTest extends TcWrapper {
+    
     private void checkErrorCount(String filePrefix, int expectedCount) throws IOException {
         String fileName = "type_errors" + File.separator + filePrefix + ".fss";
         CompilationUnit c = Driver.parseToJavaAst(fileName);

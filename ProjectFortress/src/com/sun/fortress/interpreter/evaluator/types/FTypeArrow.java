@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.useful.Memo2;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-// TODO Need to memoize this to preserve EQuality.
+// TODO Need to memoize this to preserve Equality.
 public class FTypeArrow extends FType {
     private static class Factory implements Factory2<FType, FType, FType> {
 

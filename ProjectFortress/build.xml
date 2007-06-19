@@ -29,6 +29,7 @@
 	<property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
 
 	<property name="build" location="build"/>
+	<property name="docs" location="docs"/>
 	<property name="xtc" location="${basedir}/third_party/xtc"/>
 	<property name="bcel" location="${basedir}/third_party/bcel"/>
 	<property name="fj" location="${basedir}/third_party/FJ"/>
@@ -447,6 +448,20 @@
             <arg value="rats"/>
             <arg value="Fortress.rats"/>
         </java>
+    </target>
+
+    <target name="doc" depends="compile">
+      <javadoc overview="${src}/overview.html" destdir="${docs}">
+	<packageset dir="${src}">
+	  <include name="**/*"/>
+	</packageset>
+
+	<header><![CDATA[Fortress Interpreter]]></header>
+	<doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
+	<group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
+	<link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+      </javadoc>
+	       
     </target>
 
 </project>
