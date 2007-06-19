@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.useful.Useful;
 
-public class ConstructorsJUTest extends TestCase {
+public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
     public void testSourceLoc() {
         SourceLoc sl1 = new SourceLocRats("cat", 1, 2);
         SourceLoc sl2 = new SourceLocRats("cat", 1, 2);

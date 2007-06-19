@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.reader.Lex;
  * JUnit based test
  */
 
-public class ASTJUTest extends TestCase {
+public class ASTJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public ASTJUTest(String testName) {
         super(testName);
@@ -563,10 +563,7 @@ public class ASTJUTest extends TestCase {
 //
 //    }
    protected void tearDown() throws Exception {
-       out.flush();
-       err.flush();
-    }
-
+   }
 
     public static void main(String args[]) {
 	junit.textui.TestRunner.run(suite());

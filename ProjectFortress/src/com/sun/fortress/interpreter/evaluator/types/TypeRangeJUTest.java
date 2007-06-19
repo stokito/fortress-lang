@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import junit.framework.TestCase;
 
-public class TypeRangeJUTest extends TestCase {
+public class TypeRangeJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(TypeRangeJUTest.class);

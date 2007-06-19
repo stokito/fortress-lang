@@ -36,7 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FRangeIterator;
 import com.sun.fortress.interpreter.useful.HasAt;
 
-public class EvaluatorJUTest extends TestCase {
+public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public EvaluatorJUTest() {
         super("EvaluatorJUTest");

@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.useful;
 import junit.framework.TestCase;
 
-public class ListJUTest extends TestCase {
+public class ListJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
   public void testMake() {
     PureList<Integer> test = PureList.make(0,1,2);
     assertEquals(test,

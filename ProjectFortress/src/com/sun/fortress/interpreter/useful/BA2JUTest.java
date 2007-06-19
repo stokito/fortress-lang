@@ -21,7 +21,7 @@ import java.util.Comparator;
 
 import junit.framework.TestCase;
 
-public class BA2JUTest extends TestCase {
+public class BA2JUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(BA2JUTest.class);

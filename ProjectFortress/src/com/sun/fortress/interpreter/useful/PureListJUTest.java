@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.useful;
 
 import junit.framework.TestCase;
 
-public class PureListJUTest extends TestCase {
+public class PureListJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
     public void testIterator() {
         PureList<Integer> list = PureList.make(0,1,2,3);
         Object[] array = list.toArray();

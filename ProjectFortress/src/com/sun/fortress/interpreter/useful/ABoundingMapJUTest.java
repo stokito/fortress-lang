@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.useful;
 
 import junit.framework.TestCase;
 
-public class ABoundingMapJUTest extends TestCase {
+public class ABoundingMapJUTest extends TcWrapper {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(ABoundingMapJUTest.class);
@@ -34,7 +34,8 @@ public class ABoundingMapJUTest extends TestCase {
      */
     public void testABoundingMapMapOfTULatticeOpsOfU() {
         // TODO Auto-generated method stub
-
+        System.err.println("before a success");
+        
     }
 
     /*
@@ -42,7 +43,6 @@ public class ABoundingMapJUTest extends TestCase {
      */
     public void testDual() {
         // TODO Auto-generated method stub
-
     }
 
     /*

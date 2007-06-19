@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.useful;
 
 import junit.framework.TestCase;
 
-public class BalancedApplicativeTreeEquivalenceClasssesJUTest extends TestCase {
+public class BalancedApplicativeTreeEquivalenceClasssesJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(BalancedApplicativeTreeEquivalenceClasssesJUTest.class);

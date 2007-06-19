@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Span;
 
-public class OverloadJUTest extends TestCase {
+public class OverloadJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public OverloadJUTest() {
         super("OverloadJUTest");

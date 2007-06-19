@@ -22,7 +22,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-public class GHashMapJUTest extends TestCase {
+public class GHashMapJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(GHashMapJUTest.class);

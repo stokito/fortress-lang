@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.useful;
 
 import junit.framework.TestCase;
 
-public class Memo2JUTest extends TestCase {
+public class Memo2JUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public Memo2JUTest() {
         super("Memo2JUTest");

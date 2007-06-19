@@ -393,7 +393,34 @@
         </junit>
     </target>
 
-    <target name="testAll" depends="test, testNotPassing, reportNotPassing, reportNotPassing"
+	   <target name="testDemos" depends="compile"
+	            description="Run demos in a test harness.">
+	        <mkdir dir="${basedir}/TEST-RESULTS"/>
+	        <junit printsummary="on"
+	               haltonerror="off"
+	               haltonfailure="off"
+	               showoutput="yes"
+	               fork="true"
+	               maxmemory="${junitMem}"
+	               errorProperty="demos"
+	               failureProperty="demos">
+	            <classpath>
+	                <pathelement location="${build}"/>
+	            	<pathelement location="${fj}/concurrent.jar"/>
+	                <pathelement location="${bcel}/bcel-5.2.jar"/>
+	            	<pathelement location="${xtc}/xtc.jar"/>
+	            </classpath>
+	            <formatter type="brief" usefile="true"/>
+	            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+	                <fileset dir="${build}">
+	                    <include name="**/DemoTests.class"/>
+	                </fileset>
+	            </batchtest>
+	        </junit>
+	    </target>
+
+
+    <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"
             description="Run all tests, including those known not to pass yet.">
     </target>
 

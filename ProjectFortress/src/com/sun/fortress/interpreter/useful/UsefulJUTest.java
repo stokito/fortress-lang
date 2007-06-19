@@ -25,7 +25,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-public class UsefulJUTest extends TestCase {
+public class UsefulJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 
     public UsefulJUTest() {
         super("UsefulJUTest");
