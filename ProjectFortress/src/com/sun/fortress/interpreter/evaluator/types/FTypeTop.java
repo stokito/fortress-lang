@@ -17,11 +17,13 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -32,7 +34,8 @@ public class FTypeTop extends FTypeTrait {
     private final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
 
     private FTypeTop() {
-        super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"));
+        super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"),
+                Collections.<DefOrDecl>emptyList());
     }
 
     @Override

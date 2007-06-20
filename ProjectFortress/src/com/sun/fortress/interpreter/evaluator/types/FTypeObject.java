@@ -17,14 +17,18 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import java.util.List;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
+import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
 public class FTypeObject extends FTraitOrObject {
 
-    public FTypeObject(String name, BetterEnv env, HasAt at) {
-        super(name, env, at);
+    public FTypeObject(String name, BetterEnv env, HasAt at, List<? extends DefOrDecl> members) {
+        super(name, env, at, members);
         cannotBeExtended = true;
     }
 

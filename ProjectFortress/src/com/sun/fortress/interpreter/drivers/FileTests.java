@@ -93,7 +93,7 @@ public class FileTests {
                     int crLoc = exFirstLine.indexOf("\n");
                     if (crLoc == -1) crLoc = exFirstLine.length();
                     exFirstLine = exFirstLine.substring(0, crLoc);
-                    System.out.println(" OK Saw expected exception " + exFirstLine );
+                    System.out.println(" OK Saw expected exception");
                     return;
                 } else {
                     // Unexpected

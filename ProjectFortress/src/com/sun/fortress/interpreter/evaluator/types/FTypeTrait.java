@@ -16,8 +16,12 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
+import java.util.List;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
+import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
@@ -34,8 +38,8 @@ public class FTypeTrait extends FTraitOrObject {
      */
     BetterEnv methodEnv;
 
-    public FTypeTrait(String name, BetterEnv interior, HasAt at) {
-        super(name, interior, at);
+    public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends DefOrDecl> members) {
+        super(name, interior, at, members);
     }
 
     protected void finishInitializing() {

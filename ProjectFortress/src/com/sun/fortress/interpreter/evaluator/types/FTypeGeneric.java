@@ -42,12 +42,13 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
-    public FTypeGeneric(BetterEnv e, GenericDefOrDecl d) {
+    public FTypeGeneric(BetterEnv e, GenericDefOrDecl d, List<? extends DefOrDecl> members) {
         super(d.stringName());
         env = e;
         def = d;
         params = d.getStaticParams().getVal();
         genericAt = d;
+        this.members = members;
     }
 
     BetterEnv env;
@@ -63,6 +64,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     HasAt genericAt;
 
     String genericName;
+    
+    List<? extends DefOrDecl> members;
 
     private class Factory implements
             LazyFactory1P<List<FType>, FTraitOrObject, HasAt> {
@@ -82,7 +85,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 if (dod instanceof TraitDefOrDecl) {
                     TraitDefOrDecl td = (TraitDefOrDecl) dod;
                     FTypeTrait ftt = new FTypeTraitInstance(td.getName()
-                            .getName(), clenv, FTypeGeneric.this, args);
+                            .getName(), clenv, FTypeGeneric.this, args, members);
                     FTraitOrObject old = map.put(args, ftt); // Must put
                                                                 // early to
                                                                 // expose for
@@ -97,7 +100,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 } else if (dod instanceof ObjectDecl) {
                     ObjectDecl td = (ObjectDecl) dod;
                     FTypeObject fto = new FTypeObjectInstance(td.getName()
-                            .getName(), clenv, FTypeGeneric.this, args);
+                            .getName(), clenv, FTypeGeneric.this, args, members);
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
@@ -110,7 +113,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 } else if (dod instanceof ObjectExpr) {
                     ObjectExpr td = (ObjectExpr) dod;
                     FTypeObject fto = new FTypeObjectInstance(td.stringName(),
-                            clenv, FTypeGeneric.this, args);
+                            clenv, FTypeGeneric.this, args, members);
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
                     

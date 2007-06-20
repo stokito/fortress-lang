@@ -17,7 +17,11 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
 
 public class SymbolicInstantiatedType extends SymbolicType {
 
@@ -26,7 +30,7 @@ public class SymbolicInstantiatedType extends SymbolicType {
      * @param interior
      */
     public SymbolicInstantiatedType(String name, BetterEnv interior) {
-        super(name, interior);
+        super(name, interior, Collections.<DefOrDecl>emptyList());
         isSymbolic = true;
     }
 

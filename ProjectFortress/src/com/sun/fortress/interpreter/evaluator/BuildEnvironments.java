@@ -287,7 +287,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      * @param defs
      * @param fields
      */
-    public void doTraitMethodDefs(BetterEnv into, BetterEnv forTraitMethods,
+    private void doTraitMethodDefs(BetterEnv into, BetterEnv forTraitMethods,
             List<? extends DefOrDecl> defs, Set<String> fields) {
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, fields);
@@ -619,8 +619,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<Decl> defs = x.getDefOrDecls();
         String fname = name.getName();
         FType ft;
-        ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
-                : new FTypeObject(fname, e, x);
+        ft = staticParams.isPresent() ? new FTypeGeneric(e, x, x.getDefOrDecls())
+                : new FTypeObject(fname, e, x, x.getDefOrDecls());
 
         // Need to check for overloaded constructor.
 
@@ -1032,14 +1032,14 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         if (staticParams.isPresent()) {
 
-                FTypeGeneric ftg = new FTypeGeneric(containing, x);
+                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getFns());
                 guardedPutType(name.getName(), ftg, x);
                 // scanForFunctionalMethodNames(ftg, x.getFns(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
-                FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
+                FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x, x.getFns());
                 guardedPutType(name.getName(), ftt, x);
                 // scanForFunctionalMethodNames(ftt, x.getFns(), ftt);
            ft = ftt;
@@ -1108,14 +1108,14 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
         if (staticParams.isPresent()) {
 
-                FTypeGeneric ftg = new FTypeGeneric(containing, x);
+                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getFns());
                 guardedPutType(name.getName(), ftg, x);
                 //scanForFunctionalMethodNames(ftg, x.getFns(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
-                FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x);
+                FTypeTrait ftt = new FTypeTrait(name.getName(), interior, x, x.getFns());
                 guardedPutType(name.getName(), ftt, x);
                 //scanForFunctionalMethodNames(ftt, x.getFns(), ftt);
            ft = ftt;
@@ -1524,8 +1524,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         // List<Decl> defs = x.getDefOrDecls();
         String fname = name.getName();
         FType ft;
-        ft = staticParams.isPresent() ? new FTypeGeneric(e, x)
-                : new FTypeObject(fname, e, x);
+        ft = staticParams.isPresent() ? new FTypeGeneric(e, x, x.getDefOrDecls())
+                : new FTypeObject(fname, e, x, x.getDefOrDecls());
 
         // Need to check for overloaded constructor.
 
