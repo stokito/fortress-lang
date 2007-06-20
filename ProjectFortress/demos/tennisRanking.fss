@@ -62,7 +62,7 @@ export Executable
                else -5 (diff DIV 2)+1 - 50
    9. if any player has never played any game before this term,
       then ranking differences are ignored.
-  10. If the same teams play more than once with the same combinationin a term,
+  10. If the same teams play more than once with the same combination in a term,
       only the first game is considered valid.
   11. If a player does not play any game in a term, the player gets -50 penalties.
  *)
