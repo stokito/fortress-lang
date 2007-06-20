@@ -2,7 +2,6 @@
  - Dimensions and units.
  - Where-clause constraints - nat, int, bool, and unit constraints.
  - Static arguments - nat (minus), int, bool, dimension, unit, and ident.
- - ":" as an operator: Extent range - [NatRef w] : [w NatRef]
  - Parallel block expressions.
 
 * Rats! files: Fortress syntax
@@ -60,7 +59,6 @@
    Types.
    NYI: Dimension and unit types.
         Static arguments - nat (minus), bool, dimension, unit, and ident.
-        Extent range - [NatRef w] : [w NatRef]
 
  - Expression.rats
    Top-level module for the expression syntax.

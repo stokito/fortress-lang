@@ -29,7 +29,7 @@ Programming Languages Research Group at:
 A Fortress FAQ is available at:
 
   http://research.sun.com/projects/plrg/faq/index.html
-  
+
 but is being replaced by the wikified
 
   http://projectfortress.sun.com/Projects/Community/wiki/FortressQuestions
@@ -37,7 +37,7 @@ but is being replaced by the wikified
 There is also a fortress-interest mailing list, which you can join at:
 
   http://www.experimentalstuff.com/mailman/listinfo/fortress-interest
-  
+
 but we are trying to move this, too.
 
 BUILDING THE CODE
@@ -205,11 +205,9 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Dimensions and units
 
-* Static arguments: nat (using minus), int, bool, dimension, unit, and ident
+* Static arguments: nat (using minus), int, bool, dimension, and unit
 
 * Modifiers
-
-* ":" as an operator
 
 * Keyword arguments
 
@@ -223,7 +221,7 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Constraint solving for nat parameters
 
-* opr and ident parameters
+* opr parameters
 
 * Functional methods
 
@@ -242,8 +240,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * spawn
 
 * also (multiple parallel *blocks*; use tuples of blocks instead.)
-
-* Lists, sets, and maps (though we welcome contributions of library code)
 
 * Any of the types which classify operator properties
 
