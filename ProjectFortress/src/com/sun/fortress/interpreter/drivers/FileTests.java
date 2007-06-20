@@ -37,13 +37,16 @@ public class FileTests {
 
     public static class FSSTest extends TestCase {
         String f;
+        String dir;
+        String name;
         boolean failsOnly;
 
         public FSSTest(String d, String s, boolean failsOnly) {
             super("testFile");
             this.f = d + "/" + s;
+            this.dir = d;
+            this.name = s;
             this.failsOnly = failsOnly;
-
         }
 
         public String getName() {
@@ -70,7 +73,7 @@ public class FileTests {
                     CompilationUnit p;
                     p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
                     if (Driver.check(p).hasErrors()) { throw new Exception("Static error"); }
-                    
+
                     if (anns.compile) {
                         // oldOut.print(" COMPILING"); oldOut.flush();
                         Driver.evalComponent(p);
@@ -78,7 +81,15 @@ public class FileTests {
                     else {
                         // oldOut.print(" RUNNING"); oldOut.flush();
                         if (!failsOnly) System.out.println();
-                        Driver.runProgram(p, true, new ArrayList<String>());
+                        if (name.equals("tennisRanking")) {
+                            ArrayList<String> args = new ArrayList<String>();
+                            args.add(dir + "/tennis050307");
+                            args.add(dir + "/tennis051707");
+                            args.add(dir + "/tennisGames");
+                            Driver.runProgram(p, true, args);
+                        } else {
+                            Driver.runProgram(p, true, new ArrayList<String>());
+                        }
                     }
 
                 } finally {
@@ -174,7 +185,7 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
-        for (int i = 0; i < files.length - 1; i++) {
+        for (int i = 0; i < files.length; i++) {
             String s = files[i];
             if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {
@@ -192,6 +203,5 @@ public class FileTests {
         }
         // $JUnit-END$
         return suite;
-
     }
 }
