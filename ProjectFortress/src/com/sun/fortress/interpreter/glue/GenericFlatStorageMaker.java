@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.nodes.Contract;
 import com.sun.fortress.interpreter.nodes.Decl;
+import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.GenericDefOrDeclWithParams;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.Modifier;
@@ -129,7 +130,8 @@ public class GenericFlatStorageMaker extends GenericConstructor {
 
     public GenericFlatStorageMaker(BetterEnv e) {
         super(e,bogusObjectDecl());
-        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDefOrDecl()));
+        // Emptylist might be wrong here for the def-or-decls
+        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDefOrDecl(), Collections.<DefOrDecl>emptyList()));
     }
 
     /* (non-Javadoc)

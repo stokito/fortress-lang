@@ -252,7 +252,7 @@ public class Disambiguate extends Rewrite {
             Option<List<StaticParam>> params = oe.getStaticParams();
             if (! params.isPresent()) {
                 // Regular constructor
-                FTypeObject fto = new FTypeObject(name, e, oe);
+                FTypeObject fto = new FTypeObject(name, e, oe, oe.getDefOrDecls());
                 e.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, e, oe);
                 Constructor con = new Constructor(e, fto, oe, new Fun(name), oe.getDefOrDecls());
@@ -261,7 +261,7 @@ public class Disambiguate extends Rewrite {
                 con.finishInitializing();
             } else {
                 // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(e, oe);
+                FTypeGeneric fto = new FTypeGeneric(e, oe, oe.getDefOrDecls());
                 e.putType(name, fto);
                 GenericConstructor con = new GenericConstructor(e, oe);
                 e.putValue(name, con);
