@@ -51,6 +51,8 @@ public class ComponentWrapper {
 
     public ComponentWrapper(CompilationUnit comp) {
         this();
+        if (comp == null)
+            throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
     }
 
@@ -60,8 +62,7 @@ public class ComponentWrapper {
      * @param api
      */
     public ComponentWrapper(Component comp, ComponentWrapper api) {
-        this();
-        p = comp;
+        this(comp);
         exports.put(api.getComponent().getName().toString(),api);
     }
 

@@ -85,6 +85,11 @@ public class Driver {
     private static boolean _libraryTest = false;
     
     private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
+    
+    public final static String COMP_SOURCE_SUFFIX = "fss";
+    public final static String COMP_TREE_SUFFIX = "tfs";
+    public final static String API_SOURCE_SUFFIX = "fsi";
+    public final static String API_TREE_SUFFIX = "tfi";
 
     private Driver() {
     };
@@ -607,7 +612,6 @@ public class Driver {
              */
             Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
             Component newcomp = readTreeOrSourceComponent(LIB_DIR + apiname);
-            
             ComponentWrapper apicw = new ComponentWrapper(newapi);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.populateEnvironment();
@@ -698,12 +702,12 @@ public class Driver {
     }
 
     public static Component readTreeOrSourceComponent(String basename) {
-        return (Component) readTreeOrSource(basename + ".fss", basename
-                + ".tfs");
+        return (Component) readTreeOrSource(basename + "." + COMP_SOURCE_SUFFIX, basename
+                + "." + COMP_TREE_SUFFIX);
     }
 
     public static Api readTreeOrSourceApi(String basename) {
-        return (Api) readTreeOrSource(basename + ".fsi", basename + ".tfi");
+        return (Api) readTreeOrSource(basename + "." + API_SOURCE_SUFFIX, basename + "." + API_TREE_SUFFIX);
     }
 
     /**
@@ -746,6 +750,8 @@ public class Driver {
                 System.err.println("Trouble reading preparsed library AST.");
                 ex.printStackTrace();
             }
+        if (c == null)
+            throw new ProgramError("Could not read " + librarySource + " or " + libraryTree);
         return c;
     }
 
