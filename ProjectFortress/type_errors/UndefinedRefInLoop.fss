@@ -17,7 +17,7 @@
 
 component UndefinedRefInLoop
 export Executable
-
+    
 run(args:String...):() = do
     for i <- 0#9 do
         huh

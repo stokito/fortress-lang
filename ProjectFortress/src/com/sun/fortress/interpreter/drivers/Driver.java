@@ -632,7 +632,7 @@ public class Driver {
 
         FortressTests.reset();
         BetterEnv e = evalComponent(p);
-
+        
         Closure run_fn = e.getRunMethod();
         Toplevel toplevel = new Toplevel();
         if (runTests) {

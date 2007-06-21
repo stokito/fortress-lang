@@ -451,7 +451,10 @@
     </target>
 
     <target name="doc" depends="compile">
-      <javadoc overview="${src}/overview.html" destdir="${docs}">
+      <javadoc overview="${src}/overview.html" destdir="${docs}" classpath="${compile.classpath}">
+<!--	<classpath>
+	  <pathelement location="${compiler.classpath}"/>
+	</classpath> -->
 	<packageset dir="${src}">
 	  <include name="**/*"/>
 	</packageset>
@@ -459,7 +462,10 @@
 	<header><![CDATA[Fortress Interpreter]]></header>
 	<doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
 	<group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
+
+	<link href="http://junit.org/junit/javadoc/3.8.1"/>
 	<link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+	<link href="http://jakarta.apache.org/bcel/apidocs/index.html"/>
       </javadoc>
 	       
     </target>

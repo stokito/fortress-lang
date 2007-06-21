@@ -63,16 +63,44 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         // Component(Span span, DottedId name, List<Import> imports, List<Export> exports,
         //           List<? extends DefOrDecl> defs)
         TypeCheckerResult result = TypeCheckerResult.VALID; // Components are innocent until proven guilty.       
+                
+        PureList<String> topLevelNames = PureList.make();
         
         if (c.getImports().isEmpty()) { // TODO: handle imports
-            for (DefOrDecl d : c.getDefs()) { // TODO: implement these things
-                if (d instanceof ObjectDefOrDecl || d instanceof TraitDefOrDecl ||
-                    d instanceof VarDefOrDecl || d instanceof PropertyDecl ||
-                    d instanceof TestDecl) {
+            for (DefOrDecl d : c.getDefs()) { 
+                if (d instanceof ObjectDefOrDecl) {
+                    ObjectDefOrDecl _d = (ObjectDefOrDecl)d;
+                    topLevelNames = topLevelNames.cons(_d.getName().getName());
+                }
+                else if (d instanceof FnDefOrDecl) {
+                    FnDefOrDecl _d = (FnDefOrDecl)d;
+                    FnName fnName = _d.getFnName();
+                 
+                    // There are many types of fnNames, such as OprName.
+                    // But only names of functions are placed in the top-level scope of variables.
+                    if (fnName instanceof Fun) { 
+                        Fun fun = (Fun)fnName;
+                        topLevelNames = topLevelNames.cons(fun.getName().getName());  
+                    }
+                }
+                else if (d instanceof VarDefOrDecl) {
+                    VarDefOrDecl _d = (VarDefOrDecl)d;
+                    
+                    for (String name : _d.stringNames()) {
+                        topLevelNames = topLevelNames.cons(name);
+                    }
+                }
+                else  if (d instanceof TraitDefOrDecl || // TODO: implement these things
+                          d instanceof PropertyDecl ||
+                          d instanceof TestDecl) {
                     return TypeCheckerResult.VALID;
                 }
+                else { 
+                    throw new RuntimeException("Missed case of top-level definition!");
+                }
             }
-            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.accept(this)); }
+            TypeChecker typeChecker = extend(topLevelNames);
+            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.accept(typeChecker)); }
         }
         return result;   
     }

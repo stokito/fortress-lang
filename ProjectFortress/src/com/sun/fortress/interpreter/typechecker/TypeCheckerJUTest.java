@@ -42,12 +42,13 @@ public class TypeCheckerJUTest extends TcWrapper {
         CompilationUnit c = Driver.parseToJavaAst(fileName);
         TypeCheckerResult result = TypeChecker.check(c);
         
-        assertEquals("Incorrect number of static errors reported.", expectedCount, result.errorCount());
+        assertEquals("Incorrect number of static errors reported for " + filePrefix + ".fss.", expectedCount, result.errorCount());
     }
     
-    public void testUndefinedVar() throws IOException       { checkErrorCount("UndefinedVar", 1); }
-    public void testUndefinedArrayRef() throws IOException  { checkErrorCount("UndefinedArrayRef", 1); }
+    public void testUndefinedVar() throws IOException { checkErrorCount("UndefinedVar", 1); }
+    public void testUndefinedArrayRef() throws IOException { checkErrorCount("UndefinedArrayRef", 1); }
     public void testUndefinedNestedRef() throws IOException { checkErrorCount("UndefinedNestedRef", 1); }
     public void testUndefinedRefInLoop() throws IOException { checkErrorCount("UndefinedRefInLoop", 1); }
-        
+    public void testMultipleRefErrors() throws IOException { checkErrorCount("MultipleRefErrors", 4); }
+    
 }

@@ -339,7 +339,7 @@ public class Disambiguate extends Rewrite {
         } else
             try {
                 /*
-                 * NOTE: "default" handling for any com.sun.fortress.interpreter.nodes not metioned explicitly is:
+                 * NOTE: "default" handling for any com.sun.fortress.interpreter.nodes not mentioned explicitly is:
                  * } else {
                  *   atTopLevelInsideTraitOrObject = false;
                  * }
