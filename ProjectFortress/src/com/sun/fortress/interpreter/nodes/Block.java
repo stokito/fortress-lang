@@ -40,11 +40,6 @@ import java.util.List;
 public class Block extends FlowExpr {
     List<Expr> exprs;
 
-    @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
-        return v.forBlock(this);
-    }
-
     Block(Span span) {
         super(span);
     }
@@ -59,5 +54,10 @@ public class Block extends FlowExpr {
      */
     public List<Expr> getExprs() {
         return exprs;
+    }
+    
+    @Override
+    public <T> T acceptInner(NodeVisitor<T> v) {
+        return v.forBlock(this);
     }
 }
