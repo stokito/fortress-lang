@@ -72,6 +72,7 @@ public class FileTests {
                     Annotations anns = new Annotations(fssFile);
                     CompilationUnit p;
                     p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
+                    if (p == null) { throw new Exception("Syntax error"); }
                     if (Driver.check(p).hasErrors()) { throw new Exception("Static error"); }
 
                     if (anns.compile) {

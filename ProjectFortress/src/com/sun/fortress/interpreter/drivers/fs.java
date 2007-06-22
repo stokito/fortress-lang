@@ -33,73 +33,32 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 public class fs {
 
-    static final String SXP_SUFFIX = ".sxp";
+    private static final String SXP_SUFFIX = ".sxp";
+    private static final String JAVA_AST_SUFFIX = ".tfs";
 
-    static final String JAVA_AST_SUFFIX = ".tfs";
+    // Options set by main()
+    private static boolean doAst = false;
+    private static boolean verbose = false;
+    private static boolean keep = false;
+    private static boolean tryRats = false;
+    private static String explicitParser = null;
+    private static boolean parseOnly = false;
+    private static boolean checkOnly = false;
+    private static boolean libraryTest = false;
+    private static boolean test = false;
+    private static boolean pause = false;
+    private static List<String> listArgs = new ArrayList<String>();
 
-    static String timeStamp;
 
-    static boolean doAst = false;
-
-    static boolean runTests = false;
-
-    static String basename(String s) {
-        // Note that this is perhaps a no-op, so the
-        // old Windows-aware code must remain.
-        s = ProjectProperties.backslashToSlash(s);
-        
-        int sepi1 = s.lastIndexOf("/");
-        // Why look twice? On Windows, either separator works!
-        // Write Once, Paranoid Always
-        int sepi2 = s.lastIndexOf(File.separator);
-        int sepi = Math.max(sepi1, sepi2); // Handles pathologies and choice
-
-        if (sepi >= 0) {
-            s = s.substring(sepi + 1, s.length());
-        }
-
-        int doti = s.lastIndexOf(".");
-
+    private static String basename(String s) {
+        String filename = new File(s).getName();
+        int doti = filename.lastIndexOf(".");
         if (doti > 0) { // We don't like empty file names, hence > 0
-            s = s.substring(0, doti);
+            return filename.substring(0, doti);
         }
-        return s;
+        else { return filename; }
     }
 
-    /**
-     * Reads in the O-Caml-com.sun.fortress.interpreter.parser-format S-expression file in tmpFile, and
-     * attempts to run it. If the result of the execution is not void, (attempt
-     * to) print it.
-     * @throws Throwable
-     */
-    public static void runInterpreter(CompilationUnit p,
-            boolean runTests, List<String> args) throws Throwable {
-        long begin = System.currentTimeMillis();
-        Driver.runProgram(p, runTests, libraryTest, args);
-        System.err.println("" + (System.currentTimeMillis() - begin)
-                + " milliseconds");
-    }
-    
-    static volatile CompilationUnit p;
-    static boolean verbose = false;
-    static boolean keep = false;
-    static boolean tryRats = false;
-    static String explicitParser = null;
-    static boolean parseOnly = false;
-    static boolean checkOnly = false;
-    static boolean libraryTest = false;
-    static boolean test = false;
-    static boolean pause = false;
-    static List<String> listArgs = new ArrayList<String>();
-
-    /**
-     * For each input file, parse it to create an S-expression tmpfile, then
-     * interpret the contents of hte tmpfile, and if there were no errors along
-     * the way, delete the tmpfile.
-     *
-     * @param args
-     * @throws IOException
-     */
     public static void main(String[] args) throws IOException {
 
         if (args.length == 0) {
@@ -150,7 +109,8 @@ public class fs {
             System.err.println("No file to run");
             usage();
             System.exit(1);
-        } else {
+        }
+        else {
             parseAndRun(s);
         }
         if (pause) {
@@ -165,81 +125,66 @@ public class fs {
             }
         }
     }
+    
+    private static void reportCompletion(String task, long beginTime) {
+        long time = System.currentTimeMillis() - beginTime;
+        System.err.println(task + ": " + time + " milliseconds");
+    }
 
-    /**
-     * @param s
-     */
     private static void parseAndRun(String s) {
-      timeStamp = Useful.timeStamp();
-      
+        //String timeStamp = Useful.timeStamp();
+        
 //        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
 //                + basename(s) + "." + timeStamp + SXP_SUFFIX;
 //        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
 //        boolean keepTemp = keep;
-      
-      try {
         
-        if (verbose) System.err.println("Parsing " + s + " with Rats!");
-        long begin = System.currentTimeMillis();
-        p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
-        System.err.println("Parsing " + s + " with the Rats! parser: "
-                             + (System.currentTimeMillis() - begin)
-                             + " milliseconds");
-        
-        
-        if (doAst) {
-          String astFile = basename(s) + JAVA_AST_SUFFIX;
-          if (verbose)
-            System.err.println("Writing ast to " + astFile);
-          
-          BufferedWriter fout = Useful
-            .utf8BufferedFileWriter(astFile);
-          Appendable out = fout;
-          
-          (new Printer(true, true, true)).dump(p, out, 0);
-          if (fout != null)
-            fout.close();
-        }
-        if (test) {
-          if (verbose)
-            System.err.println("Running Tests");
-          runTests = true;
-        }
-        
-        if (parseOnly) {
-          /* Skip interpreting. */
-        } else if (p==null) {
-          /* Indicate an error occurred. */
-          System.err.println("FAIL: Syntax error.");
-        } else {
-          if (verbose)
-            System.err.println("Checking");
-          
-          TypeCheckerResult tcResult = Driver.check(p);
-          
-          if (tcResult.isValid() && !checkOnly) {
+        try {
+            if (verbose)  { System.err.println("Parsing " + s + " with Rats!"); }
+            long begin = System.currentTimeMillis();
+            CompilationUnit p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
+            reportCompletion("Parsing " + s + " with the Rats! parser", begin);
             
-            if (verbose)
-              System.err.println("Interpreting");
+            if (doAst) {
+                String astFile = basename(s) + JAVA_AST_SUFFIX;
+                if (verbose) { System.err.println("Writing ast to " + astFile); }
+                BufferedWriter fout = Useful.utf8BufferedFileWriter(astFile);
+                try { new Printer(true, true, true).dump(p, fout, 0); }
+                finally { fout.close(); }
+            }
             
-            runInterpreter(p, runTests, listArgs);
-            p = null;
-          }
+            if (p == null) { System.err.println("FAIL: Syntax error(s)."); }
+            else if (!parseOnly) {
+                if (verbose) { System.err.println("Checking"); }
+                begin = System.currentTimeMillis();
+                TypeCheckerResult tcResult = Driver.check(p);
+                reportCompletion("Static checking", begin);
+
+                if (tcResult.hasErrors()) { System.err.println("FAIL: Static error(s)."); }
+                else if (!checkOnly) {
+                    if (verbose) {
+                        if (test) { System.err.println("Running Tests"); }
+                        System.err.println("Interpreting");
+                    }
+                    begin = System.currentTimeMillis();
+                    Driver.runProgram(p, test, libraryTest, listArgs);
+                    reportCompletion("Program execution", begin);
+                }
+            }
+            
         }
-        
-      } catch (Throwable th) {
-        synchronized (Throwable.class) {
-          // keepTemp = true;
-          th.printStackTrace();
-          if (th instanceof ProgramError) {
-            System.out
-              .println("\n--------Fortress error appears below--------\n");
-            ((ProgramError) th).printInterpreterStackTrace(System.out);
+        catch (ProgramError e) {
+            // keepTemp = true;
+            e.printStackTrace(); // is this necessary?
+            System.out.println("\n--------Fortress error appears below--------\n");
+            e.printInterpreterStackTrace(System.out);
             System.out.println();
-            System.out.println(th.getMessage());
-          }
+            System.out.println(e.getMessage());
         }
-      }
+        catch (Throwable th) {
+            // keepTemp = true;
+            th.printStackTrace();
+        }
 //        if (!keepTemp) {
 //            // (new File(tmpFile)).delete();
 //        }
@@ -247,12 +192,13 @@ public class fs {
 
     static void usage() {
         System.err
-                .println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] Fortress-source-file-name Fortress-String-args");
+                .println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] [-checkOnly] filename run-args");
         System.err
                 .println("Iteratively parses and executes a Fortress source file.");
         System.err.println("The -ast option writes out the ast.");
         System.err.println("The -pause option performs a reset and gc after running the program, and then waits for input.");
         System.err.println("The -parseOnly option parses but does not evaluate the program.");
+        System.err.println("The -checkOnly option statically checks but does not evaluate the program.");
         System.err.println("The -v option is more verbose.");
     }
 

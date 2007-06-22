@@ -576,8 +576,7 @@ public class Useful {
      * @throws FileNotFoundException
      */
     static public BufferedWriter utf8BufferedFileWriter(String s) throws FileNotFoundException {
-        BufferedWriter br = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(s), Charset.forName("UTF-8")));
-        return br;
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(s), Charset.forName("UTF-8")));
     }
 
     static public boolean olderThanOrMissing(String resultFile, String inputFile) {

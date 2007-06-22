@@ -311,7 +311,7 @@
     <target name="testOnly" depends="compile"
             description="Run a single test case.">
         <mkdir dir="${basedir}/TEST-RESULTS"/>
-        <junit printsummary="on"
+        <junit printsummary="off"
                haltonerror="off"
                haltonfailure="off"
                showoutput="yes"
