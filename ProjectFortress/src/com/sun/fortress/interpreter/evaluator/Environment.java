@@ -37,7 +37,6 @@ public interface Environment  {
      * Appends to a all the information in this environment.
      *
      * @param a
-     * @return
      */
     public abstract Appendable dump(Appendable a) throws IOException ;
 
@@ -45,7 +44,6 @@ public interface Environment  {
      * Get a value from this environment or a parent.
      * Throws an Error if not found.
      * @param str
-     * @return
      */
     public abstract FValue getValue(String str);
 
@@ -55,7 +53,6 @@ public interface Environment  {
      * Get a value from this environment or a parent.
      * Throws an Error if not found.
      * @param str
-     * @return
      */
     public abstract FType getVarType(String str);
     public abstract FType getVarTypeNull(String str);
@@ -67,7 +64,6 @@ public interface Environment  {
      * Return true if successful, false if already defined.
      * @param str
      * @param f2
-     * @return
      */
     public abstract void putValue(String str, FValue f2);
 
@@ -76,25 +72,18 @@ public interface Environment  {
      * Return true if successful, false if already defined.
      * @param str
      * @param f2
-     * @return
      */
     public abstract void putVariable(String str, FValue f2, FType ft);
 
     /**
      * Put a value in the top-most scope.
      * Return true if successful, false if already defined.
-     * @param str
-     * @param f2
-     * @return
      */
     public abstract void putValue(FValue f1, FValue f2);
 
     /**
      * Assign to a pre-existing variable wherever it happens
      * to occur.
-     *
-     * @param str
-     * @param f2
      */
     public abstract void assignValue(HasAt loc, String str, FValue f2);
 
@@ -113,7 +102,6 @@ public interface Environment  {
      * Return true if successful, false if already defined.
      * @param str
      * @param f2
-     * @return
      */
     public abstract void putType(String str, FType f2);
 
@@ -170,7 +158,6 @@ public interface Environment  {
     /**
      * Be prepared for a null if the value is missing!
      * @param s
-     * @return
      */
     public abstract FValue getValueNull(String s);
 

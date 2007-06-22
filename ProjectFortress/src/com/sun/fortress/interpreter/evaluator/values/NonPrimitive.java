@@ -155,8 +155,6 @@ public abstract class NonPrimitive extends Simple_fcn {
     /**
      * Build environment for evaluation of closure.
      * Intended to be called from Closure.
-     * @param args
-     * @return
      * @throws Error
      */
     public BetterEnv buildEnvFromParams(List<FValue> args, HasAt loc)
@@ -234,8 +232,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     }
 
     /**
-     * @param args
-     * @return fixed up arguments; throws ProgramError if different lengths.
+     * Return fixed up arguments; throws ProgramError if different lengths.
      */
     public List<FValue> fixupArgCount(List<FValue> args0, HasAt loc) {
         List<FValue> args = fixupArgCount(args0);

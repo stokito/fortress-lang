@@ -101,8 +101,6 @@ abstract public class FType implements Comparable<FType> {
     /**
      * Returns true iff val is a member of a (improper) subtype
      * of this type.
-     * @param val
-     * @return
      */
     public boolean typeMatch(FValue val) {
         // System.out.println(name+".typeMatch("+val+")");
@@ -128,8 +126,6 @@ abstract public class FType implements Comparable<FType> {
     /**
      * Note that transitive extends includes this type.
      * Traits and objects do something more complex.
-     *
-     * @return
      */
     public List<FType> getTransitiveExtends() {
         if (transitiveExtends == null) {
@@ -240,10 +236,8 @@ abstract public class FType implements Comparable<FType> {
 
     /**
      * Returns "this subtypeof other"
-     * @param other
-     * @return
      */
-    @SuppressWarnings(value={"unchecked"})
+    @SuppressWarnings("unchecked")
     public boolean subtypeOf(FType other) {
         if (other == FTypeDynamic.ONLY || other == FTypeTop.ONLY)
             return true;
@@ -308,10 +302,6 @@ abstract public class FType implements Comparable<FType> {
         }
     }
 
-    /**
-     * @param evaled
-     * @return
-     */
     public static Set<FType> join(List<FValue> evaled) {
         // A is the accumulated set of joined items.
         Set<FType> a = null;
@@ -347,10 +337,6 @@ abstract public class FType implements Comparable<FType> {
      * Returns true iff candidate is more specific than current.
      * Note that it is possible that neither one of a pair of types
      * is more specific than the other,
-     *
-     * @param candidate
-     * @param current
-     * @return
      */
     public static boolean  moreSpecificThan(List<FType> candidate, List<FType> current) {
         boolean candidate_better = false;

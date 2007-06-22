@@ -81,7 +81,6 @@ public class ProjectProperties {
      * once tested this may be re-enabled.
      * 
      * @param s
-     * @return
      */
     public static String backslashToSlash(String s) {
         //return s.replaceAll("\\\\", "/");

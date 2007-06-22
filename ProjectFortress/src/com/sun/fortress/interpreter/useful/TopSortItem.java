@@ -22,18 +22,15 @@ import java.util.Iterator;
 public interface TopSortItem<T extends TopSortItem<T>>  {
     /**
      * Returns an iterator over the successors of this node.
-     * @return
      */
     Iterator<T> successors();
 
     /**
      * Returns this node's current predecessor count.
-     * @return
      */
     int predecessorCount();
     /**
      * Decrements this node's predecessor count and returns the new value.
-     * @return
      */
     int decrementPredecessors();
 }

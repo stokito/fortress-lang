@@ -30,7 +30,7 @@ public class Loose extends NonChain {
 
    /**
     * Constructs a Loose.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Loose(Op in_op, PureList<Expr> in_exprs) {
       super(in_op, in_exprs);
@@ -42,7 +42,7 @@ public class Loose extends NonChain {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

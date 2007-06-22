@@ -348,9 +348,6 @@ public class BA2Tree<T1, T2, U> {
      * Returns the index of key k in the map if k is present,
      * otherwise returns the 1's-complement of the index that k
      * would have if k were inserted into the map.
-     *
-     * @param k
-     * @return
      */
     public int indexOf(T1 k1, T2 k2) {
         if (root == null) return ~0;
@@ -380,10 +377,6 @@ public class BA2Tree<T1, T2, U> {
     /**
      * Applicative put;
      * returns a new data structure without affecting any other instances.
-     *
-     * @param k
-     * @param d
-     * @return
      */
     public BA2Tree<T1, T2,U> putNew(T1 k1, T2 k2, U d) {
         if (root == null) {
@@ -413,9 +406,6 @@ public class BA2Tree<T1, T2, U> {
     /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public U syncPut(T1 k1, T2 k2, U d) {
         Node<T1, T2, U> old;

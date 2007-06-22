@@ -27,7 +27,7 @@ public class TightInfix extends JuxtInfix {
 
    /**
     * Constructs a TightInfix.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public TightInfix(Op in_op) {
       super(in_op);
@@ -39,7 +39,7 @@ public class TightInfix extends JuxtInfix {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

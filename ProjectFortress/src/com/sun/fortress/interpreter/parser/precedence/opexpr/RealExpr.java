@@ -33,7 +33,7 @@ public class RealExpr extends Object implements InfixOpExpr {
 
    /**
     * Constructs a RealExpr.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public RealExpr(Expr in_expr) {
       super();
@@ -51,7 +51,7 @@ public class RealExpr extends Object implements InfixOpExpr {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();
@@ -76,15 +76,15 @@ public class RealExpr extends Object implements InfixOpExpr {
       if (temp_expr == null) {
          writer.print("null");
       } else {
-	  if (temp_expr instanceof IntLiteral) {
-	     writer.print(((IntLiteral)temp_expr).value().intValue());
-	  } else if (temp_expr instanceof VarRefExpr) {
-	     writer.print(((VarRefExpr)temp_expr).getVar().getName());
-	  } else if (temp_expr instanceof OprExpr) {
-	     writer.print(((OprExpr)temp_expr).getOp().name());
-	  } else {
-	     writer.print(temp_expr);
-	  }
+   if (temp_expr instanceof IntLiteral) {
+      writer.print(((IntLiteral)temp_expr).value().intValue());
+   } else if (temp_expr instanceof VarRefExpr) {
+      writer.print(((VarRefExpr)temp_expr).getVar().getName());
+   } else if (temp_expr instanceof OprExpr) {
+      writer.print(((OprExpr)temp_expr).getOp().name());
+   } else {
+      writer.print(temp_expr);
+   }
       }
       writer.unindent();
    }

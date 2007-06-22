@@ -134,8 +134,6 @@ public abstract class ObjectDefOrDecl extends Node implements Generic,
     /**
      * Same result as subtype getDefOrDecls, but the type is generic to remove the need
      * for picky casting in some clients.
-     *
-     * @return
      */
     abstract public List<? extends DefOrDecl> getDefOrDecls();
 }

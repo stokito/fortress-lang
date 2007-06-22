@@ -157,20 +157,11 @@ abstract public class NodeReflection {
 
     };
 
-    /**
-     * @param cl
-     * @param clname
-     * @return
-     */
     protected Field[] getCachedPrintableFields(Class cl) {
 
         return getCachedPrintableFields(cl, modifiedSimpleName(cl));
     }
 
-    /**
-     * @param cl
-     * @return
-     */
     private String modifiedSimpleName(Class cl) {
         return (Modifier.class.isAssignableFrom(cl)) ? "Modifier$"
                 + cl.getSimpleName() : cl.getSimpleName();

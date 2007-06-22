@@ -77,9 +77,6 @@ public class Glue {
     /**
      * Returns true if vt is called name or if any trait
      * that (transitively) extends vt is called name.
-     * @param vt
-     * @param name
-     * @return
      */
     static public boolean extendsGenericTrait(FType vt, String name) {
         if (vt instanceof FTraitOrObject) {
@@ -113,10 +110,6 @@ public class Glue {
      * the dimensionality of the array, then the length returned
      * is -2.  Otherwise, the length returned is the extent of
      * the array along that axis.
-     *
-     * @param v
-     * @param axis
-     * @return
      */
     static public int lengthAlongArrayAxis(FValue v, int axis) {
         // axis+1 converts zero to one.
@@ -150,13 +143,6 @@ public class Glue {
         return l;
     }
 
-    /**
-     * @param genericName
-     * @param T
-     * @param nats
-     * @param x
-     * @return
-     */
     public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, int[] nats, HasAt x) {
         FValue thingMakerValue = e.getValue(genericName);
         Factory1P<List<FType>, Simple_fcn, HasAt> thingMaker =
@@ -175,13 +161,6 @@ public class Glue {
         return f;
     }
 
-    /**
-     * @param genericName
-     * @param T
-     * @param nats
-     * @param x
-     * @return
-     */
     public static FTraitOrObject instantiateGenericType(Environment e, String genericName, FType T, int[] nats, HasAt x) {
         List<FType> l = parametersForGenericIndexed(T, nats);
         FTraitOrObject f = instantiateGenericType(e, genericName, l, x);
@@ -194,13 +173,6 @@ public class Glue {
         return f;
     }
 
-    /**
-     * @param e
-     * @param genericName
-     * @param l
-     * @param x
-     * @return
-     */
     private static FTraitOrObject instantiateGenericType(Environment e, String genericName, List<FType> l, HasAt x) {
         FType thingMakerValue = e.getType(genericName);
         Factory1P<List<FType>, FTraitOrObject, HasAt> thingMaker =

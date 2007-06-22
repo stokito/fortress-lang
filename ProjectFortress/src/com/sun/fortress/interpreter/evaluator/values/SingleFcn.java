@@ -91,10 +91,7 @@ public abstract class SingleFcn extends Fcn {
      *
      * The instantiated generics can be used to allow checks on
      * overloading.
-     *
-     * @param bte
-     * @param ap
-     * @return
+     * 
      * @throws Error
      */
     static public List<FType> createSymbolicInstantiation(BetterEnv bte, Applicable ap, HasAt location) throws Error {

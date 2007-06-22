@@ -129,8 +129,6 @@ public abstract class TraitDefOrDecl extends Node implements Generic, HasWhere {
     /**
      * Same result as subtype getFn, but the type is generic to remove the need
      * for picky casting in some clients.
-     *
-     * @return
      */
     abstract public List<? extends DefOrDecl> getFns();
 

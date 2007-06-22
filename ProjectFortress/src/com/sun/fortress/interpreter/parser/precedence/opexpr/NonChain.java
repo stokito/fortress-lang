@@ -34,7 +34,7 @@ public abstract class NonChain extends Object implements InfixFrame {
 
    /**
     * Constructs a NonChain.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public NonChain(Op in_op, PureList<Expr> in_exprs) {
       super();

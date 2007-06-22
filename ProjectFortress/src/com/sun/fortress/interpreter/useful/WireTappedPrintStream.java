@@ -58,7 +58,6 @@ public class WireTappedPrintStream extends PrintStream {
     /**
      * Creates a wire-tapped PrintStream that does not delay printing.
      * @param tappee the PrintStream to which output should be flushed.
-     * @return
      */
     public static WireTappedPrintStream make(PrintStream tappee) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -70,7 +69,6 @@ public class WireTappedPrintStream extends PrintStream {
      * is true.
      * @param tappee the PrintStream to which output should be flushed.
      * @param postponePassthrough do, or don't, postpone actual printing.
-     * @return
      */
    public static WireTappedPrintStream make(PrintStream tappee, boolean postponePassthrough) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -87,8 +85,6 @@ public class WireTappedPrintStream extends PrintStream {
     /**
      * Obtains all output as a string,
      * including both already released and not yet released.
-     * 
-     * @return
      */
     public String getString() {
         flush();

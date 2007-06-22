@@ -31,7 +31,7 @@ public class Cons<T> extends PureList<T> {
 
    /**
     * Constructs a Cons.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Cons(T in_first, PureList<T> in_rest) {
       super();

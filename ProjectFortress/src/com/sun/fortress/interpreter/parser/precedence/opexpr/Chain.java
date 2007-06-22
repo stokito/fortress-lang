@@ -32,7 +32,7 @@ public abstract class Chain extends Object implements InfixFrame {
 
    /**
     * Constructs a Chain.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Chain(PureList<ExprOpPair> in_links) {
       super();

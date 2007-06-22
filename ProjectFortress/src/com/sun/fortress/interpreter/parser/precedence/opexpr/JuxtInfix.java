@@ -30,7 +30,7 @@ public abstract class JuxtInfix extends Object implements InfixOpExpr {
 
    /**
     * Constructs a JuxtInfix.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public JuxtInfix(Op in_op) {
       super();

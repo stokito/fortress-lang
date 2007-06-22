@@ -122,12 +122,6 @@ public class FTypeTuple extends FType {
     /**
      * Tests subtype-of for a pair of tuple sections. Returns true iff
      * thisl[start, end) subtypeof thatl[start, end).
-     *
-     * @param thisl
-     * @param thatl
-     * @param start
-     * @param end
-     * @return
      */
     public static boolean subtypeOf(List<FType> thisl, List<FType> thatl,
             int start, int end) {
@@ -143,12 +137,6 @@ public class FTypeTuple extends FType {
     /**
      * Tests subtype-of for a tuple section against a type. Returns true iff
      * thisl[start, end) subtypeof thatt.
-     *
-     * @param thisl
-     * @param thatt
-     * @param start
-     * @param end
-     * @return
      */
     public static boolean subtypeOf(List<FType> thisl, FType thatt, int start,
             int end) {

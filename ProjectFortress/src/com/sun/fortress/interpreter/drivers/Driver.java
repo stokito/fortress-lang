@@ -104,7 +104,6 @@ public class Driver {
     /**
      * @param reportedFileName
      * @param br
-     * @return
      * @throws IOException
      */
     public static CompilationUnit readJavaAst(String reportedFileName,
@@ -716,7 +715,6 @@ public class Driver {
      * 
      * @param librarySource
      * @param libraryTree
-     * @return
      */
     public static CompilationUnit readTreeOrSource(String librarySource,
             String libraryTree) {

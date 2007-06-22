@@ -287,11 +287,6 @@ public class Useful {
     // Don't support singleton or empty unions -- singletons lead to type
     // signature clashes with the varargs case.
     
-    /**
-     * @param l
-     * @param j
-     * @return
-     */
     public static <T> T clampedGet(List<T> l, int j) {
         int s = l.size();
         return j < s ? l.get(j) : l.get(s - 1);
@@ -555,8 +550,6 @@ public class Useful {
     }
 
     /**
-     * @param unicodeFile
-     * @return
      * @throws FileNotFoundException
      */
     public static BufferedReader filenameToBufferedReader(String filename) throws FileNotFoundException {
@@ -571,9 +564,6 @@ public class Useful {
 
     /**
      * Returns a BufferedReader for the file named s, with encoding assumed to be UTF-8.
-     *
-     * @param s
-     * @return
      * @throws FileNotFoundException
      */
     static public BufferedReader utf8BufferedFileReader(String s) throws FileNotFoundException {
@@ -583,9 +573,6 @@ public class Useful {
 
     /**
      * Returns a BufferedWriter for the file named s, with encoding assumed to be UTF-8.
-     *
-     * @param s
-     * @return
      * @throws FileNotFoundException
      */
     static public BufferedWriter utf8BufferedFileWriter(String s) throws FileNotFoundException {

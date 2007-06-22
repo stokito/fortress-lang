@@ -28,7 +28,7 @@ public class Lower extends Object implements RealPrecedence {
 
    /**
     * Constructs a Lower.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Lower() {
       super();
@@ -40,7 +40,7 @@ public class Lower extends Object implements RealPrecedence {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

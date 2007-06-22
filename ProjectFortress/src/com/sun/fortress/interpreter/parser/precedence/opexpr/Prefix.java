@@ -30,7 +30,7 @@ public class Prefix extends Object implements PrefixOpExpr {
 
    /**
     * Constructs a Prefix.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Prefix(Op in_op) {
       super();
@@ -48,7 +48,7 @@ public class Prefix extends Object implements PrefixOpExpr {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

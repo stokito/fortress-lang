@@ -51,27 +51,30 @@ import com.sun.fortress.interpreter.useful.Pair;
  * and further (after the "@") supplies location information. The fields of a
  * component include name (a DottedId) and defs (a List).
  *
+ * <pre>
  * (Component
  *
- * @"../samples/let_fn.fss",7:3 name=(DottedId
- * @1:24 names=["samples" "let_fn"]) defs=[ (VarDecl
- * @6:11 init=(Block exprs=[ (LetFn
- * @4:21 body=[ (TightJuxt
- * @5:10~12 exprs=[ (VarRefExpr
- * @5:10 var=(Id name="f")) (IntLiteral
- * @5:12 text="7" val=7 props=["parenthesized"])])] fns=[ (FnDecl
- * @4:21 body=(OprExpr
- * @4:17~21 op=(Opr
- * @4:19 op=(Op name="+")) args=[ (VarRefExpr
- * @4:17 var=(Id name="y")) (IntLiteral
- * @4:21 text="1" val=1)]) contract=(Contract
- * @4:13) name=(Fun name_=(Id
- * @4:10 name="f")) params=[ (Param
- * @4:12 name=(Id
- * @4:11 name="y"))])])]) name=(Id
- * @3:1 name="x") type=(Some val=(IdType
- * @3:5 name=(DottedId names=["int"]))))])
+ * &#064;"../samples/let_fn.fss",7:3 name=(DottedId
+ * &#064;1:24 names=["samples" "let_fn"]) defs=[ (VarDecl
+ * &#064;6:11 init=(Block exprs=[ (LetFn
+ * &#064;4:21 body=[ (TightJuxt
+ * &#064;5:10~12 exprs=[ (VarRefExpr
+ * &#064;5:10 var=(Id name="f")) (IntLiteral
+ * &#064;5:12 text="7" val=7 props=["parenthesized"])])] fns=[ (FnDecl
+ * &#064;4:21 body=(OprExpr
+ * &#064;4:17~21 op=(Opr
+ * &#064;4:19 op=(Op name="+")) args=[ (VarRefExpr
+ * &#064;4:17 var=(Id name="y")) (IntLiteral
+ * &#064;4:21 text="1" val=1)]) contract=(Contract
+ * &#064;4:13) name=(Fun name_=(Id
+ * &#064;4:10 name="f")) params=[ (Param
+ * &#064;4:12 name=(Id
+ * &#064;4:11 name="y"))])])]) name=(Id
+ * &#064;3:1 name="x") type=(Some val=(IdType
+ * &#064;3:5 name=(DottedId names=["int"]))))])
+ * </pre>
  */
+// In the above example, "&#064;" = "@".  A line starting with "@" has special meaning to javadoc.
 public class Unprinter extends NodeReflection {
 
     public Span lastSpan = new Span(); // Default value is all empty and zero.
@@ -103,7 +106,6 @@ public class Unprinter extends NodeReflection {
      * 18:19~20 (range of columns)<br>
      * 21:22<br>
      *
-     * @return
      * @throws IOException
      */
     public String readSpan() throws IOException {
@@ -339,9 +341,6 @@ public class Unprinter extends NodeReflection {
      * Given a quoted string, return the Unicode string encoded within. The
      * input should be quoted, but the quotes do not appear in the resulting
      * Unicode.
-     *
-     * @param first
-     * @return
      */
     public static String deQuote(CharSequence s) {
         int l = s.length();

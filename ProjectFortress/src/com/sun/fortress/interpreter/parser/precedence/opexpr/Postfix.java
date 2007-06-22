@@ -30,7 +30,7 @@ public class Postfix extends Object implements PostfixOpExpr {
 
    /**
     * Constructs a Postfix.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Postfix(Op in_op) {
       super();
@@ -48,7 +48,7 @@ public class Postfix extends Object implements PostfixOpExpr {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

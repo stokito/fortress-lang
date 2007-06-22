@@ -157,9 +157,6 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
      * Returns the index of key k in the map if k is present,
      * otherwise returns the 1's-complement of the index that k
      * would have if k were inserted into the map.
-     *
-     * @param k
-     * @return
      */
     public int indexOf(T k) {
         if (root == null) return ~0;
@@ -189,10 +186,6 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     /**
      * Applicative put;
      * returns a new data structure without affecting any other instances.
-     *
-     * @param k
-     * @param d
-     * @return
      */
     public BATree<T,U> putNew(T k, U d) {
         if (root == null) {
@@ -208,7 +201,6 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     /*
      * From the department of ugly patterns; it's hard to call
      * copy from a subclass.
-     * @return
      */
     protected BATreeNode<T,U> getRoot() {
         return root;
@@ -231,9 +223,6 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public U syncPut(T k, U d) {
         BATreeNode<T, U> old;
@@ -255,9 +244,6 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     /**
      * Puts a value only if there is no data present.
      * Returns the data that is actually in the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public U syncPutIfMissing(T k, U d) {
         BATreeNode<T, U> next;

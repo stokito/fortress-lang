@@ -99,11 +99,10 @@ public class Lex {
     }
 
     /**
-     * Returns rue if the stream is positioned at EOF,
+     * Returns true if the stream is positioned at EOF,
      * or at whitespace leading to EOF.  As a side-effect,
      * skips over any whitespace leading to the next token.
      *
-     * @return
      * @throws IOException
      */
     public boolean atEOF() throws IOException {
@@ -127,7 +126,6 @@ public class Lex {
      *
      * This method is mostly used for reading from OCaml-com.sun.fortress.interpreter.parser-generated ASTs.
      *
-     * @return
      * @throws IOException
      */
     public String string() throws IOException {
@@ -166,7 +164,7 @@ public class Lex {
 
     /**
      * Returns a name after skipping leading whitespace
-     * @see name(boolean skipLeadingWhite)
+     * @see #name(boolean)
      * @return a name
      * @throws IOException
      */
@@ -189,9 +187,7 @@ public class Lex {
      * <li> a double-quoted escaped string (@see readQuoted)
      * <li> a sequence of underscores, dollar signs, digits, and letters.
      * </ul>
-     *
-     * @param skipLeadingWhite
-     * @return
+     * 
      * @throws IOException
      */
     public String name(boolean skipLeadingWhite) throws IOException {

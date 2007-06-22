@@ -39,8 +39,6 @@ public class TypeFixedDimIndices extends TypeIndices {
 
     /**
      * Tests for equality of sizes only.
-     *
-     * @return
      */
     public boolean compatible(TypeIndices other) {
         if (other instanceof TypeFixedDimIndices) {

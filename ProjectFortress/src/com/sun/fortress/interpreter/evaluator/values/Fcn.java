@@ -49,10 +49,6 @@ abstract public class Fcn extends FConstructedValue {
         return false;
     }
 
-    /**
-     * @param args
-     * @return
-     */
     protected List<FValue> conditionallyUnwrapTupledArgs(List<FValue> args) {
         // TODO This ought not be necessary.
         if (args.size() == 1 && (args.get(0) instanceof FTuple)) {
@@ -72,8 +68,6 @@ abstract public class Fcn extends FConstructedValue {
     /**
      * Returns the name if this "function" is regarded as a method.
      * Ought to throw an exception if it cannot be a method.
-     * 
-     * @return
      */
     public String asMethodName() {
         return getFnName().name();
@@ -82,8 +76,6 @@ abstract public class Fcn extends FConstructedValue {
     /**
      * Returns the name if this "function" is regarded as a function.
      * Ought to throw an exception if it cannot be a function.
-     * 
-     * @return
      */
     public String asFunctionName() {
         return getFnName().name();

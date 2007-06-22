@@ -29,7 +29,7 @@ public class Empty<T> extends PureList<T> {
 
    /**
     * Constructs a Empty.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Empty() {
       super();

@@ -30,7 +30,7 @@ public class Right extends Object implements OpExpr {
 
    /**
     * Constructs a Right.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public Right(Op in_op) {
       super();
@@ -48,7 +48,7 @@ public class Right extends Object implements OpExpr {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

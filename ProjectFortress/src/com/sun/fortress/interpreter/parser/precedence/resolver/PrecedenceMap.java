@@ -197,7 +197,7 @@ public class PrecedenceMap {
     }
 
     /** Get the RealPrecedence between operator a and operator b.
-     *  @returns null if no precedence relationship exists.
+     *  @return null if no precedence relationship exists.
      *
      *  Use precedence() if you want a Precedence back.  Because the
      *  set of operators is open-ended, we indicate that no precedence

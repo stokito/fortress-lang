@@ -29,7 +29,7 @@ public class TightChain extends Chain {
 
    /**
     * Constructs a TightChain.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public TightChain(PureList<ExprOpPair> in_links) {
       super(in_links);
@@ -41,7 +41,7 @@ public class TightChain extends Chain {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

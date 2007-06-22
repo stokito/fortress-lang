@@ -142,7 +142,6 @@ public class Closure extends NonPrimitive implements Scope {
 
     /**
      * The environment used to evaluate the closure.
-     * @return
      */
     public BetterEnv getEvalEnv() {
         return getWithin();
@@ -162,9 +161,6 @@ public class Closure extends NonPrimitive implements Scope {
         setFtype(FTypeArrow.make(getDomain(), returnType));
     }
 
-    /**
-     * @param cl
-     */
     public Closure finishInitializing() {
         // This needs to be done right with a generic.
         Applicable x = getDef();

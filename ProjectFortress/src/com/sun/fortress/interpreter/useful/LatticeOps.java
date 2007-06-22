@@ -22,14 +22,12 @@ public interface LatticeOps<U> {
     /**
      * Returns bottom element of lattice.
      * Bottom, least general, empty set.
-     * @return
      */
     U zero();
     
     /**
      * Returns top element of lattice.
      * Top, most general, set of all.
-     * @return
      */
     U one();
    
@@ -37,10 +35,6 @@ public interface LatticeOps<U> {
      * Meet, Square Cap, Greatest Lower Bound, Infimum, more specific, intersection.
      * 
      * lattice.meet(lattice.one(), X) == X.
-     * 
-     * @param x
-     * @param y
-     * @return
      */
     U meet(U x, U y);
     
@@ -48,10 +42,6 @@ public interface LatticeOps<U> {
      * Join, Square Cup, Least Upper Bound, Supremum, more general, union.
      * 
      * lattice.join(lattice.zero(), X) == X.
-     * 
-     * @param x
-     * @param y
-     * @return
      */
     
     U join(U x, U y);

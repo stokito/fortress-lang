@@ -132,12 +132,6 @@ public class Element {
         System.err.println(s);
     }
 
-    /**
-     * @param original
-     * @param m
-     * @param translator
-     * @param translated
-     */
     public void addAlias(String original,
             Map<String, Element> m,
             NamedXForm translatorToBlame,

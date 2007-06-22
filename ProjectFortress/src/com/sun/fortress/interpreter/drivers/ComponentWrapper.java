@@ -175,9 +175,6 @@ public class ComponentWrapper {
     /**
      * Returns the component wrapper for the API apiname that this component
      * exports.
-     *
-     * @param from_apiname
-     * @return
      */
     public ComponentWrapper getExportedCW(String apiname) {
         return exports.get(apiname);

@@ -55,7 +55,6 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
 
     /**
      * Used to obtain names of variables defined in this environment.
-     * @return
      */
     abstract public Iterator<String> iterator();
 

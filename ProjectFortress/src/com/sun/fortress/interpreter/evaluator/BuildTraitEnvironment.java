@@ -80,11 +80,6 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 
     /**
      * Put a value, perhaps unconditionally depending on subtype's choice
-     *
-     * @param e
-     * @param name
-     * @param value
-     * @param ft
      */
     protected void putValue(BetterEnv e, String name, FValue value) {
         e.putValueUnconditionally(name, value);

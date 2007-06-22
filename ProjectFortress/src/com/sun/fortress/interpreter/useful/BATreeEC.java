@@ -72,9 +72,6 @@ public class BATreeEC<Key, KeyEC, Value> {
      * Returns the index of key k in the map if k is present,
      * otherwise returns the 1's-complement of the index that k
      * would have if k were inserted into the map.
-     *
-     * @param k
-     * @return
      */
     public int indexOf(Key k) {
         if (root == null) return ~0;
@@ -104,10 +101,6 @@ public class BATreeEC<Key, KeyEC, Value> {
     /**
      * Applicative put;
      * returns a new data structure without affecting any other instances.
-     *
-     * @param k
-     * @param d
-     * @return
      */
     public BATreeEC<Key, KeyEC, Value> putNew(Key k, Value d) {
         if (root == null) {
@@ -123,7 +116,6 @@ public class BATreeEC<Key, KeyEC, Value> {
     /*
      * From the department of ugly patterns; it's hard to call
      * copy from a subclass.
-     * @return
      */
     protected BATreeNodeEC<Key,KeyEC,Value> getRoot() {
         return root;
@@ -146,9 +138,6 @@ public class BATreeEC<Key, KeyEC, Value> {
     /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public Value syncPut(Key k, Value d) {
         BATreeNodeEC<Key, KeyEC, Value> old;

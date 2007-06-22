@@ -70,8 +70,6 @@ public class fs {
      * Reads in the O-Caml-com.sun.fortress.interpreter.parser-format S-expression file in tmpFile, and
      * attempts to run it. If the result of the execution is not void, (attempt
      * to) print it.
-     *
-     * @param tmpFile
      * @throws Throwable
      */
     public static void runInterpreter(CompilationUnit p,

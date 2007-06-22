@@ -570,7 +570,6 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
      * initializing from imports.
      *
      * @param s
-     * @return
      */
     public FValue getValueRaw(String s) {
         FValue v = get(var_env, s);

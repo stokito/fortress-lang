@@ -329,10 +329,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     /**
      * Put a value, perhaps unconditionally depending on subtype's choice
-     * @param e
-     * @param name
-     * @param value
-     * @param ft
      */
     protected void putValue(BetterEnv e, String name, FValue value) {
         e.putValue(name, value);
@@ -464,12 +460,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
        return null;
     }
 
-    /**
-     * @param x
-     * @param e
-     * @param name
-     * @param cl
-     */
 //    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, FnName name,
 //            Simple_fcn cl) {
 //        Fcn g = (Fcn) e.getValueNull(name.name());
@@ -574,11 +564,6 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         return new Closure(e, x);
     }
 
-    /**
-     * @param name
-     * @param fname
-     * @param f
-     */
     private void putFunction(BetterEnv e, FnName name, FValue f, HasAt x) {
         String s = name.name();
         guardedPutValue(e, s, f, x);

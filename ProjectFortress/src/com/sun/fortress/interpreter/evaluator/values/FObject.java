@@ -37,7 +37,6 @@ public class FObject extends FConstructedValue implements Selectable {
   
   /**
    * The environment that you get from "self."
-   * @return
    */
   public BetterEnv getSelfEnv() {
       return selfEnv;

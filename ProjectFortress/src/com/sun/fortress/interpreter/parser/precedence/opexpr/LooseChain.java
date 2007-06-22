@@ -29,7 +29,7 @@ public class LooseChain extends Chain {
 
    /**
     * Constructs a LooseChain.
-    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+    * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
    public LooseChain(PureList<ExprOpPair> in_links) {
       super(in_links);
@@ -41,7 +41,7 @@ public class LooseChain extends Chain {
 
    /**
     * Implementation of toString that uses
-    * {@see #output} to generated nicely tabbed tree.
+    * {@link #output} to generated nicely tabbed tree.
     */
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();

@@ -39,17 +39,11 @@ abstract public class Visit extends NodeReflection {
     /**
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
-     *
-     * @param node
-     * @return
      */
     abstract protected void visit(Node node);
 
     /**
      * Based on the type of o, recursively visits its pieces.
-     *
-     * @param o
-     * @return
      */
     protected void visitObject(Object o) {
         if (o instanceof List) {
@@ -74,9 +68,6 @@ abstract public class Visit extends NodeReflection {
      * Visits the pieces of a node using reflection,
      * returning either the original if nothing has changed,
      * or a new node if something has changed.
-     *
-     * @param n
-     * @return
      */
     protected void visitNode(Node n) {
         Field[] fields = getCachedPrintableFields(n.getClass());
@@ -98,9 +89,6 @@ abstract public class Visit extends NodeReflection {
 
      /**
      * VisitObject each element of the list
-     *
-     * @param list
-     * @return
      */
     protected  void visitList(List list) {
         for (int i = 0; i < list.size(); i++) {
@@ -113,9 +101,6 @@ abstract public class Visit extends NodeReflection {
 
     /**
      * VisitObject the value of the Some,
-     *
-     * @param list
-     * @return
      */
     protected void visitSome(Some some) {
         Object o = some.getVal();
@@ -125,9 +110,6 @@ abstract public class Visit extends NodeReflection {
     /**
      * VisitObject the two elements of the pair, returning a different
      * Pair if either one changed, otherwise returning the original.
-     *
-     * @param pair
-     * @return
      */
     protected void visitPair(Pair pair) {
         Object a = pair.getA();

@@ -395,11 +395,6 @@ public class  OverloadedFunction extends Fcn
 
      /**
      * Returns index of best match for args among the overloaded functions.
-     *
-     * @param args
-     * @param envForInference 
-     * @param loc 
-     * @return
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
@@ -480,11 +475,6 @@ public class  OverloadedFunction extends Fcn
         return argsMatchTypes(args, l);
     }
 
-    /**
-     * @param args
-     * @param l
-     * @return
-     */
     public static boolean argsMatchTypes(List<FValue> args, List<FType> l) {
         for (int j = 0; j < args.size(); j++) {
             FValue a = args.get(j);

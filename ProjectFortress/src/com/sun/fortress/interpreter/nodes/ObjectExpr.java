@@ -78,17 +78,10 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
         return defs;
     }
 
-    /**
-     * @return Returns the traits.
-     */
     public Option<List<TypeRef>> getTraits() {
         return traits;
     }
 
-    /**
-     * @param implicitTypeParameters
-     *            the implicitTypeParameters to set
-     */
     public void setImplicitTypeParameters(
             BATree<String, StaticParam> implicit_type_parameters) {
         if (this.staticParams != null) {
@@ -117,8 +110,6 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
     /**
      * If there are implicit type parameters, these are the type arguments to
      * use in the "instantiation".
-     *
-     * @return
      */
     public List<StaticArg> getStaticArgs() {
         return staticArgs;

@@ -124,11 +124,6 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
 
-    /**
-     * @param l
-     * @param et
-     * @return
-     */
     public List<FType> getFTypeListFromList(List<TypeRef> l) {
         if (l == null || l.size() == 1 && (l.get(0) instanceof VoidType)) {
             // Flatten out voids.
@@ -139,11 +134,6 @@ public class EvalType extends NodeVisitor<FType> {
         return getFTypeListFromNonEmptyList(l, this);
     }
 
-    /**
-     * @param l
-     * @param et
-     * @return
-     */
     private static List<FType> getFTypeListFromNonEmptyList(List<TypeRef> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
         for (TypeRef t : l) a.add(t.accept(et));
@@ -158,10 +148,6 @@ public class EvalType extends NodeVisitor<FType> {
         return t.accept(this);
     }
 
-    /**
-     * @param params
-     * @return
-     */
     public static List<Parameter> paramsToParameters(BetterEnv env,
             List<Param> params) {
         if (params.size() == 0) {
@@ -292,12 +278,6 @@ public class EvalType extends NodeVisitor<FType> {
          }
     }
 
-    /**
-     * @param args
-     * @param params
-     * @param et
-     * @return
-     */
     public ArrayList<FType> forStaticArgList(List<? extends TypeRef> args) {
         ArrayList<FType> argValues = new ArrayList<FType>(args.size());
 

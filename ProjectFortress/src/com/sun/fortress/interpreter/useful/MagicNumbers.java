@@ -206,8 +206,6 @@ public final class MagicNumbers {
     /**
      * A list hashing function of slightly better quality than
      * the one that is built in to the standard library.
-     * @param list
-     * @return
      */
 
     public static int hashList(List list, int seed) {

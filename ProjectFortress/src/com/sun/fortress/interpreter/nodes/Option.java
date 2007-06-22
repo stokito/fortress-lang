@@ -35,7 +35,6 @@ public abstract class Option<T> {
      * Returns the value if there is one, otherwise returns the default value ifMissing.
      * 
      * @param ifMissing  Default value to return
-     * @return
      */
     public T getVal(T ifMissing) {
         return ifMissing;

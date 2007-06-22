@@ -190,9 +190,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
      * Returns the index of key k in the map if k is present,
      * otherwise returns the 1's-complement of the index that k
      * would have if k were inserted into the map.
-     *
-     * @param k
-     * @return
      */
     public int indexOf(T k) {
         if (root == null) return ~0;
@@ -246,10 +243,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
     /**
      * Applicative put;
      * returns a new data structure without affecting any other instances.
-     *
-     * @param k
-     * @param d
-     * @return
      */
     public BATree2<T, U, V> putNew(T k, U d1, V d2) {
         if (root == null) {
@@ -265,7 +258,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
     /*
      * From the department of ugly patterns; it's hard to call
      * copy from a subclass.
-     * @return
      */
     protected BATree2Node<T, U, V> getRoot() {
         return root;
@@ -288,9 +280,6 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
      /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public Pair<U,V> syncPut(T k, U d1, V d2) {
         BATree2Node<T, U, V> old;

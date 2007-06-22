@@ -195,8 +195,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     /**
      * Creates a new com.sun.fortress.interpreter.evaluator in the specified environment.
-     *
-     * @param _e
      */
     public Evaluator(BetterEnv e) {
         super(e);
@@ -370,10 +368,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * Returns the evaluation of a list of (general) exprs, returning the
      * result of evaluating the last expr in the list.
      * Does the "right thing" with LetExprs.
-     *
-     * @param exprs
-     * @param tag
-     * @return
      */
     public FValue evalExprList(List<Expr> exprs, Node tag) {
         FValue res = evVoid;

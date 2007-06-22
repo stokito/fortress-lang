@@ -55,17 +55,11 @@ public abstract class Rewrite extends NodeReflection {
     /**
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
-     *
-     * @param node
-     * @return
      */
     abstract protected Node visit(Node node);
 
     /**
      * Based on the type of o, recursively visits its pieces.
-     *
-     * @param o
-     * @return
      */
     protected <T> T visitObject(T o) {
         Object result = null;
@@ -100,9 +94,6 @@ public abstract class Rewrite extends NodeReflection {
      * Visits the pieces of a node using reflection,
      * returning either the original if nothing has changed,
      * or a new node if something has changed.
-     *
-     * @param n
-     * @return
      */
     protected Node visitNode(Node n) {
         Node replacement = null;
@@ -158,9 +149,6 @@ public abstract class Rewrite extends NodeReflection {
      * VisitObject each element of the list, returning a different
      * list if there has been a change, otherwise returning the same
      * list.
-     *
-     * @param list
-     * @return
      */
     protected <T> List<T> visitList(List<T> list) {
         ArrayList<T> replacement = null;
@@ -190,9 +178,6 @@ public abstract class Rewrite extends NodeReflection {
      * VisitObject the value of the Some, returning a different
      * Some if there has been a change, otherwise returning the same
      * Some.
-     *
-     * @param list
-     * @return
      */
     protected <T> Some<T> visitSome(Some<T> some) {
         T o = some.getVal();
@@ -206,9 +191,6 @@ public abstract class Rewrite extends NodeReflection {
     /**
      * VisitObject the two elements of the pair, returning a different
      * Pair if either one changed, otherwise returning the original.
-     *
-     * @param pair
-     * @return
      */
     protected <T,U> Pair<T,U> visitPair(Pair<T,U> pair) {
         T a = pair.getA();

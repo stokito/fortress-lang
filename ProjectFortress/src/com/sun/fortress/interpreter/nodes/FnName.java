@@ -74,9 +74,6 @@ public abstract class FnName extends Node implements Comparable<FnName> {
 
     /**
      * precondition: o has the same class as the receiver.
-     *
-     * @param o
-     * @return
      */
     protected abstract boolean mandatoryEquals(Object o);
 

@@ -84,12 +84,6 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
 
     /**
      * Given args, infers the appropriate instantiation of a generic function.
-     *
-     *
-     * @param args
-     * @param appliedThing
-     * @param loc
-     * @return
      * @throws ProgramError
      */
     public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,

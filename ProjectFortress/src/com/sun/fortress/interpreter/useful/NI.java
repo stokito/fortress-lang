@@ -28,8 +28,6 @@ public class NI {
 
     /**
      * Not Allowed.
-     * @param <T>
-     * @return
      */
     public static <T> T na() {
         throw new Error("Not allowed");
@@ -41,8 +39,6 @@ public class NI {
 
     /**
      * Not Implemented.
-     * @param <T>
-     * @return
      */
     public static <T> T ni() {
         throw new Error("Not implemented");
@@ -50,8 +46,6 @@ public class NI {
 
     /**
      * Not Possible.
-     * @param <T>
-     * @return
      */
     public static <T> T np() {
         throw new Error("Not possible");
@@ -59,8 +53,6 @@ public class NI {
 
    /**
      * Not Yet.
-     * @param <T>
-     * @return
      */
     public static <T> T nyi() {
         throw new Error("Not yet implemented");
@@ -68,8 +60,6 @@ public class NI {
 
    /**
      * Not Yet.
-     * @param <T>
-     * @return
      */
     public static <T> T nyi(String name) {
         throw new Error(name + ": Not yet implemented");

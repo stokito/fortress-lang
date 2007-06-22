@@ -296,9 +296,6 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
      * Returns the index of key k in the map if k is present,
      * otherwise returns the 1's-complement of the index that k
      * would have if k were inserted into the map.
-     *
-     * @param k
-     * @return
      */
     public int indexOf(T k) {
         if (root == null) return ~0;
@@ -328,10 +325,6 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     /**
      * Applicative put;
      * returns a new data structure without affecting any other instances.
-     *
-     * @param k
-     * @param d
-     * @return
      */
     public BASet<T> putNew(T k) {
         if (root == null) {
@@ -366,9 +359,6 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
-     * @param k
-     * @param d
-     * @return
      */
     public boolean syncPut(T k) {
         BASnode<T> old;
