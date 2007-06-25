@@ -143,6 +143,8 @@
         <delete file="testFile.txt"/>
         <delete>
             <fileset dir="src" includes="**/*.class" />
+            <fileset dir="test_library" includes="**/*.tfi" />
+            <fileset dir="test_library" includes="**/*.tfs" />
         </delete>
     </target>
 
@@ -467,7 +469,7 @@
 	<link href="http://java.sun.com/j2se/1.5/docs/api/"/>
 	<link href="http://jakarta.apache.org/bcel/apidocs/"/>
       </javadoc>
-	       
+
     </target>
 
 </project>
