@@ -34,9 +34,9 @@ public class AnonymousFnName extends FnName {
     }
 
     // Note: private fields are not serialized with AST.
-    private int serial;
+    transient private int serial;
 
-    private HasAt at;
+    transient private HasAt at;
 
     public AnonymousFnName(Span span) {
         super(span);

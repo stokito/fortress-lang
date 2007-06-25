@@ -46,9 +46,9 @@ public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
 
     Contract contract;
 
-    private boolean isAFunctionalMethodKnown;
-    private int cachedSelfParameterIndex = -1;
-    private volatile String asMethodName;
+    transient private boolean isAFunctionalMethodKnown;
+    transient private int cachedSelfParameterIndex = -1;
+    transient private volatile String asMethodName;
     
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,

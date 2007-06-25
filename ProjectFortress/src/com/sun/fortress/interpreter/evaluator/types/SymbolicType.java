@@ -40,7 +40,7 @@ abstract public class SymbolicType extends FTypeTrait {
 
     public SymbolicType(String name, BetterEnv interior, List<? extends DefOrDecl> members) {
         super(name, interior, interior.getAt(), members);
-
+        membersInitialized = true;
     }
 
     public void addExtend(FType t) {

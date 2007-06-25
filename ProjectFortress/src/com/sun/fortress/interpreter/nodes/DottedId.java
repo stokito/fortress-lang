@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 public class DottedId extends FnName {
     List<String> names;
 
-    private volatile String cachedToString;
+    transient private volatile String cachedToString;
 
     // For reflective creation
     DottedId(Span span) {

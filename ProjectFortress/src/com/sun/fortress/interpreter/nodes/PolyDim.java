@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 public class PolyDim extends Indices {
     private static int nextSeq = 1;
 
-    private final int seq;
+    transient private final int seq;
 
     @Override
     public <T> T acceptInner(NodeVisitor<T> v) {

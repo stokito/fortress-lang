@@ -71,6 +71,7 @@ import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.Modifier;
+import com.sun.fortress.interpreter.nodes.NullNodeVisitor;
 import com.sun.fortress.interpreter.nodes.ObjectDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
@@ -229,6 +230,50 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     }
 
+    class ForceTraitFinish extends NullNodeVisitor<Voidoid> {
+        /* (non-Javadoc)
+         * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
+         */
+        @Override
+        public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+            Option<List<StaticParam>> staticParams = x.getStaticParams();
+            Id name = x.getName();
+            
+            if (staticParams.isPresent()) {
+
+            } else {
+                    FTypeTrait ftt = (FTypeTrait) containing
+                            .getType(name.getName());
+                    BetterEnv interior = ftt.getEnv();
+                    ftt.getMembers();
+            }
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.TraitDecl)
+         */
+        @Override
+        public Voidoid forTraitDecl(TraitDecl x) {
+            Option<List<StaticParam>> staticParams = x.getStaticParams();
+            Id name = x.getName();
+            
+            if (staticParams.isPresent()) {
+
+            } else {
+                    FTypeTrait ftt = (FTypeTrait) containing
+                            .getType(name.getName());
+                    BetterEnv interior = ftt.getEnv();
+                    ftt.getMembers();
+            }
+            return null;
+        }
+
+        void accept(DefOrDecl def) {
+            acceptNode(def);
+        }
+    }
+    
     /*
      * (non-Javadoc)
      *
@@ -240,8 +285,14 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         switch (pass) {
         case 1: forComponent1(x); break;
 
-        case 2:
-        case 3:
+        case 2: doDefs(this, defs); {
+            ForceTraitFinish v = new ForceTraitFinish() ;
+            for (DefOrDecl def : defs) {
+                v.accept(def);
+            }
+        }
+        break;
+        case 3: doDefs(this, defs);break;
         case 4: doDefs(this, defs);break;
         }
         return null;
@@ -287,8 +338,11 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      * @param defs
      * @param fields
      */
-    private void doTraitMethodDefs(BetterEnv into, BetterEnv forTraitMethods,
-            List<? extends DefOrDecl> defs, Set<String> fields) {
+    private void doTraitMethodDefs(FTypeTrait ftt, Set<String> fields) {
+        BetterEnv into = ftt.getMembers();
+        BetterEnv forTraitMethods = ftt.getMethodExecutionEnv();
+        List<? extends DefOrDecl> defs = ftt.getASTmembers();
+        
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, fields);
 
@@ -1155,8 +1209,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         ftt.setExtendsAndExcludes(extl, excl, interior);
         List<? extends DefOrDecl> fns = x.getFns();
 
-        doTraitMethodDefs(ftt.getMembers(), ftt.getMethodExecutionEnv(), fns,
-                null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
+        // doTraitMethodDefs(ftt, null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 
     }
 
@@ -1261,6 +1314,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         EvalType et = processWhereClauses(wheres, interior);
         ftt.setExtendsAndExcludes(et.getFTypeListFromOptionList(extends_), et
                 .getFTypeListFromList(excludes), interior);
+    
     }
 
     /*

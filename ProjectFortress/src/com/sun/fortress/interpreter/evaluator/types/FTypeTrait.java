@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
@@ -37,12 +38,16 @@ public class FTypeTrait extends FTraitOrObject {
      * which is defined as part of method invocation.
      */
     BetterEnv methodEnv;
+    volatile BetterEnv membersOf;
+    volatile protected boolean membersInitialized; // initially false
 
     public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends DefOrDecl> members) {
         super(name, interior, at, members);
+        this.membersOf = new BetterEnv(at);
     }
 
     protected void finishInitializing() {
+        membersOf.bless();
         BetterEnv interior = getEnv();
         methodEnv = new BetterEnv(interior, interior.getAt());
         methodEnv.bless();
@@ -54,5 +59,32 @@ public class FTypeTrait extends FTraitOrObject {
         }
         return methodEnv;
     }
+    
+    protected void initializeMembers() {
+        BetterEnv into = getMembersInternal();
+        BetterEnv forTraitMethods = getMethodExecutionEnv();
+        List<? extends DefOrDecl> defs = getASTmembers();
+        
+        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
+                forTraitMethods, null);
 
+        inner.doDefs1234(defs);
+        membersInitialized = true;
+    }
+
+    public BetterEnv getMembers() {
+        if (! membersInitialized) {
+            synchronized (this) {
+                if (! membersInitialized) {
+                    initializeMembers();
+                }
+            }
+        }
+        return membersOf;
+    }
+    
+    protected BetterEnv getMembersInternal() {
+        return membersOf;
+    }
+    
 }

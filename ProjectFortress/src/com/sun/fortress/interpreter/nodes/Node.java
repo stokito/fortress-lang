@@ -29,8 +29,8 @@ public abstract class Node implements HasAt, NodeVisitorHost {
 
     List<String> props;
 
-    private Node originalIfReplaced; // MAY CONTAIN REFERENCES TO CURRENT;
-                                        // NOT A TREE.
+    transient private Node originalIfReplaced; // MAY CONTAIN REFERENCES TO CURRENT;
+                                               // NOT A TREE.
 
     Node(Span span) {
         this.span = span;

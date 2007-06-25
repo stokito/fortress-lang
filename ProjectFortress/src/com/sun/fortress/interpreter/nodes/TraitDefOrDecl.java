@@ -41,7 +41,7 @@ public abstract class TraitDefOrDecl extends Node implements Generic, HasWhere {
 
     List<WhereClause> wheres;
 
-    private Map<String, Thing> disambiguatingEnvironment;
+    transient private Map<String, Thing> disambiguatingEnvironment;
 
     TraitDefOrDecl(Span span) {
         super(span);
@@ -102,7 +102,7 @@ public abstract class TraitDefOrDecl extends Node implements Generic, HasWhere {
     }
 
     /**
-     * In order to correctly com.sun.fortress.interpreter.rewrite object/trait member references, it is
+     * In order to correctly rewrite object/trait member references, it is
      * necessary to figure out what traits are extended by what traits (in
      * general, a trait might be defined in an environment different from its
      * use, therefore it must capture that environment).

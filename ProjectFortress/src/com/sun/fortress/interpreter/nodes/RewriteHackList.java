@@ -20,7 +20,7 @@ import com.sun.fortress.interpreter.useful.NI;
  */
 public class RewriteHackList extends Node {
 
-    private List<Node> nodes;
+    transient private List<Node> nodes;
     
     @Override
     <T> T acceptInner(NodeVisitor<T> v) {

@@ -32,7 +32,7 @@ public class ConstructorFnName extends FnName {
         return ++sequence;
     }
 
-    private int serial;
+    transient private int serial;
 
     DefOrDecl def;
 

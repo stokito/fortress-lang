@@ -36,6 +36,7 @@ public class FTypeTop extends FTypeTrait {
     private FTypeTop() {
         super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"),
                 Collections.<DefOrDecl>emptyList());
+        membersInitialized = true;
     }
 
     @Override

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -42,11 +43,14 @@ import com.sun.fortress.interpreter.useful.TopSortItemImpl;
 import com.sun.fortress.interpreter.useful.Useful;
 
 abstract public class FTraitOrObject extends FType {
+    
+    
     List<FType> extends_;
     BetterEnv env;
+    HasAt at;
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
-    BetterEnv membersOf;
+   
     List<? extends DefOrDecl> members;
 
     abstract protected void finishInitializing();
@@ -73,11 +77,10 @@ abstract public class FTraitOrObject extends FType {
         // Here we need to add things to where clauses
 
         env.bless();
-        membersOf.bless();
         initializeExcludes(excludes);
         finishInitializing();
     }
-
+   
     private void initializeExcludes(List<FType> excludes) {
         if (excludes != null)
             for (FType t : excludes)
@@ -86,7 +89,7 @@ abstract public class FTraitOrObject extends FType {
 
     public List<FType> getExtends() {
         if (extends_ == null)
-            throw new InterpreterError(membersOf.getAt(),
+            throw new InterpreterError(at,
                                        this+": Get of unset extends");
         // throw new IllegalStateException("Get of unset extends");
         return extends_;
@@ -139,8 +142,8 @@ abstract public class FTraitOrObject extends FType {
     public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends DefOrDecl> members) {
         super(name);
         this.env = env;
-        this.membersOf = new BetterEnv(at);
         this.members = members;
+        this.at = at;
     }
 
     /**
@@ -151,8 +154,8 @@ abstract public class FTraitOrObject extends FType {
         return env;
     }
 
-    public BetterEnv getMembers() {
-        return membersOf;
+     public List<? extends DefOrDecl> getASTmembers() {
+        return members;
     }
 
     public boolean equals(Object other) {

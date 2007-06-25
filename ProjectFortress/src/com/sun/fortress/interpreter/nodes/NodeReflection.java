@@ -119,7 +119,7 @@ abstract public class NodeReflection {
             fields = icl.getDeclaredFields();
             for (int i = 0; i < fields.length; i++) {
                 if ((fields[i].getModifiers() & java.lang.reflect.Modifier.STATIC) == 0
-                        && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
+                        // && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
                         && (fields[i].getModifiers() & java.lang.reflect.Modifier.TRANSIENT) == 0) {
                     Field f = fields[i];
                     f.setAccessible(true);

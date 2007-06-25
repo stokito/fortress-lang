@@ -47,13 +47,13 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
     }
 
     // Needs to be private to prevent inclusion in serialized Fortress AST (.tfs/.tfi) form.
-    private BATree<String, StaticParam> implicitTypeParameters;
+    transient private BATree<String, StaticParam> implicitTypeParameters;
 
-    private String genSymName;
+    transient private String genSymName;
 
-    private Option<List<StaticParam>> staticParams;
+    transient private Option<List<StaticParam>> staticParams;
 
-    private List<StaticArg> staticArgs;
+    transient private List<StaticArg> staticArgs;
 
     static final private Option<List<Param>> optParams = new Some<List<Param>>(
             Collections.<Param> emptyList());
