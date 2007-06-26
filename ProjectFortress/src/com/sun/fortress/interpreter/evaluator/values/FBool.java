@@ -21,9 +21,9 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBool;
 
 public class FBool extends FValue {
-    public final static FBool TRUE = new FBool(true, "True");
+    public final static FBool TRUE = new FBool(true, "true");
 
-    public final static FBool FALSE = new FBool(false, "False");
+    public final static FBool FALSE = new FBool(false, "false");
 
     private final boolean val;
 

@@ -19,9 +19,6 @@ component DivPrecedence
 export Executable
 
 (* DIV ought to have a defined precedence wrt equality, plus, etc. *)
-assert(a : Boolean): () =
-  if NOT a then println("FAIL") else println("OK") end
-
 run(Args:String...) = do
   println(3 + 5 DIV 4)
   println(3 + 5 / 4)
@@ -34,8 +31,5 @@ run(Args:String...) = do
   println(3 + 5 DIV 4)
   (* assert( (4 DOT 5 DIV 4) = 8)  *)
 end
-
-ok() = println("OK")
-not() = println("FAIL")
 
 end

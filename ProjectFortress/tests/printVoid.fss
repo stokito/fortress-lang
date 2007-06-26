@@ -18,7 +18,6 @@
 component printVoid
 export Executable
 
-run(args:String...) = do
-  print("OK")
-end
+run(args:String...) = print()
+
 end

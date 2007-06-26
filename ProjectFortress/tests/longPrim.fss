@@ -18,39 +18,31 @@
 component newIntPrim
 export Executable
 
-assert(s:String,a:Boolean):() = do
-  if NOT a then
-      println("FAIL: assert " s)
-  end
-end
+tst(s:String,a:Boolean):() = assert(a,s)
 
-assertEq(s:String, a:ZZ64, b:ZZ64):() = do
-  if a=/=b then
-      println("FAIL: " s " got " a " but expected " b)
-  end
-end
+tstEq(s:String, a:ZZ64, b:ZZ64):() = assert(a,b,s)
 
 run(args:String...) = do
-    assertEq("Add",  widen(124867) + -(234597), widen(-109730) )
-    assertEq("Sub",  widen(124867) -  234597, widen(-109730) )
-    assertEq("Mul1", widen(5872)  8124,  widen(47704128) )
-    assertEq("Mul2", widen(5872) (-(8124)), widen(-47704128) )
-    assertEq("Div1", widen(65536) DIV 35, widen(1872))
-    assertEq("Rem1", widen(65536) REM 35, widen(16))
-    assertEq("Mod1", widen(65536) MOD 35, widen(16))
-    assertEq("Div2", widen(-65536) DIV 35, widen(-1872))
-    assertEq("Rem2", widen(-65536) REM 35, widen(-16))
-    assertEq("Mod2", widen(-65536) MOD 35, widen(19))
-    assertEq("Gcd", widen(65535) GCD 32769, widen(3))
-    assertEq("Lcm", widen(65535) LCM 32769, widen(715838805))
-    assertEq("Choose", widen(23) CHOOSE 14, widen(817190) )
-    assertEq("And", widen(5) BITAND 6, widen(4))
-    assertEq("Or", widen(5) BITOR 6, widen(7))
-    assertEq("Xor", widen(5) BITXOR 6, widen(3))
-    assertEq("Not", BITNOT widen(6), widen(-7))
-    assertEq("Lsh", widen(-3) LSHIFT 3, widen(-24))
-    assertEq("Rsh", widen(-24) RSHIFT 3, widen(-3))
-    assert("LT", widen(-3425234) <= widen(23145))
+    tstEq("Add",  widen(124867) + -(234597), widen(-109730) )
+    tstEq("Sub",  widen(124867) -  234597, widen(-109730) )
+    tstEq("Mul1", widen(5872)  8124,  widen(47704128) )
+    tstEq("Mul2", widen(5872) (-(8124)), widen(-47704128) )
+    tstEq("Div1", widen(65536) DIV 35, widen(1872))
+    tstEq("Rem1", widen(65536) REM 35, widen(16))
+    tstEq("Mod1", widen(65536) MOD 35, widen(16))
+    tstEq("Div2", widen(-65536) DIV 35, widen(-1872))
+    tstEq("Rem2", widen(-65536) REM 35, widen(-16))
+    tstEq("Mod2", widen(-65536) MOD 35, widen(19))
+    tstEq("Gcd", widen(65535) GCD 32769, widen(3))
+    tstEq("Lcm", widen(65535) LCM 32769, widen(715838805))
+    tstEq("Choose", widen(23) CHOOSE 14, widen(817190) )
+    tstEq("And", widen(5) BITAND 6, widen(4))
+    tstEq("Or", widen(5) BITOR 6, widen(7))
+    tstEq("Xor", widen(5) BITXOR 6, widen(3))
+    tstEq("Not", BITNOT widen(6), widen(-7))
+    tstEq("Lsh", widen(-3) LSHIFT 3, widen(-24))
+    tstEq("Rsh", widen(-24) RSHIFT 3, widen(-3))
+    tst("LT", widen(-3425234) <= widen(23145))
 end
 
 end

@@ -18,41 +18,31 @@
 component newIntPrim
 export Executable
 
-assert(s:String,a:Boolean):() = do
-  println(s)
-  if NOT a then
-      println("FAIL: assert")
-  end
-end
+tst(s:String,a:Boolean):() = assert(a,s)
 
-assertEq(s:String, a:ZZ32, b:ZZ32):() = do
-  println(s)
-  if a=/=b then
-      println("FAIL: got " a " but expected " b)
-  end
-end
+tstEq(s:String, a:ZZ32, b:ZZ32):() = assert(a,b,s)
 
 run(args:String...) = do
-    assertEq("Add",  124867 + -(234597), -109730 )
-    assertEq("Sub",  124867 -  234597, -109730 )
-    assertEq("Mul1", 5872  8124,  47704128 )
-    assertEq("Mul2", 5872 (-(8124)), -47704128 )
-    assertEq("Div1", 65536 DIV 35, 1872)
-    assertEq("Rem1", 65536 REM 35, 16)
-    assertEq("Mod1", 65536 MOD 35, 16)
-    assertEq("Div2", -65536 DIV 35, -1872)
-    assertEq("Rem2", -65536 REM 35, -16)
-    assertEq("Mod2", -65536 MOD 35, 19)
-    assertEq("Gcd", 65535 GCD 32769, 3)
-    assertEq("Lcm", 65535 LCM 32769,715838805)
-    assertEq("Choose", 23 CHOOSE 14, 817190 )
-    assertEq("And", 5 BITAND 6, 4)
-    assertEq("Or", 5 BITOR 6, 7)
-    assertEq("Xor", 5 BITXOR 6, 3)
-    assertEq("Not", BITNOT 6, -7)
-    assertEq("Lsh", (-3) LSHIFT 3, (-24))
-    assertEq("Rsh", (-24) RSHIFT 3, (-3))
-    assert("LT", -3425234 <= 23145)
+    tstEq("Add",  124867 + -(234597), -109730 )
+    tstEq("Sub",  124867 -  234597, -109730 )
+    tstEq("Mul1", 5872  8124,  47704128 )
+    tstEq("Mul2", 5872 (-(8124)), -47704128 )
+    tstEq("Div1", 65536 DIV 35, 1872)
+    tstEq("Rem1", 65536 REM 35, 16)
+    tstEq("Mod1", 65536 MOD 35, 16)
+    tstEq("Div2", -65536 DIV 35, -1872)
+    tstEq("Rem2", -65536 REM 35, -16)
+    tstEq("Mod2", -65536 MOD 35, 19)
+    tstEq("Gcd", 65535 GCD 32769, 3)
+    tstEq("Lcm", 65535 LCM 32769,715838805)
+    tstEq("Choose", 23 CHOOSE 14, 817190 )
+    tstEq("And", 5 BITAND 6, 4)
+    tstEq("Or", 5 BITOR 6, 7)
+    tstEq("Xor", 5 BITXOR 6, 3)
+    tstEq("Not", BITNOT 6, -7)
+    tstEq("Lsh", (-3) LSHIFT 3, (-24))
+    tstEq("Rsh", (-24) RSHIFT 3, (-3))
+    tst("LT", -3425234 <= 23145)
 end
 
 end

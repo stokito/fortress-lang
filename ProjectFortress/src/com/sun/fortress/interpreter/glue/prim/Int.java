@@ -91,12 +91,12 @@ public static final class BitXor extends Util.ZZ2Z {
 }
 public static final class LShift extends Util.ZL2Z {
     protected int f(int u, long v) {
-        return u << (int)v;
+        return ((v&~31)==0)?(u << (int)v):0;
     }
 }
 public static final class RShift extends Util.ZL2Z {
     protected int f(int u, long v) {
-        return u >> (int)v;
+        return ((v&~31)==0)?(u >> (int)v):(u>>31);
     }
 }
 public static final class BitNot extends Util.Z2Z {

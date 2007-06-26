@@ -18,11 +18,6 @@
 component matrixOps
 export Executable
 
-assertEq(a:Any, b:Any):() =
-  if a=/=b then
-    println("FAIL: " a " =/= " b)
-  end
-
 (*
 Uncommenting this exhibits the bug in objectExprMystery.fss
 
@@ -40,27 +35,27 @@ run(args:String...) = do
   z0 : RR64[3,4] = array2[\RR64,3,4\](fn (i,j) => 0.0)
   v3 : RR64[3] = vector[\RR64,3\](1.0)
   v4 : RR64[4] = vector[\RR64,4\](1.0)
-  assertEq(m0.copy(), m0)
-  assertEq(i3 DOT v3, v3)
-  assertEq(i4 DOT v4, v4)
-  assertEq(v3 DOT i3, v3)
-  assertEq(v4 DOT i4, v4)
+  assert(m0.copy(), m0, "copy")
+  assert(i3 DOT v3, v3, "i dot 3")
+  assert(i4 DOT v4, v4, "i dot 4")
+  assert(v3 DOT i3, v3, "3 dot i")
+  assert(v4 DOT i4, v4, "4 dot i")
   r3 : RR64[3] = [ 9 14 18 ]
-  assertEq(m0 DOT v4, r3)
+  assert(m0 DOT v4, r3, "m0 v4")
   r4 : RR64[4] = [ 2 3 5 31 ]
-  assertEq(v3 DOT m0, r4)
-  assertEq(m0 DOT i4, m0)
-  assertEq(i3 DOT m0, m0)
-  assertEq(z3 DOT m0, z0)
-  assertEq(m0 DOT z4, z0)
+  assert(v3 DOT m0, r4, "v3 m0")
+  assert(m0 DOT i4, m0, "m0 i4")
+  assert(i3 DOT m0, m0, "i3 m0")
+  assert(z3 DOT m0, z0, "z3 m0")
+  assert(m0 DOT z4, z0, "m0 z4")
   m1 : RR64[4,4] = [ 4  0  0  14
                      0  9  0  33
                      0  0 25  65
                     14 33 65 339]
-  assertEq(m0.t() DOT m0,m1)
+  assert(m0.t() DOT m0,m1, "m0^2")
   m02 = 2.0 DOT m0
-  assertEq(m0 + m0, m02)
-  assertEq(m0 DOT 2.0, m02)
+  assert(m0 + m0, m02, "m0+m0")
+  assert(m0 DOT 2.0, m02,"2m0")
   ()
 end
 

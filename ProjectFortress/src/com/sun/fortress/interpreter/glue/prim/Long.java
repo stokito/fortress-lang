@@ -85,12 +85,12 @@ public static final class BitXor extends Util.LL2L {
 }
 public static final class LShift extends Util.LL2L {
     protected long f(long u, long v) {
-        return u << v;
+        return ((v&~63)==0)?(u << (int)v):0;
     }
 }
 public static final class RShift extends Util.LL2L {
     protected long f(long u, long v) {
-        return u >> v;
+        return ((v&~63)==0)?(u >> (int)v):(u>>63);
     }
 }
 public static final class BitNot extends Util.L2L {

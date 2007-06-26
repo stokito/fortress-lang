@@ -377,7 +377,9 @@ abstract public class FType implements Comparable<FType> {
      * @return
      */
     private static boolean definitelyShorterThan(List<FType> candidate, List<FType> current) {
-        return candidate.size() < current.size() && !(candidate.get(candidate.size()-1) instanceof FTypeRest);
+        int sz = candidate.size();
+        return sz < current.size() &&
+            (sz==0 || !(candidate.get(sz-1) instanceof FTypeRest));
     }
 
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,

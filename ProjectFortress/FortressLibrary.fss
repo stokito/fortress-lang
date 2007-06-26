@@ -18,6 +18,23 @@
 component FortressLibrary
 export Executable
 
+(** The following function is actually recognized as a special piece
+    of built-in magic by the Fortress interpreter.  The javaClass
+    argument names a Java Class which is a subclass of
+    com.sun.fortress.interpreter.glue.NativeApp, which provides code
+    for the closure which is used in place of the call to
+    builtinPrimitive.  Meanwhile all the necessary type information,
+    argument names, etc. must be declared here in Fortress-land.  For
+    examples see the end of this file.
+
+    In practice if you're extending the interpreter you will probably
+    want to extend com.sun.fortress.interpreter.glue.NativeFn0,1,2,3,4
+    or one of their subclasses defined in
+    com.sun.fortress.interpreter.glue.primitive.  These types are
+    generally easier to work with, and the boilerplate packing and
+    unpacking of values is done for you.
+*)
+
 builtinPrimitive[\T\](javaClass:String):T =
   fail ("Implementation should not invoke builtinPrimitive " javaClass)
 
@@ -42,6 +59,11 @@ Note also that there isn't (yet) a trait Object!  Eventually
 user-written trait and object declarations will extend Object by
 default; right now they instead extend Any by default.
 
+Note also that most of these types should not form a hierarchy, but
+instead a flat type space with coercions between constituents.  Due to
+the absence of coercion we have the rather unfortunate situation you
+see here.
+
 *)
 
 (** Equality *)
@@ -50,6 +72,22 @@ default; right now they instead extend Any by default.
    hierarchy. *)
 opr =(a:Any, b:Any):Boolean = false
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+
+(** Assertion *)
+assert(flag:Boolean): () =
+    if NOT flag then
+        fail("Assertion failed!")
+    end
+
+assert(flag: Boolean, failMsg: String): () =
+    if NOT flag then
+        fail(failMsg)
+    end
+
+assert[\A\](x:A, y:A, failMsg: String): () =
+    if x =/= y then
+        fail(x " =/= " y "; " failMsg)
+    end
 
 (** Generator
  * Note that more complex derived generators are specified further
@@ -92,23 +130,22 @@ sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
-trait MaybeType excludes { Number }
+value trait MaybeType excludes { Number }
   getter isJust() : Boolean
-  eq(o:MaybeType):Boolean = false
 end
 
-trait Maybe[\T\]
+value trait Maybe[\T\]
     extends { MaybeType, SequentialGenerator[\T\]}
     comprises { Nothing[\T\], Just[\T\] }
   getter unJust() : T throws UnJustNothing
 end
 
-object Just[\T\](x:T) extends {Maybe[\T\]}
+value object Just[\T\](x:T) extends {Maybe[\T\]}
     getter size()=1
     getter toString():String = "Just(" x ")"
     getter isJust() = true
     getter unJust() = x
-    eq(o:Just[\T\]) = (x=o.unJust())
+    opr =(self, o:Just[\T\]) = (x=o.unJust())
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
 
     map[\G\](f: T->G): Generator[\G\] = Just[\G\](f(x))
@@ -123,12 +160,12 @@ end
 
 (* Obviously ought to be a non-parametric singleton when we get where
    clauses working. *)
-object Nothing[\T\]() extends { Maybe[\T\] }
+value object Nothing[\T\]() extends { Maybe[\T\] }
     getter size()=0
     getter isJust() = false
     getter unJust() = throw UnJustNothing
     getter toString():String = "Nothing"
-    eq(o:Nothing[\T\]) = true
+    opr =(self, o:Nothing[\T\]) = true
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
 
     map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
@@ -140,7 +177,6 @@ object Nothing[\T\]() extends { Maybe[\T\] }
     loop(f:T->()): () = ()
 end
 
-opr =(x:MaybeType, y:MaybeType) = x.eq(y)
 opr IN[\E\](x: E, g: Nothing[\E\]): Boolean = false
 opr NOTIN[\E\](x: E, g: Nothing[\E\]): Boolean = true
 opr IN[\E\](x: E, g: Just[\E\]): Boolean = x=g.unJust()
@@ -357,7 +393,8 @@ end
 fail(s:String) = do
    println("FAIL: " s)
    printTaskTrace()
-   if true then throw FailCalled(s) end
+   throwError(s)
+   throw FailCalled(s)
 end
 
 oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
@@ -1508,12 +1545,12 @@ print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
 print():() = print("()")
-println():() = println("()")
+println():() = println("")
 
 (* These are useful temporary hacks for debugging multi-threaded programs *)
 printThreadInfo(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
 printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
-ThrowError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
+throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
 
 
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end

@@ -18,9 +18,6 @@
 component fingerTree
 export Executable
 
-(** CURRENTLY DOES NOT WORK.  See not_passing_yet/deepHierarchy.fss,
-    which must pass before this has a prayer of working. *)
-
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
     16:2 2006.
 

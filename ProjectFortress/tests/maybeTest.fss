@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component maybeTest
+export Executable
+
+run(args:String...):() = do
+  a = Nothing[\ZZ32\]()
+  b = Just[\Boolean\](true)
+  println(b)
+  assert(NOT a.isJust(), "Nothing isJust()")
+  assert(b.isJust(),"NOT b.isJust()")
+  assert(b.unJust(),"NOT b.unJust()")
+  assert(a, Nothing[\ZZ32\](), "nothing =/= nothing")
+  assert(a=/=b, "nothing = just")
+  assert(a=/=Just[\ZZ32\](0), "nothing = just'")
+  assert(b,Just[\Boolean\](true),"just=/=just")
+  assert(b=/=Just[\Boolean\](false),"just T=just F")
+  assert(a.size(),0,"nothing size")
+  assert(b.size(),1,"just size")
+  assert(17 NOTIN a,"17 in nothing")
+  assert(true IN b,"T NOTIN Just(T)")
+  assert(false NOTIN b,"F IN Just(T)")
+  for x <- a do
+    println("WRONG: Generated stuff from Nothing.")
+    fail(x)
+  end
+  times: ZZ32 := 0
+  for x <- b do
+    atomic times += 1
+  end
+  assert(times,1," WRONG number of times.")
+  assert(a.toString(),"Nothing","Nothing.toString()")
+  assert(b.toString(),"Just(true)", "Just(true).toString()")
+end
+
+end
