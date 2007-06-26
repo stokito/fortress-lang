@@ -35,7 +35,6 @@ BaseNatType
 Binding
 Block
 BoolParam
-BoundedInterval
 CaseClause
 CaseExpr
 CaseParamExpr
@@ -49,9 +48,7 @@ Component
 Contract
 Dimension
 DimensionParam
-Dispatch
 DottedId
-EmptyInterval
 Enclosing
 EnsuresClause
 Entry

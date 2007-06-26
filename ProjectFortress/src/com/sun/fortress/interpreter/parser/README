@@ -58,7 +58,7 @@
  - Type.rats
    Types.
    NYI: Dimension and unit types.
-        Static arguments - nat (minus), bool, dimension, unit, and ident.
+        Static arguments - nat (minus), bool, dimension, unit, and opr.
 
  - Expression.rats
    Top-level module for the expression syntax.

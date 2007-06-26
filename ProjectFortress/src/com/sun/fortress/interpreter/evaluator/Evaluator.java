@@ -69,7 +69,6 @@ import com.sun.fortress.interpreter.nodes.Assignment;
 import com.sun.fortress.interpreter.nodes.AtomicExpr;
 import com.sun.fortress.interpreter.nodes.Binding;
 import com.sun.fortress.interpreter.nodes.Block;
-import com.sun.fortress.interpreter.nodes.BoundedInterval;
 import com.sun.fortress.interpreter.nodes.CaseClause;
 import com.sun.fortress.interpreter.nodes.CaseExpr;
 import com.sun.fortress.interpreter.nodes.CaseParam;
@@ -80,9 +79,7 @@ import com.sun.fortress.interpreter.nodes.CatchClause;
 import com.sun.fortress.interpreter.nodes.CatchExpr;
 import com.sun.fortress.interpreter.nodes.ChainExpr;
 import com.sun.fortress.interpreter.nodes.CharLiteral;
-import com.sun.fortress.interpreter.nodes.Dispatch;
 import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes.EmptyInterval;
 import com.sun.fortress.interpreter.nodes.Enclosing;
 import com.sun.fortress.interpreter.nodes.Entry;
 import com.sun.fortress.interpreter.nodes.Exit;
@@ -209,7 +206,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     protected Evaluator(Evaluator e2) {
         super(e2.e);
         debug = e2.debug;
-        transactionNestingCount = e2.transactionNestingCount;        
+        transactionNestingCount = e2.transactionNestingCount;
     }
 
     public void debugPrint(String debugString) {
@@ -303,14 +300,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         return FVoid.V;
     }
-    
+
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr e = x.getExpr();
         final Evaluator current = new Evaluator(this);
         transactionNestingCount += 1;
-        
+
         FValue res = BaseTask.doIt (
-            new Callable<FValue>() { 
+            new Callable<FValue>() {
                 public FValue call() {
                     Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
                     return e.accept(ev);
@@ -434,10 +431,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
         return resList;
-    }
-
-    public FValue forBoundedInterval(BoundedInterval x) {
-        return NI("forBoundedInterval");
     }
 
     public FValue forCaseClause(CaseClause x) {
@@ -652,50 +645,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return result;
     }
 
-    public FValue forDispatch(Dispatch x) {
-        // debugPrint("forDispatch " + x);
-        Evaluator ev = new Evaluator(this);
-        List<FType> res = evalTypeCaseOrDispatchBinding(ev, x);
-        List<TypeCaseClause> clauses = x.getClauses();
-        List<TypeCaseClause> matches = new ArrayList<TypeCaseClause>();
-        FValue result = evVoid;
-        boolean found = false;
-        FType resTuple = FTypeTuple.make(res);
-
-        for (Iterator<TypeCaseClause> i = clauses.iterator(); i.hasNext();) {
-            TypeCaseClause c = i.next();
-            List<TypeRef> match = c.getMatch();
-            /* Technically matchTuple and resTuple need not be tuple types;
-               they might be singletons. */
-            FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
-
-            if (resTuple.subtypeOf(matchTuple)) {
-                // debugPrint("matchTuple = " + matchTuple +
-                // " resTuple = " + resTuple + " resTuple.subtypeOf(matchTuple)
-                // == "
-                // + true);
-                if (found == false) {
-                    found = true;
-                    matches.add(c);
-                } else {
-                    matches = BestMatches(c, matches, ev);
-                }
-            }
-        }
-
-        if (matches.size() != 1) {
-            throw new MatchFailure();
-        }
-        TypeCaseClause c = matches.get(0);
-        List<Expr> body = c.getBody();
-        for (Iterator<Expr> j = body.iterator(); j.hasNext();) {
-            Expr exp = j.next();
-            result = exp.accept(ev);
-        }
-
-        return result;
-    }
-
     public FValue forDottedId(DottedId x) {
         // debugPrint("forDotted " + x);
         String result = "";
@@ -705,10 +654,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 result = result.concat(".");
         }
         return FString.make(result);
-    }
-
-    public FValue forEmptyInterval(EmptyInterval x) {
-        return NI("forEmptyInterval");
     }
 
     public FValue forEntry(Entry x) {
