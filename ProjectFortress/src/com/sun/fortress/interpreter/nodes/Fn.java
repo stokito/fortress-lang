@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.Collections;

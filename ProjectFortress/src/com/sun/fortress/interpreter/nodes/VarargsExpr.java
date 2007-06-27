@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 public class VarargsExpr extends Expr {
     // New AST node!
     // OCaml com.sun.fortress.interpreter.parser does not recognize this node.

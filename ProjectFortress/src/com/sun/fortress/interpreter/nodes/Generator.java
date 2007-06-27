@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
 import java.util.List;
 
 /* Generator bindings (as occur in 'for' loop expressions, for example) 

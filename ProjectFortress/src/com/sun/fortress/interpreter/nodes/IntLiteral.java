@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.Unicode;
 import java.math.BigInteger;
 
 import com.sun.fortress.interpreter.useful.MagicNumbers;

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 // / and apply_expr = apply_expr_rec node
 // / and apply_expr_rec =
 // / {

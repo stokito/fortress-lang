@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and product_dim_type = product_dim_type_rec node

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 // / and field_selection = field_selection_rec node
 // / and field_selection_rec =
 // / {

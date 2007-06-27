@@ -15,8 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
+import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Some;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class Printer extends NodeReflection {
 
     int oneLinerNesting;
 
-    final static String tilde = "~";
+    public final static String tilde = "~";
 
     public final static String nl = (System.getProperty("line.separator"));
 
@@ -188,7 +189,7 @@ public class Printer extends NodeReflection {
             Field[] fields = getCachedPrintableFields(cl, clname);
             w.append("(");
             w.append(clname);
-            dumpSpan(x.span, w);
+            dumpSpan(x.getSpan(), w);
 
             dumpFields(w, indent, x, oneLiner, fields, true);
             w.append(")");

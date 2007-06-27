@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 // / and entry = entry_rec node
 // / and entry_rec =
 // / {

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.nodes_util.Span;
 
 /**
  * A WrappedFValue permits the interpreter to incorporate intermediate

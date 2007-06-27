@@ -61,7 +61,7 @@ import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TightJuxt;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;

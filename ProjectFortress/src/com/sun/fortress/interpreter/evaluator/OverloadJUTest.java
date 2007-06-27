@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.nodes.Fun;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 
 public class OverloadJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
 

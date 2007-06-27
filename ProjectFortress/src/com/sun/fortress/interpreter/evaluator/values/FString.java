@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeString;
-import com.sun.fortress.interpreter.nodes.Unprinter;
+import com.sun.fortress.interpreter.nodes_util.Unprinter;
 
 
 public class FString extends FValue {

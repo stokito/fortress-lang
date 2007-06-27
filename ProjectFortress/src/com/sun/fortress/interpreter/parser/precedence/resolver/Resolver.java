@@ -25,7 +25,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.Op;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Chain;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Equal;

@@ -30,7 +30,7 @@ import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.Printer;
+import com.sun.fortress.interpreter.nodes_util.Printer;
 
 public class ParserDriver {
 

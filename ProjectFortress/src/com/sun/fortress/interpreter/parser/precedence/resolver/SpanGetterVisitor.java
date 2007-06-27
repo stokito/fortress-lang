@@ -16,7 +16,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Left;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.LooseInfix;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.OpExprVisitor;

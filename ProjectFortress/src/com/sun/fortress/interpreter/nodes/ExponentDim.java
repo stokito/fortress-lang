@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and exponent_dim_type = exponent_dim_type_rec node

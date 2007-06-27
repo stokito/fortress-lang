@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
 import java.util.List;
 
 // / and accumulator_expr = accumulator_expr_rec node

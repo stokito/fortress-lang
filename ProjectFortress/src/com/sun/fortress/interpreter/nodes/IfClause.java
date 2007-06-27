@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 // /
 // / and if_clause = if_clause_rec node
 // / and if_clause_rec =

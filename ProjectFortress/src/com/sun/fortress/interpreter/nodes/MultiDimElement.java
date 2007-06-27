@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 // / and multi_dim_expr =
 // / [
 // / | `MultiDimElement of expr

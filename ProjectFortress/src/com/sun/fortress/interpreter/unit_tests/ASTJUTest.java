@@ -30,8 +30,8 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.nodes.IntLiteral;
 import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.Printer;
-import com.sun.fortress.interpreter.nodes.Unprinter;
+import com.sun.fortress.interpreter.nodes_util.Printer;
+import com.sun.fortress.interpreter.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
 
 /*
@@ -282,7 +282,7 @@ public class ASTJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
         Node x = up.readNode(l.name()); // Reading name of class
 
         assertTrue (x instanceof com.sun.fortress.interpreter.nodes.Contract);
-        (new com.sun.fortress.interpreter.nodes.Printer(true, true, true)).dump(x, out, 0);
+        (new com.sun.fortress.interpreter.nodes_util.Printer(true, true, true)).dump(x, out, 0);
         out.println();
     }
 

@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.nodes.NodeReflection;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
 import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Pair;
 
 

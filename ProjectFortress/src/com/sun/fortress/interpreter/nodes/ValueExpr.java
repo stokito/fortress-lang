@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 public abstract class ValueExpr extends Expr {
     protected ValueExpr(Span span) {
         super(span);

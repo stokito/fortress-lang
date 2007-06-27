@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 public class VoidType extends TypeRef {
     public VoidType(Span s) {
         super(s);

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Printer;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +36,12 @@ public abstract class Node implements HasAt, NodeVisitorHost {
 
     Node(Span span) {
         this.span = span;
-        this.props = span.props;
+        this.props = span.getProps();
     }
 
     protected Node(Node rewriteFrom) {
         this.span = rewriteFrom.span;
-        this.props = rewriteFrom.span.props;
+        this.props = rewriteFrom.span.getProps();
         this.originalIfReplaced = rewriteFrom;
     }
 

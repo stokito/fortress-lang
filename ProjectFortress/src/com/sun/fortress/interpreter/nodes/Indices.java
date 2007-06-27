@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.Span;
+
 public abstract class Indices extends Node implements Comparable<Indices> {
 
     public Indices(Span span) {

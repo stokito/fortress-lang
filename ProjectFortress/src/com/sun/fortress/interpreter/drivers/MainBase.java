@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes.Printer;
+import com.sun.fortress.interpreter.nodes_util.Printer;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class MainBase {

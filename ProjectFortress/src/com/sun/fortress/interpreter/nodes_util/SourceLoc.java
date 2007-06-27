@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 

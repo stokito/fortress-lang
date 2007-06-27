@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.PostFix;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
 import com.sun.fortress.interpreter.evaluator.ProgramError;

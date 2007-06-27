@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 
 public class ReadError extends Exception {
    public ReadError(Span span, String message) {

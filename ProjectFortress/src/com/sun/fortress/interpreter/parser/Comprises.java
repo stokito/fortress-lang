@@ -22,7 +22,7 @@
 package com.sun.fortress.interpreter.parser;
 
 import java.util.List;
-import com.sun.fortress.interpreter.nodes.Span;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.None;
