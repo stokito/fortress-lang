@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.useful.UnitIterable;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-public abstract class FnDefOrDecl extends Node implements Generic, Applicable,
+public abstract class FnDefOrDecl extends AbstractNode implements Generic, Applicable,
         DefOrDecl, Comparable<FnDefOrDecl> {
 
     List<Modifier> mods;

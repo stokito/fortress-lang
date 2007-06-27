@@ -17,11 +17,11 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 
 public class TypeError extends RuntimeException {
-    private Node n;
-    public TypeError(String msg, Node _n) {
+    private AbstractNode n;
+    public TypeError(String msg, AbstractNode _n) {
         super(msg);
         n = _n;
     }

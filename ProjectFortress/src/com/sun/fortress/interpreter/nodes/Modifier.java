@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class Modifier extends Node {
+public abstract class Modifier extends AbstractNode {
 
     /*
      * A bunch of inner classes and interfaces. These did not seem substantial

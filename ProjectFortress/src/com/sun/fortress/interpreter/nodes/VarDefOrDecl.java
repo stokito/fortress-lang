@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-public abstract class VarDefOrDecl extends Node implements DefOrDecl {
+public abstract class VarDefOrDecl extends AbstractNode implements DefOrDecl {
 
    
     /*

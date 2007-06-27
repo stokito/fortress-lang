@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class Import extends Node {
+public abstract class Import extends AbstractNode {
     public Import(Span s) {
         super(s);
     }

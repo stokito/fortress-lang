@@ -29,7 +29,7 @@ import java.util.List;
 // / contract_invariant : expr list;
 // / }
 // /
-public class Contract extends Node {
+public class Contract extends AbstractNode {
     List<Expr> requires;
 
     List<EnsuresClause> ensures;

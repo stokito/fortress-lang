@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 
-public class AliasedDottedId extends Node {
+public class AliasedDottedId extends AbstractNode {
 
     DottedId id;
 
@@ -42,7 +42,7 @@ public class AliasedDottedId extends Node {
         // TODO Auto-generated constructor stub
     }
 
-    public AliasedDottedId(Node rewriteFrom) {
+    public AliasedDottedId(AbstractNode rewriteFrom) {
         super(rewriteFrom);
         // TODO Auto-generated constructor stub
     }

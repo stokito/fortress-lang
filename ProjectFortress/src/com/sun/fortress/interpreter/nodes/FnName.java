@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 // generalized names seen in Fortress, it will persist into
 // more semantically aware parts of the system (i.e., into
 // the interpreter, compiler, com.sun.fortress.interpreter.typechecker, etc).
-public abstract class FnName extends Node implements Comparable<FnName> {
+public abstract class FnName extends AbstractNode implements Comparable<FnName> {
     /*
      * (non-Javadoc)
      *

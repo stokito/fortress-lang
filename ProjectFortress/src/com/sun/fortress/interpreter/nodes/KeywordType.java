@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 // / keyword_type : type_ref;
 // / }
 // /
-public class KeywordType extends Node implements Comparable<KeywordType> {
+public class KeywordType extends AbstractNode implements Comparable<KeywordType> {
     public KeywordType(Span s, Id name, TypeRef type) {
         super(s);
         this.name = name;

@@ -22,7 +22,7 @@ import java.util.List;
 
 // / type t = program
 // /
-public abstract class CompilationUnit extends Node {
+public abstract class CompilationUnit extends AbstractNode {
     DottedId name;
 
     List<Import> imports;

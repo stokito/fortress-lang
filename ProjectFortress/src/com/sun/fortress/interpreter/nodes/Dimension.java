@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
-public class Dimension extends Node implements Decl {
+public class Dimension extends AbstractNode implements Decl {
     Id id;
 
     Option<TypeRef> derived;

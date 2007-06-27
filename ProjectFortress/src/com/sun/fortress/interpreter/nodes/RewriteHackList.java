@@ -15,13 +15,13 @@ import com.sun.fortress.interpreter.useful.NI;
  * These should never be actually inserted into an AST, and are
  * a subtype of Node only to make the type of the rewrite methods
  * a little cleaner.
- * 
+ *
  * @author chase
  */
-public class RewriteHackList extends Node {
+public class RewriteHackList extends AbstractNode {
 
-    transient private List<Node> nodes;
-    
+    transient private List<AbstractNode> nodes;
+
     @Override
     <T> T acceptInner(NodeVisitor<T> v) {
         return NI.<T>na("Instances of this helper class should never be spliced into an AST");
@@ -29,16 +29,16 @@ public class RewriteHackList extends Node {
 
     public RewriteHackList() {
         super();
-        nodes = java.util.Collections.<Node>emptyList();
+        nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
-    public RewriteHackList(List<Node> n) {
+    public RewriteHackList(List<AbstractNode> n) {
         super();
         nodes = n;
     }
 
-    public List<Node> getNodes() {
+    public List<AbstractNode> getNodes() {
         return nodes;
     }
-    
+
 }

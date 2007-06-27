@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 // / type op = string node
-public class Op extends Node {
+public class Op extends AbstractNode {
 
     String name;
 

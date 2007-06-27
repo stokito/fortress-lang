@@ -116,7 +116,7 @@ abstract public class NodeReflection {
         Field[] fields;
         ArrayList<Field> fal = new ArrayList<Field>();
         Class icl = cl;
-        while (icl != Node.class && icl != Object.class) {
+        while (icl != AbstractNode.class && icl != Object.class) {
             fields = icl.getDeclaredFields();
             for (int i = 0; i < fields.length; i++) {
                 if ((fields[i].getModifiers() & java.lang.reflect.Modifier.STATIC) == 0
@@ -129,8 +129,8 @@ abstract public class NodeReflection {
             }
             icl = icl.getSuperclass();
         }
-        if (icl == Node.class) {
-            Field f = Node.class.getDeclaredField("props");
+        if (icl == AbstractNode.class) {
+            Field f = AbstractNode.class.getDeclaredField("props");
             f.setAccessible(true);
             fal.add(f);
         }

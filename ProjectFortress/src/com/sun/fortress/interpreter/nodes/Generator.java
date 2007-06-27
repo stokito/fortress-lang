@@ -32,7 +32,7 @@ import java.util.List;
  * 
  * i <- 0#10
  */
-public class Generator extends Node {
+public class Generator extends AbstractNode {
 
     List<Id> bind;
 

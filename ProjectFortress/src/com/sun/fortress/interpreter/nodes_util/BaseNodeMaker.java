@@ -36,7 +36,7 @@ public class BaseNodeMaker {
         System.out.println("package com.sun.fortress.interpreter.nodes;");
         System.out.println("public class NodeVisitor<T> {");
         System.out.println(
-                INDENT + INDENT +"protected final T acceptNode(Node n) {\n" +
+                INDENT + INDENT +"protected final T acceptNode(AbstractNode n) {\n" +
                 INDENT + INDENT + INDENT +"return n.accept(this);\n" +
                 INDENT + INDENT +"}\n" +
                 "\n" +

@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.useful.IterableOnceTranslatingList;
 // / unit_var_type : dim_type;
 // / }
 // /
-public class UnitVar extends Node implements Decl {
+public class UnitVar extends AbstractNode implements Decl {
 
     List<Id> names;
 

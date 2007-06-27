@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
 
-public class AliasedName extends Node {
+public class AliasedName extends AbstractNode {
 
     FnName name;
 
@@ -55,7 +55,7 @@ public class AliasedName extends Node {
         // TODO Auto-generated constructor stub
     }
 
-    public AliasedName(Node rewriteFrom) {
+    public AliasedName(AbstractNode rewriteFrom) {
         super(rewriteFrom);
         // TODO Auto-generated constructor stub
     }

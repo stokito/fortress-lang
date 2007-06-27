@@ -210,7 +210,7 @@ public class Unprinter extends NodeReflection {
      *         of its substructure.
      * @throws IOException
      */
-    public Node read() throws IOException {
+    public AbstractNode read() throws IOException {
         l.lp();
         return readNode(l.name());
     }
@@ -224,10 +224,10 @@ public class Unprinter extends NodeReflection {
      *         of its substructure.
      * @throws IOException
      */
-    public Node readNode(String class_name) throws IOException {
+    public AbstractNode readNode(String class_name) throws IOException {
         classFor(class_name); // Loads other tables as a side-effect
         Constructor con = constructorFor(class_name);
-        Node node = null;
+        AbstractNode node = null;
         String next = l.name();
 
         // Next token is either a field, or a span.
@@ -241,7 +241,7 @@ public class Unprinter extends NodeReflection {
         try {
             Object[] args = new Object[1];
             args[0] = lastSpan;
-            node = (Node) con.newInstance(args);
+            node = (AbstractNode) con.newInstance(args);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             throw new Error("Error reading node type " + class_name);
@@ -290,7 +290,7 @@ public class Unprinter extends NodeReflection {
                     f.set(node, readBigInteger(l.name()));
                 } else if (Option.class.isAssignableFrom(f.getType())) {
                     f.set(node, readOption());
-                } else if (Node.class.isAssignableFrom(f.getType())
+                } else if (AbstractNode.class.isAssignableFrom(f.getType())
                         || LHS.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");
                     f.set(node, readNode(l.name()));

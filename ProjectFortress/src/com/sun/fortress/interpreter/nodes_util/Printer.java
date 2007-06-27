@@ -171,8 +171,8 @@ public class Printer extends NodeReflection {
             dumpFields(w, indent, o, true, fields, false);
             w.append(")");
 
-        } else if (o instanceof Node) {
-            Node x = (Node) o;
+        } else if (o instanceof AbstractNode) {
+            AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();
             String clname = cl.getSimpleName();
             if (x instanceof Modifier) {

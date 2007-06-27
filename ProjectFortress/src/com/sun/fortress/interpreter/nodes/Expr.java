@@ -19,13 +19,13 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class Expr extends Node {
+public abstract class Expr extends AbstractNode {
 
     protected Expr(Span span) {
         super(span);
     }
 
-    protected Expr(Node rewriteFrom) {
+    protected Expr(AbstractNode rewriteFrom) {
         super(rewriteFrom);
     }
 

@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 // / binding_init : expr;
 // / }
 // /
-public class Binding extends Node {
+public class Binding extends AbstractNode {
 
     Id name;
 

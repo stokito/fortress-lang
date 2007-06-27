@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 // / entry_value : expr;
 // / }
 // /
-public class Entry extends Node {
+public class Entry extends AbstractNode {
     Expr key;
 
     Expr value;

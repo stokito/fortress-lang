@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.useful.Option;
 // / unpasting_dim_size : nat_type;
 // / }
 // /
-public class UnpastingDim extends Node {
+public class UnpastingDim extends AbstractNode {
     Option<NatRef> base;
 
     Option<NatRef> size;

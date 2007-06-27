@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 
-public interface DefOrDecl extends HasAt, NodeVisitorHost {
+public interface DefOrDecl extends HasAt, Node {
     // public String stringName();
     public IterableOnce<String> stringNames();
 

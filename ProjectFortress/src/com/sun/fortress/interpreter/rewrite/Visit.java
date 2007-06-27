@@ -21,7 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes_util.NodeReflection;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.NI;
@@ -40,7 +40,7 @@ abstract public class Visit extends NodeReflection {
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
      */
-    abstract protected void visit(Node node);
+    abstract protected void visit(AbstractNode node);
 
     /**
      * Based on the type of o, recursively visits its pieces.
@@ -56,8 +56,8 @@ abstract public class Visit extends NodeReflection {
 
         } else if (o instanceof Boolean) {
 
-        } else if (o instanceof Node) {
-             visit((Node) o);
+        } else if (o instanceof AbstractNode) {
+             visit((AbstractNode) o);
         } else {
         }
             return;
@@ -69,7 +69,7 @@ abstract public class Visit extends NodeReflection {
      * returning either the original if nothing has changed,
      * or a new node if something has changed.
      */
-    protected void visitNode(Node n) {
+    protected void visitNode(AbstractNode n) {
         Field[] fields = getCachedPrintableFields(n.getClass());
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];

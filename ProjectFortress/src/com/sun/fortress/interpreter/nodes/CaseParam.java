@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class CaseParam extends Node {
+public abstract class CaseParam extends AbstractNode {
 
     public CaseParam(Span span) {
         super(span);

@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -53,7 +53,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
     }
 
     protected FValue functionInvocation(List<FValue> args, FValue foo,
-                                        Node loc) {
+                                        AbstractNode loc) {
         if (foo instanceof Fcn) {
             return functionInvocation(args, (Fcn) foo, loc);
         } else {
@@ -61,7 +61,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
         }
     }
 
-    protected FValue functionInvocation(List<FValue> args, Fcn foo, Node loc) {
+    protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode loc) {
         if (foo instanceof FGenericFunction) {
             FGenericFunction gen = (FGenericFunction) foo;
 

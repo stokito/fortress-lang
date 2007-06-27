@@ -27,7 +27,7 @@ import java.util.List;
 // / type_clause_body : expr;
 // / }
 // /
-public class TypeCaseClause extends Node {
+public class TypeCaseClause extends AbstractNode {
 
     List<TypeRef> match;
 

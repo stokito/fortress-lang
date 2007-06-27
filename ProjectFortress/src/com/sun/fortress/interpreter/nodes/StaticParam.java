@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
-public abstract class StaticParam extends Node implements
+public abstract class StaticParam extends AbstractNode implements
         Comparable<StaticParam> {
     StaticParam(Span span) {
         super(span);

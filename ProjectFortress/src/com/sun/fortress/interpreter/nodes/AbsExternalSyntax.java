@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
-public class AbsExternalSyntax extends Node implements Decl, AbsDecl {
+public class AbsExternalSyntax extends AbstractNode implements Decl, AbsDecl {
     Name openExpander;
 
     Id id;

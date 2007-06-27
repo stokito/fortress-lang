@@ -112,7 +112,7 @@ import com.sun.fortress.interpreter.nodes.MultiDim;
 import com.sun.fortress.interpreter.nodes.MultiDimElement;
 import com.sun.fortress.interpreter.nodes.MultiDimRow;
 import com.sun.fortress.interpreter.nodes.NameDim;
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
@@ -219,7 +219,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 + " not implemented");
     }
 
-    public FValue NI(String s, Node n) {
+    public FValue NI(String s, AbstractNode n) {
         throw new InterpreterError(this.getClass().getName() + "." + s
                 + " not implemented, input \n" + n.dump());
     }
@@ -366,7 +366,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * result of evaluating the last expr in the list.
      * Does the "right thing" with LetExprs.
      */
-    public FValue evalExprList(List<Expr> exprs, Node tag) {
+    public FValue evalExprList(List<Expr> exprs, AbstractNode tag) {
         FValue res = evVoid;
         Evaluator eval = this;
         for (Expr exp : exprs) {
@@ -805,7 +805,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         throw new InterpreterError(x,"list expressions not implemented.");
     }
 
-    private FValue juxtApplyStack(Stack<FValue> fns, FValue times, Node loc) {
+    private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
         FValue tos = fns.pop();
         while (!fns.empty()) {
             FValue f = fns.pop();
@@ -1221,7 +1221,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      */
     private FValue finishFunctionInvocation(List<Expr> exprs, FValue foo,
-            Node loc) {
+            AbstractNode loc) {
         return functionInvocation(evalInvocationArgs(exprs), foo, loc);
     }
 

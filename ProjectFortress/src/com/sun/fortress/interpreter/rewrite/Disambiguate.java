@@ -53,7 +53,7 @@ import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.LetFn;
 import com.sun.fortress.interpreter.nodes.LocalVarDecl;
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
@@ -316,7 +316,7 @@ public class Disambiguate extends Rewrite {
      * visit only rewrites.
      */
     @Override
-    public Node visit(Node node) {
+    public AbstractNode visit(AbstractNode node) {
         BATree<String, Thing> savedE = e.copy();
         BATree<String, StaticParam> savedVisibleGenerics = visibleGenericParameters.copy();
         BATree<String, StaticParam> savedUsedGenerics = usedGenericParameters.copy();
@@ -402,7 +402,7 @@ public class Disambiguate extends Rewrite {
                         Expr init = vd.getInit();
                         init = (Expr) visitNode(init);
                         lhs = (List<LValue>) visitList(lhs);
-                        ArrayList<Node> newdecls = new ArrayList<Node>(1+lhs.size());
+                        ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
                         String temp = "t$" + (++tempCount);
                         Span at = vd.getSpan();
                         VarDecl new_vd = new VarDecl(at, new Id(at, temp), init);
@@ -436,7 +436,7 @@ public class Disambiguate extends Rewrite {
                     paramsToLocals(params);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
 
-                    Node n = visitNode(node);
+                    AbstractNode n = visitNode(node);
                     dumpIfChange(node, n);
                     return n;
 
@@ -452,7 +452,7 @@ public class Disambiguate extends Rewrite {
                     atTopLevelInsideTraitOrObject = true;
                     defsToMembers(defs);
                     accumulateMembersFromExtends(xtends, e);
-                    Node n = visitNode(node);
+                    AbstractNode n = visitNode(node);
                     // REMEMBER THAT THIS IS THE NEW ObjectExpr!
                     oe = (ObjectExpr) n;
                     // Implicitly parameterized by either visibleGenericParameters,
@@ -507,7 +507,7 @@ public class Disambiguate extends Rewrite {
 
                     accumulateMembersFromExtends(xtends, e);
 
-                    Node n = visitNode(node);
+                    AbstractNode n = visitNode(node);
 
                     return n;
                 } else if (node instanceof TraitDefOrDecl) {
@@ -523,7 +523,7 @@ public class Disambiguate extends Rewrite {
                     accumulateMembersFromExtends(td);
 
                     inTrait = true;
-                    Node n = visitNode(node);
+                    AbstractNode n = visitNode(node);
                     inTrait = false;
                     return n;
                 } else if (node instanceof For) {
@@ -588,7 +588,7 @@ public class Disambiguate extends Rewrite {
     private void accumulateMembersFromExtends(Option<List<TypeRef>> xtends, Map<String, Thing> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
-        Set<Node> visited = new HashSet<Node>();
+        Set<AbstractNode> visited = new HashSet<AbstractNode>();
         accumulateTraitsAndMethods(xtends, disEnv, members, types, visited);
         stringsToLocals(types);
         stringsToMembers(members);
@@ -598,7 +598,7 @@ public class Disambiguate extends Rewrite {
      * @param node
      * @param n
      */
-    private void dumpIfChange(Node old, Node n) {
+    private void dumpIfChange(AbstractNode old, AbstractNode n) {
         if (false && n != old) {
             try {
                 System.err.println("Rewritten method body:");
@@ -721,7 +721,7 @@ public class Disambiguate extends Rewrite {
      */
     private void accumulateTraitsAndMethods(Option<List<TypeRef>> oxtends,
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
-            Set<Node> visited) {
+            Set<AbstractNode> visited) {
         if (oxtends.isPresent()) {
             List<TypeRef> xtends = oxtends.getVal();
 

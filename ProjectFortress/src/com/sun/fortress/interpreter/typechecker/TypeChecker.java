@@ -45,9 +45,9 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         this.e = _e;
     }
     
-    private List<TypeCheckerResult> checkList(List<? extends NodeVisitorHost> hosts) {
+    private List<TypeCheckerResult> checkList(List<? extends Node> hosts) {
         List<TypeCheckerResult> result = new LinkedList<TypeCheckerResult>();
-        for (NodeVisitorHost h : hosts) result.add(h.accept(this));
+        for (Node h : hosts) result.add(h.accept(this));
         return result;
     }
     

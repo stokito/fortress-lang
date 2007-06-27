@@ -26,7 +26,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
-import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes_util.NodeReflection;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
@@ -56,7 +56,7 @@ public abstract class Rewrite extends NodeReflection {
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
      */
-    abstract protected Node visit(Node node);
+    abstract protected AbstractNode visit(AbstractNode node);
 
     /**
      * Based on the type of o, recursively visits its pieces.
@@ -80,7 +80,7 @@ public abstract class Rewrite extends NodeReflection {
         } else if (o instanceof String) {
             result = o;
         } else { // (o instanceof Node)
-            result = visit((Node) o);
+            result = visit((AbstractNode) o);
         }
         // Although the following cast is unchecked,
         // it holds because every visit method returns an object
@@ -95,8 +95,8 @@ public abstract class Rewrite extends NodeReflection {
      * returning either the original if nothing has changed,
      * or a new node if something has changed.
      */
-    protected Node visitNode(Node n) {
-        Node replacement = null;
+    protected AbstractNode visitNode(AbstractNode n) {
+        AbstractNode replacement = null;
         Field[] fields = getCachedPrintableFields(n.getClass());
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -110,7 +110,7 @@ public abstract class Rewrite extends NodeReflection {
                         args[0] = n.getSpan();
                         if (con == null)
                             System.err.println(n.getClass());
-                        replacement = (Node) con.newInstance(args);
+                        replacement = (AbstractNode) con.newInstance(args);
                         replacement.setOriginal(n);
                         // Copy over earlier fields
                         for (int j = 0; j < i; j++) {

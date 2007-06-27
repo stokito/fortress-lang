@@ -603,7 +603,7 @@ public final class FortressUtil {
 // let span_two (one : 'a node) (two : 'b node) : span =
 //   join one.node_span two.node_span
 
-    public static Span spanTwo(Node s1, Node s2) {
+    public static Span spanTwo(AbstractNode s1, AbstractNode s2) {
         return new Span(s1.getSpan().getBegin(), s2.getSpan().getEnd());
     }
 
@@ -614,8 +614,8 @@ public final class FortressUtil {
     public static Span spanAll(Object[] nodes, int size) {
         if (size == 0) return new Span();
         else { // size != 0
-            return new Span(((Node)Array.get(nodes,0)).getSpan().getBegin(),
-                            ((Node)Array.get(nodes,size-1)).getSpan().getEnd());
+            return new Span(((AbstractNode)Array.get(nodes,0)).getSpan().getBegin(),
+                            ((AbstractNode)Array.get(nodes,size-1)).getSpan().getEnd());
         }
     }
 
@@ -633,7 +633,7 @@ public final class FortressUtil {
 //   let span = span_all body in
 //     node span (`FlowExpr (node span (`BlockExpr (build_block body))))
     public static Block doBlock(List<Expr> exprs) {
-        Span span = spanAll(exprs.toArray(new Node[0]), exprs.size());
+        Span span = spanAll(exprs.toArray(new AbstractNode[0]), exprs.size());
         List<Expr> es = new ArrayList<Expr>();
         Collections.reverse(exprs);
         for (Expr e : exprs) {
@@ -665,7 +665,7 @@ public final class FortressUtil {
         else {
             exprs = exprs.reverse();
             List<Expr> javaList = exprs.toJavaList();
-            return new TightJuxt(spanAll(javaList.toArray(new Node[0]),
+            return new TightJuxt(spanAll(javaList.toArray(new AbstractNode[0]),
                                          javaList.size()), javaList);
         }
     }

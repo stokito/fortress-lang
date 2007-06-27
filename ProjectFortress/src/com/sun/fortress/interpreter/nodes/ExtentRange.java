@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.useful.Option;
 // / extent_range_size : nat_type option;
 // / }
 // /
-public class ExtentRange extends Node implements Comparable<ExtentRange> {
+public class ExtentRange extends AbstractNode implements Comparable<ExtentRange> {
     public static final ListComparer<ExtentRange> listComparer = new ListComparer<ExtentRange>();
 
     Option<TypeRef> base;

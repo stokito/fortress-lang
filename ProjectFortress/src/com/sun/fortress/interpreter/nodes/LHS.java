@@ -21,6 +21,6 @@ package com.sun.fortress.interpreter.nodes;
  * left-hand-sides of assignments, local variable declarations, and top-level
  * declarations.
  */
-public interface LHS extends NodeVisitorHost {
+public interface LHS extends Node {
     public <T> T accept(NodeVisitor<T> v);
 }

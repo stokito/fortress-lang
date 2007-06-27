@@ -27,7 +27,7 @@ import java.util.List;
 // / case_clause_body : expr;
 // / }
 // /
-public class CaseClause extends Node {
+public class CaseClause extends AbstractNode {
 
     Expr match;
 

@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 // / if_clause_body : expr;
 // / }
 // /
-public class IfClause extends Node {
+public class IfClause extends AbstractNode {
 
     Expr test;
 

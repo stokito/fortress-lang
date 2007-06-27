@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class WhereClause extends Node {
+public abstract class WhereClause extends AbstractNode {
     WhereClause(Span span) {
         super(span);
     }

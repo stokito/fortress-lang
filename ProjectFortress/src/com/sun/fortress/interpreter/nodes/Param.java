@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.useful.MagicNumbers;
 // / param_default : expr option;
 // / }
 // /
-public class Param extends Node implements
+public class Param extends AbstractNode implements
       Comparable<Param> {
     List<Modifier> mods;
 

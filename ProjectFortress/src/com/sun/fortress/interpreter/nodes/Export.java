@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 // / and export = dotted_name
 // /
-public class Export extends Node {
+public class Export extends AbstractNode {
     List<DottedId> names;
 
     public Export(Span s, DottedId name) {
