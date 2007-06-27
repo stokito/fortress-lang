@@ -19,7 +19,7 @@
  * Created on Nov 1, 2005
  *
  */
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
 import java.util.HashMap;
 
