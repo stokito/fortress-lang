@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.Option;
+
 // / and unpasting_dim = unpasting_dim_rec node
 // / and unpasting_dim_rec =
 // / {

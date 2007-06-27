@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
 
 // / and object_def = object_def_rec node

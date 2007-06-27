@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import java.util.List;
 
 // / and case_expr = case_expr_rec node

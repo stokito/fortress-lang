@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LHS;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.NatRef;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.SubscriptExpr;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.Unpasting;

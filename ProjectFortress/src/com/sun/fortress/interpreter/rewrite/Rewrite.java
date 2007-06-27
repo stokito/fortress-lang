@@ -28,9 +28,9 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
 import com.sun.fortress.interpreter.nodes.Node;
 import com.sun.fortress.interpreter.nodes.NodeReflection;
-import com.sun.fortress.interpreter.nodes.None;
+import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
-import com.sun.fortress.interpreter.nodes.Some;
+import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.nodes.Span;
 import com.sun.fortress.interpreter.useful.Pair;
 

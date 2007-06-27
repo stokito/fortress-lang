@@ -18,7 +18,7 @@ import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.IntParam;
 import com.sun.fortress.interpreter.nodes.NatParam;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeAlias;

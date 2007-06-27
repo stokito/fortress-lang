@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
 
 // / and try_expr = try_expr_rec node

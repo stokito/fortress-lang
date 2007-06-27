@@ -23,7 +23,7 @@ package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;

@@ -20,6 +20,9 @@
  */
 
 package com.sun.fortress.interpreter.parser;
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;

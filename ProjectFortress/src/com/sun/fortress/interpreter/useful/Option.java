@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.useful;
 
 import java.util.Comparator;
 
@@ -30,17 +30,17 @@ public abstract class Option<T> {
     public boolean isPresent() {
         return false;
     }
-    
+
     /**
      * Returns the value if there is one, otherwise returns the default value ifMissing.
-     * 
+     *
      * @param ifMissing  Default value to return
      */
     public T getVal(T ifMissing) {
         return ifMissing;
     }
-    
-    static <T> int compare(Option<T> a, Option<T> b, Comparator<T> c) {
+
+    public static <T> int compare(Option<T> a, Option<T> b, Comparator<T> c) {
         if (a.isPresent()) {
             if (b.isPresent()) {
                 return c.compare (a.getVal(),b.getVal());
@@ -52,5 +52,5 @@ public abstract class Option<T> {
         } else {
             return 0;
         }
-    } 
+    }
 }

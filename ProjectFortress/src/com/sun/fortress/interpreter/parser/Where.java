@@ -23,9 +23,9 @@ package com.sun.fortress.interpreter.parser;
 
 import java.util.List;
 import com.sun.fortress.interpreter.nodes.Span;
-import com.sun.fortress.interpreter.nodes.Option;
-import com.sun.fortress.interpreter.nodes.Some;
-import com.sun.fortress.interpreter.nodes.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
+import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 
 public class Where extends TraitClause {

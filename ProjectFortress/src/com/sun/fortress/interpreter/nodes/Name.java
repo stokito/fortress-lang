@@ -18,6 +18,9 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 
 public class Name extends FnName {
 

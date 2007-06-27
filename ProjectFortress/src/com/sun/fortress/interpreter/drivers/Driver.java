@@ -61,7 +61,7 @@ import com.sun.fortress.interpreter.nodes.ImportFrom;
 import com.sun.fortress.interpreter.nodes.ImportNames;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.Name;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Printer;
 import com.sun.fortress.interpreter.nodes.Unprinter;
 import com.sun.fortress.interpreter.parser.Fortress;

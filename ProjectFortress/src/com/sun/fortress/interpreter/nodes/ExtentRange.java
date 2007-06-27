@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.useful.ListComparer;
+import com.sun.fortress.interpreter.useful.Option;
 
 // / and extent_range = extent_range_rec node
 // / and extent_range_rec =

@@ -53,7 +53,7 @@ import com.sun.fortress.interpreter.nodes.IntParam;
 import com.sun.fortress.interpreter.nodes.MatrixType;
 import com.sun.fortress.interpreter.nodes.NatParam;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes.ProductNatType;

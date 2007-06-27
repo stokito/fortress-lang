@@ -17,6 +17,9 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;

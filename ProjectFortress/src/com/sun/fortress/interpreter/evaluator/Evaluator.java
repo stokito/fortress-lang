@@ -120,7 +120,7 @@ import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprArg;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.OprName;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes.RectCompClause;
 import com.sun.fortress.interpreter.nodes.RectComprehension;

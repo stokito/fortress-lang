@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
+import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
 import java.util.LinkedList;
 

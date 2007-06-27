@@ -15,9 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
-
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+package com.sun.fortress.interpreter.useful;
 
 public class None<T> extends Option<T> {
     public None() {

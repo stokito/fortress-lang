@@ -22,8 +22,8 @@
 package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Option;
-import com.sun.fortress.interpreter.nodes.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.evaluator.ProgramError;

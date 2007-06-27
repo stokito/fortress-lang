@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
 
 // / and simple_type_param = simple_type_param_rec node

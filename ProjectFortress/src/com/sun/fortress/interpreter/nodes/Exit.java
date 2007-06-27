@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.Option;
+
 // / and exit_expr = exit_expr_rec node
 // / and exit_expr_rec =
 // / {

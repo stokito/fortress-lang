@@ -15,8 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.useful;
 
+import com.sun.fortress.interpreter.nodes.*;
 import java.util.List;
 
 public class Some<T> extends Option<T> {

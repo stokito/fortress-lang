@@ -44,7 +44,7 @@ import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.GenericDefOrDeclWithParams;
 import com.sun.fortress.interpreter.nodes.HasParams;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
-import com.sun.fortress.interpreter.nodes.Option;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.useful.GHashMap;
 import com.sun.fortress.interpreter.useful.HasAt;

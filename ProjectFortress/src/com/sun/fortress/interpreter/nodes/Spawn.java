@@ -17,6 +17,9 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
+
 // / and spawn_expr = spawn_expr_rec node
 // / and spawn_expr_rec =
 // / {
