@@ -69,8 +69,8 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public final void setParams(List<Parameter> params) {
         if (this.params != null) {
-            throw new IllegalStateException(
-                    "Attempted second set of constructor/function/method params");
+            throw new InterpreterError(this.getAt(),
+                    "Attempted second set of constructor/function/method params of "+this+" to "+params);
         }
 
         params = adjustParameterList(params);
@@ -213,7 +213,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                                     + " parameter " + i + " ("
                                     + param.getName() + ":"
                                     + paramType + ") got type "
-                                    + arg.type());
+                                    + arg.type() + " with arg "+ arg);
                 }
                 try {
                     if (param.getMutable()) {

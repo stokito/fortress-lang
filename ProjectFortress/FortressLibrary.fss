@@ -68,8 +68,9 @@ see here.
 
 (** Equality *)
 
-(* Eventually make = a functional method, once we have a proper object
-   hierarchy. *)
+(* Ideally equality will become a more ubiquitous funcitonal method.
+   Right now bugs mean equality is only a funcitonal method for the
+   Maybe type. *)
 opr =(a:Any, b:Any):Boolean = false
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
@@ -84,43 +85,87 @@ assert(flag: Boolean, failMsg: String): () =
         fail(failMsg)
     end
 
-assert[\A\](x:A, y:A, failMsg: String): () =
+assert(x:Any, y:Any, failMsg: String): () =
     if x =/= y then
         fail(x " =/= " y "; " failMsg)
     end
 
 (** Generator
+ *
+ * We say an object which extends Generator[\T\] "generates objects of
+ * type T."
+ *
+ * Generators are used to express iteration in Fortress.  Every
+ * generated expression in Fortress (eg for loop, comprehension) is
+ * desugared into calls to methods of Generator, chiefly the generate
+ * method.
+ *
+ * Every generator has a notion of a "natural order" (which might be
+ * unspecified), which describes the ordering of reduction operations,
+ * and also describes the order in which elements are produced by the
+ * sequential version of the same generator (given by the seq()
+ * method).
+ *
  * Note that more complex derived generators are specified further
- * down. *)
+ * down in the definition of Generator.
+ *)
 
 trait Generator[\E\]
     (* Minimal complete definition is the following two methods: *)
     getter size(): ZZ32
     getter empty(): Boolean = size()=0
-    generate[\R\](r: Reduction[\R\], m: E->R): R
 
-    (* Combining generators to produce new generators *)
+    (** generate is the core of Generator.  It generates elements of
+        type E and passes them to the body function.  This generation
+        can occur using any mixture of serial and parallel execution
+        desired by the author of the generator; programmers must
+        assume every call to the body occurs in parallel.
+
+        The results of generation are combined using the reduction
+        object R, which specifies a monoidal operation (associative
+        and with an identity).  Body results must be combined together
+        following the natural order of the generator.  The author of
+        the generator is free to use the identity element anywhere
+        desired in this computation; if no elements are generated the
+        identity must be returned. *)
+    generate[\R\](r: Reduction[\R\], body: E->R): R
+
+    (** Transforming generators into new generators *)
+    (** map applies a function f to each element generated and yields
+        the result. *)
     map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
-    seq(): Generator[\E\] = NaiveSeqGenerator[\E\](self)
-        (* You might think this should yield SequentialGenerator[\E\],
-           but that turns out not to be true for SimpleMappedGenerator
-           and SimplePairGenerator in the absence of conditional
-           extension or where clauses. *)
+    (** seq produces a sequential version of the same generator, in
+        which elements are produced in the generator's natural order. *)
+    seq(): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+    (** Cross product of two generators.  This is specifically
+        designed to be overloaded, such that pairs of independent
+        generators can be combined to produce a generator which
+        possibly interleaves the iteration spaces of the two
+        generators.  For example, we might combine (0#16).cross(0#32)
+        such that it first splits the second range in half, then the
+        first range in half, then the second, and so forth. *)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         SimplePairGenerator[\E,G\](self, g)
 
-    (* Derived generation operations *)
-    mapReduce[\R\](m: E->R, j:(R,R)->R, z:R): R =
-        generate[\R\](MapReduceReduction[\R\](j,z), m)
+    (** Derived generation operations *)
+    (** mapReduce is equivalent to generate, but takes an explicit join
+    and zero which can have any type.  It still assumes join is
+    associative and that zero is the identity of join. *)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
+        generate[\R\](MapReduceReduction[\R\](join,zero), body)
+    (** reduce works much like generate or mapReduce, but has no body expression *)
     reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
     reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
+    (** loop is a version of generate which discards the void results
+        of the body computation.  It is used to translated
+        reduction-variable-free for loops. *)
     loop(f:E->()): () = generate[\()\](VoidReduction, f)
 end
 
 (* Operations which use generation internally.  Should be functional methods. *)
 opr IN[\E\](x: E, this: Generator[\E\]): Boolean =
     this.generate[\Boolean\](OrReduction, fn (y: E) => x=y)
-opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN self)
+opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
 seq[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
 sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
@@ -1345,15 +1390,11 @@ opr :(lo:RR64, hi:RR64): Range[\RR64\] = ParRange[\RR64\](lo,hi-lo+1)
 
 opr [\ N extends Number \]|x:N| = if x>=0 then x else -x end
 
-opr -[\ T extends Number, nat n, nat m \]
-     (a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
-opr +[\ T extends Number, nat n, nat m \]
-     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
-opr -[\ T extends Number, nat n, nat m \]
-     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
+opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
+opr -(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
+opr DOT(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+opr juxtaposition
      (a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
 opr DIV(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
 opr REM(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
@@ -1388,15 +1429,11 @@ printTime(dummy: Any): () = do
     println("Operation took " secs "ms")
   end
 
-opr -[\ T extends Number, nat n, nat m \]
-     (a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
-opr +[\ T extends Number, nat n, nat m \]
-     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
-opr -[\ T extends Number, nat n, nat m \]
-     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr -(a: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
+opr +(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
+opr -(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
+opr DOT(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+opr juxtaposition
      (a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
 opr DIV(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
 opr REM(a: IntLiteral,b: IntLiteral): IntLiteral = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
@@ -1449,15 +1486,11 @@ opr   <(a:Integral, b:Integral):Boolean = NOT (b <= a)
 opr   >(a:Integral, b:Integral):Boolean = NOT (a <= b)
 opr  >=(a:Integral, b:Integral):Boolean = b <= a
 
-opr -[\ T extends Number, nat n, nat m \]
-     (a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
-opr +[\ T extends Number, nat n, nat m \]
-     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
-opr -[\ T extends Number, nat n, nat m \]
-     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+opr -(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
+opr +(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
+opr -(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
+opr DOT(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+opr juxtaposition
      (a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
 opr /(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
 opr =(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
@@ -1468,9 +1501,8 @@ opr >(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpret
 opr >=(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
 opr MIN(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
 opr MAX(a:Number, b:Number):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
-opr [\N extends Number\]|a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
-opr ^(a:Number, b:Number):RR64 = (*if a=e then exp(b) else pow(a,b) end
-pow(a:Number,b:Number):RR64 =*) builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+opr |a:RR64|:RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+opr ^(a:Number, b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
 opr SQRT(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
 sin(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
 cos(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
@@ -1487,36 +1519,27 @@ ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.pri
 opr |/a:Number\|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
 truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
-opr [\N extends Number\]|x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+opr |x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
 
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT(a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
      (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT(a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
      (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:Number, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT(a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
      (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:Number):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT(a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
      (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:Boolean, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
+opr DOT(a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
      (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:Any, b:String):String = a.toString() b
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:Any, b:String):String = a.toString() b
-opr DOT[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:Any):String = a b.toString()
-opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
-     (a:String, b:Any):String = a b.toString()
+opr DOT(a:Any, b:String):String = a.toString() b
+opr juxtaposition(a:Any, b:String):String = a.toString() b
+opr DOT(a:String, b:Any):String = a b.toString()
+opr juxtaposition(a:String, b:Any):String = a b.toString()
 opr =(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Eq")
 opr <(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Less")
 opr <=(a:String, b:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$LessEq")
@@ -1559,6 +1582,6 @@ opr NOT(a:Boolean):Boolean = if a then false else true end
 opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
 opr <->(a: Boolean, b:Boolean):Boolean = a=b
-opr +[\ T extends Number, nat n, nat m \](x:T) = x
+opr +[\T extends Number\](x:T) = x
 
 end
