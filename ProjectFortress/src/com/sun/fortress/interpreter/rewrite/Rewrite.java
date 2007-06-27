@@ -27,7 +27,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
 import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.NodeReflection;
+import com.sun.fortress.interpreter.nodes_util.NodeReflection;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.RewriteHackList;
 import com.sun.fortress.interpreter.useful.Some;

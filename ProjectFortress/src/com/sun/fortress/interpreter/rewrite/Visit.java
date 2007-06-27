@@ -22,7 +22,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import com.sun.fortress.interpreter.nodes.Node;
-import com.sun.fortress.interpreter.nodes.NodeReflection;
+import com.sun.fortress.interpreter.nodes_util.NodeReflection;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Pair;
