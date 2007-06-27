@@ -35,6 +35,7 @@
 	<property name="fj" location="${basedir}/third_party/FJ"/>
 	<property name="unicode" location="${basedir}/third_party/unicode"/>
     <property name="nodesPackage" value="${blahblahblah}/nodes"/>
+    <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
     <property name="nodes"  location="${src}/${nodesPackage}"/>
     <property name="nodesBuild" location="${build}/${nodesPackage}"/>
     <property name="parser"  location="${src}/${blahblahblah}/parser"/>
@@ -156,10 +157,11 @@
     <target name="checkVisitorsUptodate" depends="init, compileCommon">
         <condition property="visitors.uptodate">
             <and>
-                <uptodate srcfile="${nodes}/BaseNodeMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
+                <uptodate srcfile="${nodesUtil}/BaseNodeMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
                 <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/NodeVisitor.java"/>
                 <uptodate targetfile="${nodesBuild}/NodeVisitor.class">
                     <srcfiles dir="${nodes}" includes="**/*.java"/>
+                    <srcfiles dir="${nodesUtil}" includes="**/*.java"/>
                 </uptodate>
             </and>
         </condition>
@@ -170,7 +172,7 @@
             description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating visitors"/>
 
-        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes.BaseNodeMaker" fork="true">
+        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes_util.BaseNodeMaker" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
@@ -271,8 +273,8 @@
 	            <include name="${blahblahblah}/unicode/*.java"/>
 
 	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
-	            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
-	            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+	            <include name="${blahblahblah}/nodes_util/InterfaceMaker.java"/>
+	            <include name="${blahblahblah}/nodes_util/BaseNodeMaker.java"/>
 	        </javac>
 	    </target>
 
@@ -296,8 +298,8 @@
 	            <include name="${blahblahblah}/unicode/*.java"/>
 
 	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
-	            <include name="${blahblahblah}/nodes/InterfaceMaker.java"/>
-	            <include name="${blahblahblah}/nodes/BaseNodeMaker.java"/>
+	            <include name="${blahblahblah}/nodes_util/InterfaceMaker.java"/>
+	            <include name="${blahblahblah}/nodes_util/BaseNodeMaker.java"/>
 	        </javac>
 	    </target>
 
