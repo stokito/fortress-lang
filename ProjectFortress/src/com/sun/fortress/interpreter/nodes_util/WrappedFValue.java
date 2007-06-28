@@ -15,10 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes.*;
 
 /**
  * A WrappedFValue permits the interpreter to incorporate intermediate

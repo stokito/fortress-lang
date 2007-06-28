@@ -39,7 +39,7 @@ import com.sun.fortress.interpreter.nodes.UnpastingBind;
 import com.sun.fortress.interpreter.nodes.UnpastingDim;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
-import com.sun.fortress.interpreter.nodes.WrappedFValue;
+import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
 import com.sun.fortress.interpreter.useful.NI;
 
 

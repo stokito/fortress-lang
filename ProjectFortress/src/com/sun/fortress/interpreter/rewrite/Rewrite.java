@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.nodes.HasSomeExtraState;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes_util.NodeReflection;
 import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.nodes.RewriteHackList;
+import com.sun.fortress.interpreter.nodes_util.RewriteHackList;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Pair;

@@ -152,7 +152,7 @@ import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes.While;
-import com.sun.fortress.interpreter.nodes.WrappedFValue;
+import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MatchFailure;
 import com.sun.fortress.interpreter.useful.NI;

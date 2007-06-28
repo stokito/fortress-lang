@@ -45,7 +45,7 @@ public abstract class AbstractNode implements HasAt, Node {
         this.originalIfReplaced = rewriteFrom;
     }
 
-    AbstractNode() {
+    public AbstractNode() {
     }
 
     public void setInParentheses() {
@@ -115,7 +115,7 @@ public abstract class AbstractNode implements HasAt, Node {
     /**
      * The internal accept method, that all leaf nodes should implement.
      */
-    abstract <T> T acceptInner(NodeVisitor<T> v);
+    abstract public <T> T acceptInner(NodeVisitor<T> v);
 
     /**
      * @return Returns the span.

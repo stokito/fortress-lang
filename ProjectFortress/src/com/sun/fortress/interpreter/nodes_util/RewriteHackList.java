@@ -2,8 +2,9 @@
  * Created on May 4, 2007
  *
  */
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
+import com.sun.fortress.interpreter.nodes.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,17 +24,15 @@ public class RewriteHackList extends AbstractNode {
     transient private List<AbstractNode> nodes;
 
     @Override
-    <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T acceptInner(NodeVisitor<T> v) {
         return NI.<T>na("Instances of this helper class should never be spliced into an AST");
     }
 
     public RewriteHackList() {
-        super();
         nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
     public RewriteHackList(List<AbstractNode> n) {
-        super();
         nodes = n;
     }
 
