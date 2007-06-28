@@ -47,7 +47,7 @@ public class SubscriptAssign extends OprName {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forSubscriptAssign(this);
     }
 

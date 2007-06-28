@@ -53,7 +53,7 @@ public class Id extends AbstractNode implements Comparable<Id> {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forId(this);
     }
 

@@ -41,7 +41,7 @@ public class If extends FlowExpr {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forIf(this);
     }
 

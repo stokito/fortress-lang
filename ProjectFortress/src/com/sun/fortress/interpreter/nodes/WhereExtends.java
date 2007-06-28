@@ -40,7 +40,7 @@ public class WhereExtends extends WhereClause {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forWhereExtends(this);
     }
 

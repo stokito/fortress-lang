@@ -25,7 +25,7 @@ public class ListExpr extends Expr {
     List<Expr> elements;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forListExpr(this);
     }
 

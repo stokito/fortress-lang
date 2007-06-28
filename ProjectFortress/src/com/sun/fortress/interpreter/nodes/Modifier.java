@@ -70,7 +70,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierShared(this);
         }
     }
@@ -81,7 +81,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierStatic(this);
         }
     }
@@ -92,7 +92,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierTest(this);
         }
     }
@@ -104,7 +104,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierPrivate(this);
         }
     }
@@ -115,7 +115,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierValue(this);
         }
     }
@@ -126,7 +126,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierAtomic(this);
         }
     }
@@ -137,7 +137,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierIO(this);
         }
     }
@@ -148,7 +148,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierPure(this);
         }
     }
@@ -159,7 +159,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierOverrideM(this);
         }
     }
@@ -170,7 +170,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierWidens(this);
         }
     }
@@ -181,7 +181,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierGetter(this);
         }
     }
@@ -192,7 +192,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierSetter(this);
         }
     }
@@ -203,7 +203,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierAbstract(this);
         }
     }
@@ -214,7 +214,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierUnit(this);
         }
     }
@@ -225,7 +225,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierVar(this);
         }
     }
@@ -236,7 +236,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierHidden(this);
         }
     }
@@ -247,7 +247,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierSettable(this);
         }
     }
@@ -258,7 +258,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierWrapped(this);
         }
     }
@@ -269,7 +269,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierIn(this);
         }
     }
@@ -280,7 +280,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierOut(this);
         }
     }
@@ -291,7 +291,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierInOut(this);
         }
     }
@@ -302,7 +302,7 @@ public abstract class Modifier extends AbstractNode {
         }
 
         @Override
-        public <T> T acceptInner(NodeVisitor<T> v) {
+        public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierTransient(this);
         }
     }

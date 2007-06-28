@@ -116,7 +116,7 @@ public class Param extends AbstractNode implements
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forParam(this);
     }
 

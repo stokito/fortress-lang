@@ -33,7 +33,7 @@ public class Api extends CompilationUnit {
     List<? extends DefOrDecl> decls;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forApi(this);
     }
 

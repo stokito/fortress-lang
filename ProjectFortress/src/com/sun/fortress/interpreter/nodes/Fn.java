@@ -86,7 +86,7 @@ public class Fn extends ValueExpr implements Decl, Applicable {
     Expr body;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forFn(this);
     }
 

@@ -43,7 +43,7 @@ public class UnitVar extends AbstractNode implements Decl {
     boolean si;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forUnitVar(this);
     }
 

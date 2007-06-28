@@ -51,7 +51,7 @@ public class AliasedDottedId extends AbstractNode {
     public Option<DottedId> getAlias() { return alias; }
     
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return null;
     }

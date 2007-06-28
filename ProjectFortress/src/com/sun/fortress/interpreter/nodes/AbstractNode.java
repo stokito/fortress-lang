@@ -108,16 +108,9 @@ public abstract class AbstractNode implements HasAt, Node {
     public void outputHelp(TabPrintWriter writer) {}
 
     /**
-     * The externally accessible "accept" method for the vistor pattern
-     */
-    public final <T> T accept(NodeVisitor<T> v) {
-        return acceptInner(v);
-    }
-
-    /**
      * The internal accept method, that all leaf nodes should implement.
      */
-    abstract public <T> T acceptInner(NodeVisitor<T> v);
+    abstract public <T> T accept(NodeVisitor<T> v);
 
     /**
      * @return Returns the span.

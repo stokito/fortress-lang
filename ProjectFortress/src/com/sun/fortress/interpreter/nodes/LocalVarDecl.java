@@ -102,7 +102,7 @@ public class LocalVarDecl extends LetExpr {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return v.forLocalVarDecl(this);
     }

@@ -24,7 +24,7 @@ public class RewriteHackList extends AbstractNode {
     transient private List<AbstractNode> nodes;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return NI.<T>na("Instances of this helper class should never be spliced into an AST");
     }
 

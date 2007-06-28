@@ -48,7 +48,7 @@ public class VarRefExpr extends Expr implements LHS {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forVarRefExpr(this);
     }
 

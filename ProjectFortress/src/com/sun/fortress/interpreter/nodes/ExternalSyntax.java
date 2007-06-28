@@ -40,7 +40,7 @@ public class ExternalSyntax extends AbstractNode implements Decl, AbsDecl {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forExternalSyntax(this);
     }
 

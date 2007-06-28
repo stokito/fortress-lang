@@ -50,7 +50,7 @@ public class TupleExpr extends Expr {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forTupleExpr(this);
     }
 

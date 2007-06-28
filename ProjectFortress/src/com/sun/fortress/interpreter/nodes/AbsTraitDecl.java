@@ -55,7 +55,7 @@ public class AbsTraitDecl extends TraitDefOrDecl implements GenericDefOrDecl, Ab
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forAbsTraitDecl(this);
     }
 

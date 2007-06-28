@@ -50,7 +50,7 @@ public class TypeAlias extends WhereClause implements Decl {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forTypeAlias(this);
     }
 

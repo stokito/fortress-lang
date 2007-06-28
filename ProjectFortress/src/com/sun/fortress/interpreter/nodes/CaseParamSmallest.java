@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 public class CaseParamSmallest extends CaseParam {
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forCaseParamSmallest(this);
     }
 

@@ -33,6 +33,6 @@ public interface Decl extends DefOrDecl {
     // / ] node
     // /
 
-    abstract public <T> T acceptInner(NodeVisitor<T> v);
+    abstract public <T> T accept(NodeVisitor<T> v);
 
 }

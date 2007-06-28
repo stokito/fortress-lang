@@ -56,7 +56,7 @@ public class LetFn extends LetExpr {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forLetFn(this);
     }
 

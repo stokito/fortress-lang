@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 public class UnitDim extends DimType {
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forUnitDim(this);
     }
 

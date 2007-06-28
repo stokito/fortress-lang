@@ -93,7 +93,7 @@ public class VarDecl extends VarDefOrDecl implements Decl {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forVarDecl(this);
     }
 

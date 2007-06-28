@@ -25,7 +25,7 @@ public class PolyDim extends Indices {
     transient private final int seq;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forPolyDim(this);
     }
 

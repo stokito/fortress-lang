@@ -40,7 +40,7 @@ public class ExponentDim extends DimType {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forExponentDim(this);
     }
 

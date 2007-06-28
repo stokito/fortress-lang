@@ -41,7 +41,7 @@ public class AbsTypeAlias extends WhereClause implements AbsDecl {
     }
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forAbsTypeAlias(this);
     }
 

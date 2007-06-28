@@ -44,7 +44,7 @@ public class FnBind extends AbstractNode {
     Expr body;
 
     @Override
-    public <T> T acceptInner(NodeVisitor<T> v) {
+    public <T> T accept(NodeVisitor<T> v) {
         return v.forFnBind(this);
     }
 
