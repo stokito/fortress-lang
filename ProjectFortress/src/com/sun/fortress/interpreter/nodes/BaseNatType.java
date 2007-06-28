@@ -25,7 +25,7 @@ public class BaseNatType extends NatRef {
 
     public BaseNatType(Span span, IntLiteral value) {
         super(span);
-        this.value = value.value().intValue();
+        this.value = value.getVal().intValue();
     }
 
     @Override
@@ -38,7 +38,9 @@ public class BaseNatType extends NatRef {
     }
 
     /**
-     * @return Returns the value.
+     * 
+     * 
+     * @return Returns thegetVale.
      */
     public int getValue() {
         return value;

@@ -128,7 +128,7 @@ public abstract class NativeApp implements Applicable {
               arg instanceof StringLiteral)) return defn;
         VarRefExpr func = (VarRefExpr)fn;
         if (!func.getVar().getName().equals("builtinPrimitive")) return defn;
-        String str = ((StringLiteral)arg).value();
+        String str = ((StringLiteral)arg).getText();
         try {
             // System.err.println("Loading primitive class "+str);
             Class nativeAct = Class.forName(str);

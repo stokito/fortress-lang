@@ -823,7 +823,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // This is correct except for one minor detail:
         // We should treat names from another scope as if they were functions.
         // Right now we evaluate them and make the function/non-function
-        // distinction based on the resulting value.
+        // distinction based on the resulting getText.
         // We do not handle functional methods, and overlap therewith, at all.
         List<Expr> exprs = x.getExprs();
         FValue times = e.getValue("juxtaposition");
@@ -1049,7 +1049,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forStringLiteral(StringLiteral x) {
-        return new FStringLiteral(x.value());
+        return new FStringLiteral(x.getText());
     }
 
     public FValue forSubscriptAssign(SubscriptAssign x) {
@@ -1067,7 +1067,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
-        // Should evaluate obj.[](subs, value)
+        // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
             throw new ProgramError(obj, "Value should be an object; got " + arr);
@@ -1372,7 +1372,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forIntLiteral(IntLiteral x) {
-        return FIntLiteral.make(x.value());
+        return FIntLiteral.make(x.getVal());
     }
 
     public FValue forOprArg(OprArg x) {

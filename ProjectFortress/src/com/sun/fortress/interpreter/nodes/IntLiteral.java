@@ -97,7 +97,7 @@ public class IntLiteral extends NumberLiteral {
     public boolean equals(Object o) {
         if (o instanceof IntLiteral) {
             IntLiteral il = (IntLiteral) o;
-            return val.equals(il.value());
+            return val.equals(il.getVal());
         }
         return false;
     }
@@ -115,7 +115,7 @@ public class IntLiteral extends NumberLiteral {
         return v.forIntLiteral(this);
     }
 
-    public BigInteger value() {
+    public BigInteger getVal() {
         return val;
     }
 

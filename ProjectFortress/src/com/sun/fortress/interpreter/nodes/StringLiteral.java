@@ -48,11 +48,4 @@ public class StringLiteral extends Literal {
     public int hashCode() {
         return MagicNumbers.S * text.hashCode();
     }
-
-    /**
-     * @return Returns the name.
-     */
-    public String value() {
-        return getText();
-    }
 }

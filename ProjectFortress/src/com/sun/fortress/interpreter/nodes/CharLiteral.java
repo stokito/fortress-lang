@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 
 public class CharLiteral extends Literal {
 
-    public int value() {
+    public int getVal() {
         return val;
     }
 

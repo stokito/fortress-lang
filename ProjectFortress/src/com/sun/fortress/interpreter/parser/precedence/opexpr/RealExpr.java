@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.nodes.VarRefExpr;
 
 /**
  * Class RealExpr, a component of the OpExpr composite hierarchy.
- * Note: null is not allowed as a value for any field.
+ * Note: null is not allowed as a getVal for any field.
  */
 public class RealExpr extends Object implements InfixOpExpr {
    private final Expr _expr;
@@ -77,7 +77,7 @@ public class RealExpr extends Object implements InfixOpExpr {
          writer.print("null");
       } else {
    if (temp_expr instanceof IntLiteral) {
-      writer.print(((IntLiteral)temp_expr).value().intValue());
+      writer.print(((IntLiteral)temp_expr).getVal().intValue());
    } else if (temp_expr instanceof VarRefExpr) {
       writer.print(((VarRefExpr)temp_expr).getVar().getName());
    } else if (temp_expr instanceof OprExpr) {
@@ -106,11 +106,11 @@ public class RealExpr extends Object implements InfixOpExpr {
    }
 
    /**
-    * Implementation of hashCode that is consistent with
-    * equals. The value of the hashCode is formed by
-    * XORing the hashcode of the class object with
-    * the hashcodes of all the fields of the object.
-    */
+     * Implementation of hashCode that is consistent with
+     * equals. The getVal of the hashCode is formed by
+     * XORing the hashcode of the class object with
+     * the hashcodes of all the fields of the object.
+     */
    protected int generateHashCode() {
       int code = getClass().hashCode();
       code ^= getExpr().hashCode();
