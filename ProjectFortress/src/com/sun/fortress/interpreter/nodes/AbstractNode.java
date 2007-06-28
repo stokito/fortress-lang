@@ -105,6 +105,8 @@ public abstract class AbstractNode implements HasAt, Node {
         p.dump(this, appendable, 0);
     }
 
+    public void outputHelp(TabPrintWriter writer) {}
+
     /**
      * The externally accessible "accept" method for the vistor pattern
      */
@@ -138,4 +140,16 @@ public abstract class AbstractNode implements HasAt, Node {
     public int selfParameterIndex() {
         return -1;
     }
+
+  private int _hashCode;
+  private boolean _hasHashCode = false;
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    return code;
+  }
+  public int hashCode() {
+    if (! _hasHashCode) { _hashCode = generateHashCode(); _hasHashCode = true; }
+    return _hashCode;
+  }
 }

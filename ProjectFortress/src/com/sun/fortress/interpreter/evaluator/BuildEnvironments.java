@@ -91,6 +91,7 @@ import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.nodes.WhereExtends;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
@@ -238,7 +239,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
             Option<List<StaticParam>> staticParams = x.getStaticParams();
             Id name = x.getName();
-            
+
             if (staticParams.isPresent()) {
 
             } else {
@@ -257,7 +258,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         public Voidoid forTraitDecl(TraitDecl x) {
             Option<List<StaticParam>> staticParams = x.getStaticParams();
             Id name = x.getName();
-            
+
             if (staticParams.isPresent()) {
 
             } else {
@@ -273,7 +274,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             acceptNode(def);
         }
     }
-    
+
     /*
      * (non-Javadoc)
      *
@@ -342,7 +343,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         BetterEnv into = ftt.getMembers();
         BetterEnv forTraitMethods = ftt.getMethodExecutionEnv();
         List<? extends DefOrDecl> defs = ftt.getASTmembers();
-        
+
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, fields);
 
@@ -704,7 +705,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // Create a little expression to run the constructor.
                 Expr init = new TightJuxt(x.getSpan(),
                         new VarRefExpr(x.getSpan(), obfuscated(fname)),
-                        new VoidLiteral(x.getSpan()));
+                        NodeFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, sname, init_value);
 
@@ -721,7 +722,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             List<? extends DefOrDecl> defs) {
         scanForFunctionalMethodNames(x, defs, false);
     }
-    
+
     public void scanForFunctionalMethodNames(
             FType x,
             List<? extends DefOrDecl> defs,
@@ -741,7 +742,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     // TODO this is not good enough, nesting of object expressions
                     // may mess us up.  Actually -- it may not, it looks like
                     // implicit type parameters are made explicit.
-                    
+
                     //if (x.getStaticParams().isPresent()) {
                     if (x instanceof FTypeGeneric) {
                         cl = new OverloadedFunction(fndod.getFnName(), containing);
@@ -749,9 +750,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                         // Note that the instantiation of a generic comes here too
                         cl = new FunctionalMethod(containing, fndod, spi, x);
                     }
-                    
+
                     // TODO test and other modifiers
-                    
+
                     // Traits and objects are already defined at the top level
                     // Instantiated generics are intended to hit the overloaded
                     // function from the top level, and enhance it with this new
@@ -1314,7 +1315,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         EvalType et = processWhereClauses(wheres, interior);
         ftt.setExtendsAndExcludes(et.getFTypeListFromOptionList(extends_), et
                 .getFTypeListFromList(excludes), interior);
-    
+
     }
 
     /*

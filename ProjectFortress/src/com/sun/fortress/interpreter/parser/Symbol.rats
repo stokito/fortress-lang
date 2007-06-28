@@ -30,16 +30,16 @@ import Keyword;
 option setOfString(FORTRESS_KEYWORDS);
 
 Op Encloser = a1:encloser
-     { yyValue = new Op(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 Op LeftEncloser = a1:leftEncloser
-     { yyValue = new Op(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 Op RightEncloser = a1:rightEncloser
-     { yyValue = new Op(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 Op ExponentOp = a1:exponentOp
-     { yyValue = new Op(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 transient void bar = &("|" wr GeneratorList closingComprehension) "|";
 private transient void closingComprehension =
@@ -101,7 +101,7 @@ private String OpName =
 
 Op Op =
      a1:(op !(equalsOp) / compOp)
-     { yyValue = new Op(createSpan(yyStart, yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
 
 String compOp =
      "==="
@@ -139,7 +139,7 @@ String op =
 
 Op CompoundOp =
      a1:op equalsOp
-     { yyValue = new Op(createSpan(yyStart, yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
 
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
@@ -194,8 +194,10 @@ transient String accumulator = "SUM" / "PROD" ;
 
 /* Accumulator ::= SUM | PROD | BIG w Op */
 Op Accumulator =
-     "SUM":accumulator  { yyValue = new Op(createSpan(yyStart,yyCount), "+"); }
-   / "PROD":accumulator { yyValue = new Op(createSpan(yyStart,yyCount), "DOT"); }
+     "SUM":accumulator
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "+"); }
+   / "PROD":accumulator
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "DOT"); }
    / BIG w Op ;
 
 /* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */

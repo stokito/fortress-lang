@@ -410,7 +410,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),rcv,a1);
                if (a2 != null)
                    mth = new TypeApply(createSpan(yyStart,yyCount), mth, a2);
-               return PureList.make(new VoidLiteral(a1.getSpan()), mth);
+               return PureList.make(NodeFactory.makeVoidLiteral(a1.getSpan()), mth);
            }};
      };
 
@@ -436,7 +436,7 @@ constant inline Action<PureList<Expr>> ExponentExpr =
                    Expr last = ((Cons<Expr>)primary).getFirst();
                    PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
                    Span span = FortressUtil.spanTwo(last, a2);
-                   Op op = new Op(createSpan(yyStart,yyCount), a1);
+                   Op op = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1);
                    return rest.cons(ASTUtil.infix(span, last, op, a2));
                }
            }};
@@ -467,7 +467,7 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
    / openparen w closeparen
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
-               return base.cons(new VoidLiteral(createSpan(yyStart,yyCount)));
+               return base.cons(NodeFactory.makeVoidLiteral(createSpan(yyStart,yyCount)));
            }};
      }
    / a1:Primary

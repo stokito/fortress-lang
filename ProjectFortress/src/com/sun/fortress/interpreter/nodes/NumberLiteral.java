@@ -17,41 +17,31 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.Unicode;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class NumberLiteral extends Literal {
+
+  /**
+   * Constructs a NumberLiteral.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public NumberLiteral(Span in_span, String in_text) {
+    super(in_span, in_text);
+  }
 
     public NumberLiteral(Span span) {
         super(span);
     }
 
-    public NumberLiteral(Span span, String s) {
-        super(span, s);
-    }
-
-    @Override
-    public String getText() {
-        return text;
-    }
-
-    static String dozenalHack(String digits, int base) {
-        if (base == 12 && Unicode.charactersOverlap(digits, "xXeE")) {
-            digits = digits.replace('x', 'A');
-            digits = digits.replace('X', 'A');
-            digits = digits.replace('e', 'B');
-            digits = digits.replace('E', 'B');
-        }
-        return digits;
-    }
-
-    abstract BigInteger intPart();
-
-    abstract BigInteger numerator();
-
-    abstract int denominatorBase();
-
-    abstract int denominatorPower();
-
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }

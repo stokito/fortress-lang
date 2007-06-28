@@ -17,140 +17,47 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.Unicode;
+import java.io.IOException;
 import java.math.BigInteger;
-
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public class FloatLiteral extends NumberLiteral {
+  private final BigInteger _intPart;
+  private final BigInteger _numerator;
+  private final int _denomBase;
+  private final int _denomPower;
 
-    /*
-     * The value of the literal is intPart + numerator / (denomBase^denomPower).
-     * Literals with zero fraction part are canonically num=0, base=1, power=0
-     */
+  /**
+   * Constructs a FloatLiteral.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public FloatLiteral(Span in_span, String in_text, BigInteger in_intPart, BigInteger in_numerator, int in_denomBase, int in_denomPower) {
+    super(in_span, in_text);
 
-    BigInteger intPart;
-
-    BigInteger numerator;
-
-    int denomBase;
-
-    int denomPower;
-
-    public FloatLiteral(Span span, String s) {
-        super(span, s);
-        decode(s);
+    if (in_intPart == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'intPart' to the FloatLiteral constructor was null. This class may not have null field values.");
     }
+    _intPart = in_intPart;
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof FloatLiteral) {
-            FloatLiteral fl = (FloatLiteral) o;
-            return denomBase == fl.denominatorBase()
-                    && denomPower == fl.denominatorPower()
-                    && numerator.equals(fl.numerator())
-                    && intPart.equals(fl.intPart());
-
-        }
-        return false;
+    if (in_numerator == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'numerator' to the FloatLiteral constructor was null. This class may not have null field values.");
     }
+    _numerator = in_numerator;
+    _denomBase = in_denomBase;
+    _denomPower = in_denomPower;
+  }
 
-    @Override
-    public int hashCode() {
-        return MagicNumbers.n * numerator().hashCode() + MagicNumbers.i
-                * intPart().hashCode() + MagicNumbers.B * denominatorBase()
-                + MagicNumbers.p * denominatorPower();
-    }
-
-    /**
-     * @param s
-     */
-    public void decode(String s) {
-
-        // Trim leading zeroes
-        while (s.length() > 1 && s.charAt(0) == '0') {
-            s = s.substring(1);
-        }
-
-        int dotLoc = s.indexOf('.');
-        int underLoc = s.indexOf('_');
-
-        if (dotLoc == -1) {
-            // No fraction part.
-            numerator = BigInteger.ZERO;
-            denomBase = 1;
-            denomPower = 0;
-            int base;
-            String digits;
-
-            if (underLoc == -1) {
-                digits = s;
-                base = 10;
-            } else {
-                digits = s.substring(0, underLoc);
-                // Base other, no ".", parse as BigInteger and convert.
-                String base_digits = s.substring(underLoc + 1);
-
-                if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                    base = Unicode.numberToValue(base_digits);
-                } else {
-                    base = Integer.parseInt(base_digits);
-                }
-            }
-            digits = dozenalHack(digits, base);
-            intPart = new BigInteger(digits, base);
-
-        } else {
-            // There is a fraction part.
-
-            int base;
-
-            if (underLoc == -1) {
-                base = 10;
-                underLoc = s.length();
-            } else {
-                String base_digits = s.substring(underLoc + 1);
-                if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                    base = Unicode.numberToValue(base_digits);
-                } else {
-                    base = Integer.parseInt(base_digits);
-                }
-            }
-            {
-                String digits = s.substring(0, dotLoc);
-                if (digits.length() > 0) {
-                    digits = dozenalHack(digits, base);
-                    intPart = new BigInteger(digits, base);
-                } else {
-                    intPart = BigInteger.ZERO;
-                }
-
-                digits = s.substring(dotLoc + 1, underLoc);
-
-                // TODO Getting the rounding and overflow dead right is hard.
-                while (digits.length() > 1 && digits.endsWith("0")) {
-                    digits = digits.substring(0, digits.length() - 1);
-                }
-
-                if (digits.length() == 0 || "0".equals(digits)) {
-                    numerator = BigInteger.ZERO;
-                    denomBase = 1;
-                    denomPower = 0;
-
-                } else {
-                    digits = dozenalHack(digits, base);
-                    numerator = new BigInteger(digits, base);
-                    denomBase = base;
-                    denomPower = digits.length();
-                }
-            }
-        }
-    }
-
-    public FloatLiteral(Span span) {
-        super(span);
+    public FloatLiteral(Span in_span) {
+        super(in_span);
+        _intPart = null;
+        _numerator = null;
+        _denomBase = 0;
+        _denomPower = 0;
     }
 
     @Override
@@ -158,27 +65,114 @@ public class FloatLiteral extends NumberLiteral {
         return v.forFloatLiteral(this);
     }
 
-    @Override
-    BigInteger intPart() {
-        return intPart;
+  final public BigInteger getIntPart() { return _intPart; }
+  final public BigInteger getNumerator() { return _numerator; }
+  final public int getDenomBase() { return _denomBase; }
+  final public int getDenomPower() { return _denomPower; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forFloatLiteral(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forFloatLiteral(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("FloatLiteral" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
 
-    @Override
-    BigInteger numerator() {
-        // TODO Auto-generated method stub
-        return numerator;
+    writer.startLine("");
+    writer.print("text = ");
+    String temp_text = getText();
+    if (temp_text == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_text);
     }
 
-    @Override
-    int denominatorBase() {
-        // TODO Auto-generated method stub
-        return denomBase;
+    writer.startLine("");
+    writer.print("intPart = ");
+    BigInteger temp_intPart = getIntPart();
+    if (temp_intPart == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_intPart);
     }
 
-    @Override
-    int denominatorPower() {
-        // TODO Auto-generated method stub
-        return denomPower;
+    writer.startLine("");
+    writer.print("numerator = ");
+    BigInteger temp_numerator = getNumerator();
+    if (temp_numerator == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_numerator);
     }
 
+    writer.startLine("");
+    writer.print("denomBase = ");
+    int temp_denomBase = getDenomBase();
+    writer.print(temp_denomBase);
+
+    writer.startLine("");
+    writer.print("denomPower = ");
+    int temp_denomPower = getDenomPower();
+    writer.print(temp_denomPower);
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      FloatLiteral casted = (FloatLiteral) obj;
+      if (! (getIntPart().equals(casted.getIntPart()))) return false;
+      if (! (getNumerator().equals(casted.getNumerator()))) return false;
+      if (! (getDenomBase() == casted.getDenomBase())) return false;
+      if (! (getDenomPower() == casted.getDenomPower())) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= getIntPart().hashCode();
+    code ^= getNumerator().hashCode();
+    code ^= getDenomBase();
+    code ^= getDenomPower();
+    return code;
+  }
 }

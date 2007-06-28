@@ -23,7 +23,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.useful.Pair;
 
 
-public class MapExpr extends Literal {
+public class MapExpr extends Expr {
 
     List<Pair<Expr, Expr>> elements;
 

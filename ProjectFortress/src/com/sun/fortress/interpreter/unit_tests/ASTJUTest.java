@@ -145,11 +145,11 @@ public class ASTJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
         }
     }
 
-    public void testDecodeIntLiteral() {
-        Assert.assertEquals(IntLiteral.decode("10_16").intValue(), 16);
-        Assert.assertEquals(IntLiteral.decode("10_SIXTEEN").intValue(), 16);
-        Assert.assertEquals(IntLiteral.decode("FF_SIXTEEN").intValue(), 255);
-    }
+    // public void testDecodeIntLiteral() {
+    //     Assert.assertEquals(IntLiteral.decode("10_16").intValue(), 16);
+    //     Assert.assertEquals(IntLiteral.decode("10_SIXTEEN").intValue(), 16);
+    //     Assert.assertEquals(IntLiteral.decode("FF_SIXTEEN").intValue(), 255);
+    // }
 
 //    public void testDecodeFloatLiteral() {
 //        Assert.assertEquals(FloatLiteral.decode("10_16"), 16.0);

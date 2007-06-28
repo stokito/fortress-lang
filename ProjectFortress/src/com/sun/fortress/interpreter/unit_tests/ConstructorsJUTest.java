@@ -29,9 +29,7 @@ import com.sun.fortress.interpreter.nodes.FloatLiteral;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.IntLiteral;
-import com.sun.fortress.interpreter.nodes_util.SourceLoc;
-import com.sun.fortress.interpreter.nodes_util.SourceLocRats;
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.nodes.StringLiteral;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
@@ -162,24 +160,24 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
 
         een(sl1, sl2, sl3);
 
-        IntLiteral il1 = new IntLiteral(span1, "123");
-        IntLiteral il2 = new IntLiteral(span2, "123");
-        IntLiteral il3 = new IntLiteral(span1, "124");
+        IntLiteral il1 = NodeFactory.makeIntLiteral(span1, "123");
+        IntLiteral il2 = NodeFactory.makeIntLiteral(span2, "123");
+        IntLiteral il3 = NodeFactory.makeIntLiteral(span1, "124");
 
         een(il1, il2, il3);
 
-        IntLiteral il4 = new IntLiteral(span1, new BigInteger("123"));
+        IntLiteral il4 = NodeFactory.makeIntLiteral(span1, new BigInteger("123"));
 
         Assert.assertEquals(il1, il4);
 
-        FloatLiteral fl1 = new FloatLiteral(span1, "123");
-        FloatLiteral fl2 = new FloatLiteral(span2, "123");
-        FloatLiteral fl3 = new FloatLiteral(span1, "124");
+        FloatLiteral fl1 = NodeFactory.makeFloatLiteral(span1, "123");
+        FloatLiteral fl2 = NodeFactory.makeFloatLiteral(span2, "123");
+        FloatLiteral fl3 = NodeFactory.makeFloatLiteral(span1, "124");
         een(fl1, fl2, fl3);
 
         nnn(sl1, il1, fl1);
 
-        FloatLiteral fl4 = new FloatLiteral(span1, "123.0");
+        FloatLiteral fl4 = NodeFactory.makeFloatLiteral(span1, "123.0");
         Assert.assertEquals(fl1, fl4);
     }
 
@@ -190,11 +188,11 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
     }
     IntLiteral newInt(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
-        return new IntLiteral(span1, s);
+        return NodeFactory.makeIntLiteral(span1, s);
     }
     FloatLiteral newFloat(String s) {
         Span span1 = newSpan("emu", 1, 2, 3);
-        return new FloatLiteral(span1, s);
+        return NodeFactory.makeFloatLiteral(span1, s);
     }
 
     public void testVarRef() {
@@ -232,8 +230,8 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
     public void testVoid() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        VoidLiteral v1 = new VoidLiteral(span1);
-        VoidLiteral v2 = new VoidLiteral(span2);
+        VoidLiteral v1 = NodeFactory.makeVoidLiteral(span1);
+        VoidLiteral v2 = NodeFactory.makeVoidLiteral(span2);
         Assert.assertEquals(v1, v2);
     }
 

@@ -17,10 +17,21 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-/** Something that can accept a NodeVisitor. This allows interfaces like LHS to
-  * be treated the same as Nodes.  (LHS can't extend Node, because Node is an abstract
-  * class.)
-  */
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
+
 public interface Node {
+
     public <T> T accept(NodeVisitor<T> v);
+    /*
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public void visit(NodeVisitor_void visitor);
+  public void outputHelp(TabPrintWriter writer);
+    */
 }

@@ -17,23 +17,40 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class Literal extends Expr {
+  private final String _text;
 
-    String text;
+  /**
+   * Constructs a Literal.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Literal(Span in_span, String in_text) {
+    super(in_span);
 
-    public String getText() {
-        return text;
+    if (in_text == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'text' to the Literal constructor was null. This class may not have null field values.");
     }
+    _text = ((in_text == null) ? null : in_text.intern());
+  }
 
     public Literal(Span span) {
         super(span);
+        _text = null;
     }
 
-    public Literal(Span span, String text) {
-        super(span);
-        this.text = text;
-    }
+  public String getText() { return _text; }
 
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }

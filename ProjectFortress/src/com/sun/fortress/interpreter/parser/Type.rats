@@ -266,7 +266,7 @@ private StaticArg StaticArgFront =
 ************************************************ */
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
-       StaticArg one = new BaseNatType(span, new IntLiteral(span, "1"));
+       StaticArg one = new BaseNatType(span, NodeFactory.makeIntLiteral(span, "1"));
        yyValue = new QuotientType(createSpan(yyStart,yyCount), one, a1);
      }
 /* ************************************************

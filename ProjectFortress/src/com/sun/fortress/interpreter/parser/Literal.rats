@@ -33,7 +33,7 @@ import Spacing;
  */
 Expr Literal =
      openparen w closeparen
-     { yyValue = new VoidLiteral(createSpan(yyStart,yyCount)); }
+     { yyValue = NodeFactory.makeVoidLiteral(createSpan(yyStart,yyCount)); }
    / NumericLiteral
    / CharLiteral
    / StringLiteral
@@ -74,15 +74,15 @@ NumberLiteral NumericLiteral =
    / IntLiteral ;
 
 transient FloatLiteral FloatLiteral = a1:DigitString dot a2:DigitString
-     { yyValue = new FloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
+     { yyValue = NodeFactory.makeFloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
 
 transient IntLiteral IntLiteral = a1:DigitString
-     { yyValue = new IntLiteral(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeIntLiteral(createSpan(yyStart,yyCount), a1); };
 
 private transient String DigitString = [0-9]+;
 
 CharLiteral CharLiteral = "'" a1:CharLiteralContent "'"
-     { yyValue = new CharLiteral(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeCharLiteral(createSpan(yyStart,yyCount), a1); };
 
 StringLiteral StringLiteral = ["] a1:StringLiteralContent* ["]
      { String str = "";
