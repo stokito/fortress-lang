@@ -270,7 +270,7 @@ Comprehension Comprehension =
      { yyValue = new ListComprehension(createSpan(yyStart,yyCount), a2, a1); }
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
        w closesquare
-     { List<RectCompClause> clauses = FortressUtil.mkList(a1, a2s.list());
+     { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a1, a2s.list());
        yyValue = new RectComprehension(createSpan(yyStart,yyCount), clauses);
      };
 

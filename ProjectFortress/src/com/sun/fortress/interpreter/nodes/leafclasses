@@ -25,6 +25,7 @@ AliasedDottedId
 AliasedName
 Api
 Apply
+ArrayComprehensionClause
 ArrayType
 ArrowType
 AsExpr
@@ -134,7 +135,6 @@ ProductNatType
 PropertyDecl
 QuotientDim
 QuotientType
-RectCompClause
 RectComprehension
 RestType
 SetComprehension

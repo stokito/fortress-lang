@@ -21,9 +21,9 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import java.util.List;
 
 public class RectComprehension extends Comprehension {
-    List<RectCompClause> clauses;
+    List<ArrayComprehensionClause> clauses;
 
-    public RectComprehension(Span span, List<RectCompClause> clauses) {
+    public RectComprehension(Span span, List<ArrayComprehensionClause> clauses) {
         super(span);
         this.clauses = clauses;
     }
@@ -40,7 +40,7 @@ public class RectComprehension extends Comprehension {
     /**
      * @return Returns the clauses.
      */
-    public List<RectCompClause> getClauses() {
+    public List<ArrayComprehensionClause> getClauses() {
         return clauses;
     }
 }

@@ -199,8 +199,8 @@ Op Accumulator =
    / BIG w Op ;
 
 /* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
-RectCompClause ArrayComprehensionClause =
+ArrayComprehensionClause ArrayComprehensionClause =
      a1:ArrayComprehensionLeft wr bar wr a2:GeneratorList
-     { yyValue = new RectCompClause(createSpan(yyStart,yyCount), a1.getA(),
-                                    a1.getB(), a2);
+     { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
+                                              a1.getA(), a1.getB(), a2);
      };
