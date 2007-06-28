@@ -29,6 +29,7 @@ import junit.framework.TestSuite;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.WireTappedPrintStream;
 
@@ -70,34 +71,41 @@ public class FileTests {
                     String tmpFile = "/tmp/" + s + ".ast";
                     String fssFile = f + ".fss";
                     Annotations anns = new Annotations(fssFile);
-                    CompilationUnit p;
-                    p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
-                    if (p == null) { throw new Exception("Syntax error"); }
-                    if (Driver.check(p).hasErrors()) { throw new Exception("Static error"); }
-
-                    if (anns.compile) {
-                        // oldOut.print(" COMPILING"); oldOut.flush();
-                        Driver.evalComponent(p);
+                    Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
+  
+                    if (! _p.isPresent()) { 
+                        throw new Exception("Syntax error"); 
                     }
                     else {
-                        // oldOut.print(" RUNNING"); oldOut.flush();
-                        if (!failsOnly) System.out.println();
-                        if (name.equals("tennisRanking")) {
-                            ArrayList<String> args = new ArrayList<String>();
-                            args.add(dir + "/tennis050307");
-                            args.add(dir + "/tennis051707");
-                            args.add(dir + "/tennisGames");
-                            Driver.runProgram(p, true, args);
-                        } else {
-                            Driver.runProgram(p, true, new ArrayList<String>());
+                        CompilationUnit p = _p.getVal();
+                        if (Driver.check(p).hasErrors()) { throw new Exception("Static error"); }
+                        
+                        if (anns.compile) {
+                            // oldOut.print(" COMPILING"); oldOut.flush();
+                            Driver.evalComponent(p);
+                        }
+                        else {
+                            // oldOut.print(" RUNNING"); oldOut.flush();
+                            if (!failsOnly) System.out.println();
+                            if (name.equals("tennisRanking")) {
+                                ArrayList<String> args = new ArrayList<String>();
+                                args.add(dir + "/tennis050307");
+                                args.add(dir + "/tennis051707");
+                                args.add(dir + "/tennisGames");
+                                Driver.runProgram(p, true, args);
+                            } 
+                            else {
+                                Driver.runProgram(p, true, new ArrayList<String>());
+                            }
                         }
                     }
-
-                } finally {
+                } 
+                finally {
                     System.setErr(oldErr);
                     System.setOut(oldOut);
                 }
-            } catch (Throwable ex) {
+            } 
+            catch (Throwable ex) {
                 if (f.contains("XXX")) {
                     wt_err.flush(false);
                     wt_out.flush(false);
@@ -107,7 +115,8 @@ public class FileTests {
                     exFirstLine = exFirstLine.substring(0, crLoc);
                     System.out.println(" OK Saw expected exception");
                     return;
-                } else {
+                } 
+                else {
                     // Unexpected
                     if (failsOnly) System.out.println();
                     wt_err.flush(true);

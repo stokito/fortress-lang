@@ -27,6 +27,7 @@ import junit.framework.TestSuite;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.TcWrapper;
 
@@ -39,10 +40,16 @@ public class TypeCheckerJUTest extends TcWrapper {
     
     private void checkErrorCount(String filePrefix, int expectedCount) throws IOException {
         String fileName = "type_errors" + File.separator + filePrefix + ".fss";
-        CompilationUnit c = Driver.parseToJavaAst(fileName);
-        TypeCheckerResult result = TypeChecker.check(c);
+        Option<CompilationUnit> c = Driver.parseToJavaAst(fileName);
         
-        assertEquals("Incorrect number of static errors reported for " + filePrefix + ".fss.", expectedCount, result.errorCount());
+        if (c.isPresent()) {
+            TypeCheckerResult result = TypeChecker.check(c.getVal());
+            assertEquals("Incorrect number of static errors reported for " + filePrefix + ".fss.", 
+                         expectedCount, result.errorCount());
+        }
+        else {
+            fail("Problem parsing file " + filePrefix + ".fss");
+        }
     }
     
     public void testUndefinedVar() throws IOException { checkErrorCount("UndefinedVar", 1); }

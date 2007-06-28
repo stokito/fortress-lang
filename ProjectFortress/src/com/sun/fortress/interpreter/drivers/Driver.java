@@ -61,7 +61,6 @@ import com.sun.fortress.interpreter.nodes.ImportFrom;
 import com.sun.fortress.interpreter.nodes.ImportNames;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.Name;
-import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes_util.Printer;
 import com.sun.fortress.interpreter.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.parser.Fortress;
@@ -72,6 +71,9 @@ import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.PureList;
 import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.Visitor2;
 import com.sun.fortress.interpreter.typechecker.TypeChecker;
@@ -91,14 +93,12 @@ public class Driver {
     public final static String API_SOURCE_SUFFIX = "fsi";
     public final static String API_TREE_SUFFIX = "tfi";
 
-    private Driver() {
-    };
+    private Driver() {};
 
-    public static CompilationUnit readJavaAst(String fileName)
+    public static Option<CompilationUnit> readJavaAst(String fileName)
             throws IOException {
         BufferedReader br = Useful.utf8BufferedFileReader(fileName);
         return readJavaAst(fileName, br);
-
     }
 
     /**
@@ -106,15 +106,19 @@ public class Driver {
      * @param br
      * @throws IOException
      */
-    public static CompilationUnit readJavaAst(String reportedFileName,
-            BufferedReader br) throws IOException {
+    public static Option<CompilationUnit>
+        readJavaAst(String reportedFileName, BufferedReader br) 
+        throws IOException 
+    {
         Lex lex = new Lex(br);
         try {
             Unprinter up = new Unprinter(lex);
             lex.name();
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            return p;
-        } finally {
+            if (p == null) { return new None<CompilationUnit>(); }
+            else { return new Some<CompilationUnit>(p); }
+        } 
+        finally {
             if (!lex.atEOF())
                 System.out.println("Parse of " + reportedFileName
                         + " ended EARLY at line = " + lex.line()
@@ -122,32 +126,39 @@ public class Driver {
         }
     }
 
-    public static CompilationUnit parseToJavaAst(String reportedFileName,
-            BufferedReader in) throws IOException {
-        Fortress p = new Fortress(in, reportedFileName, (int) new File(
-                reportedFileName).length());
+    public static Option<CompilationUnit> parseToJavaAst (
+            String reportedFileName, BufferedReader in
+        ) 
+        throws IOException 
+    {
+        Fortress p = 
+            new Fortress(in, 
+                         reportedFileName, 
+                         (int) new File(reportedFileName).length());
         Result r = p.pFile(0);
 
         if (r.hasValue()) {
             SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
-            return n;
-        } else {
+            return new Some<CompilationUnit>(n);
+        } 
+        else {
             ParseError err = (ParseError) r;
             if (-1 == err.index) {
                 System.err.println("  Parse error");
-            } else {
+            } 
+            else {
                 System.err.println("  " + p.location(err.index) + ": "
                         + err.msg);
             }
-            return null;
+            return new None<CompilationUnit>();
         }
     }
     
     /** 
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
-    public static CompilationUnit parseToJavaAst(String reportedFileName) throws IOException {
+    public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
         return parseToJavaAst(reportedFileName, Useful.utf8BufferedFileReader(reportedFileName));
     }
 
@@ -261,7 +272,7 @@ public class Driver {
     static public void runTests() {
     }
 
-    public static BetterEnv evalComponent(CompilationUnit p) {
+    public static BetterEnv evalComponent(CompilationUnit p) throws IOException {
 
         Init.initializeEverything();
 
@@ -569,9 +580,13 @@ public class Driver {
      * @param pile
      * @param imports
      */
-    private static void ensureImportsImplemented(
+    private static void ensureImportsImplemented (
             HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, List<Import> imports) {
+            Stack<ComponentWrapper> pile, 
+            List<Import> imports
+        ) 
+        throws IOException
+    {
 
         for (Import i : imports) {
             if (i instanceof ImportApi) {
@@ -580,14 +595,14 @@ public class Driver {
                 for (AliasedDottedId adi : apis) {
                     DottedId id = adi.getId();
                     ensureApiImplemented(linker, pile, id);
-
                 }
-
-            } else if (i instanceof ImportFrom) {
+            } 
+            else if (i instanceof ImportFrom) {
                 ImportFrom ix = (ImportFrom) i;
                 DottedId source = ix.getSource();
                 ensureApiImplemented(linker, pile, source);
-            } else {
+            } 
+            else {
                 throw new InterpreterError(i,"Unrecognized import");
             }
         }
@@ -600,7 +615,7 @@ public class Driver {
      */
     private static void ensureApiImplemented(
             HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, DottedId id) {
+            Stack<ComponentWrapper> pile, DottedId id) throws IOException {
         String apiname = id.toString();
         if (linker.get(apiname) == null) {
             /*
@@ -626,8 +641,10 @@ public class Driver {
     }
 
     // This runs the program from inside a task.
-    public static void runProgramTask(CompilationUnit p, boolean runTests,
-            List<String> args) {
+    public static void 
+        runProgramTask(CompilationUnit p, boolean runTests, List<String> args) 
+        throws IOException
+    {
 
         FortressTests.reset();
         BetterEnv e = evalComponent(p);
@@ -661,8 +678,12 @@ public class Driver {
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram(CompilationUnit p, boolean runTests,
-            boolean libraryTest, List<String> args) throws Throwable {
+    public static void runProgram (CompilationUnit p, 
+                                   boolean runTests, 
+                                   boolean libraryTest, 
+                                   List<String> args) 
+        throws Throwable
+    {
         _libraryTest = libraryTest;
         String numThreadsString = System.getenv("NumFortressThreads");
         if (numThreadsString != null)
@@ -675,13 +696,14 @@ public class Driver {
         EvaluatorTask evTask = new EvaluatorTask(p, runTests, args, null);
         try {
             group.invoke(evTask);
-        } catch (InterruptedException ex) {
-        } finally {
+        } 
+        catch (InterruptedException ex) {
+        } 
+        finally {
             // group.interruptAll();
         }
         if (evTask.causedException()) {
-            Throwable th = evTask.getException();
-            throw th;
+            throw evTask.getException();
         }
     }
 
@@ -700,12 +722,12 @@ public class Driver {
         }
     }
 
-    public static Component readTreeOrSourceComponent(String basename) {
+    public static Component readTreeOrSourceComponent(String basename) throws IOException {
         return (Component) readTreeOrSource(basename + "." + COMP_SOURCE_SUFFIX, basename
                 + "." + COMP_TREE_SUFFIX);
     }
 
-    public static Api readTreeOrSourceApi(String basename) {
+    public static Api readTreeOrSourceApi(String basename) throws IOException {
         return (Api) readTreeOrSource(basename + "." + API_SOURCE_SUFFIX, basename + "." + API_TREE_SUFFIX);
     }
 
@@ -716,41 +738,46 @@ public class Driver {
      * @param librarySource
      * @param libraryTree
      */
-    public static CompilationUnit readTreeOrSource(String librarySource,
-            String libraryTree) {
-        CompilationUnit c = null;
+    public static CompilationUnit 
+        readTreeOrSource(String librarySource, String libraryTree) throws IOException
+    {    
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
-            try {
-                System.err
-                        .println("Missing or stale preparsed AST " + libraryTree + ", rebuilding from source " + librarySource );
+            
+           // try {
+                System.err.println("Missing or stale preparsed AST " 
+                                   + libraryTree + ", rebuilding from source " 
+                                   + librarySource );
+                
                 long begin = System.currentTimeMillis();
 
-                c = parseToJavaAst(librarySource, Useful
-                        .utf8BufferedFileReader(librarySource));
+                // Because of the check above, we can retrieve the value of 
+                // the Option immediately.
+                CompilationUnit c = parseToJavaAst(librarySource, Useful
+                        .utf8BufferedFileReader(librarySource)).getVal();
 
-                System.err.println("Parsed " + librarySource + ": "
-                        + (System.currentTimeMillis() - begin)
-                        + " milliseconds");
+                System.err.println
+                    ("Parsed " + librarySource + ": "
+                         + (System.currentTimeMillis() - begin)
+                         + " milliseconds");
                 writeJavaAst(c, libraryTree);
-            } catch (Throwable ex) {
-                System.err.println("Trouble preparsing library AST.");
-                ex.printStackTrace();
-            }
+                return c;
+        } 
+        else {
+            long begin = System.currentTimeMillis();
+            Option<CompilationUnit> c = readJavaAst(libraryTree);
 
-        } else
-            try {
-                long begin = System.currentTimeMillis();
-                c = readJavaAst(libraryTree);
-                System.err.println("Read " + libraryTree + ": "
-                        + (System.currentTimeMillis() - begin)
-                        + " milliseconds");
-            } catch (Throwable ex) {
-                System.err.println("Trouble reading preparsed library AST.");
-                ex.printStackTrace();
+            System.err.println
+                ("Read " + libraryTree + ": "
+                     + (System.currentTimeMillis() - begin)
+                     + " milliseconds");
+            
+            if (c.isPresent()) { 
+                return c.getVal(); 
             }
-        if (c == null)
-            throw new ProgramError("Could not read " + librarySource + " or " + libraryTree);
-        return c;
+            else { 
+                throw new ProgramError("Could not read " + librarySource + " or " + libraryTree); 
+            }
+        } 
     }
 
 }

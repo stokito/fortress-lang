@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
+import java.io.IOException;
+
 import EDU.oswego.cs.dl.util.concurrent.FJTask;
 import dstm2.exceptions.AbortedException;
 import dstm2.exceptions.GracefulException;
@@ -37,7 +39,7 @@ public abstract class BaseTask extends FJTask {
     }
 
     public static <T> T doIt(Callable<T> xaction) {
-       	FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
+        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
         T res = taskrunner.doIt(xaction);
         return res;
     }
@@ -48,7 +50,7 @@ public abstract class BaseTask extends FJTask {
             if (causedException) {
                 parent.causedException = true;
                 parent.err = err;
-	    }
+     }
         }
     }
 
@@ -61,46 +63,46 @@ public abstract class BaseTask extends FJTask {
     public Throwable getException() {return err;}
 
     public static BaseTask getCurrentTask() {
-	FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
-	return (BaseTask) taskrunner.getCurrentTask();
+        FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+        return (BaseTask) taskrunner.getCurrentTask();
     }
 
     public static void setCurrentTask(BaseTask task) {
-	FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+        FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
         taskrunner.setCurrentTask(task);
     }
 
     BaseTask parent;
     public BaseTask getParentTask() { return parent;}
     public void setParentTask(BaseTask task) { parent = task;}
-
-
+    
+    
     public abstract void print();
-
+    
     public static void printTaskTrace() {
-	BaseTask currentTask = getCurrentTask();
+        BaseTask currentTask = getCurrentTask();
         while (currentTask != null) {
             currentTask.print();
             currentTask = currentTask.getParentTask();
-	}
+        }
     }
-
+    
     Object tag;
     // Finds the current task and tags it
     public static void tagCurrentTask(Object obj) { 
-	BaseTask currentTask = getCurrentTask();
-	currentTask.setTag(obj);
+        BaseTask currentTask = getCurrentTask();
+        currentTask.setTag(obj);
     }
-
+    
     // Get the tag from the current task
     public static Object  getCurrentTag() { 
-	BaseTask currentTask = getCurrentTask();
+        BaseTask currentTask = getCurrentTask();
         return currentTask.getTag();
     }
-
+    
     public void setTag(Object obj) { tag = obj;}
     public Object getTag() { return tag;}
-
+    
 }
 
-    
+

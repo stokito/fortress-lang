@@ -35,7 +35,7 @@ fi
 # build and test Fortress.
 #
 # For Eclipse, workspace and ant builds should not require any
-# adjustments, but to run tests using ant within Eclipse, you
+# adjustments, but to run tests using Ant within Eclipse, you
 # will need to add junit.jar to
 # build.xml -> Run As -> Ant Build... -> Classpath -> User Entries -> Add JARs...
 #

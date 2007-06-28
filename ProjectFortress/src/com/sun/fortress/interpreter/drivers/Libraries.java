@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.drivers;
 
+import java.io.IOException; 
+
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.Component;
@@ -34,14 +36,14 @@ public class Libraries {
   
     static String timestamp;
 
-    public static Component theLibrary() {
+    public static Component theLibrary() throws IOException {
         if (library == null) {
             library = (Component) Driver.readTreeOrSourceComponent(libraryBasename);
         }
         return library;
     }
     
-    public static Component link(BuildEnvironments be, Disambiguate dis) {
+    public static Component link(BuildEnvironments be, Disambiguate dis) throws IOException {
         Component c = library;
         
         if (c == null)

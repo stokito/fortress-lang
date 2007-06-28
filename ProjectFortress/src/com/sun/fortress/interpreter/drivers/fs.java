@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes_util.Printer;
 import com.sun.fortress.interpreter.typechecker.TypeCheckerResult;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class fs {
@@ -59,7 +60,7 @@ public class fs {
         else { return filename; }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Throwable {
 
         if (args.length == 0) {
             usage();
@@ -90,7 +91,8 @@ public class fs {
                     usage();
                     System.exit(1);
                 }
-            } else {
+            } 
+            else {
                 // Got what seems to be a file name...
                 i++;
                 // Collect Fortress parameters.
@@ -102,8 +104,6 @@ public class fs {
             }
             s = null;
         }
-
-        //
 
         if (s == null) {
             System.err.println("No file to run");
@@ -131,8 +131,8 @@ public class fs {
         System.err.println(task + ": " + time + " milliseconds");
     }
 
-    private static void parseAndRun(String s) {
-        //String timeStamp = Useful.timeStamp();
+    private static void parseAndRun(String s) throws Throwable {
+//        String timeStamp = Useful.timeStamp();
         
 //        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
 //                + basename(s) + "." + timeStamp + SXP_SUFFIX;
@@ -140,10 +140,10 @@ public class fs {
 //        boolean keepTemp = keep;
         
         try {
-            if (verbose)  { System.err.println("Parsing " + s + " with Rats!"); }
+            if (verbose)  { System.err.println("Parsing " + s); }
             long begin = System.currentTimeMillis();
-            CompilationUnit p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
-            reportCompletion("Parsing " + s + " with the Rats! parser", begin);
+            Option<CompilationUnit> p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
+            reportCompletion("Parsing " + s, begin);
             
             if (doAst) {
                 String astFile = basename(s) + JAVA_AST_SUFFIX;
@@ -153,11 +153,13 @@ public class fs {
                 finally { fout.close(); }
             }
             
-            if (p == null) { System.err.println("FAIL: Syntax error(s)."); }
+            if (! p.isPresent()) { System.err.println("FAIL: Syntax error(s)."); }
             else if (!parseOnly) {
+                CompilationUnit _p = p.getVal();
+                
                 if (verbose) { System.err.println("Checking"); }
                 begin = System.currentTimeMillis();
-                TypeCheckerResult tcResult = Driver.check(p);
+                TypeCheckerResult tcResult = Driver.check(_p);
                 reportCompletion("Static checking", begin);
 
                 if (tcResult.hasErrors()) { System.err.println("FAIL: Static error(s)."); }
@@ -167,34 +169,31 @@ public class fs {
                         System.err.println("Interpreting");
                     }
                     begin = System.currentTimeMillis();
-                    Driver.runProgram(p, test, libraryTest, listArgs);
+                    Driver.runProgram(_p, test, libraryTest, listArgs);
                     reportCompletion("Program execution", begin);
                 }
             }
             
         }
         catch (ProgramError e) {
-            // keepTemp = true;
-            e.printStackTrace(); // is this necessary?
+//            keepTemp = true;
             System.out.println("\n--------Fortress error appears below--------\n");
             e.printInterpreterStackTrace(System.out);
             System.out.println();
             System.out.println(e.getMessage());
         }
-        catch (Throwable th) {
-            // keepTemp = true;
-            th.printStackTrace();
-        }
+//        catch (Throwable th) {
+//            keepTemp = true;
+//            th.printStackTrace();
+//        }
 //        if (!keepTemp) {
-//            // (new File(tmpFile)).delete();
+//            (new File(tmpFile)).delete();
 //        }
     }
 
     static void usage() {
-        System.err
-                .println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] [-checkOnly] filename run-args");
-        System.err
-                .println("Iteratively parses and executes a Fortress source file.");
+        System.err.println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] [-checkOnly] filename run-args");
+        System.err.println("Iteratively parses and executes a Fortress source file.");
         System.err.println("The -ast option writes out the ast.");
         System.err.println("The -pause option performs a reset and gc after running the program, and then waits for input.");
         System.err.println("The -parseOnly option parses but does not evaluate the program.");
