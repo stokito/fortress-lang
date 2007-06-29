@@ -365,6 +365,9 @@ ignore(_:Any):() = ()
 
 identity[\T\](x:T):T = x
 
+(** Transactional retry *)
+retry[\T\]():T = fail("Transactional retry not yet implemented.")
+
 (* Should we depracate tuple and use identity instead?  Decision: no. *)
 tuple[\T\](x:T):T = x
 
