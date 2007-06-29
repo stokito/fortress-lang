@@ -26,44 +26,44 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class CatchClause extends AbstractNode {
-  private final TypeRef _match;
-  private final List<Expr> _body;
+public class Catch extends AbstractNode {
+  private final Id _name;
+  private final List<CatchClause> _clauses;
 
   /**
-   * Constructs a CatchClause.
+   * Constructs a Catch.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public CatchClause(Span in_span, TypeRef in_match, List<Expr> in_body) {
+  public Catch(Span in_span, Id in_name, List<CatchClause> in_clauses) {
     super(in_span);
 
-    if (in_match == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'match' to the CatchClause constructor was null. This class may not have null field values.");
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Catch constructor was null. This class may not have null field values.");
     }
-    _match = in_match;
+    _name = in_name;
 
-    if (in_body == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'body' to the CatchClause constructor was null. This class may not have null field values.");
+    if (in_clauses == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'clauses' to the Catch constructor was null. This class may not have null field values.");
     }
-    _body = in_body;
+    _clauses = in_clauses;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forCatchClause(this);
+        return v.forCatch(this);
     }
 
-    CatchClause(Span span) {
+    Catch(Span span) {
         super(span);
-        _match = null;
-        _body = null;
+        _name = null;
+        _clauses = null;
     }
 
-  final public TypeRef getMatch() { return _match; }
-  final public List<Expr> getBody() { return _body; }
+  final public Id getName() { return _name; }
+  final public List<CatchClause> getClauses() { return _clauses; }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forCatchClause(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forCatchClause(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forCatch(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forCatch(this); }
 
   /**
    * Implementation of toString that uses
@@ -83,7 +83,7 @@ public class CatchClause extends AbstractNode {
   }
 
   public void outputHelp(TabPrintWriter writer) {
-    writer.print("CatchClause" + ":");
+    writer.print("Catch" + ":");
     writer.indent();
 
     writer.startLine("");
@@ -96,21 +96,21 @@ public class CatchClause extends AbstractNode {
     }
 
     writer.startLine("");
-    writer.print("match = ");
-    TypeRef temp_match = getMatch();
-    if (temp_match == null) {
+    writer.print("name = ");
+    Id temp_name = getName();
+    if (temp_name == null) {
       writer.print("null");
     } else {
-      writer.print(temp_match);
+      temp_name.outputHelp(writer);
     }
 
     writer.startLine("");
-    writer.print("body = ");
-    List<Expr> temp_body = getBody();
-    if (temp_body == null) {
+    writer.print("clauses = ");
+    List<CatchClause> temp_clauses = getClauses();
+    if (temp_clauses == null) {
       writer.print("null");
     } else {
-      writer.print(temp_body);
+      writer.print(temp_clauses);
     }
     writer.unindent();
   }
@@ -125,9 +125,9 @@ public class CatchClause extends AbstractNode {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      CatchClause casted = (CatchClause) obj;
-      if (! (getMatch().equals(casted.getMatch()))) return false;
-      if (! (getBody().equals(casted.getBody()))) return false;
+      Catch casted = (Catch) obj;
+      if (! (getName().equals(casted.getName()))) return false;
+      if (! (getClauses().equals(casted.getClauses()))) return false;
       return true;
     }
   }
@@ -141,8 +141,8 @@ public class CatchClause extends AbstractNode {
   protected int generateHashCode() {
     int code = getClass().hashCode();
     code ^= 0;
-    code ^= getMatch().hashCode();
-    code ^= getBody().hashCode();
+    code ^= getName().hashCode();
+    code ^= getClauses().hashCode();
     return code;
   }
 }

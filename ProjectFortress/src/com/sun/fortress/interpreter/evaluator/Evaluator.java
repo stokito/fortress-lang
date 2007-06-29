@@ -76,7 +76,7 @@ import com.sun.fortress.interpreter.nodes.CaseParamExpr;
 import com.sun.fortress.interpreter.nodes.CaseParamLargest;
 import com.sun.fortress.interpreter.nodes.CaseParamSmallest;
 import com.sun.fortress.interpreter.nodes.CatchClause;
-import com.sun.fortress.interpreter.nodes.CatchExpr;
+import com.sun.fortress.interpreter.nodes.Catch;
 import com.sun.fortress.interpreter.nodes.ChainExpr;
 import com.sun.fortress.interpreter.nodes.CharLiteral;
 import com.sun.fortress.interpreter.nodes.DottedId;
@@ -534,7 +534,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forCatchClause");
     }
 
-    public FValue forCatchExpr(CatchExpr x) {
+    public FValue forCatchExpr(Catch x) {
         return NI("forCatchExpr");
     }
 

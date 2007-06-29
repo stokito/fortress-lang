@@ -113,10 +113,10 @@ Expr DelimitedExpr =
      }
    / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
-     { Option<CatchExpr> catch_;
+     { Option<Catch> catch_;
        Option<Expr> finally_;
-       if (a2 == null) catch_ = None.<CatchExpr>make();
-       else            catch_ = Some.<CatchExpr>make(a2);
+       if (a2 == null) catch_ = None.<Catch>make();
+       else            catch_ = Some.<Catch>make(a2);
        if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
        if (a4 == null) finally_ = None.<Expr>make();
        else            finally_ = Some.<Expr>make(FortressUtil.doBlock(a4));
@@ -243,8 +243,8 @@ List<TypeRef> TypecaseTypeRefs =
      { yyValue = FortressUtil.mkList(a1); };
 
 /* Catch ::= catch w Id w CatchClauses */
-CatchExpr Catch = catch w a1:Id w a2:CatchClauses
-     { yyValue = new CatchExpr(createSpan(yyStart,yyCount), a1, a2); };
+Catch Catch = catch w a1:Id w a2:CatchClauses
+     { yyValue = new Catch(createSpan(yyStart,yyCount), a1, a2); };
 
 /* CatchClauses ::= CatchClause (br CatchClause)* */
 private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*

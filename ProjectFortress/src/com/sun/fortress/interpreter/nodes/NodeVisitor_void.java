@@ -21,6 +21,12 @@ public interface NodeVisitor_void {
   /** Process an instance of CaseParamSmallest. */
   public void forCaseParamSmallest(CaseParamSmallest that);
 
+  /** Process an instance of Catch. */
+  public void forCatch(Catch that);
+
+  /** Process an instance of CatchClause. */
+  public void forCatchClause(CatchClause that);
+
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
 
@@ -32,6 +38,12 @@ public interface NodeVisitor_void {
 
   /** Process an instance of If. */
   public void forIf(If that);
+
+  /** Process an instance of Label. */
+  public void forLabel(Label that);
+
+  /** Process an instance of Try. */
+  public void forTry(Try that);
 
   /** Process an instance of TypeCase. */
   public void forTypeCase(TypeCase that);

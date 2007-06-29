@@ -41,8 +41,8 @@ CaseExpr
 CaseParamExpr
 CaseParamLargest
 CaseParamSmallest
+Catch
 CatchClause
-CatchExpr
 ChainExpr
 CharLiteral
 Component
