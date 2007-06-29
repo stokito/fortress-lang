@@ -47,7 +47,9 @@ public class NodeComparator {
 //        else {
 //            return left.subtypeCompareTo(right);
 //        }
-//    }        
+//    }   
+
+//   Copied code begins here.
 //    
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
