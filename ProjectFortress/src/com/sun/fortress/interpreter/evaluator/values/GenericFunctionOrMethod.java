@@ -23,6 +23,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.StaticParam;
+import com.sun.fortress.interpreter.nodes_util.NodeComparator;
 
 
 public interface  GenericFunctionOrMethod {
@@ -45,7 +46,7 @@ public interface  GenericFunctionOrMethod {
             List<StaticParam>  oltp0 = a0.getStaticParams().getVal();
             List<StaticParam>  oltp1 = a1.getStaticParams().getVal();
 
-            return StaticParam.listComparer.compare(oltp0, oltp1);
+            return NodeComparator.compare(oltp0, oltp1);
 
         }
 

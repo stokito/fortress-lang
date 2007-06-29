@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.nodes_util.NodeComparator;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Memo1P;
@@ -179,7 +180,7 @@ public class GenericMethod extends MethodClosure implements
             List<StaticParam> oltp0 = a0.getStaticParams().getVal();
             List<StaticParam> oltp1 = a1.getStaticParams().getVal();
 
-            return StaticParam.listComparer.compare(oltp0, oltp1);
+            return NodeComparator.compare(oltp0, oltp1);
 
         }
 
@@ -190,8 +191,7 @@ public class GenericMethod extends MethodClosure implements
     static class GenericFullComparer implements Comparator<GenericMethod> {
 
         public int compare(GenericMethod arg0, GenericMethod arg1) {
-            return arg0.getDef().applicableCompareTo(arg1.getDef());
-            
+            return NodeComparator.compare(arg0.getDef(), arg1.getDef());
         }
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
