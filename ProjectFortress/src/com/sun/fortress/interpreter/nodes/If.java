@@ -17,28 +17,36 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// /
-// / and if_expr = if_expr_rec node
-// / and if_expr_rec =
-// / {
-// / if_expr_clauses : if_clause list;
-// / if_expr_else : expr option;
-// / }
-public class If extends FlowExpr {
+public class If extends DelimitedExpr {
+  private final List<IfClause> _clauses;
+  private final Option<Expr> _elseClause;
 
-    List<IfClause> clauses;
+  /**
+   * Constructs a If.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public If(Span in_span, List<IfClause> in_clauses, Option<Expr> in_elseClause) {
+    super(in_span);
 
-    Option<Expr> else_;
-
-    public If(Span span, List<IfClause> clauses, Option<Expr> else_) {
-        super(span);
-        this.clauses = clauses;
-        this.else_ = else_;
+    if (in_clauses == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'clauses' to the If constructor was null. This class may not have null field values.");
     }
+    _clauses = in_clauses;
+
+    if (in_elseClause == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'elseClause' to the If constructor was null. This class may not have null field values.");
+    }
+    _elseClause = in_elseClause;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -47,19 +55,94 @@ public class If extends FlowExpr {
 
     If(Span span) {
         super(span);
+        _clauses = null;
+        _elseClause = null;
     }
 
-    /**
-     * @return Returns the clauses.
-     */
-    public List<IfClause> getClauses() {
-        return clauses;
+  final public List<IfClause> getClauses() { return _clauses; }
+  final public Option<Expr> getElseClause() { return _elseClause; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forIf(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forIf(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("If" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
 
-    /**
-     * @return Returns the else_.
-     */
-    public Option<Expr> getElse_() {
-        return else_;
+    writer.startLine("");
+    writer.print("clauses = ");
+    List<IfClause> temp_clauses = getClauses();
+    if (temp_clauses == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_clauses);
     }
+
+    writer.startLine("");
+    writer.print("elseClause = ");
+    Option<Expr> temp_elseClause = getElseClause();
+    if (temp_elseClause == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_elseClause);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      If casted = (If) obj;
+      if (! (getClauses().equals(casted.getClauses()))) return false;
+      if (! (getElseClause().equals(casted.getElseClause()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getClauses().hashCode();
+    code ^= getElseClause().hashCode();
+    return code;
+  }
 }

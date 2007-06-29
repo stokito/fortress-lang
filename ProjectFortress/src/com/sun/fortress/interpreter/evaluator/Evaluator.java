@@ -141,7 +141,6 @@ import com.sun.fortress.interpreter.nodes.TypeApply;
 import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeCase;
 import com.sun.fortress.interpreter.nodes.TypeCaseClause;
-import com.sun.fortress.interpreter.nodes.TypeCaseOrDispatch;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.UnitDim;
 import com.sun.fortress.interpreter.nodes.UnitVar;
@@ -507,7 +506,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 if (success.getBool())
                     return evalExprList(c.getBody(), c);
             }
-            Option<List<Expr>> _else = x.getElse_();
+            Option<List<Expr>> _else = x.getElseClause();
             if (_else.isPresent()) {
                 // TODO need an Else node to hang a location on
                 return evalExprList(_else.getVal(), x);
@@ -581,8 +580,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // return evVoid;
     // }
 
-    public List<FType> evalTypeCaseOrDispatchBinding(Evaluator ev,
-            TypeCaseOrDispatch x) {
+    public List<FType> evalTypeCaseBinding(Evaluator ev,
+            TypeCase x) {
         List<Binding> bindings = x.getBind();
         List<FType> res = new ArrayList<FType>();
         for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
@@ -766,7 +765,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return ifclause.getBody().accept(this);
             ;
         }
-        Option<Expr> else_ = x.getElse_();
+        Option<Expr> else_ = x.getElseClause();
         if (else_.isPresent()) {
             Expr else_expr = else_.getVal();
             return else_expr.accept(this);
@@ -1264,7 +1263,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forTypeCase(TypeCase x) {
         Evaluator ev = new Evaluator(this, x);
-        List<FType> res = evalTypeCaseOrDispatchBinding(ev, x);
+        List<FType> res = evalTypeCaseBinding(ev, x);
         FValue result = evVoid;
         List<TypeCaseClause> clauses = x.getClauses();
 
@@ -1282,7 +1281,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
 
-        Option<List<Expr>> el = x.getElse_();
+        Option<List<Expr>> el = x.getElseClause();
         if (el.isPresent()) {
             List<Expr> elseClauses = el.getVal();
             // TODO really ought to have a node, with a location, for this list

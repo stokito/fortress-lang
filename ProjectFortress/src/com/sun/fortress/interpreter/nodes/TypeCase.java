@@ -17,24 +17,42 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and type_case_expr = type_case_expr_rec node
-// / and type_case_expr_rec =
-// / {
-// / type_case_expr_bind : binding list;
-// / type_case_expr_clauses : type_clause list;
-// / type_case_expr_else : expr list option;
-// / }
-// /
-public class TypeCase extends TypeCaseOrDispatch {
+public class TypeCase extends DelimitedExpr {
+  private final List<Binding> _bind;
+  private final List<TypeCaseClause> _clauses;
+  private final Option<List<Expr>> _elseClause;
 
-    public TypeCase(Span span, List<Binding> bind,
-            List<TypeCaseClause> clauses, Option<List<Expr>> else_) {
-        super(span, bind, clauses, else_);
+  /**
+   * Constructs a TypeCase.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public TypeCase(Span in_span, List<Binding> in_bind, List<TypeCaseClause> in_clauses, Option<List<Expr>> in_elseClause) {
+    super(in_span);
+
+    if (in_bind == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'bind' to the TypeCase constructor was null. This class may not have null field values.");
     }
+    _bind = in_bind;
+
+    if (in_clauses == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'clauses' to the TypeCase constructor was null. This class may not have null field values.");
+    }
+    _clauses = in_clauses;
+
+    if (in_elseClause == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'elseClause' to the TypeCase constructor was null. This class may not have null field values.");
+    }
+    _elseClause = in_elseClause;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -43,5 +61,107 @@ public class TypeCase extends TypeCaseOrDispatch {
 
     TypeCase(Span span) {
         super(span);
+        _bind = null;
+        _clauses = null;
+        _elseClause = null;
     }
+
+  final public List<Binding> getBind() { return _bind; }
+  final public List<TypeCaseClause> getClauses() { return _clauses; }
+  final public Option<List<Expr>> getElseClause() { return _elseClause; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forTypeCase(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forTypeCase(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("TypeCase" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
+    }
+
+    writer.startLine("");
+    writer.print("bind = ");
+    List<Binding> temp_bind = getBind();
+    if (temp_bind == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_bind);
+    }
+
+    writer.startLine("");
+    writer.print("clauses = ");
+    List<TypeCaseClause> temp_clauses = getClauses();
+    if (temp_clauses == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_clauses);
+    }
+
+    writer.startLine("");
+    writer.print("elseClause = ");
+    Option<List<Expr>> temp_elseClause = getElseClause();
+    if (temp_elseClause == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_elseClause);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      TypeCase casted = (TypeCase) obj;
+      if (! (getBind().equals(casted.getBind()))) return false;
+      if (! (getClauses().equals(casted.getClauses()))) return false;
+      if (! (getElseClause().equals(casted.getElseClause()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getBind().hashCode();
+    code ^= getClauses().hashCode();
+    code ^= getElseClause().hashCode();
+    return code;
+  }
 }

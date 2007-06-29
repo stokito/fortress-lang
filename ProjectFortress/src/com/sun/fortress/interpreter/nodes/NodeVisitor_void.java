@@ -9,8 +9,35 @@ public interface NodeVisitor_void {
   /** Process an instance of ArrayComprehensionClause. */
   public void forArrayComprehensionClause(ArrayComprehensionClause that);
 
+  /** Process an instance of CaseClause. */
+  public void forCaseClause(CaseClause that);
+
+  /** Process an instance of CaseParamExpr. */
+  public void forCaseParamExpr(CaseParamExpr that);
+
+  /** Process an instance of CaseParamLargest. */
+  public void forCaseParamLargest(CaseParamLargest that);
+
+  /** Process an instance of CaseParamSmallest. */
+  public void forCaseParamSmallest(CaseParamSmallest that);
+
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
+
+  /** Process an instance of CaseExpr. */
+  public void forCaseExpr(CaseExpr that);
+
+  /** Process an instance of For. */
+  public void forFor(For that);
+
+  /** Process an instance of If. */
+  public void forIf(If that);
+
+  /** Process an instance of TypeCase. */
+  public void forTypeCase(TypeCase that);
+
+  /** Process an instance of While. */
+  public void forWhile(While that);
 
   /** Process an instance of FloatLiteral. */
   public void forFloatLiteral(FloatLiteral that);
@@ -33,6 +60,12 @@ public interface NodeVisitor_void {
   /** Process an instance of Id. */
   public void forId(Id that);
 
+  /** Process an instance of IfClause. */
+  public void forIfClause(IfClause that);
+
   /** Process an instance of Op. */
   public void forOp(Op that);
+
+  /** Process an instance of TypeCaseClause. */
+  public void forTypeCaseClause(TypeCaseClause that);
 }

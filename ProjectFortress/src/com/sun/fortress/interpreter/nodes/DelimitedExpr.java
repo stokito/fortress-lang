@@ -26,15 +26,16 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public abstract class CaseParam extends AbstractNode {
+public abstract class DelimitedExpr extends Expr {
 
   /**
-   * Constructs a CaseParam.
+   * Constructs a DelimitedExpr.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public CaseParam(Span in_span) {
+  public DelimitedExpr(Span in_span) {
     super(in_span);
   }
+
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);

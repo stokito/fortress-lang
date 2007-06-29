@@ -89,7 +89,8 @@ Expr DelimitedExpr =
        if (a2 == null) compare = None.<Op>make();
        else            compare = Some.<Op>make(a2);
        if (a4 == null) a4 = FortressUtil.emptyExprs();
-       yyValue = new CaseExpr(createSpan(yyStart,yyCount), e1, compare, a3, a4);
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), e1, compare, a3,
+                              new Some<List<Expr>>(a4));
      }
    / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
      { CaseParam e1;
@@ -101,7 +102,7 @@ Expr DelimitedExpr =
        if (a2 == null) compare = None.<Op>make();
        else            compare = Some.<Op>make(a2);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), e1, compare, a3,
-                              FortressUtil.emptyExprs());
+                              new Some<List<Expr>>(FortressUtil.emptyExprs()));
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end
