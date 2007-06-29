@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.HasIntValue;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.nodes.Contract;
 import com.sun.fortress.interpreter.nodes.Decl;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -78,7 +79,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         List<WhereClause> where = Collections.emptyList();
         Contract contract = Contract.make();
 
-        Id name = Id.make("FlatStorageMaker");
+        Id name = NodeFactory.makeId("FlatStorageMaker");
         Option<List<StaticParam>> staticParams =  // [T, m]
             Some.<StaticParam>makeSomeList(Useful.list(SimpleTypeParam.make("T"), NatParam.make("m")));
         Option<List<Param>> params = Some.makeSomeList(Collections.<Param>emptyList()); // ()

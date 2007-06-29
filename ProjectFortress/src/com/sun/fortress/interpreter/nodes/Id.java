@@ -22,15 +22,6 @@ import com.sun.fortress.interpreter.useful.Fn;
 
 // / type id = string node
 public class Id extends AbstractNode implements Comparable<Id> {
-    public static final Fn<Id, String> toStringFn = new Fn<Id, String>() {
-
-        @Override
-        public String apply(Id x) {
-            return x.getName();
-        }
-
-    };
-
     String name;
 
     @Override

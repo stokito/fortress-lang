@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -118,7 +119,7 @@ public class Disambiguate extends Rewrite {
 
     public final static String PARENT_NAME = WellKnownNames.secretParentName;
 
-    public final static Id LOOP_ID = Id.make(WellKnownNames.loopMethod);
+    public final static Id LOOP_ID = NodeFactory.makeId(WellKnownNames.loopMethod);
 
     public class Thing {
         int nestedness;
@@ -147,7 +148,7 @@ public class Disambiguate extends Rewrite {
             defOrDecl = dod;
         }
         public String toString() { return "Trait="+defOrDecl; }
-        
+
     }
 
     class Member extends Thing {
@@ -173,7 +174,7 @@ public class Disambiguate extends Rewrite {
             return e;
         }
         public String toString() { return "Self("+s+")@"+nestedness; }
-        
+
     }
 
     /**
@@ -289,10 +290,10 @@ public class Disambiguate extends Rewrite {
      */
     Expr dottedReference(Span s, int i) {
         if (i == 0) {
-            return new VarRefExpr(s, WellKnownNames.secretSelfName);
+            return NodeFactory.makeVarRefExpr(s, WellKnownNames.secretSelfName);
         }
         if (i > 0) {
-            return new FieldSelection(s, dottedReference(s, i - 1), Id.make(s,
+            return new FieldSelection(s, dottedReference(s, i - 1), new Id(s,
                     PARENT_NAME));
         } else {
             throw new Error("Confusion in member reference numbering.");
@@ -415,7 +416,7 @@ public class Disambiguate extends Rewrite {
                             element_index++;
                         }
                         return new RewriteHackList(newdecls);
-                    } 
+                    }
                     // Leave singleton VarDecl alone, probably, because it gets properly
                     // handled
                     // at the enclosing block.

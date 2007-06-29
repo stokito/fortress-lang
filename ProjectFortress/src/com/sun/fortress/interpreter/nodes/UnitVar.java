@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
 
@@ -84,7 +85,7 @@ public class UnitVar extends AbstractNode implements Decl {
      * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
      */
     public IterableOnce<String> stringNames() {
-        return new IterableOnceTranslatingList<Id, String>(names, Id.toStringFn);
+        return new IterableOnceTranslatingList<Id, String>(names, NodeFactory.IdtoStringFn);
     }
 
 }

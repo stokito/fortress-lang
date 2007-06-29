@@ -27,6 +27,12 @@ public interface NodeVisitor_void {
   /** Process an instance of VoidLiteral. */
   public void forVoidLiteral(VoidLiteral that);
 
+  /** Process an instance of VarRefExpr. */
+  public void forVarRefExpr(VarRefExpr that);
+
+  /** Process an instance of Id. */
+  public void forId(Id that);
+
   /** Process an instance of Op. */
   public void forOp(Op that);
 }

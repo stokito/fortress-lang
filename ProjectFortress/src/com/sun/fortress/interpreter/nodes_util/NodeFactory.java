@@ -19,9 +19,11 @@ package com.sun.fortress.interpreter.nodes_util;
 
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
+    /* Constructors ***********************************************************/
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, s, s.charAt(0));
     }
@@ -114,6 +116,10 @@ public class NodeFactory {
                                 intPart, numerator, denomBase, denomPower);
     }
 
+    public static Id makeId(String string) {
+        return new Id(new Span(), string);
+    }
+
     public static IntLiteral makeIntLiteral(Span span, BigInteger val) {
         return new IntLiteral(span, val.toString(), val);
     }
@@ -152,17 +158,18 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
 
+    public static VarRefExpr makeVarRefExpr(Span span, String s) {
+        return new VarRefExpr(span, new Id(span, s));
+    }
+
     public static VoidLiteral makeVoidLiteral(Span span) {
         return new VoidLiteral(span, "");
     }
 
-    /*
-    public static Id makeId(String string) {
-        return makeId(new Span(), string);
-    }
-
-    public static Id makeId(Span s, String string) {
-        return new Id(s, string);
-    }
-    */
+    /* Helpers ****************************************************************/
+    public static final Fn<Id, String> IdtoStringFn = new Fn<Id, String>() {
+        public String apply(Id x) {
+            return x.getName();
+        }
+    };
 }

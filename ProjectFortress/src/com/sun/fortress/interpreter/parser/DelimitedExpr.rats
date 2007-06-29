@@ -315,7 +315,7 @@ Expr BaseExpr =
    / Literal
    / Aggregate
    / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); }
-   / a1:self { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
+   / a1:self { yyValue = NodeFactory.makeVarRefExpr(createSpan(yyStart,yyCount), a1); };
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
