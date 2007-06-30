@@ -79,6 +79,7 @@ import com.sun.fortress.interpreter.nodes.CatchClause;
 import com.sun.fortress.interpreter.nodes.Catch;
 import com.sun.fortress.interpreter.nodes.ChainExpr;
 import com.sun.fortress.interpreter.nodes.CharLiteral;
+import com.sun.fortress.interpreter.nodes.DoFront;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.nodes.Enclosing;
 import com.sun.fortress.interpreter.nodes.Entry;
@@ -730,10 +731,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<Generator> gens = x.getGens();
         Generator gen = gens.get(0);
         FGenerator fgen = (FGenerator) gen.accept(this);
-        Expr body = x.getBody();
+        DoFront df = x.getBody();
+        Expr body = x;
+        if (df.isAtomic()) {
+            NI("forAtomicDo");
+        }
+        if (df.getAt().isPresent()) {
+            NI("forAtDo");
+        }
         if (gens.size() > 1) {
             gens = gens.subList(1,gens.size());
-            body = new For(x.getSpan(),gens,body);
+            body = new For(x.getSpan(),gens,df);
         }
         new ForLoopTask(fgen, body, this, BaseTask.getCurrentTask()).run();
         return evVoid;

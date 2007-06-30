@@ -40,6 +40,7 @@ import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
+import com.sun.fortress.interpreter.nodes.DoFront;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
@@ -529,8 +530,16 @@ public class Disambiguate extends Rewrite {
                     return n;
                 } else if (node instanceof For) {
                     For f = (For)node;
+                    DoFront df = f.getBody();
+                    if (df.isAtomic()) {
+                        return NI.nyi("forAtomicDo");
+                    }
+                    if (df.getAt().isPresent()) {
+                        return NI.nyi("forAtDo");
+                    }
                     return visitGeneratorList(f, f.getGens(),
-                                              LOOP_ID, f.getBody());
+                                              LOOP_ID,
+                                              df.getExpr());
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }

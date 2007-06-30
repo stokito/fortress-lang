@@ -49,6 +49,7 @@ Component
 Contract
 Dimension
 DimensionParam
+DoFront
 DottedId
 Enclosing
 EnsuresClause

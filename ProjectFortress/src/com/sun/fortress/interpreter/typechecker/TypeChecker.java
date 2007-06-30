@@ -218,6 +218,12 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         return e.getBody().accept(this);
     }
 
+    public TypeCheckerResult forDoFront(DoFront e) {
+        // TODO: Option<Expr> _at
+        // TODO: boolean _atomic
+        return e.getExpr().accept(this);
+    }
+
     public TypeCheckerResult forFor(For e) {
         TypeCheckerResult genResults = TypeCheckerResult.VALID;
         PureList<String> newVars = PureList.make();

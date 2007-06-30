@@ -125,21 +125,28 @@ Expr DelimitedExpr =
      };
 
 /* Do ::= (DoFront w also w)* DoFront w end */
-Expr Do = yyValue:DoFront w end ;
+Expr Do = do a1:(w BlockElems)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyExprs();
+       yyValue = FortressUtil.doBlock(a1);
+     };
 /* ************************************************
  * Not Yet Implemented ***************************
 a1s:(DoFront w also w)* a2:DoFront w end
 ************************************************ */
 
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
-private Expr DoFront = do a1:(w BlockElems)?
-     { if (a1 == null) a1 = FortressUtil.emptyExprs();
-       yyValue = FortressUtil.doBlock(a1);
-     };
-/* ************************************************
- * Not Yet Implemented ***************************
+private DoFront DoFront =
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
-************************************************ */
+     { Option<Expr> at;
+       if (a1 == null) at = None.<Expr>make();
+       else            at = Some.<Expr>make(a1);
+       Boolean atomic;
+       if (a2 == null) atomic = false;
+       else            atomic = true;
+       if (a3 == null) a3 = FortressUtil.emptyExprs();
+       yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic,
+                             FortressUtil.doBlock(a3));
+     };
 
 /* Parenthesized ::=
      ( w (Expr w , w)* (Expr w ... w , w)? Binding (w , w Binding)* w )

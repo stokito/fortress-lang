@@ -28,13 +28,13 @@ import com.sun.fortress.interpreter.useful.*;
 
 public class For extends DelimitedExpr {
   private final List<Generator> _gens;
-  private final Expr _body;
+  private final DoFront _body;
 
   /**
    * Constructs a For.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public For(Span in_span, List<Generator> in_gens, Expr in_body) {
+  public For(Span in_span, List<Generator> in_gens, DoFront in_body) {
     super(in_span);
 
     if (in_gens == null) {
@@ -60,7 +60,7 @@ public class For extends DelimitedExpr {
     }
 
   final public List<Generator> getGens() { return _gens; }
-  final public Expr getBody() { return _body; }
+  final public DoFront getBody() { return _body; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forFor(this); }
   public void visit(NodeVisitor_void visitor) { visitor.forFor(this); }
@@ -106,7 +106,7 @@ public class For extends DelimitedExpr {
 
     writer.startLine("");
     writer.print("body = ");
-    Expr temp_body = getBody();
+    DoFront temp_body = getBody();
     if (temp_body == null) {
       writer.print("null");
     } else {

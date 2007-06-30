@@ -26,36 +26,48 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class AtomicExpr extends FlowExpr {
+public class DoFront extends AbstractNode {
+  private final Option<Expr> _at;
+  private final boolean _atomic;
   private final Expr _expr;
 
   /**
-   * Constructs a AtomicExpr.
+   * Constructs a DoFront.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public AtomicExpr(Span in_span, Expr in_expr) {
+  public DoFront(Span in_span, Option<Expr> in_at, boolean in_atomic, Expr in_expr) {
     super(in_span);
 
+    if (in_at == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'at' to the DoFront constructor was null. This class may not have null field values.");
+    }
+    _at = in_at;
+    _atomic = in_atomic;
+
     if (in_expr == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'expr' to the AtomicExpr constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'expr' to the DoFront constructor was null. This class may not have null field values.");
     }
     _expr = in_expr;
   }
 
-    @Override
-    public <T> T accept(NodeVisitor<T> v) {
-        return v.forAtomicExpr(this);
-    }
-
-    AtomicExpr(Span span) {
+    public DoFront(Span span) {
         super(span);
+        _at = null;
+        _atomic = false;
         _expr = null;
     }
 
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.forDoFront(this);
+    }
+
+  final public Option<Expr> getAt() { return _at; }
+  final public boolean isAtomic() { return _atomic; }
   final public Expr getExpr() { return _expr; }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forAtomicExpr(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forAtomicExpr(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forDoFront(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forDoFront(this); }
 
   /**
    * Implementation of toString that uses
@@ -75,7 +87,7 @@ public class AtomicExpr extends FlowExpr {
   }
 
   public void outputHelp(TabPrintWriter writer) {
-    writer.print("AtomicExpr" + ":");
+    writer.print("DoFront" + ":");
     writer.indent();
 
     writer.startLine("");
@@ -88,12 +100,26 @@ public class AtomicExpr extends FlowExpr {
     }
 
     writer.startLine("");
+    writer.print("at = ");
+    Option<Expr> temp_at = getAt();
+    if (temp_at == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_at);
+    }
+
+    writer.startLine("");
+    writer.print("atomic = ");
+    boolean temp_atomic = isAtomic();
+    writer.print(temp_atomic);
+
+    writer.startLine("");
     writer.print("expr = ");
     Expr temp_expr = getExpr();
     if (temp_expr == null) {
       writer.print("null");
     } else {
-      temp_expr.outputHelp(writer);
+      writer.print(temp_expr);
     }
     writer.unindent();
   }
@@ -108,7 +134,9 @@ public class AtomicExpr extends FlowExpr {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      AtomicExpr casted = (AtomicExpr) obj;
+      DoFront casted = (DoFront) obj;
+      if (! (getAt().equals(casted.getAt()))) return false;
+      if (! (isAtomic() == casted.isAtomic())) return false;
       if (! (getExpr().equals(casted.getExpr()))) return false;
       return true;
     }
@@ -123,6 +151,8 @@ public class AtomicExpr extends FlowExpr {
   protected int generateHashCode() {
     int code = getClass().hashCode();
     code ^= 0;
+    code ^= getAt().hashCode();
+    code ^= (isAtomic() ? 1231 : 1237);
     code ^= getExpr().hashCode();
     return code;
   }

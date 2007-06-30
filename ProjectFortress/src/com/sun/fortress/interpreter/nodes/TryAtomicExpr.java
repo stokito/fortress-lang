@@ -17,16 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public class TryAtomicExpr extends FlowExpr {
+  private final Expr _expr;
 
-    Expr expr;
+  /**
+   * Constructs a TryAtomicExpr.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public TryAtomicExpr(Span in_span, Expr in_expr) {
+    super(in_span);
 
-    public TryAtomicExpr(Span span, Expr expr) {
-        super(span);
-        this.expr = expr;
+    if (in_expr == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'expr' to the TryAtomicExpr constructor was null. This class may not have null field values.");
     }
+    _expr = in_expr;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -35,12 +49,81 @@ public class TryAtomicExpr extends FlowExpr {
 
     TryAtomicExpr(Span span) {
         super(span);
+        _expr = null;
     }
 
-    /**
-     * @return Returns the expr.
-     */
-    public Expr getExpr() {
-        return expr;
+  final public Expr getExpr() { return _expr; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forTryAtomicExpr(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forTryAtomicExpr(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("TryAtomicExpr" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
+
+    writer.startLine("");
+    writer.print("expr = ");
+    Expr temp_expr = getExpr();
+    if (temp_expr == null) {
+      writer.print("null");
+    } else {
+      temp_expr.outputHelp(writer);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      TryAtomicExpr casted = (TryAtomicExpr) obj;
+      if (! (getExpr().equals(casted.getExpr()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getExpr().hashCode();
+    return code;
+  }
 }
