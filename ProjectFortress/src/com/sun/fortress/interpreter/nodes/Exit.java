@@ -17,27 +17,36 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and exit_expr = exit_expr_rec node
-// / and exit_expr_rec =
-// / {
-// / exit_expr_name : id option;
-// / exit_expr_return : expr option;
-// / }
-// /
 public class Exit extends FlowExpr {
+  private final Option<Id> _name;
+  private final Option<Expr> _returnExpr;
 
-    Option<Id> name;
+  /**
+   * Constructs a Exit.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Exit(Span in_span, Option<Id> in_name, Option<Expr> in_returnExpr) {
+    super(in_span);
 
-    Option<Expr> return_;
-
-    public Exit(Span span, Option<Id> name, Option<Expr> return_) {
-        super(span);
-        this.name = name;
-        this.return_ = return_;
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Exit constructor was null. This class may not have null field values.");
     }
+    _name = in_name;
+
+    if (in_returnExpr == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'returnExpr' to the Exit constructor was null. This class may not have null field values.");
+    }
+    _returnExpr = in_returnExpr;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -46,19 +55,95 @@ public class Exit extends FlowExpr {
 
     Exit(Span span) {
         super(span);
+        _name = null;
+        _returnExpr = null;
     }
 
-    /**
-     * @return Returns the name.
-     */
-    public Option<Id> getName() {
-        return name;
+
+  final public Option<Id> getName() { return _name; }
+  final public Option<Expr> getReturnExpr() { return _returnExpr; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forExit(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forExit(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("Exit" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
 
-    /**
-     * @return Returns the return_.
-     */
-    public Option<Expr> getReturn_() {
-        return return_;
+    writer.startLine("");
+    writer.print("name = ");
+    Option<Id> temp_name = getName();
+    if (temp_name == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_name);
     }
+
+    writer.startLine("");
+    writer.print("returnExpr = ");
+    Option<Expr> temp_returnExpr = getReturnExpr();
+    if (temp_returnExpr == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_returnExpr);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Exit casted = (Exit) obj;
+      if (! (getName().equals(casted.getName()))) return false;
+      if (! (getReturnExpr().equals(casted.getReturnExpr()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getName().hashCode();
+    code ^= getReturnExpr().hashCode();
+    return code;
+  }
 }

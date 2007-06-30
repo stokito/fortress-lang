@@ -1041,9 +1041,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forSpawn(Spawn x) {
- Expr body = x.getBody();
-        // ignore region for now
-        Option<Expr> region = x.getRegion();
+        Expr body = x.getBody();
         return new FThread(body, this);
     }
 

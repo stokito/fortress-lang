@@ -33,6 +33,9 @@ public interface NodeVisitor_void {
   /** Process an instance of CaseExpr. */
   public void forCaseExpr(CaseExpr that);
 
+  /** Process an instance of Block. */
+  public void forBlock(Block that);
+
   /** Process an instance of For. */
   public void forFor(For that);
 
@@ -50,6 +53,24 @@ public interface NodeVisitor_void {
 
   /** Process an instance of While. */
   public void forWhile(While that);
+
+  /** Process an instance of Accumulator. */
+  public void forAccumulator(Accumulator that);
+
+  /** Process an instance of AtomicExpr. */
+  public void forAtomicExpr(AtomicExpr that);
+
+  /** Process an instance of Exit. */
+  public void forExit(Exit that);
+
+  /** Process an instance of Spawn. */
+  public void forSpawn(Spawn that);
+
+  /** Process an instance of Throw. */
+  public void forThrow(Throw that);
+
+  /** Process an instance of TryAtomicExpr. */
+  public void forTryAtomicExpr(TryAtomicExpr that);
 
   /** Process an instance of FloatLiteral. */
   public void forFloatLiteral(FloatLiteral that);
