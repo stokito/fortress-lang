@@ -65,7 +65,6 @@ FieldSelection
 FixedDim
 FloatLiteral
 Fn
-FnBind
 FnDecl
 For
 Fun

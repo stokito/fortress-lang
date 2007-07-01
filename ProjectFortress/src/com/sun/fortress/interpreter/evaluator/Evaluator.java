@@ -91,7 +91,6 @@ import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
 import com.sun.fortress.interpreter.nodes.FloatLiteral;
 import com.sun.fortress.interpreter.nodes.Fn;
-import com.sun.fortress.interpreter.nodes.FnBind;
 import com.sun.fortress.interpreter.nodes.For;
 import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Generator;
@@ -730,10 +729,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFn(Fn x) {
         Closure cl = new Closure(e, x);
         return cl.finishInitializing();
-    }
-
-    public FValue forFnBind(FnBind x) {
-        return NI("forFnBind");
     }
 
     public FValue forAbsFnDecl(AbsFnDecl x) {
