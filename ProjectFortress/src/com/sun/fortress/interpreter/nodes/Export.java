@@ -17,42 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
-
-
-// / and export = dotted_name
-// /
 public class Export extends AbstractNode {
-    List<DottedId> names;
+  private final List<DottedId> _names;
 
-    public Export(Span s, DottedId name) {
-        super(s);
-        names = Useful.<DottedId> list(name);
-    }
+  /**
+   * Constructs a Export.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Export(Span in_span, List<DottedId> in_names) {
+    super(in_span);
 
-    public Export(Span s, List<DottedId> names) {
-        super(s);
-        this.names = names;
+    if (in_names == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'names' to the Export constructor was null. This class may not have null field values.");
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Export) {
-            Export e = (Export) o;
-            return names.equals(e.getNames());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return MagicNumbers.x
-                * MagicNumbers.hashList(getNames(), MagicNumbers.N);
-    }
+    _names = in_names;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -61,9 +49,81 @@ public class Export extends AbstractNode {
 
     Export(Span span) {
         super(span);
+        _names = null;
     }
 
-    public List<DottedId> getNames() {
-        return names;
+  final public List<DottedId> getNames() { return _names; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forExport(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forExport(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("Export" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
+
+    writer.startLine("");
+    writer.print("names = ");
+    List<DottedId> temp_names = getNames();
+    if (temp_names == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_names);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Export casted = (Export) obj;
+      if (! (getNames().equals(casted.getNames()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getNames().hashCode();
+    return code;
+  }
 }

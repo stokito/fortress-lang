@@ -9,6 +9,9 @@ public interface NodeVisitor_void {
   /** Process an instance of ArrayComprehensionClause. */
   public void forArrayComprehensionClause(ArrayComprehensionClause that);
 
+  /** Process an instance of Binding. */
+  public void forBinding(Binding that);
+
   /** Process an instance of CaseClause. */
   public void forCaseClause(CaseClause that);
 
@@ -35,6 +38,12 @@ public interface NodeVisitor_void {
 
   /** Process an instance of EnsuresClause. */
   public void forEnsuresClause(EnsuresClause that);
+
+  /** Process an instance of Entry. */
+  public void forEntry(Entry that);
+
+  /** Process an instance of Export. */
+  public void forExport(Export that);
 
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
@@ -107,6 +116,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of VarRefExpr. */
   public void forVarRefExpr(VarRefExpr that);
+
+  /** Process an instance of Generator. */
+  public void forGenerator(Generator that);
 
   /** Process an instance of Id. */
   public void forId(Id that);

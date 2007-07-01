@@ -35,6 +35,7 @@ import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
@@ -122,9 +123,9 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
 
     public void testExport() {
         Span span1 = newSpan("cat", 1, 2, 3);
-        com.sun.fortress.interpreter.nodes.Export e1 = new com.sun.fortress.interpreter.nodes.Export(span1, newDottedId("some", "exported", "apiname"));
-        com.sun.fortress.interpreter.nodes.Export e2 = new com.sun.fortress.interpreter.nodes.Export(span1, newDottedId("some", "exported", "apiname"));
-        com.sun.fortress.interpreter.nodes.Export e3 = new com.sun.fortress.interpreter.nodes.Export(span1, newDottedId("an", "exported", "apiname"));
+        com.sun.fortress.interpreter.nodes.Export e1 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
+        com.sun.fortress.interpreter.nodes.Export e2 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
+        com.sun.fortress.interpreter.nodes.Export e3 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("an", "exported", "apiname")));
 
         een(e1, e2, e3);
          }
