@@ -26,35 +26,36 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class Block extends DelimitedExpr {
-  private final List<Expr> _exprs;
+public class Do extends DelimitedExpr {
+  private final List<DoFront> _fronts;
 
   /**
-   * Constructs a Block.
+   * Constructs a Do.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public Block(Span in_span, List<Expr> in_exprs) {
+  public Do(Span in_span, List<DoFront> in_fronts) {
     super(in_span);
 
-    if (in_exprs == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'exprs' to the Block constructor was null. This class may not have null field values.");
+    if (in_fronts == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'fronts' to the Do constructor was null. This class may not have null field values.");
     }
-    _exprs = in_exprs;
+    _fronts = in_fronts;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forBlock(this);
-    }
-    Block(Span span) {
-        super(span);
-        _exprs = null;
+        return v.forDo(this);
     }
 
-  final public List<Expr> getExprs() { return _exprs; }
+    public Do(Span in_span) {
+        super(in_span);
+        _fronts = null;
+    }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forBlock(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forBlock(this); }
+  final public List<DoFront> getFronts() { return _fronts; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forDo(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forDo(this); }
 
   /**
    * Implementation of toString that uses
@@ -74,7 +75,7 @@ public class Block extends DelimitedExpr {
   }
 
   public void outputHelp(TabPrintWriter writer) {
-    writer.print("Block" + ":");
+    writer.print("Do" + ":");
     writer.indent();
 
     writer.startLine("");
@@ -87,12 +88,12 @@ public class Block extends DelimitedExpr {
     }
 
     writer.startLine("");
-    writer.print("exprs = ");
-    List<Expr> temp_exprs = getExprs();
-    if (temp_exprs == null) {
+    writer.print("fronts = ");
+    List<DoFront> temp_fronts = getFronts();
+    if (temp_fronts == null) {
       writer.print("null");
     } else {
-      writer.print(temp_exprs);
+      writer.print(temp_fronts);
     }
     writer.unindent();
   }
@@ -107,8 +108,8 @@ public class Block extends DelimitedExpr {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      Block casted = (Block) obj;
-      if (! (getExprs().equals(casted.getExprs()))) return false;
+      Do casted = (Do) obj;
+      if (! (getFronts().equals(casted.getFronts()))) return false;
       return true;
     }
   }
@@ -122,7 +123,7 @@ public class Block extends DelimitedExpr {
   protected int generateHashCode() {
     int code = getClass().hashCode();
     code ^= 0;
-    code ^= getExprs().hashCode();
+    code ^= getFronts().hashCode();
     return code;
   }
 }

@@ -79,6 +79,7 @@ import com.sun.fortress.interpreter.nodes.CatchClause;
 import com.sun.fortress.interpreter.nodes.Catch;
 import com.sun.fortress.interpreter.nodes.ChainExpr;
 import com.sun.fortress.interpreter.nodes.CharLiteral;
+import com.sun.fortress.interpreter.nodes.Do;
 import com.sun.fortress.interpreter.nodes.DoFront;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.nodes.Enclosing;
@@ -326,11 +327,25 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forBinding");
     }
 
+    public FValue forDo(Do x) {
+        // debugPrint("forDo " + x);
+        if (x.getFronts().size() == 0)
+            return evVoid;
+        else if (x.getFronts().size() > 1)
+            return NI("forParallelDo");
+        else { // (x.getFronts().size() == 1)
+            DoFront f = x.getFronts().get(0);
+            if (f.getAt().isPresent()) return NI("forAtDo");
+            if (f.isAtomic())
+                return forAtomicExpr(new AtomicExpr(x.getSpan(),f.getExpr()));
+            return f.getExpr().accept(this);
+        }
+    }
+
     public FValue forBlock(Block x) {
         // debugPrint("forBlock " + x);
         List<Expr> exprs = x.getExprs();
         return evalExprList(exprs, x);
-
     }
 
     /**

@@ -17,29 +17,28 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class FlowExpr extends Expr {
-    protected FlowExpr(Span span) {
-        super(span);
-    }
-}
 
-// / and flow_expr =
-// / [
-// / | `IfExpr of if_expr
-// / | `CaseExpr of case_expr
-// / | `DispatchExpr of type_case_expr
-// / | `TypeCaseExpr of type_case_expr
-// / | `TryExpr of try_expr
-// / | `ThrowExpr of expr
-// / | `LabelExpr of label_expr
-// / | `ExitExpr of exit_expr
-// / | `ForExpr of for_expr
-// / | `WhileExpr of while_expr
-// / | `AccumulatorExpr of accumulator_expr
-// / | `AtomicExpr of expr
-// / | `TryAtomicExpr of expr
-// / | `BlockExpr of expr list
-// / | `SpawnExpr of spawn_expr
-// / ] node
+  /**
+   * Constructs a FlowExpr.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public FlowExpr(Span in_span) {
+    super(in_span);
+  }
+
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
+}

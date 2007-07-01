@@ -141,6 +141,13 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         return result;
     }
 
+    public TypeCheckerResult forDo(Do b) {
+        // Do(Span span, List<DoFront> fronts)
+        TypeCheckerResult result = TypeCheckerResult.VALID;
+        for (DoFront d : b.getFronts()) { result = result.combine(d.accept(this)); }
+        return result;
+    }
+
     public TypeCheckerResult forBlock(Block b) {
         // Block(Span span, List<Expr> exprs)
         // TODO: make sure the spec allows an empty block

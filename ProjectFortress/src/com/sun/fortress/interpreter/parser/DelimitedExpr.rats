@@ -125,14 +125,10 @@ Expr DelimitedExpr =
      };
 
 /* Do ::= (DoFront w also w)* DoFront w end */
-Expr Do = do a1:(w BlockElems)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyExprs();
-       yyValue = FortressUtil.doBlock(a1);
+Expr Do = a1s:(DoFront w also w)* a2:DoFront w end
+     { yyValue = new Do(createSpan(yyStart, yyCount),
+                        FortressUtil.mkList(a1s.list(), a2));
      };
-/* ************************************************
- * Not Yet Implemented ***************************
-a1s:(DoFront w also w)* a2:DoFront w end
-************************************************ */
 
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
 private DoFront DoFront =

@@ -27,17 +27,20 @@ public interface NodeVisitor_void {
   /** Process an instance of CatchClause. */
   public void forCatchClause(CatchClause that);
 
+  /** Process an instance of DoFront. */
+  public void forDoFront(DoFront that);
+
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
-
-  /** Process an instance of CaseExpr. */
-  public void forCaseExpr(CaseExpr that);
 
   /** Process an instance of Block. */
   public void forBlock(Block that);
 
-  /** Process an instance of DoFront. */
-  public void forDoFront(DoFront that);
+  /** Process an instance of CaseExpr. */
+  public void forCaseExpr(CaseExpr that);
+
+  /** Process an instance of Do. */
+  public void forDo(Do that);
 
   /** Process an instance of For. */
   public void forFor(For that);
