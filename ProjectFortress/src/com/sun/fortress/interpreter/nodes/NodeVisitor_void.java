@@ -33,6 +33,12 @@ public interface NodeVisitor_void {
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
 
+  /** Process an instance of AsExpr. */
+  public void forAsExpr(AsExpr that);
+
+  /** Process an instance of AsIfExpr. */
+  public void forAsIfExpr(AsIfExpr that);
+
   /** Process an instance of Block. */
   public void forBlock(Block that);
 
