@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.ListComparer;
 
 public abstract class StaticParam extends AbstractNode implements
         Comparable<StaticParam> {
@@ -43,9 +42,6 @@ public abstract class StaticParam extends AbstractNode implements
     abstract int subtypeCompareTo(StaticParam o);
 
     public abstract String getName();
-
-    public static ListComparer<StaticParam> listComparer =
-        new ListComparer<StaticParam>();
 }
 
 // / and type_param =

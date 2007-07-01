@@ -130,7 +130,7 @@ public class GenericMethod extends MethodClosure implements
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
-        
+
         ArrayList<FType> argValues = et.forStaticArgList(args);
         return make(argValues, within);
     }
@@ -173,7 +173,7 @@ public class GenericMethod extends MethodClosure implements
 
             FnName fn0 = a0.getFnName();
             FnName fn1 = a1.getFnName();
-            int x = fn0.compareTo(fn1);
+            int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
 
@@ -195,5 +195,5 @@ public class GenericMethod extends MethodClosure implements
         }
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
-    
+
 }

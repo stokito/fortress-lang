@@ -1,30 +1,54 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.interpreter.nodes_util;
 
 import java.util.List;
-
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Voidoid;
-
-
+import com.sun.fortress.interpreter.useful.ListComparer;
 
 public class NodeComparator {
+
+    public static ListComparer<StaticParam> staticParamListComparer =
+        new ListComparer<StaticParam>();
+
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
-        return StaticParam.listComparer.compare(left, right);
+        return staticParamListComparer.compare(left, right);
     }
-   
+
     public static int compare(FnDefOrDecl left, FnDefOrDecl right) {
         return left.compareTo(right);
     }
-       
+
     public static int compare(Applicable left, Applicable right) {
         return left.applicableCompareTo(right);
     }
-    
+
+    public static int compare(FnName left, FnName right) {
+        return left.compareTo(right);
+    }
+}
+
 //    public static int compareTo(Id left, Id right) {
 //        return left.getName().compareTo(right.getName());
 //    }
-//    
+//
 //    public static int compareTo(FnName left, FnName right) {
 //        Class leftClass = left.getClass();
 //        Class rightClass = right.getClass();
@@ -36,7 +60,7 @@ public class NodeComparator {
 //            return left.stringName().compareTo(right.stringName());
 //        }
 //    }
-        
+
 //    public static int compareTo(TypeRef left, TypeRef right) {
 //        Class leftClass = left.getClass();
 //        Class rightClass = right.getClass();
@@ -47,20 +71,20 @@ public class NodeComparator {
 //        else {
 //            return left.subtypeCompareTo(right);
 //        }
-//    }   
+//    }
 
 //   Copied code begins here.
-//    
+//
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        return elementType.compareTo(((SetType) o).elementType);
 //    }
-        
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        return type.compareTo(((RestType) o).type);
 //    }
-        
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        ParamType x = (ParamType) o;
@@ -70,7 +94,7 @@ public class NodeComparator {
 //        }
 //        return StaticArg.typeargListComparer.compare(args, x.args);
 //    }
-    
+
 //    @Override
 //    int subtypeCompareTo(TypeRef o) {
 //        MatrixType x = (MatrixType) o;
@@ -78,27 +102,27 @@ public class NodeComparator {
 //        if (y != 0) return y;
 //        return ExtentRange.listComparer.compare(dimensions, x.dimensions);
 //    }
-    
+
 //    @Override
 //    int subtypeCompareTo(TypeRef o) {
 //        MapType x = (MapType) o;
 //        return Useful.compare(key, x.key, value, x.value);
 //    }
-    
-//    
+
+//
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        ListType x = (ListType) o;
 //        return element.compareTo(((ListType) o).element);
 //    }
-        
-        
+
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        return name.compareTo(((IdType) o).name);
 //    }
-    
-    
+
+
 //
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
@@ -106,7 +130,7 @@ public class NodeComparator {
 //        NYI("subtypeCompareTo for " + this.getClass().getName());
 //        return 0;
 //    }
-        
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        QuotientDim x = (QuotientDim) o;
@@ -114,19 +138,19 @@ public class NodeComparator {
 //        return Useful.compare((TypeRef) numerator, x.numerator,
 //                              (TypeRef) denominator, x.denominator); // cast for generics
 //    }
-    
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        ProductDim x = (ProductDim) o;
 //        return Useful.compare((TypeRef) multiplier, x.multiplier,
 //                              (TypeRef) multiplicand, x.multiplicand); // cast for generics
 //    }
-        
+
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        return name.compareTo(((NameDim) o).name);
 //    }
-        
+
 //       @Override
 //    int subtypeCompareTo(TypeRef o) {
 //        ExponentDim x = (ExponentDim) o;
@@ -134,7 +158,7 @@ public class NodeComparator {
 //                                                                                    // for
 //                                                                                    // generics
 //    }
-       
+
 //        @Override
 //    int subtypeCompareTo(TypeRef o) {
 //        ArrayType a = (ArrayType) o;
@@ -158,10 +182,9 @@ public class NodeComparator {
 //        x = TypeRef.listComparer.compare(throws_, a.throws_);
 //        return x;
 //    }
-}
 
-//    
-//    
+//
+//
 //    /*
 //     * (non-Javadoc)
 //     *
@@ -175,7 +198,7 @@ public class NodeComparator {
 //        }
 //        return subtypeCompareTo(o);
 //    }
-//    
+//
 //    public int compareTo(Param o) {
 //        int x = getName().getName().compareTo(o.getName().getName());
 //        if (x != 0) return x;
@@ -184,11 +207,11 @@ public class NodeComparator {
 //        // TODO default expr, mods, must enter into comparison also.
 //        return x;
 //    }
-//    
+//
 //    public int compareTo(KeywordType o) {
 //        return Useful.compare(name, o.name, type, o.type);
 //    }
-//    
+//
 //        /*
 //     * (non-Javadoc)
 //     *
@@ -202,7 +225,7 @@ public class NodeComparator {
 //        }
 //        return subtypeCompareTo(o);
 //    }
-//    
+//
 //    public int compareTo(ExtentRange o) {
 //        // TODO Optional parameters on extent ranges are tricky things; perhaps
 //        // they need not both be present.
@@ -221,10 +244,10 @@ public class NodeComparator {
 //    public int compareTo(DottedId other) {
 //        return ListComparer.stringListComparer.compare(names, other.names);
 //    }
-//    
+//
 //        public int compareTo(FnDefOrDecl a1) {
 //        FnDefOrDecl a0 = this;
-//        
+//
 //        FnName fn0 = a0.getFnName();
 //        FnName fn1 = a1.getFnName();
 //        int x = fn0.compareTo(fn1);
@@ -233,7 +256,7 @@ public class NodeComparator {
 //        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), StaticParam.listComparer);
 //
 //        if (x != 0)  return x;
-//        
+//
 //        x = Param.listComparer.compare(a0.getParams(), a1.getParams());
 //        return x;
 //

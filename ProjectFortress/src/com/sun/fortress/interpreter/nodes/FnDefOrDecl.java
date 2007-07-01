@@ -22,7 +22,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.Comparator;
 import java.util.List;
-
+import com.sun.fortress.interpreter.nodes_util.NodeComparator;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
@@ -51,7 +51,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     transient private boolean isAFunctionalMethodKnown;
     transient private int cachedSelfParameterIndex = -1;
     transient private volatile String asMethodName;
-    
+
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
             Option<TypeRef> returnType, List<TypeRef> throwss,
@@ -76,37 +76,37 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
      */
     public int compareTo(FnDefOrDecl a1) {
         FnDefOrDecl a0 = this;
-        
+
         FnName fn0 = a0.getFnName();
         FnName fn1 = a1.getFnName();
         int x = fn0.compareTo(fn1);
         if (x != 0)  return x;
 
-        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), StaticParam.listComparer);
+        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), NodeComparator.staticParamListComparer);
 
         if (x != 0)  return x;
-        
+
         x = Param.listComparer.compare(a0.getParams(), a1.getParams());
         return x;
 
     }
-    
+
     static class Comparer implements Comparator<FnDefOrDecl> {
 
         public int compare(FnDefOrDecl o1, FnDefOrDecl o2) {
             return o1.compareTo(o2);
-        } 
+        }
     }
-    
+
     public final static Comparer comparer = new Comparer();
-    
+
     public int applicableCompareTo(Applicable a) {
         int x = Useful.compareClasses(this, a);
         if (x != 0) return x;
         return compareTo((FnDefOrDecl) a);
     }
 
-    
+
     @Override
     public String toString() {
 
@@ -189,7 +189,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
      */
     public int selfParameterIndex() {
@@ -212,7 +212,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     public String nameAsFunction() {
         return name.name();
     }
-    
+
     public String nameAsMethod() {
         if (asMethodName == null) {
             int spi = selfParameterIndex();
@@ -224,7 +224,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         }
         return asMethodName;
     }
-    
+
 }
 
 // / and fn_def_or_decl =

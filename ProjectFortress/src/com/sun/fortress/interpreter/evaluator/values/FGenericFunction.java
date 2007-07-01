@@ -43,7 +43,7 @@ public class FGenericFunction extends SingleFcn
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
     volatile Simple_fcn symbolicInstantiation;
-    
+
    /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
@@ -75,7 +75,7 @@ public class FGenericFunction extends SingleFcn
             }
         }
         return symbolicInstantiation.getDomain();
-        
+
     }
 
     /* (non-Javadoc)
@@ -113,7 +113,7 @@ public class FGenericFunction extends SingleFcn
     }
 
      Memo1P<List<FType>, Simple_fcn, HasAt> memo = new Memo1P<List<FType>, Simple_fcn, HasAt>(new Factory());
-     
+
     public Simple_fcn make(List<FType> l, HasAt within) {
         return memo.make(l, within);
     }
@@ -161,7 +161,7 @@ public class FGenericFunction extends SingleFcn
         }
         return make(argValues, within);
     }
-    
+
     Simple_fcn typeApply(HasAt within, List<FType> argValues) throws ProgramError {
         return make(argValues, within);
     }
@@ -190,7 +190,7 @@ public class FGenericFunction extends SingleFcn
 
             FnName fn0 = a0.getFnName();
             FnName fn1 = a1.getFnName();
-            int x = fn0.compareTo(fn1);
+            int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
 
@@ -209,7 +209,7 @@ public class FGenericFunction extends SingleFcn
 
         public int compare(FGenericFunction arg0, FGenericFunction arg1) {
             return NodeComparator.compare(arg0.fndef, arg1.fndef);
-            
+
         }
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
