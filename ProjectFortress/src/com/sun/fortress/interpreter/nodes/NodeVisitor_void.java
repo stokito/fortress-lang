@@ -12,6 +12,9 @@ public interface NodeVisitor_void {
   /** Process an instance of CaseClause. */
   public void forCaseClause(CaseClause that);
 
+  /** Process an instance of Contract. */
+  public void forContract(Contract that);
+
   /** Process an instance of CaseParamExpr. */
   public void forCaseParamExpr(CaseParamExpr that);
 
@@ -29,6 +32,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of DoFront. */
   public void forDoFront(DoFront that);
+
+  /** Process an instance of EnsuresClause. */
+  public void forEnsuresClause(EnsuresClause that);
 
   /** Process an instance of Expr. */
   public void forExpr(Expr that);

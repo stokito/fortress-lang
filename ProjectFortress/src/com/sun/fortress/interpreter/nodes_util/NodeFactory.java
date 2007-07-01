@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes_util;
 
+import java.util.Collections;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Fn;
@@ -26,6 +27,12 @@ public class NodeFactory {
     /* Constructors ***********************************************************/
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, s, s.charAt(0));
+    }
+
+    public static Contract makeContract() {
+        return new Contract(new Span(), Collections.<Expr> emptyList(),
+                            Collections.<EnsuresClause> emptyList(),
+                            Collections.<Expr> emptyList());
     }
 
     public static FloatLiteral makeFloatLiteral(Span span, String s) {

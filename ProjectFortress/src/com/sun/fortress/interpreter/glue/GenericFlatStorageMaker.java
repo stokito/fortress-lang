@@ -77,7 +77,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         List<Modifier> mods = Collections.emptyList();
         List<TypeRef> throws_ = Collections.emptyList();
         List<WhereClause> where = Collections.emptyList();
-        Contract contract = Contract.make();
+        Contract contract = NodeFactory.makeContract();
 
         Id name = NodeFactory.makeId("FlatStorageMaker");
         Option<List<StaticParam>> staticParams =  // [T, m]
