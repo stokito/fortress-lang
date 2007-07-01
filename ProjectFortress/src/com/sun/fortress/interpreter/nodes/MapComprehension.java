@@ -17,33 +17,36 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and map_comp_expr = map_comp_expr_rec node
-// / and map_comp_expr_rec =
-// / {
-// / map_comp_expr_key : expr;
-// / map_comp_expr_value : expr;
-// / map_comp_expr_guards : expr list;
-// / map_comp_expr_gens : generator list;
-// / }
-// /
 public class MapComprehension extends GeneratedComprehension {
+  private final Expr _key;
+  private final Expr _value;
 
-    Expr key;
+  /**
+   * Constructs a MapComprehension.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public MapComprehension(Span in_span, List<Generator> in_gens, Expr in_key, Expr in_value) {
+    super(in_span, in_gens);
 
-    Expr value;
-
-    public MapComprehension(Span span, List<Generator> gens, Expr key,
-            Expr value) {
-        super(span);
-        this.guards = Collections.<Expr> emptyList();
-        this.gens = gens;
-        this.key = key;
-        this.value = value;
+    if (in_key == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'key' to the MapComprehension constructor was null. This class may not have null field values.");
     }
+    _key = in_key;
+
+    if (in_value == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'value' to the MapComprehension constructor was null. This class may not have null field values.");
+    }
+    _value = in_value;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -52,19 +55,105 @@ public class MapComprehension extends GeneratedComprehension {
 
     MapComprehension(Span span) {
         super(span);
+        _key = null;
+        _value = null;
     }
 
-    /**
-     * @return Returns the key.
-     */
-    public Expr getKey() {
-        return key;
+  final public Expr getKey() { return _key; }
+  final public Expr getValue() { return _value; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forMapComprehension(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forMapComprehension(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("MapComprehension" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
 
-    /**
-     * @return Returns the value.
-     */
-    public Expr getValue() {
-        return value;
+    writer.startLine("");
+    writer.print("gens = ");
+    List<Generator> temp_gens = getGens();
+    if (temp_gens == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_gens);
     }
+
+    writer.startLine("");
+    writer.print("key = ");
+    Expr temp_key = getKey();
+    if (temp_key == null) {
+      writer.print("null");
+    } else {
+      temp_key.outputHelp(writer);
+    }
+
+    writer.startLine("");
+    writer.print("value = ");
+    Expr temp_value = getValue();
+    if (temp_value == null) {
+      writer.print("null");
+    } else {
+      temp_value.outputHelp(writer);
+    }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      MapComprehension casted = (MapComprehension) obj;
+      if (! (getGens().equals(casted.getGens()))) return false;
+      if (! (getKey().equals(casted.getKey()))) return false;
+      if (! (getValue().equals(casted.getValue()))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getGens().hashCode();
+    code ^= getKey().hashCode();
+    code ^= getValue().hashCode();
+    return code;
+  }
 }

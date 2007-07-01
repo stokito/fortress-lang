@@ -26,36 +26,36 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class VarRefExpr extends BaseExpr implements LHS {
-  private final Id _var;
+public class ArrayComprehension extends Comprehension {
+  private final List<ArrayComprehensionClause> _clauses;
 
   /**
-   * Constructs a VarRefExpr.
+   * Constructs a ArrayComprehension.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public VarRefExpr(Span in_span, Id in_var) {
+  public ArrayComprehension(Span in_span, List<ArrayComprehensionClause> in_clauses) {
     super(in_span);
 
-    if (in_var == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'var' to the VarRefExpr constructor was null. This class may not have null field values.");
+    if (in_clauses == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'clauses' to the ArrayComprehension constructor was null. This class may not have null field values.");
     }
-    _var = in_var;
+    _clauses = in_clauses;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forVarRefExpr(this);
+        return v.forArrayComprehension(this);
     }
 
-    VarRefExpr(Span span) {
+    ArrayComprehension(Span span) {
         super(span);
-        _var = null;
+        _clauses = null;
     }
 
-  final public Id getVar() { return _var; }
+  final public List<ArrayComprehensionClause> getClauses() { return _clauses; }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forVarRefExpr(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forVarRefExpr(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forArrayComprehension(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forArrayComprehension(this); }
 
   /**
    * Implementation of toString that uses
@@ -75,7 +75,7 @@ public class VarRefExpr extends BaseExpr implements LHS {
   }
 
   public void outputHelp(TabPrintWriter writer) {
-    writer.print("VarRefExpr" + ":");
+    writer.print("ArrayComprehension" + ":");
     writer.indent();
 
     writer.startLine("");
@@ -88,12 +88,12 @@ public class VarRefExpr extends BaseExpr implements LHS {
     }
 
     writer.startLine("");
-    writer.print("var = ");
-    Id temp_var = getVar();
-    if (temp_var == null) {
+    writer.print("clauses = ");
+    List<ArrayComprehensionClause> temp_clauses = getClauses();
+    if (temp_clauses == null) {
       writer.print("null");
     } else {
-      temp_var.outputHelp(writer);
+      writer.print(temp_clauses);
     }
     writer.unindent();
   }
@@ -108,8 +108,8 @@ public class VarRefExpr extends BaseExpr implements LHS {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      VarRefExpr casted = (VarRefExpr) obj;
-      if (! (getVar().equals(casted.getVar()))) return false;
+      ArrayComprehension casted = (ArrayComprehension) obj;
+      if (! (getClauses().equals(casted.getClauses()))) return false;
       return true;
     }
   }
@@ -123,7 +123,7 @@ public class VarRefExpr extends BaseExpr implements LHS {
   protected int generateHashCode() {
     int code = getClass().hashCode();
     code ^= 0;
-    code ^= getVar().hashCode();
+    code ^= getClauses().hashCode();
     return code;
   }
 }

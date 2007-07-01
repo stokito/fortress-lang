@@ -17,30 +17,28 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-public class RectComprehension extends Comprehension {
-    List<ArrayComprehensionClause> clauses;
+public abstract class Primary extends OpExpr {
 
-    public RectComprehension(Span span, List<ArrayComprehensionClause> clauses) {
-        super(span);
-        this.clauses = clauses;
-    }
+  /**
+   * Constructs a Primary.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Primary(Span in_span) {
+    super(in_span);
+  }
 
-    @Override
-    public <T> T accept(NodeVisitor<T> v) {
-        return v.forRectComprehension(this);
-    }
 
-    RectComprehension(Span span) {
-        super(span);
-    }
-
-    /**
-     * @return Returns the clauses.
-     */
-    public List<ArrayComprehensionClause> getClauses() {
-        return clauses;
-    }
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }

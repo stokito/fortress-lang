@@ -17,41 +17,40 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class GeneratedComprehension extends Comprehension {
-    protected GeneratedComprehension(Span span) {
-        super(span);
+  private final List<Generator> _gens;
+
+  /**
+   * Constructs a GeneratedComprehension.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public GeneratedComprehension(Span in_span, List<Generator> in_gens) {
+    super(in_span);
+
+    if (in_gens == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'gens' to the GeneratedComprehension constructor was null. This class may not have null field values.");
     }
+    _gens = in_gens;
+  }
 
-    // Now, guards are also generators.
-    // This field should go away after we replace the OCaml com.sun.fortress.interpreter.parser with
-    // the Rats! com.sun.fortress.interpreter.parser.
-    List<Expr> guards;
+  public GeneratedComprehension(Span in_span) {
+    super(in_span);
+    _gens = null;
+  }
 
-    List<Generator> gens;
+  public List<Generator> getGens() { return _gens; }
 
-    /**
-     * @return Returns the gens.
-     */
-    public List<Generator> getGens() {
-        return gens;
-    }
-
-    /**
-     * @return Returns the guards.
-     */
-    public List<Expr> getGuards() {
-        return guards;
-    }
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }
-
-// / and comprehension_expr =
-// / [
-// / | `SetCompExpr of set_comp_expr
-// / | `ListCompExpr of list_comp_expr
-// / | `MapCompExpr of map_comp_expr
-// / | `RectangularCompExpr of rect_comp_clause list
-// / ] node
-// /

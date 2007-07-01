@@ -275,7 +275,7 @@ Comprehension Comprehension =
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
        w closesquare
      { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a1, a2s.list());
-       yyValue = new RectComprehension(createSpan(yyStart,yyCount), clauses);
+       yyValue = new ArrayComprehension(createSpan(yyStart,yyCount), clauses);
      };
 
 /* The operator "|->" should not be in the left-hand sides of map expressions

@@ -123,8 +123,8 @@ import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.OprName;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.PostFix;
+import com.sun.fortress.interpreter.nodes.ArrayComprehension;
 import com.sun.fortress.interpreter.nodes.ArrayComprehensionClause;
-import com.sun.fortress.interpreter.nodes.RectComprehension;
 import com.sun.fortress.interpreter.nodes.SetComprehension;
 import com.sun.fortress.interpreter.nodes.SetExpr;
 import com.sun.fortress.interpreter.nodes.Spawn;
@@ -1023,12 +1023,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    public FValue forRectCompClause(ArrayComprehensionClause x) {
-        return NI("forRectCompClause");
+    public FValue forArrayCompClause(ArrayComprehensionClause x) {
+        return NI("forArrayCompClause");
     }
 
-    public FValue forRectComprehension(RectComprehension x) {
-        return NI("forRectComprehension");
+    public FValue forArrayComprehension(ArrayComprehension x) {
+        return NI("forArrayComprehension");
     }
 
     public FValue forSetComprehension(SetComprehension x) {

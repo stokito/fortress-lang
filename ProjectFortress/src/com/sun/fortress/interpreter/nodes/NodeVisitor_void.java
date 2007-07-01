@@ -117,6 +117,18 @@ public interface NodeVisitor_void {
   /** Process an instance of VarRefExpr. */
   public void forVarRefExpr(VarRefExpr that);
 
+  /** Process an instance of ArrayComprehension. */
+  public void forArrayComprehension(ArrayComprehension that);
+
+  /** Process an instance of SetComprehension. */
+  public void forSetComprehension(SetComprehension that);
+
+  /** Process an instance of MapComprehension. */
+  public void forMapComprehension(MapComprehension that);
+
+  /** Process an instance of ListComprehension. */
+  public void forListComprehension(ListComprehension that);
+
   /** Process an instance of Generator. */
   public void forGenerator(Generator that);
 

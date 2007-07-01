@@ -26,28 +26,16 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public abstract class Literal extends BaseExpr {
-  private final String _text;
+public abstract class OpExpr extends Expr {
 
   /**
-   * Constructs a Literal.
+   * Constructs a OpExpr.
    * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
    */
-  public Literal(Span in_span, String in_text) {
+  public OpExpr(Span in_span) {
     super(in_span);
-
-    if (in_text == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'text' to the Literal constructor was null. This class may not have null field values.");
-    }
-    _text = ((in_text == null) ? null : in_text.intern());
   }
 
-    public Literal(Span span) {
-        super(span);
-        _text = null;
-    }
-
-  public String getText() { return _text; }
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);

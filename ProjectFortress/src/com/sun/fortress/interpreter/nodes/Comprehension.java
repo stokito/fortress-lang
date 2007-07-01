@@ -17,11 +17,28 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-public abstract class Comprehension extends ValueExpr {
+public abstract class Comprehension extends Primary {
 
-    public Comprehension(Span span) {
-        super(span);
-    }
+  /**
+   * Constructs a Comprehension.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Comprehension(Span in_span) {
+    super(in_span);
+  }
+
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }
