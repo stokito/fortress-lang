@@ -17,19 +17,64 @@
 
 package com.sun.fortress.interpreter.nodes_util;
 
+import java.util.Comparator;
 import java.util.List;
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Voidoid;
+import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
 public class NodeComparator {
 
-    public static ListComparer<StaticParam> staticParamListComparer =
-        new ListComparer<StaticParam>();
+    static String getName(StaticParam p) { return p.toString(); }
+    static String getName(BoolParam p) { return p.getId().getName(); }
+    static String getName(DimensionParam p) { return p.getId().getName(); }
+    static String getName(IntParam p) { return p.getId().getName(); }
+    static String getName(NatParam p) { return p.getId().getName(); }
+    static String getName(OperatorParam p) { return p.getOp().getName(); }
+    static String getName(SimpleTypeParam p) { return p.getId().getName(); }
+
+    static class StaticParamComparer implements Comparator<StaticParam> {
+        public int compare(StaticParam left, StaticParam right) {
+            Class tclass = left.getClass();
+            Class oclass = right.getClass();
+            if (oclass != tclass) {
+                return tclass.getName().compareTo(oclass.getName());
+            }
+            return subtypeCompareTo(left, right);
+        }
+    }
+    public final static StaticParamComparer staticParamComparer =
+        new StaticParamComparer();
+    public static AnyListComparer<StaticParam> staticParamListComparer =
+        new AnyListComparer(staticParamComparer);
 
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
         return staticParamListComparer.compare(left, right);
+    }
+
+    static int subtypeCompareTo(StaticParam left, StaticParam right) {
+        return getName(left).compareTo(getName(right));
+    }
+
+    static int subtypeCompareTo(SimpleTypeParam left, SimpleTypeParam right) {
+        int x = getName(left).compareTo(getName(right));
+        if (x != 0) {
+            return x;
+        }
+        if (left.isAbsorbs() != right.isAbsorbs()) {
+            return left.isAbsorbs() ? 1 : -1;
+        }
+        if (left.getExtendsClause().isPresent() != right.getExtendsClause().isPresent()) {
+            return left.getExtendsClause().isPresent() ? 1 : -1;
+        }
+        if (!left.getExtendsClause().isPresent()) {
+            return 0;
+        }
+        List<TypeRef> l = left.getExtendsClause().getVal();
+        List<TypeRef> ol = right.getExtendsClause().getVal();
+        return TypeRef.listComparer.compare(l, ol);
     }
 
     public static int compare(FnDefOrDecl left, FnDefOrDecl right) {

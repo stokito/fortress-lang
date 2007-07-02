@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.nodes.TypeAlias;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.WhereClause;
 import com.sun.fortress.interpreter.nodes.WhereExtends;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Hasher;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
@@ -78,8 +79,8 @@ public abstract class SingleFcn extends Fcn {
         }
 
     }
-    
-    
+
+
     /**
      * Given a (generic) applicable, an environment for type
      * evaluation. and a location to which problems can be
@@ -91,7 +92,7 @@ public abstract class SingleFcn extends Fcn {
      *
      * The instantiated generics can be used to allow checks on
      * overloading.
-     * 
+     *
      * @throws Error
      */
     static public List<FType> createSymbolicInstantiation(BetterEnv bte, Applicable ap, HasAt location) throws Error {
@@ -125,13 +126,13 @@ public abstract class SingleFcn extends Fcn {
                 NI.nyi();
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
-                String np_name = np.getName();
+                String np_name = NodeUtil.getName(np);
                 SymbolicNat sn = new SymbolicNat(np_name);
                 ge.putType(np_name, sn);
                 a.add(sn);
             } else if (tp instanceof IntParam) {
                 IntParam np = (IntParam) tp;
-                String np_name = np.getName();
+                String np_name = NodeUtil.getName(np);
                 SymbolicNat sn = new SymbolicNat(np_name);
                 ge.putType(np_name, sn);
                 a.add(sn);
@@ -140,7 +141,7 @@ public abstract class SingleFcn extends Fcn {
                 NI.nyi();
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
-                String stp_name = stp.getName();
+                String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = new SymbolicInstantiatedType(stp_name, ge);
                 ge.putType(stp_name, st);
                 a.add(st);
@@ -175,20 +176,20 @@ public abstract class SingleFcn extends Fcn {
                 NI.nyi();
             } else if (tp instanceof NatParam) {
                 NatParam np = (NatParam) tp;
-                String np_name = np.getName();
+                String np_name = NodeUtil.getName(np);
 
             } else if (tp instanceof IntParam) {
                 IntParam np = (IntParam) tp;
-                String np_name = np.getName();
+                String np_name = NodeUtil.getName(np);
 
             } else if (tp instanceof OperatorParam) {
                 OperatorParam op = (OperatorParam) tp;
                 NI.nyi();
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
-                String stp_name = stp.getName();
+                String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
-                Option<List<TypeRef>> oext = stp.getExtends_();
+                Option<List<TypeRef>> oext = stp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
@@ -233,5 +234,5 @@ public abstract class SingleFcn extends Fcn {
 
     public static Hasher<SingleFcn> nameEquivalence = new NameEquivalence();
 
- 
+
 }

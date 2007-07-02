@@ -64,6 +64,7 @@ import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes_util.RewriteHackList;
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TightJuxt;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
@@ -656,7 +657,7 @@ public class Disambiguate extends Rewrite {
     private BATree<String, Boolean> tparamsToLocals(Option<List<StaticParam>> params, BATree<String, Boolean> immediateDef) {
         if (params.isPresent())
             for (StaticParam d : params.getVal()) {
-                String s = d.getName();
+                String s = NodeUtil.getName(d);
                 e.put(s, new Local());
                 visibleGenericParameters.put(s, d);
                 immediateDef = addToImmediateDef(immediateDef, s);

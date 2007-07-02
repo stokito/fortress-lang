@@ -141,6 +141,24 @@ public interface NodeVisitor_void {
   /** Process an instance of Op. */
   public void forOp(Op that);
 
+  /** Process an instance of BoolParam. */
+  public void forBoolParam(BoolParam that);
+
+  /** Process an instance of DimensionParam. */
+  public void forDimensionParam(DimensionParam that);
+
+  /** Process an instance of IntParam. */
+  public void forIntParam(IntParam that);
+
+  /** Process an instance of NatParam. */
+  public void forNatParam(NatParam that);
+
+  /** Process an instance of OperatorParam. */
+  public void forOperatorParam(OperatorParam that);
+
+  /** Process an instance of SimpleTypeParam. */
+  public void forSimpleTypeParam(SimpleTypeParam that);
+
   /** Process an instance of TypeCaseClause. */
   public void forTypeCaseClause(TypeCaseClause that);
 }

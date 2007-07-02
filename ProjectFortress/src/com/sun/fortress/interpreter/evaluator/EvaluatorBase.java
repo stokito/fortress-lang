@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.ABoundingMap;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -122,7 +123,7 @@ public class EvaluatorBase<T> extends NodeVisitor<T>  {
 
         ArrayList<FType> tl = new ArrayList<FType>(tparams.size());
         for (StaticParam tp : tparams) {
-            FType t = abm.get(tp.getName());
+            FType t = abm.get(NodeUtil.getName(tp));
             if (t == null)
                 t = BottomType.ONLY;
             tl.add(t);

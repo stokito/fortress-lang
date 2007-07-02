@@ -17,38 +17,28 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-public abstract class StaticParam extends AbstractNode implements
-        Comparable<StaticParam> {
-    StaticParam(Span span) {
-        super(span);
-    }
+public abstract class StaticParam extends AbstractNode {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(StaticParam o) {
-        Class tclass = getClass();
-        Class oclass = o.getClass();
-        if (oclass != tclass) {
-            return tclass.getName().compareTo(oclass.getName());
-        }
-        return subtypeCompareTo(o);
-    }
+  /**
+   * Constructs a StaticParam.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public StaticParam(Span in_span) {
+    super(in_span);
+  }
 
-    abstract int subtypeCompareTo(StaticParam o);
 
-    public abstract String getName();
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract int generateHashCode();
 }
-
-// / and type_param =
-// / [
-// / | `SimpleTypeParam of simple_type_param
-// / | `NatParam of id
-// / | `DimensionParam of id
-// / | `OperatorParam of op
-// / ] node
-// /

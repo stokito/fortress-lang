@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.nodes.IdType;
 import com.sun.fortress.interpreter.nodes.RestType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.BASet;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
@@ -412,7 +413,7 @@ abstract public class FType implements Comparable<FType> {
             IdType id_val = (IdType) val;
             String nm = id_val.getName().toString();
             for (StaticParam tp : tp_set) {
-                String k = tp.getName();
+                String k = NodeUtil.getName(tp);
                 if (k.equals(nm)) {
                     if (DUMP_UNIFY) System.out.println("Recording "+k+"="+this);
                     abm.joinPut(k, this);

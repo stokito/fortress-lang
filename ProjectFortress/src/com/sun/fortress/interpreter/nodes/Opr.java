@@ -49,6 +49,10 @@ public class Opr extends OprName {
         return op;
     }
 
+    public String toString() {
+        return op.getName();
+    }
+
     public @Override
     String name() {
         return op.getName();

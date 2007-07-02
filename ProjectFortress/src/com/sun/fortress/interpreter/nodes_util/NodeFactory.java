@@ -18,13 +18,13 @@
 package com.sun.fortress.interpreter.nodes_util;
 
 import java.util.Collections;
+import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.*;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
-    /* Constructors ***********************************************************/
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, s, s.charAt(0));
     }
@@ -161,8 +161,17 @@ public class NodeFactory {
         return digits;
    }
 
+    public static NatParam makeNatParam(String name) {
+        return new NatParam(new Span(), new Id(new Span(), name));
+    }
+
     public static Op makeOp(Span span, String name) {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static SimpleTypeParam makeSimpleTypeParam(String name) {
+        return new SimpleTypeParam(new Span(), new Id(new Span(), name),
+                                   new None<List<TypeRef>>(), false);
     }
 
     public static VarRefExpr makeVarRefExpr(Span span, String s) {
@@ -172,11 +181,4 @@ public class NodeFactory {
     public static VoidLiteral makeVoidLiteral(Span span) {
         return new VoidLiteral(span, "");
     }
-
-    /* Helpers ****************************************************************/
-    public static final Fn<Id, String> IdtoStringFn = new Fn<Id, String>() {
-        public String apply(Id x) {
-            return x.getName();
-        }
-    };
 }
