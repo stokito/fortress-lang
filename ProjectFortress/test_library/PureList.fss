@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fingerTree
+component pureList
 export Executable
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
@@ -33,38 +33,51 @@ export Executable
 
   *)
 
-object EmptyFinger() extends CheckedException
+trait PureList[\ E \] extends Generator[\E\]
+    comprises { D01[\E\], NonEmptyPureList[\E\] }
+  getter left():Maybe[\E\]
+  getter right():Maybe[\E\]
+  getter extractLeft():Maybe[\(E,PureList[\E\])\]
+  getter extractRight():Maybe[\(PureList[\E\],E)\]
+  append(f:D01[\E\]) : PureList[\E\] = addRightD(f)
+  append(f:Deep[\E\]) : PureList[\E\]
+  addLeftD(e:D0[\E\]) : PureList[\E\] = self
+  addLeftD(e:D14[\E\]) : PureList[\E\]
+  addLeft(e:E):PureList[\E\]
+  addRightD(e:D0[\E\]) : PureList[\E\] = self
+  addRightD(e:D14[\E\]) : PureList[\E\]
+  addRight(e:E):PureList[\E\]
+  append3(e:D04[\E\], f:D01[\E\]):PureList[\E\] = addRightD(e).addRightD(f)
+  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\]
+  take(n:ZZ32): PureList[\E\] = do (r,_) = split(n); r end
+  drop(n:ZZ32): PureList[\E\] = do (_,r) = split(n); r end
+  split(n:ZZ32): (PureList[\E\], PureList[\E\])
 end
 
-trait Stringable
-  toString():String
+object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
+  empty(): PureList[\E\] = D0[\E\]()
+  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
 
-trait Finger[\ E \] extends Stringable
-    comprises { D01[\E\], Deep[\E\] }
-  getter empty():Boolean
-  getter first():E throws EmptyFinger
-  getter last():E throws EmptyFinger
-  getter firstRest():(E,Finger[\E\]) throws EmptyFinger
-  getter initLast():(Finger[\E\],E) throws EmptyFinger
-  append(f:D01[\E\]) : Finger[\E\] = addRight(f)
-  addLeft(e:D0[\E\]) : Finger[\E\] = self
-  addLeft(e:D14[\E\]) : Finger[\E\]
-  addLeft(e:E):Finger[\E\]
-  addRight(e:D0[\E\]) : Finger[\E\] = self
-  addRight(e:D14[\E\]) : Finger[\E\]
-  addRight(e:E):Finger[\E\]
-  append3(e:D04[\E\], f:D01[\E\]) = addRight(e).addRight(f)
-  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\]
+trait NonEmptyPureList[\ E \] extends PureList[\E\]
+    comprises { D1[\E\], Deep[\E\] }
+  getter empty(): Boolean = false
+  getter left():Just[\E\]
+  getter right():Just[\E\]
+  getter extractLeft():Just[\(E,PureList[\E\])\]
+  getter extractRight():Just[\(PureList[\E\],E)\]
 end
 
 (* The type of all digits, from 0 to 4.
    We populate the sets of digits of particular sizes.  The ones which
-   matter most are D14 (fringes of a Deep), D01 (shallow Finger), and
+   matter most are D14 (fringes of a Deep), D01 (shallow PureList), and
    D23 (nodes of the middle of a Deep).  *)
-trait D04[\E\] extends Stringable
+trait D04[\E\] extends Generator[\E\]
     comprises { D03[\E\], D14[\E\] }
-  toFinger():Finger[\E\]
+  toFinger():PureList[\E\]
+  take(n:ZZ32):D04[\E\]
+  drop(n:ZZ32):D04[\E\]
+  split(n:ZZ32):(D04[\E\],D04[\E\]) = (take(n), drop(n))
 end
 
 trait D03[\E\] extends D04[\E\]
@@ -75,6 +88,7 @@ end
 
 trait D14[\E\] extends D04[\E\]
     comprises { D13[\E\], D24[\E\] }
+  getter empty(): Boolean = false
   getter uncons() : (E,D03[\E\])
   getter unsnoc() : (D03[\E\],E)
   getter car() : E
@@ -107,12 +121,12 @@ trait D24[\E\] extends D14[\E\]
   nodes1():D12[\D23[\E\]\]
 end
 
-trait D01[\E\] extends { D02[\E\], Finger[\E\] }
+trait D01[\E\] extends { D02[\E\], PureList[\E\], SequentialGenerator[\E\] }
     comprises { D0[\E\], D1[\E\] }
   cons(e:E) : D12[\E\]
   snoc(e:E) : D12[\E\]
-  append(f:Deep[\E\]) : Finger[\E\] = f.addLeft(self)
-  toFinger():Finger[\E\] = self
+  append(f:Deep[\E\]) : PureList[\E\] = f.addLeftD(self)
+  toFinger():PureList[\E\] = self
 end
 
 trait D12[\E\] extends { D02[\E\], D13[\E\] }
@@ -144,182 +158,342 @@ trait D34[\E\] extends D24[\E\]
 end
 
 object D0[\E\]() extends { D01[\E\] }
+  getter empty():Boolean = true
+  getter size():ZZ32 = 0
+  getter left():Nothing[\E\] = Nothing[\E\]()
+  getter right():Nothing[\E\] = Nothing[\E\]()
+  getter extractLeft():Nothing[\(E,PureList[\E\])\] = Nothing[\(E,PureList[\E\])\]()
+  getter extractRight():Nothing[\(E,PureList[\E\])\] = Nothing[\(E,PureList[\E\])\]()
+  generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   cons(e:E):D1[\E\] = D1[\E\](e)
   snoc(e:E):D1[\E\] = D1[\E\](e)
-  empty() = true
-  first() = throw EmptyFinger
-  last() = throw EmptyFinger
-  firstRest() = throw EmptyFinger
-  initLast() = throw EmptyFinger
-  append(f:Finger[\E\]) = f
-  addLeft(e:E):Finger[\E\] = cons(e)
-  addLeft(e:D14[\E\]) : Finger[\E\] = e.toFinger()
-  addRight(e:E):Finger[\E\] = snoc(e)
-  addRight(e:D14[\E\]) : Finger[\E\] = e.toFinger()
-  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\] = f.addLeft(e)
+  append(f:Deep[\E\]):Deep[\E\] = f
+  addLeft(e:E):PureList[\E\] = cons(e)
+  addLeftD(e:D14[\E\]) : PureList[\E\] = e.toFinger()
+  addRight(e:E):PureList[\E\] = snoc(e)
+  addRightD(e:D14[\E\]): PureList[\E\] = e.toFinger()
+  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\] = f.addLeftD(e)
   toString() = "#"
+  take(_:ZZ32): D0[\E\] = self
+  drop(_:ZZ32): D0[\E\] = self
+  split(_:ZZ32): (D0[\E\],D0[\E\]) = (self,self)
 end
 
-object D1[\E\](a:E) extends { D01[\E\], D12[\E\] }
+object D1[\E\](a:E) extends { D01[\E\], D12[\E\], NonEmptyPureList[\E\] }
+  getter size():ZZ32 = 1
+  getter left():Just[\E\] = Just[\E\](a)
+  getter right():Just[\E\] = Just[\E\](a)
+  getter extractLeft():Just[\(E,D0[\E\])\] = Just[\(E,D0[\E\])\](uncons())
+  getter extractRight():Just[\(D0[\E\],E)\] = Just[\(D0[\E\],E)\](unsnoc())
+  getter uncons():(E,D0[\E\]) = (a,D0[\E\]())
+  getter unsnoc():(D0[\E\],E) = (D0[\E\](),a)
+  getter car() = a
+  getter rac() = a
+  generate[\R\](r: Reduction[\R\], body: E->R): R = body(a)
   cons(e:E):D2[\E\] = D2[\E\](e,a)
   snoc(e:E):D2[\E\] = D2[\E\](a,e)
-  uncons():(E,D0[\E\]) = firstRest()
-  unsnoc():(D0[\E\],E) = initLast()
-  empty() = false
-  first() = a
-  last() = a
-  car() = a
-  rac() = a
-  firstRest() = (a,D0[\E\]())
-  initLast() = (D0[\E\](),a)
-  append(f:Finger[\E\]) = f.addLeft(a)
-  addLeft(e:E):Finger[\E\] = addLeft(D1[\E\](e))
-  addLeft(e:D14[\E\]) = Deep[\E\](e,Empty[\D23[\E\]\](),self)
-  addRight(e:E):Finger[\E\] = addRight(D1[\E\](e))
-  addRight(e:D14[\E\]) = Deep[\E\](self,Empty[\D23[\E\]\](),e)
-  append3(e:D04[\E\],f:Deep[\E\]):Finger[\E\] = f.addLeft(e).addLeft(self)
-  nodes3(x:D4[\E\],y:D14[\E\]):D13[\D23[\E\]\] =
-    D2[\E\](x.c,x.d).nodes2(y).addLeft(D3[\E\](a,x.a,x.b))
-  nodes3(x:D03[\E\],c:D14[\E\]):D13[\D23[\E\]\] =
-    x.addLeft(a).nodes2(y)
+  append(f:PureList[\E\]) = f.addLeftD(self)
+  addLeft(e:E):PureList[\E\] = addLeftD(D1[\E\](e))
+  addLeftD(e:D14[\E\]) = Deep[\E\](e.size()+size(),e,D0[\D23[\E\]\](),self)
+  addRight(e:E):PureList[\E\] = addRightD(D1[\E\](e))
+  addRightD(e:D14[\E\]) = Deep[\E\](size()+e.size(),self,D0[\D23[\E\]\](),e)
+  append3(e:D04[\E\],f:Deep[\E\]):PureList[\E\] = f.addLeftD(e).addLeftD(self)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
+    fail("Should never be called, shortcoming of comprises handling.")
+  nodes3(x:D4[\E\],y:D14[\E\]):D23[\D23[\E\]\] =
+    D2[\E\](x.c,x.d).nodes2(y).cons(D3[\E\](a,x.a,x.b))
+  nodes3(x:D03[\E\],y:D14[\E\]):D12[\D23[\E\]\] =
+    x.cons(a).nodes2(y)
+  nodes2(x:D14[\E\]):D12[\D23[\E\]\] =
+    fail("Should never be called, shortcoming of comprises handling.")
   nodes2(x:D4[\E\]):D2[\D23[\E\]\] =
     D2[\D23[\E\]\](D3[\E\](a,x.a,x.b),D2[\E\](x.c,x.d))
-  nodes2(x:D13[\E\]):D12[\D23[\E\]\] = x.addLeft(a).nodes1()
+  nodes2(x:D13[\E\]):D12[\D23[\E\]\] = x.cons(a).nodes1()
   toString()="(" a ")"
+  take(n:ZZ32): D01[\E\] = if n<=0 then D0[\E\]() else self end
+  drop(n:ZZ32): D01[\E\] = if n<=0 then self else D0[\E\]() end
+  split(n:ZZ32): (D01[\E\],D01[\E\]) = if n<=0 then (D0[\E\](),self)
+                                               else (self,D0[\E\]()) end
 end
 
 object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
+  getter size():ZZ32 = 2
+  getter car() = a
+  getter rac() = b
+  getter uncons():(E,D1[\E\]) = (a,D1[\E\](b))
+  getter unsnoc():(D1[\E\],E) = (D1[\E\](a),b)
+  seq():SequentialGenerator[\E\] = SeqD2Generator[\E\](self)
+  generate[\R\](r: Reduction[\R\], body: E->R): R = r.join(body(a),body(b))
   cons(e:E):D3[\E\] = D3[\E\](e,a,b)
   snoc(e:E):D3[\E\] = D3[\E\](a,b,e)
-  car() = a
-  rac() = b
-  uncons():(E,D1[\E\]) = (a,D1[\E\](b))
-  unsnoc():(D1[\E\],E) = (D1[\E\](a),b)
+  nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
+    fail("Should never be called, shortcoming of comprises handling.")
   nodes3(x:D0[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
     nodes2(y)
   nodes3(x:D1[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
     snoc(x.car()).nodes2(y)
   nodes3(x:D24[\E\],y:D14[\E\]):D14[\D23[\E\]\] = do
       (xh, xt) = x.uncons()
-      xt.nodes2(y).addLeft(D3[\E\](a,b,xh))
+      xt.nodes2(y).cons(D3[\E\](a,b,xh))
     end
+  nodes2(x:D14[\E\]):D12[\D23[\E\]\] =
+    fail("Should never be called, shortcoming of comprises handling.")
   nodes2(x:D1[\E\]):D1[\D23[\E\]\] =
     D1[\D23[\E\]\](self.snoc(x.car()))
   nodes2(x:D2[\E\]):D2[\D23[\E\]\] =
     D2[\D23[\E\]\](self,x)
   nodes2(x:D34[\E\]):D12[\D23[\E\]\] = do
       (xh, xt) = x.uncons()
-      xt.nodes1().addLeft(D3[\a,b,xh\])
+      xt.nodes1().cons(D3[\a,b,xh\])
     end
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
-  toFinger()=Deep[\E\](D1[\E\](a),D0[\D23[\E\]\](),D1[\E\](b))
+  toFinger()=Deep[\E\](2,D1[\E\](a),D0[\D23[\E\]\](),D1[\E\](b))
   toString()="(" a "," b ")"
+  take(n:ZZ32): D02[\E\] =
+      case n of
+          0 => D0[\E\]()
+          1 => D1[\E\](a)
+          2 => self
+      end
+  drop(n:ZZ32): D02[\E\] =
+      case n of
+          0 => self
+          1 => D1[\E\](b)
+          2 => D0[\E\]()
+      end
+end
+
+object SeqD2Generator[\E\](x:D2[\E\]) extends SequentialGenerator[\E\]
+  getter size():ZZ32 = 2
+  generate[\R\](r: Reduction[\R\], body: E->R): R = do
+      ab = body(x.a)
+      bb = body(x.b)
+      r.join(ab,bb)
+    end
 end
 
 object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
+  getter size():ZZ32 = 3
+  getter car() = a
+  getter rac() = c
+  getter uncons():(E,D2[\E\]) = (a,D2[\E\](b,c))
+  getter unsnoc():(D2[\E\],E) = (D2[\E\](a,b),c)
+  seq():SequentialGenerator[\E\] = SeqD3Generator[\E\](self)
+  generate[\R\](r: Reduction[\R\], body: E->R): R =
+    r.join(body(a),r.join(body(b),body(c)))
   cons(e:E):D4[\E\] = D4[\E\](e,a,b,c)
   snoc(e:E):D4[\E\] = D4[\E\](a,b,c,e)
-  car() = a
-  rac() = c
-  uncons():(E,D2[\E\]) = (a,D2[\E\](b,c))
-  unsnoc():(D2[\E\],E) = (D2[\E\](a,b),c)
   nodes3(x:D04[\E\],y:D14[\E\]):D24[\D23[\E\]\] =
-    x.nodes2(y).addLeft(self)
+    x.nodes2(y).cons(self)
+  nodes2(x:D14[\E\]):D13[\D23[\E\]\] =
+    fail("Should never be called, shortcoming of comprises handling.")
   nodes2(x:D1[\E\]):D23[\D23[\E\]\] =
     D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,x.car()))
   nodes2(x:D24[\E\]):D23[\D23[\E\]\] =
-    x.nodes1().addLeft(self)
+    x.nodes1().cons(self)
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
-  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D1[\E\](c))
+  toFinger()=Deep[\E\](3,D2[\E\](a,b),D0[\D23[\E\]\](),D1[\E\](c))
   toString()="(" a "," b "," c ")"
+  take(n:ZZ32): D03[\E\] =
+      case n of
+          0 => D0[\E\]()
+          1 => D1[\E\](a)
+          2 => D2[\E\](a,b)
+          3 => self
+      end
+  drop(n:ZZ32): D03[\E\] =
+      case n of
+          0 => self
+          1 => D2[\E\](b,c)
+          2 => D1[\E\](c)
+          3 => D0[\E\]()
+      end
+end
+
+object SeqD3Generator[\E\](x:D3[\E\]) extends SequentialGenerator[\E\]
+  getter size():ZZ32 = 3
+  generate[\R\](r: Reduction[\R\], body: E->R): R = do
+      ab = body(x.a)
+      bb = body(x.b)
+      abb = r.join(ab,bb)
+      cb = body(x.c)
+      r.join(abb,cb)
+    end
 end
 
 object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
-  car() = a
-  rac() = d
-  uncons():(E,D3[\E\]) = (a,D3[\E\](b,c,d))
-  unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)
-  nodes3(b:D04[\E\],c:D14[\E\]):D24[\D23[\E\]\] =
-    D1[\E\](d).nodes3(b,c).addLeft(D3[\E\](a,b,c))
-  nodes2(b:D14[\E\]):D23[\D23[\E\]\] =
-    D1[\E\](d).nodes2(b).addLeft(D3[\E\](a,b,c))
+  getter size():ZZ32 = 4
+  getter car() = a
+  getter rac() = d
+  getter uncons():(E,D3[\E\]) = (a,D3[\E\](b,c,d))
+  getter unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)
+  seq():SequentialGenerator[\E\] = SeqD4Generator[\E\](self)
+  generate[\R\](r: Reduction[\R\], body: E->R): R =
+    r.join(r.join(body(a),body(b)),r.join(body(c),body(d)))
+  nodes3(x:D04[\E\],y:D14[\E\]):D24[\D23[\E\]\] =
+    D1[\E\](d).nodes3(x,y).cons(D3[\E\](a,b,c))
+  nodes2(x:D14[\E\]):D23[\D23[\E\]\] =
+    D1[\E\](d).nodes2(x).cons(D3[\E\](a,b,c))
   nodes1():D2[\D23[\E\]\] = D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,d))
-  toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\](),D2[\E\](c,d))
+  toFinger()=Deep[\E\](4,D2[\E\](a,b),D0[\D23[\E\]\](),D2[\E\](c,d))
   toString()="(" a "," b "," c "," d ")"
+  take(n:ZZ32): D04[\E\] =
+      case n of
+          0 => D0[\E\]()
+          1 => D1[\E\](a)
+          2 => D2[\E\](a,b)
+          3 => D2[\E\](a,b,c)
+          4 => self
+      end
+  drop(n:ZZ32): D04[\E\] =
+      case n of
+          0 => self
+          1 => D2[\E\](b,c,d)
+          2 => D1[\E\](c,d)
+          3 => D1[\E\](d)
+          4 => D0[\E\]()
+      end
 end
 
-object Deep[\E\](l:D14[\E\], m:Finger[\ D23[\E\] \], r:D14[\E\])
-    extends { Finger[\E\] }
-  empty():Boolean = false
-  first():E = l.car()
-  last():E = r.rac()
-  firstRest():(E,Finger[\E\]) = do
-      h(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car(),r.toFinger())
-      h(l0:D1[\E\], m0:Finger[\D23[\E\]\]) = do
-          (l1,m1) = m0.firstRest()
-          (l0.car(),Deep[\E\](l1,m1,r))
-        end
-      h(l0:D14[\E\], m0:Finger[\D23[\E\]\]) = do
-          (f,l1) = l0.uncons()
-          (f,Deep[\E\](l1,m0,r))
-        end
-      h(l,m)
+object SeqD4Generator[\E\](x:D4[\E\]) extends SequentialGenerator[\E\]
+  getter size():ZZ32 = 4
+  generate[\R\](r: Reduction[\R\], body: E->R): R = do
+      ab = body(x.a)
+      bb = body(x.b)
+      abb = r.join(ab,bb)
+      cb = body(x.c)
+      abc = r.join(abb,cb)
+      db = body(x.d)
+      r.join(abc,db)
     end
-  initLast():(E,Finger[\E\]) = do
-      h(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac())
-      h(r0:D1[\E\], m0:Finger[\D23[\E\]\]) = do
-          (m1,l1) = m0.initLast()
-          (Deep[\E\](l1,m1,r),r0.rac())
-        end
-      h(r0:D14[\E\], m0:Finger[\D23[\E\]\]) = do
-          (r1,l) = r0.unsnoc()
-          (Deep[\E\](l,m0,r1),l)
-        end
-      h(l,m)
+end
+
+object Deep[\E\](sz:ZZ32, l:D14[\E\], m:PureList[\ D23[\E\] \], r:D14[\E\])
+    extends { NonEmptyPureList[\E\] }
+  getter size():ZZ32 = sz
+  getter left():Just[\E\] = Just[\E\](l.car())
+  getter right():Just[\E\] = Just[\E\](r.rac())
+  getter extractLeft():Just[\(E,PureList[\E\])\] =
+      Just[\(E,PureList[\E\])\](extractLeft1(l,m))
+  getter extractRight():Just[\(E,PureList[\E\])\] =
+      Just[\(E,PureList[\E\])\](extractRight1(r,m))
+  seq():SequentialGenerator[\E\] = SeqDeepGenerator[\E\](self)
+  generate[\R\](j: Reduction[\R\], body: E->R): R = do
+      j.join(
+       l.generate[\R\](j,body),
+       j.join(m.generate[\R\](j,fn (n23:D23[\E\]):R => n23.generate(j,body)),
+              r.generate[\R\](j,body)))
     end
-  addLeft(e:E):Finger[\E\] = do
-      h(l0:D4[\E\]) =
-        Deep[\E\](D2[\E\](e,l0.a),m0.addLeft(D3[\E\](l0.b,l0.c,l0.d)),r)
-      h(l0:D03[\E\]) = Deep[\E\](l0.cons(e),m,r)
-      h(l)
+  addLeft(e:E):PureList[\E\] = addLeft1(e,l)
+  addLeft1(e:E,l0:D4[\E\]) =
+        Deep[\E\](1+sz,D2[\E\](e,l0.a),m.addLeft(D3[\E\](l0.b,l0.c,l0.d)),r)
+  addLeft1(e:E,l0:D03[\E\]) = Deep[\E\](1+sz,l0.cons(e),m,r)
+  addLeftD(e:D14[\E\]) : PureList[\E\] = do
+      (ef,er) = e.unsnoc()
+      addLeft(er).addLeftD(ef)
     end
-  addLeft(e:D14[\E\]) : Finger[\E\] = do
-      (ef,er) = e.snoc()
-      addLeft(er).addLeft(ef)
-    end
-  addRight(e:E):Finger[\E\] = do
-      h(r0:D4[\E\]) =
-        Deep[\E\](l,m0.addRight(D3[\E\](r0.a,r0.b,r0.c)),D2[\E\](l0.d,e))
-      h(r0:D03[\E\]) = Deep[\E\](l,m,r.snoc(e))
-      h(l)
-    end
-  addRight(e:D14[\E\]) : Finger[\E\] = do
-      (ef,er) = e.cons()
-      addRight(ef).addRight(er)
+  addRight(e:E):PureList[\E\] = addRight1(e,r)
+  addRight1(e:E,r0:D4[\E\]) =
+      Deep[\E\](sz+1,l,m.addRight(D3[\E\](r0.a,r0.b,r0.c)),D2[\E\](r0.d,e))
+  addRight1(e:E,r0:D03[\E\]) = Deep[\E\](sz+1,l,m,r.snoc(e))
+  addRightD(e:D14[\E\]) : PureList[\E\] = do
+      (ef,er) = e.uncons()
+      addRight(ef).addRightD(er)
     end
 
-  append(f:Deep[\E\]) : Finger[\E\] =
-    Deep[\E\](l,m.append3(r.node2(f.l),f.m),f.r)
-  append3(e:D04[\E\], f:Deep[\E\]):Finger[\E\] =
-    Deep[\E\](l,m.append3(r.node3(e,f.l),f.m),f.r)
+  (* Helper methods for extractLeft and extractRight *)
+  extractLeft1(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car(),r.toFinger())
+  extractLeft1(l0:D1[\E\], m0:PureList[\D23[\E\]\]) = do
+      (l1,m1) = m0.extractLeft().unJust()
+      (l0.car(),Deep[\E\](sz-1,l1,m1,r))
+    end
+  extractLeft1(l0:D24[\E\], m0:PureList[\D23[\E\]\]) = do
+      (f,l1) = l0.uncons()
+      (f,Deep[\E\](sz-1,l1,m0,r))
+    end
+  extractRight1(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac())
+  extractRight1(r0:D1[\E\], m0:PureList[\D23[\E\]\]) = do
+      (m1,r1) = m0.extractRight().unJust()
+      (Deep[\E\](sz-1,l,m1,r1),r0.rac())
+    end
+  extractRight1(r0:D14[\E\], m0:PureList[\D23[\E\]\]) = do
+      (r1,b) = r0.unsnoc()
+      (Deep[\E\](sz-1,l,m0,r1),b)
+    end
 
-  toString() = l.toString() ";" m.toString() ";" r.toString()
+  append(f:Deep[\E\]) : PureList[\E\] =
+    Deep[\E\](sz+f.size(),l,m.append3(r.nodes2(f.l),f.m),f.r)
+  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\] =
+    Deep[\E\](sz+e.size()+f.size(),l,m.append3(r.nodes3(e,f.l),f.m),f.r)
+
+  toString() = "[" l.toString() ";" m.toString() ";" r.toString() "]"
+
+  split(n:ZZ32): (PureList[\E\], PureList[\E\]) = fail("Deep.split: NYI")
+end
+
+object SeqDeepGenerator[\E\](x:Deep[\E\]) extends SequentialGenerator[\E\]
+  getter size(): ZZ32 = x.size()
+  generate[\R\](j: Reduction[\R\], body: E->R): R = do
+      gl = x.l.seq().generate[\R\](j,body)
+      ml = x.m.seq().generate[\R\](j,fn (n23:D23[\E\]):R => n23.seq().generate[\R\](j,body))
+      ll = j.join(gl,ml)
+      rl = x.r.seq().generate[\R\](j,body)
+      j.join(ll,rl)
+    end
+end
+
+test_toString(x:Any,y:String):() = do
+  assert(x.toString(),y," toString() test")
+end
+
+test_strEq(x:Any,y:Any,s:String):() = do
+  assert(x.toString(),y.toString(),s)
+end
+
+mkContig(r:Range[\ZZ32\]): PureList[\ZZ32\] =
+  r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), fn (x:ZZ32) => D1[\ZZ32\](x))
+
+chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = do
+  n : ZZ32 := 0
+  lstr = l.toString()
+  println(lstr)
+  for e <- seq(l) do
+      assert(e,n,"Element wrong in " lstr)
+      n+=1
+  end
 end
 
 run(args:String...):() = do
-  println("Howdy!")
   e = D0[\ZZ32\]()
-  (*
-  println(e)
+  test_toString(e,"#")
   d1 = D1[\ZZ32\](1)
+  test_toString(d1,"(1)")
   d2 = D2[\ZZ32\](2,3)
+  test_toString(d2,"(2,3)")
   d3 = D3[\ZZ32\](4,5,6)
+  test_toString(d3,"(4,5,6)")
   d4 = D4[\ZZ32\](7,8,9,10)
-  println(d1)
-  println(d2)
-  println(d3)
-  println(d4)
-  *)
+  test_toString(d4,"(7,8,9,10)")
+  test_strEq(e,e.toFinger()," toFinger 0")
+  test_strEq(d1,d1.toFinger()," toFinger 1")
+  test_strEq(d1,e.addLeftD(d1),"e.addLeftD(d1)")
+  test_strEq(d1,e.addRightD(d1),"e.addRightD(d1)")
+  test_strEq(d1,d1.addLeftD(e),"d1.addLeftD(e)")
+  test_strEq(d1,d1.addRightD(e),"d1.addRightD(e)")
+  println("The adventure begins")
+  testLens : ZZ32[20] = [ 0 1 2 3 4 5 6 7 8 9 10 15 20 25 35 50 75 100 150 200 ]
+  for (_,i) <- seq(testLens) do
+      print("\n" i ":")
+      li = mkContig(0#i)
+      chkPop(li,i)
+      for (_,j) <- seq(testLens) do
+          print(" " j)
+          lj = mkContig(i#j)
+          chkPop(li.append(lj),i+j)
+      end
+  end
+  println("")
+  println("Succeeded")
 end
 
 end
