@@ -623,7 +623,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<TypeRef> curType = current.getMatch();
         List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
         List<FType> curMatch = EvalType.getFTypeListFromList(curType, ev.e);
-        boolean res = FType.moreSpecificThan(candMatch, curMatch);
+        boolean res = FTypeTuple.moreSpecificThan(candMatch, curMatch);
         return res;
     }
 

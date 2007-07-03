@@ -33,33 +33,62 @@ export Executable
 
   *)
 
-trait PureList[\ E \] extends Generator[\E\]
-    comprises { D01[\E\], NonEmptyPureList[\E\] }
+(* We must wrap the FingerTree, since we need also wrap the elements
+   in order compute the nested monoidal computation systematically. *)
+value object PureList[\ E \](it : FingerTree[\E\]) extends { Generator[\E\] }
+  getter size(): ZZ32 = it.size()
+  getter empty(): Boolean = it.empty()
+  getter left():Maybe[\E\] = it.left()
+  getter right():Maybe[\E\] = it.right()
+  getter extractLeft(): Maybe[\(E,PureList[\E\])\] = it.extractLeft()
+  getter extractRight(): Maybe[\(PureList[\E\],E)\] = it.extractRight()
+  generate[\R\](r: Reduction[\R\], body: E->R): R = it.generate[\R\](r,body)
+  append(f:PureList[\E\]): PureList[\E\] =
+      PureList[\E\](it.append(f.contents()))
+  addLeft(e:E):PureList[\E\] =
+      PureList[\E\](it.addLeft(e))
+  addRight(e:E):PureList[\E\] =
+      PureList[\E\](it.addRight(e))
+  take(n:ZZ32): PureList[\E\] = PureList[\E\](it.take(n))
+  drop(n:ZZ32): PureList[\E\] = PureList[\E\](it.drop(n))
+  split(n:ZZ32): (PureList[\E\], PureList[\E\]) = do
+      (l,r) = it.split(n)
+      (PureList[\E\](l),PureList[\E\](r))
+    end
+  contents():FingerTree[\E\] = it
+  toString():String = it.toString()
+end
+
+emptyList[\E\](): PureList[\E\] = PureList[\E\](D0[\E\]())
+singleton[\E\](e:E): PureList[\E\] = PureList[\E\](D1[\E\](e))
+
+trait FingerTree[\ E \] extends Generator[\E\]
+    comprises { D01[\E\], NonEmptyFingerTree[\E\] }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]
   getter extractLeft():Maybe[\(E,PureList[\E\])\]
   getter extractRight():Maybe[\(PureList[\E\],E)\]
-  append(f:D01[\E\]) : PureList[\E\] = addRightD(f)
-  append(f:Deep[\E\]) : PureList[\E\]
-  addLeftD(e:D0[\E\]) : PureList[\E\] = self
-  addLeftD(e:D14[\E\]) : PureList[\E\]
-  addLeft(e:E):PureList[\E\]
-  addRightD(e:D0[\E\]) : PureList[\E\] = self
-  addRightD(e:D14[\E\]) : PureList[\E\]
-  addRight(e:E):PureList[\E\]
-  append3(e:D04[\E\], f:D01[\E\]):PureList[\E\] = addRightD(e).addRightD(f)
-  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\]
-  take(n:ZZ32): PureList[\E\] = do (r,_) = split(n); r end
-  drop(n:ZZ32): PureList[\E\] = do (_,r) = split(n); r end
-  split(n:ZZ32): (PureList[\E\], PureList[\E\])
+  append(f:D01[\E\]) : FingerTree[\E\] = addRightD(f)
+  append(f:Deep[\E\]) : FingerTree[\E\]
+  addLeftD(e:D0[\E\]) : FingerTree[\E\] = self
+  addLeftD(e:D14[\E\]) : FingerTree[\E\]
+  addLeft(e:E):FingerTree[\E\]
+  addRightD(e:D0[\E\]) : FingerTree[\E\] = self
+  addRightD(e:D14[\E\]) : FingerTree[\E\]
+  addRight(e:E):FingerTree[\E\]
+  append3(e:D04[\E\], f:D01[\E\]):FingerTree[\E\] = addRightD(e).addRightD(f)
+  append3(e:D04[\E\], f:Deep[\E\]):FingerTree[\E\]
+  take(n:ZZ32): FingerTree[\E\] = do (r,_) = split(n); r end
+  drop(n:ZZ32): FingerTree[\E\] = do (_,r) = split(n); r end
+  split(n:ZZ32): (FingerTree[\E\], FingerTree[\E\])
 end
 
 object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
-  empty(): PureList[\E\] = D0[\E\]()
+  empty(): PureList[\E\] = PureList[\E\](D0[\E\]())
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
 
-trait NonEmptyPureList[\ E \] extends PureList[\E\]
+trait NonEmptyFingerTree[\ E \] extends FingerTree[\E\]
     comprises { D1[\E\], Deep[\E\] }
   getter empty(): Boolean = false
   getter left():Just[\E\]
@@ -70,11 +99,11 @@ end
 
 (* The type of all digits, from 0 to 4.
    We populate the sets of digits of particular sizes.  The ones which
-   matter most are D14 (fringes of a Deep), D01 (shallow PureList), and
+   matter most are D14 (fringes of a Deep), D01 (shallow FingerTree), and
    D23 (nodes of the middle of a Deep).  *)
 trait D04[\E\] extends Generator[\E\]
     comprises { D03[\E\], D14[\E\] }
-  toFinger():PureList[\E\]
+  toFinger():FingerTree[\E\]
   take(n:ZZ32):D04[\E\]
   drop(n:ZZ32):D04[\E\]
   split(n:ZZ32):(D04[\E\],D04[\E\]) = (take(n), drop(n))
@@ -121,12 +150,12 @@ trait D24[\E\] extends D14[\E\]
   nodes1():D12[\D23[\E\]\]
 end
 
-trait D01[\E\] extends { D02[\E\], PureList[\E\], SequentialGenerator[\E\] }
+trait D01[\E\] extends { D02[\E\], FingerTree[\E\], SequentialGenerator[\E\] }
     comprises { D0[\E\], D1[\E\] }
   cons(e:E) : D12[\E\]
   snoc(e:E) : D12[\E\]
-  append(f:Deep[\E\]) : PureList[\E\] = f.addLeftD(self)
-  toFinger():PureList[\E\] = self
+  append(f:Deep[\E\]) : FingerTree[\E\] = f.addLeftD(self)
+  toFinger():FingerTree[\E\] = self
 end
 
 trait D12[\E\] extends { D02[\E\], D13[\E\] }
@@ -168,23 +197,29 @@ object D0[\E\]() extends { D01[\E\] }
   cons(e:E):D1[\E\] = D1[\E\](e)
   snoc(e:E):D1[\E\] = D1[\E\](e)
   append(f:Deep[\E\]):Deep[\E\] = f
-  addLeft(e:E):PureList[\E\] = cons(e)
-  addLeftD(e:D14[\E\]) : PureList[\E\] = e.toFinger()
-  addRight(e:E):PureList[\E\] = snoc(e)
-  addRightD(e:D14[\E\]): PureList[\E\] = e.toFinger()
-  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\] = f.addLeftD(e)
+  addLeft(e:E):FingerTree[\E\] = cons(e)
+  addLeftD(e:D14[\E\]) : FingerTree[\E\] = e.toFinger()
+  addRight(e:E):FingerTree[\E\] = snoc(e)
+  addRightD(e:D14[\E\]): FingerTree[\E\] = e.toFinger()
+  append3(e:D04[\E\], f:Deep[\E\]):FingerTree[\E\] = f.addLeftD(e)
   toString() = "#"
   take(_:ZZ32): D0[\E\] = self
   drop(_:ZZ32): D0[\E\] = self
   split(_:ZZ32): (D0[\E\],D0[\E\]) = (self,self)
 end
 
-object D1[\E\](a:E) extends { D01[\E\], D12[\E\], NonEmptyPureList[\E\] }
+object D1[\E\](a:E) extends { D01[\E\], D12[\E\], NonEmptyFingerTree[\E\] }
   getter size():ZZ32 = 1
   getter left():Just[\E\] = Just[\E\](a)
   getter right():Just[\E\] = Just[\E\](a)
-  getter extractLeft():Just[\(E,D0[\E\])\] = Just[\(E,D0[\E\])\](uncons())
-  getter extractRight():Just[\(D0[\E\],E)\] = Just[\(D0[\E\],E)\](unsnoc())
+  getter extractLeft():Just[\(E,PureList[\E\])\] = do
+      (h,t) = uncons()
+      Just[\(E,PureList[\E\])\](h,PureList[\E\](t))
+    end
+  getter extractRight():Just[\(E,PureList[\E\])\] = do
+      (i,l) = unsnoc()
+      Just[\(PureList[\E\],E)\](PureList[\E\](i),l)
+    end
   getter uncons():(E,D0[\E\]) = (a,D0[\E\]())
   getter unsnoc():(D0[\E\],E) = (D0[\E\](),a)
   getter car() = a
@@ -192,12 +227,12 @@ object D1[\E\](a:E) extends { D01[\E\], D12[\E\], NonEmptyPureList[\E\] }
   generate[\R\](r: Reduction[\R\], body: E->R): R = body(a)
   cons(e:E):D2[\E\] = D2[\E\](e,a)
   snoc(e:E):D2[\E\] = D2[\E\](a,e)
-  append(f:PureList[\E\]) = f.addLeftD(self)
-  addLeft(e:E):PureList[\E\] = addLeftD(D1[\E\](e))
+  append(f:FingerTree[\E\]) = f.addLeftD(self)
+  addLeft(e:E):FingerTree[\E\] = addLeftD(D1[\E\](e))
   addLeftD(e:D14[\E\]) = Deep[\E\](e.size()+size(),e,D0[\D23[\E\]\](),self)
-  addRight(e:E):PureList[\E\] = addRightD(D1[\E\](e))
+  addRight(e:E):FingerTree[\E\] = addRightD(D1[\E\](e))
   addRightD(e:D14[\E\]) = Deep[\E\](size()+e.size(),self,D0[\D23[\E\]\](),e)
-  append3(e:D04[\E\],f:Deep[\E\]):PureList[\E\] = f.addLeftD(e).addLeftD(self)
+  append3(e:D04[\E\],f:Deep[\E\]):FingerTree[\E\] = f.addLeftD(e).addLeftD(self)
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
     fail("Should never be called, shortcoming of comprises handling.")
   nodes3(x:D4[\E\],y:D14[\E\]):D23[\D23[\E\]\] =
@@ -368,67 +403,79 @@ object SeqD4Generator[\E\](x:D4[\E\]) extends SequentialGenerator[\E\]
     end
 end
 
-object Deep[\E\](sz:ZZ32, l:D14[\E\], m:PureList[\ D23[\E\] \], r:D14[\E\])
-    extends { NonEmptyPureList[\E\] }
+object Deep[\E\](sz:ZZ32, l:D14[\E\], m:FingerTree[\ D23[\E\] \], r:D14[\E\])
+    extends { NonEmptyFingerTree[\E\] }
   getter size():ZZ32 = sz
   getter left():Just[\E\] = Just[\E\](l.car())
   getter right():Just[\E\] = Just[\E\](r.rac())
-  getter extractLeft():Just[\(E,PureList[\E\])\] =
-      Just[\(E,PureList[\E\])\](extractLeft1(l,m))
-  getter extractRight():Just[\(E,PureList[\E\])\] =
-      Just[\(E,PureList[\E\])\](extractRight1(r,m))
+  getter extractLeft():Just[\(E,PureList[\E\])\] = do
+      (h,t) = extractLeft1(l,m)
+      Just[\(E,PureList[\E\])\](h,PureList[\E\](t))
+    end
+  getter extractRight():Just[\(E,PureList[\E\])\] = do
+      (i,lst) = extractRight1(r,m)
+      Just[\(PureList[\E\],E)\](PureList[\E\](i),lst)
+    end
   seq():SequentialGenerator[\E\] = SeqDeepGenerator[\E\](self)
   generate[\R\](j: Reduction[\R\], body: E->R): R = do
       j.join(
        l.generate[\R\](j,body),
-       j.join(m.generate[\R\](j,fn (n23:D23[\E\]):R => n23.generate(j,body)),
+       j.join(m.generate[\R\](j,fn (n23:D23[\E\]):R => n23.generate[\R\](j,body)),
               r.generate[\R\](j,body)))
     end
-  addLeft(e:E):PureList[\E\] = addLeft1(e,l)
+  addLeft(e:E):FingerTree[\E\] = addLeft1(e,l)
   addLeft1(e:E,l0:D4[\E\]) =
         Deep[\E\](1+sz,D2[\E\](e,l0.a),m.addLeft(D3[\E\](l0.b,l0.c,l0.d)),r)
   addLeft1(e:E,l0:D03[\E\]) = Deep[\E\](1+sz,l0.cons(e),m,r)
-  addLeftD(e:D14[\E\]) : PureList[\E\] = do
+  addLeftD(e:D14[\E\]) : FingerTree[\E\] = do
       (ef,er) = e.unsnoc()
       addLeft(er).addLeftD(ef)
     end
-  addRight(e:E):PureList[\E\] = addRight1(e,r)
+  addRight(e:E):FingerTree[\E\] = addRight1(e,r)
   addRight1(e:E,r0:D4[\E\]) =
       Deep[\E\](sz+1,l,m.addRight(D3[\E\](r0.a,r0.b,r0.c)),D2[\E\](r0.d,e))
   addRight1(e:E,r0:D03[\E\]) = Deep[\E\](sz+1,l,m,r.snoc(e))
-  addRightD(e:D14[\E\]) : PureList[\E\] = do
+  addRightD(e:D14[\E\]) : FingerTree[\E\] = do
       (ef,er) = e.uncons()
       addRight(ef).addRightD(er)
     end
 
   (* Helper methods for extractLeft and extractRight *)
   extractLeft1(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car(),r.toFinger())
-  extractLeft1(l0:D1[\E\], m0:PureList[\D23[\E\]\]) = do
-      (l1,m1) = m0.extractLeft().unJust()
+  extractLeft1(l0:D1[\E\], m0:D1[\D23[\E\]\]) = do
+      (l1,m1) = m0.uncons()
       (l0.car(),Deep[\E\](sz-1,l1,m1,r))
     end
-  extractLeft1(l0:D24[\E\], m0:PureList[\D23[\E\]\]) = do
+  extractLeft1(l0:D1[\E\], m0:Deep[\D23[\E\]\]) = do
+      (l1,m1) = m0.extractLeft1(m0.l,m0.m)
+      (l0.car(),Deep[\E\](sz-1,l1,m1,r))
+    end
+  extractLeft1(l0:D24[\E\], m0:FingerTree[\D23[\E\]\]) = do
       (f,l1) = l0.uncons()
       (f,Deep[\E\](sz-1,l1,m0,r))
     end
   extractRight1(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac())
-  extractRight1(r0:D1[\E\], m0:PureList[\D23[\E\]\]) = do
-      (m1,r1) = m0.extractRight().unJust()
+  extractRight1(r0:D1[\E\], m0:D1[\D23[\E\]\]) = do
+      (m1,r1) = m0.unsnoc()
       (Deep[\E\](sz-1,l,m1,r1),r0.rac())
     end
-  extractRight1(r0:D14[\E\], m0:PureList[\D23[\E\]\]) = do
+  extractRight1(r0:D1[\E\], m0:Deep[\D23[\E\]\]) = do
+      (m1,r1) = m0.extractRight1(m0.r,m0.m)
+      (Deep[\E\](sz-1,l,m1,r1),r0.rac())
+    end
+  extractRight1(r0:D24[\E\], m0:FingerTree[\D23[\E\]\]) = do
       (r1,b) = r0.unsnoc()
       (Deep[\E\](sz-1,l,m0,r1),b)
     end
 
-  append(f:Deep[\E\]) : PureList[\E\] =
+  append(f:Deep[\E\]) : FingerTree[\E\] =
     Deep[\E\](sz+f.size(),l,m.append3(r.nodes2(f.l),f.m),f.r)
-  append3(e:D04[\E\], f:Deep[\E\]):PureList[\E\] =
+  append3(e:D04[\E\], f:Deep[\E\]):FingerTree[\E\] =
     Deep[\E\](sz+e.size()+f.size(),l,m.append3(r.nodes3(e,f.l),f.m),f.r)
 
   toString() = "[" l.toString() ";" m.toString() ";" r.toString() "]"
 
-  split(n:ZZ32): (PureList[\E\], PureList[\E\]) = fail("Deep.split: NYI")
+  split(n:ZZ32): (FingerTree[\E\], FingerTree[\E\]) = fail("Deep.split: NYI")
 end
 
 object SeqDeepGenerator[\E\](x:Deep[\E\]) extends SequentialGenerator[\E\]
@@ -451,7 +498,7 @@ test_strEq(x:Any,y:Any,s:String):() = do
 end
 
 mkContig(r:Range[\ZZ32\]): PureList[\ZZ32\] =
-  r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), fn (x:ZZ32) => D1[\ZZ32\](x))
+  r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), singleton[\ZZ32\])
 
 chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = do
   n : ZZ32 := 0
@@ -461,6 +508,23 @@ chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = do
       assert(e,n,"Element wrong in " lstr)
       n+=1
   end
+end
+
+chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
+  ll : PureList[\ZZ32\] := l
+  for i <- seq(0#sz) do
+      (e,ll0) = ll.extractLeft().unJust()
+      assert(e,i,"extractLeft wrong in " ll)
+      ll := ll0
+  end
+  assert(ll.empty()," not empty after extractLeft(); it's " ll)
+  ll := l
+  for i <- seq(1#sz) do
+      (ll0,e) = ll.extractRight().unJust()
+      assert(e,sz-i,"extractRight wrong in " ll)
+      ll := ll0
+  end
+  assert(ll.empty()," not empty after extractRight(); it's " ll)
 end
 
 run(args:String...):() = do
@@ -486,6 +550,7 @@ run(args:String...):() = do
       print("\n" i ":")
       li = mkContig(0#i)
       chkPop(li,i)
+      chkExtract(li,i)
       for (_,j) <- seq(testLens) do
           print(" " j)
           lj = mkContig(i#j)

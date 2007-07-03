@@ -74,9 +74,9 @@ public class FTypeTuple extends FType {
         return Useful.listInParens(l);
     }
 
-        /**
-         * Returns this subtypeof other.
-         */
+    /**
+     * Returns this subtypeof other.
+     */
     public boolean subtypeOf(FType other) {
         if (commonSubtypeOf(other))
             return true;
@@ -120,10 +120,39 @@ public class FTypeTuple extends FType {
     }
 
     /**
+     * Returns true iff candidate is more specific than current.
+     * Note that it is possible that neither one of a pair of types
+     * is more specific than the other.
+     *
+     * This code was simplified and moved here in order to guarantee
+     * that tuple subtype checking is consistent with most-specific-
+     * overloading checks.
+     */
+    public static boolean  moreSpecificThan(List<FType> candidate, List<FType> current) {
+        FType candType = make(candidate);
+        FType currType = make(current);
+        if (candType.subtypeOf(currType)) {
+            if (currType.subtypeOf(candType)) {
+                /* All other things being equal, choose the
+                 * non-single-argument-without-type candidate if it is
+                 * unique.  This catches the rather special case of
+                 * omitted type information in
+                 * tests/overloadTest3.fss. */
+                return (currType==FTypeDynamic.ONLY);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+    /**
      * Tests subtype-of for a pair of tuple sections. Returns true iff
      * thisl[start, end) subtypeof thatl[start, end).
      */
-    public static boolean subtypeOf(List<FType> thisl, List<FType> thatl,
+    private static boolean subtypeOf(List<FType> thisl, List<FType> thatl,
             int start, int end) {
         if (thisl.size() < end || thatl.size() < end)
             return false;
@@ -138,7 +167,7 @@ public class FTypeTuple extends FType {
      * Tests subtype-of for a tuple section against a type. Returns true iff
      * thisl[start, end) subtypeof thatt.
      */
-    public static boolean subtypeOf(List<FType> thisl, FType thatt, int start,
+    private static boolean subtypeOf(List<FType> thisl, FType thatt, int start,
             int end) {
         if (thisl.size() < end)
             return false;

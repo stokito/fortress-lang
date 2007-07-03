@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
+import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
@@ -258,13 +259,15 @@ public abstract class NonPrimitive extends Simple_fcn {
         if (hasRest() && args.size() + 1 >= params.size()) {
             return args;
         }
-        if (params.size()==1 && args.size()==0) {
+        if (params.size()==1) {
             /* Obscure screw case: a type parameter was instantiated
-             * with void, or we declared a single parameter of type
-             * ().  This is satisfied by a 0-ary application.  Rather
-             * than checking thoroughly, we return a singleton void
-             * and let the enclosing test catch it. */
-            return VOID_ARG;
+             * with void / tuple, or we declared a single parameter of
+             * void or tuple type ().  This is satisfied by a 0-ary
+             * application.  Rather than checking thoroughly, we
+             * return a singleton void and let the enclosing test
+             * catch it. */
+            if (args.size()==0) return VOID_ARG;
+            return Collections.singletonList((FValue)FTuple.make(args));
         }
         return null;
     }

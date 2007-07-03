@@ -334,39 +334,6 @@ abstract public class FType implements Comparable<FType> {
         }
         return a;
     }
-    /**
-     * Returns true iff candidate is more specific than current.
-     * Note that it is possible that neither one of a pair of types
-     * is more specific than the other,
-     */
-    public static boolean  moreSpecificThan(List<FType> candidate, List<FType> current) {
-        boolean candidate_better = false;
-        boolean best_better = false;
-
-        if (definitelyShorterThan(candidate, current) ||
-            definitelyShorterThan(current, candidate))
-            return false;
-
-        int l = candidate.size();
-        if (l < current.size())
-            l = current.size();
-
-        for (int j = 0; j < candidate.size(); j++) {
-            FType cand_type = Useful.clampedGet(candidate, j).deRest();
-            FType best_type = Useful.clampedGet(current, j).deRest();
-
-            if (cand_type.equals(best_type)) {
-                continue;
-            }
-
-            if (cand_type.subtypeOf(best_type))
-                candidate_better = true;
-            if (best_type.subtypeOf(cand_type))
-                best_better = true;
-        }
-        return candidate_better && !best_better;
-    }
-
 
      public FType deRest() {
         return this;

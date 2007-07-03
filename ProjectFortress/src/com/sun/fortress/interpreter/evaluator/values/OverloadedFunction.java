@@ -136,9 +136,9 @@ public class  OverloadedFunction extends Fcn
 
                 SingleFcn f1 = o1.getFn();
                 SingleFcn f2 = o2.getFn();
-                
+
                 boolean samePartition = false;
-                
+
                 // Spot the case where two generics have equal static parameter lists
                 if (f1 instanceof ClosureInstance && f2 instanceof ClosureInstance) {
                     FGenericFunction g1 = ((ClosureInstance) f1).getGenerator();
@@ -147,7 +147,7 @@ public class  OverloadedFunction extends Fcn
                         samePartition = true;
                     }
                 }
-                
+
                 List<FType> pl1 = o1.getParams();
                 List<FType> pl2 = o2.getParams();
 
@@ -349,7 +349,7 @@ public class  OverloadedFunction extends Fcn
 //            throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
         addOverload(new Overload(fn));
     }
-    
+
     public void addOverloads(OverloadedFunction cls) {
         for (Overload cl : cls.overloads) {
             addOverload(cl);
@@ -373,9 +373,9 @@ public class  OverloadedFunction extends Fcn
 
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-       
+
         SingleFcn best_f = cache.get(args);
-        
+
         if (best_f == null) {
             int best = bestMatchIndex(args, loc, envForInference);
 
@@ -389,7 +389,7 @@ public class  OverloadedFunction extends Fcn
             best_f = overloads.get(best).getFn();
             cache.syncPut(args, best_f);
         }
-        
+
         return best_f.apply(args, loc, envForInference);
     }
 
@@ -398,10 +398,10 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond) throw new InterpreterError("Cannot call before 'setFinished()'");
+        if (!finishedSecond) throw new InterpreterError(loc,"Cannot call before 'setFinished()'");
         int best = -1;
         SingleFcn best_sfn = null;
-        
+
         for (int i = 0; i < overloads.size(); i++) {
             Overload o = overloads.get(i);
             if (o.getParams() == null) {
@@ -410,7 +410,7 @@ public class  OverloadedFunction extends Fcn
             SingleFcn sfn = o.getFn();
 
             List<FValue> oargs = args;
-            
+
             if (sfn instanceof FGenericFunction) {
                 FGenericFunction gsfn = (FGenericFunction) sfn;
                 try {
@@ -418,21 +418,21 @@ public class  OverloadedFunction extends Fcn
                 } catch (ProgramError pe) {
                     continue; // No match, means no dice.
                 }
-                
+
             }
-            
+
             oargs = sfn.fixupArgCount(args);
-            
+
             // Non-generic, old code.
             if (oargs != null &&
                 argsMatchTypes(oargs,  sfn.getDomain()) &&
                         (best == -1 ||
                          best == i ||
-                         FType.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
-                    best = i;
-                    best_sfn = sfn;
+                         FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
+                best = i;
+                best_sfn = sfn;
             }
-            
+
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
@@ -440,27 +440,6 @@ public class  OverloadedFunction extends Fcn
                     Useful.listInParens(args) + ", overload = " + this);
         }
         return best;
-    }
-
-    /**
-     * Returns true if overload.get(i).params is more
-     * specific than overloads.get(best).params.
-     *
-     * @param i
-     * @param best
-     * @return
-     */
-    private boolean moreSpecificThan(int i, int i_best) {
-        if (i == i_best) return false;
-        List<FType> candidate = overloads.get(i).getParams();
-        List<FType> current = overloads.get(i_best).getParams();
-
-        // TODO This is probably over-engineered; in theory the
-        // overloading builder will include a consistency checker
-        // to make the guarded-against case be impossible.
-        // On the other hand, "trust, but verify".
-
-        return FType.moreSpecificThan(candidate, current);
     }
 
      /**
@@ -502,35 +481,35 @@ public class  OverloadedFunction extends Fcn
         finishedFirst = true;
 
     }
-    
+
     /* This code gives overloaded functions the interface of a set of generic
      * functions.
-     * 
+     *
      */
 
     private class Factory implements Factory1P<List<FType>, Fcn, HasAt> {
 
         public Fcn make(List<FType> args, HasAt within) {
             // TODO finish this.
-            
+
             SingleFcn   f = null;
             OverloadedFunction of = null;
-            
+
             for (Overload ol : getOverloads()) {
                 SingleFcn sfcn = ol.getFn();
                 if (sfcn instanceof FGenericFunction) {
                     FGenericFunction gf = (FGenericFunction) sfcn;
-                    
+
                     // Check that args matches the static parameters of the generic function
                     // TODO -- can a generic instantiation result in an unfulfillable overloading?
-                    
+
                     if (compatible(args, gf.getFnDefOrDecl().getStaticParams().getVal())) {
 
                         SingleFcn tf = gf.typeApply(within, args);
                         if (f == null) {
                             f = tf;
                         } else if (of == null) {
-                            of = new OverloadedFunction(getFnName(), 
+                            of = new OverloadedFunction(getFnName(),
                                     getWithin());
                             of.addOverload(f);
                             of.addOverload(tf);
@@ -551,12 +530,12 @@ public class  OverloadedFunction extends Fcn
     }
 
      Memo1P<List<FType>, Fcn, HasAt> memo = new Memo1P<List<FType>, Fcn, HasAt>(new Factory());
-     
+
     public Fcn make(List<FType> l, HasAt within) {
         return memo.make(l, within);
     }
 
-     
+
     public static boolean compatible(List<FType> args, List<StaticParam> val) {
        if (args.size() != val.size()) return false;
        for (int i = 0; i < args.size(); i++) {
