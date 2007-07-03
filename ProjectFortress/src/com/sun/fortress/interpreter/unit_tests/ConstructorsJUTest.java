@@ -82,7 +82,6 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
         Assert.assertTrue(id1.equals(id3)); // We ignore Sourceloc for equality
         Assert.assertFalse(id1.equals(id4));
         Assert.assertEquals(id1.getName(), "TheIdString");
-        Assert.assertEquals(id1.toString(), "TheIdString");
     }
 
     Id newId(String id, int l, int c1, int c2) {

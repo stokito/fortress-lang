@@ -46,6 +46,5 @@ public abstract class Indices extends AbstractNode implements Comparable<Indices
 // / and indices =
 // / [
 // / | `FixedDim of extent_range list
-// / | `PolyDim
 // / ] node
 // /

@@ -26,7 +26,6 @@ import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FixedDim;
-import com.sun.fortress.interpreter.nodes.PolyDim;
 
 
 public class EvalIndices extends NodeVisitor<TypeIndices> {
@@ -48,16 +47,5 @@ public class EvalIndices extends NodeVisitor<TypeIndices> {
         }
         return new TypeFixedDimIndices(indices);
     }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forPolyDim(com.sun.fortress.interpreter.nodes.PolyDim)
-     */
-    @Override
-    public TypeIndices forPolyDim(PolyDim x) {
-        // TODO Auto-generated method stub
-        return super.forPolyDim(x);
-    }
-
-
 
 }

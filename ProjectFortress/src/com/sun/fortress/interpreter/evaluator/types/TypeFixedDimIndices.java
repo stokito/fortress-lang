@@ -53,10 +53,6 @@ public class TypeFixedDimIndices extends TypeIndices {
                     return false;
             }
             return true;
-        } else if (other instanceof TypePolyDim) {
-            NI.nyi("Indices compatibility, other is PolyDim"); // TODO poly dim compatibility?
-            return false;
-
         }
 
          NI.nyi("Indices compatibility, other is not fixed sized"); // TODO
@@ -82,9 +78,6 @@ public class TypeFixedDimIndices extends TypeIndices {
                     return false;
             }
             return true;
-        } else if (other instanceof TypePolyDim) {
-            NI.nyi("Equality of fixed vs poly dim indices.");
-            return false; /* never reached */
         }
 
         return false;

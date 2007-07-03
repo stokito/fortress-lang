@@ -17,31 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Fn;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / type id = string node
-public class Id extends AbstractNode implements Comparable<Id> {
-    String name;
+public class Id extends AbstractNode {
+  private final String _name;
 
-    @Override
-    public int hashCode() {
-        return name.hashCode();
+  /**
+   * Constructs a Id.
+   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   */
+  public Id(Span in_span, String in_name) {
+    super(in_span);
+
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Id constructor was null. This class may not have null field values.");
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Id)) {
-            return false;
-        }
-        Id i = (Id) o;
-        return name.equals(i.name);
-    }
-
-    public Id(Span span, String s) {
-        super(span);
-        name = s;
-    }
+    _name = ((in_name == null) ? null : in_name.intern());
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -50,29 +49,81 @@ public class Id extends AbstractNode implements Comparable<Id> {
 
     Id(Span span) {
         super(span);
+        _name = null;
     }
 
-    /**
-     * @return Returns the name.
-     */
-    public String getName() {
-        return name;
+  final public String getName() { return _name; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forId(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forId(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@see #output} to generated nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2));
+  }
+
+  public void outputHelp(TabPrintWriter writer) {
+    writer.print("Id" + ":");
+    writer.indent();
+
+    writer.startLine("");
+    writer.print("span = ");
+    Span temp_span = getSpan();
+    if (temp_span == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_span);
     }
 
-    @Override
-    public String toString() {
-        return getName();
+    writer.startLine("");
+    writer.print("name = ");
+    String temp_name = getName();
+    if (temp_name == null) {
+      writer.print("null");
+    } else {
+      writer.print(temp_name);
     }
+    writer.unindent();
+  }
 
-    public static Id make(String string) {
-        return make(new Span(), string);
+  /**
+   * Implementation of equals that is based on the values
+   * of the fields of the object. Thus, two objects
+   * created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Id casted = (Id) obj;
+      if (! (getName() == casted.getName())) return false;
+      return true;
     }
+  }
 
-    public static Id make(Span s, String string) {
-        return new Id(s, string);
-    }
-
-    public int compareTo(Id o) {
-        return name.compareTo(o.name);
-    }
+  /**
+   * Implementation of hashCode that is consistent with
+   * equals. The value of the hashCode is formed by
+   * XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    code ^= 0;
+    code ^= getName().hashCode();
+    return code;
+  }
 }
