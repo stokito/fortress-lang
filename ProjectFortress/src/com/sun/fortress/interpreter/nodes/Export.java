@@ -31,13 +31,13 @@ public class Export extends AbstractNode {
 
   /**
    * Constructs a Export.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public Export(Span in_span, List<DottedId> in_names) {
     super(in_span);
 
     if (in_names == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'names' to the Export constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'names' to the Export constructor was null");
     }
     _names = in_names;
   }
@@ -59,7 +59,7 @@ public class Export extends AbstractNode {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
@@ -71,37 +71,50 @@ public class Export extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Export" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Export:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("names = ");
     List<DottedId> temp_names = getNames();
-    if (temp_names == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_names);
+    writer.startLine();
+    writer.print("names = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_names = true;
+    for (DottedId elt_temp_names : temp_names) {
+      isempty_temp_names = false;
+      writer.startLine("* ");
+      if (elt_temp_names == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.printSerialized(elt_temp_names);
+          writer.print(" ");
+          writer.printEscaped(elt_temp_names);
+        } else { writer.print(elt_temp_names); }
+      }
     }
+    writer.unindent();
+    if (isempty_temp_names) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -109,21 +122,22 @@ public class Export extends AbstractNode {
       return false;
     } else {
       Export casted = (Export) obj;
-      if (! (getNames().equals(casted.getNames()))) return false;
+      List<DottedId> temp_names = getNames();
+      List<DottedId> casted_names = casted.getNames();
+      if (!(temp_names == casted_names || temp_names.equals(casted_names))) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= 0;
-    code ^= getNames().hashCode();
+    List<DottedId> temp_names = getNames();
+    code ^= temp_names.hashCode();
     return code;
   }
 }

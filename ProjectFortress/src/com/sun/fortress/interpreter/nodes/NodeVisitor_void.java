@@ -14,7 +14,17 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
+
 package com.sun.fortress.interpreter.nodes;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 /** An interface for visitors over Node that do not return a value. */
 public interface NodeVisitor_void {
@@ -48,6 +58,12 @@ public interface NodeVisitor_void {
 
   /** Process an instance of CatchClause. */
   public void forCatchClause(CatchClause that);
+
+  /** Process an instance of Component. */
+  public void forComponent(Component that);
+
+  /** Process an instance of Api. */
+  public void forApi(Api that);
 
   /** Process an instance of DoFront. */
   public void forDoFront(DoFront that);

@@ -17,39 +17,49 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / type t = program
-// /
 public abstract class CompilationUnit extends AbstractNode {
-    DottedId name;
+  private final DottedId _name;
+  private final List<Import> _imports;
 
-    List<Import> imports;
+  /**
+   * Constructs a CompilationUnit.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public CompilationUnit(Span in_span, DottedId in_name, List<Import> in_imports) {
+    super(in_span);
+
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the CompilationUnit constructor was null");
+    }
+    _name = in_name;
+
+    if (in_imports == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'imports' to the CompilationUnit constructor was null");
+    }
+    _imports = in_imports;
+  }
 
     CompilationUnit(Span span) {
         super(span);
-    }
-    
-    /**
-     * @return Returns the imports.
-     */
-    public List<Import> getImports() {
-        return imports;
+        _name = null;
+        _imports = null;
     }
 
-    /**
-     * @return Returns the name.
-     */
-    public DottedId getName() {
-        return name;
-    }
+  public DottedId getName() { return _name; }
+  public List<Import> getImports() { return _imports; }
 
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-
-// / and program =
-// / [
-// / | `Component of component
-// / | `API of api
-// / ] node
-// /
