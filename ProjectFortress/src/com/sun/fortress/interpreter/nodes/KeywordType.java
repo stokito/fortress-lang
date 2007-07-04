@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -70,7 +70,7 @@ public class KeywordType extends AbstractNode implements Comparable<KeywordType>
     public static final ListComparer<KeywordType> listComparer = new ListComparer<KeywordType>();
 
     public int compareTo(KeywordType o) {
-        return NodeComparator.compare(name, o.name, type, o.type);
+        return Useful.compare(name, o.name, type, o.type);
     }
 
 }

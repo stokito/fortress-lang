@@ -27,6 +27,14 @@ import com.sun.fortress.interpreter.useful.ListComparer;
 
 public class NodeComparator {
 
+    static String getName(StaticParam p) { return p.toString(); }
+    static String getName(BoolParam p) { return p.getId().getName(); }
+    static String getName(DimensionParam p) { return p.getId().getName(); }
+    static String getName(IntParam p) { return p.getId().getName(); }
+    static String getName(NatParam p) { return p.getId().getName(); }
+    static String getName(OperatorParam p) { return p.getOp().getName(); }
+    static String getName(SimpleTypeParam p) { return p.getId().getName(); }
+
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
             Class tclass = left.getClass();
@@ -47,11 +55,11 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(StaticParam left, StaticParam right) {
-        return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
+        return getName(left).compareTo(getName(right));
     }
 
     static int subtypeCompareTo(SimpleTypeParam left, SimpleTypeParam right) {
-        int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
+        int x = getName(left).compareTo(getName(right));
         if (x != 0) {
             return x;
         }
@@ -69,177 +77,97 @@ public class NodeComparator {
         return TypeRef.listComparer.compare(l, ol);
     }
 
-    public static int compare(Applicable left, Applicable right) {
-        return left.applicableCompareTo(right);
-    }
-
-    public static int compare(DottedId left, DottedId right) {
-        return ListComparer.stringListComparer.compare(left.getNames(),
-                                                       right.getNames());
-    }
-
-    public static int compare(ExtentRange left, ExtentRange right) {
-        // TODO Optional parameters on extent ranges are tricky things; perhaps
-        // they need not both be present.
-        int x = TypeRef.compareOptional(left.getBase(), right.getBase());
-        if (x != 0) return x;
-        x = TypeRef.compareOptional(left.getSize(), right.getSize());
-        if (x != 0) return x;
-        return 0;
-    }
-
     public static int compare(FnDefOrDecl left, FnDefOrDecl right) {
         return left.compareTo(right);
     }
 
+    public static int compare(Applicable left, Applicable right) {
+        return left.applicableCompareTo(right);
+    }
+
     public static int compare(FnName left, FnName right) {
-        Class leftClass = left.getClass();
-        Class rightClass = right.getClass();
-
-        if (leftClass != rightClass) {
-            return leftClass.getName().compareTo(rightClass.getName());
-        }
-        else {
-            return left.stringName().compareTo(right.stringName());
-        }
+        return left.compareTo(right);
     }
-
-    public static int compare(Id left, Id right) {
-        return left.getName().compareTo(right.getName());
-    }
-
-    public static int compare(Indices left, Indices right) {
-        Class tclass = left.getClass();
-        Class oclass = right.getClass();
-        if (oclass != tclass) {
-            return tclass.getName().compareTo(oclass.getName());
-        }
-        return subtypeCompareTo(left, right);
-    }
-
-    public static int compare(TypeRef left, TypeRef right) {
-        Class leftClass = left.getClass();
-        Class rightClass = right.getClass();
-
-        if (leftClass != rightClass) {
-            return leftClass.getName().compareTo(rightClass.getName());
-        }
-        else {
-            return subtypeCompareTo(left, right);
-        }
-    }
-
-    /* comparing tuples **************************************************/
-    public static int compare(Id a, Id b, TypeRef c, TypeRef d) {
-        int x = compare(a, b);
-        if (x != 0) return x;
-        return compare(c, d);
-    }
-
-    public static int compare(TypeRef a, TypeRef b, ExtentRange c, ExtentRange d) {
-        int x = compare(a, b);
-        if (x != 0) return x;
-        return compare(c, d);
-    }
-
-    public static int compare(TypeRef a, TypeRef b, Indices c, Indices d) {
-        int x = compare(a, b);
-        if (x != 0) return x;
-        return compare(c, d);
-    }
-
-    public static int compare(TypeRef a, TypeRef b, TypeRef c, TypeRef d) {
-        int x = compare(a, b);
-        if (x != 0) return x;
-        return compare(c, d);
-    }
-
-    /* subtypeCompareTo **************************************************/
-    static int subtypeCompareTo(ArrayType left, ArrayType right) {
-        return compare(left.getElement(), right.getElement(),
-                       left.getIndices(), right.getIndices());
-    }
-
-    static int subtypeCompareTo(ArrowType left, ArrowType right) {
-        int x = compare(left.getRange(), right.getRange());
-        if (x != 0) return x;
-        x = TypeRef.listComparer.compare(left.getDomain(), right.getDomain());
-        if (x != 0) return x;
-        x = KeywordType.listComparer.compare(left.getKeywords(),
-                                             right.getKeywords());
-        if (x != 0) return x;
-        x = TypeRef.listComparer.compare(left.getThrows_(), right.getThrows_());
-        return x;
-    }
-
-    static int subtypeCompareTo(FixedDim left, FixedDim right) {
-        return ExtentRange.listComparer
-            .compare(left.getExtents(), right.getExtents());
-    }
-
-    static int subtypeCompareTo(IdType left, IdType right) {
-        return compare(left.getName(), right.getName());
-    }
-
-    static int subtypeCompareTo(Indices left, Indices right) {
-        throw new Error("subtypeCompareTo(" + left.getClass() + " " +
-                        right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(ListType left, ListType right) {
-        return compare(left.getElement(), right.getElement());
-    }
-
-    static int subtypeCompareTo(MapType left, MapType right) {
-        return compare(left.getKey(), right.getKey(),
-                       left.getValue(), right.getValue());
-    }
-
-    static int subtypeCompareTo(MatrixType left, MatrixType right) {
-        int y = compare(left.getElement(), right.getElement());
-        if (y != 0) return y;
-        return ExtentRange.listComparer.compare(left.getDimensions(),
-                                                right.getDimensions());
-    }
-
-    static int subtypeCompareTo(ParamType left, ParamType right) {
-        int c = compare(left.getGeneric(), right.getGeneric());
-        if (c != 0) return c;
-        return StaticArg.typeargListComparer.compare(left.getArgs(),
-                                                     right.getArgs());
-    }
-
-    static int subtypeCompareTo(RestType left, RestType right) {
-        return compare(left.getType(), right.getType());
-    }
-
-    static int subtypeCompareTo(SetType left, SetType right) {
-        return compare(left.getElementType(), right.getElementType());
-    }
-
-    static int subtypeCompareTo(TupleType left, TupleType right) {
-        return TypeRef.listComparer.compare(left.getElements(), right.getElements());
-    }
-
-    static int subtypeCompareTo(TypeRef left, TypeRef right) {
-        throw new Error("subtypeCompareTo(" + left.getClass() + " " +
-                        right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(VectorType left, VectorType right) {
-        // TODO Don't I need to worry about reducing the fraction?
-        return compare(left.getElement(), right.getElement(),
-                       left.getDim(), right.getDim());
-    }
-
-    static int subtypeCompareTo(VoidType left, VoidType right) {
-        // All voids are equal
-        return 0;
-    }
-
 }
 
+//    public static int compareTo(Id left, Id right) {
+//        return left.getName().compareTo(right.getName());
+//    }
+//
+//    public static int compareTo(FnName left, FnName right) {
+//        Class leftClass = left.getClass();
+//        Class rightClass = right.getClass();
+//
+//        if (leftClass != rightClass) {
+//            return leftClass.getName().compareTo(rightClass.getName());
+//        }
+//        else {
+//            return left.stringName().compareTo(right.stringName());
+//        }
+//    }
+
+//    public static int compareTo(TypeRef left, TypeRef right) {
+//        Class leftClass = left.getClass();
+//        Class rightClass = right.getClass();
+//
+//        if (leftClass != rightClass) {
+//            return leftClass.getName().compareTo(rightClass.getName());
+//        }
+//        else {
+//            return left.subtypeCompareTo(right);
+//        }
+//    }
+
 //   Copied code begins here.
+//
+//    @Override
+//        int subtypeCompareTo(TypeRef o) {
+//        return elementType.compareTo(((SetType) o).elementType);
+//    }
+
+//    @Override
+//        int subtypeCompareTo(TypeRef o) {
+//        return type.compareTo(((RestType) o).type);
+//    }
+
+//    @Override
+//        int subtypeCompareTo(TypeRef o) {
+//        ParamType x = (ParamType) o;
+//        int c = generic.compareTo(x.generic);
+//        if (c != 0) {
+//            return c;
+//        }
+//        return StaticArg.typeargListComparer.compare(args, x.args);
+//    }
+
+//    @Override
+//    int subtypeCompareTo(TypeRef o) {
+//        MatrixType x = (MatrixType) o;
+//        int y = element.compareTo(x.element);
+//        if (y != 0) return y;
+//        return ExtentRange.listComparer.compare(dimensions, x.dimensions);
+//    }
+
+//    @Override
+//    int subtypeCompareTo(TypeRef o) {
+//        MapType x = (MapType) o;
+//        return Useful.compare(key, x.key, value, x.value);
+//    }
+
+//
+//    @Override
+//        int subtypeCompareTo(TypeRef o) {
+//        ListType x = (ListType) o;
+//        return element.compareTo(((ListType) o).element);
+//    }
+
+
+//    @Override
+//        int subtypeCompareTo(TypeRef o) {
+//        return name.compareTo(((IdType) o).name);
+//    }
+
+
 //
 //    @Override
 //        int subtypeCompareTo(TypeRef o) {
@@ -256,16 +184,19 @@ public class NodeComparator {
 //                              (TypeRef) denominator, x.denominator); // cast for generics
 //    }
 
+//    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        ProductDim x = (ProductDim) o;
 //        return Useful.compare((TypeRef) multiplier, x.multiplier,
 //                              (TypeRef) multiplicand, x.multiplicand); // cast for generics
 //    }
 
+//    @Override
 //        int subtypeCompareTo(TypeRef o) {
 //        return name.compareTo(((NameDim) o).name);
 //    }
 
+//       @Override
 //    int subtypeCompareTo(TypeRef o) {
 //        ExponentDim x = (ExponentDim) o;
 //        return Useful.compare((TypeRef) power, x.power, (TypeRef) base, x.base); // casts
@@ -273,6 +204,46 @@ public class NodeComparator {
 //                                                                                    // generics
 //    }
 
+//        @Override
+//    int subtypeCompareTo(TypeRef o) {
+//        ArrayType a = (ArrayType) o;
+//        return Useful.compare(element, a.element, indices, a.indices);
+//    }
+//        @Override
+//    int subtypeCompareTo(TypeRef o) {
+//        ArrowType a = (ArrowType) o;
+//        int x = range.compareTo(a.range);
+//        if (x != 0) {
+//            return x;
+//        }
+//        x = TypeRef.listComparer.compare(domain, a.domain);
+//        if (x != 0) {
+//            return x;
+//        }
+//        x = KeywordType.listComparer.compare(keywords, a.keywords);
+//        if (x != 0) {
+//            return x;
+//        }
+//        x = TypeRef.listComparer.compare(throws_, a.throws_);
+//        return x;
+//    }
+
+//
+//
+//    /*
+//     * (non-Javadoc)
+//     *
+//     * @see java.lang.Comparable#compareTo(java.lang.Object)
+//     */
+//    public int compareTo(StaticParam o) {
+//        Class tclass = getClass();
+//        Class oclass = o.getClass();
+//        if (oclass != tclass) {
+//            return tclass.getName().compareTo(oclass.getName());
+//        }
+//        return subtypeCompareTo(o);
+//    }
+//
 //    public int compareTo(Param o) {
 //        int x = getName().getName().compareTo(o.getName().getName());
 //        if (x != 0) return x;
@@ -284,6 +255,39 @@ public class NodeComparator {
 //
 //    public int compareTo(KeywordType o) {
 //        return Useful.compare(name, o.name, type, o.type);
+//    }
+//
+//        /*
+//     * (non-Javadoc)
+//     *
+//     * @see java.lang.Comparable#compareTo(java.lang.Object)
+//     */
+//    public int compareTo(Indices o) {
+//        Class tclass = getClass();
+//        Class oclass = o.getClass();
+//        if (oclass != tclass) {
+//            return tclass.getName().compareTo(oclass.getName());
+//        }
+//        return subtypeCompareTo(o);
+//    }
+//
+//    public int compareTo(ExtentRange o) {
+//        // TODO Optional parameters on extent ranges are tricky things; perhaps
+//        // they need not both be present.
+//        int x = TypeRef.compareOptional(base, o.base);
+//        if (x != 0) {
+//            return x;
+//        }
+//        x = TypeRef.compareOptional(size, o.size);
+//        if (x != 0) {
+//            return x;
+//        }
+//
+//        return 0;
+//    }
+//
+//    public int compareTo(DottedId other) {
+//        return ListComparer.stringListComparer.compare(names, other.names);
 //    }
 //
 //        public int compareTo(FnDefOrDecl a1) {
