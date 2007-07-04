@@ -167,8 +167,29 @@ public interface NodeVisitor_void {
   /** Process an instance of Id. */
   public void forId(Id that);
 
+  /** Process an instance of DottedId. */
+  public void forDottedId(DottedId that);
+
+  /** Process an instance of Fun. */
+  public void forFun(Fun that);
+
+  /** Process an instance of Name. */
+  public void forName(Name that);
+
+  /** Process an instance of Enclosing. */
+  public void forEnclosing(Enclosing that);
+
   /** Process an instance of Opr. */
   public void forOpr(Opr that);
+
+  /** Process an instance of PostFix. */
+  public void forPostFix(PostFix that);
+
+  /** Process an instance of SubscriptAssign. */
+  public void forSubscriptAssign(SubscriptAssign that);
+
+  /** Process an instance of SubscriptOp. */
+  public void forSubscriptOp(SubscriptOp that);
 
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
