@@ -18,11 +18,10 @@
 package com.sun.fortress.interpreter.nodes;
 
 
-import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.Comparator;
 import java.util.List;
-import com.sun.fortress.interpreter.nodes_util.NodeComparator;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 import com.sun.fortress.interpreter.useful.UnitIterable;
@@ -110,7 +109,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     @Override
     public String toString() {
 
-        return name.name()
+        return NodeUtil.getName(name)
                 + (staticParams.isPresent() ?
                         Useful.listInOxfords(staticParams.getVal()) : "")
                 + Useful.listInParens(params)
@@ -145,7 +144,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
 
     @Override
     public String stringName() {
-        return name.name();
+        return NodeUtil.getName(name);
     }
 
     /**
@@ -210,7 +209,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     }
 
     public String nameAsFunction() {
-        return name.name();
+        return NodeUtil.getName(name);
     }
 
     public String nameAsMethod() {
@@ -218,9 +217,9 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
             int spi = selfParameterIndex();
 
             if (spi >= 0)
-                asMethodName = "fm$" + spi + "$" + name.name();
+                asMethodName = "fm$" + spi + "$" + NodeUtil.getName(name);
             else
-                asMethodName = name.name();
+                asMethodName = NodeUtil.getName(name);
         }
         return asMethodName;
     }

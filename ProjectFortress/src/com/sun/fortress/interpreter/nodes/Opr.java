@@ -52,12 +52,6 @@ public class Opr extends OprName {
         _op = null;
     }
 
-    public @Override
-    String name() {
-        return _op.getName();
-    }
-
-
   final public Op getOp() { return _op; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forOpr(this); }

@@ -61,8 +61,7 @@ import com.sun.fortress.interpreter.nodes.ImportFrom;
 import com.sun.fortress.interpreter.nodes.ImportNames;
 import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.Name;
-import com.sun.fortress.interpreter.nodes_util.Printer;
-import com.sun.fortress.interpreter.nodes_util.Unprinter;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
@@ -85,9 +84,9 @@ public class Driver {
     private static int numThreads = 8;
 
     private static boolean _libraryTest = false;
-    
+
     private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
-    
+
     public final static String COMP_SOURCE_SUFFIX = "fss";
     public final static String COMP_TREE_SUFFIX = "tfs";
     public final static String API_SOURCE_SUFFIX = "fsi";
@@ -107,8 +106,8 @@ public class Driver {
      * @throws IOException
      */
     public static Option<CompilationUnit>
-        readJavaAst(String reportedFileName, BufferedReader br) 
-        throws IOException 
+        readJavaAst(String reportedFileName, BufferedReader br)
+        throws IOException
     {
         Lex lex = new Lex(br);
         try {
@@ -117,7 +116,7 @@ public class Driver {
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
             if (p == null) { return new None<CompilationUnit>(); }
             else { return new Some<CompilationUnit>(p); }
-        } 
+        }
         finally {
             if (!lex.atEOF())
                 System.out.println("Parse of " + reportedFileName
@@ -128,12 +127,12 @@ public class Driver {
 
     public static Option<CompilationUnit> parseToJavaAst (
             String reportedFileName, BufferedReader in
-        ) 
-        throws IOException 
+        )
+        throws IOException
     {
-        Fortress p = 
-            new Fortress(in, 
-                         reportedFileName, 
+        Fortress p =
+            new Fortress(in,
+                         reportedFileName,
                          (int) new File(reportedFileName).length());
         Result r = p.pFile(0);
 
@@ -141,12 +140,12 @@ public class Driver {
             SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
             return new Some<CompilationUnit>(n);
-        } 
+        }
         else {
             ParseError err = (ParseError) r;
             if (-1 == err.index) {
                 System.err.println("  Parse error");
-            } 
+            }
             else {
                 System.err.println("  " + p.location(err.index) + ": "
                         + err.msg);
@@ -154,8 +153,8 @@ public class Driver {
             return new None<CompilationUnit>();
         }
     }
-    
-    /** 
+
+    /**
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
     public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
@@ -168,9 +167,9 @@ public class Driver {
      * @return  {@code true} iff the program is considered well-formed by the type checker.
      */
     public static TypeCheckerResult check(CompilationUnit p) {
-        TypeCheckerResult result = TypeChecker.check(p); 
+        TypeCheckerResult result = TypeChecker.check(p);
         PureList<TypeError> errors = result.getErrors();
-        
+
         for (TypeError error : errors) {
             System.err.println("STATIC ERROR: " + error.getMessage() + error.getLocation());
         }
@@ -179,14 +178,14 @@ public class Driver {
             int errorCount = result.errorCount();
             if (errorCount == 1) { System.err.println("THERE WAS " + errors.size() + " STATIC ERROR"); }
             else { System.err.println("THERE WERE " + errors.size() + " STATIC ERRORS"); }
-                
+
         }
         return result;
     }
-    
+
     /**
      * Runs a command and captures its output and errors streams.
-     * 
+     *
      * @param command
      *            The command to run
      * @param output
@@ -291,26 +290,26 @@ public class Driver {
         /*
          * This "linker" implements a one-to-one, same-name correspondence
          * between APIs and components.
-         * 
+         *
          * phase 0.5: starting with the main component, identify other
          * components that will be needed (the fortress will contain the map
          * from component C's imported APIs to their implementing components).
          * Each component will be paired with its top level environment (TLE).
-         * 
+         *
          * phase 1: for each component, prepare its TLE by creating all name
          * slots (nothing in the slots will is initialized AT ALL -- it's all
          * thunks, empty mutables, and uninitialized types).
-         * 
+         *
          * phase 1.5: for each component C, add to C's TLE all the names that C
          * imports (using the API->component map from the fortress to figure out
          * the values/types associated with each of those names).
-         * 
+         *
          */
         comp.populateEnvironment();
         linker.put("main", comp);
         pile.push(comp);
 
-        
+
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
@@ -336,7 +335,7 @@ public class Driver {
 
         /*
          * Transitional stuff.
-         * 
+         *
          * This will stick native hooks into the "library", and these will in
          * turn be copied into all the other environments.
          */
@@ -344,7 +343,7 @@ public class Driver {
 
         /*
          * Inject imported names into environments.
-         * 
+         *
          * TODO traits and objects must have their members filtered in these
          * injections. This is not at all simple in the case of a component
          * exporting multiple APIs that may also have different views of the
@@ -431,7 +430,7 @@ public class Driver {
                         final List<String> except_names = Useful.applyToAll(
                                 excepts, new Fn<Name, String>() {
                                     public String apply(Name n) {
-                                        return n.name();
+                                        return NodeUtil.getName(n);
                                     }
                                 });
 
@@ -540,10 +539,10 @@ public class Driver {
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
             FnName name, Option<FnName> alias, String a, String c) {
-        String s = name.name();
+        String s = NodeUtil.getName(name);
         String add_as = s;
         if (alias.isPresent()) {
-            add_as = alias.getVal().name();
+            add_as = NodeUtil.getName(alias.getVal());
         }
         try {
             if (api_e.getNatNull(s) != null) {
@@ -572,19 +571,19 @@ public class Driver {
      * For each imported API, checks to see if it is already "linked". If not,
      * "finds" it (looks for apiname.fss/apiname.tfs) and reads it in and sticks
      * it in the "pile".
-     * 
+     *
      * For each component, also reads in the corresponding APIs so that we know
      * what to export.
-     * 
+     *
      * @param linker
      * @param pile
      * @param imports
      */
     private static void ensureImportsImplemented (
             HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, 
+            Stack<ComponentWrapper> pile,
             List<Import> imports
-        ) 
+        )
         throws IOException
     {
 
@@ -596,12 +595,12 @@ public class Driver {
                     DottedId id = adi.getId();
                     ensureApiImplemented(linker, pile, id);
                 }
-            } 
+            }
             else if (i instanceof ImportFrom) {
                 ImportFrom ix = (ImportFrom) i;
                 DottedId source = ix.getSource();
                 ensureApiImplemented(linker, pile, source);
-            } 
+            }
             else {
                 throw new InterpreterError(i,"Unrecognized import");
             }
@@ -621,7 +620,7 @@ public class Driver {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming
              * that Api Foo is implemented by Component Foo, dots and all.
-             * 
+             *
              * These two lines are what needs to be replaced by a real linker.
              */
             Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
@@ -641,14 +640,14 @@ public class Driver {
     }
 
     // This runs the program from inside a task.
-    public static void 
-        runProgramTask(CompilationUnit p, boolean runTests, List<String> args) 
+    public static void
+        runProgramTask(CompilationUnit p, boolean runTests, List<String> args)
         throws IOException
     {
 
         FortressTests.reset();
         BetterEnv e = evalComponent(p);
-        
+
         Closure run_fn = e.getRunMethod();
         Toplevel toplevel = new Toplevel();
         if (runTests) {
@@ -678,10 +677,10 @@ public class Driver {
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram (CompilationUnit p, 
-                                   boolean runTests, 
-                                   boolean libraryTest, 
-                                   List<String> args) 
+    public static void runProgram (CompilationUnit p,
+                                   boolean runTests,
+                                   boolean libraryTest,
+                                   List<String> args)
         throws Throwable
     {
         _libraryTest = libraryTest;
@@ -696,9 +695,9 @@ public class Driver {
         EvaluatorTask evTask = new EvaluatorTask(p, runTests, args, null);
         try {
             group.invoke(evTask);
-        } 
+        }
         catch (InterruptedException ex) {
-        } 
+        }
         finally {
             // group.interruptAll();
         }
@@ -734,23 +733,23 @@ public class Driver {
     /**
      * Attempts to read in preparsed program. Reparses if parsed form is missing
      * or newer than preparsed form.
-     * 
+     *
      * @param librarySource
      * @param libraryTree
      */
-    public static CompilationUnit 
+    public static CompilationUnit
         readTreeOrSource(String librarySource, String libraryTree) throws IOException
-    {    
+    {
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
-            
+
            // try {
-                System.err.println("Missing or stale preparsed AST " 
-                                   + libraryTree + ", rebuilding from source " 
+                System.err.println("Missing or stale preparsed AST "
+                                   + libraryTree + ", rebuilding from source "
                                    + librarySource );
-                
+
                 long begin = System.currentTimeMillis();
 
-                // Because of the check above, we can retrieve the value of 
+                // Because of the check above, we can retrieve the value of
                 // the Option immediately.
                 CompilationUnit c = parseToJavaAst(librarySource, Useful
                         .utf8BufferedFileReader(librarySource)).getVal();
@@ -761,7 +760,7 @@ public class Driver {
                          + " milliseconds");
                 writeJavaAst(c, libraryTree);
                 return c;
-        } 
+        }
         else {
             long begin = System.currentTimeMillis();
             Option<CompilationUnit> c = readJavaAst(libraryTree);
@@ -770,14 +769,14 @@ public class Driver {
                 ("Read " + libraryTree + ": "
                      + (System.currentTimeMillis() - begin)
                      + " milliseconds");
-            
-            if (c.isPresent()) { 
-                return c.getVal(); 
+
+            if (c.isPresent()) {
+                return c.getVal();
             }
-            else { 
-                throw new ProgramError("Could not read " + librarySource + " or " + libraryTree); 
+            else {
+                throw new ProgramError("Could not read " + librarySource + " or " + libraryTree);
             }
-        } 
+        }
     }
 
 }

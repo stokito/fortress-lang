@@ -153,6 +153,7 @@ import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes.While;
 import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MatchFailure;
 import com.sun.fortress.interpreter.useful.NI;
@@ -944,7 +945,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     private FValue getOpr(OprName op) {
         try {
-            return e.getValue(op.name());
+            return e.getValue(NodeUtil.getName(op));
         } catch (ProgramError ex) {
             ex.setWhere(op);
             ex.setWithin(e);

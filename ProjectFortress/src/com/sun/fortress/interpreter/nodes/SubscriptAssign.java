@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class SubscriptAssign extends OprName {
@@ -32,7 +32,7 @@ public class SubscriptAssign extends OprName {
      */
     public boolean equals(Object o) {
         SubscriptAssign sa = (SubscriptAssign) o;
-        return sa.name().equals(name());
+        return NodeUtil.getName(sa).equals(NodeUtil.getName(this));
     }
 
     /*
@@ -41,16 +41,11 @@ public class SubscriptAssign extends OprName {
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
      */
     public int hashCode() {
-        return name().hashCode() * MagicNumbers.R;
+        return NodeUtil.getName(this).hashCode() * MagicNumbers.R;
     }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         return v.forSubscriptAssign(this);
-    }
-
-    public @Override
-    String name() {
-        return "[]=";
     }
 }

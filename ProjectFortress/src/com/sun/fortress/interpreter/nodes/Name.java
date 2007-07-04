@@ -66,17 +66,6 @@ public class Name extends FnName {
         return op;
     }
 
-    @Override
-    public String name() {
-        if (id instanceof Some) {
-            return ((Id) ((Some) id).getVal()).getName();
-        } else if (op instanceof Some) {
-            return ((Op) ((Some) op).getVal()).getName();
-        } else {
-            throw new Error("Uninitialized Name.");
-        }
-    }
-
     public boolean equals(Object o) {
         if (o instanceof Name) {
             Name n = (Name) o;

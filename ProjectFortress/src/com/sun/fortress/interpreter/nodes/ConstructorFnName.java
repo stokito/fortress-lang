@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.NI;
 
@@ -42,6 +43,9 @@ public class ConstructorFnName extends FnName {
         this.def = def;
     }
 
+    public DefOrDecl getDef() { return def; }
+    public int getSerial() { return serial; }
+
     protected int mandatoryHashCode() {
         return serial * MagicNumbers.y + span.hashCode();
     }
@@ -52,12 +56,6 @@ public class ConstructorFnName extends FnName {
             return afn.serial == serial;
         }
         return false;
-    }
-
-    @Override
-    public String name() {
-        // TODO Auto-generated method stub
-        return def.stringName() + "#" + serial;
     }
 
     @Override

@@ -21,6 +21,7 @@ import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.IntLiteral;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 
 /**
  * Class RealExpr, a component of the OpExpr composite hierarchy.
@@ -81,7 +82,7 @@ public class RealExpr extends Object implements InfixOpExpr {
    } else if (temp_expr instanceof VarRefExpr) {
       writer.print(((VarRefExpr)temp_expr).getVar().getName());
    } else if (temp_expr instanceof OprExpr) {
-      writer.print(((OprExpr)temp_expr).getOp().name());
+      writer.print(NodeUtil.getName(((OprExpr)temp_expr).getOp()));
    } else {
       writer.print(temp_expr);
    }

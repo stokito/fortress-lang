@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class PostFix extends OprName {
@@ -44,17 +44,12 @@ public class PostFix extends OprName {
         return op;
     }
 
-    public @Override
-    String name() {
-        return op.getName();
-    }
-
     public boolean equals(Object o) {
         PostFix p = (PostFix) o;
-        return p.name().equals(name());
+        return NodeUtil.getName(p).equals(NodeUtil.getName(this));
     }
 
     public int hashCode() {
-        return name().hashCode() * MagicNumbers.x;
+        return NodeUtil.getName(this).hashCode() * MagicNumbers.x;
     }
 }

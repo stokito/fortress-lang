@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 // / type fn_name_variant =
 // / [
@@ -86,13 +86,8 @@ public class Fun extends FnName {
         return name_;
     }
 
-    public @Override
-    String name() {
-        return name_.getName();
-    }
-
     @Override
     public String toString() {
-        return name();
+        return NodeUtil.getName(this);
     }
 }

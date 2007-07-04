@@ -21,6 +21,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.FnName;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
@@ -64,13 +65,13 @@ abstract public class Fcn extends FConstructedValue {
     }
 
     abstract public FnName getFnName();
-    
+
     /**
      * Returns the name if this "function" is regarded as a method.
      * Ought to throw an exception if it cannot be a method.
      */
     public String asMethodName() {
-        return getFnName().name();
+        return NodeUtil.getName(getFnName());
     }
 
     /**
@@ -78,7 +79,7 @@ abstract public class Fcn extends FConstructedValue {
      * Ought to throw an exception if it cannot be a function.
      */
     public String asFunctionName() {
-        return getFnName().name();
+        return NodeUtil.getName(getFnName());
     }
 
     static boolean anyAreSymbolic(List<FType> args) {

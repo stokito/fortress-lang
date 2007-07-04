@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.Iterator;
 import java.util.List;
 
@@ -79,23 +79,6 @@ public class DottedId extends FnName {
      */
     public List<String> getNames() {
         return names;
-    }
-
-    /**
-     * @return Returns the name.
-     */
-    @Override
-    public String name() {
-        String name;
-        if (names.size() == 0) {
-            throw new Error("Non-empty string is expected.");
-        } else {
-            name = names.get(0);
-        }
-        for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
-            name += "." + ns.next();
-        }
-        return name;
     }
 
     @Override

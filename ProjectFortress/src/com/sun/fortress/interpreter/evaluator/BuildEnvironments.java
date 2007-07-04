@@ -620,13 +620,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
     private void putFunction(BetterEnv e, FnName name, FValue f, HasAt x) {
-        String s = name.name();
+        String s = NodeUtil.getName(name);
         guardedPutValue(e, s, f, x);
         e.noteName(s);
     }
 
     private static void assignFunction(BetterEnv e, FnName name, FValue f) {
-        e.putValueUnconditionally(name.name(), f);
+        e.putValueUnconditionally(NodeUtil.getName(name), f);
     }
 
     /*

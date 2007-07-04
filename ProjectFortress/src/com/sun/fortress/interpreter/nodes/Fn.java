@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.Collections;
@@ -138,17 +139,17 @@ public class Fn extends ValueExpr implements Decl, Applicable {
     public IterableOnce<String> stringNames() {
         return new UnitIterable<String>(getFnName().stringName());
     }
-    
+
     public int applicableCompareTo( Applicable other) {
         int x = Useful.compareClasses(this, other);
         if (x != 0) return x;
         Fn na = (Fn) other;
-        return getFnName().name().compareTo(na.getFnName().name());
-       
+        return NodeUtil.getName(getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
+
      }
-    
+
     public String nameAsMethod() {
-        return getFnName().name();
+        return NodeUtil.getName(getFnName());
     }
 
 

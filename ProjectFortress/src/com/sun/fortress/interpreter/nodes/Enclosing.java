@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class Enclosing extends OprName {
@@ -54,11 +54,6 @@ public class Enclosing extends OprName {
         return open;
     }
 
-    public @Override
-    String name() {
-        return open.getName();
-    }
-
     String closingName() {
         return close.getName();
     }
@@ -70,7 +65,7 @@ public class Enclosing extends OprName {
      */
     public boolean equals(Object o) {
         Enclosing e = (Enclosing) o;
-        return e.name().equals(name()) && e.closingName().equals(closingName());
+        return NodeUtil.getName(e).equals(NodeUtil.getName(this)) && e.getClose().getName().equals(close.getName());
     }
 
     /*
@@ -79,7 +74,7 @@ public class Enclosing extends OprName {
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
      */
     public int hashCode() {
-        return name().hashCode() * MagicNumbers.e
-                ^ closingName().hashCode() * MagicNumbers.g;
+        return NodeUtil.getName(this).hashCode() * MagicNumbers.e
+                ^ close.getName().hashCode() * MagicNumbers.g;
     }
 }

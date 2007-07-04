@@ -33,6 +33,7 @@ import com.sun.fortress.interpreter.nodes.TightJuxt;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.WhereClause;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
@@ -149,17 +150,17 @@ public abstract class NativeApp implements Applicable {
                                    +" is not a NativeApp.",x);
         }
     }
-    
+
     public int applicableCompareTo( Applicable other) {
         return Useful.compareClasses(this, other);
      }
-    
+
     public int selfParameterIndex() {
         return -1;
     }
-    
+
     public String nameAsMethod() {
-        return getFnName().name();
+        return NodeUtil.getName(getFnName());
     }
 
 }

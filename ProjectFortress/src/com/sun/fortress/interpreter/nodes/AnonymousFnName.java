@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.NI;
@@ -50,6 +50,9 @@ public class AnonymousFnName extends FnName {
         this.at = at;
     }
 
+    public int getSerial() { return serial; }
+    public HasAt getAt() { return at; }
+
    @Override
    public int hashCode() {
         return serial * MagicNumbers.y + span.hashCode();
@@ -62,11 +65,6 @@ public class AnonymousFnName extends FnName {
             return afn.serial == serial;
         }
         return false;
-    }
-
-    @Override
-    public String name() {
-        return (at == null ? span.toString() : at.stringName()) + "#" + serial;
     }
 
     @Override

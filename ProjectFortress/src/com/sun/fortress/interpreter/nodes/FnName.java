@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 // / type fn_name = fn_name_variant node
 // /
@@ -71,9 +71,7 @@ public abstract class FnName extends AbstractNode {
 
     @Override
     public String stringName() {
-        return name();
+        return NodeUtil.getName(this);
     }
-
-    public abstract String name();
 
 }
