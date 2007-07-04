@@ -21,7 +21,10 @@ import java.util.Collections;
 import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.*;
+import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Some;
+import com.sun.fortress.interpreter.useful.None;
+import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
@@ -33,6 +36,25 @@ public class NodeFactory {
         return new Contract(new Span(), Collections.<Expr> emptyList(),
                             Collections.<EnsuresClause> emptyList(),
                             Collections.<Expr> emptyList());
+    }
+
+    public static DottedId makeDottedId(Span span, String s) {
+        return new DottedId(span, Useful.list(s));
+    }
+
+    public static DottedId makeDottedId(Span span, Id s) {
+        return new DottedId(span, Useful.list(s.getName()));
+    }
+
+    public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
+        return new DottedId(span, Useful.prependMapped(s, ls,
+                                                // fn(x) => x.getName()
+                                                new Fn<Id, String>() {
+                                                    @Override
+                                                    public String apply(Id x) {
+                                                        return x.getName();
+                                                    }
+        }));
     }
 
     public static FloatLiteral makeFloatLiteral(Span span, String s) {
@@ -123,6 +145,20 @@ public class NodeFactory {
                                 intPart, numerator, denomBase, denomPower);
     }
 
+    public static Fun makeFun(Span span, String string) {
+        return new Fun(span, new Id(span, string));
+    }
+
+    /**
+     * Call this only for names that have no location. (When/if this constructor
+     * disappears, it will be because we have a better plan for those names, and
+     * its disappearance will identify all those places that need updating).
+     */
+    public static Fun makeFun(String string) {
+        Span span = new Span();
+        return new Fun(span, new Id(span, string));
+    }
+
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
@@ -160,6 +196,14 @@ public class NodeFactory {
         }
         return digits;
    }
+
+    public static Name makeName(Span span, Id id) {
+        return new Name(span, new Some<Id>(id), new None<Op>());
+    }
+
+    public static Name makeName(Span span, Op op) {
+        return new Name(span, new None<Id>(), new Some<Op>(op));
+    }
 
     public static NatParam makeNatParam(String name) {
         return new NatParam(new Span(), new Id(new Span(), name));

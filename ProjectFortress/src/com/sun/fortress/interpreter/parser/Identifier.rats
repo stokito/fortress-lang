@@ -53,8 +53,10 @@ List<Id> IdOrIdTuple =
 
 /* Name ::= Id | opr w Op */
 Name Name =
-     a1:Id       { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
-   / opr w a1:Op { yyValue = new Name(createSpan(yyStart,yyCount), a1); };
+     a1:Id
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+   / opr w a1:Op
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); };
 
 /* DottedId ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */

@@ -17,34 +17,41 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public class Name extends FnName {
+  private final Option<Id> _id;
+  private final Option<Op> _op;
 
-    Option<Id> id;
+  /**
+   * Constructs a Name.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Name(Span in_span, Option<Id> in_id, Option<Op> in_op) {
+    super(in_span);
 
-    Option<Op> op;
-
-    public Name(Span span, Option<Id> id, Option<Op> op) {
-        super(span);
-        this.id = id;
-        this.op = op;
+    if (in_id == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'id' to the Name constructor was null");
     }
+    _id = in_id;
 
-    public Name(Span span, Id id) {
-        this(span, new Some<Id>(id), new None<Op>());
+    if (in_op == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'op' to the Name constructor was null");
     }
-
-    public Name(Span span, Op op) {
-        this(span, new None<Id>(), new Some<Op>(op));
-    }
+    _op = in_op;
+  }
 
     Name(Span span) {
         super(span);
+        _id = null;
+        _op= null;
     }
 
     @Override
@@ -52,41 +59,93 @@ public class Name extends FnName {
         return v.forName(this);
     }
 
-    /**
-     * @return Returns the id.
-     */
-    public Option<Id> getId() {
-        return id;
-    }
+  final public Option<Id> getId() { return _id; }
+  final public Option<Op> getOp() { return _op; }
 
-    /**
-     * @return Returns the op.
-     */
-    public Option<Op> getOp() {
-        return op;
-    }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forName(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forName(this); }
 
-    public boolean equals(Object o) {
-        if (o instanceof Name) {
-            Name n = (Name) o;
-            return id.equals(n.getId()) && op.equals(n.getOp());
-        }
-        return false;
-    }
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
 
-    public int hashCode() {
-        return MagicNumbers.e + id.hashCode() * MagicNumbers.a * op.hashCode()
-                * MagicNumbers.w;
-    }
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
 
-    @Override
-    public String toString() {
-        if (id.isPresent()) {
-            return id.toString();
-        } else if (op.isPresent()) {
-            return op.toString();
-        } else {
-            throw new Error("Uninitialized Name.");
-        }
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Name:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    Option<Id> temp_id = getId();
+    writer.startLine();
+    writer.print("id = ");
+    if (lossless) {
+      writer.printSerialized(temp_id);
+      writer.print(" ");
+      writer.printEscaped(temp_id);
+    } else { writer.print(temp_id); }
+
+    Option<Op> temp_op = getOp();
+    writer.startLine();
+    writer.print("op = ");
+    if (lossless) {
+      writer.printSerialized(temp_op);
+      writer.print(" ");
+      writer.printEscaped(temp_op);
+    } else { writer.print(temp_op); }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Name casted = (Name) obj;
+      Option<Id> temp_id = getId();
+      Option<Id> casted_id = casted.getId();
+      if (!(temp_id == casted_id || temp_id.equals(casted_id))) return false;
+      Option<Op> temp_op = getOp();
+      Option<Op> casted_op = casted.getOp();
+      if (!(temp_op == casted_op || temp_op.equals(casted_op))) return false;
+      return true;
     }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    Option<Id> temp_id = getId();
+    code ^= temp_id.hashCode();
+    Option<Op> temp_op = getOp();
+    code ^= temp_op.hashCode();
+    return code;
+  }
 }

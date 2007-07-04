@@ -258,7 +258,7 @@ public class Disambiguate extends Rewrite {
                 FTypeObject fto = new FTypeObject(name, e, oe, oe.getDefOrDecls());
                 e.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, e, oe);
-                Constructor con = new Constructor(e, fto, oe, new Fun(name), oe.getDefOrDecls());
+                Constructor con = new Constructor(e, fto, oe, NodeFactory.makeFun(name), oe.getDefOrDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 e.putValue(name, con);
                 con.finishInitializing();

@@ -49,6 +49,11 @@ public class DottedId extends FnName {
         names = Useful.prepend(string, tail);
     }
 
+    public DottedId(Span span, List<String> list) {
+        super(span);
+        names = list;
+    }
+
     // One way to get a DottedID
     public DottedId(Span span, Id s) {
         super(span);

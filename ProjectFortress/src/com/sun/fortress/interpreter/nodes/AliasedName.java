@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
@@ -35,11 +35,11 @@ public class AliasedName extends AbstractNode {
     }
 
     public AliasedName(Span span, Id id) {
-        this(span, new Name(id.getSpan(), id), new None<FnName>());
+        this(span, NodeFactory.makeName(id.getSpan(), id), new None<FnName>());
     }
 
     public AliasedName(Span span, Id id, DottedId alias) {
-        this(span, new Name(id.getSpan(), id), new Some<FnName>(alias));
+        this(span, NodeFactory.makeName(id.getSpan(), id), new Some<FnName>(alias));
     }
 
     public AliasedName(Span span, OprName op) {

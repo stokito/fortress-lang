@@ -93,16 +93,20 @@ ExternalSyntax ExternalSyntax =
 
 /* OpenExpander ::= Id | LeftEncloser */
 Name OpenExpander =
-     a1:Id           { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
-   / a1:LeftEncloser { yyValue = new Name(createSpan(yyStart,yyCount), a1); };
+     a1:Id
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+   / a1:LeftEncloser
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); };
 
 /* CloseExpander ::= Id | RightEncloser | end */
 Name CloseExpander =
-     a1:Id            { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
-   / a1:RightEncloser { yyValue = new Name(createSpan(yyStart,yyCount), a1); }
+     a1:Id
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+   / a1:RightEncloser
+     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
    / end
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new Name(span, new Id(span, "end"));
+       yyValue = NodeFactory.makeName(span, new Id(span, "end"));
      };
 
 /* AbsExternalSyntax ::= syntax w OpenExpander w Id w CloseExpander */

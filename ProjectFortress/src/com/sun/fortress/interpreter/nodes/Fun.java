@@ -17,36 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / type fn_name_variant =
-// / [
-// / | `Fun of id
-// / | opr_name_variant
-// / ]
-// /
 public class Fun extends FnName {
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryEquals(java.lang.Object)
-     */
-    public boolean equals(Object o) {
-        Fun f = (Fun) o;
-        return f.name_.equals(name_);
+  private final Id _name;
 
+  /**
+   * Constructs a Fun.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Fun(Span in_span, Id in_name) {
+    super(in_span);
+
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Fun constructor was null");
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
-     */
-    public int hashCode() {
-        return name_.hashCode();
-    }
-
-    Id name_;
+    _name = in_name;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -55,39 +49,77 @@ public class Fun extends FnName {
 
     Fun(Span span) {
         super(span);
+        _name = null;
     }
 
-    public Fun(Span span, String s) {
-        super(span);
-        name_ = new Id(span, s);
-    }
+  final public Id getName() { return _name; }
 
-    public Fun(Span span, Id id) {
-        super(span);
-        name_ = id;
-    }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forFun(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forFun(this); }
 
-    /**
-     * Call this only for names that have no location. (When/if this constructor
-     * disappears, it will be because we have a better plan for those names, and
-     * its disappearance will identify all those places that need updating).
-     *
-     * @param s
-     */
-    public Fun(String s) {
-        super(new Span());
-        name_ = new Id(span, s);
-    }
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
 
-    /**
-     * @return Returns the name.
-     */
-    public Id getName() {
-        return name_;
-    }
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
 
-    @Override
-    public String toString() {
-        return NodeUtil.getName(this);
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Fun:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    Id temp_name = getName();
+    writer.startLine();
+    writer.print("name = ");
+    temp_name.outputHelp(writer, lossless);
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Fun casted = (Fun) obj;
+      Id temp_name = getName();
+      Id casted_name = casted.getName();
+      if (!(temp_name == casted_name || temp_name.equals(casted_name))) return false;
+      return true;
     }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    Id temp_name = getName();
+    code ^= temp_name.hashCode();
+    return code;
+  }
 }

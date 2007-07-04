@@ -41,7 +41,7 @@ class NativeApplicable implements Applicable {
 
     NativeApplicable(String name) {
         this.name = name;
-        this.fnName = new Fun(name);
+        this.fnName = NodeFactory.makeFun(name);
     }
 
     public String toString() {

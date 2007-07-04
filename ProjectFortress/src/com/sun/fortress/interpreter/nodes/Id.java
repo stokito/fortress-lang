@@ -75,4 +75,35 @@ public class Id extends AbstractNode implements Comparable<Id> {
     public int compareTo(Id o) {
         return name.compareTo(o.name);
     }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Id:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    String temp_name = getName();
+    writer.startLine();
+    writer.print("name = ");
+    if (lossless) {
+      writer.print("\"");
+      writer.printEscaped(temp_name);
+      writer.print("\"");
+    } else { writer.print(temp_name); }
+    writer.unindent();
+  }
 }
