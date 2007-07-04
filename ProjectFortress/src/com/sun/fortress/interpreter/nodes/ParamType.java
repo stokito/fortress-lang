@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.Useful;
@@ -71,7 +71,7 @@ public class ParamType extends TypeRef {
 
     public static ParamType make(String string, List<StaticArg> args) {
         ParamType pt = new ParamType(new Span());
-        pt.generic = new IdType(new Span(), new DottedId(new Span(), string));
+        pt.generic = new IdType(new Span(), NodeFactory.makeDottedId(new Span(), string));
         pt.args = args;
 
         return pt;

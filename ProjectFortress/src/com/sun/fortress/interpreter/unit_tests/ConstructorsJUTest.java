@@ -95,18 +95,18 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
         Span span11 = newSpan("cat", 1, 2, 3);
         Span span12 = newSpan("cat", 1, 2, 3);
         Span span13 = newSpan("cat", 2, 4, 5);
-        DottedId di1 = new DottedId(span11, newId("snert"));
-        DottedId di2 = new DottedId(span11, newId("snert"));
-        DottedId di3 = new DottedId(span11, newId("snort"));
+        DottedId di1 = NodeFactory.makeDottedId(span11, newId("snert"));
+        DottedId di2 = NodeFactory.makeDottedId(span11, newId("snert"));
+        DottedId di3 = NodeFactory.makeDottedId(span11, newId("snort"));
         Assert.assertEquals(di1, di2);
         Assert.assertEquals(di1.hashCode(), di2.hashCode());
         Assert.assertFalse(di1.equals(di3));
         Assert.assertFalse(di1.hashCode() == di3.hashCode());
 
-        DottedId di4 = new DottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("baz")));
-        DottedId di5 = new DottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("bar")));
-        DottedId di6 = new DottedId(span12, newId("foo"), Useful.list(newId("baz"), newId("baz")));
-        DottedId di7 = new DottedId(span12, newId("bar"), Useful.list(newId("bar"), newId("baz")));
+        DottedId di4 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("baz")));
+        DottedId di5 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("bar")));
+        DottedId di6 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("baz"), newId("baz")));
+        DottedId di7 = NodeFactory.makeDottedId(span12, newId("bar"), Useful.list(newId("bar"), newId("baz")));
 
         Assert.assertEquals("foo.bar.baz", di4.toString());
         Assert.assertEquals(di4.hashCode(), di4.hashCode());
@@ -118,7 +118,7 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
 
     DottedId newDottedId(String a, String b, String c) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return new DottedId(span1, newId(a), Useful.list(newId(b), newId(c)));
+        return NodeFactory.makeDottedId(span1, newId(a), Useful.list(newId(b), newId(c)));
     }
 
     public void testExport() {

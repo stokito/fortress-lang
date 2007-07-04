@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class IdType extends TypeRef {
@@ -40,7 +40,7 @@ public class IdType extends TypeRef {
 
     public IdType(Span span, Id id) {
         super(span);
-        name = new DottedId(span, id);
+        name = NodeFactory.makeDottedId(span, id);
     }
 
     @Override
@@ -71,6 +71,7 @@ public class IdType extends TypeRef {
 
     @Override
     int subtypeCompareTo(TypeRef o) {
+        //        return NodeComparator.compare(name, ((IdType) o).name);
         return name.compareTo(((IdType) o).name);
     }
 }

@@ -37,40 +37,9 @@ public class DottedId extends FnName {
         super(span);
     }
 
-    // One way to get a DottedID
-    public DottedId(Span span, String string) {
-        super(span);
-        names = Useful.list(string);
-    }
-
-    // One way to get a DottedID
-    public DottedId(Span span, String string, List<String> tail) {
-        super(span);
-        names = Useful.prepend(string, tail);
-    }
-
     public DottedId(Span span, List<String> list) {
         super(span);
         names = list;
-    }
-
-    // One way to get a DottedID
-    public DottedId(Span span, Id s) {
-        super(span);
-        names = Useful.list(s.getName());
-    }
-
-    // One way to get a DottedID
-    public DottedId(Span span, Id s, List<Id> ls) {
-        super(span);
-        names = Useful.prependMapped(s, ls,
-        // fn(x) => x.getName()
-                new Fn<Id, String>() {
-                    @Override
-                    public String apply(Id x) {
-                        return x.getName();
-                    }
-                });
     }
 
     // for Visitor pattern

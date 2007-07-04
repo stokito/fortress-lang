@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 public class TypeArg extends StaticArg {
     TypeRef type;
@@ -54,7 +54,7 @@ public class TypeArg extends StaticArg {
 
     public static TypeArg make(Span s, String string) {
         TypeArg tra = new TypeArg(s);
-        tra.type = new IdType(new Span(), new DottedId(new Span(), string));
+        tra.type = new IdType(new Span(), NodeFactory.makeDottedId(new Span(), string));
         return tra;
     }
 

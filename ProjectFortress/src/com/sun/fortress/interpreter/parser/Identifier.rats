@@ -62,6 +62,6 @@ Name Name =
 /* This says that if we find ellipses, the dot doesn't count */
 DottedId DottedId =
      a1:Id &(w ellipses)
-     { yyValue = new DottedId(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeDottedId(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2s:(dot Id)*
-     { yyValue = new DottedId(createSpan(yyStart,yyCount), a1, a2s.list()); };
+     { yyValue = NodeFactory.makeDottedId(createSpan(yyStart,yyCount), a1, a2s.list()); };
