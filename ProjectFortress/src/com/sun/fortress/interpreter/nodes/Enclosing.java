@@ -68,8 +68,7 @@ public class Enclosing extends OprName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryEquals(java.lang.Object)
      */
-    @Override
-    protected boolean mandatoryEquals(Object o) {
+    public boolean equals(Object o) {
         Enclosing e = (Enclosing) o;
         return e.name().equals(name()) && e.closingName().equals(closingName());
     }
@@ -79,8 +78,7 @@ public class Enclosing extends OprName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
      */
-    @Override
-    protected int mandatoryHashCode() {
+    public int hashCode() {
         return name().hashCode() * MagicNumbers.e
                 ^ closingName().hashCode() * MagicNumbers.g;
     }

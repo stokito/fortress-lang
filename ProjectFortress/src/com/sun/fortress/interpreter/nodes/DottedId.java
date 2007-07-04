@@ -92,9 +92,7 @@ public class DottedId extends FnName {
         } else {
             name = names.get(0);
         }
-        ;
-        for (Iterator<String> ns = names.subList(1, names.size() - 1)
-                .iterator(); ns.hasNext();) {
+        for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
             name += "." + ns.next();
         }
         return name;
@@ -115,8 +113,7 @@ public class DottedId extends FnName {
         return ListComparer.stringListComparer.compare(names, other.names);
     }
 
-    @Override
-    public boolean mandatoryEquals(Object other) {
+    public boolean equals(Object other) {
         if (other instanceof DottedId) {
             DottedId di = (DottedId) other;
             return names.equals(di.names);
@@ -124,8 +121,7 @@ public class DottedId extends FnName {
         return false;
     }
 
-    @Override
-    public int mandatoryHashCode() {
+    public int hashCode() {
         return MagicNumbers.hashList(names, MagicNumbers.D);
     }
 }

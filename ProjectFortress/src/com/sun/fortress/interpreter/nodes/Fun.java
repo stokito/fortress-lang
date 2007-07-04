@@ -31,8 +31,7 @@ public class Fun extends FnName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryEquals(java.lang.Object)
      */
-    @Override
-    protected boolean mandatoryEquals(Object o) {
+    public boolean equals(Object o) {
         Fun f = (Fun) o;
         return f.name_.equals(name_);
 
@@ -43,8 +42,7 @@ public class Fun extends FnName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
      */
-    @Override
-    protected int mandatoryHashCode() {
+    public int hashCode() {
         return name_.hashCode();
     }
 

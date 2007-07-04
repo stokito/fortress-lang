@@ -24,6 +24,7 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.interpreter.nodes.Export;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FloatLiteral;
 import com.sun.fortress.interpreter.nodes.Id;
@@ -122,9 +123,9 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
 
     public void testExport() {
         Span span1 = newSpan("cat", 1, 2, 3);
-        com.sun.fortress.interpreter.nodes.Export e1 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
-        com.sun.fortress.interpreter.nodes.Export e2 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
-        com.sun.fortress.interpreter.nodes.Export e3 = new com.sun.fortress.interpreter.nodes.Export(span1, FortressUtil.mkList(newDottedId("an", "exported", "apiname")));
+        Export e1 = new Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
+        Export e2 = new Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
+        Export e3 = new Export(span1, FortressUtil.mkList(newDottedId("an", "exported", "apiname")));
 
         een(e1, e2, e3);
          }

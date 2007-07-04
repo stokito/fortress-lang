@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 // generalized names seen in Fortress, it will persist into
 // more semantically aware parts of the system (i.e., into
 // the interpreter, compiler, com.sun.fortress.interpreter.typechecker, etc).
-public abstract class FnName extends AbstractNode implements Comparable<FnName> {
+public abstract class FnName extends AbstractNode {
     /*
      * (non-Javadoc)
      *
@@ -56,28 +56,18 @@ public abstract class FnName extends AbstractNode implements Comparable<FnName> 
         super(span);
     }
 
+    /*
     @Override
-    final public int hashCode() {
-        return mandatoryHashCode();
-    }
-
-    protected abstract int mandatoryHashCode();
-
-    @Override
-    final public boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (!(o instanceof FnName)) {
             return false;
         }
         if (!(getClass().equals(o.getClass()))) {
             return false;
         }
-        return mandatoryEquals(o);
+        return name().equals(((FnName)o).name());
     }
-
-    /**
-     * precondition: o has the same class as the receiver.
-     */
-    protected abstract boolean mandatoryEquals(Object o);
+    */
 
     @Override
     public String stringName() {

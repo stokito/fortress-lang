@@ -138,6 +138,7 @@ public class Export extends AbstractNode {
     int code = getClass().hashCode();
     List<DottedId> temp_names = getNames();
     code ^= temp_names.hashCode();
+System.out.println("Export hash=" + code);
     return code;
   }
 }

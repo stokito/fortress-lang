@@ -50,13 +50,13 @@ public class AnonymousFnName extends FnName {
         this.at = at;
     }
 
-    @Override
-    protected int mandatoryHashCode() {
+   @Override
+   public int hashCode() {
         return serial * MagicNumbers.y + span.hashCode();
     }
 
-    @Override
-    protected boolean mandatoryEquals(Object o) {
+   @Override
+   public boolean equals(Object o) {
         if (o instanceof AnonymousFnName) {
             AnonymousFnName afn = (AnonymousFnName) o;
             return afn.serial == serial;

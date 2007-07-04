@@ -167,6 +167,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Id. */
   public void forId(Id that);
 
+  /** Process an instance of Opr. */
+  public void forOpr(Opr that);
+
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
 

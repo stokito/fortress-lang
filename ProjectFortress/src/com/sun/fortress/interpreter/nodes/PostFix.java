@@ -49,24 +49,12 @@ public class PostFix extends OprName {
         return op.getName();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryEquals(java.lang.Object)
-     */
-    @Override
-    protected boolean mandatoryEquals(Object o) {
+    public boolean equals(Object o) {
         PostFix p = (PostFix) o;
         return p.name().equals(name());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
-     */
-    @Override
-    protected int mandatoryHashCode() {
+    public int hashCode() {
         return name().hashCode() * MagicNumbers.x;
     }
 }

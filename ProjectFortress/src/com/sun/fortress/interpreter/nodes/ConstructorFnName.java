@@ -42,12 +42,10 @@ public class ConstructorFnName extends FnName {
         this.def = def;
     }
 
-    @Override
     protected int mandatoryHashCode() {
         return serial * MagicNumbers.y + span.hashCode();
     }
 
-    @Override
     protected boolean mandatoryEquals(Object o) {
         if (o instanceof ConstructorFnName) {
             ConstructorFnName afn = (ConstructorFnName) o;

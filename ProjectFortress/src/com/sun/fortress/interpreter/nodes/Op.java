@@ -23,23 +23,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import com.sun.fortress.interpreter.useful.*;
 import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public class Op extends AbstractNode {
   private final String _name;
 
   /**
    * Constructs a Op.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public Op(Span in_span, String in_name) {
     super(in_span);
 
     if (in_name == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Op constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Op constructor was null");
     }
-    _name = ((in_name == null) ? null : in_name.intern());
+    _name = in_name.intern();
   }
 
     @Override
@@ -59,7 +59,7 @@ public class Op extends AbstractNode {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
@@ -71,37 +71,36 @@ public class Op extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Op" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Op:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("name = ");
     String temp_name = getName();
-    if (temp_name == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_name);
-    }
+    writer.startLine();
+    writer.print("name = ");
+    if (lossless) {
+      writer.print("\"");
+      writer.printEscaped(temp_name);
+      writer.print("\"");
+    } else { writer.print(temp_name); }
     writer.unindent();
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -109,20 +108,22 @@ public class Op extends AbstractNode {
       return false;
     } else {
       Op casted = (Op) obj;
-      if (! (getName() == casted.getName())) return false;
+      String temp_name = getName();
+      String casted_name = casted.getName();
+      if (!(temp_name == casted_name)) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= getName().hashCode();
+    String temp_name = getName();
+    code ^= temp_name.hashCode();
     return code;
   }
 }

@@ -30,8 +30,7 @@ public class SubscriptAssign extends OprName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryEquals(java.lang.Object)
      */
-    @Override
-    protected boolean mandatoryEquals(Object o) {
+    public boolean equals(Object o) {
         SubscriptAssign sa = (SubscriptAssign) o;
         return sa.name().equals(name());
     }
@@ -41,8 +40,7 @@ public class SubscriptAssign extends OprName {
      *
      * @see com.sun.fortress.interpreter.nodes.FnName#mandatoryHashCode()
      */
-    @Override
-    protected int mandatoryHashCode() {
+    public int hashCode() {
         return name().hashCode() * MagicNumbers.R;
     }
 

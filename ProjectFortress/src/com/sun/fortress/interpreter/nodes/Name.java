@@ -77,8 +77,7 @@ public class Name extends FnName {
         }
     }
 
-    @Override
-    public boolean mandatoryEquals(Object o) {
+    public boolean equals(Object o) {
         if (o instanceof Name) {
             Name n = (Name) o;
             return id.equals(n.getId()) && op.equals(n.getOp());
@@ -86,8 +85,7 @@ public class Name extends FnName {
         return false;
     }
 
-    @Override
-    public int mandatoryHashCode() {
+    public int hashCode() {
         return MagicNumbers.e + id.hashCode() * MagicNumbers.a * op.hashCode()
                 * MagicNumbers.w;
     }

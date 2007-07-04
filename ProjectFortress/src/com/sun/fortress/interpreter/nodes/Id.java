@@ -35,7 +35,7 @@ public class Id extends AbstractNode implements Comparable<Id> {
             return false;
         }
         Id i = (Id) o;
-        return name.equals(i.name);
+        return getName().equals(i.getName());
     }
 
     public Id(Span span, String s) {
