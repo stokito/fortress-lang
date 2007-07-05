@@ -154,13 +154,4 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
         return getGenSymName();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
 }

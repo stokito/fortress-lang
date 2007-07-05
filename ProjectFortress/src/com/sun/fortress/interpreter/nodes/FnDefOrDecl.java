@@ -182,10 +182,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         return where;
     }
 
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
     /*
      * (non-Javadoc)
      *

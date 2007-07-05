@@ -66,8 +66,4 @@ public class AbsExternalSyntax extends AbstractNode implements Decl, AbsDecl {
         return closeExpander;
     }
 
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(id.getName());
-    }
-
 }

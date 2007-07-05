@@ -97,10 +97,6 @@ public class LocalVarDecl extends LetExpr {
         return rhs;
     }
 
-    public IterableOnce<String> stringNames() {
-        return new IterableOnceForLValueList(lhs);
-    }
-
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         // TODO Auto-generated method stub

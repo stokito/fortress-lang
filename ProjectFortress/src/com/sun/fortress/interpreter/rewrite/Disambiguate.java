@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -682,7 +683,7 @@ public class Disambiguate extends Rewrite {
      */
     private void defsToMembers(List<? extends DefOrDecl> defs) {
         for (DefOrDecl d : defs)
-            for (String s: d.stringNames())
+            for (String s: NodeUtil.stringNames(d))
             e.put(s, new Member());
 
     }

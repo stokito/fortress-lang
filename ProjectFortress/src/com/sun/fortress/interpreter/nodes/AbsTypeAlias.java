@@ -56,10 +56,6 @@ public class AbsTypeAlias extends WhereClause implements AbsDecl {
         return name;
     }
 
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(name.getName());
-    }
-
     /**
      * @return Returns the static parameters.
      */

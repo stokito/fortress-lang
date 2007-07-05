@@ -84,15 +84,6 @@ public class TypeAlias extends WhereClause implements Decl {
         return sparams;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o instanceof TypeAlias) {

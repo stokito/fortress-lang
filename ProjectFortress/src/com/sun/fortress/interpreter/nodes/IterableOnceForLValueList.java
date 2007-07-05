@@ -23,7 +23,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 
 
-final class IterableOnceForLValueList implements IterableOnce<String> {
+final public class IterableOnceForLValueList implements IterableOnce<String> {
     /**
      * i = -1 before iterator() is called. i in 0..lhs.size()-1 while iterating.
      * i = lhs.size() when done.
@@ -34,7 +34,7 @@ final class IterableOnceForLValueList implements IterableOnce<String> {
 
     IterableOnce<String> current;
 
-    IterableOnceForLValueList(List<? extends LValue> lhs) {
+    public IterableOnceForLValueList(List<? extends LValue> lhs) {
         this.lhs = lhs;
     }
 

@@ -70,13 +70,4 @@ public class PropertyDecl extends AbstractNode implements Decl, AbsDecl {
         return expr;
     }
 
-    public IterableOnce<String> stringNames() {
-        if (id instanceof Some) {
-            Some s = (Some) id;
-            return new UnitIterable<String>(((Id) (s.getVal())).getName());
-        } else {
-            return new UnitIterable<String>("_");
-        }
-    }
-
 }

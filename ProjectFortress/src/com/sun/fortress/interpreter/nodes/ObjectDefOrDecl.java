@@ -124,15 +124,6 @@ public abstract class ObjectDefOrDecl extends AbstractNode implements Generic,
         return where;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
     /**
      * Same result as subtype getDefOrDecls, but the type is generic to remove the need
      * for picky casting in some clients.

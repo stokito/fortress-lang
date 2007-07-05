@@ -30,22 +30,6 @@ public abstract class FnName extends AbstractNode {
     /*
      * (non-Javadoc)
      *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    /*
-    public int compareTo(FnName o) {
-        Class tc = getClass();
-        Class oc = o.getClass();
-        if (tc != oc) {
-            return tc.getName().compareTo(oc.getName());
-        }
-        return stringName().compareTo(o.stringName());
-    }
-    */
-
-    /*
-     * (non-Javadoc)
-     *
      * @see com.sun.fortress.interpreter.nodes.Node#accept(com.sun.fortress.interpreter.nodes.NodeVisitor)
      */
     @Override
@@ -57,19 +41,6 @@ public abstract class FnName extends AbstractNode {
     FnName(Span span) {
         super(span);
     }
-
-    /*
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof FnName)) {
-            return false;
-        }
-        if (!(getClass().equals(o.getClass()))) {
-            return false;
-        }
-        return name().equals(((FnName)o).name());
-    }
-    */
 
     @Override
     public String stringName() {

@@ -79,13 +79,4 @@ public class UnitVar extends AbstractNode implements Decl {
         return getNames().toString(); // TODO not wonderful
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new IterableOnceTranslatingList<Id, String>(names, NodeUtil.IdtoStringFn);
-    }
-
 }

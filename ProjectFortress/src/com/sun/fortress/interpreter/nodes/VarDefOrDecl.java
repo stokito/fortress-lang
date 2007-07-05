@@ -28,17 +28,6 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public abstract class VarDefOrDecl extends AbstractNode implements DefOrDecl {
-
-   
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new IterableOnceForLValueList(lhs);
-    }
-
     List<LValue> lhs;
 
     VarDefOrDecl(Span s) {

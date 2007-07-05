@@ -59,8 +59,4 @@ public class GeneratedExpr extends LetExpr {
     public List<Generator> getGens() {
         return gens;
     }
-
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>("GeneratedExpr");
-    }
 }

@@ -22,7 +22,9 @@ import java.util.Iterator;
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.IterableOnce;
+import com.sun.fortress.interpreter.useful.IterableOnceTranslatingList;
+import com.sun.fortress.interpreter.useful.UnitIterable;
 
 public class NodeUtil {
 
@@ -69,7 +71,7 @@ public class NodeUtil {
             return (n.at() == null ? n.getSpan().toString()
                                    : ((AnonymousFnName)n).getAt().stringName())
                                      + "#" + ((AnonymousFnName)n).getSerial();
-        } else { throw new Error("Uncovered FnName:" + n.getClass());
+        } else { throw new Error("NodeUtil.getName: uncovered FnName " + n.getClass());
         }
     }
 
@@ -86,13 +88,83 @@ public class NodeUtil {
             return ((OperatorParam)p).getOp().getName();
         } else if (p instanceof SimpleTypeParam) {
             return ((SimpleTypeParam)p).getId().getName();
-        } else { throw new Error("Uncovered StaticParam:" + p.getClass());
+        } else { throw new Error("NodeUtil.getName: uncovered StaticParam " + p.getClass());
         }
     }
 
-    public static final Fn<Id, String> IdtoStringFn = new Fn<Id, String>() {
-        public String apply(Id x) {
-            return x.getName();
+    /*
+    public static IterableOnce<String> stringNames(LValue d) {
+        if (d instanceof LValueBind) {
+            return new UnitIterable<String>(((LValueBind)d).getName().getName());
+        } else if (d instanceof UnpastingBind) {
+            return new UnitIterable<String>(((UnpastingBind)d).getName().getName());
+        } else if (d instanceof UnpastingSplit) {
+            return new IterableOnceForLValueList(((UnpastingSplit)d).getElems());
+        } else {
+            throw new Error("NodeUtil.stringNames: Uncovered LValue " + d.getClass());
         }
-    };
+    }
+    */
+
+    public static IterableOnce<String> stringNames(DefOrDecl d) {
+        if (d instanceof AbsExternalSyntax) {
+            return new UnitIterable<String>(((AbsExternalSyntax)d).getId().getName());
+        } else if (d instanceof AbsTypeAlias) {
+            return new UnitIterable<String>(((AbsTypeAlias)d).getName().getName());
+        } else if (d instanceof Dimension) {
+            return new UnitIterable<String>(((Dimension)d).getId().getName());
+        } else if (d instanceof ExternalSyntax) {
+            return new UnitIterable<String>(((ExternalSyntax)d).getId().getName());
+        } else if (d instanceof Fn) {
+            return new UnitIterable<String>(NodeUtil.getName(((Fn)d).getFnName()));
+        } else if (d instanceof FnDefOrDecl) {
+            return new UnitIterable<String>(NodeUtil.getName(((FnDefOrDecl)d).getFnName()));
+        } else if (d instanceof GeneratedExpr) {
+            return new UnitIterable<String>("GeneratedExpr");
+        } else if (d instanceof LetFn) {
+            return new UnitIterable<String>(((LetFn)d).getClass().getSimpleName());
+        } else if (d instanceof LocalVarDecl) {
+                   return new IterableOnceForLValueList(((LocalVarDecl)d).getLhs());
+        } else if (d instanceof ObjectDefOrDecl) {
+            return new UnitIterable<String>(((ObjectDefOrDecl)d).getName().getName());
+        } else if (d instanceof ObjectExpr) {
+            return new UnitIterable<String>(((ObjectExpr)d).getGenSymName());
+        } else if (d instanceof PropertyDecl) {
+            Option<Id> id = ((PropertyDecl)d).getId();
+            if (id.isPresent()) {
+                Some s = (Some) id;
+                return new UnitIterable<String>(((Id)(s.getVal())).getName());
+            } else {
+                return new UnitIterable<String>("_");
+            }
+        } else if (d instanceof TestDecl) {
+            return new UnitIterable<String>(((TestDecl)d).getId().getName());
+        } else if (d instanceof TraitDefOrDecl) {
+            return new UnitIterable<String>(((TraitDefOrDecl)d).getName().getName());
+        } else if (d instanceof TypeAlias) {
+            return new UnitIterable<String>(((TypeAlias)d).getName().getName());
+        } else if (d instanceof UnitVar) {
+            return new IterableOnceTranslatingList<Id, String>(((UnitVar)d).
+                                                    getNames(), IdtoStringFn);
+        } else if (d instanceof VarDefOrDecl) {
+            return new IterableOnceForLValueList(((VarDefOrDecl)d).getLhs());
+        } else {
+            throw new Error("NodeUtil.stringNames: Uncovered DefOrDecl " + d.getClass());
+        }
+    }
+
+    public static String stringName(AbstractNode node) {
+        return node.getClass().getSimpleName();
+    }
+
+    public static String stringName(ObjectExpr expr) {
+        return expr.getGenSymName();
+    }
+
+    public static final com.sun.fortress.interpreter.useful.Fn<Id, String> IdtoStringFn =
+        new com.sun.fortress.interpreter.useful.Fn<Id, String>() {
+            public String apply(Id x) {
+                return x.getName();
+            }
+        };
 }

@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.useful.PureList;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 
 
 public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
@@ -87,7 +88,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
                 else if (d instanceof VarDefOrDecl) {
                     VarDefOrDecl _d = (VarDefOrDecl)d;
 
-                    for (String name : _d.stringNames()) {
+                    for (String name : NodeUtil.stringNames(_d)) {
                         topLevelNames = topLevelNames.cons(name);
                     }
                 }

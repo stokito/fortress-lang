@@ -50,13 +50,4 @@ public class Dimension extends AbstractNode implements Decl {
         return id.getName();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
 }

@@ -70,8 +70,4 @@ public class LetFn extends LetExpr {
     public List<FnDecl> getFns() {
         return fns;
     }
-
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
 }

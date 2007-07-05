@@ -68,8 +68,4 @@ public class TestDecl extends AbstractNode implements Decl, AbsDecl {
         return expr;
     }
 
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(id.getName());
-    }
-
 }

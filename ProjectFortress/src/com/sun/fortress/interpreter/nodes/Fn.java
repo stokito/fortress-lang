@@ -136,10 +136,6 @@ public class Fn extends ValueExpr implements Decl, Applicable {
         return Collections.<WhereClause> emptyList();
     }
 
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(getFnName().stringName());
-    }
-
     public int applicableCompareTo( Applicable other) {
         int x = Useful.compareClasses(this, other);
         if (x != 0) return x;

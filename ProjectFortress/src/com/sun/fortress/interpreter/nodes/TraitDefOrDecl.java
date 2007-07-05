@@ -119,15 +119,6 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
         return disambiguatingEnvironment;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#stringNames()
-     */
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(stringName());
-    }
-
     /**
      * Same result as subtype getFn, but the type is generic to remove the need
      * for picky casting in some clients.
