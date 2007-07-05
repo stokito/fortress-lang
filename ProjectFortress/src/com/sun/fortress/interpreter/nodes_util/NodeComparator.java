@@ -133,7 +133,8 @@ public class NodeComparator {
     public static int compare(Id a, Id b, TypeRef c, TypeRef d) {
         int x = compare(a, b);
         if (x != 0) return x;
-        return compare(c, d);
+        return c.compareTo(d);
+        //        return compare(c, d);
     }
 
     public static int compare(TypeRef a, TypeRef b, ExtentRange c, ExtentRange d) {

@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.nodes_util.Span;
 import com.sun.fortress.interpreter.useful.Fn;
 
 // / type id = string node
-public class Id extends AbstractNode implements Comparable<Id> {
+public class Id extends AbstractNode {
     String name;
 
     @Override
@@ -75,6 +75,8 @@ public class Id extends AbstractNode implements Comparable<Id> {
     public int compareTo(Id o) {
         return name.compareTo(o.name);
     }
+    /*
+    */
 
   /**
    * Prints this object out as a nicely tabbed tree.
