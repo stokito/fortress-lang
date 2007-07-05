@@ -53,7 +53,7 @@ public class LValueBind extends LValue implements LHS {
         }
 
     };
-    
+
     public LValueBind(LValueBind old, Id name) {
         this(old.span, name, old.type, old.mods, old.mutable);
     }
@@ -146,7 +146,6 @@ public class LValueBind extends LValue implements LHS {
         mutable = true;
     }
 
-    @Override
     public IterableOnce<String> stringNames() {
         return new UnitIterable<String>(getName().getName());
     }

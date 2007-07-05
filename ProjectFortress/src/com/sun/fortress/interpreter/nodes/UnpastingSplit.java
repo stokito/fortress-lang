@@ -31,7 +31,6 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 // / }
 // /
 public class UnpastingSplit extends Unpasting {
-    @Override
     public IterableOnce<String> stringNames() {
         return new IterableOnceForLValueList(elems);
     }

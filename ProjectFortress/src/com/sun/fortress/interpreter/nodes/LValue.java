@@ -25,9 +25,6 @@ public abstract class LValue extends AbstractNode {
     LValue(Span span) {
         super(span);
     }
-
-    abstract public IterableOnce<String> stringNames();
-
 }
 
 // / and lvalue =
