@@ -100,7 +100,7 @@ public class NodeComparator {
             return leftClass.getName().compareTo(rightClass.getName());
         }
         else {
-            return left.stringName().compareTo(right.stringName());
+            return NodeUtil.stringName(left).compareTo(NodeUtil.stringName(right));
         }
     }
 

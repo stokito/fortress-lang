@@ -27,5 +27,4 @@ public interface HasAt {
         public String stringName() { return s; }
     }
     String at();
-    String stringName();
 }

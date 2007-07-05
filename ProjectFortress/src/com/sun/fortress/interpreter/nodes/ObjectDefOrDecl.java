@@ -84,11 +84,6 @@ public abstract class ObjectDefOrDecl extends AbstractNode implements Generic,
         return name;
     }
 
-    @Override
-    public String stringName() {
-        return name.getName();
-    }
-
     /**
      * @return Returns the params.
      */

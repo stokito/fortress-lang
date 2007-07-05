@@ -42,9 +42,4 @@ public abstract class FnName extends AbstractNode {
         super(span);
     }
 
-    @Override
-    public String stringName() {
-        return NodeUtil.getName(this);
-    }
-
 }

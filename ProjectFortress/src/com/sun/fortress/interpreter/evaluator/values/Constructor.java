@@ -46,6 +46,7 @@ import com.sun.fortress.interpreter.nodes.HasParams;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.GHashMap;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MultiMap;
@@ -211,7 +212,7 @@ public class Constructor extends AnonymousConstructor {
             if (too instanceof FTypeObject)
                 objectDefinesAny = true;
             if (isNotADef(sf, too))
-                throw new ProgramError("Object " + cfn.stringName() +
+                throw new ProgramError("Object " + NodeUtil.stringName(cfn) +
                         " does not define method " + sf.getString() +
                         " declared in " + too.getName());
         }
@@ -419,7 +420,7 @@ public class Constructor extends AnonymousConstructor {
     }
 
     public String getString() {
-        return cfn.stringName();
+        return NodeUtil.stringName(cfn);
     }
 
     boolean finished = false;

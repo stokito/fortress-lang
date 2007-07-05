@@ -34,6 +34,7 @@ import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.LazyFactory1P;
@@ -43,7 +44,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
     public FTypeGeneric(BetterEnv e, GenericDefOrDecl d, List<? extends DefOrDecl> members) {
-        super(d.stringName());
+        super(NodeUtil.stringName(d));
         env = e;
         def = d;
         params = d.getStaticParams().getVal();
@@ -64,7 +65,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     HasAt genericAt;
 
     String genericName;
-    
+
     List<? extends DefOrDecl> members;
 
     private class Factory implements
@@ -112,11 +113,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     rval = fto;
                 } else if (dod instanceof ObjectExpr) {
                     ObjectExpr td = (ObjectExpr) dod;
-                    FTypeObject fto = new FTypeObjectInstance(td.stringName(),
+                    FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
                             clenv, FTypeGeneric.this, args, members);
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
-                    
+
                     be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
@@ -129,8 +130,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                             "Generic def-or-declaration surprise " + dod);
                 }
 
-               
-                
+
+
                 return rval;
 
             } else {

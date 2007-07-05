@@ -142,11 +142,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         return name;
     }
 
-    @Override
-    public String stringName() {
-        return NodeUtil.getName(name);
-    }
-
     /**
      * @return Returns the params.
      */

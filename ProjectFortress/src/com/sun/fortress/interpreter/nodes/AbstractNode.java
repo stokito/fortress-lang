@@ -69,10 +69,6 @@ public abstract class AbstractNode implements HasAt, Node {
         return getClass().getSimpleName() + "@" + span.begin.at();
     }
 
-    public String stringName() {
-        return getClass().getSimpleName();
-    }
-
     /* Some static methods in scope for all the descendants of Node */
 
     /*

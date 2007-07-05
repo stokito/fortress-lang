@@ -45,9 +45,4 @@ public class Dimension extends AbstractNode implements Decl {
         return id;
     }
 
-    @Override
-    public String stringName() {
-        return id.getName();
-    }
-
 }

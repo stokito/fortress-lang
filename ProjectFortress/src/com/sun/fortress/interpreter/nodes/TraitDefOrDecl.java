@@ -84,11 +84,6 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
         return name;
     }
 
-    @Override
-    public String stringName() {
-        return name.getName();
-    }
-
     /**
      * @return Returns the staticParams.
      */

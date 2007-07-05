@@ -65,11 +65,6 @@ public class TypeAlias extends WhereClause implements Decl {
         return name;
     }
 
-    @Override
-    public String stringName() {
-        return name.getName();
-    }
-
     /**
      * @return Returns the type.
      */

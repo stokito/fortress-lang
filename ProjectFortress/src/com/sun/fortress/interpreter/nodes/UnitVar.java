@@ -74,9 +74,4 @@ public class UnitVar extends AbstractNode implements Decl {
         return si;
     }
 
-    @Override
-    public String stringName() {
-        return getNames().toString(); // TODO not wonderful
-    }
-
 }

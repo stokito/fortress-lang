@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.nodes_util;
 import java.util.List;
 import java.util.Iterator;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.IterableOnce;
@@ -63,14 +64,14 @@ public class NodeUtil {
             return "[]";
         } else if (n instanceof SubscriptAssign) {
             return "[]=";
+        } else if (n instanceof AnonymousFnName) {
+            return (n.at() == null ? n.getSpan().toString()
+                                   : stringName(((AnonymousFnName)n).getAt()))
+                                     + "#" + ((AnonymousFnName)n).getSerial();
         } else if (n instanceof ConstructorFnName) {
             ConstructorFnName fn = (ConstructorFnName)n;
             // TODO Auto-generated method stub
-            return fn.getDef().stringName() + "#" + fn.getSerial();
-        } else if (n instanceof AnonymousFnName) {
-            return (n.at() == null ? n.getSpan().toString()
-                                   : ((AnonymousFnName)n).getAt().stringName())
-                                     + "#" + ((AnonymousFnName)n).getSerial();
+            return stringName(fn.getDef()) + "#" + fn.getSerial();
         } else { throw new Error("NodeUtil.getName: uncovered FnName " + n.getClass());
         }
     }
@@ -90,6 +91,32 @@ public class NodeUtil {
             return ((SimpleTypeParam)p).getId().getName();
         } else { throw new Error("NodeUtil.getName: uncovered StaticParam " + p.getClass());
         }
+    }
+
+    public static String stringName(HasAt node) {
+        if (node instanceof Dimension) {
+            return ((Dimension)node).getId().getName();
+        } else if (node instanceof FnDefOrDecl) {
+            return NodeUtil.getName(((FnDefOrDecl)node).getFnName());
+        } else if (node instanceof FnName) {
+            return NodeUtil.getName((FnName)node);
+        } else if (node instanceof ObjectDefOrDecl) {
+            return ((ObjectDefOrDecl)node).getName().getName();
+        } else if (node instanceof ObjectExpr) {
+            return ((ObjectExpr)node).getGenSymName();
+        } else if (node instanceof TraitDefOrDecl) {
+            return ((TraitDefOrDecl)node).getName().getName();
+        } else if (node instanceof TypeAlias) {
+            return ((TypeAlias)node).getName().getName();
+        } else if (node instanceof UnitVar) {
+            return ((UnitVar)node).getNames().toString();
+        } else {
+            return node.getClass().getSimpleName();
+        }
+    }
+
+    public static String stringName(ObjectExpr expr) {
+        return expr.getGenSymName();
     }
 
     public static IterableOnce<String> stringNames(LValue d) {
@@ -149,14 +176,6 @@ public class NodeUtil {
         } else {
             throw new Error("NodeUtil.stringNames: Uncovered DefOrDecl " + d.getClass());
         }
-    }
-
-    public static String stringName(AbstractNode node) {
-        return node.getClass().getSimpleName();
-    }
-
-    public static String stringName(ObjectExpr expr) {
-        return expr.getGenSymName();
     }
 
     public static final com.sun.fortress.interpreter.useful.Fn<Id, String> IdtoStringFn =

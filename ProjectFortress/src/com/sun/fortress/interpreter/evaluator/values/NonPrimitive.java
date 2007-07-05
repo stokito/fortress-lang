@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -57,7 +58,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     private List<Parameter> params;
 
     private boolean lastParamIsRest;
-    
+
     private volatile List<FType> cachedDomain;
 
     protected boolean hasRest() {
@@ -131,7 +132,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     if (!restType.typeMatch(arg)) {
                         throw new ProgramError(loc, within,
                                                "Closure/Constructor for "
-                                               + getAt().stringName()
+                                               + NodeUtil.stringName(getAt())
                                                + " rest parameter " + i + " ("
                                                + param.getName()
                                                + ":" + restType
@@ -143,7 +144,8 @@ public abstract class NonPrimitive extends Simple_fcn {
                 FValue arg = argsIter.next();
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, within,
-                            "Closure/Constructor for " + getAt().stringName()
+                            "Closure/Constructor for "
+                                    + NodeUtil.stringName(getAt())
                                     + " parameter " + i + " ("
                                     + param.getName() + ":"
                                     + param.getType() + ") got type "
@@ -210,7 +212,8 @@ public abstract class NonPrimitive extends Simple_fcn {
                 i++;
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, env,
-                            "Closure/Constructor for " + getAt().stringName()
+                            "Closure/Constructor for "
+                                    + NodeUtil.stringName(getAt())
                                     + " parameter " + i + " ("
                                     + param.getName() + ":"
                                     + paramType + ") got type "
@@ -240,7 +243,7 @@ public abstract class NonPrimitive extends Simple_fcn {
         if (args==null) {
             throw new ProgramError(loc,
                                    "Incorrect number of arguments, expected "+
-                                   Useful.listInParens(params) + ", got " + 
+                                   Useful.listInParens(params) + ", got " +
                                    Useful.listInParens(args0));
         }
         return args;
@@ -253,7 +256,9 @@ public abstract class NonPrimitive extends Simple_fcn {
     public List<FValue> fixupArgCount(List<FValue> args) {
         if (this.params==null) {
             throw new InterpreterError(this.getAt(),
-                                      "Calling fixupArgCount on "+getAt().stringName()+" with null params");
+                                      "Calling fixupArgCount on "+
+                                       NodeUtil.stringName(getAt())+
+                                       " with null params");
         }
         if (args.size() == params.size()) return args;
         if (hasRest() && args.size() + 1 >= params.size()) {

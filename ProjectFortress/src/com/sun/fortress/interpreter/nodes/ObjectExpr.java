@@ -149,9 +149,4 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
         return genSymName;
     }
 
-    @Override
-    public String stringName() {
-        return getGenSymName();
-    }
-
 }
