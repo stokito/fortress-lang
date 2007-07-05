@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.Comparator;
 
 import com.sun.fortress.interpreter.useful.AnyListComparer;
@@ -42,7 +42,7 @@ abstract public class StaticArg extends TypeRef {
     // done.
     private static final Comparator<StaticArg> typeargComparer = new Comparator<StaticArg>() {
         public int compare(StaticArg o1, StaticArg o2) {
-            return ((TypeRef) o1).compareTo(o2);
+            return NodeComparator.compare((TypeRef) o1, o2);
         }
     };
 

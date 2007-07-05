@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class SetType extends TypeRef {
@@ -60,6 +60,6 @@ public class SetType extends TypeRef {
 
     @Override
     int subtypeCompareTo(TypeRef o) {
-        return elementType.compareTo(((SetType) o).elementType);
+        return NodeComparator.compare(elementType, ((SetType) o).elementType);
     }
 }

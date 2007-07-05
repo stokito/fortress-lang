@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
 public class RestType extends TypeRef {
@@ -65,6 +65,6 @@ public class RestType extends TypeRef {
 
     @Override
     int subtypeCompareTo(TypeRef o) {
-        return type.compareTo(((RestType) o).type);
+        return NodeComparator.compare(type, ((RestType) o).type);
     }
 }

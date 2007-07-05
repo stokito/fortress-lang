@@ -80,7 +80,7 @@ public class ParamType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ParamType x = (ParamType) o;
-        int c = generic.compareTo(x.generic);
+        int c = NodeComparator.compare(generic, x.generic);
         if (c != 0) {
             return c;
         }

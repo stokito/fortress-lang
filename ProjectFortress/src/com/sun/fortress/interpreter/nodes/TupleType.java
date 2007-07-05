@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,6 +78,6 @@ public class TupleType extends TypeRef {
 
     @Override
     int subtypeCompareTo(TypeRef o) {
-        return listComparer.compare(elements, ((TupleType) o).elements);
+        return NodeComparator.typeRefListComparer.compare(elements, ((TupleType) o).elements);
     }
 }

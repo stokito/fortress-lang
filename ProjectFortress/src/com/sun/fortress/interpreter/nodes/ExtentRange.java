@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.ListComparer;
 import com.sun.fortress.interpreter.useful.Option;
 
@@ -67,11 +67,11 @@ public class ExtentRange extends AbstractNode implements Comparable<ExtentRange>
     public int compareTo(ExtentRange o) {
         // TODO Optional parameters on extent ranges are tricky things; perhaps
         // they need not both be present.
-        int x = TypeRef.compareOptional(base, o.base);
+        int x = NodeComparator.compareOptionalTypeRef(base, o.base);
         if (x != 0) {
             return x;
         }
-        x = TypeRef.compareOptional(size, o.size);
+        x = NodeComparator.compareOptionalTypeRef(size, o.size);
         if (x != 0) {
             return x;
         }

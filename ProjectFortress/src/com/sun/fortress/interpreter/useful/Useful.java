@@ -403,7 +403,6 @@ public class Useful {
         return NI.<T> np();
     }
 
-    /*
     public static <T extends Comparable<T>, U extends Comparable<U> > int compare(T a,
             T b, U c, U d) {
         int x = a.compareTo(b);
@@ -454,7 +453,6 @@ public class Useful {
             return x;
         return c3.compare(a, b);
     }
-    */
 
     public static String extractAfterMatch(String input, String to_match)
             throws NotFound {

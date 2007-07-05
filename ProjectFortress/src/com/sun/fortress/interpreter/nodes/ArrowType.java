@@ -110,11 +110,11 @@ public class ArrowType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ArrowType a = (ArrowType) o;
-        int x = range.compareTo(a.range);
+        int x = NodeComparator.compare(range, a.range);
         if (x != 0) {
             return x;
         }
-        x = TypeRef.listComparer.compare(domain, a.domain);
+        x = NodeComparator.typeRefListComparer.compare(domain, a.domain);
         if (x != 0) {
             return x;
         }
@@ -122,7 +122,7 @@ public class ArrowType extends TypeRef {
         if (x != 0) {
             return x;
         }
-        x = TypeRef.listComparer.compare(throws_, a.throws_);
+        x = NodeComparator.typeRefListComparer.compare(throws_, a.throws_);
         return x;
     }
 }

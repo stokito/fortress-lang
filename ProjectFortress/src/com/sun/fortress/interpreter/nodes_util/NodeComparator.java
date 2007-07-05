@@ -27,7 +27,19 @@ import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
 public class NodeComparator {
-    /** list comparers */
+    /* option comparers **************************************************/
+    public static int compareOptionalTypeRef(Option<TypeRef> a,
+                                             Option<TypeRef> b) {
+        if (a.isPresent() != b.isPresent()) {
+            return a.isPresent() ? 1 : -1;
+        }
+        if (a.isPresent()) {
+            return compare(a.getVal(), b.getVal());
+        }
+        return 0;
+    }
+
+    /* list comparers ****************************************************/
     public static final ListComparer<ExtentRange> extentRangeListComparer =
         new ListComparer<ExtentRange>();
 
@@ -36,6 +48,15 @@ public class NodeComparator {
 
     public final static ListComparer<Param> paramListComparer =
         new ListComparer<Param>();
+
+    static class TypeRefComparer implements Comparator<TypeRef> {
+        public int compare(TypeRef left, TypeRef right) {
+            return compare(left, right);
+        }
+    }
+    final static TypeRefComparer typeRefComparer = new TypeRefComparer();
+    public final static AnyListComparer<TypeRef> typeRefListComparer =
+        new AnyListComparer(typeRefComparer);
 
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
@@ -76,7 +97,7 @@ public class NodeComparator {
         }
         List<TypeRef> l = left.getExtendsClause().getVal();
         List<TypeRef> ol = right.getExtendsClause().getVal();
-        return TypeRef.listComparer.compare(l, ol);
+        return typeRefListComparer.compare(l, ol);
     }
 
     public static int compare(Applicable left, Applicable right) {
@@ -91,9 +112,9 @@ public class NodeComparator {
     public static int compare(ExtentRange left, ExtentRange right) {
         // TODO Optional parameters on extent ranges are tricky things; perhaps
         // they need not both be present.
-        int x = TypeRef.compareOptional(left.getBase(), right.getBase());
+        int x = compareOptionalTypeRef(left.getBase(), right.getBase());
         if (x != 0) return x;
-        x = TypeRef.compareOptional(left.getSize(), right.getSize());
+        x = compareOptionalTypeRef(left.getSize(), right.getSize());
         if (x != 0) return x;
         return 0;
     }
@@ -152,32 +173,27 @@ public class NodeComparator {
     public static int compare(Id a, Id b, TypeRef c, TypeRef d) {
         int x = compare(a, b);
         if (x != 0) return x;
-        return c.compareTo(d);
-        //        return compare(c, d);
+        return compare(c, d);
     }
 
     public static int compare(TypeRef a, TypeRef b, ExtentRange c, ExtentRange d) {
-        //        int x = compare(a, b);
-        int x = a.compareTo(b);
+        int x = compare(a, b);
         if (x != 0) return x;
         //        return compare(c, d);
-        return c.compareTo(d);
+        return compare(c, d);
     }
 
     public static int compare(TypeRef a, TypeRef b, Indices c, Indices d) {
-        //        int x = compare(a, b);
-        int x = a.compareTo(b);
+        int x = compare(a, b);
         if (x != 0) return x;
         //        return compare(c, d);
-        return c.compareTo(d);
+        return compare(c, d);
     }
 
     public static int compare(TypeRef a, TypeRef b, TypeRef c, TypeRef d) {
-        //        int x = compare(a, b);
-        int x = a.compareTo(b);
+        int x = compare(a, b);
         if (x != 0) return x;
-        //        return compare(c, d);
-        return c.compareTo(d);
+        return compare(c, d);
     }
 
     /* subtypeCompareTo **************************************************/
@@ -189,12 +205,12 @@ public class NodeComparator {
     static int subtypeCompareTo(ArrowType left, ArrowType right) {
         int x = compare(left.getRange(), right.getRange());
         if (x != 0) return x;
-        x = TypeRef.listComparer.compare(left.getDomain(), right.getDomain());
+        x = typeRefListComparer.compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
         x = keywordTypeListComparer.compare(left.getKeywords(),
                                             right.getKeywords());
         if (x != 0) return x;
-        x = TypeRef.listComparer.compare(left.getThrows_(), right.getThrows_());
+        x = typeRefListComparer.compare(left.getThrows_(), right.getThrows_());
         return x;
     }
 
@@ -244,7 +260,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(TupleType left, TupleType right) {
-        return TypeRef.listComparer.compare(left.getElements(), right.getElements());
+        return typeRefListComparer.compare(left.getElements(), right.getElements());
     }
 
     static int subtypeCompareTo(TypeRef left, TypeRef right) {

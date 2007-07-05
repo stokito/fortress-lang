@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 public class ListType extends TypeRef {
 
@@ -47,6 +47,6 @@ public class ListType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ListType x = (ListType) o;
-        return element.compareTo(((ListType) o).element);
+        return NodeComparator.compare(element, ((ListType) o).element);
     }
 }

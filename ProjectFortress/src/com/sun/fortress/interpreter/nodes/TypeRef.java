@@ -24,27 +24,16 @@ import java.util.Comparator;
 import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
-public abstract class TypeRef extends AbstractNode implements Comparable<TypeRef> {
+public abstract class TypeRef extends AbstractNode {
 
     TypeRef(Span s) {
         super(s);
-    }
-
-    public static int compareOptional(Option<TypeRef> a, Option<TypeRef> b) {
-        if (a.isPresent() != b.isPresent()) {
-            return a.isPresent() ? 1 : -1;
-        }
-        if (a.isPresent()) {
-            return a.getVal().compareTo(b.getVal());
-        }
-        return 0;
     }
 
     /*
      * (non-Javadoc)
      *
      * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     public int compareTo(TypeRef o) {
         Class tclass = getClass();
         Class oclass = o.getClass();
@@ -53,19 +42,9 @@ public abstract class TypeRef extends AbstractNode implements Comparable<TypeRef
         }
         return subtypeCompareTo(o);
     }
+     */
 
     abstract int subtypeCompareTo(TypeRef o);
-
-    public static final ListComparer<TypeRef> listComparer = new ListComparer<TypeRef>();
-
-    private static final Comparator<TypeRef> typerefComparer =
-	new Comparator<TypeRef>() {
-	    public int compare(TypeRef o1, TypeRef o2) {
-		return o1.compareTo(o2);
-	    }
-	};
-    public static AnyListComparer<TypeRef> typerefListComparer =
-	new AnyListComparer<TypeRef>(typerefComparer);
 }
 
 // / and type_ref =

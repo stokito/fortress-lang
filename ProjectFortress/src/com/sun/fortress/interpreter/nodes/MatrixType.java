@@ -81,7 +81,7 @@ public class MatrixType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         MatrixType x = (MatrixType) o;
-        int y = element.compareTo(x.element);
+        int y = NodeComparator.compare(element, x.element);
         if (y != 0) return y;
         return NodeComparator.extentRangeListComparer.compare(dimensions, x.dimensions);
     }

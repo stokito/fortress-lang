@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.Comparator;
 
@@ -35,7 +35,7 @@ public abstract class NatRef extends StaticArg {
             return a.isPresent() ? 1 : -1;
         }
         if (a.isPresent()) {
-            return a.getVal().compareTo(b.getVal());
+            return NodeComparator.compare(a.getVal(), b.getVal());
         }
         return 0;
     }
@@ -44,7 +44,7 @@ public abstract class NatRef extends StaticArg {
     // done.
     private static final Comparator<NatRef> nattypeComparer = new Comparator<NatRef>() {
         public int compare(NatRef o1, NatRef o2) {
-            return o1.compareTo(o2);
+            return NodeComparator.compare(o1, o2);
         }
     };
 

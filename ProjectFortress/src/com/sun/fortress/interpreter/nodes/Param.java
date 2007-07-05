@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
@@ -181,13 +181,10 @@ public class Param extends AbstractNode implements
     public int compareTo(Param o) {
         int x = getName().getName().compareTo(o.getName().getName());
         if (x != 0) return x;
-        x = TypeRef.compareOptional(getType(), o.getType());
+        x = NodeComparator.compareOptionalTypeRef(getType(), o.getType());
         if (x != 0) return x;
         // TODO default expr, mods, must enter into comparison also.
         return x;
     }
-
-    public static ListComparer<Param> listComparer =
-        new ListComparer<Param>();
 
 }
