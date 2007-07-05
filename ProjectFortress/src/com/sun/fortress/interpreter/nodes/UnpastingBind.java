@@ -65,8 +65,4 @@ public class UnpastingBind extends Unpasting {
     public Id getName() {
         return name;
     }
-
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(getName().getName());
-    }
 }

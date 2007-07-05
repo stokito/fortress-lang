@@ -31,10 +31,6 @@ import com.sun.fortress.interpreter.useful.IterableOnce;
 // / }
 // /
 public class UnpastingSplit extends Unpasting {
-    public IterableOnce<String> stringNames() {
-        return new IterableOnceForLValueList(elems);
-    }
-
     List<Unpasting> elems;
 
     int dim;

@@ -145,8 +145,4 @@ public class LValueBind extends LValue implements LHS {
     public void setMutable() {
         mutable = true;
     }
-
-    public IterableOnce<String> stringNames() {
-        return new UnitIterable<String>(getName().getName());
-    }
 }
