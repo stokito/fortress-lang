@@ -17,30 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.*;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.ListComparer;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
-
-// /
 public class DottedId extends FnName {
-    List<String> names;
+  private final List<String> _names;
 
-    transient private volatile String cachedToString;
+  /**
+   * Constructs a DottedId.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public DottedId(Span in_span, List<String> in_names) {
+    super(in_span);
 
-    // For reflective creation
-    DottedId(Span span) {
-        super(span);
+    if (in_names == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'names' to the DottedId constructor was null");
     }
-
-    public DottedId(Span span, List<String> list) {
-        super(span);
-        names = list;
-    }
+    _names = in_names;
+  }
 
     // for Visitor pattern
     @Override
@@ -48,37 +48,101 @@ public class DottedId extends FnName {
         return v.forDottedId(this);
     }
 
-    /**
-     * @return Returns the names.
-     */
-    public List<String> getNames() {
-        return names;
+    // For reflective creation
+    DottedId(Span span) {
+        super(span);
+        _names = null;
     }
 
-    @Override
-    public String toString() {
-        if (cachedToString == null) {
-            synchronized (this) {
-                if (cachedToString == null)
-                    cachedToString = Useful.dottedList(names);
-            }
-        }
-        return cachedToString;
-    }
+  final public List<String> getNames() { return _names; }
 
-    public int compareTo(DottedId other) {
-        return ListComparer.stringListComparer.compare(names, other.names);
-    }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forDottedId(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forDottedId(this); }
 
-    public boolean equals(Object other) {
-        if (other instanceof DottedId) {
-            DottedId di = (DottedId) other;
-            return names.equals(di.names);
-        }
-        return false;
-    }
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+      /*
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+      */
+        return Useful.dottedList(_names);
+  }
 
-    public int hashCode() {
-        return MagicNumbers.hashList(names, MagicNumbers.D);
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("DottedId:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<String> temp_names = getNames();
+    writer.startLine();
+    writer.print("names = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_names = true;
+    for (String elt_temp_names : temp_names) {
+      isempty_temp_names = false;
+      writer.startLine("* ");
+      if (elt_temp_names == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.print("\"");
+          writer.printEscaped(elt_temp_names);
+          writer.print("\"");
+        } else { writer.print(elt_temp_names); }
+      }
     }
+    writer.unindent();
+    if (isempty_temp_names) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      DottedId casted = (DottedId) obj;
+      List<String> temp_names = getNames();
+      List<String> casted_names = casted.getNames();
+      if (!(temp_names == casted_names || temp_names.equals(casted_names))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<String> temp_names = getNames();
+    code ^= temp_names.hashCode();
+    return code;
+  }
 }
