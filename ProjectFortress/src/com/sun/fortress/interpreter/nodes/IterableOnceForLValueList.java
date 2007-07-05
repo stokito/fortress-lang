@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 
 
 final public class IterableOnceForLValueList implements IterableOnce<String> {
@@ -48,7 +49,7 @@ final public class IterableOnceForLValueList implements IterableOnce<String> {
 
     void nextCurrent() {
         if (++i < lhs.size()) {
-            current = lhs.get(i).stringNames();
+            current = NodeUtil.stringNames(lhs.get(i));
         }
     }
 

@@ -92,7 +92,6 @@ public class NodeUtil {
         }
     }
 
-    /*
     public static IterableOnce<String> stringNames(LValue d) {
         if (d instanceof LValueBind) {
             return new UnitIterable<String>(((LValueBind)d).getName().getName());
@@ -104,7 +103,6 @@ public class NodeUtil {
             throw new Error("NodeUtil.stringNames: Uncovered LValue " + d.getClass());
         }
     }
-    */
 
     public static IterableOnce<String> stringNames(DefOrDecl d) {
         if (d instanceof AbsExternalSyntax) {
