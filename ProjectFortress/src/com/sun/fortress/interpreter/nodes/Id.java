@@ -64,14 +64,6 @@ public class Id extends AbstractNode {
         return getName();
     }
 
-    public static Id make(String string) {
-        return make(new Span(), string);
-    }
-
-    public static Id make(Span s, String string) {
-        return new Id(s, string);
-    }
-
     public int compareTo(Id o) {
         return name.compareTo(o.name);
     }

@@ -72,4 +72,9 @@ public class AnonymousFnName extends FnName {
         return NI.<T> na();
     }
 
+    public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forAnonymousFnName(this); }
+    public void visit(NodeVisitor_void visitor) { visitor.forAnonymousFnName(this); }
+    public void output(java.io.Writer writer) {}
+    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    protected int generateHashCode() { return hashCode(); }
 }

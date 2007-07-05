@@ -191,6 +191,12 @@ public interface NodeVisitor_void {
   /** Process an instance of SubscriptOp. */
   public void forSubscriptOp(SubscriptOp that);
 
+  /** Process an instance of AnonymousFnName. */
+  public void forAnonymousFnName(AnonymousFnName that);
+
+  /** Process an instance of ConstructorFnName. */
+  public void forConstructorFnName(ConstructorFnName that);
+
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
 

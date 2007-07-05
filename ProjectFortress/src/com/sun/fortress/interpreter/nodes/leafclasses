@@ -23,6 +23,7 @@ AbsVarDecl
 Accumulator
 AliasedDottedId
 AliasedName
+AnonymousFnName
 Api
 Apply
 ArrayComprehension
@@ -47,6 +48,7 @@ CatchClause
 ChainExpr
 CharLiteral
 Component
+ConstructorFnName
 Contract
 Dimension
 DimensionParam

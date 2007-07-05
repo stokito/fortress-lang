@@ -17,29 +17,39 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / type fn_name = fn_name_variant node
-// /
-
-// Note well; because this is a com.sun.fortress.interpreter.useful abstraction for the
-// generalized names seen in Fortress, it will persist into
-// more semantically aware parts of the system (i.e., into
-// the interpreter, compiler, com.sun.fortress.interpreter.typechecker, etc).
+/**
+ * Class FnName, a component of the Node composite hierarchy.
+ * Note: null is not allowed as a value for any field.
+ * @version  Generated automatically by ASTGen at Thu Jul 05 14:16:26 EDT 2007
+ */
 public abstract class FnName extends AbstractNode {
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.Node#accept(com.sun.fortress.interpreter.nodes.NodeVisitor)
-     */
+
+  /**
+   * Constructs a FnName.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public FnName(Span in_span) {
+    super(in_span);
+  }
+
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    FnName(Span span) {
-        super(span);
-    }
-
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
