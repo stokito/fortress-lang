@@ -32,6 +32,7 @@ public abstract class FnName extends AbstractNode {
      *
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
+    /*
     public int compareTo(FnName o) {
         Class tc = getClass();
         Class oc = o.getClass();
@@ -40,6 +41,7 @@ public abstract class FnName extends AbstractNode {
         }
         return stringName().compareTo(o.stringName());
     }
+    */
 
     /*
      * (non-Javadoc)

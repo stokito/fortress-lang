@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 public class NameDim extends DimType {
     DottedId name;
@@ -45,6 +45,6 @@ public class NameDim extends DimType {
 
     @Override
     int subtypeCompareTo(TypeRef o) {
-        return name.compareTo(((NameDim) o).name);
+        return NodeComparator.compare(name, ((NameDim) o).name);
     }
 }

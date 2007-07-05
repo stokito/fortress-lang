@@ -78,7 +78,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
 
         FnName fn0 = a0.getFnName();
         FnName fn1 = a1.getFnName();
-        int x = fn0.compareTo(fn1);
+        int x = NodeComparator.compare(fn0, fn1);
         if (x != 0)  return x;
 
         x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), NodeComparator.staticParamListComparer);

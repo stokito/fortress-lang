@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 
 public class OprArg extends StaticArg {
     FnName name;
@@ -46,6 +46,6 @@ public class OprArg extends StaticArg {
     @Override
     int subtypeCompareTo(TypeRef o) {
         OprArg x = (OprArg) o;
-        return name.compareTo(x.name);
+        return NodeComparator.compare(name, x.name);
     }
 }
