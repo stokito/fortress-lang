@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and quotient_dim_type = quotient_dim_type_rec node
@@ -65,7 +65,7 @@ public class QuotientType extends StaticArg {
     int subtypeCompareTo(TypeRef o) {
         QuotientType x = (QuotientType) o;
         // TODO Don't I need to worry about reducing the fraction?
-        return Useful.compare(numerator, x.numerator, denominator,
+        return NodeComparator.compare(numerator, x.numerator, denominator,
                 x.denominator);
     }
 }

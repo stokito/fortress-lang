@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and map_type = map_type_rec node
@@ -65,6 +65,6 @@ public class MapType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         MapType x = (MapType) o;
-        return Useful.compare(key, x.key, value, x.value);
+        return NodeComparator.compare(key, x.key, value, x.value);
     }
 }

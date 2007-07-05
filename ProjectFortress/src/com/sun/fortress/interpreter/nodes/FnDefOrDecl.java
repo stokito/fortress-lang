@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 
 public abstract class FnDefOrDecl extends AbstractNode implements Generic, Applicable,
-        DefOrDecl, Comparable<FnDefOrDecl> {
+        DefOrDecl {
 
     List<Modifier> mods;
 
@@ -73,6 +73,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     /* (non-Javadoc)
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
+    /*
     public int compareTo(FnDefOrDecl a1) {
         FnDefOrDecl a0 = this;
 
@@ -89,11 +90,12 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         return x;
 
     }
+    */
 
     static class Comparer implements Comparator<FnDefOrDecl> {
 
         public int compare(FnDefOrDecl o1, FnDefOrDecl o2) {
-            return o1.compareTo(o2);
+            return NodeComparator.compare(o1, o2);
         }
     }
 
@@ -102,7 +104,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     public int applicableCompareTo(Applicable a) {
         int x = Useful.compareClasses(this, a);
         if (x != 0) return x;
-        return compareTo((FnDefOrDecl) a);
+        return NodeComparator.compare(this, (FnDefOrDecl) a);
     }
 
 

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.List;
 
 public class FixedDim extends Indices {
@@ -47,7 +47,7 @@ public class FixedDim extends Indices {
 
     @Override
     int subtypeCompareTo(Indices o) {
-        return ExtentRange.listComparer
+        return NodeComparator.extentRangeListComparer
                 .compare(extents, ((FixedDim) o).extents);
     }
 

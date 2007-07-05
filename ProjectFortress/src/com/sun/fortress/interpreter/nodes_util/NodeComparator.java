@@ -20,12 +20,22 @@ package com.sun.fortress.interpreter.nodes_util;
 import java.util.Comparator;
 import java.util.List;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Voidoid;
 import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
 
 public class NodeComparator {
+    /** list comparers */
+    public static final ListComparer<ExtentRange> extentRangeListComparer =
+        new ListComparer<ExtentRange>();
+
+    public static final ListComparer<KeywordType> keywordTypeListComparer =
+        new ListComparer<KeywordType>();
+
+    public final static ListComparer<Param> paramListComparer =
+        new ListComparer<Param>();
 
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
@@ -89,7 +99,16 @@ public class NodeComparator {
     }
 
     public static int compare(FnDefOrDecl left, FnDefOrDecl right) {
-        return left.compareTo(right);
+        FnName fn0 = left.getFnName();
+        FnName fn1 = right.getFnName();
+        int x = NodeComparator.compare(fn0, fn1);
+        if (x != 0)  return x;
+        x = Option.<List<StaticParam>>compare(left.getStaticParams(),
+                                              right.getStaticParams(),
+                                              NodeComparator.staticParamListComparer);
+        if (x != 0)  return x;
+        x = paramListComparer.compare(left.getParams(), right.getParams());
+        return x;
     }
 
     public static int compare(FnName left, FnName right) {
@@ -138,21 +157,27 @@ public class NodeComparator {
     }
 
     public static int compare(TypeRef a, TypeRef b, ExtentRange c, ExtentRange d) {
-        int x = compare(a, b);
+        //        int x = compare(a, b);
+        int x = a.compareTo(b);
         if (x != 0) return x;
-        return compare(c, d);
+        //        return compare(c, d);
+        return c.compareTo(d);
     }
 
     public static int compare(TypeRef a, TypeRef b, Indices c, Indices d) {
-        int x = compare(a, b);
+        //        int x = compare(a, b);
+        int x = a.compareTo(b);
         if (x != 0) return x;
-        return compare(c, d);
+        //        return compare(c, d);
+        return c.compareTo(d);
     }
 
     public static int compare(TypeRef a, TypeRef b, TypeRef c, TypeRef d) {
-        int x = compare(a, b);
+        //        int x = compare(a, b);
+        int x = a.compareTo(b);
         if (x != 0) return x;
-        return compare(c, d);
+        //        return compare(c, d);
+        return c.compareTo(d);
     }
 
     /* subtypeCompareTo **************************************************/
@@ -166,15 +191,15 @@ public class NodeComparator {
         if (x != 0) return x;
         x = TypeRef.listComparer.compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        x = KeywordType.listComparer.compare(left.getKeywords(),
-                                             right.getKeywords());
+        x = keywordTypeListComparer.compare(left.getKeywords(),
+                                            right.getKeywords());
         if (x != 0) return x;
         x = TypeRef.listComparer.compare(left.getThrows_(), right.getThrows_());
         return x;
     }
 
     static int subtypeCompareTo(FixedDim left, FixedDim right) {
-        return ExtentRange.listComparer
+        return extentRangeListComparer
             .compare(left.getExtents(), right.getExtents());
     }
 
@@ -199,8 +224,8 @@ public class NodeComparator {
     static int subtypeCompareTo(MatrixType left, MatrixType right) {
         int y = compare(left.getElement(), right.getElement());
         if (y != 0) return y;
-        return ExtentRange.listComparer.compare(left.getDimensions(),
-                                                right.getDimensions());
+        return extentRangeListComparer.compare(left.getDimensions(),
+                                               right.getDimensions());
     }
 
     static int subtypeCompareTo(ParamType left, ParamType right) {

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
 import java.util.Collections;
@@ -76,6 +76,6 @@ public class ArrayType extends TypeRef {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ArrayType a = (ArrayType) o;
-        return Useful.compare(element, a.element, indices, a.indices);
+        return NodeComparator.compare(element, a.element, indices, a.indices);
     }
 }

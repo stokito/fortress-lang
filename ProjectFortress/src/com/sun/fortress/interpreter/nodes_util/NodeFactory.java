@@ -25,12 +25,39 @@ import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
+    /******************************************************
+    private static int anonymousFnNameSequence;
+    static synchronized int anonymousFnNameSerial() {
+        return ++anonymousFnNameSequence;
+    }
+
+    public static AnonymousFnName makeAnonymousFnName(Span span) {
+        return new AnonymousFnName(span, anonymousFnNameSerial(), new None<HasAt>());
+    }
+
+    public static AnonymousFnName makeAnonymousFnName(HasAt at) {
+        return new AnonymousFnName(new Span(), anonymousFnNameSerial(),
+                                   new Some<HasAt>(at));
+    }
+    ******************************************************/
+
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, s, s.charAt(0));
     }
+
+    /******************************************************
+    private static int constructorFnNameSequence;
+    private static int constructorFnNameSerial() {
+        return ++constructorFnNameSequence;
+    }
+    public static ConstructorFnName makeConstructorFnName(DefOrDecl def) {
+        return new ConstructorFnName(def.getSpan(), constructorFnNameSerial(), def);
+    }
+    ******************************************************/
 
     public static Contract makeContract() {
         return new Contract(new Span(), Collections.<Expr> emptyList(),

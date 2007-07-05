@@ -65,7 +65,7 @@ public class Id extends AbstractNode {
     }
 
     public int compareTo(Id o) {
-        return name.compareTo(o.name);
+        return getName().compareTo(o.getName());
     }
     /*
     */

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,7 +118,7 @@ public class ArrowType extends TypeRef {
         if (x != 0) {
             return x;
         }
-        x = KeywordType.listComparer.compare(keywords, a.keywords);
+        x = NodeComparator.keywordTypeListComparer.compare(keywords, a.keywords);
         if (x != 0) {
             return x;
         }

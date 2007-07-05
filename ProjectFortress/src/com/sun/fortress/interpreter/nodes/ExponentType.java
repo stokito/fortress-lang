@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and exponent_type = exponent_type_rec node
@@ -71,7 +71,7 @@ public class ExponentType extends StaticArg {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ExponentType x = (ExponentType) o;
-        return Useful.compare((TypeRef) power, x.power, base, x.base); // Cast
+        return NodeComparator.compare((TypeRef) power, x.power, base, x.base); // Cast
                                                                         // for
                                                                         // generics
     }

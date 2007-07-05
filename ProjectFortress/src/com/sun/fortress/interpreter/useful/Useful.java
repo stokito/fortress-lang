@@ -217,7 +217,7 @@ public class Useful {
 
     public static <T> Set<T> set(Iterable<T> xs) {
       HashSet<T> result = new HashSet<T>();
-      
+
       for (T x : xs) {
           if (x != null) result.add(x);
       }
@@ -250,7 +250,7 @@ public class Useful {
       }
 
 
-    
+
     /* Union, treating null as empty. */
     public static <T> Set<T> union(Iterable<? extends Collection<T>>  xs) {
         HashSet<T> result = new HashSet<T>();
@@ -286,7 +286,7 @@ public class Useful {
 
     // Don't support singleton or empty unions -- singletons lead to type
     // signature clashes with the varargs case.
-    
+
     public static <T> T clampedGet(List<T> l, int j) {
         int s = l.size();
         return j < s ? l.get(j) : l.get(s - 1);
@@ -365,7 +365,7 @@ public class Useful {
 
     public static <T> List<T> concat(Iterable<Collection<T>> xs) {
         ArrayList<T> result = new ArrayList<T>();
-        
+
         for (Collection<T> x : xs ) {
             result.addAll(x);
         }
@@ -403,6 +403,7 @@ public class Useful {
         return NI.<T> np();
     }
 
+    /*
     public static <T extends Comparable<T>, U extends Comparable<U> > int compare(T a,
             T b, U c, U d) {
         int x = a.compareTo(b);
@@ -453,6 +454,7 @@ public class Useful {
             return x;
         return c3.compare(a, b);
     }
+    */
 
     public static String extractAfterMatch(String input, String to_match)
             throws NotFound {

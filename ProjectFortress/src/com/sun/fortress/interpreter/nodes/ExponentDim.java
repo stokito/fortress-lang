@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and exponent_dim_type = exponent_dim_type_rec node
@@ -65,7 +65,7 @@ public class ExponentDim extends DimType {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ExponentDim x = (ExponentDim) o;
-        return Useful.compare((TypeRef) power, x.power, (TypeRef) base, x.base); // casts
+        return NodeComparator.compare((TypeRef) power, x.power, (TypeRef) base, x.base); // casts
                                                                                     // for
                                                                                     // generics
     }

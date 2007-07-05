@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and vector_type = vector_type_rec node
@@ -59,6 +59,6 @@ public class VectorType extends TypeRef {
     int subtypeCompareTo(TypeRef o) {
         VectorType x = (VectorType) o;
         // TODO Don't I need to worry about reducing the fraction?
-        return Useful.compare(element, x.element, dim, x.dim);
+        return NodeComparator.compare(element, x.element, dim, x.dim);
     }
 }

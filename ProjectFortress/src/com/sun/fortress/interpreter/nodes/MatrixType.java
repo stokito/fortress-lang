@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +83,7 @@ public class MatrixType extends TypeRef {
         MatrixType x = (MatrixType) o;
         int y = element.compareTo(x.element);
         if (y != 0) return y;
-        return ExtentRange.listComparer.compare(dimensions, x.dimensions);
+        return NodeComparator.extentRangeListComparer.compare(dimensions, x.dimensions);
     }
 
 }

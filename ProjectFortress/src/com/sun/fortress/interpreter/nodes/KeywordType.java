@@ -67,8 +67,6 @@ public class KeywordType extends AbstractNode implements Comparable<KeywordType>
         return "" + getName() + ":" + getType();
     }
 
-    public static final ListComparer<KeywordType> listComparer = new ListComparer<KeywordType>();
-
     public int compareTo(KeywordType o) {
         return NodeComparator.compare(name, o.name, type, o.type);
     }

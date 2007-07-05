@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Useful;
 
 // / and product_dim_type = product_dim_type_rec node
@@ -64,7 +64,7 @@ public class ProductDim extends DimType {
     @Override
     int subtypeCompareTo(TypeRef o) {
         ProductDim x = (ProductDim) o;
-        return Useful.compare((TypeRef) multiplier, x.multiplier,
+        return NodeComparator.compare((TypeRef) multiplier, x.multiplier,
                 (TypeRef) multiplicand, x.multiplicand); // cast for generics
     }
 }
