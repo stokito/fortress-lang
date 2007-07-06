@@ -23,6 +23,7 @@ AbsVarDecl
 Accumulator
 AliasedDottedId
 AliasedName
+AndBoolRef
 AnonymousFnName
 Api
 Apply
@@ -34,6 +35,7 @@ AsExpr
 AsIfExpr
 Assignment
 AtomicExpr
+BaseBoolRef
 BaseNatRef
 BaseOprRef
 Binding
@@ -80,6 +82,7 @@ Id
 IdType
 If
 IfClause
+ImpliesBoolRef
 ImportApi
 ImportNames
 ImportStar
@@ -126,12 +129,14 @@ MultiDimElement
 MultiDimRow
 Name
 NatParam
+NotBoolRef
 ObjectDecl
 ObjectExpr
 Op
 OperatorParam
 Opr
 OprExpr
+OrBoolRef
 Param
 ParamType
 PostFix

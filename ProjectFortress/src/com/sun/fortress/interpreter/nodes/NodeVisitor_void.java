@@ -245,6 +245,36 @@ public interface NodeVisitor_void {
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
 
+  /** Process an instance of BaseBoolRef. */
+  public void forBaseBoolRef(BaseBoolRef that);
+
+  /** Process an instance of NotBoolRef. */
+  public void forNotBoolRef(NotBoolRef that);
+
+  /** Process an instance of OrBoolRef. */
+  public void forOrBoolRef(OrBoolRef that);
+
+  /** Process an instance of AndBoolRef. */
+  public void forAndBoolRef(AndBoolRef that);
+
+  /** Process an instance of ImpliesBoolRef. */
+  public void forImpliesBoolRef(ImpliesBoolRef that);
+
+  /** Process an instance of SumStaticArg. */
+  public void forSumStaticArg(SumStaticArg that);
+
+  /** Process an instance of ProductStaticArg. */
+  public void forProductStaticArg(ProductStaticArg that);
+
+  /** Process an instance of QuotientStaticArg. */
+  public void forQuotientStaticArg(QuotientStaticArg that);
+
+  /** Process an instance of ExponentStaticArg. */
+  public void forExponentStaticArg(ExponentStaticArg that);
+
+  /** Process an instance of DimensionStaticArg. */
+  public void forDimensionStaticArg(DimensionStaticArg that);
+
   /** Process an instance of TypeArg. */
   public void forTypeArg(TypeArg that);
 
@@ -256,19 +286,4 @@ public interface NodeVisitor_void {
 
   /** Process an instance of InverseDimUnit. */
   public void forInverseDimUnit(InverseDimUnit that);
-
-  /** Process an instance of SumStaticArg. */
-  public void forSumStaticArg(SumStaticArg that);
-
-  /** Process an instance of ProductStaticArg. */
-  public void forProductStaticArg(ProductStaticArg that);
-
-  /** Process an instance of DimensionStaticArg. */
-  public void forDimensionStaticArg(DimensionStaticArg that);
-
-  /** Process an instance of QuotientStaticArg. */
-  public void forQuotientStaticArg(QuotientStaticArg that);
-
-  /** Process an instance of ExponentStaticArg. */
-  public void forExponentStaticArg(ExponentStaticArg that);
 }
