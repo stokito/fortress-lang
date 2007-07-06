@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.nodes.FieldSelection;
 import com.sun.fortress.interpreter.nodes.Id;
 import com.sun.fortress.interpreter.nodes.LHS;
 import com.sun.fortress.interpreter.nodes.LValueBind;
-import com.sun.fortress.interpreter.nodes.NatRef;
+import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.SubscriptExpr;
 import com.sun.fortress.interpreter.nodes.TupleExpr;
@@ -127,8 +127,8 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
      */
     @Override
     public LHS forUnpastingDim(UnpastingDim x) {
-        Option<NatRef> b = x.getBase();
-        Option<NatRef> s = x.getSize();
+        Option<StaticArg> b = x.getBase();
+        Option<StaticArg> s = x.getSize();
 
         return super.forUnpastingDim(x);
     }

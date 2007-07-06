@@ -112,7 +112,6 @@ import com.sun.fortress.interpreter.nodes.MapExpr;
 import com.sun.fortress.interpreter.nodes.MultiDim;
 import com.sun.fortress.interpreter.nodes.MultiDimElement;
 import com.sun.fortress.interpreter.nodes.MultiDimRow;
-import com.sun.fortress.interpreter.nodes.NameDim;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Op;
@@ -901,10 +900,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Finish the pasting now.
         paste.finish();
         return paste;
-    }
-
-    public FValue forNameDim(NameDim x) {
-        return NI("forNameDim");
     }
 
     public FValue forObjectExpr(ObjectExpr x) {

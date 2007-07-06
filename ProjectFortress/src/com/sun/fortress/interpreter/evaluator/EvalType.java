@@ -363,7 +363,7 @@ public class EvalType extends NodeVisitor<FType> {
     private long longify(TypeRef type) {
         FType t = type.accept(this);
         if (!(t instanceof IntNat)) {
-            throw new ProgramError(type,"NatRef " + type + " evaluated to " + t + " (instead of IntNat)");
+            throw new ProgramError(type,"StaticArg " + type + " evaluated to " + t + " (instead of IntNat)");
         }
         return ((IntNat) t).getValue();
     }

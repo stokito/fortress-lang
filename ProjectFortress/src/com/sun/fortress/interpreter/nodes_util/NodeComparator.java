@@ -250,12 +250,6 @@ public class NodeComparator {
                                              right.getValue());
     }
 
-    static int subtypeCompareTo(ExponentDim left, ExponentDim right) {
-        return compare((TypeRef)left.getPower(), right.getPower(),
-                       (TypeRef)left.getBase(), right.getBase());
-        // casts for generics
-    }
-
     static int subtypeCompareTo(ExponentType left, ExponentType right) {
         return compare((TypeRef)left.getPower(), right.getPower(),
                        left.getBase(), right.getBase());
@@ -290,10 +284,6 @@ public class NodeComparator {
         if (y != 0) return y;
         return extentRangeListComparer.compare(left.getDimensions(),
                                                right.getDimensions());
-    }
-
-    static int subtypeCompareTo(NameDim left, NameDim right) {
-        return compare(left.getName(), right.getName());
     }
 
     static int subtypeCompareTo(OprArg left, OprArg right) {

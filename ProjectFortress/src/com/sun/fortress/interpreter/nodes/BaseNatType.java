@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public class BaseNatType extends NatRef {
+public class BaseNatType extends StaticArg {
 
     int value;
 

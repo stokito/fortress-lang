@@ -28,11 +28,11 @@ import com.sun.fortress.interpreter.useful.Option;
 // / }
 // /
 public class UnpastingDim extends AbstractNode {
-    Option<NatRef> base;
+    Option<StaticArg> base;
 
-    Option<NatRef> size;
+    Option<StaticArg> size;
 
-    public UnpastingDim(Span span, Option<NatRef> base, Option<NatRef> size) {
+    public UnpastingDim(Span span, Option<StaticArg> base, Option<StaticArg> size) {
         super(span);
         this.base = base;
         this.size = size;
@@ -50,14 +50,14 @@ public class UnpastingDim extends AbstractNode {
     /**
      * @return Returns the base.
      */
-    public Option<NatRef> getBase() {
+    public Option<StaticArg> getBase() {
         return base;
     }
 
     /**
      * @return Returns the size.
      */
-    public Option<NatRef> getSize() {
+    public Option<StaticArg> getSize() {
         return size;
     }
 }

@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.nodes;
 import com.sun.fortress.interpreter.nodes_util.Span;
 import java.util.List;
 
-public abstract class CompoundNatType extends NatRef {
+public abstract class CompoundNatType extends StaticArg {
 
     public CompoundNatType(Span s2) {
         super(s2);
