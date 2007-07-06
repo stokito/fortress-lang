@@ -38,8 +38,8 @@ public class BaseNatType extends NatRef {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @return Returns thegetVale.
      */
     public int getValue() {
@@ -50,12 +50,6 @@ public class BaseNatType extends NatRef {
         BaseNatType bnt = new BaseNatType(new Span());
         bnt.value = i;
         return bnt;
-    }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        BaseNatType x = (BaseNatType) o;
-        return value - x.value; /* nat types -- difference will not overflow */
     }
 
     @Override

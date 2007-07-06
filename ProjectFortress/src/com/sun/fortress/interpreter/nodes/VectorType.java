@@ -54,11 +54,4 @@ public class VectorType extends TypeRef {
     public TypeRef getElement() {
         return element;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        VectorType x = (VectorType) o;
-        // TODO Don't I need to worry about reducing the fraction?
-        return NodeComparator.compare(element, x.element, dim, x.dim);
-    }
 }

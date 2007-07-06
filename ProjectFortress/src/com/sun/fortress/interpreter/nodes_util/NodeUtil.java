@@ -178,6 +178,10 @@ public class NodeUtil {
         }
     }
 
+    public static <T> T NYI(String s) {
+        throw new Error("AST." + s + " NYI");
+    }
+
     public static final com.sun.fortress.interpreter.useful.Fn<Id, String> IdtoStringFn =
         new com.sun.fortress.interpreter.useful.Fn<Id, String>() {
             public String apply(Id x) {

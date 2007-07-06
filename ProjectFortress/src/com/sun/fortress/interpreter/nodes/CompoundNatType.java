@@ -39,16 +39,4 @@ public abstract class CompoundNatType extends NatRef {
     public List<StaticArg> getValue() {
         return value;
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.TypeRef#subtypeCompareTo(com.sun.fortress.interpreter.nodes.TypeRef)
-     */
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        // TODO Auto-generated method stub
-        return StaticArg.typeargListComparer.compare(value,
-                ((CompoundNatType) o).value);
-    }
 }

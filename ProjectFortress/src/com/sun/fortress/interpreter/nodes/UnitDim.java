@@ -29,11 +29,4 @@ public class UnitDim extends DimType {
     public UnitDim(Span span) {
         super(span);
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        // TODO Auto-generated method stub
-        NYI("subtypeCompareTo for " + this.getClass().getName());
-        return 0;
-    }
 }

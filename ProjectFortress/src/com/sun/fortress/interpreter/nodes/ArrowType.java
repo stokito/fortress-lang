@@ -106,23 +106,4 @@ public class ArrowType extends TypeRef {
                 + (getThrows_().size() > 0 ? (" throws " +
                         Useful.listInCurlies(getThrows_())) : "");
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ArrowType a = (ArrowType) o;
-        int x = NodeComparator.compare(range, a.range);
-        if (x != 0) {
-            return x;
-        }
-        x = NodeComparator.typeRefListComparer.compare(domain, a.domain);
-        if (x != 0) {
-            return x;
-        }
-        x = NodeComparator.keywordTypeListComparer.compare(keywords, a.keywords);
-        if (x != 0) {
-            return x;
-        }
-        x = NodeComparator.typeRefListComparer.compare(throws_, a.throws_);
-        return x;
-    }
 }

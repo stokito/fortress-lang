@@ -61,10 +61,4 @@ public class MapType extends TypeRef {
     public TypeRef getValue() {
         return value;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        MapType x = (MapType) o;
-        return NodeComparator.compare(key, x.key, value, x.value);
-    }
 }

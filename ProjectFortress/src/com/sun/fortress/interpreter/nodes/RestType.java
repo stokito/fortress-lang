@@ -62,9 +62,4 @@ public class RestType extends TypeRef {
     public String toString() {
         return type.toString() + "...";
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.compare(type, ((RestType) o).type);
-    }
 }

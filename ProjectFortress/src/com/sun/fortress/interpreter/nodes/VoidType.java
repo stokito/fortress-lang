@@ -28,10 +28,4 @@ public class VoidType extends TypeRef {
     public <T> T accept(NodeVisitor<T> v) {
         return v.forVoidType(this);
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        // All voids are equal
-        return 0;
-    }
 }

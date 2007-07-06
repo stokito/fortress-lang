@@ -61,12 +61,4 @@ public class ExponentDim extends DimType {
     public NatRef getPower() {
         return power;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ExponentDim x = (ExponentDim) o;
-        return NodeComparator.compare((TypeRef) power, x.power, (TypeRef) base, x.base); // casts
-                                                                                    // for
-                                                                                    // generics
-    }
 }

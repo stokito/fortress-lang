@@ -60,12 +60,4 @@ public class QuotientType extends StaticArg {
     public TypeRef getNumerator() {
         return numerator;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        QuotientType x = (QuotientType) o;
-        // TODO Don't I need to worry about reducing the fraction?
-        return NodeComparator.compare(numerator, x.numerator, denominator,
-                x.denominator);
-    }
 }

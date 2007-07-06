@@ -42,10 +42,4 @@ public class OprArg extends StaticArg {
     public FnName getName() {
         return name;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        OprArg x = (OprArg) o;
-        return NodeComparator.compare(name, x.name);
-    }
 }

@@ -29,22 +29,6 @@ public abstract class TypeRef extends AbstractNode {
     TypeRef(Span s) {
         super(s);
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-    public int compareTo(TypeRef o) {
-        Class tclass = getClass();
-        Class oclass = o.getClass();
-        if (oclass != tclass) {
-            return tclass.getName().compareTo(oclass.getName());
-        }
-        return subtypeCompareTo(o);
-    }
-     */
-
-    abstract int subtypeCompareTo(TypeRef o);
 }
 
 // / and type_ref =

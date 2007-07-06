@@ -76,14 +76,4 @@ public class ParamType extends TypeRef {
 
         return pt;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ParamType x = (ParamType) o;
-        int c = NodeComparator.compare(generic, x.generic);
-        if (c != 0) {
-            return c;
-        }
-        return StaticArg.typeargListComparer.compare(args, x.args);
-    }
 }

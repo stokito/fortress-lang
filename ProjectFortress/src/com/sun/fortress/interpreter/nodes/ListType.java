@@ -43,10 +43,4 @@ public class ListType extends TypeRef {
     public TypeRef getElement() {
         return element;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ListType x = (ListType) o;
-        return NodeComparator.compare(element, ((ListType) o).element);
-    }
 }

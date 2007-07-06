@@ -42,9 +42,4 @@ public class NameDim extends DimType {
     public DottedId getName() {
         return name;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.compare(name, ((NameDim) o).name);
-    }
 }

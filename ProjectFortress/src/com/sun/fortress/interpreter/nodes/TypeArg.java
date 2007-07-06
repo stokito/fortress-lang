@@ -58,9 +58,4 @@ public class TypeArg extends StaticArg {
         return tra;
     }
 
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.compare(type, ((TypeArg) o).type);
-    }
-
 }

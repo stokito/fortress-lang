@@ -75,9 +75,4 @@ public class TupleType extends TypeRef {
     public List<KeywordType> getKeywords() {
         return keywords;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.typeRefListComparer.compare(elements, ((TupleType) o).elements);
-    }
 }

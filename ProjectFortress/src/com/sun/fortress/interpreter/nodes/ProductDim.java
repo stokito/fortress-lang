@@ -60,11 +60,4 @@ public class ProductDim extends DimType {
     public DimType getMultiplier() {
         return multiplier;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ProductDim x = (ProductDim) o;
-        return NodeComparator.compare((TypeRef) multiplier, x.multiplier,
-                (TypeRef) multiplicand, x.multiplicand); // cast for generics
-    }
 }

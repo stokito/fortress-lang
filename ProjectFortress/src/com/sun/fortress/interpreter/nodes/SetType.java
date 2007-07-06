@@ -57,9 +57,4 @@ public class SetType extends TypeRef {
     public TypeRef getElementType() {
         return elementType;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.compare(elementType, ((SetType) o).elementType);
-    }
 }

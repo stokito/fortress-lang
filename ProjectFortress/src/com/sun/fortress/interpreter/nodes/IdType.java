@@ -68,9 +68,4 @@ public class IdType extends TypeRef {
     public String toString() {
         return name.toString();
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        return NodeComparator.compare(name, ((IdType) o).name);
-    }
 }

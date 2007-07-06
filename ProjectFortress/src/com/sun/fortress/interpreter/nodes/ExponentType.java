@@ -67,12 +67,4 @@ public class ExponentType extends StaticArg {
     public TypeRef getPower() {
         return power;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ExponentType x = (ExponentType) o;
-        return NodeComparator.compare((TypeRef) power, x.power, base, x.base); // Cast
-                                                                        // for
-                                                                        // generics
-    }
 }

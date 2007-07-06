@@ -60,12 +60,4 @@ public class QuotientDim extends DimType {
     public DimType getNumerator() {
         return numerator;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        QuotientDim x = (QuotientDim) o;
-        // TODO Don't I need to worry about reducing the fraction?
-        return NodeComparator.compare((TypeRef) numerator, x.numerator,
-                (TypeRef) denominator, x.denominator); // cast for generics
-    }
 }

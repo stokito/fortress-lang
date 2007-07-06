@@ -214,6 +214,29 @@ public class NodeComparator {
         return x;
     }
 
+    static int subtypeCompareTo(BaseNatType left, BaseNatType right) {
+        return left.getValue() - right.getValue();
+        /* nat types -- difference will not overflow */
+    }
+
+    static int subtypeCompareTo(CompoundNatType left, CompoundNatType right) {
+        // TODO Auto-generated method stub
+        return StaticArg.typeargListComparer.compare(left.getValue(),
+                                                     right.getValue());
+    }
+
+    static int subtypeCompareTo(ExponentDim left, ExponentDim right) {
+        return compare((TypeRef)left.getPower(), right.getPower(),
+                       (TypeRef)left.getBase(), right.getBase());
+        // casts for generics
+    }
+
+    static int subtypeCompareTo(ExponentType left, ExponentType right) {
+        return compare((TypeRef)left.getPower(), right.getPower(),
+                       left.getBase(), right.getBase());
+        // casts for generics
+    }
+
     static int subtypeCompareTo(FixedDim left, FixedDim right) {
         return extentRangeListComparer
             .compare(left.getExtents(), right.getExtents());
@@ -244,11 +267,38 @@ public class NodeComparator {
                                                right.getDimensions());
     }
 
+    static int subtypeCompareTo(NameDim left, NameDim right) {
+        return compare(left.getName(), right.getName());
+    }
+
+    static int subtypeCompareTo(OprArg left, OprArg right) {
+        return compare(left.getName(), right.getName());
+    }
+
     static int subtypeCompareTo(ParamType left, ParamType right) {
         int c = compare(left.getGeneric(), right.getGeneric());
         if (c != 0) return c;
         return StaticArg.typeargListComparer.compare(left.getArgs(),
                                                      right.getArgs());
+    }
+
+    static int subtypeCompareTo(ProductDim left, ProductDim right) {
+        return compare((TypeRef)left.getMultiplier(), right.getMultiplier(),
+                       (TypeRef)left.getMultiplicand(), right.getMultiplicand());
+        // cast for generics
+    }
+
+    static int subtypeCompareTo(QuotientDim left, QuotientDim right) {
+        // TODO Don't I need to worry about reducing the fraction?
+        return compare((TypeRef)left.getNumerator(), right.getNumerator(),
+                       (TypeRef)left.getDenominator(), right.getDenominator());
+        // cast for generics
+    }
+
+    static int subtypeCompareTo(QuotientType left, QuotientType right) {
+        // TODO Don't I need to worry about reducing the fraction?
+        return compare(left.getNumerator(), right.getNumerator(),
+                       left.getDenominator(), right.getDenominator());
     }
 
     static int subtypeCompareTo(RestType left, RestType right) {
@@ -263,9 +313,18 @@ public class NodeComparator {
         return typeRefListComparer.compare(left.getElements(), right.getElements());
     }
 
+    static int subtypeCompareTo(TypeArg left, TypeArg right) {
+        return compare(left.getType(), right.getType());
+    }
     static int subtypeCompareTo(TypeRef left, TypeRef right) {
         throw new Error("subtypeCompareTo(" + left.getClass() + " " +
                         right.getClass() + ") is not implemented!");
+    }
+
+    static int subtypeCompareTo(UnitDim left, UnitDim right) {
+        // TODO Auto-generated method stub
+        NodeUtil.NYI("subtypeCompareTo for " + left.getClass().getName());
+        return 0;
     }
 
     static int subtypeCompareTo(VectorType left, VectorType right) {
@@ -296,23 +355,6 @@ public class NodeComparator {
 //        // TODO Don't I need to worry about reducing the fraction?
 //        return Useful.compare((TypeRef) numerator, x.numerator,
 //                              (TypeRef) denominator, x.denominator); // cast for generics
-//    }
-
-//        int subtypeCompareTo(TypeRef o) {
-//        ProductDim x = (ProductDim) o;
-//        return Useful.compare((TypeRef) multiplier, x.multiplier,
-//                              (TypeRef) multiplicand, x.multiplicand); // cast for generics
-//    }
-
-//        int subtypeCompareTo(TypeRef o) {
-//        return name.compareTo(((NameDim) o).name);
-//    }
-
-//    int subtypeCompareTo(TypeRef o) {
-//        ExponentDim x = (ExponentDim) o;
-//        return Useful.compare((TypeRef) power, x.power, (TypeRef) base, x.base); // casts
-//                                                                                    // for
-//                                                                                    // generics
 //    }
 
 //    public int compareTo(Param o) {

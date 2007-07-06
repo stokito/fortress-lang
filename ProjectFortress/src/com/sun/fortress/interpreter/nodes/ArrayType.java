@@ -72,10 +72,4 @@ public class ArrayType extends TypeRef {
     public Indices getIndices() {
         return indices;
     }
-
-    @Override
-    int subtypeCompareTo(TypeRef o) {
-        ArrayType a = (ArrayType) o;
-        return NodeComparator.compare(element, a.element, indices, a.indices);
-    }
 }
