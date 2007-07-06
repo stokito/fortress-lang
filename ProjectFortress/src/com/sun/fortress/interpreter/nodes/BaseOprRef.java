@@ -17,26 +17,29 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
 
-public abstract class CompoundNatType extends StaticArg {
+public class BaseOprRef extends StaticArg {
+    FnName name;
 
-    public CompoundNatType(Span s2) {
-        super(s2);
+    public BaseOprRef(Span span, Op op) {
+        super(span);
+        this.name = new Opr(span, op);
     }
 
-    List<StaticArg> value;
+    @Override
+    public <T> T accept(NodeVisitor<T> v) {
+        return v.forBaseOprRef(this);
+    }
 
-    public CompoundNatType(Span span, List<StaticArg> value) {
+    BaseOprRef(Span span) {
         super(span);
-        this.value = value;
     }
 
     /**
-     * @return Returns the value.
+     * @return Returns the name.
      */
-    public List<StaticArg> getValue() {
-        return value;
+    public FnName getName() {
+        return name;
     }
 }

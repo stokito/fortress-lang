@@ -17,43 +17,54 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.Useful;
 
-public class BaseNatType extends StaticArg {
+// / and exponent_type = exponent_type_rec node
+// / and exponent_type_rec =
+// / {
+// / exponent_type_base : type;
+// / exponent_type_power : nat_type;
+// / }
+// /
+public class ExponentStaticArg extends StaticArg {
 
-    int value;
+    TypeRef base;
 
-    public BaseNatType(Span span, IntLiteral value) {
+    TypeRef power;
+
+    public ExponentStaticArg(Span span, TypeRef base, IntLiteral power) {
         super(span);
-        this.value = value.getVal().intValue();
+        this.base = base;
+        this.power = new BaseNatRef(span, power);
+    }
+
+    public ExponentStaticArg(Span span, TypeRef base, TypeRef power) {
+        super(span);
+        this.base = base;
+        this.power = power;
     }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forBaseNatType(this);
+        return v.forExponentStaticArg(this);
     }
 
-    BaseNatType(Span span) {
+    ExponentStaticArg(Span span) {
         super(span);
     }
 
     /**
-     *
-     *
-     * @return Returns thegetVale.
+     * @return Returns the base.
      */
-    public int getValue() {
-        return value;
+    public TypeRef getBase() {
+        return base;
     }
 
-    public static BaseNatType make(int i) {
-        BaseNatType bnt = new BaseNatType(new Span());
-        bnt.value = i;
-        return bnt;
-    }
-
-    @Override
-    public String toString() {
-        return ("" + getValue());
+    /**
+     * @return Returns the power.
+     */
+    public TypeRef getPower() {
+        return power;
     }
 }

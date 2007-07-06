@@ -87,7 +87,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
             // new Some<List<TypeRef>>(Useful.<TypeRef>list(
             //         ParamType.make("Array1",
             //                 Useful.<StaticArg>list(TypeArg.make("T"),
-            //                             BaseNatType.make(0),
+            //                             BaseNatRef.make(0),
             //                             TypeArg.make("m")
             //                             )
             //                        )
@@ -116,7 +116,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
                 //    args=[
                 //     (TypeArg
                 //      type=(IdType name=(DottedId names=["T"])))
-                //     (BaseNatType)
+                //     (BaseNatRef)
                 //     (TypeArg
                 //      type=(IdType name=(DottedId names=["m"])))])])
                 staticParams=(Some val=[

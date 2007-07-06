@@ -117,7 +117,7 @@ import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
 import com.sun.fortress.interpreter.nodes.Opr;
-import com.sun.fortress.interpreter.nodes.OprArg;
+import com.sun.fortress.interpreter.nodes.BaseOprRef;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.OprName;
 import com.sun.fortress.interpreter.useful.Option;
@@ -1384,10 +1384,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forIntLiteral(IntLiteral x) {
         return FIntLiteral.make(x.getVal());
-    }
-
-    public FValue forOprArg(OprArg x) {
-        return NI("forOprArg");
     }
 
     /*

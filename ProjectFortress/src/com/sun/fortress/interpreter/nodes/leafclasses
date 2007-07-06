@@ -34,7 +34,8 @@ AsExpr
 AsIfExpr
 Assignment
 AtomicExpr
-BaseNatType
+BaseNatRef
+BaseOprRef
 Binding
 Block
 BoolParam
@@ -59,7 +60,7 @@ Enclosing
 EnsuresClause
 Entry
 Exit
-ExponentType
+ExponentStaticArg
 Export
 ExtentRange
 ExternalSyntax
@@ -126,16 +127,15 @@ ObjectExpr
 Op
 OperatorParam
 Opr
-OprArg
 OprExpr
 Param
 ParamType
 PostFix
 ProductDim
-ProductNatType
+ProductStaticArg
 PropertyDecl
 QuotientDim
-QuotientType
+QuotientStaticArg
 RestType
 SetComprehension
 SetExpr
@@ -146,7 +146,7 @@ StringLiteral
 SubscriptAssign
 SubscriptExpr
 SubscriptOp
-SumNatType
+SumStaticArg
 TestDecl
 Throw
 TightJuxt

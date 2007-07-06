@@ -20,18 +20,18 @@ package com.sun.fortress.interpreter.nodes;
 import com.sun.fortress.interpreter.nodes_util.Span;
 import java.util.List;
 
-public class ProductNatType extends CompoundNatType {
-    public ProductNatType(Span span, List<StaticArg> value) {
+public class SumStaticArg extends CompoundStaticArg {
+
+    public SumStaticArg(Span span, List<StaticArg> value) {
         super(span, value);
     }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forProductNatType(this);
+        return v.forSumStaticArg(this);
     }
 
-    ProductNatType(Span span) {
+    SumStaticArg(Span span) {
         super(span);
     }
-
 }

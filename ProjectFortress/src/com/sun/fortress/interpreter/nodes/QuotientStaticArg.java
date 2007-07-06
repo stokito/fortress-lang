@@ -18,28 +18,46 @@
 package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.Useful;
 
-public class OprArg extends StaticArg {
-    FnName name;
+// / and quotient_dim_type = quotient_dim_type_rec node
+// / and quotient_dim_type_rec =
+// / {
+// / quotient_dim_type_numerator : dim_type;
+// / quotient_dim_type_denominator : dim_type;
+// / }
+// /
+public class QuotientStaticArg extends StaticArg {
+    TypeRef numerator;
 
-    public OprArg(Span span, Op op) {
-        super(span);
-        this.name = new Opr(span, op);
-    }
+    TypeRef denominator;
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forOprArg(this);
+        return v.forQuotientStaticArg(this);
     }
 
-    OprArg(Span span) {
+    public QuotientStaticArg(Span span, TypeRef numerator, TypeRef denominator) {
+	super(span);
+	this.numerator = numerator;
+	this.denominator = denominator;
+    }
+
+    QuotientStaticArg(Span span) {
         super(span);
     }
 
     /**
-     * @return Returns the name.
+     * @return Returns the denominator.
      */
-    public FnName getName() {
-        return name;
+    public TypeRef getDenominator() {
+        return denominator;
+    }
+
+    /**
+     * @return Returns the numerator.
+     */
+    public TypeRef getNumerator() {
+        return numerator;
     }
 }

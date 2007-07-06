@@ -239,18 +239,18 @@ public class NodeComparator {
         return x;
     }
 
-    static int subtypeCompareTo(BaseNatType left, BaseNatType right) {
+    static int subtypeCompareTo(BaseNatRef left, BaseNatRef right) {
         return left.getValue() - right.getValue();
         /* nat types -- difference will not overflow */
     }
 
-    static int subtypeCompareTo(CompoundNatType left, CompoundNatType right) {
+    static int subtypeCompareTo(CompoundStaticArg left, CompoundStaticArg right) {
         // TODO Auto-generated method stub
         return staticArgListComparer.compare(left.getValue(),
                                              right.getValue());
     }
 
-    static int subtypeCompareTo(ExponentType left, ExponentType right) {
+    static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
         return compare((TypeRef)left.getPower(), right.getPower(),
                        left.getBase(), right.getBase());
         // casts for generics
@@ -286,7 +286,7 @@ public class NodeComparator {
                                                right.getDimensions());
     }
 
-    static int subtypeCompareTo(OprArg left, OprArg right) {
+    static int subtypeCompareTo(BaseOprRef left, BaseOprRef right) {
         return compare(left.getName(), right.getName());
     }
 
@@ -310,7 +310,7 @@ public class NodeComparator {
         // cast for generics
     }
 
-    static int subtypeCompareTo(QuotientType left, QuotientType right) {
+    static int subtypeCompareTo(QuotientStaticArg left, QuotientStaticArg right) {
         // TODO Don't I need to worry about reducing the fraction?
         return compare(left.getNumerator(), right.getNumerator(),
                        left.getDenominator(), right.getDenominator());

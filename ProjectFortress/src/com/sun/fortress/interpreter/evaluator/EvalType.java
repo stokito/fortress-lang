@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.ArrayType;
 import com.sun.fortress.interpreter.nodes.ArrowType;
-import com.sun.fortress.interpreter.nodes.BaseNatType;
+import com.sun.fortress.interpreter.nodes.BaseNatRef;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.BoolParam;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
@@ -56,12 +56,12 @@ import com.sun.fortress.interpreter.nodes.OperatorParam;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
-import com.sun.fortress.interpreter.nodes.ProductNatType;
+import com.sun.fortress.interpreter.nodes.ProductStaticArg;
 import com.sun.fortress.interpreter.nodes.RestType;
 import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.SumNatType;
+import com.sun.fortress.interpreter.nodes.SumStaticArg;
 import com.sun.fortress.interpreter.nodes.TupleType;
 import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeRef;
@@ -325,10 +325,10 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatType(com.sun.fortress.interpreter.nodes.BaseNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatRef(com.sun.fortress.interpreter.nodes.BaseNatRef)
      */
     @Override
-    public FType forBaseNatType(BaseNatType x) {
+    public FType forBaseNatRef(BaseNatRef x) {
         return IntNat.make(x.getValue());
     }
 
@@ -342,10 +342,10 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductNatType(com.sun.fortress.interpreter.nodes.ProductNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductStaticArg(com.sun.fortress.interpreter.nodes.ProductStaticArg)
      */
     @Override
-    public FType forProductNatType(ProductNatType x) {
+    public FType forProductStaticArg(ProductStaticArg x) {
         List<? extends TypeRef> value = x.getValue();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
@@ -369,10 +369,10 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSumNatType(com.sun.fortress.interpreter.nodes.SumNatType)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSumStaticArg(com.sun.fortress.interpreter.nodes.SumStaticArg)
      */
     @Override
-    public FType forSumNatType(SumNatType x) {
+    public FType forSumStaticArg(SumStaticArg x) {
         List<? extends TypeRef> value = x.getValue();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
