@@ -17,44 +17,31 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
-import java.util.Comparator;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.AnyListComparer;
+public abstract class StaticArg extends TypeRef {
+
+  /**
+   * Constructs a StaticArg.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public StaticArg(Span in_span) {
+    super(in_span);
+  }
 
 
-abstract public class StaticArg extends TypeRef {
-    // NOTE: This extends TypeRef only because the OCaml AST
-    // treats products as typeargs, not natargs. There seems
-    // to be an ambiguity here, since syntactically there is
-    // not a good way to tell the two apart.
-
-    @Override
-    public <T> T accept(NodeVisitor<T> v) {
-        return v.forStaticArg(this);
-    }
-
-    StaticArg(Span span) {
-        super(span);
-    }
-
-    // Got in a fight with Java generics -- and lost. This seems to get the job
-    // done.
-    private static final Comparator<StaticArg> typeargComparer = new Comparator<StaticArg>() {
-        public int compare(StaticArg o1, StaticArg o2) {
-            return NodeComparator.compare((TypeRef) o1, o2);
-        }
-    };
-
-    public static AnyListComparer<StaticArg> typeargListComparer = new AnyListComparer<StaticArg>(
-            typeargComparer);
-
+    /*
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
+    */
 }
-
-// / and type_arg =
-// / [
-// / | `StaticArg of type_ref
-// / | `NatTypeArg of nat_type
-// / | `OprTypeArg of fn_name
-// / ] node
-// /

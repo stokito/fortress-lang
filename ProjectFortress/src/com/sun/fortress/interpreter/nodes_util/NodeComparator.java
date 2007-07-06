@@ -68,15 +68,6 @@ public class NodeComparator {
     public final static AnyListComparer<Param> paramListComparer =
         new AnyListComparer(paramComparer);
 
-    static class TypeRefComparer implements Comparator<TypeRef> {
-        public int compare(TypeRef left, TypeRef right) {
-            return compare(left, right);
-        }
-    }
-    final static TypeRefComparer typeRefComparer = new TypeRefComparer();
-    public final static AnyListComparer<TypeRef> typeRefListComparer =
-        new AnyListComparer(typeRefComparer);
-
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
             Class tclass = left.getClass();
@@ -92,31 +83,27 @@ public class NodeComparator {
     public static AnyListComparer<StaticParam> staticParamListComparer =
         new AnyListComparer(staticParamComparer);
 
+    static class StaticArgComparer implements Comparator<StaticArg> {
+        public int compare(StaticArg left, StaticArg right) {
+            return compare(left, right);
+        }
+    }
+    final static StaticArgComparer staticArgComparer = new StaticArgComparer();
+    public final static AnyListComparer<StaticArg> staticArgListComparer =
+        new AnyListComparer(staticArgComparer);
+
+    static class TypeRefComparer implements Comparator<TypeRef> {
+        public int compare(TypeRef left, TypeRef right) {
+            return compare(left, right);
+        }
+    }
+    final static TypeRefComparer typeRefComparer = new TypeRefComparer();
+    public final static AnyListComparer<TypeRef> typeRefListComparer =
+        new AnyListComparer(typeRefComparer);
+
+    /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
         return staticParamListComparer.compare(left, right);
-    }
-
-    static int subtypeCompareTo(StaticParam left, StaticParam right) {
-        return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
-    }
-
-    static int subtypeCompareTo(SimpleTypeParam left, SimpleTypeParam right) {
-        int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
-        if (x != 0) {
-            return x;
-        }
-        if (left.isAbsorbs() != right.isAbsorbs()) {
-            return left.isAbsorbs() ? 1 : -1;
-        }
-        if (left.getExtendsClause().isPresent() != right.getExtendsClause().isPresent()) {
-            return left.getExtendsClause().isPresent() ? 1 : -1;
-        }
-        if (!left.getExtendsClause().isPresent()) {
-            return 0;
-        }
-        List<TypeRef> l = left.getExtendsClause().getVal();
-        List<TypeRef> ol = right.getExtendsClause().getVal();
-        return typeRefListComparer.compare(l, ol);
     }
 
     /* compare methods ***************************************************/
@@ -191,6 +178,10 @@ public class NodeComparator {
         return x;
     }
 
+    public static int compare(StaticArg left, StaticArg right) {
+        return compare((TypeRef) left, right);
+    }
+
     public static int compare(TypeRef left, TypeRef right) {
         Class leftClass = left.getClass();
         Class rightClass = right.getClass();
@@ -255,8 +246,8 @@ public class NodeComparator {
 
     static int subtypeCompareTo(CompoundNatType left, CompoundNatType right) {
         // TODO Auto-generated method stub
-        return StaticArg.typeargListComparer.compare(left.getValue(),
-                                                     right.getValue());
+        return staticArgListComparer.compare(left.getValue(),
+                                             right.getValue());
     }
 
     static int subtypeCompareTo(ExponentDim left, ExponentDim right) {
@@ -312,8 +303,8 @@ public class NodeComparator {
     static int subtypeCompareTo(ParamType left, ParamType right) {
         int c = compare(left.getGeneric(), right.getGeneric());
         if (c != 0) return c;
-        return StaticArg.typeargListComparer.compare(left.getArgs(),
-                                                     right.getArgs());
+        return staticArgListComparer.compare(left.getArgs(),
+                                             right.getArgs());
     }
 
     static int subtypeCompareTo(ProductDim left, ProductDim right) {
@@ -337,6 +328,29 @@ public class NodeComparator {
 
     static int subtypeCompareTo(RestType left, RestType right) {
         return compare(left.getType(), right.getType());
+    }
+
+    static int subtypeCompareTo(SimpleTypeParam left, SimpleTypeParam right) {
+        int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
+        if (x != 0) {
+            return x;
+        }
+        if (left.isAbsorbs() != right.isAbsorbs()) {
+            return left.isAbsorbs() ? 1 : -1;
+        }
+        if (left.getExtendsClause().isPresent() != right.getExtendsClause().isPresent()) {
+            return left.getExtendsClause().isPresent() ? 1 : -1;
+        }
+        if (!left.getExtendsClause().isPresent()) {
+            return 0;
+        }
+        List<TypeRef> l = left.getExtendsClause().getVal();
+        List<TypeRef> ol = right.getExtendsClause().getVal();
+        return typeRefListComparer.compare(l, ol);
+    }
+
+    static int subtypeCompareTo(StaticParam left, StaticParam right) {
+        return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }
 
     static int subtypeCompareTo(TupleType left, TupleType right) {

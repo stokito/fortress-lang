@@ -45,7 +45,7 @@ Dimension DimUnitDecl =
        if (a2 == null) derived = None.<TypeRef>make();
        else            derived = Some.<TypeRef>make(a2);
        if (a3 == null) default = None.<TypeRef>make();
-       else            default = Some.<TypeRef>make(new IdType(a3.getSpan(),a3));
+       else            default = Some.<TypeRef>make(NodeFactory.makeIdType(a3.getSpan(),a3));
        yyValue = new Dimension(createSpan(yyStart,yyCount),a1,derived,default);
      }
    / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?

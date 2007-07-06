@@ -17,31 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Fn;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / type id = string node
 public class Id extends AbstractNode {
-    String name;
+  private final String _name;
 
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+  /**
+   * Constructs a Id.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Id(Span in_span, String in_name) {
+    super(in_span);
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Id)) {
-            return false;
-        }
-        Id i = (Id) o;
-        return getName().equals(i.getName());
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the Id constructor was null");
     }
-
-    public Id(Span span, String s) {
-        super(span);
-        name = s;
-    }
+    _name = in_name.intern();
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -50,25 +49,23 @@ public class Id extends AbstractNode {
 
     Id(Span span) {
         super(span);
+        _name = null;
     }
 
-    /**
-     * @return Returns the name.
-     */
-    public String getName() {
-        return name;
-    }
+  final public String getName() { return _name; }
 
-    @Override
-    public String toString() {
-        return getName();
-    }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forId(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forId(this); }
 
-    public int compareTo(Id o) {
-        return getName().compareTo(o.getName());
-    }
-    /*
-    */
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
 
   /**
    * Prints this object out as a nicely tabbed tree.
@@ -99,5 +96,34 @@ public class Id extends AbstractNode {
       writer.print("\"");
     } else { writer.print(temp_name); }
     writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      Id casted = (Id) obj;
+      String temp_name = getName();
+      String casted_name = casted.getName();
+      if (!(temp_name == casted_name)) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    String temp_name = getName();
+    code ^= temp_name.hashCode();
+    return code;
   }
 }

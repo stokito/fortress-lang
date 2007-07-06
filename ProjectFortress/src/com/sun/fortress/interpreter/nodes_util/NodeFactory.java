@@ -190,6 +190,10 @@ public class NodeFactory {
         return new Id(new Span(), string);
     }
 
+    public static IdType makeIdType(Span span, Id id) {
+        return new IdType(span, makeDottedId(span, id));
+    }
+
     public static IntLiteral makeIntLiteral(Span span, BigInteger val) {
         return new IntLiteral(span, val.toString(), val);
     }

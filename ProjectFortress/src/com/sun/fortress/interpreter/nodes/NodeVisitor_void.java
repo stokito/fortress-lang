@@ -239,6 +239,9 @@ public interface NodeVisitor_void {
   /** Process an instance of VectorType. */
   public void forVectorType(VectorType that);
 
+  /** Process an instance of IdType. */
+  public void forIdType(IdType that);
+
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
 }
