@@ -212,7 +212,8 @@ public class Constructor extends AnonymousConstructor {
             if (too instanceof FTypeObject)
                 objectDefinesAny = true;
             if (isNotADef(sf, too))
-                throw new ProgramError("Object " + NodeUtil.stringName(cfn) +
+                throw new ProgramError(cfn,
+                        "Object " + NodeUtil.stringName(cfn) +
                         " does not define method " + sf.getString() +
                         " declared in " + too.getName());
         }

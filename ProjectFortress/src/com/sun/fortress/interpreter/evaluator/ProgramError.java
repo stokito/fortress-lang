@@ -102,7 +102,7 @@ public class ProgramError extends Error {
      */
     @Override
     public String getMessage() {
-        return (where == null ? "" : (where.at() + (where2 == null ? "" : ("+" + where2.at()) ) + ": ")) +
+        return (where == null ? "" : ("\n"+where.at() + (where2 == null ? "" : (": and\n" + where2.at()) ) + ": ")) +
         super.getMessage();
     }
 
