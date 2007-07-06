@@ -55,6 +55,7 @@ CubicDimUnit
 DimUnitOp
 Dimension
 DimensionParam
+DimensionStaticArg
 Do
 DoFront
 DottedId

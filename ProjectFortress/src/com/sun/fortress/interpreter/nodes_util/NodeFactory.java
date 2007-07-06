@@ -275,6 +275,10 @@ public class NodeFactory {
                                    new None<List<TypeRef>>(), false);
     }
 
+    public static TypeArg makeTypeArg(Span span, String string) {
+        return new TypeArg(span, new IdType(span, makeDottedId(span, string)));
+    }
+
     public static VarRefExpr makeVarRefExpr(Span span, String s) {
         return new VarRefExpr(span, new Id(span, s));
     }

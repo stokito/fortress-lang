@@ -84,14 +84,6 @@ public class GenericFlatStorageMaker extends GenericConstructor {
             Some.<StaticParam>makeSomeList(Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m")));
         Option<List<Param>> params = Some.makeSomeList(Collections.<Param>emptyList()); // ()
         Option<List<TypeRef>> traits =  // Array1[\T, 0, m\]
-            // new Some<List<TypeRef>>(Useful.<TypeRef>list(
-            //         ParamType.make("Array1",
-            //                 Useful.<StaticArg>list(TypeArg.make("T"),
-            //                             BaseNatRef.make(0),
-            //                             TypeArg.make("m")
-            //                             )
-            //                        )
-            //         ));
             new None<List<TypeRef>>();
         ObjectDecl od =  ObjectDecl.make(defs, mods, name, staticParams, params, traits, throws_, where, contract);
 

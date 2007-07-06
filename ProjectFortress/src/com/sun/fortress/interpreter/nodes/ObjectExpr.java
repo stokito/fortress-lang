@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
@@ -101,7 +101,7 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
                     implicitTypeParameters.values());
             staticParams = Some.makeSomeList(tparams);
             for (String s : implicitTypeParameters.keySet()) {
-                staticArgs.add(TypeArg.make(getSpan(), s));
+                staticArgs.add(NodeFactory.makeTypeArg(getSpan(), s));
 
             }
         }

@@ -26,36 +26,36 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class TypeArg extends StaticArg {
-  private final TypeRef _type;
+public class DimensionStaticArg extends CompoundStaticArg {
+  private final DimUnitOp _op;
 
   /**
-   * Constructs a TypeArg.
+   * Constructs a DimensionStaticArg.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public TypeArg(Span in_span, TypeRef in_type) {
-    super(in_span);
+  public DimensionStaticArg(Span in_span, List<StaticArg> in_values, DimUnitOp in_op) {
+    super(in_span, in_values);
 
-    if (in_type == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'type' to the TypeArg constructor was null");
+    if (in_op == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'op' to the DimensionStaticArg constructor was null");
     }
-    _type = in_type;
+    _op = in_op;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forTypeArg(this);
+        return v.forDimensionStaticArg(this);
     }
 
-    TypeArg(Span span) {
+    DimensionStaticArg(Span span) {
         super(span);
-        _type = null;
+        _op = null;
     }
 
-  final public TypeRef getType() { return _type; }
+  final public DimUnitOp getOp() { return _op; }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forTypeArg(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forTypeArg(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forDimensionStaticArg(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forDimensionStaticArg(this); }
 
   /**
    * Implementation of toString that uses
@@ -75,7 +75,7 @@ public class TypeArg extends StaticArg {
   }
 
   protected void outputHelp(TabPrintWriter writer, boolean lossless) {
-    writer.print("TypeArg:");
+    writer.print("DimensionStaticArg:");
     writer.indent();
 
     Span temp_span = getSpan();
@@ -87,10 +87,29 @@ public class TypeArg extends StaticArg {
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
 
-    TypeRef temp_type = getType();
+    List<StaticArg> temp_values = getValues();
     writer.startLine();
-    writer.print("type = ");
-    temp_type.outputHelp(writer, lossless);
+    writer.print("values = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_values = true;
+    for (StaticArg elt_temp_values : temp_values) {
+      isempty_temp_values = false;
+      writer.startLine("* ");
+      if (elt_temp_values == null) {
+        writer.print("null");
+      } else {
+        elt_temp_values.outputHelp(writer, lossless);
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_values) writer.print(" }");
+    else writer.startLine("}");
+
+    DimUnitOp temp_op = getOp();
+    writer.startLine();
+    writer.print("op = ");
+    temp_op.outputHelp(writer, lossless);
     writer.unindent();
   }
 
@@ -103,10 +122,13 @@ public class TypeArg extends StaticArg {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      TypeArg casted = (TypeArg) obj;
-      TypeRef temp_type = getType();
-      TypeRef casted_type = casted.getType();
-      if (!(temp_type == casted_type || temp_type.equals(casted_type))) return false;
+      DimensionStaticArg casted = (DimensionStaticArg) obj;
+      List<StaticArg> temp_values = getValues();
+      List<StaticArg> casted_values = casted.getValues();
+      if (!(temp_values == casted_values || temp_values.equals(casted_values))) return false;
+      DimUnitOp temp_op = getOp();
+      DimUnitOp casted_op = casted.getOp();
+      if (!(temp_op == casted_op || temp_op.equals(casted_op))) return false;
       return true;
     }
   }
@@ -118,8 +140,10 @@ public class TypeArg extends StaticArg {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    TypeRef temp_type = getType();
-    code ^= temp_type.hashCode();
+    List<StaticArg> temp_values = getValues();
+    code ^= temp_values.hashCode();
+    DimUnitOp temp_op = getOp();
+    code ^= temp_op.hashCode();
     return code;
   }
 }

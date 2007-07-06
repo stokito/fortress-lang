@@ -262,4 +262,7 @@ public interface NodeVisitor_void {
 
   /** Process an instance of ProductStaticArg. */
   public void forProductStaticArg(ProductStaticArg that);
+
+  /** Process an instance of DimensionStaticArg. */
+  public void forDimensionStaticArg(DimensionStaticArg that);
 }
