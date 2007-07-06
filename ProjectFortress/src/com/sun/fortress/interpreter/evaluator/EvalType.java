@@ -346,7 +346,7 @@ public class EvalType extends NodeVisitor<FType> {
      */
     @Override
     public FType forProductStaticArg(ProductStaticArg x) {
-        List<? extends TypeRef> value = x.getValue();
+        List<? extends TypeRef> value = x.getValues();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
             a *= longify(value.get(i));
@@ -373,7 +373,7 @@ public class EvalType extends NodeVisitor<FType> {
      */
     @Override
     public FType forSumStaticArg(SumStaticArg x) {
-        List<? extends TypeRef> value = x.getValue();
+        List<? extends TypeRef> value = x.getValues();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
             a += longify(value.get(i));

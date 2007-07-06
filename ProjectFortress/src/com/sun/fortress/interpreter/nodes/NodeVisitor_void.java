@@ -244,4 +244,22 @@ public interface NodeVisitor_void {
 
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
+
+  /** Process an instance of TypeArg. */
+  public void forTypeArg(TypeArg that);
+
+  /** Process an instance of SquareDimUnit. */
+  public void forSquareDimUnit(SquareDimUnit that);
+
+  /** Process an instance of CubicDimUnit. */
+  public void forCubicDimUnit(CubicDimUnit that);
+
+  /** Process an instance of InverseDimUnit. */
+  public void forInverseDimUnit(InverseDimUnit that);
+
+  /** Process an instance of SumStaticArg. */
+  public void forSumStaticArg(SumStaticArg that);
+
+  /** Process an instance of ProductStaticArg. */
+  public void forProductStaticArg(ProductStaticArg that);
 }

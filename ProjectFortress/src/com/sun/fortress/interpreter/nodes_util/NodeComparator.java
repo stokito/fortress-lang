@@ -246,8 +246,8 @@ public class NodeComparator {
 
     static int subtypeCompareTo(CompoundStaticArg left, CompoundStaticArg right) {
         // TODO Auto-generated method stub
-        return staticArgListComparer.compare(left.getValue(),
-                                             right.getValue());
+        return staticArgListComparer.compare(left.getValues(),
+                                             right.getValues());
     }
 
     static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {

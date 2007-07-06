@@ -26,34 +26,20 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public abstract class CompoundStaticArg extends StaticArg {
-  private final List<StaticArg> _values;
+public abstract class DimUnitOp extends AbstractNode {
 
   /**
-   * Constructs a CompoundStaticArg.
+   * Constructs a DimUnitOp.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public CompoundStaticArg(Span in_span, List<StaticArg> in_values) {
+  public DimUnitOp(Span in_span) {
     super(in_span);
-
-    if (in_values == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'values' to the CompoundStaticArg constructor was null");
-    }
-    _values = in_values;
   }
 
-    public CompoundStaticArg(Span span) {
-        super(span);
-        _values = null;
-    }
 
-  public List<StaticArg> getValues() { return _values; }
-
-    /*
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);
   public abstract void output(java.io.Writer writer);
   protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
   protected abstract int generateHashCode();
-    */
 }

@@ -51,6 +51,8 @@ CharLiteral
 Component
 ConstructorFnName
 Contract
+CubicDimUnit
+DimUnitOp
 Dimension
 DimensionParam
 Do
@@ -82,6 +84,7 @@ ImportNames
 ImportStar
 IntLiteral
 IntParam
+InverseDimUnit
 KeywordsExpr
 KeywordType
 Label
@@ -141,6 +144,7 @@ SetComprehension
 SetExpr
 SimpleTypeParam
 Spawn
+SquareDimUnit
 StaticArg
 StringLiteral
 SubscriptAssign

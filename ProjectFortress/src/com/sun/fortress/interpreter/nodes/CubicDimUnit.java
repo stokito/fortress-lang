@@ -26,27 +26,23 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class ProductStaticArg extends CompoundStaticArg {
+public class CubicDimUnit extends DimUnitOp {
 
   /**
-   * Constructs a ProductStaticArg.
+   * Constructs a CubicDimUnit.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public ProductStaticArg(Span in_span, List<StaticArg> in_values) {
-    super(in_span, in_values);
+  public CubicDimUnit(Span in_span) {
+    super(in_span);
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forProductStaticArg(this);
+        return v.forCubicDimUnit(this);
     }
 
-    ProductStaticArg(Span span) {
-        super(span);
-    }
-
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forProductStaticArg(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forProductStaticArg(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forCubicDimUnit(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forCubicDimUnit(this); }
 
   /**
    * Implementation of toString that uses
@@ -66,36 +62,17 @@ public class ProductStaticArg extends CompoundStaticArg {
   }
 
   protected void outputHelp(TabPrintWriter writer, boolean lossless) {
-    writer.print("ProductStaticArg:");
+    writer.print("CubicDimUnit:");
     writer.indent();
 
     Span temp_span = getSpan();
-    writer.startLine();
+    writer.print(" ");
     writer.print("span = ");
     if (lossless) {
       writer.printSerialized(temp_span);
       writer.print(" ");
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
-
-    List<StaticArg> temp_values = getValues();
-    writer.startLine();
-    writer.print("values = ");
-    writer.print("{");
-    writer.indent();
-    boolean isempty_temp_values = true;
-    for (StaticArg elt_temp_values : temp_values) {
-      isempty_temp_values = false;
-      writer.startLine("* ");
-      if (elt_temp_values == null) {
-        writer.print("null");
-      } else {
-        elt_temp_values.outputHelp(writer, lossless);
-      }
-    }
-    writer.unindent();
-    if (isempty_temp_values) writer.print(" }");
-    else writer.startLine("}");
     writer.unindent();
   }
 
@@ -108,10 +85,7 @@ public class ProductStaticArg extends CompoundStaticArg {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      ProductStaticArg casted = (ProductStaticArg) obj;
-      List<StaticArg> temp_values = getValues();
-      List<StaticArg> casted_values = casted.getValues();
-      if (!(temp_values == casted_values || temp_values.equals(casted_values))) return false;
+      CubicDimUnit casted = (CubicDimUnit) obj;
       return true;
     }
   }
@@ -123,8 +97,6 @@ public class ProductStaticArg extends CompoundStaticArg {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    List<StaticArg> temp_values = getValues();
-    code ^= temp_values.hashCode();
     return code;
   }
 }
