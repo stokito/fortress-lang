@@ -27,13 +27,19 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class ProductStaticArg extends CompoundStaticArg {
+  private final List<StaticArg> _values;
 
   /**
    * Constructs a ProductStaticArg.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public ProductStaticArg(Span in_span, List<StaticArg> in_values) {
-    super(in_span, in_values);
+    super(in_span);
+
+    if (in_values == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'values' to the ProductStaticArg constructor was null");
+    }
+    _values = in_values;
   }
 
     @Override
@@ -43,7 +49,10 @@ public class ProductStaticArg extends CompoundStaticArg {
 
     ProductStaticArg(Span span) {
         super(span);
+        _values = null;
     }
+
+  final public List<StaticArg> getValues() { return _values; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forProductStaticArg(this); }
   public void visit(NodeVisitor_void visitor) { visitor.forProductStaticArg(this); }

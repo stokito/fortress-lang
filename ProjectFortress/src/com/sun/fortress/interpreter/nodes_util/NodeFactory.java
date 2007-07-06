@@ -270,6 +270,14 @@ public class NodeFactory {
                          param.getType(), param.getDefaultExpr());
     }
 
+    /*
+    public static QuotientStaticArg makeQuotientStaticArg(Span span,
+                                                          StaticArg numerator,
+                                                          StaticArg denominator) {
+        return new QuotientStaticArg(span, ...);
+    }
+    */
+
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
                                    new None<List<TypeRef>>(), false);

@@ -27,14 +27,20 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class DimensionStaticArg extends CompoundStaticArg {
+  private final StaticArg _val;
   private final DimUnitOp _op;
 
   /**
    * Constructs a DimensionStaticArg.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public DimensionStaticArg(Span in_span, List<StaticArg> in_values, DimUnitOp in_op) {
-    super(in_span, in_values);
+  public DimensionStaticArg(Span in_span, StaticArg in_val, DimUnitOp in_op) {
+    super(in_span);
+
+    if (in_val == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'val' to the DimensionStaticArg constructor was null");
+    }
+    _val = in_val;
 
     if (in_op == null) {
       throw new java.lang.IllegalArgumentException("Parameter 'op' to the DimensionStaticArg constructor was null");
@@ -49,9 +55,11 @@ public class DimensionStaticArg extends CompoundStaticArg {
 
     DimensionStaticArg(Span span) {
         super(span);
+        _val = null;
         _op = null;
     }
 
+  final public StaticArg getVal() { return _val; }
   final public DimUnitOp getOp() { return _op; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forDimensionStaticArg(this); }
@@ -87,24 +95,10 @@ public class DimensionStaticArg extends CompoundStaticArg {
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
 
-    List<StaticArg> temp_values = getValues();
+    StaticArg temp_val = getVal();
     writer.startLine();
-    writer.print("values = ");
-    writer.print("{");
-    writer.indent();
-    boolean isempty_temp_values = true;
-    for (StaticArg elt_temp_values : temp_values) {
-      isempty_temp_values = false;
-      writer.startLine("* ");
-      if (elt_temp_values == null) {
-        writer.print("null");
-      } else {
-        elt_temp_values.outputHelp(writer, lossless);
-      }
-    }
-    writer.unindent();
-    if (isempty_temp_values) writer.print(" }");
-    else writer.startLine("}");
+    writer.print("val = ");
+    temp_val.outputHelp(writer, lossless);
 
     DimUnitOp temp_op = getOp();
     writer.startLine();
@@ -123,9 +117,9 @@ public class DimensionStaticArg extends CompoundStaticArg {
       return false;
     } else {
       DimensionStaticArg casted = (DimensionStaticArg) obj;
-      List<StaticArg> temp_values = getValues();
-      List<StaticArg> casted_values = casted.getValues();
-      if (!(temp_values == casted_values || temp_values.equals(casted_values))) return false;
+      StaticArg temp_val = getVal();
+      StaticArg casted_val = casted.getVal();
+      if (!(temp_val == casted_val || temp_val.equals(casted_val))) return false;
       DimUnitOp temp_op = getOp();
       DimUnitOp casted_op = casted.getOp();
       if (!(temp_op == casted_op || temp_op.equals(casted_op))) return false;
@@ -140,8 +134,8 @@ public class DimensionStaticArg extends CompoundStaticArg {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    List<StaticArg> temp_values = getValues();
-    code ^= temp_values.hashCode();
+    StaticArg temp_val = getVal();
+    code ^= temp_val.hashCode();
     DimUnitOp temp_op = getOp();
     code ^= temp_op.hashCode();
     return code;
