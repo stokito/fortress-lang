@@ -277,9 +277,9 @@ public class Unprinter extends NodeReflection {
                     // frob to any methods containing List or Pair.
                     f.set(node, readPair());
                 } else if (f.getType() == String.class) {
-                    f.set(node, deQuote(l.name())); // Lexer returns an
-                                                    // escape-containing
-                    // string, deQuote converts to Unicode.
+                    f.set(node, deQuote(l.name()).intern()); // Lexer returns an
+                                                     // escape-containing
+                                                     // string, deQuote converts to Unicode.
                 } else if (f.getType() == Integer.TYPE) {
                     f.setInt(node, readInt(l.name()));
                 } else if (f.getType() == Boolean.TYPE) {
@@ -524,8 +524,8 @@ public class Unprinter extends NodeReflection {
             expectPrefix("[");
             y = readList();
         } else if (a.startsWith("\"")) {
-            x = deQuote(a); // Internal form is quoted
-            y = deQuote(l.name()); // Internal form is quoted
+            x = deQuote(a).intern(); // Internal form is quoted
+            y = deQuote(l.name()).intern(); // Internal form is quoted
         } else {
             throw new Error("Pair of unknown stuff beginning " + a);
         }
@@ -566,7 +566,7 @@ public class Unprinter extends NodeReflection {
             } else if ("[".equals(s)) {
                 x = readList();
             } else if (s.startsWith("\"")) {
-                x = deQuote(s); // Intermediate form is quoted.
+                x = deQuote(s).intern(); // Intermediate form is quoted.
             } else if (s.startsWith("]")) {
                 return a;
             } else {
@@ -602,7 +602,7 @@ public class Unprinter extends NodeReflection {
         } else if ("[".equals(s)) {
             x = readList();
         } else if (s.startsWith("\"")) {
-            x = deQuote(s); // Internal form is quoted. deQuoteQuoted(s);
+            x = deQuote(s).intern(); // Internal form is quoted. deQuoteQuoted(s);
         } else {
             x = null;
         }
