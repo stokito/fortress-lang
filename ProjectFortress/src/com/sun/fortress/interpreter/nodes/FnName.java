@@ -26,11 +26,6 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-/**
- * Class FnName, a component of the Node composite hierarchy.
- * Note: null is not allowed as a value for any field.
- * @version  Generated automatically by ASTGen at Thu Jul 05 14:16:26 EDT 2007
- */
 public abstract class FnName extends AbstractNode {
 
   /**

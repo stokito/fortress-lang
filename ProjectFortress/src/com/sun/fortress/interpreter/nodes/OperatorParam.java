@@ -71,30 +71,26 @@ public class OperatorParam extends StaticParam {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("OperatorParam" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("OperatorParam:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("op = ");
     Op temp_op = getOp();
-    if (temp_op == null) {
-      writer.print("null");
-    } else {
-      temp_op.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("op = ");
+    temp_op.outputHelp(writer, lossless);
     writer.unindent();
   }
 

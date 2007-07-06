@@ -79,39 +79,31 @@ public class Label extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Label" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Label:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("name = ");
     Id temp_name = getName();
-    if (temp_name == null) {
-      writer.print("null");
-    } else {
-      temp_name.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("name = ");
+    temp_name.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("body = ");
     Expr temp_body = getBody();
-    if (temp_body == null) {
-      writer.print("null");
-    } else {
-      temp_body.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("body = ");
+    temp_body.outputHelp(writer, lossless);
     writer.unindent();
   }
 

@@ -79,39 +79,31 @@ public class Entry extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Entry" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Entry:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("key = ");
     Expr temp_key = getKey();
-    if (temp_key == null) {
-      writer.print("null");
-    } else {
-      temp_key.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("key = ");
+    temp_key.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("value = ");
     Expr temp_value = getValue();
-    if (temp_value == null) {
-      writer.print("null");
-    } else {
-      temp_value.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("value = ");
+    temp_value.outputHelp(writer, lossless);
     writer.unindent();
   }
 

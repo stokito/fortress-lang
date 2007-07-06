@@ -226,4 +226,13 @@ public interface NodeVisitor_void {
 
   /** Process an instance of TypeCaseClause. */
   public void forTypeCaseClause(TypeCaseClause that);
+
+  /** Process an instance of ListType. */
+  public void forListType(ListType that);
+
+  /** Process an instance of SetType. */
+  public void forSetType(SetType that);
+
+  /** Process an instance of ParamType. */
+  public void forParamType(ParamType that);
 }

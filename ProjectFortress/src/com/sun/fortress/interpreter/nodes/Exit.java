@@ -80,39 +80,39 @@ public class Exit extends FlowExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Exit" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Exit:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("name = ");
     Option<Id> temp_name = getName();
-    if (temp_name == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_name);
-    }
+    writer.startLine();
+    writer.print("name = ");
+    if (lossless) {
+      writer.printSerialized(temp_name);
+      writer.print(" ");
+      writer.printEscaped(temp_name);
+    } else { writer.print(temp_name); }
 
-    writer.startLine("");
-    writer.print("returnExpr = ");
     Option<Expr> temp_returnExpr = getReturnExpr();
-    if (temp_returnExpr == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_returnExpr);
-    }
+    writer.startLine();
+    writer.print("returnExpr = ");
+    if (lossless) {
+      writer.printSerialized(temp_returnExpr);
+      writer.print(" ");
+      writer.printEscaped(temp_returnExpr);
+    } else { writer.print(temp_returnExpr); }
     writer.unindent();
   }
 

@@ -70,30 +70,40 @@ public class Block extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Block" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Block:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("exprs = ");
     List<Expr> temp_exprs = getExprs();
-    if (temp_exprs == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_exprs);
+    writer.startLine();
+    writer.print("exprs = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_exprs = true;
+    for (Expr elt_temp_exprs : temp_exprs) {
+      isempty_temp_exprs = false;
+      writer.startLine("* ");
+      if (elt_temp_exprs == null) {
+        writer.print("null");
+      } else {
+        elt_temp_exprs.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_exprs) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 

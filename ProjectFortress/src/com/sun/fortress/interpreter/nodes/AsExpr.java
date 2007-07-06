@@ -79,39 +79,31 @@ public class AsExpr extends Expr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("AsExpr" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("AsExpr:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("expr = ");
     Expr temp_expr = getExpr();
-    if (temp_expr == null) {
-      writer.print("null");
-    } else {
-      temp_expr.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("expr = ");
+    temp_expr.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("type = ");
     TypeRef temp_type = getType();
-    if (temp_type == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_type);
-    }
+    writer.startLine();
+    writer.print("type = ");
+    temp_type.outputHelp(writer, lossless);
     writer.unindent();
   }
 

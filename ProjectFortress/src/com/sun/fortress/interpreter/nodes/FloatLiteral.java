@@ -87,57 +87,57 @@ public class FloatLiteral extends NumberLiteral {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("FloatLiteral" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("FloatLiteral:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("text = ");
     String temp_text = getText();
-    if (temp_text == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_text);
-    }
+    writer.startLine();
+    writer.print("text = ");
+    if (lossless) {
+      writer.print("\"");
+      writer.printEscaped(temp_text);
+      writer.print("\"");
+    } else { writer.print(temp_text); }
 
-    writer.startLine("");
-    writer.print("intPart = ");
     BigInteger temp_intPart = getIntPart();
-    if (temp_intPart == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_intPart);
-    }
+    writer.startLine();
+    writer.print("intPart = ");
+    if (lossless) {
+      writer.printSerialized(temp_intPart);
+      writer.print(" ");
+      writer.printEscaped(temp_intPart);
+    } else { writer.print(temp_intPart); }
 
-    writer.startLine("");
-    writer.print("numerator = ");
     BigInteger temp_numerator = getNumerator();
-    if (temp_numerator == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_numerator);
-    }
+    writer.startLine();
+    writer.print("numerator = ");
+    if (lossless) {
+      writer.printSerialized(temp_numerator);
+      writer.print(" ");
+      writer.printEscaped(temp_numerator);
+    } else { writer.print(temp_numerator); }
 
-    writer.startLine("");
-    writer.print("denomBase = ");
     int temp_denomBase = getDenomBase();
+    writer.startLine();
+    writer.print("denomBase = ");
     writer.print(temp_denomBase);
 
-    writer.startLine("");
-    writer.print("denomPower = ");
     int temp_denomPower = getDenomPower();
+    writer.startLine();
+    writer.print("denomPower = ");
     writer.print(temp_denomPower);
     writer.unindent();
   }

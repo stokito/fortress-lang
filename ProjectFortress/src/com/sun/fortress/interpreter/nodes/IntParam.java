@@ -71,30 +71,26 @@ public class IntParam extends StaticParam {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("IntParam" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("IntParam:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("id = ");
     Id temp_id = getId();
-    if (temp_id == null) {
-      writer.print("null");
-    } else {
-      temp_id.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("id = ");
+    temp_id.outputHelp(writer, lossless);
     writer.unindent();
   }
 

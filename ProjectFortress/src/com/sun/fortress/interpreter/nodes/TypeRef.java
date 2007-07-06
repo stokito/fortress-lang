@@ -17,35 +17,31 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
-import java.util.Comparator;
-
-import com.sun.fortress.interpreter.useful.AnyListComparer;
-import com.sun.fortress.interpreter.useful.ListComparer;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class TypeRef extends AbstractNode {
 
-    TypeRef(Span s) {
-        super(s);
-    }
-}
+  /**
+   * Constructs a TypeRef.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public TypeRef(Span in_span) {
+    super(in_span);
+  }
 
-// / and type_ref =
-// / [
-// / | `VoidType
-// / | `ArrowType of arrow_type
-// / | `IdType of dotted_name
-// / | `ParamType of param_type
-// / | `TupleType of type_ref list
-// / | `VectorType of vector_type
-// / | `MatrixType of matrix_type
-// / | `ArrayType of indexed_type
-// / | `MapType of map_type
-// / | `SetType of type_ref
-// / | `DimType of dim_type
-// / (* `RestType only appears in `TupleType or params, at the end of the
-// list *)
-// / | `RestType of type_ref
-// / ] node
-// /
+
+    /*
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
+    */
+}

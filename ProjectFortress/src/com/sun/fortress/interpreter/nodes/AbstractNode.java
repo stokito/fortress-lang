@@ -69,7 +69,7 @@ public abstract class AbstractNode implements HasAt, Node {
         return getClass().getSimpleName() + "@" + span.begin.at();
     }
 
-    public void outputHelp(TabPrintWriter writer) {}
+    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
 
     /**
      * The internal accept method, that all leaf nodes should implement.

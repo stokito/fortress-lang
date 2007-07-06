@@ -38,6 +38,6 @@ public abstract class CaseParam extends AbstractNode {
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);
-  public abstract void outputHelp(TabPrintWriter writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
   protected abstract int generateHashCode();
 }

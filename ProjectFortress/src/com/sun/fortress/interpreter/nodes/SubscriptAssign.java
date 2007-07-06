@@ -26,11 +26,6 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-/**
- * Class SubscriptAssign, a component of the Node composite hierarchy.
- * Note: null is not allowed as a value for any field.
- * @version  Generated automatically by ASTGen at Wed Jul 04 12:39:54 EDT 2007
- */
 public class SubscriptAssign extends OprName {
 
   /**

@@ -71,30 +71,40 @@ public class ArrayComprehension extends Comprehension {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("ArrayComprehension" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("ArrayComprehension:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("clauses = ");
     List<ArrayComprehensionClause> temp_clauses = getClauses();
-    if (temp_clauses == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_clauses);
+    writer.startLine();
+    writer.print("clauses = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_clauses = true;
+    for (ArrayComprehensionClause elt_temp_clauses : temp_clauses) {
+      isempty_temp_clauses = false;
+      writer.startLine("* ");
+      if (elt_temp_clauses == null) {
+        writer.print("null");
+      } else {
+        elt_temp_clauses.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_clauses) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 

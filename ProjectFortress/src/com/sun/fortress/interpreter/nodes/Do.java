@@ -71,30 +71,40 @@ public class Do extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Do" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Do:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("fronts = ");
     List<DoFront> temp_fronts = getFronts();
-    if (temp_fronts == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_fronts);
+    writer.startLine();
+    writer.print("fronts = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_fronts = true;
+    for (DoFront elt_temp_fronts : temp_fronts) {
+      isempty_temp_fronts = false;
+      writer.startLine("* ");
+      if (elt_temp_fronts == null) {
+        writer.print("null");
+      } else {
+        elt_temp_fronts.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_fronts) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 

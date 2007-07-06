@@ -87,48 +87,64 @@ public class ArrayComprehensionClause extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("ArrayComprehensionClause" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("ArrayComprehensionClause:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("bind = ");
     List<Expr> temp_bind = getBind();
-    if (temp_bind == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_bind);
+    writer.startLine();
+    writer.print("bind = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_bind = true;
+    for (Expr elt_temp_bind : temp_bind) {
+      isempty_temp_bind = false;
+      writer.startLine("* ");
+      if (elt_temp_bind == null) {
+        writer.print("null");
+      } else {
+        elt_temp_bind.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_bind) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("init = ");
     Expr temp_init = getInit();
-    if (temp_init == null) {
-      writer.print("null");
-    } else {
-      temp_init.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("init = ");
+    temp_init.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("gens = ");
     List<Generator> temp_gens = getGens();
-    if (temp_gens == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_gens);
+    writer.startLine();
+    writer.print("gens = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_gens = true;
+    for (Generator elt_temp_gens : temp_gens) {
+      isempty_temp_gens = false;
+      writer.startLine("* ");
+      if (elt_temp_gens == null) {
+        writer.print("null");
+      } else {
+        elt_temp_gens.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_gens) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 

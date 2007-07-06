@@ -79,39 +79,45 @@ public class CaseClause extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("CaseClause" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("CaseClause:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("match = ");
     Expr temp_match = getMatch();
-    if (temp_match == null) {
-      writer.print("null");
-    } else {
-      temp_match.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("match = ");
+    temp_match.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("body = ");
     List<Expr> temp_body = getBody();
-    if (temp_body == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_body);
+    writer.startLine();
+    writer.print("body = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_body = true;
+    for (Expr elt_temp_body : temp_body) {
+      isempty_temp_body = false;
+      writer.startLine("* ");
+      if (elt_temp_body == null) {
+        writer.print("null");
+      } else {
+        elt_temp_body.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_body) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 

@@ -89,43 +89,39 @@ public class SimpleTypeParam extends StaticParam {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("SimpleTypeParam" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("SimpleTypeParam:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("id = ");
     Id temp_id = getId();
-    if (temp_id == null) {
-      writer.print("null");
-    } else {
-      temp_id.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("id = ");
+    temp_id.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("extendsClause = ");
     Option<List<TypeRef>> temp_extendsClause = getExtendsClause();
-    if (temp_extendsClause == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_extendsClause);
-    }
+    writer.startLine();
+    writer.print("extendsClause = ");
+    if (lossless) {
+      writer.printSerialized(temp_extendsClause);
+      writer.print(" ");
+      writer.printEscaped(temp_extendsClause);
+    } else { writer.print(temp_extendsClause); }
 
-    writer.startLine("");
-    writer.print("absorbs = ");
     boolean temp_absorbs = isAbsorbs();
+    writer.startLine();
+    writer.print("absorbs = ");
     writer.print(temp_absorbs);
     writer.unindent();
   }

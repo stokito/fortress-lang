@@ -79,39 +79,35 @@ public class EnsuresClause extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("EnsuresClause" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("EnsuresClause:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("post = ");
     Expr temp_post = getPost();
-    if (temp_post == null) {
-      writer.print("null");
-    } else {
-      temp_post.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("post = ");
+    temp_post.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("pre = ");
     Option<Expr> temp_pre = getPre();
-    if (temp_pre == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_pre);
-    }
+    writer.startLine();
+    writer.print("pre = ");
+    if (lossless) {
+      writer.printSerialized(temp_pre);
+      writer.print(" ");
+      writer.printEscaped(temp_pre);
+    } else { writer.print(temp_pre); }
     writer.unindent();
   }
 

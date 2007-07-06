@@ -79,39 +79,49 @@ public class If extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("If" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("If:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("clauses = ");
     List<IfClause> temp_clauses = getClauses();
-    if (temp_clauses == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_clauses);
+    writer.startLine();
+    writer.print("clauses = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_clauses = true;
+    for (IfClause elt_temp_clauses : temp_clauses) {
+      isempty_temp_clauses = false;
+      writer.startLine("* ");
+      if (elt_temp_clauses == null) {
+        writer.print("null");
+      } else {
+        elt_temp_clauses.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_clauses) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("elseClause = ");
     Option<Expr> temp_elseClause = getElseClause();
-    if (temp_elseClause == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_elseClause);
-    }
+    writer.startLine();
+    writer.print("elseClause = ");
+    if (lossless) {
+      writer.printSerialized(temp_elseClause);
+      writer.print(" ");
+      writer.printEscaped(temp_elseClause);
+    } else { writer.print(temp_elseClause); }
     writer.unindent();
   }
 

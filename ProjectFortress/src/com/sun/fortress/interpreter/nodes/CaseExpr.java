@@ -95,57 +95,63 @@ public class CaseExpr extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("CaseExpr" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("CaseExpr:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("param = ");
     CaseParam temp_param = getParam();
-    if (temp_param == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_param);
-    }
+    writer.startLine();
+    writer.print("param = ");
+    temp_param.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("compare = ");
     Option<Op> temp_compare = getCompare();
-    if (temp_compare == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_compare);
-    }
+    writer.startLine();
+    writer.print("compare = ");
+    if (lossless) {
+      writer.printSerialized(temp_compare);
+      writer.print(" ");
+      writer.printEscaped(temp_compare);
+    } else { writer.print(temp_compare); }
 
-    writer.startLine("");
-    writer.print("clauses = ");
     List<CaseClause> temp_clauses = getClauses();
-    if (temp_clauses == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_clauses);
+    writer.startLine();
+    writer.print("clauses = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_clauses = true;
+    for (CaseClause elt_temp_clauses : temp_clauses) {
+      isempty_temp_clauses = false;
+      writer.startLine("* ");
+      if (elt_temp_clauses == null) {
+        writer.print("null");
+      } else {
+        elt_temp_clauses.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_clauses) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("elseClause = ");
     Option<List<Expr>> temp_elseClause = getElseClause();
-    if (temp_elseClause == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_elseClause);
-    }
+    writer.startLine();
+    writer.print("elseClause = ");
+    if (lossless) {
+      writer.printSerialized(temp_elseClause);
+      writer.print(" ");
+      writer.printEscaped(temp_elseClause);
+    } else { writer.print(temp_elseClause); }
     writer.unindent();
   }
 

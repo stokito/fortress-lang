@@ -67,34 +67,34 @@ public class CharLiteral extends Literal {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("CharLiteral" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("CharLiteral:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("text = ");
     String temp_text = getText();
-    if (temp_text == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_text);
-    }
+    writer.startLine();
+    writer.print("text = ");
+    if (lossless) {
+      writer.print("\"");
+      writer.printEscaped(temp_text);
+      writer.print("\"");
+    } else { writer.print(temp_text); }
 
-    writer.startLine("");
-    writer.print("val = ");
     int temp_val = getVal();
+    writer.startLine();
+    writer.print("val = ");
     writer.print(temp_val);
     writer.unindent();
   }

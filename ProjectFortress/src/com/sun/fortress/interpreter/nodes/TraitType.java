@@ -26,19 +26,21 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public abstract class OpExpr extends Expr {
+public abstract class TraitType extends NonArrowType {
 
   /**
-   * Constructs a OpExpr.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * Constructs a TraitType.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public OpExpr(Span in_span) {
+  public TraitType(Span in_span) {
     super(in_span);
   }
 
-
+    /*
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
   protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
   protected abstract int generateHashCode();
+    */
 }

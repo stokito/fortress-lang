@@ -95,57 +95,63 @@ public class Try extends DelimitedExpr {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Try" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Try:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("body = ");
     Expr temp_body = getBody();
-    if (temp_body == null) {
-      writer.print("null");
-    } else {
-      temp_body.outputHelp(writer);
-    }
+    writer.startLine();
+    writer.print("body = ");
+    temp_body.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("catchClause = ");
     Option<Catch> temp_catchClause = getCatchClause();
-    if (temp_catchClause == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_catchClause);
-    }
+    writer.startLine();
+    writer.print("catchClause = ");
+    if (lossless) {
+      writer.printSerialized(temp_catchClause);
+      writer.print(" ");
+      writer.printEscaped(temp_catchClause);
+    } else { writer.print(temp_catchClause); }
 
-    writer.startLine("");
-    writer.print("forbid = ");
     List<TypeRef> temp_forbid = getForbid();
-    if (temp_forbid == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_forbid);
+    writer.startLine();
+    writer.print("forbid = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_forbid = true;
+    for (TypeRef elt_temp_forbid : temp_forbid) {
+      isempty_temp_forbid = false;
+      writer.startLine("* ");
+      if (elt_temp_forbid == null) {
+        writer.print("null");
+      } else {
+        elt_temp_forbid.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_forbid) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("finallyClause = ");
     Option<Expr> temp_finallyClause = getFinallyClause();
-    if (temp_finallyClause == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_finallyClause);
-    }
+    writer.startLine();
+    writer.print("finallyClause = ");
+    if (lossless) {
+      writer.printSerialized(temp_finallyClause);
+      writer.print(" ");
+      writer.printEscaped(temp_finallyClause);
+    } else { writer.print(temp_finallyClause); }
     writer.unindent();
   }
 

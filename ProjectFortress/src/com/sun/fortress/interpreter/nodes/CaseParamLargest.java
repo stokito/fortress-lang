@@ -58,21 +58,21 @@ public class CaseParamLargest extends CaseParam {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("CaseParamLargest" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("CaseParamLargest:");
     writer.indent();
 
+    Span temp_span = getSpan();
     writer.print(" ");
     writer.print("span = ");
-    Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
     writer.unindent();
   }
 
