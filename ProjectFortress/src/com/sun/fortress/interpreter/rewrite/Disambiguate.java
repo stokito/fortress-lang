@@ -582,7 +582,7 @@ public class Disambiguate extends Rewrite {
             Expr loopSel = new FieldSelection(g.getSpan(), g.getInit(), what);
             List<Id> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());
-            for (Id b : binds) params.add(new Param(b));
+            for (Id b : binds) params.add(NodeFactory.makeParam(b));
             Expr loopBody = new Fn(span,params,body);
             span = new Span(span, g.getSpan());
             body = new TightJuxt(span, Useful.list(loopSel,loopBody));

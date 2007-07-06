@@ -240,6 +240,32 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
 
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  TypeRef type) {
+        return new Param(span, mods, name, new Some<TypeRef>(type),
+                         new None<Expr>());
+    }
+
+    public static Param makeParam(Id name, TypeRef type) {
+        return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
+                         new Some<TypeRef>(type), new None<Expr>());
+    }
+
+    public static Param makeParam(Id name) {
+        return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
+                         new None<TypeRef>(), new None<Expr>());
+    }
+
+    public static Param makeParam(Param param, Expr expr) {
+        return new Param(param.getSpan(), param.getMods(), param.getName(),
+                         param.getType(), new Some<Expr>(expr));
+    }
+
+    public static Param makeParam(Param param, List<Modifier> mods) {
+        return new Param(param.getSpan(), mods, param.getName(),
+                         param.getType(), param.getDefaultExpr());
+    }
+
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
                                    new None<List<TypeRef>>(), false);

@@ -30,6 +30,26 @@ import com.sun.fortress.interpreter.useful.UnitIterable;
 
 public class NodeUtil {
 
+    /* for Param ***********************************************************/
+    public static boolean isTransient(Param p) {
+        for (Modifier m : p.getMods()) {
+            if (m instanceof Modifier.Transient) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isMutable(Param p) {
+        for (Modifier m : p.getMods()) {
+            if (m instanceof Modifier.Var || m instanceof Modifier.Settable) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* getName *************************************************************/
     public static String getName(FnName n) {
         if (n instanceof DottedId) {
             String name;
@@ -94,6 +114,7 @@ public class NodeUtil {
         }
     }
 
+    /* stringName **********************************************************/
     public static String stringName(HasAt node) {
         if (node instanceof Dimension) {
             return ((Dimension)node).getId().getName();
@@ -120,6 +141,7 @@ public class NodeUtil {
         return expr.getGenSymName();
     }
 
+    /* stringNames *********************************************************/
     public static IterableOnce<String> stringNames(LValue d) {
         if (d instanceof LValueBind) {
             return new UnitIterable<String>(((LValueBind)d).getName().getName());
@@ -179,6 +201,7 @@ public class NodeUtil {
         }
     }
 
+    /* dump ****************************************************************/
     public static String dump(AbstractNode n) {
         try {
             StringBuffer sb = new StringBuffer();
@@ -201,6 +224,7 @@ public class NodeUtil {
         throw new Error("AST." + s + " NYI");
     }
 
+    /* function ************************************************************/
     public static final com.sun.fortress.interpreter.useful.Fn<Id, String> IdtoStringFn =
         new com.sun.fortress.interpreter.useful.Fn<Id, String>() {
             public String apply(Id x) {

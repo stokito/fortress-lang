@@ -163,7 +163,7 @@ public class EvalType extends NodeVisitor<FType> {
             String pname = id.getName();
             Option<TypeRef> type = in_p.getType();
             FType ptype = e.getFTypeFromOption(type);
-            Parameter fp = new Parameter(pname, ptype, in_p.isMutable());
+            Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
             fparams.add(i++, fp);
         }
         return fparams;

@@ -203,6 +203,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Op. */
   public void forOp(Op that);
 
+  /** Process an instance of Param. */
+  public void forParam(Param that);
+
   /** Process an instance of BoolParam. */
   public void forBoolParam(BoolParam that);
 

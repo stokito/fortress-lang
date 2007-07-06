@@ -46,8 +46,14 @@ public class NodeComparator {
     public static final ListComparer<KeywordType> keywordTypeListComparer =
         new ListComparer<KeywordType>();
 
-    public final static ListComparer<Param> paramListComparer =
-        new ListComparer<Param>();
+    static class ParamComparer implements Comparator<Param> {
+        public int compare(Param left, Param right) {
+            return compare(left, right);
+        }
+    }
+    final static ParamComparer paramComparer = new ParamComparer();
+    public final static AnyListComparer<Param> paramListComparer =
+        new AnyListComparer(paramComparer);
 
     static class TypeRefComparer implements Comparator<TypeRef> {
         public int compare(TypeRef left, TypeRef right) {
@@ -100,6 +106,7 @@ public class NodeComparator {
         return typeRefListComparer.compare(l, ol);
     }
 
+    /* compare methods ***************************************************/
     public static int compare(Applicable left, Applicable right) {
         return left.applicableCompareTo(right);
     }
@@ -155,6 +162,15 @@ public class NodeComparator {
             return tclass.getName().compareTo(oclass.getName());
         }
         return subtypeCompareTo(left, right);
+    }
+
+    public static int compare(Param left, Param right) {
+        int x = left.getName().getName().compareTo(right.getName().getName());
+        if (x != 0) return x;
+        x = compareOptionalTypeRef(left.getType(), right.getType());
+        if (x != 0) return x;
+        // TODO default expr, mods, must enter into comparison also.
+        return x;
     }
 
     public static int compare(TypeRef left, TypeRef right) {

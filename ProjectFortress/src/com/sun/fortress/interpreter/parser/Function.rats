@@ -49,7 +49,8 @@ AbsFnDecl FnSig =
      { List<Modifier> mods = FortressUtil.emptyModifiers();
        List<Param>  params = FortressUtil.emptyParams();
        for (TypeRef i : a2.getDomain()) {
-           params.add(new Param(i.getSpan(), mods, new Id(i.getSpan(), "_"), i));
+           params.add(NodeFactory.makeParam(i.getSpan(), mods,
+                                            new Id(i.getSpan(), "_"), i));
        }
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
                                           (FnName)a1, params, a2.getRange());

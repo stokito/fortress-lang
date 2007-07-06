@@ -85,7 +85,7 @@ public class Constructor extends AnonymousConstructor {
     static public void addParamsToCollection(
           List<Param> params, Collection<String> parameterNames) {
         for (Param p : params) {
-                if (!p.isTransient())
+                if (!NodeUtil.isTransient(p))
                     parameterNames.add(p.getName().getName());
        }
     }
@@ -103,7 +103,7 @@ public class Constructor extends AnonymousConstructor {
     static public void removeParamsFromCollection(
           List<Param> params,Collection<String> parameterNames) {
         for (Param p : params) {
-            if (!p.isTransient())
+            if (!NodeUtil.isTransient(p))
                 parameterNames.remove(p.getName().getName());
    }
 }
