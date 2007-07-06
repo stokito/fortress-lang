@@ -28,9 +28,7 @@ import com.sun.fortress.interpreter.useful.Option;
 // / extent_range_size : nat_type option;
 // / }
 // /
-public class ExtentRange extends AbstractNode implements Comparable<ExtentRange> {
-    public static final ListComparer<ExtentRange> listComparer = new ListComparer<ExtentRange>();
-
+public class ExtentRange extends AbstractNode {
     Option<TypeRef> base;
 
     Option<TypeRef> size;
@@ -62,20 +60,5 @@ public class ExtentRange extends AbstractNode implements Comparable<ExtentRange>
      */
     public Option<TypeRef> getSize() {
         return size;
-    }
-
-    public int compareTo(ExtentRange o) {
-        // TODO Optional parameters on extent ranges are tricky things; perhaps
-        // they need not both be present.
-        int x = NodeComparator.compareOptionalTypeRef(base, o.base);
-        if (x != 0) {
-            return x;
-        }
-        x = NodeComparator.compareOptionalTypeRef(size, o.size);
-        if (x != 0) {
-            return x;
-        }
-
-        return 0;
     }
 }

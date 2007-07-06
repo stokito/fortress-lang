@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.useful.Useful;
 // / keyword_type : type_ref;
 // / }
 // /
-public class KeywordType extends AbstractNode implements Comparable<KeywordType> {
+public class KeywordType extends AbstractNode {
     public KeywordType(Span s, Id name, TypeRef type) {
         super(s);
         this.name = name;
@@ -66,9 +66,4 @@ public class KeywordType extends AbstractNode implements Comparable<KeywordType>
     public String toString() {
         return "" + getName() + ":" + getType();
     }
-
-    public int compareTo(KeywordType o) {
-        return NodeComparator.compare(name, o.name, type, o.type);
-    }
-
 }

@@ -44,11 +44,4 @@ public class FixedDim extends Indices {
     public List<ExtentRange> getExtents() {
         return extents;
     }
-
-    @Override
-    int subtypeCompareTo(Indices o) {
-        return NodeComparator.extentRangeListComparer
-                .compare(extents, ((FixedDim) o).extents);
-    }
-
 }

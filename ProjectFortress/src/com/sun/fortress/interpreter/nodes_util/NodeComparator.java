@@ -40,11 +40,24 @@ public class NodeComparator {
     }
 
     /* list comparers ****************************************************/
-    public static final ListComparer<ExtentRange> extentRangeListComparer =
-        new ListComparer<ExtentRange>();
+    static class ExtentRangeComparer implements Comparator<ExtentRange> {
+        public int compare(ExtentRange left, ExtentRange right) {
+            return compare(left, right);
+        }
+    }
+    final static ExtentRangeComparer extentRangeComparer = new ExtentRangeComparer();
+    public final static AnyListComparer<ExtentRange> extentRangeListComparer =
+        new AnyListComparer(extentRangeComparer);
 
-    public static final ListComparer<KeywordType> keywordTypeListComparer =
-        new ListComparer<KeywordType>();
+
+    static class KeywordTypeComparer implements Comparator<KeywordType> {
+        public int compare(KeywordType left, KeywordType right) {
+            return compare(left, right);
+        }
+    }
+    final static KeywordTypeComparer keywordTypeComparer = new KeywordTypeComparer();
+    public final static AnyListComparer<KeywordType> keywordTypeListComparer =
+        new AnyListComparer(keywordTypeComparer);
 
     static class ParamComparer implements Comparator<Param> {
         public int compare(Param left, Param right) {
@@ -162,6 +175,11 @@ public class NodeComparator {
             return tclass.getName().compareTo(oclass.getName());
         }
         return subtypeCompareTo(left, right);
+    }
+
+    public static int compare(KeywordType left, KeywordType right) {
+        return compare(left.getName(), right.getName(),
+                       left.getType(), right.getType());
     }
 
     public static int compare(Param left, Param right) {

@@ -19,28 +19,11 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Span;
 
-public abstract class Indices extends AbstractNode implements Comparable<Indices> {
+public abstract class Indices extends AbstractNode {
 
     public Indices(Span span) {
         super(span);
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(Indices o) {
-        Class tclass = getClass();
-        Class oclass = o.getClass();
-        if (oclass != tclass) {
-            return tclass.getName().compareTo(oclass.getName());
-        }
-        return subtypeCompareTo(o);
-    }
-
-    abstract int subtypeCompareTo(Indices o);
-
 }
 
 // / and indices =
