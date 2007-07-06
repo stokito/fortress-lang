@@ -69,38 +69,6 @@ public abstract class AbstractNode implements HasAt, Node {
         return getClass().getSimpleName() + "@" + span.begin.at();
     }
 
-    /* Some static methods in scope for all the descendants of Node */
-
-    /*
-     * Note: triple-slashed comments are original OCaml code.
-     */
-
-    public static <T> T NYI(String s) {
-        throw new Error("AST." + s + " NYI");
-    }
-
-    static <T> T NI(String s) {
-        throw new Error("AST." + s + " intentionally not implemented");
-    }
-
-    public String dump() {
-        try {
-            StringBuffer sb = new StringBuffer();
-            dump(sb);
-            return sb.toString();
-        } catch (Throwable ex) {
-            return "Exception " + ex + " during dump";
-        }
-    }
-
-    /**
-     * @throws IOException
-     */
-    public void dump(Appendable appendable) throws IOException {
-        Printer p = new Printer(true, true, true);
-        p.dump(this, appendable, 0);
-    }
-
     public void outputHelp(TabPrintWriter writer) {}
 
     /**

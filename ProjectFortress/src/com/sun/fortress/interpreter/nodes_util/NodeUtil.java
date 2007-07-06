@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.nodes_util;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Iterator;
 import com.sun.fortress.interpreter.nodes.*;
@@ -176,6 +177,24 @@ public class NodeUtil {
         } else {
             throw new Error("NodeUtil.stringNames: Uncovered DefOrDecl " + d.getClass());
         }
+    }
+
+    public static String dump(AbstractNode n) {
+        try {
+            StringBuffer sb = new StringBuffer();
+            dump(sb, n);
+            return sb.toString();
+        } catch (Throwable ex) {
+            return "Exception " + ex + " during dump";
+        }
+    }
+
+    /**
+     * @throws IOException
+     */
+    public static void dump(Appendable appendable, AbstractNode n) throws IOException {
+        Printer p = new Printer(true, true, true);
+        p.dump(n, appendable, 0);
     }
 
     public static <T> T NYI(String s) {

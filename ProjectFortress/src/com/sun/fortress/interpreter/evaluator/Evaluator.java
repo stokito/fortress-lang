@@ -222,7 +222,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue NI(String s, AbstractNode n) {
         throw new InterpreterError(this.getClass().getName() + "." + s
-                + " not implemented, input \n" + n.dump());
+                + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
     public FValue forAccumulator(Accumulator x) {

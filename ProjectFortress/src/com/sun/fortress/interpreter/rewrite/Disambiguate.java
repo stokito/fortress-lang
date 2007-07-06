@@ -614,7 +614,7 @@ public class Disambiguate extends Rewrite {
         if (false && n != old) {
             try {
                 System.err.println("Rewritten method body:");
-                n.dump(System.err);
+                NodeUtil.dump(System.err, n);
                 System.err.println();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
