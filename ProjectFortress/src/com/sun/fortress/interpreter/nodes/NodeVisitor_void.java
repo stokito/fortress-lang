@@ -265,4 +265,10 @@ public interface NodeVisitor_void {
 
   /** Process an instance of DimensionStaticArg. */
   public void forDimensionStaticArg(DimensionStaticArg that);
+
+  /** Process an instance of QuotientStaticArg. */
+  public void forQuotientStaticArg(QuotientStaticArg that);
+
+  /** Process an instance of ExponentStaticArg. */
+  public void forExponentStaticArg(ExponentStaticArg that);
 }
