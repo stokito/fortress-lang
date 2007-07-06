@@ -141,7 +141,6 @@ QuotientType
 RestType
 SetComprehension
 SetExpr
-SetType
 SimpleTypeParam
 Spawn
 StaticArg

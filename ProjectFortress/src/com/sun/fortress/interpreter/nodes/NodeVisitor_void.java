@@ -230,9 +230,15 @@ public interface NodeVisitor_void {
   /** Process an instance of ListType. */
   public void forListType(ListType that);
 
-  /** Process an instance of SetType. */
-  public void forSetType(SetType that);
+  /** Process an instance of MapType. */
+  public void forMapType(MapType that);
 
   /** Process an instance of ParamType. */
   public void forParamType(ParamType that);
+
+  /** Process an instance of VectorType. */
+  public void forVectorType(VectorType that);
+
+  /** Process an instance of VoidType. */
+  public void forVoidType(VoidType that);
 }

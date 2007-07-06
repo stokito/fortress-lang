@@ -17,27 +17,36 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and map_type = map_type_rec node
-// / and map_type_rec =
-// / {
-// / map_type_key : type_ref;
-// / map_type_value : type_ref;
-// / }
-// /
-public class MapType extends TypeRef {
+public class MapType extends TraitType {
+  private final TypeRef _key;
+  private final TypeRef _value;
 
-    TypeRef key;
+  /**
+   * Constructs a MapType.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public MapType(Span in_span, TypeRef in_key, TypeRef in_value) {
+    super(in_span);
 
-    TypeRef value;
-
-    public MapType(Span span, TypeRef key, TypeRef value) {
-        super(span);
-        this.key = key;
-        this.value = value;
+    if (in_key == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'key' to the MapType constructor was null");
     }
+    _key = in_key;
+
+    if (in_value == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'value' to the MapType constructor was null");
+    }
+    _value = in_value;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -46,19 +55,89 @@ public class MapType extends TypeRef {
 
     MapType(Span span) {
         super(span);
+        _key = null;
+        _value = null;
     }
 
-    /**
-     * @return Returns the key.
-     */
-    public TypeRef getKey() {
-        return key;
-    }
+  final public TypeRef getKey() { return _key; }
+  final public TypeRef getValue() { return _value; }
 
-    /**
-     * @return Returns the value.
-     */
-    public TypeRef getValue() {
-        return value;
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forMapType(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forMapType(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("MapType:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    TypeRef temp_key = getKey();
+    writer.startLine();
+    writer.print("key = ");
+    temp_key.outputHelp(writer, lossless);
+
+    TypeRef temp_value = getValue();
+    writer.startLine();
+    writer.print("value = ");
+    temp_value.outputHelp(writer, lossless);
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      MapType casted = (MapType) obj;
+      TypeRef temp_key = getKey();
+      TypeRef casted_key = casted.getKey();
+      if (!(temp_key == casted_key || temp_key.equals(casted_key))) return false;
+      TypeRef temp_value = getValue();
+      TypeRef casted_value = casted.getValue();
+      if (!(temp_value == casted_value || temp_value.equals(casted_value))) return false;
+      return true;
     }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    TypeRef temp_key = getKey();
+    code ^= temp_key.hashCode();
+    TypeRef temp_value = getValue();
+    code ^= temp_value.hashCode();
+    return code;
+  }
 }

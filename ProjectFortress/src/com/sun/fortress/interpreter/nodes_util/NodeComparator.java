@@ -339,10 +339,6 @@ public class NodeComparator {
         return compare(left.getType(), right.getType());
     }
 
-    static int subtypeCompareTo(SetType left, SetType right) {
-        return compare(left.getElementType(), right.getElementType());
-    }
-
     static int subtypeCompareTo(TupleType left, TupleType right) {
         return typeRefListComparer.compare(left.getElements(), right.getElements());
     }
