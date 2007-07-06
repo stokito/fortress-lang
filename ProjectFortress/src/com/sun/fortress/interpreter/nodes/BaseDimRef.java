@@ -26,36 +26,23 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class BaseOprRef extends StaticArg {
-  private final FnName _name;
+public class BaseDimRef extends StaticArg {
 
   /**
-   * Constructs a BaseOprRef.
+   * Constructs a BaseDimRef.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public BaseOprRef(Span in_span, FnName in_name) {
+  public BaseDimRef(Span in_span) {
     super(in_span);
-
-    if (in_name == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'name' to the BaseOprRef constructor was null");
-    }
-    _name = in_name;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forBaseOprRef(this);
+        return v.forBaseDimRef(this);
     }
 
-    BaseOprRef(Span span) {
-        super(span);
-        _name = null;
-    }
-
-  final public FnName getName() { return _name; }
-
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forBaseOprRef(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forBaseOprRef(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forBaseDimRef(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forBaseDimRef(this); }
 
   /**
    * Implementation of toString that uses
@@ -75,22 +62,17 @@ public class BaseOprRef extends StaticArg {
   }
 
   protected void outputHelp(TabPrintWriter writer, boolean lossless) {
-    writer.print("BaseOprRef:");
+    writer.print("BaseDimRef:");
     writer.indent();
 
     Span temp_span = getSpan();
-    writer.startLine();
+    writer.print(" ");
     writer.print("span = ");
     if (lossless) {
       writer.printSerialized(temp_span);
       writer.print(" ");
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
-
-    FnName temp_name = getName();
-    writer.startLine();
-    writer.print("name = ");
-    temp_name.outputHelp(writer, lossless);
     writer.unindent();
   }
 
@@ -103,10 +85,7 @@ public class BaseOprRef extends StaticArg {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      BaseOprRef casted = (BaseOprRef) obj;
-      FnName temp_name = getName();
-      FnName casted_name = casted.getName();
-      if (!(temp_name == casted_name || temp_name.equals(casted_name))) return false;
+      BaseDimRef casted = (BaseDimRef) obj;
       return true;
     }
   }
@@ -118,8 +97,6 @@ public class BaseOprRef extends StaticArg {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    FnName temp_name = getName();
-    code ^= temp_name.hashCode();
     return code;
   }
 }

@@ -255,8 +255,10 @@ private StaticArg StaticArg =
      { yyValue = (StaticArg)apply(list, seed); };
 
 private StaticArg StaticArgFront =
-     a1:Number { yyValue = new BaseNatRef(createSpan(yyStart,yyCount), a1); }
-   / a1:Op     { yyValue = new BaseOprRef(createSpan(yyStart,yyCount), a1); }
+     a1:Number
+     { yyValue = NodeFactory.makeBaseNatRef(createSpan(yyStart,yyCount), a1); }
+   / a1:Op
+     { yyValue = NodeFactory.makeBaseOprRef(createSpan(yyStart,yyCount), a1); }
 /* ************************************************
  * Not Yet Implemented ***************************
    / "true"
@@ -266,7 +268,7 @@ private StaticArg StaticArgFront =
 ************************************************ */
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
-       StaticArg one = new BaseNatRef(span, NodeFactory.makeIntLiteral(span, "1"));
+       StaticArg one = NodeFactory.makeBaseNatRef(span, NodeFactory.makeIntLiteral(span, "1"));
        yyValue = new QuotientStaticArg(createSpan(yyStart,yyCount), one, a1);
      }
 /* ************************************************

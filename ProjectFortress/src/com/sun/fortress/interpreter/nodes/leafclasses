@@ -36,8 +36,10 @@ AsIfExpr
 Assignment
 AtomicExpr
 BaseBoolRef
+BaseDimRef
 BaseNatRef
 BaseOprRef
+BaseUnitRef
 Binding
 Block
 BoolParam

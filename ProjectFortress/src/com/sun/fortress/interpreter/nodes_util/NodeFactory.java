@@ -44,6 +44,13 @@ public class NodeFactory {
                                    new Some<HasAt>(at));
     }
     ******************************************************/
+    public static BaseNatRef makeBaseNatRef(Span span, IntLiteral value) {
+        return new BaseNatRef(span, value.getVal().intValue());
+    }
+
+    public static BaseOprRef makeBaseOprRef(Span span, Op op) {
+        return new BaseOprRef(span, new Opr(span, op));
+    }
 
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, s, s.charAt(0));

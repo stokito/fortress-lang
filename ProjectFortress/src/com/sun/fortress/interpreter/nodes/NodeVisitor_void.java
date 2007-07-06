@@ -245,6 +245,18 @@ public interface NodeVisitor_void {
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
 
+  /** Process an instance of BaseNatRef. */
+  public void forBaseNatRef(BaseNatRef that);
+
+  /** Process an instance of BaseOprRef. */
+  public void forBaseOprRef(BaseOprRef that);
+
+  /** Process an instance of BaseDimRef. */
+  public void forBaseDimRef(BaseDimRef that);
+
+  /** Process an instance of BaseUnitRef. */
+  public void forBaseUnitRef(BaseUnitRef that);
+
   /** Process an instance of BaseBoolRef. */
   public void forBaseBoolRef(BaseBoolRef that);
 
