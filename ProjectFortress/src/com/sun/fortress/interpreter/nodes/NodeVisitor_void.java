@@ -206,6 +206,9 @@ public interface NodeVisitor_void {
   /** Process an instance of FixedDim. */
   public void forFixedDim(FixedDim that);
 
+  /** Process an instance of KeywordType. */
+  public void forKeywordType(KeywordType that);
+
   /** Process an instance of Op. */
   public void forOp(Op that);
 
