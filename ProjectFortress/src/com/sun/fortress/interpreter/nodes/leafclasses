@@ -151,7 +151,6 @@ PropertyDecl
 QuotientDimType
 QuotientStaticArg
 QuotientUnitType
-RestType
 SetComprehension
 SetExpr
 SimpleTypeParam
@@ -182,6 +181,7 @@ UnpastingBind
 UnpastingDim
 UnpastingSplit
 VarargsExpr
+VarargsType
 VarDecl
 VarRefExpr
 VectorType

@@ -59,7 +59,7 @@ import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
 import com.sun.fortress.interpreter.nodes.ProductStaticArg;
-import com.sun.fortress.interpreter.nodes.RestType;
+import com.sun.fortress.interpreter.nodes.VarargsType;
 import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -298,7 +298,7 @@ public class EvalType extends NodeVisitor<FType> {
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
-    public FType forRestType(RestType rt) {
+    public FType forVarargsType(VarargsType rt) {
         return FTypeRest.make(rt.getType().accept(this));
     }
 

@@ -409,7 +409,7 @@ public class Disambiguate extends Rewrite {
                         ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
                         String temp = "t$" + (++tempCount);
                         Span at = vd.getSpan();
-                        VarDecl new_vd = new VarDecl(at, new Id(at, temp), init);
+                        VarDecl new_vd = NodeFactory.makeVarDecl(at, new Id(at, temp), init);
                         newdecls.add(new_vd);
                         int element_index = 0;
                         for (LValue lv : lhs) {

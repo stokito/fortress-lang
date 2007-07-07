@@ -20,16 +20,16 @@ package com.sun.fortress.interpreter.nodes;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 
-public class RestType extends TypeRef {
-    public RestType(Span s, TypeRef t) {
+public class VarargsType extends TypeRef {
+    public VarargsType(Span s, TypeRef t) {
         super(s);
         this.type = t;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof RestType) {
-            RestType rt = (RestType) o;
+        if (o instanceof VarargsType) {
+            VarargsType rt = (VarargsType) o;
             return type.equals(rt.getType());
         }
         return false;
@@ -44,10 +44,10 @@ public class RestType extends TypeRef {
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forRestType(this);
+        return v.forVarargsType(this);
     }
 
-    RestType(Span span) {
+    VarargsType(Span span) {
         super(span);
     }
 
@@ -63,8 +63,8 @@ public class RestType extends TypeRef {
         return type.toString() + "...";
     }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forRestType(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forRestType(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forVarargsType(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forVarargsType(this); }
   /**
    * Prints this object out as a nicely tabbed tree.
    */

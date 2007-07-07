@@ -57,7 +57,7 @@ List<Param> Params =
 
 /* Varargs ::= Id w : w TypeRef w ... */
 Param VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
-     { TypeRef ty = new RestType(a2.getSpan(), a2);
+     { TypeRef ty = new VarargsType(a2.getSpan(), a2);
        yyValue = NodeFactory.makeParam(a1, ty);
      };
 Param Varargs = VarargsParam ;

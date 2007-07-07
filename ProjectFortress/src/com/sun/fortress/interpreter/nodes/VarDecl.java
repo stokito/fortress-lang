@@ -17,80 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
-
-
-// / and var_def = var_def_rec node
-// / and var_def_rec =
-// / {
-// / var_def_mods : modifier list;
-// / var_def_name : id;
-// / var_def_type : type_ref option;
-// / var_def_init : expr;
-// / }
-// /
 public class VarDecl extends VarDefOrDecl implements Decl {
-    // Option<TypeRef> type;
+  private final Expr _init;
 
-    Expr init;
+  /**
+   * Constructs a VarDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public VarDecl(Span in_span, List<LValue> in_lhs, Expr in_init) {
+    super(in_span, in_lhs);
 
-    public VarDecl(Span s, List<LValue> lhs, Expr init) {
-        super(s);
-        this.lhs = lhs;
-        this.init = init;
+    if (in_init == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'init' to the VarDecl constructor was null");
     }
-
-    public VarDecl(Span s, Id name, List<Modifier> mods, Option<TypeRef> type,
-            Expr init) {
-        super(s);
-        super.init(name, type, mods, true);
-        this.init = init;
-    }
-
-    public VarDecl(Span s, Id name, List<Modifier> mods, TypeRef type, Expr init) {
-        this(s, name, mods, new Some<TypeRef>(type), init);
-    }
-
-    public VarDecl(Span s, Id name, TypeRef type, Expr init) {
-        this(s, name, Collections.<Modifier> emptyList(), new Some<TypeRef>(
-                type), init);
-    }
-
-    public VarDecl(Span s, Id name, List<Modifier> mods, Expr init) {
-        this(s, name, mods, new None<TypeRef>(), init);
-    }
-
-    public VarDecl(Span s, Id name, Expr init) {
-        this(s, name, Collections.<Modifier> emptyList(), new None<TypeRef>(),
-                init);
-    }
-
-    @Override
-    public String toString() {
-        return Useful.listInParens(getLhs())+"="+init+getSpan();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof VarDecl) {
-            VarDecl v = (VarDecl) o;
-            return init.equals(v.getInit()) && superEquals(v);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return MagicNumbers.D * init.hashCode() + superHashCode();
-    }
+    _init = in_init;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -99,19 +49,105 @@ public class VarDecl extends VarDefOrDecl implements Decl {
 
     VarDecl(Span span) {
         super(span);
+        _init = null;
     }
 
-    /**
-     * @return Returns the init.
-     */
-    public Expr getInit() {
-        return init;
-    }
+  final public Expr getInit() { return _init; }
 
-    // /**
-    // * @return Returns the type.
-    // */
-    // public Option<TypeRef> getType() {
-    // return type;
-    // }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forVarDecl(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forVarDecl(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("VarDecl:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<LValue> temp_lhs = getLhs();
+    writer.startLine();
+    writer.print("lhs = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_lhs = true;
+    for (LValue elt_temp_lhs : temp_lhs) {
+      isempty_temp_lhs = false;
+      writer.startLine("* ");
+      if (elt_temp_lhs == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.printSerialized(elt_temp_lhs);
+          writer.print(" ");
+          writer.printEscaped(elt_temp_lhs);
+        } else { writer.print(elt_temp_lhs); }
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_lhs) writer.print(" }");
+    else writer.startLine("}");
+
+    Expr temp_init = getInit();
+    writer.startLine();
+    writer.print("init = ");
+    temp_init.outputHelp(writer, lossless);
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      VarDecl casted = (VarDecl) obj;
+      List<LValue> temp_lhs = getLhs();
+      List<LValue> casted_lhs = casted.getLhs();
+      if (!(temp_lhs == casted_lhs || temp_lhs.equals(casted_lhs))) return false;
+      Expr temp_init = getInit();
+      Expr casted_init = casted.getInit();
+      if (!(temp_init == casted_init || temp_init.equals(casted_init))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<LValue> temp_lhs = getLhs();
+    code ^= temp_lhs.hashCode();
+    Expr temp_init = getInit();
+    code ^= temp_init.hashCode();
+    return code;
+  }
 }

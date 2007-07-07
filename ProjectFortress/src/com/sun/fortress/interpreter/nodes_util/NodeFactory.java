@@ -333,6 +333,15 @@ public class NodeFactory {
         return new TypeArg(span, new IdType(span, makeDottedId(span, string)));
     }
 
+    public static VarDecl makeVarDecl(Span span, Id id, Expr init) {
+        return new VarDecl(span, Useful.<LValue>list(
+                                new LValueBind(span, id,
+                                               new None<TypeRef>(),
+                                               Collections.<Modifier>emptyList(),
+                                               true)),
+                           init);
+    }
+
     public static VarRefExpr makeVarRefExpr(Span span, String s) {
         return new VarRefExpr(span, new Id(span, s));
     }

@@ -17,43 +17,118 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and var_decl = var_decl_rec node
-// / and var_decl_rec =
-// / {
-// / var_decl_mods : modifier list;
-// / var_decl_name : id;
-// / var_decl_type : type_ref;
-// / }
-// /
 public class AbsVarDecl extends VarDefOrDecl implements AbsDecl {
 
-    public AbsVarDecl(Span s, List<LValue> lhs) {
-        super(s);
-        this.lhs = lhs;
-    }
+  /**
+   * Constructs a AbsVarDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public AbsVarDecl(Span in_span, List<LValue> in_lhs) {
+    super(in_span, in_lhs);
+  }
+
+  public AbsVarDecl(Span in_span) {
+    super(in_span);
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         return v.forAbsVarDecl(this);
     }
 
-    AbsVarDecl(Span span) {
-        super(span);
-    }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forAbsVarDecl(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forAbsVarDecl(this); }
 
-    @Override
-    public String toString() {
-        return "abs "+Useful.listInParens(getLhs())+getSpan();
-    }
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
 
-    /**
-     * @return Returns the type.
-     */
-    // public TypeRef getType() {
-    // return type.getVal();
-    // }
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("AbsVarDecl:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<LValue> temp_lhs = getLhs();
+    writer.startLine();
+    writer.print("lhs = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_lhs = true;
+    for (LValue elt_temp_lhs : temp_lhs) {
+      isempty_temp_lhs = false;
+      writer.startLine("* ");
+      if (elt_temp_lhs == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.printSerialized(elt_temp_lhs);
+          writer.print(" ");
+          writer.printEscaped(elt_temp_lhs);
+        } else { writer.print(elt_temp_lhs); }
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_lhs) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      AbsVarDecl casted = (AbsVarDecl) obj;
+      List<LValue> temp_lhs = getLhs();
+      List<LValue> casted_lhs = casted.getLhs();
+      if (!(temp_lhs == casted_lhs || temp_lhs.equals(casted_lhs))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<LValue> temp_lhs = getLhs();
+    code ^= temp_lhs.hashCode();
+    return code;
+  }
 }

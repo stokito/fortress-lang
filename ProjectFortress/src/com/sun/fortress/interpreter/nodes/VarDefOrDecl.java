@@ -17,91 +17,41 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-
-import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
-
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class VarDefOrDecl extends AbstractNode implements DefOrDecl {
-    List<LValue> lhs;
+  private final List<LValue> _lhs;
+
+  /**
+   * Constructs a VarDefOrDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public VarDefOrDecl(Span in_span, List<LValue> in_lhs) {
+    super(in_span);
+
+    if (in_lhs == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'lhs' to the VarDefOrDecl constructor was null");
+    }
+    _lhs = in_lhs;
+  }
 
     VarDefOrDecl(Span s) {
         super(s);
+        _lhs = null;
     }
 
-    protected boolean superEquals(VarDefOrDecl v) {
-        return lhs.equals(v.getLhs());
-    }
+  public List<LValue> getLhs() { return _lhs; }
 
-    public List<LValue> getLhs() {
-        return lhs;
-    }
-
-    protected int superHashCode() {
-        return MagicNumbers.hashList(lhs, MagicNumbers.O);
-    }
-
-    // /**
-    // * @return Returns the mods.
-    // */
-    // public List<Modifier> getMods() {
-    // return mods;
-    // }
-    /**
-     * @deprecated Only works for old-style single name vardecl.
-     * @return Returns the name.
-     */
-    @Deprecated
-    public Id getName() {
-        if (lhs.size() != 1) {
-            throw new ProgramError(this,
-                    "Only works for old-style single name vardecl.");
-        }
-        LValue lv = lhs.get(0);
-        if (!(lv instanceof LValueBind)) {
-            throw new ProgramError(this,
-                    "Only works for old-style single name vardecl.");
-        }
-        LValueBind lvb = (LValueBind) lv;
-        return lvb.getName();
-
-    }
-
-    /**
-     * @deprecated Only works for old-style single name vardecl.
-     * @return Returns the name.
-     */
-    @Deprecated
-    public Option<TypeRef> getType() {
-        if (lhs.size() != 1) {
-            throw new ProgramError(this,
-                    "Only works for old-style single name vardecl.");
-        }
-        LValue lv = lhs.get(0);
-        if (!(lv instanceof LValueBind)) {
-            throw new ProgramError(this,
-                    "Only works for old-style single name vardecl.");
-        }
-        LValueBind lvb = (LValueBind) lv;
-        return lvb.getType();
-
-    }
-
-    //
-    // public String stringName() {
-    // return name.getName();
-    // }
-
-    public void init(Id name, Option<TypeRef> type, List<Modifier> mods,
-            boolean mutable) {
-        lhs = Useful.<LValue> list(new LValueBind(span, name, type, mods,
-                mutable));
-
-    }
-
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }

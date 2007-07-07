@@ -74,6 +74,15 @@ public interface NodeVisitor_void {
   /** Process an instance of Api. */
   public void forApi(Api that);
 
+  /** Process an instance of SquareDimUnit. */
+  public void forSquareDimUnit(SquareDimUnit that);
+
+  /** Process an instance of CubicDimUnit. */
+  public void forCubicDimUnit(CubicDimUnit that);
+
+  /** Process an instance of InverseDimUnit. */
+  public void forInverseDimUnit(InverseDimUnit that);
+
   /** Process an instance of DoFront. */
   public void forDoFront(DoFront that);
 
@@ -224,8 +233,10 @@ public interface NodeVisitor_void {
   /** Process an instance of KeywordType. */
   public void forKeywordType(KeywordType that);
 
-  /** Process an instance of RestType. */
-  public void forRestType(RestType that);
+  /**
+     * Process an instance of VarargsType.
+     */
+  public void forVarargsType(VarargsType that);
 
   /** Process an instance of Op. */
   public void forOp(Op that);
@@ -353,12 +364,9 @@ public interface NodeVisitor_void {
   /** Process an instance of TypeArg. */
   public void forTypeArg(TypeArg that);
 
-  /** Process an instance of SquareDimUnit. */
-  public void forSquareDimUnit(SquareDimUnit that);
+  /** Process an instance of AbsVarDecl. */
+  public void forAbsVarDecl(AbsVarDecl that);
 
-  /** Process an instance of CubicDimUnit. */
-  public void forCubicDimUnit(CubicDimUnit that);
-
-  /** Process an instance of InverseDimUnit. */
-  public void forInverseDimUnit(InverseDimUnit that);
+  /** Process an instance of VarDecl. */
+  public void forVarDecl(VarDecl that);
 }

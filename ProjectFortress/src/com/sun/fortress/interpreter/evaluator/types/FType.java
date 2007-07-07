@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.nodes.IdType;
-import com.sun.fortress.interpreter.nodes.RestType;
+import com.sun.fortress.interpreter.nodes.VarargsType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
@@ -372,8 +372,8 @@ abstract public class FType implements Comparable<FType> {
      * one is final.
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        if (val instanceof RestType) {
-            val = ((RestType) val).getType();
+        if (val instanceof VarargsType) {
+            val = ((VarargsType) val).getType();
         }
         /* Check if val is a type variable */
         if (val instanceof IdType) {

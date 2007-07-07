@@ -307,7 +307,7 @@ public class NodeComparator {
                        left.getDenominator(), right.getDenominator());
     }
 
-    static int subtypeCompareTo(RestType left, RestType right) {
+    static int subtypeCompareTo(VarargsType left, VarargsType right) {
         return compare(left.getType(), right.getType());
     }
 
