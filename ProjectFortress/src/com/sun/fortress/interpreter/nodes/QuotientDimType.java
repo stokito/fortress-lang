@@ -27,14 +27,14 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class QuotientDimType extends DimType {
-  private final DimType _numerator;
-  private final DimType _denominator;
+  private final TypeRef _numerator;
+  private final DimRef _denominator;
 
   /**
    * Constructs a QuotientDimType.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public QuotientDimType(Span in_span, DimType in_numerator, DimType in_denominator) {
+  public QuotientDimType(Span in_span, TypeRef in_numerator, DimRef in_denominator) {
     super(in_span);
 
     if (in_numerator == null) {
@@ -59,8 +59,8 @@ public class QuotientDimType extends DimType {
         _denominator = null;
     }
 
-  final public DimType getNumerator() { return _numerator; }
-  final public DimType getDenominator() { return _denominator; }
+  final public TypeRef getNumerator() { return _numerator; }
+  final public DimRef getDenominator() { return _denominator; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forQuotientDimType(this); }
   public void visit(NodeVisitor_void visitor) { visitor.forQuotientDimType(this); }
@@ -95,12 +95,12 @@ public class QuotientDimType extends DimType {
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
 
-    DimType temp_numerator = getNumerator();
+    TypeRef temp_numerator = getNumerator();
     writer.startLine();
     writer.print("numerator = ");
     temp_numerator.outputHelp(writer, lossless);
 
-    DimType temp_denominator = getDenominator();
+    DimRef temp_denominator = getDenominator();
     writer.startLine();
     writer.print("denominator = ");
     temp_denominator.outputHelp(writer, lossless);
@@ -117,11 +117,11 @@ public class QuotientDimType extends DimType {
       return false;
     } else {
       QuotientDimType casted = (QuotientDimType) obj;
-      DimType temp_numerator = getNumerator();
-      DimType casted_numerator = casted.getNumerator();
+      TypeRef temp_numerator = getNumerator();
+      TypeRef casted_numerator = casted.getNumerator();
       if (!(temp_numerator == casted_numerator || temp_numerator.equals(casted_numerator))) return false;
-      DimType temp_denominator = getDenominator();
-      DimType casted_denominator = casted.getDenominator();
+      DimRef temp_denominator = getDenominator();
+      DimRef casted_denominator = casted.getDenominator();
       if (!(temp_denominator == casted_denominator || temp_denominator.equals(casted_denominator))) return false;
       return true;
     }
@@ -134,9 +134,9 @@ public class QuotientDimType extends DimType {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    DimType temp_numerator = getNumerator();
+    TypeRef temp_numerator = getNumerator();
     code ^= temp_numerator.hashCode();
-    DimType temp_denominator = getDenominator();
+    DimRef temp_denominator = getDenominator();
     code ^= temp_denominator.hashCode();
     return code;
   }

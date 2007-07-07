@@ -37,10 +37,12 @@ import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.nodes.ArrayType;
 import com.sun.fortress.interpreter.nodes.ArrowType;
+import com.sun.fortress.interpreter.nodes.BaseBoolRef;
 import com.sun.fortress.interpreter.nodes.BaseNatRef;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.BoolParam;
@@ -298,6 +300,11 @@ public class EvalType extends NodeVisitor<FType> {
 
     public FType forRestType(RestType rt) {
         return FTypeRest.make(rt.getType().accept(this));
+    }
+
+    public FType forBaseBoolRef(BaseBoolRef b) {
+        if (b.isBool()) return new Bool("true", FBool.TRUE);
+        else return new Bool("false", FBool.FALSE);
     }
 
     public FType forIdType(IdType i) {

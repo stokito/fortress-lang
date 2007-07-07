@@ -27,14 +27,14 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class ProductDimType extends DimType {
-  private final DimType _multiplier;
-  private final DimType _multiplicand;
+  private final TypeRef _multiplier;
+  private final DimRef _multiplicand;
 
   /**
    * Constructs a ProductDimType.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public ProductDimType(Span in_span, DimType in_multiplier, DimType in_multiplicand) {
+  public ProductDimType(Span in_span, TypeRef in_multiplier, DimRef in_multiplicand) {
     super(in_span);
 
     if (in_multiplier == null) {
@@ -59,8 +59,8 @@ public class ProductDimType extends DimType {
         _multiplicand = null;
     }
 
-  final public DimType getMultiplier() { return _multiplier; }
-  final public DimType getMultiplicand() { return _multiplicand; }
+  final public TypeRef getMultiplier() { return _multiplier; }
+  final public DimRef getMultiplicand() { return _multiplicand; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forProductDimType(this); }
   public void visit(NodeVisitor_void visitor) { visitor.forProductDimType(this); }
@@ -95,12 +95,12 @@ public class ProductDimType extends DimType {
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
 
-    DimType temp_multiplier = getMultiplier();
+    TypeRef temp_multiplier = getMultiplier();
     writer.startLine();
     writer.print("multiplier = ");
     temp_multiplier.outputHelp(writer, lossless);
 
-    DimType temp_multiplicand = getMultiplicand();
+    DimRef temp_multiplicand = getMultiplicand();
     writer.startLine();
     writer.print("multiplicand = ");
     temp_multiplicand.outputHelp(writer, lossless);
@@ -117,11 +117,11 @@ public class ProductDimType extends DimType {
       return false;
     } else {
       ProductDimType casted = (ProductDimType) obj;
-      DimType temp_multiplier = getMultiplier();
-      DimType casted_multiplier = casted.getMultiplier();
+      TypeRef temp_multiplier = getMultiplier();
+      TypeRef casted_multiplier = casted.getMultiplier();
       if (!(temp_multiplier == casted_multiplier || temp_multiplier.equals(casted_multiplier))) return false;
-      DimType temp_multiplicand = getMultiplicand();
-      DimType casted_multiplicand = casted.getMultiplicand();
+      DimRef temp_multiplicand = getMultiplicand();
+      DimRef casted_multiplicand = casted.getMultiplicand();
       if (!(temp_multiplicand == casted_multiplicand || temp_multiplicand.equals(casted_multiplicand))) return false;
       return true;
     }
@@ -134,9 +134,9 @@ public class ProductDimType extends DimType {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    DimType temp_multiplier = getMultiplier();
+    TypeRef temp_multiplier = getMultiplier();
     code ^= temp_multiplier.hashCode();
-    DimType temp_multiplicand = getMultiplicand();
+    DimRef temp_multiplicand = getMultiplicand();
     code ^= temp_multiplicand.hashCode();
     return code;
   }
