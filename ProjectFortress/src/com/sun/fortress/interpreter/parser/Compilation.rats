@@ -140,25 +140,25 @@ private List<AliasedName> AliasedNames =
 private AliasedName AliasedName =
      a1:Id a2:(w as w DottedId)?
      { if (a2 == null)
-           yyValue = new AliasedName(createSpan(yyStart,yyCount), a1);
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1);
        else
-           yyValue = new AliasedName(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1, a2);
      }
    / opr w a1:Op a2:(w as w Op)?
      { if (a2 == null)
-           yyValue = new AliasedName(createSpan(yyStart,yyCount),
-                                     new Opr(a1.getSpan(), a1));
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
+                                                 new Opr(a1.getSpan(), a1));
        else
-           yyValue = new AliasedName(createSpan(yyStart,yyCount),
-                                     new Opr(a1.getSpan(), a1),
-                                     new Opr(a2.getSpan(), a2));
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
+                                                 new Opr(a1.getSpan(), a1),
+                                                 new Opr(a2.getSpan(), a2));
      }
    / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null)
-           yyValue = new AliasedName(span, a1);
+           yyValue = NodeFactory.makeAliasedName(span, a1);
        else
-           yyValue = new AliasedName(span, a1, a2);
+           yyValue = NodeFactory.makeAliasedName(span, a1, a2);
      };
 
 /* EncloserPair ::= LeftEncloser w RightEncloser */
@@ -187,7 +187,8 @@ private List<AliasedDottedId> AliasedDottedIds =
 private AliasedDottedId AliasedDottedId =
      a1:DottedId a2:(w as w DottedId)?
      { if (a2 == null)
-           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1);
+           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
+                                         None.<DottedId>make());
        else
            yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
                                          Some.<DottedId>make(a2));

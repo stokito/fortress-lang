@@ -31,6 +31,25 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
+    public static AliasedName makeAliasedName(Span span, Id id) {
+        return new AliasedName(span, makeName(id.getSpan(), id),
+                               new None<FnName>());
+    }
+
+    public static AliasedName makeAliasedName(Span span, Id id, DottedId alias) {
+        return new AliasedName(span, makeName(id.getSpan(), id),
+                               new Some<FnName>(alias));
+    }
+
+    public static AliasedName makeAliasedName(Span span, OprName op) {
+        return new AliasedName(span, op, new None<FnName>());
+    }
+
+    public static AliasedName makeAliasedName(Span span, OprName op, OprName alias) {
+        return new AliasedName(span, op, new Some<FnName>(alias));
+    }
+
+
     /******************************************************
     private static int anonymousFnNameSequence;
     static synchronized int anonymousFnNameSerial() {

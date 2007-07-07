@@ -14,13 +14,18 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
+
 package com.sun.fortress.interpreter.nodes;
 
-/**
- * An LHS interface is intended to paper over some mix-and-match problems with
- * left-hand-sides of assignments, local variable declarations, and top-level
- * declarations.
- */
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
+
 public interface LHS extends Node {
-    public <T> T accept(NodeVisitor<T> v);
+
 }

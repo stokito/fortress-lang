@@ -34,22 +34,6 @@ public class AliasedName extends AbstractNode {
         this.alias = alias;
     }
 
-    public AliasedName(Span span, Id id) {
-        this(span, NodeFactory.makeName(id.getSpan(), id), new None<FnName>());
-    }
-
-    public AliasedName(Span span, Id id, DottedId alias) {
-        this(span, NodeFactory.makeName(id.getSpan(), id), new Some<FnName>(alias));
-    }
-
-    public AliasedName(Span span, OprName op) {
-        this(span, op, new None<FnName>());
-    }
-
-    public AliasedName(Span span, OprName op, OprName alias) {
-        this(span, op, new Some<FnName>(alias));
-    }
-
     public AliasedName(Span span) {
         super(span);
         // TODO Auto-generated constructor stub

@@ -32,6 +32,12 @@ public interface NodeVisitor_void {
   /** Process an instance of AbstractNode. */
   public void forAbstractNode(AbstractNode that);
 
+  /** Process an instance of AliasedDottedId. */
+  public void forAliasedDottedId(AliasedDottedId that);
+
+  /** Process an instance of AliasedName. */
+  public void forAliasedName(AliasedName that);
+
   /** Process an instance of ArrayComprehensionClause. */
   public void forArrayComprehensionClause(ArrayComprehensionClause that);
 
@@ -208,6 +214,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of KeywordType. */
   public void forKeywordType(KeywordType that);
+
+  /** Process an instance of ExtentRange. */
+  public void forExtentRange(ExtentRange that);
 
   /** Process an instance of Op. */
   public void forOp(Op that);
