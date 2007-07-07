@@ -134,8 +134,8 @@ private constant inline Action<TypeRef> ArrayTypeTail =
                Option<FixedDim> indices;
                if (a1 == null) indices = None.<FixedDim>make();
                else            indices = Some.<FixedDim>make(a1);
-               return new ArrayType(createSpan(yyStart,yyCount), (TypeRef)base,
-                                    indices);
+               return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
+                                                (TypeRef)base, indices);
            }};
      };
 

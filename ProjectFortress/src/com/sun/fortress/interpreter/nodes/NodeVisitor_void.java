@@ -203,6 +203,9 @@ public interface NodeVisitor_void {
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
 
+  /** Process an instance of FixedDim. */
+  public void forFixedDim(FixedDim that);
+
   /** Process an instance of Op. */
   public void forOp(Op that);
 
@@ -229,6 +232,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of TypeCaseClause. */
   public void forTypeCaseClause(TypeCaseClause that);
+
+  /** Process an instance of ArrayType. */
+  public void forArrayType(ArrayType that);
 
   /** Process an instance of ListType. */
   public void forListType(ListType that);

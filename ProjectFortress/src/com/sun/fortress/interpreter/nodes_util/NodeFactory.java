@@ -23,6 +23,7 @@ import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.useful.Fn;
+import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -45,6 +46,15 @@ public class NodeFactory {
                                    new Some<HasAt>(at));
     }
     ******************************************************/
+
+    public static ArrayType makeArrayType(Span span, TypeRef element,
+                                          Option<FixedDim> ind) {
+        FixedDim indices;
+        if (ind.isPresent()) indices = (FixedDim)((Some)ind).getVal();
+        else indices = new FixedDim(span, Collections.<ExtentRange>emptyList());
+        return new ArrayType(span, element, indices);
+    }
+
     public static BaseNatRef makeBaseNatRef(Span span, IntLiteral value) {
         return new BaseNatRef(span, value.getVal().intValue());
     }
