@@ -32,6 +32,9 @@ public interface NodeVisitor_void {
   /** Process an instance of AbstractNode. */
   public void forAbstractNode(AbstractNode that);
 
+  /** Process an instance of AbsExternalSyntax. */
+  public void forAbsExternalSyntax(AbsExternalSyntax that);
+
   /** Process an instance of AliasedDottedId. */
   public void forAliasedDottedId(AliasedDottedId that);
 
@@ -170,11 +173,11 @@ public interface NodeVisitor_void {
   /** Process an instance of UnitRef. */
   public void forUnitRef(UnitRef that);
 
-  /** Process an instance of Generator. */
-  public void forGenerator(Generator that);
+  /** Process an instance of ExtentRange. */
+  public void forExtentRange(ExtentRange that);
 
-  /** Process an instance of Id. */
-  public void forId(Id that);
+  /** Process an instance of ExternalSyntax. */
+  public void forExternalSyntax(ExternalSyntax that);
 
   /** Process an instance of DottedId. */
   public void forDottedId(DottedId that);
@@ -206,6 +209,12 @@ public interface NodeVisitor_void {
   /** Process an instance of ConstructorFnName. */
   public void forConstructorFnName(ConstructorFnName that);
 
+  /** Process an instance of Generator. */
+  public void forGenerator(Generator that);
+
+  /** Process an instance of Id. */
+  public void forId(Id that);
+
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
 
@@ -215,14 +224,17 @@ public interface NodeVisitor_void {
   /** Process an instance of KeywordType. */
   public void forKeywordType(KeywordType that);
 
-  /** Process an instance of ExtentRange. */
-  public void forExtentRange(ExtentRange that);
+  /** Process an instance of RestType. */
+  public void forRestType(RestType that);
 
   /** Process an instance of Op. */
   public void forOp(Op that);
 
   /** Process an instance of Param. */
   public void forParam(Param that);
+
+  /** Process an instance of PropertyDecl. */
+  public void forPropertyDecl(PropertyDecl that);
 
   /** Process an instance of BoolParam. */
   public void forBoolParam(BoolParam that);
@@ -242,20 +254,17 @@ public interface NodeVisitor_void {
   /** Process an instance of SimpleTypeParam. */
   public void forSimpleTypeParam(SimpleTypeParam that);
 
+  /** Process an instance of TestDecl. */
+  public void forTestDecl(TestDecl that);
+
   /** Process an instance of TypeCaseClause. */
   public void forTypeCaseClause(TypeCaseClause that);
-
-  /** Process an instance of ArrayType. */
-  public void forArrayType(ArrayType that);
 
   /** Process an instance of ArrowType. */
   public void forArrowType(ArrowType that);
 
-  /** Process an instance of RestType. */
-  public void forRestType(RestType that);
-
-  /** Process an instance of TupleType. */
-  public void forTupleType(TupleType that);
+  /** Process an instance of ArrayType. */
+  public void forArrayType(ArrayType that);
 
   /** Process an instance of ListType. */
   public void forListType(ListType that);
@@ -271,6 +280,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of VectorType. */
   public void forVectorType(VectorType that);
+
+  /** Process an instance of TupleType. */
+  public void forTupleType(TupleType that);
 
   /** Process an instance of IdType. */
   public void forIdType(IdType that);
