@@ -17,20 +17,16 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.IterableOnce;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-public interface DefOrDecl extends HasAt, Node {
-    public Span getSpan();
+public interface DefOrDecl extends Node, HasAt {
+  public Span getSpan();
 
-    abstract public <T> T accept(NodeVisitor<T> v);
 }
-
-// / and def_or_decl =
-// / [
-// / | `Dimension of id
-// / | `UnitVar of unit_var
-// / | `TypeAlias of type_alias
-// / ] node
-// /

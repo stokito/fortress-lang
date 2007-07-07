@@ -17,18 +17,15 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
+
 public interface AbsDecl extends DefOrDecl {
 
-    public <T> T accept(NodeVisitor<T> v);
-
 }
-
-// / and decl =
-// / [
-// / | `AbsTraitDecl of trait_decl
-// / | `AbsFnDecl of fn_decl
-// / | `AbsObjectDecl of object_decl
-// / | `AbsVarDecl of var_decl
-// / | `DefOrDecl of def_or_decl
-// / ] node
-// /
