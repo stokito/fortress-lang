@@ -52,7 +52,8 @@ public class NodeUtil {
         } else if (thing instanceof HasAt.FromString) {
             return ((HasAt.FromString)thing).at();
         } else {
-            throw new Error("getAt() is not defined for " + thing.getClass());
+            throw new Error("NodeUtil.getAt() is not defined for "
+                            + thing.getClass());
         }
     }
 
@@ -60,16 +61,22 @@ public class NodeUtil {
         if (thing instanceof AbstractNode) {
             return ((AbstractNode)thing).getSpan();
         } else {
-            throw new Error("getSpan() is not defined for " + thing.getClass());
+            throw new Error("NodeUtil.getSpan() is not defined for "
+                            + thing.getClass());
         }
     }
 
-    /* for DefOrDecl *******************************************************/
-    /*
-    public int selfParameterIndex(DefOrDecl d) {
-        return 0;
+    /**
+     * Returns the index of the 'self' parameter in the list,
+     * or -1 if it does not appear.
+     */
+    public static int selfParameterIndex(HasAt d) {
+        if (d instanceof FnDefOrDecl) {
+            return ((FnDefOrDecl)d).selfParameterIndex();
+        } else {
+            return -1;
+        }
     }
-    */
 
     /* for Param ***********************************************************/
     public static boolean isTransient(Param p) {

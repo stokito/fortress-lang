@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.nodes.Applicable;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Hasher;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -61,12 +62,12 @@ public class MethodClosure extends Closure implements Method {
          * to be called by the functional method wrapper.
          */
     protected List<Parameter> adjustParameterList(List<Parameter> params2) {
-        int i = getDef().selfParameterIndex();
+        int i = NodeUtil.selfParameterIndex(getDef());
         if (i == -1)
             return params2;
         return  Useful.removeIndex(i, params2);
     }
-    
+
     public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
         // This is a little over-tricky.  In theory, all instances of objectExpr from the same

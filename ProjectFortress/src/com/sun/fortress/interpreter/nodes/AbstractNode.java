@@ -82,13 +82,6 @@ public abstract class AbstractNode implements HasAt, Node {
         n.originalIfReplaced = n;
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
-     */
-    public int selfParameterIndex() {
-        return -1;
-    }
-
   private int _hashCode;
   private boolean _hasHashCode = false;
   protected int generateHashCode() {

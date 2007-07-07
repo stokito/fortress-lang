@@ -35,14 +35,8 @@ public interface Applicable extends HasAt {
     public FnName getFnName();
 
     public List<WhereClause> getWhere();
-    
+
     public int applicableCompareTo(Applicable a);
-    
-    /**
-     * Returns the index of the 'self' parameter in the list,
-     * or -1 if it does not appear.
-     */
-    // TODO this appears in DefOrDecl as well; that seems wrong.
-    public int selfParameterIndex();
+
     public String nameAsMethod();
 }

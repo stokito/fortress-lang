@@ -728,7 +728,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             List<? extends DefOrDecl> defs,
             boolean bogus) {
         for (DefOrDecl dod : defs) {
-            int spi = dod.selfParameterIndex();
+            int spi = NodeUtil.selfParameterIndex(dod);
             if (spi >= 0)  {
                 // If it is a functional method, it is definitely a FnDefOrDecl
                 FnDefOrDecl fndod = (FnDefOrDecl) dod;
