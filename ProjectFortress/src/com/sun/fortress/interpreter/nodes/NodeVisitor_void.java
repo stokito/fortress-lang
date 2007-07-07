@@ -236,6 +236,9 @@ public interface NodeVisitor_void {
   /** Process an instance of MapType. */
   public void forMapType(MapType that);
 
+  /** Process an instance of MatrixType. */
+  public void forMatrixType(MatrixType that);
+
   /** Process an instance of ParamType. */
   public void forParamType(ParamType that);
 

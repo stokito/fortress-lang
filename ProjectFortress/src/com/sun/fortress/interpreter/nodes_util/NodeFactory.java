@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.nodes_util;
 
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
@@ -234,6 +235,15 @@ public class NodeFactory {
         }
         return digits;
    }
+
+    public static MatrixType makeMatrixType(Span span, TypeRef element,
+                                            ExtentRange dimension,
+                                            List<ExtentRange> dimensions) {
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        dims.add(dimension);
+        dims.addAll(dimensions);
+        return new MatrixType(span, element, dims);
+    }
 
     public static Name makeName(Span span, Id id) {
         return new Name(span, new Some<Id>(id), new None<Op>());

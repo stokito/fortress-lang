@@ -77,10 +77,7 @@ ArrowType ArrowType =
 
 private TypeRef NonArrowType =
      TraitType
-/* ************************************************
- * Not Yet Implemented ***************************
    / DimType
-************************************************ */
    / seed:NonArrowTypeFront list:NonArrowTypeTail*
      { yyValue = (TypeRef)apply(list, seed); };
 
@@ -154,8 +151,8 @@ private constant inline Action<TypeRef> MatrixTypeTail =
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      { yyValue = new Action<TypeRef>() {
            public TypeRef run(TypeRef base) {
-               return new MatrixType(createSpan(yyStart,yyCount), (TypeRef)base,
-                                     a1, a2s.list());
+               return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
+                                                 (TypeRef)base, a1, a2s.list());
            }};
      };
 
@@ -209,9 +206,9 @@ List<TypeRef> TypeRefList = a1:TypeRef a2s:(w comma w TypeRef)*
  */
 /* ************************************************
  * Not Yet Implemented ***************************
-private TypeRef DimType =
+private DimType DimType =
      seed:DimTypeFront list:TypeRefTail*
-     { yyValue = (TypeRef)apply(list, seed); };
+     { yyValue = (DimType)apply(list, seed); };
 
 private TypeRef DimTypeFront =
      a1:DimRef
