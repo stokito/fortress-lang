@@ -35,7 +35,7 @@ import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
 
 
-class NativeApplicable implements Applicable {
+public class NativeApplicable implements Applicable {
     String name;
     FnName fnName;
 

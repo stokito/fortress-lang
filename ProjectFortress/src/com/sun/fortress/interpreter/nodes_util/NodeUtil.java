@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Iterator;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.evaluator.values.Overload;
+import com.sun.fortress.interpreter.glue.NativeApp;
+import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
@@ -29,6 +32,44 @@ import com.sun.fortress.interpreter.useful.IterableOnceTranslatingList;
 import com.sun.fortress.interpreter.useful.UnitIterable;
 
 public class NodeUtil {
+
+    /* for AbstractNode ****************************************************/
+    /**
+     *
+     * @return String representation of the location, suitable for error
+     *         messages.
+     */
+    public static String getAt(HasAt thing) {
+        if (thing instanceof AbstractNode) {
+            return ((AbstractNode)thing).getSpan().begin.at();
+            // + ":(" + getClass().getSimpleName() + ")";
+        } else if (thing instanceof Overload) {
+            return ((Overload)thing).at();
+        } else if (thing instanceof NativeApp) {
+            return ((NativeApp)thing).at();
+        } else if (thing instanceof NativeApplicable) {
+            return "Native stub for " + ((NativeApplicable)thing).stringName();
+        } else if (thing instanceof HasAt.FromString) {
+            return ((HasAt.FromString)thing).at();
+        } else {
+            throw new Error("getAt() is not defined for " + thing.getClass());
+        }
+    }
+
+    public static Span getSpan(HasAt thing) {
+        if (thing instanceof AbstractNode) {
+            return ((AbstractNode)thing).getSpan();
+        } else {
+            throw new Error("getSpan() is not defined for " + thing.getClass());
+        }
+    }
+
+    /* for DefOrDecl *******************************************************/
+    /*
+    public int selfParameterIndex(DefOrDecl d) {
+        return 0;
+    }
+    */
 
     /* for Param ***********************************************************/
     public static boolean isTransient(Param p) {
@@ -86,9 +127,9 @@ public class NodeUtil {
         } else if (n instanceof SubscriptAssign) {
             return "[]=";
         } else if (n instanceof AnonymousFnName) {
-            return (n.at() == null ? n.getSpan().toString()
-                                   : stringName(((AnonymousFnName)n).getAt()))
-                                     + "#" + ((AnonymousFnName)n).getSerial();
+            return (getAt(n) == null ? n.getSpan().toString()
+                                     : stringName(((AnonymousFnName)n).getAt()))
+                                       + "#" + ((AnonymousFnName)n).getSerial();
         } else if (n instanceof ConstructorFnName) {
             ConstructorFnName fn = (ConstructorFnName)n;
             // TODO Auto-generated method stub

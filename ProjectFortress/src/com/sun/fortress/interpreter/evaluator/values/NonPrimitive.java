@@ -46,7 +46,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     @Override
     String at() {
-        return getAt().at();
+        return NodeUtil.getAt(getAt());
     }
 
     protected abstract HasAt getAt();

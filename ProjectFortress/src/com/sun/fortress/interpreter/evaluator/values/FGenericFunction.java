@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes_util.NodeComparator;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.BATree;
 import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -49,7 +50,7 @@ public class FGenericFunction extends SingleFcn
      */
     @Override
     String at() {
-        return fndef.at();
+        return NodeUtil.getAt(fndef);
     }
 
     /* (non-Javadoc)

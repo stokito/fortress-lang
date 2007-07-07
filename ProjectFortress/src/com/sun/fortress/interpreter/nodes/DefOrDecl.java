@@ -22,8 +22,6 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.IterableOnce;
 
 public interface DefOrDecl extends HasAt, Node {
-    public String at(); // See Node.at()
-
     public Span getSpan();
 
     abstract public <T> T accept(NodeVisitor<T> v);

@@ -334,7 +334,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return NI("forParallelDo");
         else { // (x.getFronts().size() == 1)
             DoFront f = x.getFronts().get(0);
-            if (f.getAt().isPresent()) return NI("forAtDo");
+            if (f.getLoc().isPresent()) return NI("forAtDo");
             if (f.isAtomic())
                 return forAtomicExpr(new AtomicExpr(x.getSpan(),f.getExpr()));
             return f.getExpr().accept(this);
@@ -746,7 +746,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (df.isAtomic()) {
             NI("forAtomicDo");
         }
-        if (df.getAt().isPresent()) {
+        if (df.getLoc().isPresent()) {
             NI("forAtDo");
         }
         if (gens.size() > 1) {

@@ -87,7 +87,7 @@ public abstract class NativeApp implements Applicable {
     }
     public FnName getFnName() { return a.getFnName(); }
     public List<WhereClause> getWhere() { return a.getWhere(); }
-    public String at() { return a.at(); }
+    public String at() { return NodeUtil.getAt(a); }
     public String stringName() { return NodeUtil.stringName(a); }
 
     public String toString() {

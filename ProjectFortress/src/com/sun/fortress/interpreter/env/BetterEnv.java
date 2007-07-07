@@ -43,6 +43,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.BATreeNode;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.StringComparer;
@@ -453,7 +454,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public Appendable dump(Appendable a) throws IOException {
         if (within!=null) {
-            a.append(within.at());
+            a.append(NodeUtil.getAt(within));
             a.append("\n");
         } else {
             a.append("Not within anything.\n");

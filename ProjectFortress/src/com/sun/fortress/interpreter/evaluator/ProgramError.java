@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 public class ProgramError extends Error {
@@ -102,7 +103,7 @@ public class ProgramError extends Error {
      */
     @Override
     public String getMessage() {
-        return (where == null ? "" : ("\n"+where.at() + (where2 == null ? "" : (": and\n" + where2.at()) ) + ": ")) +
+        return (where == null ? "" : ("\n"+NodeUtil.getAt(where) + (where2 == null ? "" : (": and\n" + NodeUtil.getAt(where2)) ) + ": ")) +
         super.getMessage();
     }
 

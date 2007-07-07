@@ -116,7 +116,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
                         Useful.listInOxfords(staticParams.getVal()) : "")
                 + Useful.listInParens(params)
                 + (returnType.isPresent() ? (":" + returnType.getVal()) : "")
-                + "\n\t@" + name.at();
+                + "\n\t@" + NodeUtil.getAt(name);
     }
 
     public FnDefOrDecl(Span span) {

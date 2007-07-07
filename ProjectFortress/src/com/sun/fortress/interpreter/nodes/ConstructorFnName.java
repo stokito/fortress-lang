@@ -38,7 +38,7 @@ public class ConstructorFnName extends FnName {
     DefOrDecl def;
 
     public ConstructorFnName(DefOrDecl def) {
-        super(def.getSpan());
+        super(NodeUtil.getSpan(def));
         serial = aname();
         this.def = def;
     }

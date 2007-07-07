@@ -27,32 +27,32 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class DoFront extends AbstractNode {
-  private final Option<Expr> _at;
+  private final Option<Expr> _loc;
   private final boolean _atomic;
   private final Expr _expr;
 
   /**
    * Constructs a DoFront.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public DoFront(Span in_span, Option<Expr> in_at, boolean in_atomic, Expr in_expr) {
+  public DoFront(Span in_span, Option<Expr> in_loc, boolean in_atomic, Expr in_expr) {
     super(in_span);
 
-    if (in_at == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'at' to the DoFront constructor was null. This class may not have null field values.");
+    if (in_loc == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'loc' to the DoFront constructor was null");
     }
-    _at = in_at;
+    _loc = in_loc;
     _atomic = in_atomic;
 
     if (in_expr == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'expr' to the DoFront constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'expr' to the DoFront constructor was null");
     }
     _expr = in_expr;
   }
 
     public DoFront(Span span) {
         super(span);
-        _at = null;
+        _loc = null;
         _atomic = false;
         _expr = null;
     }
@@ -62,7 +62,7 @@ public class DoFront extends AbstractNode {
         return v.forDoFront(this);
     }
 
-  final public Option<Expr> getAt() { return _at; }
+  final public Option<Expr> getLoc() { return _loc; }
   final public boolean isAtomic() { return _atomic; }
   final public Expr getExpr() { return _expr; }
 
@@ -71,7 +71,7 @@ public class DoFront extends AbstractNode {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
@@ -83,51 +83,46 @@ public class DoFront extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("DoFront" + ":");
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("DoFront:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("at = ");
-    Option<Expr> temp_at = getAt();
-    if (temp_at == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_at);
-    }
+    Option<Expr> temp_loc = getLoc();
+    writer.startLine();
+    writer.print("loc = ");
+    if (lossless) {
+      writer.printSerialized(temp_loc);
+      writer.print(" ");
+      writer.printEscaped(temp_loc);
+    } else { writer.print(temp_loc); }
 
-    writer.startLine("");
-    writer.print("atomic = ");
     boolean temp_atomic = isAtomic();
+    writer.startLine();
+    writer.print("atomic = ");
     writer.print(temp_atomic);
 
-    writer.startLine("");
-    writer.print("expr = ");
     Expr temp_expr = getExpr();
-    if (temp_expr == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_expr);
-    }
+    writer.startLine();
+    writer.print("expr = ");
+    temp_expr.outputHelp(writer, lossless);
     writer.unindent();
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -135,25 +130,32 @@ public class DoFront extends AbstractNode {
       return false;
     } else {
       DoFront casted = (DoFront) obj;
-      if (! (getAt().equals(casted.getAt()))) return false;
-      if (! (isAtomic() == casted.isAtomic())) return false;
-      if (! (getExpr().equals(casted.getExpr()))) return false;
+      Option<Expr> temp_loc = getLoc();
+      Option<Expr> casted_loc = casted.getLoc();
+      if (!(temp_loc == casted_loc || temp_loc.equals(casted_loc))) return false;
+      boolean temp_atomic = isAtomic();
+      boolean casted_atomic = casted.isAtomic();
+      if (!(temp_atomic == casted_atomic)) return false;
+      Expr temp_expr = getExpr();
+      Expr casted_expr = casted.getExpr();
+      if (!(temp_expr == casted_expr || temp_expr.equals(casted_expr))) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= 0;
-    code ^= getAt().hashCode();
-    code ^= (isAtomic() ? 1231 : 1237);
-    code ^= getExpr().hashCode();
+    Option<Expr> temp_loc = getLoc();
+    code ^= temp_loc.hashCode();
+    boolean temp_atomic = isAtomic();
+    code ^= temp_atomic ? 1231 : 1237;
+    Expr temp_expr = getExpr();
+    code ^= temp_expr.hashCode();
     return code;
   }
 }

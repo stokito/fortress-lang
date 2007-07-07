@@ -55,15 +55,6 @@ public abstract class AbstractNode implements HasAt, Node {
         props.add("P");
     }
 
-    /**
-     *
-     * @return String representation of the location, suitable for error
-     *         messages.
-     */
-    public String at() {
-        return span.begin.at(); // + ":(" + getClass().getSimpleName() + ")";
-    }
-
     @Override
     public String toString() {
         return getClass().getSimpleName() + "@" + span.begin.at();

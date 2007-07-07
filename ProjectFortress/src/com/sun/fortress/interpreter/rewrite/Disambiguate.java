@@ -536,7 +536,7 @@ public class Disambiguate extends Rewrite {
                     if (df.isAtomic()) {
                         return NI.nyi("forAtomicDo");
                     }
-                    if (df.getAt().isPresent()) {
+                    if (df.getLoc().isPresent()) {
                         return NI.nyi("forAtDo");
                     }
                     return visitGeneratorList(f, f.getGens(),
