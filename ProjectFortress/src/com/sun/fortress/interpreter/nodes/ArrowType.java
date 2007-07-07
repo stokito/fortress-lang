@@ -35,10 +35,6 @@ import com.sun.fortress.interpreter.useful.Useful;
 // /
 public class ArrowType extends TypeRef {
 
-    // This field should go away after replacing the OCaml com.sun.fortress.interpreter.parser with the
-    // Rats! com.sun.fortress.interpreter.parser.
-    List<KeywordType> keywords;
-
     List<TypeRef> domain;
 
     TypeRef range;
@@ -50,9 +46,7 @@ public class ArrowType extends TypeRef {
         super(span);
 	if (domain instanceof TupleType) {
 	    this.domain   = ((TupleType)domain).getElements();
-	    this.keywords = ((TupleType)domain).getKeywords();
 	} else {
-	    this.keywords = Collections.<KeywordType> emptyList();
 	    List<TypeRef> domains = new ArrayList<TypeRef>();
 	    domains.add(domain);
 	    this.domain = domains;
@@ -78,13 +72,6 @@ public class ArrowType extends TypeRef {
     }
 
     /**
-     * @return Returns the keywords.
-     */
-    public List<KeywordType> getKeywords() {
-        return keywords;
-    }
-
-    /**
      * @return Returns the range.
      */
     public TypeRef getRange() {
@@ -100,10 +87,25 @@ public class ArrowType extends TypeRef {
 
     @Override
     public String toString() {
-        return Useful.listsInParens(getDomain(), getKeywords())
+        return Useful.listInParens(getDomain())
                 + "->"
                 + getRange()
                 + (getThrows_().size() > 0 ? (" throws " +
                         Useful.listInCurlies(getThrows_())) : "");
     }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forArrowType(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forArrowType(this); }
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+    public void output(java.io.Writer writer) {}
+
+    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+    protected int generateHashCode() { return hashCode(); }
 }

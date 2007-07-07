@@ -75,4 +75,19 @@ public class TupleType extends TypeRef {
     public List<KeywordType> getKeywords() {
         return keywords;
     }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forTupleType(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forTupleType(this); }
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {}
+
+    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+    protected int generateHashCode() { return hashCode(); }
 }

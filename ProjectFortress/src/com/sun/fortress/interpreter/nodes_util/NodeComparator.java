@@ -232,9 +232,6 @@ public class NodeComparator {
         if (x != 0) return x;
         x = typeRefListComparer.compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        x = keywordTypeListComparer.compare(left.getKeywords(),
-                                            right.getKeywords());
-        if (x != 0) return x;
         x = typeRefListComparer.compare(left.getThrows_(), right.getThrows_());
         return x;
     }

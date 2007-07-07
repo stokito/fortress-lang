@@ -236,6 +236,15 @@ public interface NodeVisitor_void {
   /** Process an instance of ArrayType. */
   public void forArrayType(ArrayType that);
 
+  /** Process an instance of ArrowType. */
+  public void forArrowType(ArrowType that);
+
+  /** Process an instance of RestType. */
+  public void forRestType(RestType that);
+
+  /** Process an instance of TupleType. */
+  public void forTupleType(TupleType that);
+
   /** Process an instance of ListType. */
   public void forListType(ListType that);
 
