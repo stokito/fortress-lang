@@ -142,10 +142,10 @@ OrBoolRef
 Param
 ParamType
 PostFix
-ProductDim
+ProductDimType
 ProductStaticArg
 PropertyDecl
-QuotientDim
+QuotientDimType
 QuotientStaticArg
 RestType
 SetComprehension
@@ -172,7 +172,7 @@ TypeApply
 TypeCase
 TypeCaseClause
 TypeArg
-UnitDim
+UnitRef
 UnitVar
 UnpastingBind
 UnpastingDim

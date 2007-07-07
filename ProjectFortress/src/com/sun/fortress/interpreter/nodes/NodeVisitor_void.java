@@ -161,6 +161,9 @@ public interface NodeVisitor_void {
   /** Process an instance of ListComprehension. */
   public void forListComprehension(ListComprehension that);
 
+  /** Process an instance of UnitRef. */
+  public void forUnitRef(UnitRef that);
+
   /** Process an instance of Generator. */
   public void forGenerator(Generator that);
 
@@ -244,6 +247,12 @@ public interface NodeVisitor_void {
 
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
+
+  /** Process an instance of ProductDimType. */
+  public void forProductDimType(ProductDimType that);
+
+  /** Process an instance of QuotientDimType. */
+  public void forQuotientDimType(QuotientDimType that);
 
   /** Process an instance of BaseNatRef. */
   public void forBaseNatRef(BaseNatRef that);

@@ -17,22 +17,29 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-public abstract class DimType extends TypeRef {
+public abstract class DimType extends NonArrowType {
 
-    public DimType(Span s2) {
-        super(s2);
-    }
+  /**
+   * Constructs a DimType.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public DimType(Span in_span) {
+    super(in_span);
+  }
 
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-
-// / and dim_type =
-// / [
-// / | `UnitDimType
-// / | `NameDimType of dotted_name
-// / | `ExponentDimType of exponent_dim_type
-// / | `ProductDimType of product_dim_type
-// / | `QuotientDimType of quotient_dim_type
-// / ] node
-// /

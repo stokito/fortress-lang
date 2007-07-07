@@ -142,7 +142,7 @@ import com.sun.fortress.interpreter.nodes.TypeArg;
 import com.sun.fortress.interpreter.nodes.TypeCase;
 import com.sun.fortress.interpreter.nodes.TypeCaseClause;
 import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes.UnitDim;
+import com.sun.fortress.interpreter.nodes.BaseDimRef;
 import com.sun.fortress.interpreter.nodes.UnitVar;
 import com.sun.fortress.interpreter.nodes.UnpastingBind;
 import com.sun.fortress.interpreter.nodes.UnpastingDim;
@@ -1312,8 +1312,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forTypeRefArg");
     }
 
-    public FValue forUnitDim(UnitDim x) {
-        return NI("forUnitDim");
+    public FValue forBaseDimRef(BaseDimRef x) {
+        return NI("forBaseDimRef");
     }
 
     public FValue forUnitVar(UnitVar x) {

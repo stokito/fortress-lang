@@ -291,13 +291,13 @@ public class NodeComparator {
                                              right.getArgs());
     }
 
-    static int subtypeCompareTo(ProductDim left, ProductDim right) {
+    static int subtypeCompareTo(ProductDimType left, ProductDimType right) {
         return compare((TypeRef)left.getMultiplier(), right.getMultiplier(),
                        (TypeRef)left.getMultiplicand(), right.getMultiplicand());
         // cast for generics
     }
 
-    static int subtypeCompareTo(QuotientDim left, QuotientDim right) {
+    static int subtypeCompareTo(QuotientDimType left, QuotientDimType right) {
         // TODO Don't I need to worry about reducing the fraction?
         return compare((TypeRef)left.getNumerator(), right.getNumerator(),
                        (TypeRef)left.getDenominator(), right.getDenominator());
@@ -349,12 +349,6 @@ public class NodeComparator {
                         right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(UnitDim left, UnitDim right) {
-        // TODO Auto-generated method stub
-        NodeUtil.NYI("subtypeCompareTo for " + left.getClass().getName());
-        return 0;
-    }
-
     static int subtypeCompareTo(VectorType left, VectorType right) {
         // TODO Don't I need to worry about reducing the fraction?
         return compare(left.getElement(), right.getElement(),
@@ -365,52 +359,4 @@ public class NodeComparator {
         // All voids are equal
         return 0;
     }
-
 }
-
-//   Copied code begins here.
-//
-//    @Override
-//        int subtypeCompareTo(TypeRef o) {
-//        // TODO Auto-generated method stub
-//        NYI("subtypeCompareTo for " + this.getClass().getName());
-//        return 0;
-//    }
-
-//    @Override
-//        int subtypeCompareTo(TypeRef o) {
-//        QuotientDim x = (QuotientDim) o;
-//        // TODO Don't I need to worry about reducing the fraction?
-//        return Useful.compare((TypeRef) numerator, x.numerator,
-//                              (TypeRef) denominator, x.denominator); // cast for generics
-//    }
-
-//    public int compareTo(Param o) {
-//        int x = getName().getName().compareTo(o.getName().getName());
-//        if (x != 0) return x;
-//        x = TypeRef.compareOptional(getType(), o.getType());
-//        if (x != 0) return x;
-//        // TODO default expr, mods, must enter into comparison also.
-//        return x;
-//    }
-//
-//    public int compareTo(KeywordType o) {
-//        return Useful.compare(name, o.name, type, o.type);
-//    }
-//
-//        public int compareTo(FnDefOrDecl a1) {
-//        FnDefOrDecl a0 = this;
-//
-//        FnName fn0 = a0.getFnName();
-//        FnName fn1 = a1.getFnName();
-//        int x = fn0.compareTo(fn1);
-//        if (x != 0)  return x;
-//
-//        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), StaticParam.listComparer);
-//
-//        if (x != 0)  return x;
-//
-//        x = Param.listComparer.compare(a0.getParams(), a1.getParams());
-//        return x;
-//
-//    }

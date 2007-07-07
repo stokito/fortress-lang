@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes.TraitDecl;
 import com.sun.fortress.interpreter.nodes.TypeAlias;
-import com.sun.fortress.interpreter.nodes.UnitDim;
+import com.sun.fortress.interpreter.nodes.BaseDimRef;
 import com.sun.fortress.interpreter.nodes.UnitVar;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
@@ -161,10 +161,10 @@ public class EvalVarsEnvironment extends BuildEnvironments {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forUnitDim(com.sun.fortress.interpreter.nodes.UnitDim)
+     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forBaseDimRef(com.sun.fortress.interpreter.nodes.BaseDimRef)
      */
     @Override
-    public Voidoid forUnitDim(UnitDim x) {
+    public Voidoid forBaseDimRef(BaseDimRef x) {
         return null;
 
     }
