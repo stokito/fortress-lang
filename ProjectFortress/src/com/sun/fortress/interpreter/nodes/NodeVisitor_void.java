@@ -167,6 +167,12 @@ public interface NodeVisitor_void {
   /** Process an instance of LocalVarDecl. */
   public void forLocalVarDecl(LocalVarDecl that);
 
+  /** Process an instance of Apply. */
+  public void forApply(Apply that);
+
+  /** Process an instance of TypeApply. */
+  public void forTypeApply(TypeApply that);
+
   /** Process an instance of MapExpr. */
   public void forMapExpr(MapExpr that);
 

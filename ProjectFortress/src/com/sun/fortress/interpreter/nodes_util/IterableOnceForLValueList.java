@@ -15,13 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.nodes;
+package com.sun.fortress.interpreter.nodes_util;
 
 import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.nodes.LValue;
 
 
 final public class IterableOnceForLValueList implements IterableOnce<String> {
