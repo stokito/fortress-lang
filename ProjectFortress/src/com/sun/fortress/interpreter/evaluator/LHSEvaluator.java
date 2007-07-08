@@ -53,7 +53,6 @@ import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.Unpasting;
 import com.sun.fortress.interpreter.nodes.UnpastingBind;
-import com.sun.fortress.interpreter.nodes.UnpastingDim;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -133,17 +132,6 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Id id = x.getName();
         Option<List<ExtentRange>> dim = x.getDim();
         return super.forUnpastingBind(x);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingDim(com.sun.fortress.interpreter.nodes.UnpastingDim)
-     */
-    @Override
-    public Voidoid forUnpastingDim(UnpastingDim x) {
-        Option<StaticArg> b = x.getBase();
-        Option<StaticArg> s = x.getSize();
-
-        return super.forUnpastingDim(x);
     }
 
     /* (non-Javadoc)

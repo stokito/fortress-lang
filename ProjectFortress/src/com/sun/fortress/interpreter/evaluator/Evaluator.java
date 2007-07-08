@@ -145,7 +145,6 @@ import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.BaseDimRef;
 import com.sun.fortress.interpreter.nodes.UnitDecl;
 import com.sun.fortress.interpreter.nodes.UnpastingBind;
-import com.sun.fortress.interpreter.nodes.UnpastingDim;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
@@ -1322,10 +1321,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forUnpastingBind(UnpastingBind x) {
         return NI("forUnpastingBind");
-    }
-
-    public FValue forUnpastingDim(UnpastingDim x) {
-        return NI("forUnpastingDim");
     }
 
     public FValue forUnpastingSplit(UnpastingSplit x) {

@@ -178,7 +178,6 @@ TypeArg
 UnitDecl
 UnitRef
 UnpastingBind
-UnpastingDim
 UnpastingSplit
 VarargsExpr
 VarargsType
