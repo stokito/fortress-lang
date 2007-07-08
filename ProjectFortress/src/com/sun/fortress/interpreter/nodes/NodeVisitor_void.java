@@ -125,6 +125,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Label. */
   public void forLabel(Label that);
 
+  /** Process an instance of ObjectExpr. */
+  public void forObjectExpr(ObjectExpr that);
+
   /** Process an instance of Try. */
   public void forTry(Try that);
 

@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.useful.UnitIterable;
 // / object_expr_defs : def list;
 // / }
 // /
-public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
+public class ObjectExpr extends DelimitedExpr implements GenericDefWithParams {
 
     Option<List<TypeRef>> traits;
 
@@ -148,5 +148,11 @@ public class ObjectExpr extends ValueExpr implements GenericDefWithParams {
         }
         return genSymName;
     }
+
+    public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forObjectExpr(this); }
+    public void visit(NodeVisitor_void visitor) { visitor.forObjectExpr(this); }
+    public void output(java.io.Writer writer) {}
+    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    protected int generateHashCode() { return hashCode(); }
 
 }
