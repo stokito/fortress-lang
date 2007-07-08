@@ -98,6 +98,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
 
+  /** Process an instance of FnExpr. */
+  public void forFnExpr(FnExpr that);
+
   /** Process an instance of AsExpr. */
   public void forAsExpr(AsExpr that);
 

@@ -64,7 +64,8 @@ Expr ExprFront =
        else            ty_opt = Some.<TypeRef>make(a2);
        if (a3 == null) tys = FortressUtil.emptyTypeRefs();
        else            tys = a3;
-       yyValue = new Fn(createSpan(yyStart,yyCount), a1, ty_opt, tys, a4);
+       yyValue = NodeFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
+                                        tys, a4);
      };
 /* ************************************************
  * Not Yet Implemented ***************************

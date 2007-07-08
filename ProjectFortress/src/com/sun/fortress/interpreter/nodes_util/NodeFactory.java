@@ -209,6 +209,20 @@ public class NodeFactory {
                                 intPart, numerator, denomBase, denomPower);
     }
 
+    public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
+        return makeFnExpr(span, params, new None<TypeRef>(),
+                          Collections.<TypeRef>emptyList(), body);
+    }
+
+    public static FnExpr makeFnExpr(Span span, List<Param> params,
+                                    Option<TypeRef> returnType,
+                                    List<TypeRef> throwsClause, Expr body) {
+        return new FnExpr(span, new AnonymousFnName(span),
+                          new None<List<StaticParam>>(), params, returnType,
+                          Collections.<WhereClause>emptyList(), throwsClause,
+                          body);
+    }
+
     public static Fun makeFun(Span span, String string) {
         return new Fun(span, new Id(span, string));
     }

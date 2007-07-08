@@ -90,7 +90,7 @@ import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
 import com.sun.fortress.interpreter.nodes.FloatLiteral;
-import com.sun.fortress.interpreter.nodes.Fn;
+import com.sun.fortress.interpreter.nodes.FnExpr;
 import com.sun.fortress.interpreter.nodes.For;
 import com.sun.fortress.interpreter.nodes.Fun;
 import com.sun.fortress.interpreter.nodes.Generator;
@@ -726,7 +726,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    public FValue forFn(Fn x) {
+    public FValue forFnExpr(FnExpr x) {
         Closure cl = new Closure(e, x);
         return cl.finishInitializing();
     }

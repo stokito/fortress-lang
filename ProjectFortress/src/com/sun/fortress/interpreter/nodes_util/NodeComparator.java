@@ -110,10 +110,10 @@ public class NodeComparator {
 
     /* compare methods ***************************************************/
     public static int compare(Applicable left, Applicable right) {
-        if (left instanceof Fn) {
+        if (left instanceof FnExpr) {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;
-            return NodeUtil.getName(((Fn)left).getFnName()).compareTo(NodeUtil.getName(((Fn)right).getFnName()));
+            return NodeUtil.getName(((FnExpr)left).getFnName()).compareTo(NodeUtil.getName(((FnExpr)right).getFnName()));
         } else if (left instanceof FnDefOrDecl) {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;

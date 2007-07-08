@@ -45,7 +45,7 @@ import com.sun.fortress.interpreter.nodes.DoFront;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
-import com.sun.fortress.interpreter.nodes.Fn;
+import com.sun.fortress.interpreter.nodes.FnExpr;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.For;
 import com.sun.fortress.interpreter.nodes.Fun;
@@ -470,9 +470,9 @@ public class Disambiguate extends Rewrite {
 
                     return n;
 
-                } else if (node instanceof Fn) {
+                } else if (node instanceof FnExpr) {
                     atTopLevelInsideTraitOrObject = false;
-                    Fn fndef = (Fn) node;
+                    FnExpr fndef = (FnExpr) node;
                     List<Param> params = fndef.getParams();
                     paramsToLocals(params);
 
@@ -583,7 +583,7 @@ public class Disambiguate extends Rewrite {
             List<Id> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());
             for (Id b : binds) params.add(NodeFactory.makeParam(b));
-            Expr loopBody = new Fn(span,params,body);
+            Expr loopBody = NodeFactory.makeFnExpr(span,params,body);
             span = new Span(span, g.getSpan());
             body = new TightJuxt(span, Useful.list(loopSel,loopBody));
         }

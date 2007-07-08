@@ -76,8 +76,8 @@ ExternalSyntax
 FieldSelection
 FixedDim
 FloatLiteral
-Fn
 FnDecl
+FnExpr
 For
 Fun
 Generator

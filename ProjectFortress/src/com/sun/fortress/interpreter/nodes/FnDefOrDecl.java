@@ -176,10 +176,3 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         return NodeUtil.getName(name);
     }
 }
-
-// / and fn_def_or_decl =
-// / [
-// / | `FnDecl of fn_def
-// / | `AbsFnDecl of fn_decl
-// / ] node
-// /

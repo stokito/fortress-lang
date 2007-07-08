@@ -80,8 +80,8 @@ public class NodeUtil {
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
-        if (app instanceof Fn) {
-            return getName(((Fn)app).getFnName());
+        if (app instanceof FnExpr) {
+            return getName(((FnExpr)app).getFnName());
         } else if (app instanceof FnDefOrDecl) {
             int spi = ((FnDefOrDecl)app).selfParameterIndex();
             if (spi >= 0)
@@ -230,8 +230,8 @@ public class NodeUtil {
             return new UnitIterable<String>(((Dimension)d).getId().getName());
         } else if (d instanceof ExternalSyntax) {
             return new UnitIterable<String>(((ExternalSyntax)d).getId().getName());
-        } else if (d instanceof Fn) {
-            return new UnitIterable<String>(NodeUtil.getName(((Fn)d).getFnName()));
+        } else if (d instanceof FnExpr) {
+            return new UnitIterable<String>(NodeUtil.getName(((FnExpr)d).getFnName()));
         } else if (d instanceof FnDefOrDecl) {
             return new UnitIterable<String>(NodeUtil.getName(((FnDefOrDecl)d).getFnName()));
         } else if (d instanceof GeneratedExpr) {
