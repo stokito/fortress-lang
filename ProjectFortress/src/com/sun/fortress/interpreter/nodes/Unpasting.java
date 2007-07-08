@@ -17,18 +17,29 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class Unpasting extends LValue {
-    Unpasting(Span span) {
-        super(span);
-    }
 
+  /**
+   * Constructs a Unpasting.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Unpasting(Span in_span) {
+    super(in_span);
+  }
+
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-
-// / and unpasting =
-// / [
-// / | `UnpastingBind of unpasting_bind
-// / | `UnpastingSplit of unpasting_split
-// / ] node
-// /

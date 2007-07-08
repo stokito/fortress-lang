@@ -17,9 +17,10 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.Option;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.sun.fortress.interpreter.useful.IterableOnce;
 
@@ -52,8 +53,17 @@ public class LocalVarDecl extends LetExpr {
      */
     public LocalVarDecl(Span span, List<LValue> lhs, Option<Expr> rhs,
             List<Expr> body, boolean mutable) {
-        this(span, lhs, rhs, body);
-        mutability(mutable);
+        super(span);
+        List<LValue> lvs = new ArrayList<LValue>();
+        for (LValue l : lhs) {
+            if (l instanceof LValueBind) {
+                LValueBind lvb = (LValueBind) l;
+                lvs.add(NodeFactory.makeLValue((LValueBind)l, mutable));
+            }
+        }
+        this.lhs = lvs;
+        this.rhs = rhs;
+        this.body = body;
     }
 
     /**
@@ -70,17 +80,6 @@ public class LocalVarDecl extends LetExpr {
         this.lhs = lhs;
         this.rhs = rhs;
         this.body = body;
-    }
-
-    // Transitional hack to let us change syntax
-    // and semantics in a compatible way.
-    protected void mutability(boolean b) {
-        for (LValue l : lhs) {
-            if (l instanceof LValueBind) {
-                LValueBind lvb = (LValueBind) l;
-                lvb.mutable = b;
-            }
-        }
     }
 
     /**

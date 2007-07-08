@@ -98,33 +98,33 @@ private FnDecl LocalFnDecl =
  */
 DefOrDecl VarDecl :=
      a1:(var w)? a2:VarWTypes s a3:InitVal
-     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       else if (a3.getB()) FortressUtil.setMutable(a2);
+     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
                                              a3.getA());
      }
    / a1:(var w)? a2:VarWTypes
-     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
+     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:(var w)? a2:VarWoTypes s equals s a3:NoNewlineExpr
-     { if (a1 != null) FortressUtil.setMutable(a2, createSpan(yyStart,3));
+     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
      }
    / a1:(var w)? a2:VarWoTypes s colon s a3:TypeRef s ellipses a4:(s InitVal)?
      { Option<Expr> init;
        if (a1 != null) {
-           FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
+           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
            if (a4 == null) init = None.<Expr>make();
            else            init = Some.<Expr>make(a4.getA());
        } else {
            if (a4 == null) {
                init = None.<Expr>make();
-               FortressUtil.setType(a2, a3);
+               a2 = FortressUtil.setType(a2, a3);
            } else {
                init = Some.<Expr>make(a4.getA());
-               if (a4.getB()) FortressUtil.setMutableAndType(a2, a3);
-               else FortressUtil.setType(a2, a3);
+               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, a3);
+               else a2 = FortressUtil.setType(a2, a3);
            }
        }
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
@@ -138,17 +138,17 @@ DefOrDecl VarDecl :=
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
        if (a1 != null) {
-           FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
+           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
            if (a4 == null) init = None.<Expr>make();
            else            init = Some.<Expr>make(a4.getA());
        } else {
            if (a4 == null) {
                init = None.<Expr>make();
-               FortressUtil.setType(a2, tys);
+               a2 = FortressUtil.setType(a2, tys);
            } else {
                init = Some.<Expr>make(a4.getA());
-               if (a4.getB()) FortressUtil.setMutableAndType(a2, tys);
-               else FortressUtil.setType(a2, tys);
+               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, tys);
+               else a2 = FortressUtil.setType(a2, tys);
            }
        }
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);

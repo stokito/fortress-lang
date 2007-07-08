@@ -121,7 +121,7 @@ public class BuildLetEnvironments extends NodeVisitor<FValue> {
             for (LValue lval : lhs) {
                 if (lval instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) lval;
-                    if (lvb.getMutable()) {
+                    if (lvb.isMutable()) {
                         FValue fv = lval.accept(new_eval);
                         FType fvt = lvb.getType().getVal().accept(eval_type);
                         containing.putVariable(fv.getString(),fvt);

@@ -915,7 +915,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
           try {
               /* Ignore the type, until later */
-              if (lvb.getMutable()) {
+              if (lvb.isMutable()) {
                   bindInto.putVariablePlaceholder(sname);
               } else {
                   FValue init_val = new LazilyEvaluatedCell(init, containing);
@@ -943,7 +943,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 //
 //                try {
 //                    /* Ignore the type, until later */
-//                    if (lvb.getMutable()) {
+//                    if (lvb.isMutable()) {
 //                        bindInto.putVariablePlaceholder(sname);
 //                    } else {
 //                        FValue init_val;
@@ -1002,7 +1002,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                         (new EvalType(containing)).evalType(type.getVal())
                                 : null;
 
-                if (lvb.getMutable()) {
+                if (lvb.isMutable()) {
                     Expr rhs = init;
 
                     FValue value = (new Evaluator(containing)).eval(rhs);

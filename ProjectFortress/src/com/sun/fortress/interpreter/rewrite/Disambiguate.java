@@ -371,7 +371,7 @@ public class Disambiguate extends Rewrite {
                     LValueBind lvb = (LValueBind) node;
                     Id id = lvb.getName();
                     if ("_".equals(id.getName())) {
-                        return new LValueBind(lvb, new Id(id.getSpan(), "_$" + id.getSpan() ));
+                        return NodeFactory.makeLValue(lvb, new Id(id.getSpan(), "_$" + id.getSpan() ));
                     }
                 } else if (node instanceof IdType) {
                     IdType vre = (IdType) node;

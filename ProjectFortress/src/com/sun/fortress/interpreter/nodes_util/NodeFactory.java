@@ -279,6 +279,50 @@ public class NodeFactory {
         return digits;
    }
 
+    public static LValueBind makeLValue(LValueBind lvb, Id id) {
+        return new LValueBind(lvb.getSpan(), id, lvb.getType(), lvb.getMods(),
+                              lvb.isMutable());
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+                              lvb.getMods(), mutable);
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods) {
+        boolean mutable = lvb.isMutable();
+        for (Modifier m : mods) {
+            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+                mutable = true;
+        }
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+                              mods, mutable);
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods,
+                                            boolean mutable) {
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+                              mods, mutable);
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty) {
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
+                              new Some<TypeRef>(ty), lvb.getMods(),
+                              lvb.isMutable());
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
+                                        boolean mutable) {
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
+                              new Some<TypeRef>(ty), lvb.getMods(), mutable);
+    }
+
+    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
+                                        List<Modifier> mods) {
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
+                              new Some<TypeRef>(ty), mods, lvb.isMutable());
+    }
+
     public static MatrixType makeMatrixType(Span span, TypeRef element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {

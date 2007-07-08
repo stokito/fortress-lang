@@ -248,6 +248,15 @@ public interface NodeVisitor_void {
   /** Process an instance of KeywordType. */
   public void forKeywordType(KeywordType that);
 
+  /** Process an instance of LValueBind. */
+  public void forLValueBind(LValueBind that);
+
+  /** Process an instance of UnpastingBind. */
+  public void forUnpastingBind(UnpastingBind that);
+
+  /** Process an instance of UnpastingSplit. */
+  public void forUnpastingSplit(UnpastingSplit that);
+
   /** Process an instance of VarargsType. */
   public void forVarargsType(VarargsType that);
 

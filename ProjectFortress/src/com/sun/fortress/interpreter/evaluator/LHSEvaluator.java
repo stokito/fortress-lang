@@ -160,7 +160,7 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Id name = x.getName();
         Option<TypeRef> type = x.getType();
         String s = name.getName();
-        boolean mutable = x.getMutable();
+        boolean mutable = x.isMutable();
 
         // Here we have an LHS context
         if (value instanceof IUOTuple) {

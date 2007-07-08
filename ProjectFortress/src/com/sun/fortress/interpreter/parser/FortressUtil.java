@@ -21,6 +21,7 @@
 
 package com.sun.fortress.interpreter.parser;
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.useful.Some;
@@ -201,106 +202,121 @@ public final class FortressUtil {
         return false;
     }
 
-    public static void setMutable(List<LValue> vars) {
+    public static List<LValue> setMutable(List<LValue> vars) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind) ((LValueBind)l).setMutable();
+            if (l instanceof LValueBind)
+                result.add(NodeFactory.makeLValue((LValueBind)l, true));
             else throw new ProgramError(l, "Unpasting cannot be mutable.");
         }
+        return result;
     }
 
-    public static void setMutable(List<LValue> vars, Span span) {
+    public static List<LValue> setMutable(List<LValue> vars, Span span) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
            if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
                mods.add(new Modifier.Var(span));
-               ((LValueBind)l).setMods(mods);
+               result.add(NodeFactory.makeLValue((LValueBind)l, mods));
            } else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
-    public static void setType(List<LValue> vars, TypeRef ty) {
+    public static List<LValue> setType(List<LValue> vars, TypeRef ty) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind) ((LValueBind)l).setType(ty);
+            if (l instanceof LValueBind)
+                result.add(NodeFactory.makeLValue((LValueBind)l, ty));
             else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
-    public static void setType(List<LValue> vars, List<TypeRef> tys) {
+    public static List<LValue> setType(List<LValue> vars, List<TypeRef> tys) {
+        List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
-                ((LValueBind)l).setType(tys.get(ind));
+                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind)));
                 ind += 1;
             } else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
-    public static void setMutableAndType(List<LValue> vars, TypeRef ty) {
+    public static List<LValue> setMutableAndType(List<LValue> vars, TypeRef ty) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
-                LValueBind lv = (LValueBind)l;
-                lv.setMutable();
-                lv.setType(ty);
+                result.add(NodeFactory.makeLValue((LValueBind)l, ty, true));
             } else throw new ProgramError(l, "Unpasting cannot be mutable.");
         }
+        return result;
     }
 
-    public static void setMutableAndType(List<LValue> vars, Span span,
-                                         TypeRef ty) {
+    public static List<LValue> setMutableAndType(List<LValue> vars, Span span,
+                                                 TypeRef ty) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
            if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
                mods.add(new Modifier.Var(span));
-               LValueBind lv = (LValueBind)l;
-               lv.setMods(mods);
-               lv.setType(ty);
+               result.add(NodeFactory.makeLValue((LValueBind)l, ty, mods));
            } else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
-    public static void setMutableAndType(List<LValue> vars, List<TypeRef> tys) {
+    public static List<LValue> setMutableAndType(List<LValue> vars,
+                                                 List<TypeRef> tys) {
+        List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
-                LValueBind lv = (LValueBind)l;
-                lv.setMutable();
-                lv.setType(tys.get(ind));
+                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind), true));
                 ind += 1;
             } else throw new ProgramError(l, "Unpasting cannot be mutable.");
         }
+        return result;
     }
 
-    public static void setMutableAndType(List<LValue> vars, Span span,
-                                         List<TypeRef> tys) {
+    public static List<LValue> setMutableAndType(List<LValue> vars, Span span,
+                                                 List<TypeRef> tys) {
+        List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
                mods.add(new Modifier.Var(span));
-               LValueBind lv = (LValueBind)l;
-               lv.setMods(mods);
-               lv.setType(tys.get(ind));
+               result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind), mods));
                ind += 1;
             } else throw new ProgramError(l, "Unpasting cannot be mutable.");
         }
+        return result;
     }
 
-    public static void setMods(List<LValue> vars, List<Modifier> mods) {
+    public static List<LValue> setMods(List<LValue> vars, List<Modifier> mods) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind) ((LValueBind)l).setMods(mods);
+            if (l instanceof LValueBind)
+                result.add(NodeFactory.makeLValue((LValueBind)l, mods));
             else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
-    public static void setModsAndMutable(List<LValue> vars, List<Modifier> mods) {
+    public static List<LValue> setModsAndMutable(List<LValue> vars,
+                                                 List<Modifier> mods) {
+        List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
-                LValueBind lv = (LValueBind)l;
-                lv.setMods(mods);
-                lv.setMutable();
+                result.add(NodeFactory.makeLValue((LValueBind)l, mods, true));
            }
             else throw new ProgramError(l, "LValueBind is expected.");
         }
+        return result;
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,

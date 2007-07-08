@@ -38,10 +38,10 @@ import Spacing;
 DefOrDecl VarDecl =
      a1:VarMods? a2:VarWTypes w a3:InitVal
      { if (a1 != null) {
-           if (a3.getB()) FortressUtil.setModsAndMutable(a2, a1);
-           else FortressUtil.setMods(a2, a1);
+           if (a3.getB()) a2 = FortressUtil.setModsAndMutable(a2, a1);
+           else a2 = FortressUtil.setMods(a2, a1);
        } else {
-           if (a3.getB()) FortressUtil.setMutable(a2);
+           if (a3.getB()) a2 = FortressUtil.setMutable(a2);
        }
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
@@ -116,7 +116,7 @@ com.sun.fortress.interpreter.useful.Pair<Expr,Boolean> InitVal = a1:(equals / co
  */
 AbsVarDecl AbsVarDecl =
      a1:AbsVarMods? a2:VarWTypes
-     { if (a1 != null) FortressUtil.setMods(a2, a1);
+     { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses
