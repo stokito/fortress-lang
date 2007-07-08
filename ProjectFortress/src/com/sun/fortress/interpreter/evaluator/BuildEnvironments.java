@@ -58,7 +58,7 @@ import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
-import com.sun.fortress.interpreter.nodes.Dimension;
+import com.sun.fortress.interpreter.nodes.DimDecl;
 import com.sun.fortress.interpreter.nodes.DottedId;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FnDecl;
@@ -85,7 +85,7 @@ import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.TypeAlias;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes.BaseDimRef;
-import com.sun.fortress.interpreter.nodes.UnitVar;
+import com.sun.fortress.interpreter.nodes.UnitDecl;
 import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
@@ -1335,10 +1335,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimension(com.sun.fortress.interpreter.nodes.Dimension)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimDecl(com.sun.fortress.interpreter.nodes.DimDecl)
      */
     @Override
-    public Voidoid forDimension(Dimension x) {
+    public Voidoid forDimDecl(DimDecl x) {
         // TODO Auto-generated method stub
         // Id id = x.getId();
         // Option<TypeRef> derived;
@@ -1361,10 +1361,10 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnitVar(com.sun.fortress.interpreter.nodes.UnitVar)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnitDecl(com.sun.fortress.interpreter.nodes.UnitDecl)
      */
     @Override
-    public Voidoid forUnitVar(UnitVar x) {
+    public Voidoid forUnitDecl(UnitDecl x) {
         // List<Id> names;
         // Option<TypeRef> type;
         // Option<Expr> def;

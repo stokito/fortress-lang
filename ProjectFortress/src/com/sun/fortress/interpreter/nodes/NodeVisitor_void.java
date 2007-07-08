@@ -372,4 +372,10 @@ public interface NodeVisitor_void {
 
   /** Process an instance of VarDecl. */
   public void forVarDecl(VarDecl that);
+
+  /** Process an instance of DimDecl. */
+
+  public void forDimDecl(DimDecl that);
+  /** Process an instance of UnitDecl. */
+  public void forUnitDecl(UnitDecl that);
 }

@@ -183,8 +183,8 @@ public class NodeUtil {
 
     /* stringName **********************************************************/
     public static String stringName(HasAt node) {
-        if (node instanceof Dimension) {
-            return ((Dimension)node).getId().getName();
+        if (node instanceof DimDecl) {
+            return ((DimDecl)node).getId().getName();
         } else if (node instanceof FnDefOrDecl) {
             return NodeUtil.getName(((FnDefOrDecl)node).getFnName());
         } else if (node instanceof FnName) {
@@ -197,8 +197,8 @@ public class NodeUtil {
             return ((TraitDefOrDecl)node).getName().getName();
         } else if (node instanceof TypeAlias) {
             return ((TypeAlias)node).getName().getName();
-        } else if (node instanceof UnitVar) {
-            return ((UnitVar)node).getNames().toString();
+        } else if (node instanceof UnitDecl) {
+            return ((UnitDecl)node).getNames().toString();
         } else {
             return node.getClass().getSimpleName();
         }
@@ -226,8 +226,8 @@ public class NodeUtil {
             return new UnitIterable<String>(((AbsExternalSyntax)d).getId().getName());
         } else if (d instanceof AbsTypeAlias) {
             return new UnitIterable<String>(((AbsTypeAlias)d).getName().getName());
-        } else if (d instanceof Dimension) {
-            return new UnitIterable<String>(((Dimension)d).getId().getName());
+        } else if (d instanceof DimDecl) {
+            return new UnitIterable<String>(((DimDecl)d).getId().getName());
         } else if (d instanceof ExternalSyntax) {
             return new UnitIterable<String>(((ExternalSyntax)d).getId().getName());
         } else if (d instanceof FnExpr) {
@@ -258,8 +258,8 @@ public class NodeUtil {
             return new UnitIterable<String>(((TraitDefOrDecl)d).getName().getName());
         } else if (d instanceof TypeAlias) {
             return new UnitIterable<String>(((TypeAlias)d).getName().getName());
-        } else if (d instanceof UnitVar) {
-            return new IterableOnceTranslatingList<Id, String>(((UnitVar)d).
+        } else if (d instanceof UnitDecl) {
+            return new IterableOnceTranslatingList<Id, String>(((UnitDecl)d).
                                                     getNames(), IdtoStringFn);
         } else if (d instanceof VarDefOrDecl) {
             return new IterableOnceForLValueList(((VarDefOrDecl)d).getLhs());

@@ -56,10 +56,10 @@ Component
 ConstructorFnName
 Contract
 CubicDimUnit
+DimDecl
 DimRef
 DimTypeConversion
 DimUnitOp
-Dimension
 DimensionParam
 DimensionStaticArg
 Do
@@ -175,8 +175,8 @@ TypeApply
 TypeCase
 TypeCaseClause
 TypeArg
+UnitDecl
 UnitRef
-UnitVar
 UnpastingBind
 UnpastingDim
 UnpastingSplit

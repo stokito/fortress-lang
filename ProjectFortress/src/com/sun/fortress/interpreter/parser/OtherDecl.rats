@@ -38,7 +38,7 @@ import Spacing;
  */
 /* ************************************************
  * Not Yet Implemented ***************************
-Dimension DimUnitDecl =
+DimDecl DimUnitDecl =
      dim w a1:Id a2:(w void:equals w DimRef)? a3:(w default w Id)?
      { Option<TypeRef> derived;
        Option<TypeRef> default;
@@ -46,7 +46,7 @@ Dimension DimUnitDecl =
        else            derived = Some.<TypeRef>make(a2);
        if (a3 == null) default = None.<TypeRef>make();
        else            default = Some.<TypeRef>make(NodeFactory.makeIdType(a3.getSpan(),a3));
-       yyValue = new Dimension(createSpan(yyStart,yyCount),a1,derived,default);
+       yyValue = new DimDecl(createSpan(yyStart,yyCount),a1,derived,default);
      }
    / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?
        a4:(w void:equals w NoNewlineExpr)?
