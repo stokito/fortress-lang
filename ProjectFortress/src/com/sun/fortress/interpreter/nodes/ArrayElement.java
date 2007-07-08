@@ -26,36 +26,36 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-public class MapExpr extends BaseExpr {
-  private final List<Pair<Expr, Expr>> _elements;
+public class ArrayElement extends ArrayExpr {
+  private final Expr _element;
 
   /**
-   * Constructs a MapExpr.
+   * Constructs a ArrayElement.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
-  public MapExpr(Span in_span, List<Pair<Expr, Expr>> in_elements) {
+  public ArrayElement(Span in_span, Expr in_element) {
     super(in_span);
 
-    if (in_elements == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'elements' to the MapExpr constructor was null");
+    if (in_element == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'element' to the ArrayElement constructor was null");
     }
-    _elements = in_elements;
+    _element = in_element;
   }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
-        return v.forMapExpr(this);
+        return v.forArrayElement(this);
     }
 
-    MapExpr(Span span) {
+    ArrayElement(Span span) {
         super(span);
-        _elements = null;
+        _element = null;
     }
 
-  final public List<Pair<Expr, Expr>> getElements() { return _elements; }
+  final public Expr getElement() { return _element; }
 
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forMapExpr(this); }
-  public void visit(NodeVisitor_void visitor) { visitor.forMapExpr(this); }
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forArrayElement(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forArrayElement(this); }
 
   /**
    * Implementation of toString that uses
@@ -75,7 +75,7 @@ public class MapExpr extends BaseExpr {
   }
 
   protected void outputHelp(TabPrintWriter writer, boolean lossless) {
-    writer.print("MapExpr:");
+    writer.print("ArrayElement:");
     writer.indent();
 
     Span temp_span = getSpan();
@@ -87,28 +87,10 @@ public class MapExpr extends BaseExpr {
       writer.printEscaped(temp_span);
     } else { writer.print(temp_span); }
 
-    List<Pair<Expr, Expr>> temp_elements = getElements();
+    Expr temp_element = getElement();
     writer.startLine();
-    writer.print("elements = ");
-    writer.print("{");
-    writer.indent();
-    boolean isempty_temp_elements = true;
-    for (Pair<Expr, Expr> elt_temp_elements : temp_elements) {
-      isempty_temp_elements = false;
-      writer.startLine("* ");
-      if (elt_temp_elements == null) {
-        writer.print("null");
-      } else {
-        if (lossless) {
-          writer.printSerialized(elt_temp_elements);
-          writer.print(" ");
-          writer.printEscaped(elt_temp_elements);
-        } else { writer.print(elt_temp_elements); }
-      }
-    }
-    writer.unindent();
-    if (isempty_temp_elements) writer.print(" }");
-    else writer.startLine("}");
+    writer.print("element = ");
+    temp_element.outputHelp(writer, lossless);
     writer.unindent();
   }
 
@@ -121,10 +103,10 @@ public class MapExpr extends BaseExpr {
     if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
       return false;
     } else {
-      MapExpr casted = (MapExpr) obj;
-      List<Pair<Expr, Expr>> temp_elements = getElements();
-      List<Pair<Expr, Expr>> casted_elements = casted.getElements();
-      if (!(temp_elements == casted_elements || temp_elements.equals(casted_elements))) return false;
+      ArrayElement casted = (ArrayElement) obj;
+      Expr temp_element = getElement();
+      Expr casted_element = casted.getElement();
+      if (!(temp_element == casted_element || temp_element.equals(casted_element))) return false;
       return true;
     }
   }
@@ -136,8 +118,8 @@ public class MapExpr extends BaseExpr {
    */
   protected int generateHashCode() {
     int code = getClass().hashCode();
-    List<Pair<Expr, Expr>> temp_elements = getElements();
-    code ^= temp_elements.hashCode();
+    Expr temp_element = getElement();
+    code ^= temp_element.hashCode();
     return code;
   }
 }

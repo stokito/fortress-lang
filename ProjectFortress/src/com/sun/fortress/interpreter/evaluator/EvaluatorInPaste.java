@@ -21,26 +21,26 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
-import com.sun.fortress.interpreter.nodes.MultiDim;
-import com.sun.fortress.interpreter.nodes.MultiDimElement;
-import com.sun.fortress.interpreter.nodes.MultiDimRow;
+import com.sun.fortress.interpreter.nodes.ArrayExpr;
+import com.sun.fortress.interpreter.nodes.ArrayElement;
+import com.sun.fortress.interpreter.nodes.ArrayElements;
 
 
 public class EvaluatorInPaste extends Evaluator {
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Evaluator#forMultiDimRow(com.sun.fortress.interpreter.nodes.MultiDimRow)
+     * @see com.sun.fortress.interpreter.evaluator.Evaluator#forArrayElements(com.sun.fortress.interpreter.nodes.ArrayElements)
      */
     @Override
-    public FValue forMultiDimRow(MultiDimRow x) {
-        List<MultiDim> elements = x.getElements();
+    public FValue forArrayElements(ArrayElements x) {
+        List<ArrayExpr> elements = x.getElements();
         /* This dies bafflingly if we do the next line in parallel. */
         List<FValue> values = evalExprList/*Parallel*/(elements);
         return new IUOTuple(values, x);
     }
 
     @Override
-    public FValue forMultiDimElement(MultiDimElement x) {
-        // MDEs occur only within MultiDimRows, and reset
+    public FValue forArrayElement(ArrayElement x) {
+        // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
         Evaluator notInPaste = new Evaluator(this);

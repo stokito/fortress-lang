@@ -484,9 +484,9 @@ public final class FortressUtil {
 //   let elem = multi_dim_elem expr in
 //   let span = span_two expr multi in
 //     match multi.node_data with
-//       | `MultiDimElement _ ->
+//       | `ArrayElement _ ->
 //           multi_dim_row span dim [ elem; multi ]
-//       | `MultiDimRow
+//       | `ArrayElements
 //           { node_span = row_span;
 //             node_data =
 //               { multi_dim_row_dimension = row_dim;
@@ -502,55 +502,55 @@ public final class FortressUtil {
 //                | first::rest ->
 //                    multi_dim_row span row_dim
 //                      (multi_dim_cons expr dim first :: rest))
-    private static MultiDim multiDimElement(Expr expr) {
-        return new MultiDimElement(expr.getSpan(), expr);
+    private static ArrayExpr multiDimElement(Expr expr) {
+        return new ArrayElement(expr.getSpan(), expr);
     }
-    private static MultiDimRow addOneMultiDim(MultiDim multi, int dim,
+    private static ArrayElements addOneMultiDim(ArrayExpr multi, int dim,
                                               Expr expr){
         Span span = spanTwo(multi, expr);
-        MultiDim elem = multiDimElement(expr);
-        if (multi instanceof MultiDimElement) {
-            List<MultiDim> elems = new ArrayList<MultiDim>();
+        ArrayExpr elem = multiDimElement(expr);
+        if (multi instanceof ArrayElement) {
+            List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(multi);
             elems.add(elem);
-            return new MultiDimRow(span, dim, elems);
-        } else if (multi instanceof MultiDimRow) {
-            MultiDimRow m = (MultiDimRow)multi;
+            return new ArrayElements(span, dim, elems);
+        } else if (multi instanceof ArrayElements) {
+            ArrayElements m = (ArrayElements)multi;
             int _dim = m.getDimension();
-            List<MultiDim> elements = m.getElements();
+            List<ArrayExpr> elements = m.getElements();
             if (dim == _dim) {
                 elements.add(elem);
-                return new MultiDimRow(span, dim, elements);
+                return new ArrayElements(span, dim, elements);
             } else if (dim > _dim) {
-                List<MultiDim> elems = new ArrayList<MultiDim>();
+                List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
                 elems.add(multi);
                 elems.add(elem);
-                return new MultiDimRow(span, dim, elems);
+                return new ArrayElements(span, dim, elems);
             } else if (elements.size() == 0) {
                 throw new ProgramError(multi, "Empty array/matrix literal.");
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
-                MultiDim last = elements.get(index);
+                ArrayExpr last = elements.get(index);
                 elements.set(index, addOneMultiDim(last, dim, expr));
-                return new MultiDimRow(span, _dim, elements);
+                return new ArrayElements(span, _dim, elements);
             }
         } else {
             throw new ProgramError(multi,
-                                   "MultiDimElement or MulDimRow is expected.");
+                                   "ArrayElement or ArrayElements is expected.");
         }
     }
-    public static MultiDim multiDimCons(Expr init,
+    public static ArrayExpr multiDimCons(Expr init,
                                         List<Pair<Integer,Expr>> rest) {
-        MultiDim _init = multiDimElement(init);
+        ArrayExpr _init = multiDimElement(init);
         if (rest.isEmpty()) {
             throw new ProgramError(init, "multiDimCons: empty rest");
         } else {
             Pair<Integer,Expr> pair = rest.get(0);
             Expr expr = pair.getB();
-            List<MultiDim> elems = new ArrayList<MultiDim>();
+            List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(_init);
             elems.add(multiDimElement(expr));
-            MultiDimRow result = new MultiDimRow(spanTwo(_init,expr),
+            ArrayElements result = new ArrayElements(spanTwo(_init,expr),
                                                  pair.getA(), elems);
             for (Pair<Integer,Expr> _pair : rest.subList(1, rest.size())) {
                 int _dim   = _pair.getA();

@@ -155,6 +155,15 @@ public interface NodeVisitor_void {
   /** Process an instance of FnExpr. */
   public void forFnExpr(FnExpr that);
 
+  /** Process an instance of MapExpr. */
+  public void forMapExpr(MapExpr that);
+
+  /** Process an instance of ArrayElement. */
+  public void forArrayElement(ArrayElement that);
+
+  /** Process an instance of ArrayElements. */
+  public void forArrayElements(ArrayElements that);
+
   /** Process an instance of FloatLiteral. */
   public void forFloatLiteral(FloatLiteral that);
 

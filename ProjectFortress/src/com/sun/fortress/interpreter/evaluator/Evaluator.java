@@ -109,9 +109,9 @@ import com.sun.fortress.interpreter.nodes.ListExpr;
 import com.sun.fortress.interpreter.nodes.LooseJuxt;
 import com.sun.fortress.interpreter.nodes.MapComprehension;
 import com.sun.fortress.interpreter.nodes.MapExpr;
-import com.sun.fortress.interpreter.nodes.MultiDim;
-import com.sun.fortress.interpreter.nodes.MultiDimElement;
-import com.sun.fortress.interpreter.nodes.MultiDimRow;
+import com.sun.fortress.interpreter.nodes.ArrayExpr;
+import com.sun.fortress.interpreter.nodes.ArrayElement;
+import com.sun.fortress.interpreter.nodes.ArrayElements;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes.Op;
@@ -875,8 +875,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forMapExpr");
     }
 
-    public FValue forMultiDimElement(MultiDimElement x) {
-        // MDEs occur only within MultiDimRows, and reset
+    public FValue forArrayElement(ArrayElement x) {
+        // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
         throw new InterpreterError(x,"Singleton paste?  Can't judge dimensionality without type inference.");
@@ -891,8 +891,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * information for the IUOTuples can be correctly determined. Until then, it
      * is too early to expand scalars up to full rank.
      */
-    public FValue forMultiDimRow(MultiDimRow x) {
-        List<MultiDim> elements = x.getElements();
+    public FValue forArrayElements(ArrayElements x) {
+        List<ArrayExpr> elements = x.getElements();
         EvaluatorInPaste eip = new EvaluatorInPaste(this);
         List<FValue> values = eip.evalExprList(elements);
         IUOTuple paste = new IUOTuple(values, x);

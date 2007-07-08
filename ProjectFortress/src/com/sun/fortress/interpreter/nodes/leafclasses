@@ -29,6 +29,8 @@ Api
 Apply
 ArrayComprehension
 ArrayComprehensionClause
+ArrayElement
+ArrayElements
 ArrayType
 ArrowType
 AsExpr
@@ -129,8 +131,6 @@ Modifier.Value
 Modifier.Var
 Modifier.Widens
 Modifier.Wrapped
-MultiDimElement
-MultiDimRow
 Name
 NatParam
 NotBoolRef

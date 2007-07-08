@@ -56,10 +56,10 @@ Expr Aggregate =
    / opensquare w RectElements w closesquare ;
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
-MultiDim RectElements =
+private ArrayExpr RectElements =
      a1:NoSpaceExpr a2s:MultiDimCons*
      { if (a2s == null || a2s.isEmpty())
-           yyValue = new MultiDimElement(a1.getSpan(), a1);
+           yyValue = new ArrayElement(a1.getSpan(), a1);
        else
            yyValue = FortressUtil.multiDimCons(a1, a2s.list());
      };
