@@ -78,6 +78,25 @@ public class NodeUtil {
         }
     }
 
+    /* for Applicable ******************************************************/
+    public static String nameAsMethod(Applicable app) {
+        if (app instanceof Fn) {
+            return getName(((Fn)app).getFnName());
+        } else if (app instanceof FnDefOrDecl) {
+            int spi = ((FnDefOrDecl)app).selfParameterIndex();
+            if (spi >= 0)
+                return "rm$" + spi + "$" + getName(((FnDefOrDecl)app).getFnName());
+            else
+                return getName(((FnDefOrDecl)app).getFnName());
+        } else if (app instanceof NativeApp) {
+            return getName(((NativeApp)app).getFnName());
+        } else if (app instanceof NativeApplicable) {
+            return getName(((NativeApplicable)app).getFnName());
+        } else {
+            throw new Error("NodeUtil.nameAsMethod(" + app.getClass());
+        }
+    }
+
     /* for Param ***********************************************************/
     public static boolean isTransient(Param p) {
         for (Modifier m : p.getMods()) {

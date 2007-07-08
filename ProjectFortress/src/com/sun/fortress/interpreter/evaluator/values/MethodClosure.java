@@ -110,7 +110,7 @@ public class MethodClosure extends Closure implements Method {
     @Override
     public String asMethodName() {
         // TODO Auto-generated method stub
-        return getDef().nameAsMethod();
+        return NodeUtil.nameAsMethod(getDef());
     }
 
 

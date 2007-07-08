@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.VarDecl;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
 
@@ -100,10 +101,10 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         }
         return null;
     }
-    
+
     protected void forFnDecl3(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = x.nameAsMethod();
+        String fname = NodeUtil.nameAsMethod(x);
 
         if (optStaticParams.isPresent()) {
             // GENERIC
@@ -112,7 +113,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 //                // Why isn't this the right thing to do?
 //                // FGenericFunction is (currently) excluded from this treatment.
 //                FValue fcn = containing.getValue(fname);
-//                
+//
 //                if (fcn instanceof OverloadedFunction) {
 //                    OverloadedFunction og = (OverloadedFunction) fcn;
 //                    og.finishInitializing();

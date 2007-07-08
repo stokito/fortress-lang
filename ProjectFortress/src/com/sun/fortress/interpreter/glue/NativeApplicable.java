@@ -83,22 +83,4 @@ public class NativeApplicable implements Applicable {
     public List<WhereClause> getWhere() {
         return Collections.<WhereClause>emptyList();
     }
-
-    public int applicableCompareTo( Applicable other) {
-        int x = Useful.compareClasses(this, other);
-        if (x != 0) return x;
-        NativeApplicable na = (NativeApplicable) other;
-        x = name.compareTo(na.name);
-        if (x != 0) return x;
-        return NodeUtil.getName(fnName).compareTo(NodeUtil.getName(na.getFnName()));
-     }
-
-    public int selfParameterIndex() {
-        return -1;
-    }
-    public String nameAsMethod() {
-        return NodeUtil.getName(getFnName());
-    }
-
-
 }

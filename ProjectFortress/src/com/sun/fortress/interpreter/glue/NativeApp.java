@@ -150,17 +150,4 @@ public abstract class NativeApp implements Applicable {
                                    +" is not a NativeApp.",x);
         }
     }
-
-    public int applicableCompareTo( Applicable other) {
-        return Useful.compareClasses(this, other);
-     }
-
-    public int selfParameterIndex() {
-        return -1;
-    }
-
-    public String nameAsMethod() {
-        return NodeUtil.getName(getFnName());
-    }
-
 }

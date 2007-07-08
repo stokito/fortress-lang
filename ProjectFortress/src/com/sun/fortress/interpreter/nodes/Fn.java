@@ -135,18 +135,4 @@ public class Fn extends ValueExpr implements Decl, Applicable {
     public List<WhereClause> getWhere() {
         return Collections.<WhereClause> emptyList();
     }
-
-    public int applicableCompareTo( Applicable other) {
-        int x = Useful.compareClasses(this, other);
-        if (x != 0) return x;
-        Fn na = (Fn) other;
-        return NodeUtil.getName(getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
-
-     }
-
-    public String nameAsMethod() {
-        return NodeUtil.getName(getFnName());
-    }
-
-
 }

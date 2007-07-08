@@ -20,8 +20,10 @@ package com.sun.fortress.interpreter.nodes_util;
 import java.util.Comparator;
 import java.util.List;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.glue.NativeApp;
+import com.sun.fortress.interpreter.glue.NativeApplicable;
+import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Voidoid;
 import com.sun.fortress.interpreter.useful.AnyListComparer;
 import com.sun.fortress.interpreter.useful.ListComparer;
@@ -108,7 +110,27 @@ public class NodeComparator {
 
     /* compare methods ***************************************************/
     public static int compare(Applicable left, Applicable right) {
-        return left.applicableCompareTo(right);
+        if (left instanceof Fn) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            return NodeUtil.getName(((Fn)left).getFnName()).compareTo(NodeUtil.getName(((Fn)right).getFnName()));
+        } else if (left instanceof FnDefOrDecl) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            return compare(left, (FnDefOrDecl)right);
+        } else if (left instanceof NativeApp) {
+            return Useful.compareClasses(left, right);
+        } else if (left instanceof NativeApplicable) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            NativeApplicable na = (NativeApplicable)right;
+            x = ((NativeApplicable)left).stringName().compareTo(na.stringName());
+            if (x != 0) return x;
+            return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
+        } else {
+            throw new Error("NodeComparator.compare(" + left.getClass() + ", "
+                            + right.getClass());
+        }
     }
 
     public static int compare(DottedId left, DottedId right) {

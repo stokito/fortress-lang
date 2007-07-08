@@ -70,28 +70,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         return WellKnownNames.defaultSelfName;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    /*
-    public int compareTo(FnDefOrDecl a1) {
-        FnDefOrDecl a0 = this;
-
-        FnName fn0 = a0.getFnName();
-        FnName fn1 = a1.getFnName();
-        int x = NodeComparator.compare(fn0, fn1);
-        if (x != 0)  return x;
-
-        x = Option.<List<StaticParam>>compare(a0.getStaticParams(), a1.getStaticParams(), NodeComparator.staticParamListComparer);
-
-        if (x != 0)  return x;
-
-        x = Param.listComparer.compare(a0.getParams(), a1.getParams());
-        return x;
-
-    }
-    */
-
     static class Comparer implements Comparator<FnDefOrDecl> {
 
         public int compare(FnDefOrDecl o1, FnDefOrDecl o2) {
@@ -100,13 +78,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     }
 
     public final static Comparer comparer = new Comparer();
-
-    public int applicableCompareTo(Applicable a) {
-        int x = Useful.compareClasses(this, a);
-        if (x != 0) return x;
-        return NodeComparator.compare(this, (FnDefOrDecl) a);
-    }
-
 
     @Override
     public String toString() {
@@ -204,19 +175,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     public String nameAsFunction() {
         return NodeUtil.getName(name);
     }
-
-    public String nameAsMethod() {
-        if (asMethodName == null) {
-            int spi = selfParameterIndex();
-
-            if (spi >= 0)
-                asMethodName = "fm$" + spi + "$" + NodeUtil.getName(name);
-            else
-                asMethodName = NodeUtil.getName(name);
-        }
-        return asMethodName;
-    }
-
 }
 
 // / and fn_def_or_decl =

@@ -422,7 +422,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     private void forFnDecl1(FnDecl x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = x.nameAsMethod();
+        String fname = NodeUtil.nameAsMethod(x);
 
         FValue cl;
 
@@ -457,7 +457,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
    // Overridden in BuildTraitEnvironment
    protected void forFnDecl3(FnDecl x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-       String fname = x.nameAsMethod();
+       String fname = NodeUtil.nameAsMethod(x);
 
        if (optStaticParams.isPresent()) {
            // GENERIC
@@ -1474,7 +1474,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
 
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = x.nameAsMethod();
+        String fname = NodeUtil.nameAsMethod(x);
 
         if (optStaticParams.isPresent()) {
             // GENERIC
@@ -1501,7 +1501,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
 
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
-        String fname = x.nameAsMethod();
+        String fname = NodeUtil.nameAsMethod(x);
 
         if (optStaticParams.isPresent()) {
             // GENERIC
