@@ -17,11 +17,17 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public interface HasParams {
-    public Option<List<Param>> getParams();
+  public Option<List<Param>> getParams();
+  public List<? extends DefOrDecl> getDefOrDecls();
 
-    public List<? extends DefOrDecl> getDefOrDecls();
 }

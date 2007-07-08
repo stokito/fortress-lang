@@ -17,6 +17,15 @@
 
 package com.sun.fortress.interpreter.nodes;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
+
 public interface GenericDefOrDeclWithParams extends GenericDefOrDecl, HasParams {
 
 }

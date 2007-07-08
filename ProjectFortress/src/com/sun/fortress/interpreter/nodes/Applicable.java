@@ -34,9 +34,4 @@ public interface Applicable extends HasAt {
   public List<WhereClause> getWhere();
   public Expr getBody();
 
-    /*
-  public <RetType> RetType visit(ApplicableVisitor<RetType> visitor);
-  public void visit(ApplicableVisitor_void visitor);
-  public void outputHelp(TabPrintWriter writer);
-    */
 }
