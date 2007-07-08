@@ -17,18 +17,29 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class Import extends AbstractNode {
-    public Import(Span s) {
-        super(s);
-    }
 
+  /**
+   * Constructs a Import.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Import(Span in_span) {
+    super(in_span);
+  }
+
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-
-// / and import =
-// / [
-// / | `ImportApi of import_api
-// / | `ImportIds of import_ids
-// / ] node
-// /

@@ -17,26 +17,41 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class ImportFrom extends Import {
-    DottedId source;
+  private final DottedId _source;
 
-    /**
-     * @return Returns the source.
-     */
-    public DottedId getSource() {
-        return source;
+  /**
+   * Constructs a ImportFrom.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public ImportFrom(Span in_span, DottedId in_source) {
+    super(in_span);
+
+    if (in_source == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'source' to the ImportFrom constructor was null");
     }
+    _source = in_source;
+  }
 
     ImportFrom(Span s) {
         super(s);
+        _source = null;
     }
 
+  public DottedId getSource() { return _source; }
+
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-// / and import_names =
-// / [
-// / | `ImportStar
-// / | `ImportNames of id list
-// / ] node
-// /

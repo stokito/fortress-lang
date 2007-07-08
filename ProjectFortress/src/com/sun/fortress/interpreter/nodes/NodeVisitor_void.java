@@ -233,6 +233,15 @@ public interface NodeVisitor_void {
   /** Process an instance of IfClause. */
   public void forIfClause(IfClause that);
 
+  /** Process an instance of ImportApi. */
+  public void forImportApi(ImportApi that);
+
+  /** Process an instance of ImportStar. */
+  public void forImportStar(ImportStar that);
+
+  /** Process an instance of ImportNames. */
+  public void forImportNames(ImportNames that);
+
   /** Process an instance of FixedDim. */
   public void forFixedDim(FixedDim that);
 
