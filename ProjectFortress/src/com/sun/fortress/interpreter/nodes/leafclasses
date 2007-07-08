@@ -100,7 +100,6 @@ KeywordType
 Label
 LetFn
 ListComprehension
-ListExpr
 ListType
 LocalVarDecl
 LooseJuxt
@@ -152,7 +151,6 @@ QuotientDimType
 QuotientStaticArg
 QuotientUnitType
 SetComprehension
-SetExpr
 SimpleTypeParam
 Spawn
 SquareDimUnit

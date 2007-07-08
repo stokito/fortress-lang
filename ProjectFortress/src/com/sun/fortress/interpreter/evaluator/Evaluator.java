@@ -105,7 +105,6 @@ import com.sun.fortress.interpreter.nodes.Label;
 import com.sun.fortress.interpreter.nodes.LetExpr;
 import com.sun.fortress.interpreter.nodes.LetFn;
 import com.sun.fortress.interpreter.nodes.ListComprehension;
-import com.sun.fortress.interpreter.nodes.ListExpr;
 import com.sun.fortress.interpreter.nodes.LooseJuxt;
 import com.sun.fortress.interpreter.nodes.MapComprehension;
 import com.sun.fortress.interpreter.nodes.MapExpr;
@@ -125,7 +124,6 @@ import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes.ArrayComprehension;
 import com.sun.fortress.interpreter.nodes.ArrayComprehensionClause;
 import com.sun.fortress.interpreter.nodes.SetComprehension;
-import com.sun.fortress.interpreter.nodes.SetExpr;
 import com.sun.fortress.interpreter.nodes.Spawn;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StringLiteral;
@@ -817,10 +815,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         throw new InterpreterError(x,"list comprehensions not yet implemented.");
     }
 
-    public FValue forListExpr(ListExpr x) {
-        throw new InterpreterError(x,"list expressions not implemented.");
-    }
-
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
         FValue tos = fns.pop();
         while (!fns.empty()) {
@@ -1030,6 +1024,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forSetComprehension");
     }
 
+    /*
     public FValue forSetExpr(SetExpr x) {
         List<Expr> elements = x.getElements();
         // Evaluate the elements.
@@ -1052,6 +1047,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         return theArray;
     }
+    */
 
     public FValue forSpawn(Spawn x) {
         Expr body = x.getBody();
