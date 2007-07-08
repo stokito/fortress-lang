@@ -56,16 +56,16 @@ private Expr BlockElem =
      LocalVarFnDecl
    / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorList)?
      { if (a2 == null) yyValue = a1;
-       else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), a1, a2,
-                                        FortressUtil.emptyExprs());
+       else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount),
+                                        FortressUtil.emptyExprs(), a1, a2);
      };
 
 /* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
 private LetExpr LocalVarFnDecl =
      a1:LocalFnDecl a2s:(br LocalFnDecl)*
      { List<FnDecl> fns = FortressUtil.mkList(a1, a2s.list());
-       yyValue = new LetFn(createSpan(yyStart,yyCount), fns,
-                           FortressUtil.emptyExprs());
+       yyValue = new LetFn(createSpan(yyStart,yyCount),
+                           FortressUtil.emptyExprs(), fns);
      }
    / LocalVarDecl ;
 

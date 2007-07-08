@@ -323,6 +323,22 @@ public class NodeFactory {
                               new Some<TypeRef>(ty), mods, lvb.isMutable());
     }
 
+    public static LetExpr makeLetExpr(LetExpr expr, List<Expr> body) {
+        if (expr instanceof GeneratedExpr) {
+            GeneratedExpr exp = (GeneratedExpr) expr;
+            return new GeneratedExpr(exp.getSpan(), body, exp.getExpr(),
+                                     exp.getGens());
+        } else if (expr instanceof LetFn) {
+            return new LetFn(expr.getSpan(), body, ((LetFn)expr).getFns());
+        } else if (expr instanceof LocalVarDecl) {
+            LocalVarDecl exp = (LocalVarDecl) expr;
+            return new LocalVarDecl(exp.getSpan(), body, exp.getLhs(),
+                                    exp.getRhs());
+        } else {
+            throw new Error(expr.getClass() + " is not a subtype of LetExpr.");
+        }
+    }
+
     public static MatrixType makeMatrixType(Span span, TypeRef element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {

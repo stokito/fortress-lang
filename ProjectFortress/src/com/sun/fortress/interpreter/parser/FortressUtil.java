@@ -451,14 +451,14 @@ public final class FortressUtil {
 
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Option<Expr> expr) {
-        return new LocalVarDecl(span, lvs, expr, emptyExprs());
+        return new LocalVarDecl(span, emptyExprs(), lvs, expr);
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Expr expr) {
-        return new LocalVarDecl(span, lvs, Some.<Expr>make(expr), emptyExprs());
+        return new LocalVarDecl(span, emptyExprs(), lvs, Some.<Expr>make(expr));
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
-        return new LocalVarDecl(span, lvs, None.<Expr>make(), emptyExprs());
+        return new LocalVarDecl(span, emptyExprs(), lvs, None.<Expr>make());
     }
 
     public static LValueBind mkLValueBind(Span span, Id id, TypeRef ty) {
@@ -656,7 +656,7 @@ public final class FortressUtil {
             if (e instanceof LetExpr) {
                 LetExpr _e = (LetExpr)e;
                 if (_e.getBody().isEmpty()) {
-                    _e.setBody(es);
+                    _e = NodeFactory.makeLetExpr(_e, es);
                     es = new ArrayList<Expr>();
                     es.add(_e);
                 } else {

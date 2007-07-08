@@ -17,32 +17,41 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class LetExpr extends Expr implements DefOrDecl {
-    List<Expr> body;
+  private final List<Expr> _body;
+
+  /**
+   * Constructs a LetExpr.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public LetExpr(Span in_span, List<Expr> in_body) {
+    super(in_span);
+
+    if (in_body == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'body' to the LetExpr constructor was null");
+    }
+    _body = in_body;
+  }
 
     protected LetExpr(Span span) {
         super(span);
+        _body = null;
     }
 
-    /**
-     * @return Returns the body.
-     */
-    public List<Expr> getBody() {
-        return body;
-    }
+  public List<Expr> getBody() { return _body; }
 
-    public void setBody(List<Expr> body) {
-	this.body = body;
-    }
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
 }
-
-// / and let_expr =
-// / [
-// / | `LetMutableExpr of let_binding_expr
-// / | `LetImmutableExpr of let_binding_expr
-// / | `LetFnExpr of let_fn_expr
-// / ] node
-// /

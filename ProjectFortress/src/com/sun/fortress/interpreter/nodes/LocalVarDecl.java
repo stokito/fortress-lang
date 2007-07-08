@@ -17,88 +17,170 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.Option;
-import java.util.List;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.IterableOnce;
-
-
-// / and let_binding_expr = let_binding_expr_rec node
-// / and let_binding_expr_rec =
-// / {
-// / let_binding_expr_lhs : lvalue list;
-// / let_binding_expr_rhs : expr option;
-// / }
-// /
 public class LocalVarDecl extends LetExpr {
-    public LocalVarDecl(Span span) {
-        super(span);
+  private final List<LValue> _lhs;
+  private final Option<Expr> _rhs;
+
+  /**
+   * Constructs a LocalVarDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public LocalVarDecl(Span in_span, List<Expr> in_body, List<LValue> in_lhs, Option<Expr> in_rhs) {
+    super(in_span, in_body);
+
+    if (in_lhs == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'lhs' to the LocalVarDecl constructor was null");
     }
+    _lhs = in_lhs;
 
-    List<LValue> lhs;
-
-    Option<Expr> rhs;
-
-    /**
-     * For backwards compatibility, this method allows specification of whether
-     * its LValues are (all) mutable or not.
-     *
-     * @param span
-     * @param lhs
-     * @param rhs
-     * @param body
-     * @param mutable
-     */
-    public LocalVarDecl(Span span, List<LValue> lhs, Option<Expr> rhs,
-            List<Expr> body, boolean mutable) {
-        super(span);
-        List<LValue> lvs = new ArrayList<LValue>();
-        for (LValue l : lhs) {
-            if (l instanceof LValueBind) {
-                LValueBind lvb = (LValueBind) l;
-                lvs.add(NodeFactory.makeLValue((LValueBind)l, mutable));
-            }
-        }
-        this.lhs = lvs;
-        this.rhs = rhs;
-        this.body = body;
+    if (in_rhs == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'rhs' to the LocalVarDecl constructor was null");
     }
-
-    /**
-     * The list of LValues ought to be correctly annotated w.r.t. mutability.
-     *
-     * @param span
-     * @param lhs
-     * @param rhs
-     * @param body
-     */
-    public LocalVarDecl(Span span, List<LValue> lhs, Option<Expr> rhs,
-            List<Expr> body) {
-        super(span);
-        this.lhs = lhs;
-        this.rhs = rhs;
-        this.body = body;
-    }
-
-    /**
-     * @return Returns the lhs.
-     */
-    public List<LValue> getLhs() {
-        return lhs;
-    }
-
-    /**
-     * @return Returns the rhs.
-     */
-    public Option<Expr> getRhs() {
-        return rhs;
-    }
+    _rhs = in_rhs;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         // TODO Auto-generated method stub
         return v.forLocalVarDecl(this);
     }
+
+    public LocalVarDecl(Span span) {
+        super(span);
+        _lhs = null;
+        _rhs = null;
+    }
+
+  final public List<LValue> getLhs() { return _lhs; }
+  final public Option<Expr> getRhs() { return _rhs; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forLocalVarDecl(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forLocalVarDecl(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("LocalVarDecl:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<Expr> temp_body = getBody();
+    writer.startLine();
+    writer.print("body = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_body = true;
+    for (Expr elt_temp_body : temp_body) {
+      isempty_temp_body = false;
+      writer.startLine("* ");
+      if (elt_temp_body == null) {
+        writer.print("null");
+      } else {
+        elt_temp_body.outputHelp(writer, lossless);
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_body) writer.print(" }");
+    else writer.startLine("}");
+
+    List<LValue> temp_lhs = getLhs();
+    writer.startLine();
+    writer.print("lhs = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_lhs = true;
+    for (LValue elt_temp_lhs : temp_lhs) {
+      isempty_temp_lhs = false;
+      writer.startLine("* ");
+      if (elt_temp_lhs == null) {
+        writer.print("null");
+      } else {
+        elt_temp_lhs.outputHelp(writer, lossless);
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_lhs) writer.print(" }");
+    else writer.startLine("}");
+
+    Option<Expr> temp_rhs = getRhs();
+    writer.startLine();
+    writer.print("rhs = ");
+    if (lossless) {
+      writer.printSerialized(temp_rhs);
+      writer.print(" ");
+      writer.printEscaped(temp_rhs);
+    } else { writer.print(temp_rhs); }
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      LocalVarDecl casted = (LocalVarDecl) obj;
+      List<Expr> temp_body = getBody();
+      List<Expr> casted_body = casted.getBody();
+      if (!(temp_body == casted_body || temp_body.equals(casted_body))) return false;
+      List<LValue> temp_lhs = getLhs();
+      List<LValue> casted_lhs = casted.getLhs();
+      if (!(temp_lhs == casted_lhs || temp_lhs.equals(casted_lhs))) return false;
+      Option<Expr> temp_rhs = getRhs();
+      Option<Expr> casted_rhs = casted.getRhs();
+      if (!(temp_rhs == casted_rhs || temp_rhs.equals(casted_rhs))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<Expr> temp_body = getBody();
+    code ^= temp_body.hashCode();
+    List<LValue> temp_lhs = getLhs();
+    code ^= temp_lhs.hashCode();
+    Option<Expr> temp_rhs = getRhs();
+    code ^= temp_rhs.hashCode();
+    return code;
+  }
 }

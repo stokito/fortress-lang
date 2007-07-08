@@ -158,6 +158,15 @@ public interface NodeVisitor_void {
   /** Process an instance of FnExpr. */
   public void forFnExpr(FnExpr that);
 
+  /** Process an instance of GeneratedExpr. */
+  public void forGeneratedExpr(GeneratedExpr that);
+
+  /** Process an instance of LetFn. */
+  public void forLetFn(LetFn that);
+
+  /** Process an instance of LocalVarDecl. */
+  public void forLocalVarDecl(LocalVarDecl that);
+
   /** Process an instance of MapExpr. */
   public void forMapExpr(MapExpr that);
 

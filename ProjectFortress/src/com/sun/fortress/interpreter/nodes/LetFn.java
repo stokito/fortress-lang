@@ -17,43 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.UnitIterable;
-
-
-// / and let_fn_expr = let_fn_expr_rec node
-// / and let_fn_expr_rec =
-// / {
-// / let_fn_expr_fns : fn_bind list;
-// / }
-// /
 public class LetFn extends LetExpr {
-    List<FnDecl> fns;
+  private final List<FnDecl> _fns;
 
-    public LetFn(Span span, List<FnDecl> fns, List<Expr> body) {
-        super(span);
-        this.fns = fns;
-        this.body = body;
-    }
+  /**
+   * Constructs a LetFn.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public LetFn(Span in_span, List<Expr> in_body, List<FnDecl> in_fns) {
+    super(in_span, in_body);
 
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof LetFn) {
-            LetFn lf = (LetFn) o;
-            return fns.equals(lf.getFns()) && body.equals(lf.getBody());
-        }
-        return false;
+    if (in_fns == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'fns' to the LetFn constructor was null");
     }
-
-    @Override
-    public int hashCode() {
-        return MagicNumbers.hashList(fns, MagicNumbers.f)
-                + MagicNumbers.hashList(body, MagicNumbers.b);
-    }
+    _fns = in_fns;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -62,12 +49,119 @@ public class LetFn extends LetExpr {
 
     LetFn(Span span) {
         super(span);
+        _fns = null;
     }
 
-    /**
-     * @return Returns the fns.
-     */
-    public List<FnDecl> getFns() {
-        return fns;
+  final public List<FnDecl> getFns() { return _fns; }
+
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forLetFn(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forLetFn(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("LetFn:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<Expr> temp_body = getBody();
+    writer.startLine();
+    writer.print("body = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_body = true;
+    for (Expr elt_temp_body : temp_body) {
+      isempty_temp_body = false;
+      writer.startLine("* ");
+      if (elt_temp_body == null) {
+        writer.print("null");
+      } else {
+        elt_temp_body.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_body) writer.print(" }");
+    else writer.startLine("}");
+
+    List<FnDecl> temp_fns = getFns();
+    writer.startLine();
+    writer.print("fns = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_fns = true;
+    for (FnDecl elt_temp_fns : temp_fns) {
+      isempty_temp_fns = false;
+      writer.startLine("* ");
+      if (elt_temp_fns == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.printSerialized(elt_temp_fns);
+          writer.print(" ");
+          writer.printEscaped(elt_temp_fns);
+        } else { writer.print(elt_temp_fns); }
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_fns) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      LetFn casted = (LetFn) obj;
+      List<Expr> temp_body = getBody();
+      List<Expr> casted_body = casted.getBody();
+      if (!(temp_body == casted_body || temp_body.equals(casted_body))) return false;
+      List<FnDecl> temp_fns = getFns();
+      List<FnDecl> casted_fns = casted.getFns();
+      if (!(temp_fns == casted_fns || temp_fns.equals(casted_fns))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<Expr> temp_body = getBody();
+    code ^= temp_body.hashCode();
+    List<FnDecl> temp_fns = getFns();
+    code ^= temp_fns.hashCode();
+    return code;
+  }
 }
