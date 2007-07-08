@@ -17,18 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class WhereClause extends AbstractNode {
-    WhereClause(Span span) {
-        super(span);
-    }
 
+  /**
+   * Constructs a WhereClause.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public WhereClause(Span in_span) {
+    super(in_span);
+  }
+
+    /*
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  protected abstract int generateHashCode();
+    */
 }
-
-// / and where_clause =
-// / [
-// / | `WhereExtends of where_extends
-// / | `TypeAlias of type_alias
-// / ] node
-// /

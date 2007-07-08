@@ -83,6 +83,9 @@ public interface NodeVisitor_void {
   /** Process an instance of InverseDimUnit. */
   public void forInverseDimUnit(InverseDimUnit that);
 
+  /** Process an instance of DimDecl. */
+  public void forDimDecl(DimDecl that);
+
   /** Process an instance of DoFront. */
   public void forDoFront(DoFront that);
 
@@ -97,9 +100,6 @@ public interface NodeVisitor_void {
 
   /** Process an instance of Expr. */
   public void forExpr(Expr that);
-
-  /** Process an instance of FnExpr. */
-  public void forFnExpr(FnExpr that);
 
   /** Process an instance of AsExpr. */
   public void forAsExpr(AsExpr that);
@@ -151,6 +151,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of TryAtomicExpr. */
   public void forTryAtomicExpr(TryAtomicExpr that);
+
+  /** Process an instance of FnExpr. */
+  public void forFnExpr(FnExpr that);
 
   /** Process an instance of FloatLiteral. */
   public void forFloatLiteral(FloatLiteral that);
@@ -236,9 +239,7 @@ public interface NodeVisitor_void {
   /** Process an instance of KeywordType. */
   public void forKeywordType(KeywordType that);
 
-  /**
-     * Process an instance of VarargsType.
-     */
+  /** Process an instance of VarargsType. */
   public void forVarargsType(VarargsType that);
 
   /** Process an instance of Op. */
@@ -367,15 +368,33 @@ public interface NodeVisitor_void {
   /** Process an instance of TypeArg. */
   public void forTypeArg(TypeArg that);
 
+  /** Process an instance of UnitDecl. */
+  public void forUnitDecl(UnitDecl that);
+
   /** Process an instance of AbsVarDecl. */
   public void forAbsVarDecl(AbsVarDecl that);
 
   /** Process an instance of VarDecl. */
   public void forVarDecl(VarDecl that);
 
-  /** Process an instance of DimDecl. */
+  /** Process an instance of AbsTypeAlias. */
+  public void forAbsTypeAlias(AbsTypeAlias that);
 
-  public void forDimDecl(DimDecl that);
-  /** Process an instance of UnitDecl. */
-  public void forUnitDecl(UnitDecl that);
+  /** Process an instance of TypeAlias. */
+  public void forTypeAlias(TypeAlias that);
+
+  /** Process an instance of WhereBool. */
+  public void forWhereBool(WhereBool that);
+
+  /** Process an instance of WhereExtends. */
+  public void forWhereExtends(WhereExtends that);
+
+  /** Process an instance of WhereNat. */
+  public void forWhereNat(WhereNat that);
+
+  /** Process an instance of WhereUnit. */
+  public void forWhereUnit(WhereUnit that);
+
+  /** Process an instance of WhereWidensCoerces. */
+  public void forWhereWidensCoerces(WhereWidensCoerces that);
 }
