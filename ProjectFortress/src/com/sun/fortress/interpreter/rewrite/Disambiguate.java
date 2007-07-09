@@ -749,7 +749,12 @@ public class Disambiguate extends Rewrite {
                     if (names.size() == 1) {
                         // TODO we've got to generalize this to DottedId names.
                         String s = names.get(0);
-                        Thing th = typeEnv.get(s);
+                        Thing th;
+                        try {
+                            th = typeEnv.get(s);
+                        } catch (NullPointerException x) {
+                            throw new InterpreterError("Entity "+s+" not found in typeEnv "+typeEnv);
+                        }
                         if (th instanceof Trait) {
                             Trait tr = (Trait) th;
                             TraitDefOrDecl tdod = tr.defOrDecl;
