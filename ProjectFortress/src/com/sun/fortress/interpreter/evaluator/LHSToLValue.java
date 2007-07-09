@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.nodes.UnpastingBind;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.NI;
 
 
@@ -94,7 +95,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
     public LHS forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
-        return new SubscriptExpr(x.getSpan(), warray, wsubs);
+        return NodeFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs);
     }
 
     /* (non-Javadoc)

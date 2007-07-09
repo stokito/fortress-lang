@@ -703,7 +703,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 String sname = name.getName();
                 // Create a little expression to run the constructor.
-                Expr init = new TightJuxt(x.getSpan(),
+                Expr init = NodeFactory.makeTightJuxt(x.getSpan(),
                         NodeFactory.makeVarRefExpr(x.getSpan(), obfuscated(fname)),
                         NodeFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);

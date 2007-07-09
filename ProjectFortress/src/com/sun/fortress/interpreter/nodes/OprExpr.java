@@ -17,50 +17,36 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-// / and opr_expr = opr_expr_rec node
-// / and opr_expr_rec =
-// / {
-// / opr_expr_op : opr_name;
-// / opr_expr_args : expr list;
-// / }
-// /
-public class OprExpr extends Expr {
-    OprName op;
+public class OprExpr extends OpExpr {
+  private final OprName _op;
+  private final List<Expr> _args;
 
-    List<Expr> args;
+  /**
+   * Constructs a OprExpr.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public OprExpr(Span in_span, OprName in_op, List<Expr> in_args) {
+    super(in_span);
 
-    public OprExpr(Span span, OprName op, List<Expr> args) {
-        super(span);
-        this.op = op;
-        this.args = args;
+    if (in_op == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'op' to the OprExpr constructor was null");
     }
+    _op = in_op;
 
-    public OprExpr(Span span, OprName op) {
-        super(span);
-        this.op = op;
-        this.args = new ArrayList<Expr>();
+    if (in_args == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'args' to the OprExpr constructor was null");
     }
-
-    public OprExpr(Span span, OprName op, Expr arg) {
-        super(span);
-        this.op = op;
-	List<Expr> es = new ArrayList<Expr>();
-	es.add(arg);
-        this.args = es;
-    }
-
-    public OprExpr(Span span, OprName op, Expr first, Expr second) {
-        super(span);
-        this.op = op;
-	List<Expr> es = new ArrayList<Expr>();
-	es.add(first);
-	es.add(second);
-        this.args = es;
-    }
+    _args = in_args;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -69,19 +55,103 @@ public class OprExpr extends Expr {
 
     OprExpr(Span span) {
         super(span);
+        _op = null;
+        _args = null;
     }
 
-    /**
-     * @return Returns the args.
-     */
-    public List<Expr> getArgs() {
-        return args;
-    }
+  final public OprName getOp() { return _op; }
+  final public List<Expr> getArgs() { return _args; }
 
-    /**
-     * @return Returns the op.
-     */
-    public OprName getOp() {
-        return op;
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forOprExpr(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forOprExpr(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("OprExpr:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    OprName temp_op = getOp();
+    writer.startLine();
+    writer.print("op = ");
+    temp_op.outputHelp(writer, lossless);
+
+    List<Expr> temp_args = getArgs();
+    writer.startLine();
+    writer.print("args = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_args = true;
+    for (Expr elt_temp_args : temp_args) {
+      isempty_temp_args = false;
+      writer.startLine("* ");
+      if (elt_temp_args == null) {
+        writer.print("null");
+      } else {
+        elt_temp_args.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_args) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      OprExpr casted = (OprExpr) obj;
+      OprName temp_op = getOp();
+      OprName casted_op = casted.getOp();
+      if (!(temp_op == casted_op || temp_op.equals(casted_op))) return false;
+      List<Expr> temp_args = getArgs();
+      List<Expr> casted_args = casted.getArgs();
+      if (!(temp_args == casted_args || temp_args.equals(casted_args))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    OprName temp_op = getOp();
+    code ^= temp_op.hashCode();
+    List<Expr> temp_args = getArgs();
+    code ^= temp_args.hashCode();
+    return code;
+  }
 }

@@ -158,7 +158,8 @@ constant inline Action<Expr> SubscriptAssign =
               List<Expr> es;
               if (a1 == null) es = FortressUtil.emptyExprs();
               else            es = a1;
-              return new SubscriptExpr(createSpan(yyStart,yyCount), base, es);
+              return NodeFactory.makeSubscriptExpr(createSpan(yyStart,yyCount),
+                                                   base, es);
           }};
     };
 
@@ -373,7 +374,7 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
                List<Expr> es;
                if (a1 == null) es = FortressUtil.emptyExprs();
                else            es = a1;
-               return PureList.make((Expr)new SubscriptExpr(span, arr, es));
+               return PureList.make((Expr)NodeFactory.makeSubscriptExpr(span, arr, es));
            }};
      }
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser

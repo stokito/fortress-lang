@@ -107,6 +107,9 @@ public interface NodeVisitor_void {
   /** Process an instance of AsIfExpr. */
   public void forAsIfExpr(AsIfExpr that);
 
+  /** Process an instance of Assignment. */
+  public void forAssignment(Assignment that);
+
   /** Process an instance of Block. */
   public void forBlock(Block that);
 
@@ -167,11 +170,11 @@ public interface NodeVisitor_void {
   /** Process an instance of LocalVarDecl. */
   public void forLocalVarDecl(LocalVarDecl that);
 
+  /** Process an instance of OprExpr. */
+  public void forOprExpr(OprExpr that);
+
   /** Process an instance of Apply. */
   public void forApply(Apply that);
-
-  /** Process an instance of TypeApply. */
-  public void forTypeApply(TypeApply that);
 
   /** Process an instance of MapExpr. */
   public void forMapExpr(MapExpr that);
@@ -211,6 +214,21 @@ public interface NodeVisitor_void {
 
   /** Process an instance of ListComprehension. */
   public void forListComprehension(ListComprehension that);
+
+  /** Process an instance of ChainExpr. */
+  public void forChainExpr(ChainExpr that);
+
+  /** Process an instance of LooseJuxt. */
+  public void forLooseJuxt(LooseJuxt that);
+
+  /** Process an instance of TightJuxt. */
+  public void forTightJuxt(TightJuxt that);
+
+  /** Process an instance of TypeApply. */
+  public void forTypeApply(TypeApply that);
+
+  /** Process an instance of SubscriptExpr. */
+  public void forSubscriptExpr(SubscriptExpr that);
 
   /** Process an instance of UnitRef. */
   public void forUnitRef(UnitRef that);

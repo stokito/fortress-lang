@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -45,25 +46,27 @@ public class ASTUtil {
     // let nofix (span : span) (op : op) : expr =
     //   opr span (node op.node_span (`Opr op)) []
     public static Expr nofix(Span span, Op op) {
-        return new OprExpr(span, new Opr(op.getSpan(), op));
+        return NodeFactory.makeOprExpr(span, new Opr(op.getSpan(), op));
     }
 
     // let infix (span : span) (left : expr) (op : op) (right : expr) : expr =
     //   opr span (node op.node_span (`Opr op)) [left; right]
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
-        return new OprExpr(span, new Opr(op.getSpan(), op), left, right);
+        return NodeFactory.makeOprExpr(span, new Opr(op.getSpan(), op),
+                                       left, right);
     }
 
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
-        return new OprExpr(arg.getSpan(), new Opr(op.getSpan(), op), arg);
+        return NodeFactory.makeOprExpr(arg.getSpan(), new Opr(op.getSpan(), op),
+                                       arg);
     }
 
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return new OprExpr(span, new PostFix(op.getSpan(), op), arg);
+        return NodeFactory.makeOprExpr(span, new PostFix(op.getSpan(), op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =

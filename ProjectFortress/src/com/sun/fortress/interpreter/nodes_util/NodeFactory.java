@@ -364,6 +364,24 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
 
+    public static OprExpr makeOprExpr(Span span, OprName op) {
+        return new OprExpr(span, op, new ArrayList<Expr>());
+    }
+
+    public static OprExpr makeOprExpr(Span span, OprName op, Expr arg) {
+        List<Expr> es = new ArrayList<Expr>();
+        es.add(arg);
+        return new OprExpr(span, op, es);
+    }
+
+    public static OprExpr makeOprExpr(Span span, OprName op, Expr first,
+                                      Expr second) {
+        List<Expr> es = new ArrayList<Expr>();
+        es.add(first);
+        es.add(second);
+        return new OprExpr(span, op, es);
+    }
+
     public static Param makeParam(Span span, List<Modifier> mods, Id name,
                                   TypeRef type) {
         return new Param(span, mods, name, new Some<TypeRef>(type),
@@ -401,6 +419,15 @@ public class NodeFactory {
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
                                    new None<List<TypeRef>>(), false);
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs) {
+        return new SubscriptExpr(span, obj, subs, None.<Enclosing>make());
+    }
+
+    public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
+        return new TightJuxt(span, Useful.list(first, second));
     }
 
     public static TypeArg makeTypeArg(Span span, String string) {
