@@ -391,7 +391,7 @@ public class Driver {
                         /*
                          * Not-yet-implemented because of issues with selectors.
                          */
-                        NI.nyi("Import of dotted name");
+                        NI.nyi("Import of dotted names from API "+adi+"; try import * from insteand.");
                     }
 
                 } else if (i instanceof ImportFrom) {
