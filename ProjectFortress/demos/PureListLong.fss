@@ -1,0 +1,97 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component PureListLong
+import * from PureList
+export Executable
+
+mkContig(r:Range[\ZZ32\]): PureList[\ZZ32\] =
+  r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), singleton[\ZZ32\])
+
+assertStr(a:ZZ32, b:ZZ32, s:String, l: PureList[\ZZ32\]) =
+  if a=/=b then
+    fail(a "=/=" b ": " s l.toString())
+  end
+
+assertStr(a:Boolean, s:String, l: PureList[\ZZ32\]) =
+  if NOT a then
+    fail("Failed assertion: " s l.toString())
+  end
+
+chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = do
+  n : ZZ32 := 0
+  for e <- seq(l) do
+      assertStr(e,n,"Element wrong in ",l)
+      n+=1
+  end
+  assertStr(n,sz," size mismatch in ",l)
+  assertStr(sz,l.size()," .size() mismatch in ",l)
+end
+
+chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
+  ll : PureList[\ZZ32\] := l
+  for i <- seq(0#sz) do
+      (e,ll0) = ll.extractLeft().unJust()
+      assertStr(e,i,"extractLeft wrong in ",ll)
+      assertStr(ll.left().unJust(),i,"left wrong in ",ll)
+      ll := ll0
+  end
+  assertStr(ll.empty()," not empty after extractLeft(); it's ",ll)
+  ll := l
+  for i <- seq(1#sz) do
+      (ll0,e) = ll.extractRight().unJust()
+      assertStr(e,sz-i,"extractRight wrong in ",ll)
+      assertStr(ll.right().unJust(),sz-i,"right wrong in ",ll)
+      ll := ll0
+  end
+  assertStr(ll.empty()," not empty after extractRight(); it's ",ll)
+end
+
+run(args:String...):() = do
+  print("The adventure begins")
+  testLens : ZZ32[20] = [ 0 1 2 3 7 10 25 75 175 900 ] (* Cause mild stress *)
+  for (_,i) <- seq(testLens) do
+      print("\n" i ":")
+      li = mkContig(0#i)
+      chkPop(li,i)
+      chkExtract(li,i)
+      (ll,lr) = li.split()
+      lii = ll.append(lr)
+      chkPop(lii,i)
+      for j <- 0#i do
+          print(".")
+          assertStr(li[j],j,"indexing wrong for ",li)
+      end
+      for j <- 0#(i+1) do
+          print(".")
+          (l,r) = li.split(j)
+          assertStr(l.size(),j," left split size wrong ", l)
+          assertStr(r.size(),i-j, " right split size wrong ", r)
+          (l1,r1) = (li.take(j),li.drop(j))
+          assertStr(l1.size(),j," take size wrong ", l1)
+          assertStr(r1.size(),i-j, " drop size wrong ", r1)
+      end
+      for (_,j) <- testLens do
+          print(".")
+          lj = mkContig(i#j)
+          chkPop(li.append(lj),i+j)
+      end
+  end
+  println("\nSucceeded")
+end
+
+end
