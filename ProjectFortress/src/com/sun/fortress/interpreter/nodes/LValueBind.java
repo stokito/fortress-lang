@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.interpreter.nodes;
 
 import java.io.IOException;
@@ -9,11 +26,6 @@ import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
-/**
- * Class LValueBind, a component of the Node composite hierarchy.
- * Note: null is not allowed as a value for any field.
- * @version  Generated automatically by ASTGen at Sun Jul 08 09:49:14 EDT 2007
- */
 public class LValueBind extends LValue implements LHS {
   private final Id _name;
   private final Option<TypeRef> _type;
