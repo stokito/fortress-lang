@@ -319,8 +319,13 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
                                         List<Modifier> mods) {
+        boolean mutable = lvb.isMutable();
+        for (Modifier m : mods) {
+            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+                mutable = true;
+        }
         return new LValueBind(lvb.getSpan(), lvb.getName(),
-                              new Some<TypeRef>(ty), mods, lvb.isMutable());
+                              new Some<TypeRef>(ty), mods, mutable);
     }
 
     public static LetExpr makeLetExpr(LetExpr expr, List<Expr> body) {
