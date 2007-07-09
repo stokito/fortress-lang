@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component pureList
-export Executable
+component PureList
+export PureList
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
     16:2 2006.
@@ -39,8 +39,8 @@ value object PureList[\E\]( it: FingerTree[\SizedBase[\E\]\] )
       extends { Generator[\E\] }
   getter size(): ZZ32 = it.leafSize()
   getter empty(): Boolean = it.empty()
-  getter left():Maybe[\E\] = it.left().contents()
-  getter right():Maybe[\E\] = it.right().contents()
+  getter left():Maybe[\E\] = left1(it)
+  getter right():Maybe[\E\] = right1(it)
   getter extractLeft(): Maybe[\(E,PureList[\E\])\] = extractLeft1(it)
   getter extractRight(): Maybe[\(PureList[\E\],E)\] = extractRight1(it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
@@ -88,6 +88,12 @@ value object PureList[\E\]( it: FingerTree[\SizedBase[\E\]\] )
     end
   contents():FingerTree[\E\] = it
   toString():String = it.toString()
+  left1(itt: D0[\SizedBase[\E\]\]): Nothing[\E\] = Nothing[\E\]()
+  left1(itt: NonEmptyFingerTree[\SizedBase[\E\]\]): Just[\E\] =
+      Just[\E\](itt.left().contents())
+  right1(itt: D0[\SizedBase[\E\]\]): Nothing[\E\] = Nothing[\E\]()
+  right1(itt: NonEmptyFingerTree[\SizedBase[\E\]\]): Just[\E\] =
+      Just[\E\](itt.right().contents())
   extractLeft1(itt: D0[\SizedBase[\E\]\]): Nothing[\(E,PureList[\E\])\] =
       Nothing[\(E,PureList[\E\])\]()
   extractLeft1(itt: NonEmptyFingerTree[\SizedBase[\E\]\]):
@@ -132,8 +138,6 @@ end
 
 trait FingerTree[\E extends Sized\] extends { Sized, Generator[\E\] }
     comprises { D01[\E\], NonEmptyFingerTree[\E\] }
-  getter left():Maybe[\E\]
-  getter right():Maybe[\E\]
   append(f:D01[\E\]) : FingerTree[\E\] = addRightD(f)
   append(f:Deep[\E\]) : FingerTree[\E\]
   addLeftD(e:D0[\E\]) : FingerTree[\E\] = self
@@ -154,8 +158,8 @@ end
 trait NonEmptyFingerTree[\E extends Sized\] extends FingerTree[\E\]
     comprises { D1[\E\], Deep[\E\] }
   getter empty(): Boolean = false
-  getter left():Just[\E\]
-  getter right():Just[\E\]
+  getter left():E
+  getter right():E
   getter extractLeft():(E,FingerTree[\E\])
   getter extractRight():(FingerTree[\E\],E)
   take(n:ZZ32): NonEmptyFingerTree[\E\]
@@ -268,8 +272,6 @@ object D0[\E extends Sized\]() extends { D01[\E\] }
   getter empty():Boolean = true
   getter size():ZZ32 = 0
   getter leafSize():ZZ32 = 0
-  getter left():Nothing[\E\] = Nothing[\E\]()
-  getter right():Nothing[\E\] = Nothing[\E\]()
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   cons(e:E):D1[\E\] = D1[\E\](e)
   snoc(e:E):D1[\E\] = D1[\E\](e)
@@ -291,8 +293,8 @@ object D1[\E extends Sized\](a:E)
     extends { D01[\E\], D12[\E\], NonEmptyFingerTree[\E\] }
   getter size():ZZ32 = 1
   getter leafSize():ZZ32 = a.leafSize()
-  getter left():Just[\E\] = Just[\E\](a)
-  getter right():Just[\E\] = Just[\E\](a)
+  getter left():Just[\E\] = a
+  getter right():Just[\E\] = a
   getter extractLeft():(E,FingerTree[\E\]) = uncons()
   getter extractRight():Just[\(E,FingerTree[\E\])\] = unsnoc()
   getter uncons():(E,D0[\E\]) = (a,D0[\E\]())
@@ -631,8 +633,8 @@ object Deep[\E extends Sized\]
   ls = l.leafSize()+m.leafSize()+r.leafSize()
   getter leafSize():ZZ32 = ls
   getter size():ZZ32 = l.size()+m.size()+r.size()
-  getter left():Just[\E\] = Just[\E\](l.car())
-  getter right():Just[\E\] = Just[\E\](r.rac())
+  getter left():Just[\E\] = l.car()
+  getter right():Just[\E\] = r.rac()
   getter extractLeft():(E,FingerTree[\E\]) = extractLeft1(l,m)
   getter extractRight():(FingerTree[\E\],E) = extractRight1(r,m)
   seq():SequentialGenerator[\E\] = SeqDeepGenerator[\E\](self)
@@ -796,14 +798,6 @@ object SeqDeepGenerator[\E extends Sized\](x:Deep[\E\])
     end
 end
 
-test_toString(x:Any,y:String):() = do
-  assert(x.toString(),y," toString() test")
-end
-
-test_strEq(x:Any,y:Any,s:String):() = do
-  assert(x.toString(),y.toString(),s)
-end
-
 mkContig(r:Range[\ZZ32\]): PureList[\ZZ32\] =
   r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), singleton[\ZZ32\])
 
@@ -832,6 +826,7 @@ chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
   for i <- seq(0#sz) do
       (e,ll0) = ll.extractLeft().unJust()
       assertStr(e,i,"extractLeft wrong in ",ll)
+      assertStr(ll.left().unJust(),i,"left wrong in ",ll)
       ll := ll0
   end
   assertStr(ll.empty()," not empty after extractLeft(); it's ",ll)
@@ -839,13 +834,14 @@ chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
   for i <- seq(1#sz) do
       (ll0,e) = ll.extractRight().unJust()
       assertStr(e,sz-i,"extractRight wrong in ",ll)
+      assertStr(ll.right().unJust(),sz-i,"right wrong in ",ll)
       ll := ll0
   end
   assertStr(ll.empty()," not empty after extractRight(); it's ",ll)
 end
 
 run(args:String...):() = do
-  println("The adventure begins")
+  print("The adventure begins")
   testLens : ZZ32[20] = [ 0 1 2 3 7 10 25 75 175 ]
   for (_,i) <- seq(testLens) do
       print("\n" i ":")
