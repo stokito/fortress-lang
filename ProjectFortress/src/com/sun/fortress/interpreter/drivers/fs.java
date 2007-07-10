@@ -145,11 +145,11 @@ public class fs {
             Option<CompilationUnit> p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
             reportCompletion("Parsing " + s, begin);
             
-            if (doAst) {
+            if (doAst && p.isPresent()) {
                 String astFile = basename(s) + JAVA_AST_SUFFIX;
                 if (verbose) { System.err.println("Writing ast to " + astFile); }
                 BufferedWriter fout = Useful.utf8BufferedFileWriter(astFile);
-                try { new Printer(true, true, true).dump(p, fout, 0); }
+                try { new Printer(true, true, true).dump(p.getVal(), fout, 0); }
                 finally { fout.close(); }
             }
             
