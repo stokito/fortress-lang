@@ -74,7 +74,7 @@ public class VarDecl extends VarDefOrDecl implements Decl {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("VarDecl:");
     writer.indent();
 
@@ -142,7 +142,7 @@ public class VarDecl extends VarDefOrDecl implements Decl {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     List<LValue> temp_lhs = getLhs();
     code ^= temp_lhs.hashCode();

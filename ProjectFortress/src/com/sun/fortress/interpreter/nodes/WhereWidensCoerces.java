@@ -82,7 +82,7 @@ public class WhereWidensCoerces extends WhereClause {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("WhereWidensCoerces:");
     writer.indent();
 
@@ -132,7 +132,7 @@ public class WhereWidensCoerces extends WhereClause {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     TypeRef temp_first = getFirst();
     code ^= temp_first.hashCode();
