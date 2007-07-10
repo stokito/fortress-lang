@@ -101,11 +101,11 @@ public class ArrowType extends TypeRef {
    */
     public void output(java.io.Writer writer) {}
 
-    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
   /**
    * Implementation of hashCode that is consistent with equals.  The value of
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-    protected int generateHashCode() { return hashCode(); }
+    public int generateHashCode() { return hashCode(); }
 }

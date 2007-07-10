@@ -74,7 +74,7 @@ public class DimRef extends DimType {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("DimRef:");
     writer.indent();
 
@@ -116,7 +116,7 @@ public class DimRef extends DimType {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     StaticArg temp_val = getVal();
     code ^= temp_val.hashCode();
