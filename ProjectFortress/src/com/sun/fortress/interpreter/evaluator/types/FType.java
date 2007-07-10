@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.nodes.IdType;
 import com.sun.fortress.interpreter.nodes.VarargsType;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.BASet;
 import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
@@ -357,7 +357,7 @@ abstract public class FType implements Comparable<FType> {
             System.out.println("    ("+this.getClass().getName()+")");
         }
         return (val instanceof IdType &&
-                name.equals(((IdType)val).getName().toString()));
+                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
     }
 
     /** One-sided unification of this fully-computed FType with a signature.
@@ -378,7 +378,7 @@ abstract public class FType implements Comparable<FType> {
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
-            String nm = id_val.getName().toString();
+            String nm = StringMaker.fromDottedId(id_val.getName());
             for (StaticParam tp : tp_set) {
                 String k = NodeUtil.getName(tp);
                 if (k.equals(nm)) {

@@ -108,7 +108,7 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
         DottedId di6 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("baz"), newId("baz")));
         DottedId di7 = NodeFactory.makeDottedId(span12, newId("bar"), Useful.list(newId("bar"), newId("baz")));
 
-        Assert.assertEquals("foo.bar.baz", di4.toString());
+        Assert.assertEquals("foo.bar.baz", StringMaker.fromDottedId(di4));
         Assert.assertEquals(di4.hashCode(), di4.hashCode());
 
         Assert.assertFalse(di4.equals(di5));

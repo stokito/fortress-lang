@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.nodes_util.StringMaker;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -377,7 +378,7 @@ public class Disambiguate extends Rewrite {
                 } else if (node instanceof IdType) {
                     IdType vre = (IdType) node;
 
-                    String s = vre.getName().toString();
+                    String s = StringMaker.fromDottedId(vre.getName());
                     StaticParam tp = visibleGenericParameters.get(s);
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);

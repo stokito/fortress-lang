@@ -374,7 +374,7 @@ public class Driver {
                     List<AliasedDottedId> apis = ix.getApis();
                     for (AliasedDottedId adi : apis) {
                         DottedId id = adi.getId();
-                        String from_apiname = id.toString();
+                        String from_apiname = StringMaker.fromDottedId(id);
 
                         Option<DottedId> alias = adi.getAlias();
                         String known_as = alias.getVal(id).toString();
@@ -397,7 +397,7 @@ public class Driver {
                 } else if (i instanceof ImportFrom) {
                     ImportFrom ix = (ImportFrom) i;
                     DottedId source = ix.getSource();
-                    String from_apiname = source.toString();
+                    String from_apiname = StringMaker.fromDottedId(source);
 
                     ComponentWrapper from_cw = linker.get(from_apiname);
                     BetterEnv from_e = from_cw.getEnvironment();
@@ -419,7 +419,10 @@ public class Driver {
                              */
 
                             inject(e, api_e, from_e, name, alias, from_apiname,
-                                    from_cw.getComponent().getName().toString());
+                                   StringMaker.
+                                       fromDottedId(from_cw.
+                                                       getComponent().
+                                                           getName()));
 
                         }
 
@@ -435,8 +438,9 @@ public class Driver {
                                 });
 
                         importAllExcept(e, api_e, from_e, except_names,
-                                from_apiname, from_cw.getComponent().getName()
-                                        .toString());
+                                        from_apiname, 
+                                        StringMaker.fromDottedId
+                                            (from_cw.getComponent().getName()));
 
                     }
                 } else {
@@ -615,7 +619,7 @@ public class Driver {
     private static void ensureApiImplemented(
             HashMap<String, ComponentWrapper> linker,
             Stack<ComponentWrapper> pile, DottedId id) throws IOException {
-        String apiname = id.toString();
+        String apiname = StringMaker.fromDottedId(id);
         if (linker.get(apiname) == null) {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming

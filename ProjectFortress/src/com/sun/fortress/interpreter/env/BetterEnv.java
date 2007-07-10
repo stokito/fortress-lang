@@ -43,7 +43,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.BATreeNode;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.StringComparer;
@@ -499,7 +499,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public SApi getApiNull(DottedId d) {
-        return getApiNull(d.toString());
+        return getApiNull(StringMaker.fromDottedId(d));
     }
 
     public Boolean getBoolNull(String str) {
@@ -513,7 +513,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public SComponent getComponentNull(DottedId name) {
-        return getComponentNull(name.toString());
+        return getComponentNull(StringMaker.fromDottedId(name));
     }
 
     public Declaration getDeclNull(String str) {
@@ -540,11 +540,11 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public FType getTypeNull(DottedId name) {
-        return getTypeNull(name.toString());
+        return getTypeNull(StringMaker.fromDottedId(name));
     }
 
     public FValue getValueNull(DottedId d) {
-        return getValueNull(d.toString());
+        return getValueNull(StringMaker.fromDottedId(d));
     }
 
     public FValue getValueNull(String s) {
@@ -601,7 +601,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putApi(DottedId d, SApi x) {
-        putApi(d.toString(), x);
+        putApi(StringMaker.fromDottedId(d), x);
 
     }
 
@@ -611,7 +611,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
    }
 
     public void putComponent(DottedId name, SComponent comp) {
-        putComponent(name.toString(), comp);
+        putComponent(StringMaker.fromDottedId(name), comp);
 
     }
 
@@ -640,7 +640,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putType(DottedId d, FType x) {
-        putType(d.toString(), x);
+        putType(StringMaker.fromDottedId(d), x);
     }
 
     public void putValue(String str, FValue f2) {
@@ -689,7 +689,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putValue(DottedId d, FValue x) {
-        putValue(d.toString(), x);
+        putValue(StringMaker.fromDottedId(d), x);
 
     }
 

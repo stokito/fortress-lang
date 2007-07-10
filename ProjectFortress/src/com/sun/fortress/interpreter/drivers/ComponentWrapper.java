@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.nodes.Api;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
+import com.sun.fortress.interpreter.nodes_util.StringMaker;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -63,7 +64,7 @@ public class ComponentWrapper {
      */
     public ComponentWrapper(Component comp, ComponentWrapper api) {
         this(comp);
-        exports.put(api.getComponent().getName().toString(),api);
+        exports.put(StringMaker.fromDottedId(api.getComponent().getName()),api);
     }
 
     @Override
