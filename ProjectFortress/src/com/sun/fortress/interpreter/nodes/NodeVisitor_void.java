@@ -110,6 +110,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Assignment. */
   public void forAssignment(Assignment that);
 
+  /** Process an instance of FieldSelection. */
+  public void forFieldSelection(FieldSelection that);
+
   /** Process an instance of Block. */
   public void forBlock(Block that);
 

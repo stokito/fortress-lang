@@ -54,13 +54,6 @@ public class WrappedFValue extends Expr {
         return fvalue;
     }
 
-    /**
-     * @return Returns the original expression.
-     */
-    public Expr getOriginal() {
-        return original;
-    }
-
     public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
         return accept(visitor);
     }

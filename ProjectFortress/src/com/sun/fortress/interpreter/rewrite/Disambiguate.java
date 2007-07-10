@@ -156,7 +156,8 @@ public class Disambiguate extends Rewrite {
 
     class Member extends Thing {
         Expr replacement(VarRefExpr original) {
-        FieldSelection fs = new FieldSelection(original, // Use this constructor
+        FieldSelection fs = new FieldSelection(original.getSpan(),
+                                               // Use this constructor
                 // here because it is a
                 // com.sun.fortress.interpreter.rewrite.
                 dottedReference(original.getSpan(),

@@ -111,7 +111,6 @@ public abstract class Rewrite extends NodeReflection {
                         if (con == null)
                             System.err.println(n.getClass());
                         replacement = (AbstractNode) con.newInstance(args);
-                        replacement.setOriginal(n);
                         // Copy over earlier fields
                         for (int j = 0; j < i; j++) {
                             Field g = fields[j];
