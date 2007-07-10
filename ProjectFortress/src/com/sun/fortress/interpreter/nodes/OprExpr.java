@@ -82,7 +82,7 @@ public class OprExpr extends OpExpr {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("OprExpr:");
     writer.indent();
 
@@ -146,7 +146,7 @@ public class OprExpr extends OpExpr {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     OprName temp_op = getOp();
     code ^= temp_op.hashCode();

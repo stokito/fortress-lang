@@ -74,7 +74,7 @@ public class ImportApi extends Import {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("ImportApi:");
     writer.indent();
 
@@ -130,7 +130,7 @@ public class ImportApi extends Import {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     List<AliasedDottedId> temp_apis = getApis();
     code ^= temp_apis.hashCode();

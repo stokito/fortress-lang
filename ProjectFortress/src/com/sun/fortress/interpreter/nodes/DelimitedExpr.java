@@ -39,6 +39,6 @@ public abstract class DelimitedExpr extends Expr {
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);
-  protected abstract void outputHelp(TabPrintWriter writer, boolean lossless);
-  protected abstract int generateHashCode();
+  public abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  public abstract int generateHashCode();
 }

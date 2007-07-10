@@ -152,7 +152,7 @@ public class ObjectExpr extends DelimitedExpr implements GenericDefWithParams {
     public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forObjectExpr(this); }
     public void visit(NodeVisitor_void visitor) { visitor.forObjectExpr(this); }
     public void output(java.io.Writer writer) {}
-    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
-    protected int generateHashCode() { return hashCode(); }
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    public int generateHashCode() { return hashCode(); }
 
 }
