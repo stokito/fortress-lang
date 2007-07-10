@@ -17,31 +17,30 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.Pair;
-
-
-// / and keywords_expr = keywords_expr_rec node
-// / and keywords_expr_rec =
-// / {
-// / keywords_expr_args : expr list;
-// / keywords_expr_keywords : (id * expr) list;
-// / }
-// /
 public class KeywordsExpr extends TupleExpr {
+  private final List<Pair<Id, Expr>> _keywords;
 
-    List<Expr> args;
+  /**
+   * Constructs a KeywordsExpr.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public KeywordsExpr(Span in_span, List<Expr> in_exprs, List<Pair<Id, Expr>> in_keywords) {
+    super(in_span, in_exprs);
 
-    List<Pair<Id, Expr>> keywords;
-
-    public KeywordsExpr(Span span, List<Expr> args,
-            List<Pair<Id, Expr>> keywords) {
-        super(span);
-        this.args = args;
-        this.keywords = keywords;
+    if (in_keywords == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'keywords' to the KeywordsExpr constructor was null");
     }
+    _keywords = in_keywords;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
@@ -50,19 +49,119 @@ public class KeywordsExpr extends TupleExpr {
 
     KeywordsExpr(Span span) {
         super(span);
+        _keywords = null;
     }
 
-    /**
-     * @return Returns the args.
-     */
-    public List<Expr> getArgs() {
-        return args;
-    }
+  final public List<Pair<Id, Expr>> getKeywords() { return _keywords; }
 
-    /**
-     * @return Returns the keywords.
-     */
-    public List<Pair<Id, Expr>> getKeywords() {
-        return keywords;
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forKeywordsExpr(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forKeywordsExpr(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("KeywordsExpr:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    List<Expr> temp_exprs = getExprs();
+    writer.startLine();
+    writer.print("exprs = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_exprs = true;
+    for (Expr elt_temp_exprs : temp_exprs) {
+      isempty_temp_exprs = false;
+      writer.startLine("* ");
+      if (elt_temp_exprs == null) {
+        writer.print("null");
+      } else {
+        elt_temp_exprs.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_exprs) writer.print(" }");
+    else writer.startLine("}");
+
+    List<Pair<Id, Expr>> temp_keywords = getKeywords();
+    writer.startLine();
+    writer.print("keywords = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_keywords = true;
+    for (Pair<Id, Expr> elt_temp_keywords : temp_keywords) {
+      isempty_temp_keywords = false;
+      writer.startLine("* ");
+      if (elt_temp_keywords == null) {
+        writer.print("null");
+      } else {
+        if (lossless) {
+          writer.printSerialized(elt_temp_keywords);
+          writer.print(" ");
+          writer.printEscaped(elt_temp_keywords);
+        } else { writer.print(elt_temp_keywords); }
+      }
+    }
+    writer.unindent();
+    if (isempty_temp_keywords) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
+
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      KeywordsExpr casted = (KeywordsExpr) obj;
+      List<Expr> temp_exprs = getExprs();
+      List<Expr> casted_exprs = casted.getExprs();
+      if (!(temp_exprs == casted_exprs || temp_exprs.equals(casted_exprs))) return false;
+      List<Pair<Id, Expr>> temp_keywords = getKeywords();
+      List<Pair<Id, Expr>> casted_keywords = casted.getKeywords();
+      if (!(temp_keywords == casted_keywords || temp_keywords.equals(casted_keywords))) return false;
+      return true;
+    }
+  }
+
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  protected int generateHashCode() {
+    int code = getClass().hashCode();
+    List<Expr> temp_exprs = getExprs();
+    code ^= temp_exprs.hashCode();
+    List<Pair<Id, Expr>> temp_keywords = getKeywords();
+    code ^= temp_keywords.hashCode();
+    return code;
+  }
 }

@@ -137,6 +137,9 @@ public interface NodeVisitor_void {
   /** Process an instance of TupleExpr. */
   public void forTupleExpr(TupleExpr that);
 
+  /** Process an instance of KeywordsExpr. */
+  public void forKeywordsExpr(KeywordsExpr that);
+
   /** Process an instance of TypeCase. */
   public void forTypeCase(TypeCase that);
 
