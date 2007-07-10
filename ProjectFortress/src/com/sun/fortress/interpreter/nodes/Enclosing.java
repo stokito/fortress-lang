@@ -82,7 +82,7 @@ public class Enclosing extends OprName {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("Enclosing:");
     writer.indent();
 
@@ -132,7 +132,7 @@ public class Enclosing extends OprName {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     Op temp_open = getOpen();
     code ^= temp_open.hashCode();
