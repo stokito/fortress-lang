@@ -1,0 +1,42 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2007 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+################################################################################
+
+if (uname | egrep -q CYGWIN) ; then 
+  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/dstm2/dstm2.jar;third_party/bcel/bcel-5.2.jar"
+else
+  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar"
+fi
+
+A=testSerializationScratch
+
+rm -rf $A
+mkdir $A
+
+for i in tests/a*.fss ; do
+TFSNAME=`basename $i .fss`.tfs
+java -cp "$CP" -Xmx320m -Xms192m \
+com.sun.fortress.interpreter.drivers.fs -parseOnly -ast $i
+  mv $TFSNAME $A
+done
+
+java -cp "$CP" com.sun.fortress.interpreter.drivers.Tup -fileout=tfs $A/*.tfs
+for i in $A/*.tfs; do
+  diff $i ${i}2
+done
+

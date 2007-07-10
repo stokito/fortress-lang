@@ -21,6 +21,8 @@ import java.io.BufferedReader;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public class Tup extends MainBase {
@@ -43,6 +45,7 @@ public class Tup extends MainBase {
         try {
             System.err.println("Reading " + s);
             Unprinter up = new Unprinter(lex);
+//            Option<com.sun.fortress.interpreter.nodes.CompilationUnit> p = up.readOption();
             lex.name();
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
             finish(s, p);

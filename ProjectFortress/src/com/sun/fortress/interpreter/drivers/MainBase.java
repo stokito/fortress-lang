@@ -21,16 +21,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes_util.Printer;
+import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.Useful;
 
 public abstract class MainBase {
-    static String baseName(String s, String suffix) {
-        String sep = System.getProperty("file.separator");
-        int slashI = s.lastIndexOf(sep);
-        if (slashI != -1)
-            s = s.substring(slashI + 1);
+    static protected String baseName(boolean stripDir, String s, String suffix) {
+        if (stripDir) {
+          String sep = System.getProperty("file.separator");
+          int slashI = s.lastIndexOf(sep);
+          if (slashI != -1)
+              s = s.substring(slashI + 1);
+        }
         int sufI = s.lastIndexOf(suffix);
         if (sufI != -1)
             s = s.substring(0, sufI);
@@ -111,7 +116,7 @@ public abstract class MainBase {
             BufferedWriter fout = null;
             if (fileOut) {
 
-                fout = Useful.utf8BufferedFileWriter(baseName(s, inSuffix)
+                fout = Useful.utf8BufferedFileWriter(baseName(false, s, inSuffix)
                         + outSuffix);
                 out = fout;
             }
@@ -122,6 +127,26 @@ public abstract class MainBase {
         }
         if (interpret) {
             Driver.runProgram(p, false, fortressArgs);
+        }
+    }
+    
+    void finish(String s, Option<CompilationUnit> p) throws Throwable {
+        if (ast) {
+            Appendable out = System.err;
+            BufferedWriter fout = null;
+            if (fileOut) {
+
+                fout = Useful.utf8BufferedFileWriter(baseName(false, s, inSuffix)
+                        + outSuffix);
+                out = fout;
+            }
+            (new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
+                    .dump(p, out, 0);
+            if (fout != null)
+                fout.close();
+        }
+        if (interpret) {
+            Driver.runProgram(p.getVal(), false, fortressArgs);
         }
     }
 
