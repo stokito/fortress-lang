@@ -74,7 +74,7 @@ public class TightJuxt extends Primary {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("TightJuxt:");
     writer.indent();
 
@@ -130,7 +130,7 @@ public class TightJuxt extends Primary {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     List<Expr> temp_exprs = getExprs();
     code ^= temp_exprs.hashCode();

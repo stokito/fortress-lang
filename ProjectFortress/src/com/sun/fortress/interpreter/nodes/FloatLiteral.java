@@ -90,7 +90,7 @@ public class FloatLiteral extends NumberLiteral {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("FloatLiteral:");
     writer.indent();
 
@@ -167,7 +167,7 @@ public class FloatLiteral extends NumberLiteral {
    * XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     code ^= getIntPart().hashCode();
     code ^= getNumerator().hashCode();
