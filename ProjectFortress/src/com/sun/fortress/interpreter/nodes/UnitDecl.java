@@ -94,7 +94,7 @@ public class UnitDecl extends AbstractNode implements Decl {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("UnitDecl:");
     writer.indent();
 
@@ -182,7 +182,7 @@ public class UnitDecl extends AbstractNode implements Decl {
    * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     List<Id> temp_names = getNames();
     code ^= temp_names.hashCode();
