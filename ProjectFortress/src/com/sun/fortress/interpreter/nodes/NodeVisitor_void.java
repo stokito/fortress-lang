@@ -134,6 +134,9 @@ public interface NodeVisitor_void {
   /** Process an instance of Try. */
   public void forTry(Try that);
 
+  /** Process an instance of VarargsExpr. */
+  public void forVarargsExpr(VarargsExpr that);
+
   /** Process an instance of TypeCase. */
   public void forTypeCase(TypeCase that);
 
@@ -302,9 +305,6 @@ public interface NodeVisitor_void {
   /** Process an instance of UnpastingSplit. */
   public void forUnpastingSplit(UnpastingSplit that);
 
-  /** Process an instance of VarargsType. */
-  public void forVarargsType(VarargsType that);
-
   /** Process an instance of Op. */
   public void forOp(Op that);
 
@@ -335,6 +335,12 @@ public interface NodeVisitor_void {
   /** Process an instance of TestDecl. */
   public void forTestDecl(TestDecl that);
 
+  /** Process an instance of AbsTraitDecl. */
+  public void forAbsTraitDecl(AbsTraitDecl that);
+
+  /** Process an instance of TraitDecl. */
+  public void forTraitDecl(TraitDecl that);
+
   /** Process an instance of TypeCaseClause. */
   public void forTypeCaseClause(TypeCaseClause that);
 
@@ -364,6 +370,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of IdType. */
   public void forIdType(IdType that);
+
+  /** Process an instance of VarargsType. */
+  public void forVarargsType(VarargsType that);
 
   /** Process an instance of VoidType. */
   public void forVoidType(VoidType that);
