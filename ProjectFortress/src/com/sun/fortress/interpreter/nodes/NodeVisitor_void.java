@@ -134,11 +134,14 @@ public interface NodeVisitor_void {
   /** Process an instance of Try. */
   public void forTry(Try that);
 
-  /** Process an instance of VarargsExpr. */
-  public void forVarargsExpr(VarargsExpr that);
+  /** Process an instance of TupleExpr. */
+  public void forTupleExpr(TupleExpr that);
 
   /** Process an instance of TypeCase. */
   public void forTypeCase(TypeCase that);
+
+  /** Process an instance of VarargsExpr. */
+  public void forVarargsExpr(VarargsExpr that);
 
   /** Process an instance of While. */
   public void forWhile(While that);
@@ -365,11 +368,11 @@ public interface NodeVisitor_void {
   /** Process an instance of VectorType. */
   public void forVectorType(VectorType that);
 
-  /** Process an instance of TupleType. */
-  public void forTupleType(TupleType that);
-
   /** Process an instance of IdType. */
   public void forIdType(IdType that);
+
+  /** Process an instance of TupleType. */
+  public void forTupleType(TupleType that);
 
   /** Process an instance of VarargsType. */
   public void forVarargsType(VarargsType that);

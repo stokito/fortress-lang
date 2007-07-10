@@ -435,6 +435,12 @@ public class NodeFactory {
         return new TightJuxt(span, Useful.list(first, second));
     }
 
+    public static TupleType makeTupleType(Span span, List<TypeRef> elements) {
+        return new TupleType(span, elements,
+                             Collections.<KeywordType>emptyList());
+    }
+
+
     public static TypeArg makeTypeArg(Span span, String string) {
         return new TypeArg(span, new IdType(span, makeDottedId(span, string)));
     }
