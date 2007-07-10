@@ -74,14 +74,6 @@ abstract public class Fcn extends FConstructedValue {
         return NodeUtil.getName(getFnName());
     }
 
-    /**
-     * Returns the name if this "function" is regarded as a function.
-     * Ought to throw an exception if it cannot be a function.
-     */
-    public String asFunctionName() {
-        return NodeUtil.getName(getFnName());
-    }
-
     static boolean anyAreSymbolic(List<FType> args) {
         for (FType t : args)
             if (t.isSymbolic())

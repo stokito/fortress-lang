@@ -112,13 +112,9 @@ Modifier.Abstract
 Modifier.Atomic
 Modifier.Getter
 Modifier.Hidden
-Modifier.In
-Modifier.InOut
 Modifier.IO
-Modifier.Out
 Modifier.OverrideM
 Modifier.Private
-Modifier.Pure
 Modifier.Settable
 Modifier.Setter
 Modifier.Shared

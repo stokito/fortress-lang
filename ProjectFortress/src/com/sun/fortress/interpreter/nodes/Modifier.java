@@ -142,17 +142,6 @@ public abstract class Modifier extends AbstractNode {
         }
     }
 
-    final static public class Pure extends Modifier implements FnMod {
-        public Pure(Span span) {
-            super(span);
-        }
-
-        @Override
-        public <T> T accept(NodeVisitor<T> v) {
-            return v.forModifierPure(this);
-        }
-    }
-
     final static public class OverrideM extends Modifier implements MethodMod {
         public OverrideM(Span span) {
             super(span);
@@ -260,39 +249,6 @@ public abstract class Modifier extends AbstractNode {
         @Override
         public <T> T accept(NodeVisitor<T> v) {
             return v.forModifierWrapped(this);
-        }
-    }
-
-    final static public class In extends Modifier implements ParamMod {
-        public In(Span span) {
-            super(span);
-        }
-
-        @Override
-        public <T> T accept(NodeVisitor<T> v) {
-            return v.forModifierIn(this);
-        }
-    }
-
-    final static public class Out extends Modifier implements ParamMod {
-        public Out(Span span) {
-            super(span);
-        }
-
-        @Override
-        public <T> T accept(NodeVisitor<T> v) {
-            return v.forModifierOut(this);
-        }
-    }
-
-    final static public class InOut extends Modifier implements ParamMod {
-        public InOut(Span span) {
-            super(span);
-        }
-
-        @Override
-        public <T> T accept(NodeVisitor<T> v) {
-            return v.forModifierInOut(this);
         }
     }
 
