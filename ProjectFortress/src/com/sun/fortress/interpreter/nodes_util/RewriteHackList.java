@@ -56,4 +56,10 @@ public class RewriteHackList extends AbstractNode {
         return nodes;
     }
 
+    public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
+        return accept(visitor);
+    }
+    public void visit(NodeVisitor_void visitor) {}
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    public int generateHashCode() { return hashCode(); }
 }

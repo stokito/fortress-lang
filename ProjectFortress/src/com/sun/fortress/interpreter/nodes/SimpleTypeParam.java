@@ -33,18 +33,18 @@ public class SimpleTypeParam extends StaticParam {
 
   /**
    * Constructs a SimpleTypeParam.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public SimpleTypeParam(Span in_span, Id in_id, Option<List<TypeRef>> in_extendsClause, boolean in_absorbs) {
     super(in_span);
 
     if (in_id == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'id' to the SimpleTypeParam constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'id' to the SimpleTypeParam constructor was null");
     }
     _id = in_id;
 
     if (in_extendsClause == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'extendsClause' to the SimpleTypeParam constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'extendsClause' to the SimpleTypeParam constructor was null");
     }
     _extendsClause = in_extendsClause;
     _absorbs = in_absorbs;
@@ -71,19 +71,13 @@ public class SimpleTypeParam extends StaticParam {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
-    /*
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
     output(w);
     return w.toString();
   }
-    */
-    @Override
-    public String toString() {
-        return _id.getName();
-    }
 
   /**
    * Prints this object out as a nicely tabbed tree.
@@ -92,7 +86,7 @@ public class SimpleTypeParam extends StaticParam {
     outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  protected void outputHelp(TabPrintWriter writer, boolean lossless) {
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
     writer.print("SimpleTypeParam:");
     writer.indent();
 
@@ -127,9 +121,8 @@ public class SimpleTypeParam extends StaticParam {
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -137,25 +130,32 @@ public class SimpleTypeParam extends StaticParam {
       return false;
     } else {
       SimpleTypeParam casted = (SimpleTypeParam) obj;
-      if (! (getId().equals(casted.getId()))) return false;
-      if (! (getExtendsClause().equals(casted.getExtendsClause()))) return false;
-      if (! (isAbsorbs() == casted.isAbsorbs())) return false;
+      Id temp_id = getId();
+      Id casted_id = casted.getId();
+      if (!(temp_id == casted_id || temp_id.equals(casted_id))) return false;
+      Option<List<TypeRef>> temp_extendsClause = getExtendsClause();
+      Option<List<TypeRef>> casted_extendsClause = casted.getExtendsClause();
+      if (!(temp_extendsClause == casted_extendsClause || temp_extendsClause.equals(casted_extendsClause))) return false;
+      boolean temp_absorbs = isAbsorbs();
+      boolean casted_absorbs = casted.isAbsorbs();
+      if (!(temp_absorbs == casted_absorbs)) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= 0;
-    code ^= getId().hashCode();
-    code ^= getExtendsClause().hashCode();
-    code ^= (isAbsorbs() ? 1231 : 1237);
+    Id temp_id = getId();
+    code ^= temp_id.hashCode();
+    Option<List<TypeRef>> temp_extendsClause = getExtendsClause();
+    code ^= temp_extendsClause.hashCode();
+    boolean temp_absorbs = isAbsorbs();
+    code ^= temp_absorbs ? 1231 : 1237;
     return code;
   }
 }
