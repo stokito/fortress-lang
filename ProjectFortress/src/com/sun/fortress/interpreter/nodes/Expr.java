@@ -17,36 +17,29 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class Expr extends AbstractNode {
 
-    protected Expr(Span span) {
-        super(span);
-    }
+  /**
+   * Constructs a Expr.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public Expr(Span in_span) {
+    super(in_span);
+  }
 
-    protected Expr(AbstractNode rewriteFrom) {
-        super(rewriteFrom);
-    }
 
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  public abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  public abstract int generateHashCode();
 }
-// / and expr =
-// / [
-// / | `VarRefExpr of id
-// / | `FieldSelection of field_selection
-// / | `TightJuxt of expr list
-// / | `LooseJuxt of expr list
-// / | `OprExpr of opr_expr
-// / | `ChainExpr of chain_expr
-// / | `AssignmentExpr of assignment_expr
-// / | `ApplyExpr of apply_expr
-// / | `KeywordsExpr of keywords_expr
-// / | `TypeApplyExpr of type_apply_expr
-// / | `SubscriptExpr of subscript_expr
-// / | `LetExpr of let_expr * expr list
-// / | `FlowExpr of flow_expr
-// / | `ValueExpr of value_expr
-// / | `ComprehensionExpr of comprehension_expr
-// / | `TypeAscriptionExpr of type_ascription
-// / ] node
-// /

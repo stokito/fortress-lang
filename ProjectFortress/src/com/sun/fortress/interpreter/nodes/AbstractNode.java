@@ -31,21 +31,9 @@ public abstract class AbstractNode implements HasAt, Node {
 
     List<String> props;
 
-    transient private AbstractNode originalIfReplaced; // MAY CONTAIN REFERENCES TO CURRENT;
-                                               // NOT A TREE.
-
-    AbstractNode(Span span) {
+    protected AbstractNode(Span span) {
         this.span = span;
         this.props = span.getProps();
-    }
-
-    protected AbstractNode(AbstractNode rewriteFrom) {
-        this.span = rewriteFrom.span;
-        this.props = rewriteFrom.span.getProps();
-        this.originalIfReplaced = rewriteFrom;
-    }
-
-    public AbstractNode() {
     }
 
     public void setInParentheses() {
@@ -72,14 +60,6 @@ public abstract class AbstractNode implements HasAt, Node {
      */
     public Span getSpan() {
         return span;
-    }
-
-    public AbstractNode getOriginal() {
-        return originalIfReplaced;
-    }
-
-    public void setOriginal(AbstractNode n) {
-        n.originalIfReplaced = n;
     }
 
   private int _hashCode;

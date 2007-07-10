@@ -58,6 +58,7 @@ public class WrappedFValue extends Expr {
         return accept(visitor);
     }
     public void visit(NodeVisitor_void visitor) {}
+    public void output(java.io.Writer writer) {}
     public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }
 }

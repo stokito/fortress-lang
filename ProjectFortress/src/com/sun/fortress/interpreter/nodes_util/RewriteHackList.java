@@ -45,10 +45,12 @@ public class RewriteHackList extends AbstractNode {
     }
 
     public RewriteHackList() {
+        super(new Span());
         nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
     public RewriteHackList(List<AbstractNode> n) {
+        super(new Span());
         nodes = n;
     }
 
