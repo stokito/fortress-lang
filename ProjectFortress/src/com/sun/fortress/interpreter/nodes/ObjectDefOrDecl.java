@@ -17,111 +17,97 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.UnitIterable;
+public abstract class ObjectDefOrDecl extends AbstractNode implements Generic, DefOrDecl {
+  private final List<Modifier> _mods;
+  private final Id _name;
+  private final Option<List<StaticParam>> _staticParams;
+  private final Option<List<Param>> _params;
+  private final Option<List<TypeRef>> _traits;
+  private final List<TypeRef> _throwsClause;
+  private final List<WhereClause> _where;
+  private final Contract _contract;
 
+  /**
+   * Constructs a ObjectDefOrDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public ObjectDefOrDecl(Span in_span, List<Modifier> in_mods, Id in_name, Option<List<StaticParam>> in_staticParams, Option<List<Param>> in_params, Option<List<TypeRef>> in_traits, List<TypeRef> in_throwsClause, List<WhereClause> in_where, Contract in_contract) {
+    super(in_span);
 
-public abstract class ObjectDefOrDecl extends AbstractNode implements Generic,
-        DefOrDecl {
+    if (in_mods == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'mods' to the ObjectDefOrDecl constructor was null");
+    }
+    _mods = in_mods;
 
-    List<Modifier> mods;
+    if (in_name == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'name' to the ObjectDefOrDecl constructor was null");
+    }
+    _name = in_name;
 
-    Id name;
+    if (in_staticParams == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'staticParams' to the ObjectDefOrDecl constructor was null");
+    }
+    _staticParams = in_staticParams;
 
-    Option<List<StaticParam>> staticParams;
+    if (in_params == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'params' to the ObjectDefOrDecl constructor was null");
+    }
+    _params = in_params;
 
-    Option<List<Param>> params;
+    if (in_traits == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'traits' to the ObjectDefOrDecl constructor was null");
+    }
+    _traits = in_traits;
 
-    Option<List<TypeRef>> traits;
+    if (in_throwsClause == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'throwsClause' to the ObjectDefOrDecl constructor was null");
+    }
+    _throwsClause = in_throwsClause;
 
-    List<TypeRef> throws_;
+    if (in_where == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'where' to the ObjectDefOrDecl constructor was null");
+    }
+    _where = in_where;
 
-    List<WhereClause> where;
-
-    Contract contract;
+    if (in_contract == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'contract' to the ObjectDefOrDecl constructor was null");
+    }
+    _contract = in_contract;
+  }
 
     ObjectDefOrDecl(Span s) {
         super(s);
+        _mods = null;
+        _name = null;
+        _staticParams = null;
+        _params = null;
+        _traits = null;
+        _throwsClause = null;
+        _where = null;
+        _contract = null;
     }
 
-    public ObjectDefOrDecl(Span span, List<Modifier> mods2, Id name2,
-            Option<List<StaticParam>> staticParams2,
-            Option<List<Param>> params2, Option<List<TypeRef>> traits2,
-            List<TypeRef> throws_2, List<WhereClause> where2, Contract contract2) {
-        super(span);
-        mods = mods2;
-        name = name2;
-        staticParams = staticParams2;
-        params = params2;
-        traits = traits2;
-        throws_ = throws_2;
-        where = where2;
-        contract = contract2;
-    }
+  public List<Modifier> getMods() { return _mods; }
+  public Id getName() { return _name; }
+  public Option<List<StaticParam>> getStaticParams() { return _staticParams; }
+  public Option<List<Param>> getParams() { return _params; }
+  public Option<List<TypeRef>> getTraits() { return _traits; }
+  public List<TypeRef> getThrowsClause() { return _throwsClause; }
+  public List<WhereClause> getWhere() { return _where; }
+  public Contract getContract() { return _contract; }
 
-    /**
-     * @return Returns the contract.
-     */
-    public Contract getContract() {
-        return contract;
-    }
-
-    /**
-     * @return Returns the mods.
-     */
-    public List<Modifier> getMods() {
-        return mods;
-    }
-
-    /**
-     * @return Returns the name.
-     */
-    public Id getName() {
-        return name;
-    }
-
-    /**
-     * @return Returns the params.
-     */
-    public Option<List<Param>> getParams() {
-        return params;
-    }
-
-    /**
-     * @return Returns the throws_.
-     */
-    public List<TypeRef> getThrows_() {
-        return throws_;
-    }
-
-    /**
-     * @return Returns the traits.
-     */
-    public Option<List<TypeRef>> getTraits() {
-        return traits;
-    }
-
-    /**
-     * @return Returns the staticParams.
-     */
-    public Option<List<StaticParam>> getStaticParams() {
-        return staticParams;
-    }
-
-    /**
-     * @return Returns the where.
-     */
-    public List<WhereClause> getWhere() {
-        return where;
-    }
-
-    /**
-     * Same result as subtype getDefOrDecls, but the type is generic to remove the need
-     * for picky casting in some clients.
-     */
-    abstract public List<? extends DefOrDecl> getDefOrDecls();
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  public abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  public abstract int generateHashCode();
 }

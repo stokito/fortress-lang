@@ -378,6 +378,19 @@ public class NodeFactory {
         return new NatParam(new Span(), new Id(new Span(), name));
     }
 
+    public static ObjectDecl makeObjectDecl(List<Decl> defs2,
+                                            List<Modifier> mods,
+                                            Id name,
+                                            Option<List<StaticParam>> stParams,
+                                            Option<List<Param>> params,
+                                            Option<List<TypeRef>> traits,
+                                            List<TypeRef> throws_,
+                                            List<WhereClause> where,
+                                            Contract contract) {
+        return new ObjectDecl(new Span(), mods, name, stParams, params, traits,
+                              throws_, where, contract, defs2);
+    }
+
     public static Op makeOp(Span span, String name) {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }

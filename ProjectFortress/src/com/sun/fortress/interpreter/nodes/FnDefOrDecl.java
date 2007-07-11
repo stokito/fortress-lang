@@ -175,4 +175,10 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     public String nameAsFunction() {
         return NodeUtil.getName(name);
     }
+
+    public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
+        return accept(visitor);
+    }
+    public void visit(NodeVisitor_void visitor) {}
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
 }
