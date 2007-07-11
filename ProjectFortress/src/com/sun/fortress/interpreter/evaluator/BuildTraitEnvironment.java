@@ -57,14 +57,11 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
-        return new PartiallyDefinedMethod(containing, methodEnvironment, x,
-                WellKnownNames.secretSelfName);
+        return new PartiallyDefinedMethod(containing, methodEnvironment, x);
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnDefOrDecl x) {
-        return new GenericMethod(containing, methodEnvironment, x,
-                WellKnownNames.secretSelfName, true); // TODO need to get
-                                                        // notself methods done
+        return new GenericMethod(containing, methodEnvironment, x, true); 
     }
 
     /**

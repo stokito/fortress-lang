@@ -35,8 +35,8 @@ public class MethodClosureInstance extends MethodClosure  implements MethodInsta
     GenericMethod generator;
     BetterEnv genericEnv;
 
-    public MethodClosureInstance(BetterEnv within, BetterEnv genericEnv, Applicable fndef, String self_name, List<FType> args, GenericMethod generator) {
-        super(within, fndef, self_name, args);
+    public MethodClosureInstance(BetterEnv within, BetterEnv genericEnv, Applicable fndef, List<FType> args, GenericMethod generator) {
+        super(within, fndef, args);
         this.generator = generator;
         this.genericEnv = genericEnv;
    }

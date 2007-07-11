@@ -36,11 +36,11 @@ public class BuildObjectEnvironment extends BuildTraitEnvironment {
     }
 
     protected Simple_fcn newClosure(BetterEnv e, Applicable x) {
-        return new MethodClosure(e,x, WellKnownNames.secretSelfName);
+        return new MethodClosure(e,x);
     }
 
     protected GenericMethod newGenericClosure(BetterEnv e, FnDefOrDecl x) {
-        return new GenericMethod(e, e, x, WellKnownNames.secretSelfName, false); // TODO need to get notself methods done
+        return new GenericMethod(e, e, x, false); // TODO need to get notself methods done
     }
 
 

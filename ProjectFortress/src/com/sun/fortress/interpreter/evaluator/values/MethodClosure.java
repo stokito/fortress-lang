@@ -22,6 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
@@ -32,19 +33,16 @@ import com.sun.fortress.interpreter.useful.Useful;
 public class MethodClosure extends Closure implements Method {
 
     int selfParameterIndex;
-    String self;
 
-    public MethodClosure(BetterEnv within, Applicable fndef, String self_name) {
+    public MethodClosure(BetterEnv within, Applicable fndef) {
         super(within, fndef);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        self = self_name;
-
+        
     }
 
-    public MethodClosure(BetterEnv within, Applicable fndef, String self_name, List<FType> args) {
+    public MethodClosure(BetterEnv within, Applicable fndef, List<FType> args) {
         super(within, fndef, args);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        self = self_name;
         // TODO this is really not figured out yet.
     }
 
@@ -54,10 +52,10 @@ public class MethodClosure extends Closure implements Method {
      * @param environment
      * @param self_name
      */
-    protected MethodClosure(PartiallyDefinedMethod method, BetterEnv environment, String self_name) {
+    protected MethodClosure(PartiallyDefinedMethod method, BetterEnv environment) {
         super(method, environment);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        self = self_name;
+        
     }
 
         /**
@@ -88,7 +86,7 @@ public class MethodClosure extends Closure implements Method {
     }
 
     public String selfName() {
-        return self;
+        return WellKnownNames.secretSelfName;
     }
 
     public static Hasher<MethodClosure> signatureEquivalence = new Hasher<MethodClosure>() {

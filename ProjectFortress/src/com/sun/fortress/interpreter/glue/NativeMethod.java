@@ -42,7 +42,7 @@ public class NativeMethod extends PartiallyDefinedMethod {
     }
 
     NativeMethod(BetterEnv env, FType t, String name, List<FType> domain, FType range) {
-        super(env, env, new NativeApplicable(name), WellKnownNames.secretSelfName);
+        super(env, env, new NativeApplicable(name));
         this.domain = domain;
         // setParamsAndReturnType() ?
         setFtype(FTypeArrow.make(domain, range));
