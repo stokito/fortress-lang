@@ -64,12 +64,10 @@ public class DottedId extends FnName {
    * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
-      
+
     java.io.StringWriter w = new java.io.StringWriter();
     output(w);
     return w.toString();
-      
-       /* return Useful.dottedList(_names); */
   }
 
   /**

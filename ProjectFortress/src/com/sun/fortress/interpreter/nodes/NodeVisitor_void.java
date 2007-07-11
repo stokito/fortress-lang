@@ -98,9 +98,6 @@ public interface NodeVisitor_void {
   /** Process an instance of Export. */
   public void forExport(Export that);
 
-  /** Process an instance of Expr. */
-  public void forExpr(Expr that);
-
   /** Process an instance of AsExpr. */
   public void forAsExpr(AsExpr that);
 
@@ -109,9 +106,6 @@ public interface NodeVisitor_void {
 
   /** Process an instance of Assignment. */
   public void forAssignment(Assignment that);
-
-  /** Process an instance of FieldSelection. */
-  public void forFieldSelection(FieldSelection that);
 
   /** Process an instance of Block. */
   public void forBlock(Block that);
@@ -230,6 +224,9 @@ public interface NodeVisitor_void {
   /** Process an instance of ChainExpr. */
   public void forChainExpr(ChainExpr that);
 
+  /** Process an instance of FieldSelection. */
+  public void forFieldSelection(FieldSelection that);
+
   /** Process an instance of LooseJuxt. */
   public void forLooseJuxt(LooseJuxt that);
 
@@ -343,6 +340,12 @@ public interface NodeVisitor_void {
 
   /** Process an instance of TestDecl. */
   public void forTestDecl(TestDecl that);
+
+  /** Process an instance of AbsObjectDecl. */
+  public void forAbsObjectDecl(AbsObjectDecl that);
+
+  /** Process an instance of ObjectDecl. */
+  public void forObjectDecl(ObjectDecl that);
 
   /** Process an instance of AbsTraitDecl. */
   public void forAbsTraitDecl(AbsTraitDecl that);

@@ -72,7 +72,8 @@ constant transient TypeRef TypeRef =
 ArrowType ArrowType =
      a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
      { if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
-       yyValue = new ArrowType(createSpan(yyStart,yyCount), a1, a2, a3);
+       yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
+                                           a1, a2, a3);
      };
 
 private TypeRef NonArrowType =
