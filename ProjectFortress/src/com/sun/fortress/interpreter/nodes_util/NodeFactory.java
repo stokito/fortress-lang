@@ -305,7 +305,7 @@ public class NodeFactory {
     public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods) {
         boolean mutable = lvb.isMutable();
         for (Modifier m : mods) {
-            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+            if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
@@ -334,7 +334,7 @@ public class NodeFactory {
                                         List<Modifier> mods) {
         boolean mutable = lvb.isMutable();
         for (Modifier m : mods) {
-            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+            if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getName(),

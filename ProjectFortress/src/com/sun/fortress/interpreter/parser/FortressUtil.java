@@ -134,39 +134,43 @@ public final class FortressUtil {
         boolean m_test     = false;
         boolean m_value    = false;
         boolean m_var      = false;
+        boolean m_widens   = false;
         boolean m_wrapped  = false;
         for (Modifier m : mods) {
-	    if (m instanceof Modifier.Atomic) {
+	    if (m instanceof ModifierAtomic) {
                 if (m_atomic) multiple(m);
                 else m_atomic = true;
-            } else if (m instanceof Modifier.Getter) {
+	        } else if (m instanceof ModifierGetter) {
                 if (m_getter) multiple(m);
                 else m_getter = true;
-            } else if (m instanceof Modifier.Hidden) {
+	        } else if (m instanceof ModifierHidden) {
                 if (m_hidden) multiple(m);
                 else m_hidden = true;
-            } else if (m instanceof Modifier.IO) {
+            } else if (m instanceof ModifierIO) {
                 if (m_io) multiple(m);
                 else m_io = true;
-            } else if (m instanceof Modifier.Private) {
+            } else if (m instanceof ModifierPrivate) {
                 if (m_private) multiple(m);
                 else m_private = true;
-            } else if (m instanceof Modifier.Settable) {
+            } else if (m instanceof ModifierSettable) {
                 if (m_settable) multiple(m);
                 else m_settable = true;
-            } else if (m instanceof Modifier.Setter) {
+	        } else if (m instanceof ModifierSetter) {
                 if (m_setter) multiple(m);
                 else m_setter = true;
-            } else if (m instanceof Modifier.Test) {
+            } else if (m instanceof ModifierTest) {
                 if (m_test) multiple(m);
                 else m_test = true;
-            } else if (m instanceof Modifier.Value) {
+            } else if (m instanceof ModifierValue) {
                 if (m_value) multiple(m);
                 else m_value = true;
-            } else if (m instanceof Modifier.Var) {
+            } else if (m instanceof ModifierVar) {
                 if (m_var) multiple(m);
                 else m_var = true;
-            } else if (m instanceof Modifier.Wrapped) {
+            } else if (m instanceof ModifierWidens) {
+                if (m_widens) multiple(m);
+                else m_widens = true;
+            } else if (m instanceof ModifierWrapped) {
                 if (m_wrapped) multiple(m);
                 else m_wrapped = true;
             }
@@ -196,7 +200,7 @@ public final class FortressUtil {
 
     public static boolean getMutable(List<Modifier> mods) {
         for (Modifier m : mods) {
-            if (m instanceof Modifier.Var || m instanceof Modifier.Settable)
+            if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 return true;
         }
         return false;
@@ -217,7 +221,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
            if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
-               mods.add(new Modifier.Var(span));
+               mods.add(new ModifierVar(span));
                result.add(NodeFactory.makeLValue((LValueBind)l, mods));
            } else throw new ProgramError(l, "LValueBind is expected.");
         }
@@ -262,7 +266,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
            if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
-               mods.add(new Modifier.Var(span));
+               mods.add(new ModifierVar(span));
                result.add(NodeFactory.makeLValue((LValueBind)l, ty, mods));
            } else throw new ProgramError(l, "LValueBind is expected.");
         }
@@ -289,7 +293,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
                List<Modifier> mods = new ArrayList<Modifier>();
-               mods.add(new Modifier.Var(span));
+               mods.add(new ModifierVar(span));
                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind), mods));
                ind += 1;
             } else throw new ProgramError(l, "Unpasting cannot be mutable.");

@@ -100,7 +100,7 @@ public class NodeUtil {
     /* for Param ***********************************************************/
     public static boolean isTransient(Param p) {
         for (Modifier m : p.getMods()) {
-            if (m instanceof Modifier.Transient) {
+            if (m instanceof ModifierTransient) {
                 return true;
             }
         }
@@ -109,7 +109,7 @@ public class NodeUtil {
 
     public static boolean isMutable(Param p) {
         for (Modifier m : p.getMods()) {
-            if (m instanceof Modifier.Var || m instanceof Modifier.Settable) {
+            if (m instanceof ModifierVar || m instanceof ModifierSettable) {
                 return true;
             }
         }

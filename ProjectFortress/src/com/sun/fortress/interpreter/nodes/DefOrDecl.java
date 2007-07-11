@@ -31,5 +31,6 @@ public interface DefOrDecl extends Node, HasAt {
   public <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public void visit(NodeVisitor_void visitor);
   public void outputHelp(TabPrintWriter writer, boolean lossless);
-
+    /*
+    */
 }

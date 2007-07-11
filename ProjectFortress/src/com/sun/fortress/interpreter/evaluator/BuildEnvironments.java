@@ -71,6 +71,7 @@ import com.sun.fortress.interpreter.nodes.ImportStar;
 import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.Modifier;
+import com.sun.fortress.interpreter.nodes.ModifierTest;
 import com.sun.fortress.interpreter.nodes.NullNodeVisitor;
 import com.sun.fortress.interpreter.nodes.ObjectDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
@@ -437,7 +438,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             if (!mods.isEmpty()) {
                 for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
                     Modifier m = i.next();
-                    if (m instanceof Modifier.Test) {
+                    if (m instanceof ModifierTest) {
                         FortressTests.add((Closure) cl);
                         break;
                     }

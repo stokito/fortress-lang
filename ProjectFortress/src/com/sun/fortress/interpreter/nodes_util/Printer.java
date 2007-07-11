@@ -175,9 +175,6 @@ public class Printer extends NodeReflection {
             AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();
             String clname = cl.getSimpleName();
-            if (x instanceof Modifier) {
-                clname = "Modifier$" + clname;
-            }
             int oneLinerNestingInc = (o instanceof DottedId
                     || o instanceof Literal || o instanceof VarRefExpr || o instanceof Opr) ? 1
                     : 0;

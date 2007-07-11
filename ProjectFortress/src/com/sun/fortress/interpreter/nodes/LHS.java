@@ -30,4 +30,6 @@ public interface LHS extends Node {
   public <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public void visit(NodeVisitor_void visitor);
   public void outputHelp(TabPrintWriter writer, boolean lossless);
+    /*
+    */
 }

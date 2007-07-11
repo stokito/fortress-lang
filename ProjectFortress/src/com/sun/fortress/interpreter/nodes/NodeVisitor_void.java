@@ -311,6 +311,57 @@ public interface NodeVisitor_void {
   /** Process an instance of UnpastingSplit. */
   public void forUnpastingSplit(UnpastingSplit that);
 
+  /** Process an instance of ModifierAbstract. */
+  public void forModifierAbstract(ModifierAbstract that);
+
+  /** Process an instance of ModifierAtomic. */
+  public void forModifierAtomic(ModifierAtomic that);
+
+  /** Process an instance of ModifierGetter. */
+  public void forModifierGetter(ModifierGetter that);
+
+  /** Process an instance of ModifierHidden. */
+  public void forModifierHidden(ModifierHidden that);
+
+  /** Process an instance of ModifierIO. */
+  public void forModifierIO(ModifierIO that);
+
+  /** Process an instance of ModifierOverride. */
+  public void forModifierOverride(ModifierOverride that);
+
+  /** Process an instance of ModifierPrivate. */
+  public void forModifierPrivate(ModifierPrivate that);
+
+  /** Process an instance of ModifierSettable. */
+  public void forModifierSettable(ModifierSettable that);
+
+  /** Process an instance of ModifierSetter. */
+  public void forModifierSetter(ModifierSetter that);
+
+  /** Process an instance of ModifierTest. */
+  public void forModifierTest(ModifierTest that);
+
+  /** Process an instance of ModifierTransient. */
+  public void forModifierTransient(ModifierTransient that);
+
+  /** Process an instance of ModifierValue. */
+  public void forModifierValue(ModifierValue that);
+
+  /** Process an instance of ModifierVar. */
+  public void forModifierVar(ModifierVar that);
+
+  /** Process an instance of ModifierWidens. */
+  public void forModifierWidens(ModifierWidens that);
+
+  /** Process an instance of ModifierWrapped. */
+  public void forModifierWrapped(ModifierWrapped that);
+
+  /** Process an instance of AbsObjectDecl. */
+  public void forAbsObjectDecl(AbsObjectDecl that);
+
+  /** Process an instance of ObjectDecl. */
+  public void forObjectDecl(ObjectDecl that);
+
   /** Process an instance of Op. */
   public void forOp(Op that);
 
@@ -340,12 +391,6 @@ public interface NodeVisitor_void {
 
   /** Process an instance of TestDecl. */
   public void forTestDecl(TestDecl that);
-
-  /** Process an instance of AbsObjectDecl. */
-  public void forAbsObjectDecl(AbsObjectDecl that);
-
-  /** Process an instance of ObjectDecl. */
-  public void forObjectDecl(ObjectDecl that);
 
   /** Process an instance of AbsTraitDecl. */
   public void forAbsTraitDecl(AbsTraitDecl that);
