@@ -49,23 +49,6 @@ public class NodeFactory {
         return new AliasedName(span, op, new Some<FnName>(alias));
     }
 
-
-    /******************************************************
-    private static int anonymousFnNameSequence;
-    static synchronized int anonymousFnNameSerial() {
-        return ++anonymousFnNameSequence;
-    }
-
-    public static AnonymousFnName makeAnonymousFnName(Span span) {
-        return new AnonymousFnName(span, anonymousFnNameSerial(), new None<HasAt>());
-    }
-
-    public static AnonymousFnName makeAnonymousFnName(HasAt at) {
-        return new AnonymousFnName(new Span(), anonymousFnNameSerial(),
-                                   new Some<HasAt>(at));
-    }
-    ******************************************************/
-
     public static ArrayType makeArrayType(Span span, TypeRef element,
                                           Option<FixedDim> ind) {
         FixedDim indices;
@@ -99,15 +82,9 @@ public class NodeFactory {
         return new CharLiteral(span, s, s.charAt(0));
     }
 
-    /******************************************************
-    private static int constructorFnNameSequence;
-    private static int constructorFnNameSerial() {
-        return ++constructorFnNameSequence;
-    }
     public static ConstructorFnName makeConstructorFnName(DefOrDecl def) {
-        return new ConstructorFnName(def.getSpan(), constructorFnNameSerial(), def);
+        return new ConstructorFnName(NodeUtil.getSpan(def), def);
     }
-    ******************************************************/
 
     public static Contract makeContract() {
         return new Contract(new Span(), Collections.<Expr> emptyList(),

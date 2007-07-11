@@ -47,6 +47,7 @@ import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.GHashMap;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MultiMap;
@@ -63,7 +64,7 @@ public class Constructor extends AnonymousConstructor {
     public Constructor(BetterEnv env,
             FTypeObject selfType,
             GenericDefOrDeclWithParams def) {
-        this(env, selfType, (HasAt) def, new ConstructorFnName(def),
+        this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def),
                 def.getDefOrDecls());
         addParamsToCollection(def, parameterNames);
     }

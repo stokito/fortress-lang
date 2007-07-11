@@ -153,13 +153,11 @@ public class NodeUtil {
         } else if (n instanceof SubscriptAssign) {
             return "[]=";
         } else if (n instanceof AnonymousFnName) {
-            return (getAt(n) == null ? n.getSpan().toString()
-                                     : stringName(((AnonymousFnName)n).getAt()))
-                                       + "#" + ((AnonymousFnName)n).getSerial();
+            return n.getSpan().toString();
         } else if (n instanceof ConstructorFnName) {
             ConstructorFnName fn = (ConstructorFnName)n;
             // TODO Auto-generated method stub
-            return stringName(fn.getDef()) + "#" + fn.getSerial();
+            return stringName(fn.getDef());
         } else { throw new Error("NodeUtil.getName: uncovered FnName " + n.getClass());
         }
     }
