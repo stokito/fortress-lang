@@ -49,7 +49,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
 
     transient private boolean isAFunctionalMethodKnown;
     transient private int cachedSelfParameterIndex = -1;
-    transient private volatile String asMethodName;
 
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
