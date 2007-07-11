@@ -248,6 +248,12 @@ public interface NodeVisitor_void {
   /** Process an instance of ExternalSyntax. */
   public void forExternalSyntax(ExternalSyntax that);
 
+  /** Process an instance of AbsFnDecl. */
+  public void forAbsFnDecl(AbsFnDecl that);
+
+  /** Process an instance of FnDecl. */
+  public void forFnDecl(FnDecl that);
+
   /** Process an instance of DottedId. */
   public void forDottedId(DottedId that);
 

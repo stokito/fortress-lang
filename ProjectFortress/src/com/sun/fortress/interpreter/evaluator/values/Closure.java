@@ -30,10 +30,13 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.nodes.Applicable;
 import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.interpreter.nodes.FnDecl;
+import com.sun.fortress.interpreter.nodes.FnExpr;
 import com.sun.fortress.interpreter.nodes.FnName;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -110,7 +113,11 @@ public class Closure extends NonPrimitive implements Scope {
      * @return Returns the closure_body.
      */
     public Expr getBody() {
-        return getDef().getBody();
+        Option<Expr> optBody = NodeUtil.getBody(def);
+        if (optBody.isPresent())
+            return optBody.getVal();
+        else
+            throw new Error(def.getClass() + " does not support getBody().");
     }
 
     public FValue applyInner(List<FValue> args, HasAt loc,

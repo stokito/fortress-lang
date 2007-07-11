@@ -21,15 +21,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Iterator;
 import com.sun.fortress.interpreter.nodes.*;
+import com.sun.fortress.interpreter.useful.*;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.IterableOnceTranslatingList;
-import com.sun.fortress.interpreter.useful.UnitIterable;
 
 public class NodeUtil {
 
@@ -114,6 +109,16 @@ public class NodeUtil {
             }
         }
         return false;
+    }
+
+    /* getBody *************************************************************/
+    public static Option<Expr> getBody(Applicable def) {
+        if (def instanceof FnDecl)
+            return new Some<Expr>(((FnDecl)def).getBody());
+        else if (def instanceof FnExpr)
+            return new Some<Expr>(((FnExpr)def).getBody());
+        else
+            return new None<Expr>();
     }
 
     /* getName *************************************************************/

@@ -119,8 +119,10 @@ public abstract class NativeApp implements Applicable {
      * library hacker can sort out what is going on when things break.
      */
     public static Applicable checkAndLoadNative(Applicable defn) {
-        Expr body = defn.getBody();
-        if (body==null || !(body instanceof TightJuxt)) return defn;
+        Option<Expr> optBody = NodeUtil.getBody(defn);
+        if (!optBody.isPresent()) return defn;
+        else if (!(optBody.getVal() instanceof TightJuxt)) return defn;
+        Expr body = optBody.getVal();
         List<Expr> juxts = ((TightJuxt)body).getExprs();
         if (juxts.size()!=2) return defn;
         Expr fn = juxts.get(0);

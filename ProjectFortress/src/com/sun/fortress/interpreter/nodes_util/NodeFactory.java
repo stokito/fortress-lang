@@ -28,9 +28,28 @@ import com.sun.fortress.interpreter.useful.Some;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Useful;
 import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
+    public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
+                                          Option<Id> optSelfName, FnName name,
+                                          Option<List<StaticParam>> staticParams,
+                                          List<Param> params,
+                                          Option<TypeRef> returnType,
+                                          List<TypeRef> throwss,
+                                          List<WhereClause> where,
+                                          Contract contract) {
+        String selfName;
+        if (optSelfName.isPresent()) {
+            selfName = optSelfName.getVal().getName();
+        } else {
+            selfName = WellKnownNames.defaultSelfName;
+        }
+        return new AbsFnDecl(s, mods, name, staticParams, params, returnType,
+                             throwss, where, contract, selfName);
+    }
+
     public static AliasedName makeAliasedName(Span span, Id id) {
         return new AliasedName(span, makeName(id.getSpan(), id),
                                new None<FnName>());
@@ -197,6 +216,24 @@ public class NodeFactory {
         }
         return new FloatLiteral(span, s,
                                 intPart, numerator, denomBase, denomPower);
+    }
+
+    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
+                                    Option<Id> optSelfName, FnName name,
+                                    Option<List<StaticParam>> staticParams,
+                                    List<Param> params,
+                                    Option<TypeRef> returnType,
+                                    List<TypeRef> throwss,
+                                    List<WhereClause> where, Contract contract,
+                                    Expr body) {
+        String selfName;
+        if (optSelfName.isPresent()) {
+            selfName = optSelfName.getVal().getName();
+        } else {
+            selfName = WellKnownNames.defaultSelfName;
+        }
+        return new FnDecl(s, mods, name, staticParams, params, returnType,
+                          throwss, where, contract, selfName, body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
