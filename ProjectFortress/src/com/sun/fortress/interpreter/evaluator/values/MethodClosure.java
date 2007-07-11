@@ -31,14 +31,19 @@ import com.sun.fortress.interpreter.useful.Useful;
 
 public class MethodClosure extends Closure implements Method {
 
+    int selfParameterIndex;
+    String self;
+
     public MethodClosure(BetterEnv within, Applicable fndef, String self_name) {
         super(within, fndef);
+        selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
         self = self_name;
 
     }
 
     public MethodClosure(BetterEnv within, Applicable fndef, String self_name, List<FType> args) {
         super(within, fndef, args);
+        selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
         self = self_name;
         // TODO this is really not figured out yet.
     }
@@ -51,10 +56,9 @@ public class MethodClosure extends Closure implements Method {
      */
     protected MethodClosure(PartiallyDefinedMethod method, BetterEnv environment, String self_name) {
         super(method, environment);
+        selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
         self = self_name;
     }
-
-    String self;
 
         /**
          * Method values have this filtering applied to them.
@@ -62,10 +66,7 @@ public class MethodClosure extends Closure implements Method {
          * to be called by the functional method wrapper.
          */
     protected List<Parameter> adjustParameterList(List<Parameter> params2) {
-        int i = NodeUtil.selfParameterIndex(getDef());
-        if (i == -1)
-            return params2;
-        return  Useful.removeIndex(i, params2);
+        return selfParameterIndex == -1 ? params2 :  Useful.removeIndex(selfParameterIndex, params2);
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
