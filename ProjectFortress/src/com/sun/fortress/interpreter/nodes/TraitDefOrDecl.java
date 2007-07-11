@@ -45,6 +45,17 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
 
     transient private Map<String, Thing> disambiguatingEnvironment;
 
+    TraitDefOrDecl(Span in_span, List<Modifier> in_mods, Id in_name, Option<List<StaticParam>> in_staticParams, Option<List<TypeRef>> in_extendsClause, List<TypeRef> in_excludes, Option<List<TypeRef>> in_bounds, List<WhereClause> in_where) {
+        super(in_span);
+        mods = in_mods;
+        name = in_name;
+        staticParams = in_staticParams;
+        extends_ = in_extendsClause;
+        excludes = in_excludes;
+        bounds = in_bounds;
+        wheres = in_where;
+    }
+
     TraitDefOrDecl(Span span) {
         super(span);
     }
@@ -66,7 +77,7 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
     /**
      * @return Returns the extends_.
      */
-    public Option<List<TypeRef>> getExtends_() {
+    public Option<List<TypeRef>> getExtendsClause() {
         return extends_;
     }
 

@@ -596,7 +596,7 @@ public class Disambiguate extends Rewrite {
      * @param td
      */
     private void accumulateMembersFromExtends(TraitDefOrDecl td) {
-        accumulateMembersFromExtends(td.getExtends_(), td.getDisEnv());
+        accumulateMembersFromExtends(td.getExtendsClause(), td.getDisEnv());
     }
 
     private void accumulateMembersFromExtends(Option<List<TypeRef>> xtends, Map<String, Thing> disEnv) {
@@ -769,7 +769,7 @@ public class Disambiguate extends Rewrite {
                                 for (DefOrDecl dd : tdod.getFns()) {
                                     members.add(NodeUtil.stringName(dd));
                                 }
-                                accumulateTraitsAndMethods(tdod.getExtends_(),
+                                accumulateTraitsAndMethods(tdod.getExtendsClause(),
                                         tdod.getDisEnv(), members, types,
                                         visited);
                             }

@@ -1201,7 +1201,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
      * @param interior
      */
     public void finishTrait(TraitDefOrDecl x, FTypeTrait ftt, BetterEnv interior) {
-        Option<List<TypeRef>> extends_ = x.getExtends_();
+        Option<List<TypeRef>> extends_ = x.getExtendsClause();
         interior = new BetterEnv(interior, x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
