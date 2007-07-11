@@ -66,19 +66,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
         this.contract = contract;
     }
 
-    public String getSelfName() {
-        return WellKnownNames.defaultSelfName;
-    }
-
-    static class Comparer implements Comparator<FnDefOrDecl> {
-
-        public int compare(FnDefOrDecl o1, FnDefOrDecl o2) {
-            return NodeComparator.compare(o1, o2);
-        }
-    }
-
-    public final static Comparer comparer = new Comparer();
-
     @Override
     public String toString() {
 
@@ -132,7 +119,7 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
     /**
      * @return Returns the throwss.
      */
-    public List<TypeRef> getThrowss() {
+    public List<TypeRef> getThrowsClause() {
         return throwss;
     }
 
@@ -170,10 +157,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
             isAFunctionalMethodKnown = true;
         }
         return cachedSelfParameterIndex;
-    }
-
-    public String nameAsFunction() {
-        return NodeUtil.getName(name);
     }
 
     public <RetType> RetType visit(NodeVisitor<RetType> visitor) {

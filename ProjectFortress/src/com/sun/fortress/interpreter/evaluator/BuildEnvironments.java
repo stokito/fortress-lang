@@ -734,7 +734,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                 // If it is a functional method, it is definitely a FnDefOrDecl
                 FnDefOrDecl fndod = (FnDefOrDecl) dod;
                 // System.err.println("Functional method " + dod + " pass "+pass);
-                String fndodname = fndod.nameAsFunction();
+                String fndodname = NodeUtil.getName(fndod.getFnName());
                 if (pass == 1) {
                     Fcn cl;
                     // If the container is generic, then we create an empty

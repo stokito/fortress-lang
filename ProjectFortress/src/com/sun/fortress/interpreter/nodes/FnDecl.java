@@ -25,36 +25,11 @@ import java.util.List;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.useful.Useful;
 
-// / and fn_def = fn_def_rec node
-// / and fn_def_rec =
-// / {
-// / fn_def_mods : modifier list;
-// / fn_def_name : fn_name;
-// / fn_def_type_params : type_param list option;
-// / fn_def_params : param list;
-// / fn_def_return_type : type_ref option;
-// / fn_def_throws : type_ref list;
-// / fn_def_where : where_clause list;
-// / fn_def_contract : contract;
-// / fn_def_body : expr;
-// / }
-
 public class FnDecl extends FnDefOrDecl implements Decl, Applicable {
 
     Expr body;
 
     Option<Id> optSelfName = new None<Id>();
-
-    public FnDecl(Span s, List<Modifier> mods, FnName name,
-            Option<List<StaticParam>> staticParams, List<Param> params,
-            Option<TypeRef> returnType, List<TypeRef> throwss,
-            List<WhereClause> where, Contract contract, Expr body,
-            Option<Id> optSelfName) {
-        super(s, mods, name, staticParams, params, returnType, throwss, where,
-                contract);
-        this.body = body;
-        this.optSelfName = optSelfName;
-    }
 
     public FnDecl(Span s, List<Modifier> mods, Option<Id> optSelfName,
             FnName name, Option<List<StaticParam>> staticParams,
@@ -83,13 +58,12 @@ public class FnDecl extends FnDefOrDecl implements Decl, Applicable {
         return body;
     }
 
-    @Override
     public String getSelfName() {
         if (optSelfName != null && optSelfName.isPresent()) {
             return optSelfName.getVal().getName();
         } else {
-            return super.getSelfName();
+            return WellKnownNames.defaultSelfName;
         }
     }
- 
+
 }

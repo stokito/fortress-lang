@@ -69,6 +69,10 @@ public class AbsFnDecl extends FnDefOrDecl implements Decl, AbsDecl, Applicable 
         // Must return a value or NativeApp.checkAndLoadNative will fail.
         return null;
     }
-    
-   
+
+    public String getSelfName() {
+        return WellKnownNames.defaultSelfName;
+    }
+
+
 }
