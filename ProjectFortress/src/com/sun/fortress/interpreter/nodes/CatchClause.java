@@ -32,18 +32,18 @@ public class CatchClause extends AbstractNode {
 
   /**
    * Constructs a CatchClause.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public CatchClause(Span in_span, TypeRef in_match, List<Expr> in_body) {
     super(in_span);
 
     if (in_match == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'match' to the CatchClause constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'match' to the CatchClause constructor was null");
     }
     _match = in_match;
 
     if (in_body == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'body' to the CatchClause constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'body' to the CatchClause constructor was null");
     }
     _body = in_body;
   }
@@ -67,7 +67,7 @@ public class CatchClause extends AbstractNode {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
@@ -79,46 +79,51 @@ public class CatchClause extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("CatchClause" + ":");
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("CatchClause:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("match = ");
     TypeRef temp_match = getMatch();
-    if (temp_match == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_match);
-    }
+    writer.startLine();
+    writer.print("match = ");
+    temp_match.outputHelp(writer, lossless);
 
-    writer.startLine("");
-    writer.print("body = ");
     List<Expr> temp_body = getBody();
-    if (temp_body == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_body);
+    writer.startLine();
+    writer.print("body = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_body = true;
+    for (Expr elt_temp_body : temp_body) {
+      isempty_temp_body = false;
+      writer.startLine("* ");
+      if (elt_temp_body == null) {
+        writer.print("null");
+      } else {
+        elt_temp_body.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_body) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -126,23 +131,27 @@ public class CatchClause extends AbstractNode {
       return false;
     } else {
       CatchClause casted = (CatchClause) obj;
-      if (! (getMatch().equals(casted.getMatch()))) return false;
-      if (! (getBody().equals(casted.getBody()))) return false;
+      TypeRef temp_match = getMatch();
+      TypeRef casted_match = casted.getMatch();
+      if (!(temp_match == casted_match || temp_match.equals(casted_match))) return false;
+      List<Expr> temp_body = getBody();
+      List<Expr> casted_body = casted.getBody();
+      if (!(temp_body == casted_body || temp_body.equals(casted_body))) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= 0;
-    code ^= getMatch().hashCode();
-    code ^= getBody().hashCode();
+    TypeRef temp_match = getMatch();
+    code ^= temp_match.hashCode();
+    List<Expr> temp_body = getBody();
+    code ^= temp_body.hashCode();
     return code;
   }
 }

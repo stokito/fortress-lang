@@ -48,7 +48,7 @@ public abstract class AbstractNode implements HasAt, Node {
         return getClass().getSimpleName() + "@" + span.begin.at();
     }
 
-    protected void outputHelp(TabPrintWriter writer, boolean lossless) {}
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
 
     /**
      * The internal accept method, that all leaf nodes should implement.
@@ -64,7 +64,7 @@ public abstract class AbstractNode implements HasAt, Node {
 
   private int _hashCode;
   private boolean _hasHashCode = false;
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
     code ^= 0;
     return code;

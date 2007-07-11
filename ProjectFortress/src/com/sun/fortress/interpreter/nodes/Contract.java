@@ -33,23 +33,23 @@ public class Contract extends AbstractNode {
 
   /**
    * Constructs a Contract.
-   * @throw java.lang.IllegalArgumentException if any parameter to the constructor is null.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public Contract(Span in_span, List<Expr> in_requires, List<EnsuresClause> in_ensures, List<Expr> in_invariants) {
     super(in_span);
 
     if (in_requires == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'requires' to the Contract constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'requires' to the Contract constructor was null");
     }
     _requires = in_requires;
 
     if (in_ensures == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'ensures' to the Contract constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'ensures' to the Contract constructor was null");
     }
     _ensures = in_ensures;
 
     if (in_invariants == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'invariants' to the Contract constructor was null. This class may not have null field values.");
+      throw new java.lang.IllegalArgumentException("Parameter 'invariants' to the Contract constructor was null");
     }
     _invariants = in_invariants;
   }
@@ -75,7 +75,7 @@ public class Contract extends AbstractNode {
 
   /**
    * Implementation of toString that uses
-   * {@see #output} to generated nicely tabbed tree.
+   * {@link #output} to generate a nicely tabbed tree.
    */
   public java.lang.String toString() {
     java.io.StringWriter w = new java.io.StringWriter();
@@ -87,55 +87,84 @@ public class Contract extends AbstractNode {
    * Prints this object out as a nicely tabbed tree.
    */
   public void output(java.io.Writer writer) {
-    outputHelp(new TabPrintWriter(writer, 2));
+    outputHelp(new TabPrintWriter(writer, 2), false);
   }
 
-  public void outputHelp(TabPrintWriter writer) {
-    writer.print("Contract" + ":");
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("Contract:");
     writer.indent();
 
-    writer.startLine("");
-    writer.print("span = ");
     Span temp_span = getSpan();
-    if (temp_span == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_span);
-    }
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
 
-    writer.startLine("");
-    writer.print("requires = ");
     List<Expr> temp_requires = getRequires();
-    if (temp_requires == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_requires);
+    writer.startLine();
+    writer.print("requires = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_requires = true;
+    for (Expr elt_temp_requires : temp_requires) {
+      isempty_temp_requires = false;
+      writer.startLine("* ");
+      if (elt_temp_requires == null) {
+        writer.print("null");
+      } else {
+        elt_temp_requires.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_requires) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("ensures = ");
     List<EnsuresClause> temp_ensures = getEnsures();
-    if (temp_ensures == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_ensures);
+    writer.startLine();
+    writer.print("ensures = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_ensures = true;
+    for (EnsuresClause elt_temp_ensures : temp_ensures) {
+      isempty_temp_ensures = false;
+      writer.startLine("* ");
+      if (elt_temp_ensures == null) {
+        writer.print("null");
+      } else {
+        elt_temp_ensures.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_ensures) writer.print(" }");
+    else writer.startLine("}");
 
-    writer.startLine("");
-    writer.print("invariants = ");
     List<Expr> temp_invariants = getInvariants();
-    if (temp_invariants == null) {
-      writer.print("null");
-    } else {
-      writer.print(temp_invariants);
+    writer.startLine();
+    writer.print("invariants = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_invariants = true;
+    for (Expr elt_temp_invariants : temp_invariants) {
+      isempty_temp_invariants = false;
+      writer.startLine("* ");
+      if (elt_temp_invariants == null) {
+        writer.print("null");
+      } else {
+        elt_temp_invariants.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_invariants) writer.print(" }");
+    else writer.startLine("}");
     writer.unindent();
   }
 
   /**
-   * Implementation of equals that is based on the values
-   * of the fields of the object. Thus, two objects
-   * created with identical parameters will be equal.
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
    */
   public boolean equals(java.lang.Object obj) {
     if (obj == null) return false;
@@ -143,25 +172,32 @@ public class Contract extends AbstractNode {
       return false;
     } else {
       Contract casted = (Contract) obj;
-      if (! (getRequires().equals(casted.getRequires()))) return false;
-      if (! (getEnsures().equals(casted.getEnsures()))) return false;
-      if (! (getInvariants().equals(casted.getInvariants()))) return false;
+      List<Expr> temp_requires = getRequires();
+      List<Expr> casted_requires = casted.getRequires();
+      if (!(temp_requires == casted_requires || temp_requires.equals(casted_requires))) return false;
+      List<EnsuresClause> temp_ensures = getEnsures();
+      List<EnsuresClause> casted_ensures = casted.getEnsures();
+      if (!(temp_ensures == casted_ensures || temp_ensures.equals(casted_ensures))) return false;
+      List<Expr> temp_invariants = getInvariants();
+      List<Expr> casted_invariants = casted.getInvariants();
+      if (!(temp_invariants == casted_invariants || temp_invariants.equals(casted_invariants))) return false;
       return true;
     }
   }
 
   /**
-   * Implementation of hashCode that is consistent with
-   * equals. The value of the hashCode is formed by
-   * XORing the hashcode of the class object with
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
    * the hashcodes of all the fields of the object.
    */
-  protected int generateHashCode() {
+  public int generateHashCode() {
     int code = getClass().hashCode();
-    code ^= 0;
-    code ^= getRequires().hashCode();
-    code ^= getEnsures().hashCode();
-    code ^= getInvariants().hashCode();
+    List<Expr> temp_requires = getRequires();
+    code ^= temp_requires.hashCode();
+    List<EnsuresClause> temp_ensures = getEnsures();
+    code ^= temp_ensures.hashCode();
+    List<Expr> temp_invariants = getInvariants();
+    code ^= temp_invariants.hashCode();
     return code;
   }
 }

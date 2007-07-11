@@ -27,10 +27,4 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public interface DefOrDecl extends Node, HasAt {
-  public Span getSpan();
-  public <RetType> RetType visit(NodeVisitor<RetType> visitor);
-  public void visit(NodeVisitor_void visitor);
-  public void outputHelp(TabPrintWriter writer, boolean lossless);
-    /*
-    */
 }

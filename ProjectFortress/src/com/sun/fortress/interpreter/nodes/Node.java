@@ -29,9 +29,8 @@ import com.sun.fortress.interpreter.useful.*;
 public interface Node {
 
     public <T> T accept(NodeVisitor<T> v);
-    /*
   public <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public void visit(NodeVisitor_void visitor);
   public void outputHelp(TabPrintWriter writer, boolean lossless);
-    */
+  public abstract int generateHashCode();
 }
