@@ -75,7 +75,7 @@ import com.sun.fortress.interpreter.nodes.ModifierTest;
 import com.sun.fortress.interpreter.nodes.NullNodeVisitor;
 import com.sun.fortress.interpreter.nodes.ObjectDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
-import com.sun.fortress.interpreter.nodes.ObjectExpr;
+import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -1303,9 +1303,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
 
-    public void finishObjectTrait(ObjectExpr x, FTypeObject ftt) {
+    public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
         Option<List<TypeRef>> extends_ = x.getTraits();
-        // ObjectExpr has no excludes clause.
+        // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }
 

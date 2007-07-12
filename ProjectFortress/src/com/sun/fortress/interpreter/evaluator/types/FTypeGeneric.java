@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.GenericDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
-import com.sun.fortress.interpreter.nodes.ObjectExpr;
+import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
 import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
@@ -111,8 +111,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     be.thirdPass();
                     be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
                     rval = fto;
-                } else if (dod instanceof ObjectExpr) {
-                    ObjectExpr td = (ObjectExpr) dod;
+                } else if (dod instanceof _RewriteObjectExpr) {
+                    _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
                     FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
                             clenv, FTypeGeneric.this, args, members);
                     map.put(args, fto); // Must put early to expose for second

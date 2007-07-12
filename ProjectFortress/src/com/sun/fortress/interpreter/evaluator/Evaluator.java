@@ -112,7 +112,7 @@ import com.sun.fortress.interpreter.nodes.ArrayExpr;
 import com.sun.fortress.interpreter.nodes.ArrayElement;
 import com.sun.fortress.interpreter.nodes.ArrayElements;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes.ObjectExpr;
+import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
 import com.sun.fortress.interpreter.nodes.Op;
 import com.sun.fortress.interpreter.nodes.OperatorParam;
 import com.sun.fortress.interpreter.nodes.Opr;
@@ -895,10 +895,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return paste;
     }
 
-    public FValue forObjectExpr(ObjectExpr x) {
+    public FValue for_RewriteObjectExpr(_RewriteObjectExpr x) {
         String s = x.getGenSymName();
         // FType ft = e.getType(s);
-        // System.out.println("forObjectExpr "+s);
+        // System.out.println("for_RewriteObjectExpr "+s);
         FValue v = e.getValue(s);
 
         if (v instanceof GenericConstructor) {
@@ -916,7 +916,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return cl.applyConstructor(java.util.Collections
                     .<FValue> emptyList(), x, e);
         } else {
-            throw new InterpreterError(x,e,"ObjectExpr " + s + " has 'constructor' " + v);
+            throw new InterpreterError(x,e,"_RewriteObjectExpr " + s + " has 'constructor' " + v);
         }
 
         // Option<List<TypeRef>> traits = x.getTraits();

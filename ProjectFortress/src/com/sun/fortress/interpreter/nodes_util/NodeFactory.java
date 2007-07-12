@@ -22,12 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.interpreter.useful.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
 
@@ -403,6 +398,28 @@ public class NodeFactory {
                                             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, params, traits,
                               throws_, where, contract, defs2);
+    }
+
+    public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
+                         BATree<String, StaticParam> implicit_type_parameters) {
+        List<StaticArg> staticArgs =
+            new ArrayList<StaticArg>(implicit_type_parameters.size());
+        Option<List<StaticParam>> stParams;
+        if (implicit_type_parameters.size() == 0) {
+            stParams = new None<List<StaticParam>>();
+        } else {
+            List<StaticParam> tparams =
+                new ArrayList<StaticParam>(implicit_type_parameters.values());
+            stParams = Some.makeSomeList(tparams);
+            for (String s : implicit_type_parameters.keySet()) {
+                staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
+            }
+        }
+        return new _RewriteObjectExpr(expr.getSpan(), expr.getTraits(),
+                                      expr.getDefOrDecls(),
+                                      implicit_type_parameters, expr.toString(),
+                                      stParams, staticArgs,
+                    new Some<List<Param>>(Collections.<Param>emptyList()));
     }
 
     public static Op makeOp(Span span, String name) {

@@ -17,53 +17,28 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
-import com.sun.fortress.interpreter.useful.BATree;
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.UnitIterable;
+public class ObjectExpr extends AbsObjectExpr {
 
+  /**
+   * Constructs a ObjectExpr.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public ObjectExpr(Span in_span, Option<List<TypeRef>> in_traits, List<? extends DefOrDecl> in_defOrDecls) {
+    super(in_span, in_traits, in_defOrDecls);
+  }
 
-// / and object_expr = object_expr_rec node
-// / and object_expr_rec =
-// / {
-// / object_expr_traits : type_ref list option;
-// / object_expr_defs : def list;
-// / }
-// /
-public class ObjectExpr extends DelimitedExpr implements GenericDefWithParams {
-
-    Option<List<TypeRef>> traits;
-
-    List<? extends DefOrDecl> defs;
-
-    public ObjectExpr(Span span, Option<List<TypeRef>> traits,
-            List<? extends DefOrDecl> defs) {
+    public ObjectExpr(Span span) {
         super(span);
-        this.traits = traits;
-        this.defs = defs;
-    }
-
-    // Needs to be private to prevent inclusion in serialized Fortress AST (.tfs/.tfi) form.
-    transient private BATree<String, StaticParam> implicitTypeParameters;
-
-    transient private String genSymName;
-
-    transient private Option<List<StaticParam>> staticParams;
-
-    transient private List<StaticArg> staticArgs;
-
-    static final private Option<List<Param>> optParams = new Some<List<Param>>(
-            Collections.<Param> emptyList());
-
-    public Option<List<Param>> getParams() {
-        return optParams;
     }
 
     @Override
@@ -71,88 +46,100 @@ public class ObjectExpr extends DelimitedExpr implements GenericDefWithParams {
         return v.forObjectExpr(this);
     }
 
-    ObjectExpr(Span span) {
-        super(span);
+  public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forObjectExpr(this); }
+  public void visit(NodeVisitor_void visitor) { visitor.forObjectExpr(this); }
+
+  /**
+   * Implementation of toString that uses
+   * {@link #output} to generate a nicely tabbed tree.
+   */
+  public java.lang.String toString() {
+    java.io.StringWriter w = new java.io.StringWriter();
+    output(w);
+    return w.toString();
+  }
+
+  /**
+   * Prints this object out as a nicely tabbed tree.
+   */
+  public void output(java.io.Writer writer) {
+    outputHelp(new TabPrintWriter(writer, 2), false);
+  }
+
+  public void outputHelp(TabPrintWriter writer, boolean lossless) {
+    writer.print("ObjectExpr:");
+    writer.indent();
+
+    Span temp_span = getSpan();
+    writer.startLine();
+    writer.print("span = ");
+    if (lossless) {
+      writer.printSerialized(temp_span);
+      writer.print(" ");
+      writer.printEscaped(temp_span);
+    } else { writer.print(temp_span); }
+
+    Option<List<TypeRef>> temp_traits = getTraits();
+    writer.startLine();
+    writer.print("traits = ");
+    if (lossless) {
+      writer.printSerialized(temp_traits);
+      writer.print(" ");
+      writer.printEscaped(temp_traits);
+    } else { writer.print(temp_traits); }
+
+    List<? extends DefOrDecl> temp_defOrDecls = getDefOrDecls();
+    writer.startLine();
+    writer.print("defOrDecls = ");
+    writer.print("{");
+    writer.indent();
+    boolean isempty_temp_defOrDecls = true;
+    for (DefOrDecl elt_temp_defOrDecls : temp_defOrDecls) {
+      isempty_temp_defOrDecls = false;
+      writer.startLine("* ");
+      if (elt_temp_defOrDecls == null) {
+        writer.print("null");
+      } else {
+        elt_temp_defOrDecls.outputHelp(writer, lossless);
+      }
     }
+    writer.unindent();
+    if (isempty_temp_defOrDecls) writer.print(" }");
+    else writer.startLine("}");
+    writer.unindent();
+  }
 
-    /**
-     * @return Returns the defs.
-     */
-    public List<? extends DefOrDecl> getDefOrDecls() {
-        return defs;
+  /**
+   * Implementation of equals that is based on the values of the fields of the
+   * object. Thus, two objects created with identical parameters will be equal.
+   */
+  public boolean equals(java.lang.Object obj) {
+    if (obj == null) return false;
+    if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+      return false;
+    } else {
+      ObjectExpr casted = (ObjectExpr) obj;
+      Option<List<TypeRef>> temp_traits = getTraits();
+      Option<List<TypeRef>> casted_traits = casted.getTraits();
+      if (!(temp_traits == casted_traits || temp_traits.equals(casted_traits))) return false;
+      List<? extends DefOrDecl> temp_defOrDecls = getDefOrDecls();
+      List<? extends DefOrDecl> casted_defOrDecls = casted.getDefOrDecls();
+      if (!(temp_defOrDecls == casted_defOrDecls || temp_defOrDecls.equals(casted_defOrDecls))) return false;
+      return true;
     }
+  }
 
-    public Option<List<TypeRef>> getTraits() {
-        return traits;
-    }
-
-    public void setImplicitTypeParameters(
-            BATree<String, StaticParam> implicit_type_parameters) {
-        if (this.staticParams != null) {
-            throw new Error("Second set");
-        }
-        this.implicitTypeParameters = implicit_type_parameters;
-        staticArgs = new ArrayList<StaticArg>(implicitTypeParameters.size());
-
-        if (implicitTypeParameters.size() == 0) {
-            staticParams = new None<List<StaticParam>>();
-        } else {// FIXME
-            List<StaticParam> tparams = new ArrayList<StaticParam>(
-                    implicitTypeParameters.values());
-            staticParams = Some.makeSomeList(tparams);
-            for (String s : implicitTypeParameters.keySet()) {
-                staticArgs.add(NodeFactory.makeTypeArg(getSpan(), s));
-
-            }
-        }
-    }
-
-    public Option<List<StaticParam>> getStaticParams() {
-        return staticParams;
-    }
-
-    /**
-     * If there are implicit type parameters, these are the type arguments to
-     * use in the "instantiation".
-     */
-    public List<StaticArg> getStaticArgs() {
-        return staticArgs;
-    }
-
-    /**
-     * @param genSymName
-     *            the genSymName to set
-     */
-    public void setGenSymName(String genSymName) {
-        /* Arr, here be dragons.  We actually re-initialize the
-         * FortressLibrary AST by running a new Disambiguate pass when
-         * we do our unit tests.  As we do so, we call setGenSymName again. */
-        if (this.genSymName != null) {
-            if (!(this.genSymName.equals(genSymName))) {
-                throw new Error("Second set\n"+
-                                "Object expr:\n"+this+"\n"+
-                                "genSymName "+this.genSymName+"\n"+
-                                "trying to reset to "+genSymName);
-            }
-            this.staticParams = null;
-        }
-        this.genSymName = genSymName;
-    }
-
-    /**
-     * @return the genSymName
-     */
-    public String getGenSymName() {
-        if (this.genSymName == null) {
-            throw new Error("Not yet set");
-        }
-        return genSymName;
-    }
-
-    public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forObjectExpr(this); }
-    public void visit(NodeVisitor_void visitor) { visitor.forObjectExpr(this); }
-    public void output(java.io.Writer writer) {}
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
-    public int generateHashCode() { return hashCode(); }
-
+  /**
+   * Implementation of hashCode that is consistent with equals.  The value of
+   * the hashCode is formed by XORing the hashcode of the class object with
+   * the hashcodes of all the fields of the object.
+   */
+  public int generateHashCode() {
+    int code = getClass().hashCode();
+    Option<List<TypeRef>> temp_traits = getTraits();
+    code ^= temp_traits.hashCode();
+    List<? extends DefOrDecl> temp_defOrDecls = getDefOrDecls();
+    code ^= temp_defOrDecls.hashCode();
+    return code;
+  }
 }

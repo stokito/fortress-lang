@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
@@ -124,6 +125,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of ObjectExpr. */
   public void forObjectExpr(ObjectExpr that);
+
+  /** Process an instance of _RewriteObjectExpr. */
+  public void for_RewriteObjectExpr(_RewriteObjectExpr that);
 
   /** Process an instance of Try. */
   public void forTry(Try that);

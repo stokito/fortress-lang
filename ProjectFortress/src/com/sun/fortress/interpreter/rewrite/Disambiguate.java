@@ -60,7 +60,9 @@ import com.sun.fortress.interpreter.nodes.LocalVarDecl;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
+import com.sun.fortress.interpreter.nodes.AbsObjectExpr;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
+import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
 import com.sun.fortress.interpreter.useful.Option;
 import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.ParamType;
@@ -199,7 +201,7 @@ public class Disambiguate extends Rewrite {
      * top level.  The top level environment is available to the creator/caller
      * of Disambiguate.
      */
-    private ArrayList<ObjectExpr> objectExprs = new ArrayList<ObjectExpr>();
+    private ArrayList<_RewriteObjectExpr> objectExprs = new ArrayList<_RewriteObjectExpr>();
 
     Disambiguate(BATree<String, Thing> initial, BATree<String, StaticParam> initialGenericScope) {
         e = initial;
@@ -253,7 +255,7 @@ public class Disambiguate extends Rewrite {
      * @param e
      */
     public void registerObjectExprs(BetterEnv e) {
-        for (ObjectExpr oe : objectExprs) {
+        for (_RewriteObjectExpr oe : objectExprs) {
             String name = oe.getGenSymName();
             Option<List<StaticParam>> params = oe.getStaticParams();
             if (! params.isPresent()) {
@@ -446,10 +448,10 @@ public class Disambiguate extends Rewrite {
                     dumpIfChange(node, n);
                     return n;
 
-                } else if (node instanceof ObjectExpr) {
+                } else if (node instanceof AbsObjectExpr) {
                     // all the methods coming from traits are no longer
                     // eligible for com.sun.fortress.interpreter.rewrite.
-                    ObjectExpr oe = (ObjectExpr) node;
+                    AbsObjectExpr oe = (AbsObjectExpr) node;
                     List<? extends DefOrDecl> defs = oe.getDefOrDecls();
                     Option<List<TypeRef>> xtends = oe.getTraits();
                     // TODO wip
@@ -459,20 +461,15 @@ public class Disambiguate extends Rewrite {
                     defsToMembers(defs);
                     accumulateMembersFromExtends(xtends, e);
                     AbstractNode n = visitNode(node);
-                    // REMEMBER THAT THIS IS THE NEW ObjectExpr!
-                    oe = (ObjectExpr) n;
+                    // REMEMBER THAT THIS IS THE NEW _RewriteObjectExpr!
                     // Implicitly parameterized by either visibleGenericParameters,
                     // or by usedGenericParameters.
-
-                    oe = new ObjectExpr(oe.getSpan(), oe.getTraits(), oe.getDefOrDecls());
-                    
-                    oe.setGenSymName(oe.toString());
                     // Note the keys of a BATree are sorted.
-                    oe.setImplicitTypeParameters(usedGenericParameters);
+                    n = NodeFactory.make_RewriteObjectExpr((ObjectExpr)n,
+                                                          usedGenericParameters);
+                    objectExprs.add((_RewriteObjectExpr)n);
 
-                    objectExprs.add(oe);
-
-                    return oe;
+                    return n;
 
                 } else if (node instanceof FnExpr) {
                     atTopLevelInsideTraitOrObject = false;

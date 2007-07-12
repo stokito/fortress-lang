@@ -183,4 +183,5 @@ WhereNat
 WhereUnit
 WhereWidensCoerces
 While
+_RewriteObjectExpr
 _WrappedFValue

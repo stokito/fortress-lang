@@ -201,8 +201,8 @@ public class NodeUtil {
             return NodeUtil.getName((FnName)node);
         } else if (node instanceof ObjectDefOrDecl) {
             return ((ObjectDefOrDecl)node).getName().getName();
-        } else if (node instanceof ObjectExpr) {
-            return ((ObjectExpr)node).getGenSymName();
+        } else if (node instanceof _RewriteObjectExpr) {
+            return ((_RewriteObjectExpr)node).getGenSymName();
         } else if (node instanceof TraitDefOrDecl) {
             return ((TraitDefOrDecl)node).getName().getName();
         } else if (node instanceof TypeAlias) {
@@ -214,7 +214,7 @@ public class NodeUtil {
         }
     }
 
-    public static String stringName(ObjectExpr expr) {
+    public static String stringName(_RewriteObjectExpr expr) {
         return expr.getGenSymName();
     }
 
@@ -252,8 +252,8 @@ public class NodeUtil {
                    return new IterableOnceForLValueList(((LocalVarDecl)d).getLhs());
         } else if (d instanceof ObjectDefOrDecl) {
             return new UnitIterable<String>(((ObjectDefOrDecl)d).getName().getName());
-        } else if (d instanceof ObjectExpr) {
-            return new UnitIterable<String>(((ObjectExpr)d).getGenSymName());
+        } else if (d instanceof _RewriteObjectExpr) {
+            return new UnitIterable<String>(((_RewriteObjectExpr)d).getGenSymName());
         } else if (d instanceof PropertyDecl) {
             Option<Id> id = ((PropertyDecl)d).getId();
             if (id.isPresent()) {
