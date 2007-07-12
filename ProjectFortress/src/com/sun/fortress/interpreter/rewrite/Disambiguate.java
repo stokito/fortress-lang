@@ -464,13 +464,15 @@ public class Disambiguate extends Rewrite {
                     // Implicitly parameterized by either visibleGenericParameters,
                     // or by usedGenericParameters.
 
+                    oe = new ObjectExpr(oe.getSpan(), oe.getTraits(), oe.getDefOrDecls());
+                    
                     oe.setGenSymName(oe.toString());
                     // Note the keys of a BATree are sorted.
                     oe.setImplicitTypeParameters(usedGenericParameters);
 
                     objectExprs.add(oe);
 
-                    return n;
+                    return oe;
 
                 } else if (node instanceof FnExpr) {
                     atTopLevelInsideTraitOrObject = false;

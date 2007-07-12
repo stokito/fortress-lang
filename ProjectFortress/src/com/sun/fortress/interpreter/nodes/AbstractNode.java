@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.nodes;
 
 import com.sun.fortress.interpreter.nodes_util.Printer;
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.UIDObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +28,13 @@ import java.util.List;
 import com.sun.fortress.interpreter.useful.HasAt;
 
 
-public abstract class AbstractNode implements HasAt, Node {
+public abstract class AbstractNode extends UIDObject implements HasAt, Node {
     Span span;
 
     List<String> props;
-
+    
     protected AbstractNode(Span span) {
+        super();
         this.span = span;
         this.props = span.getProps();
     }
