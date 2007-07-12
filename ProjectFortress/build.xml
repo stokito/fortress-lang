@@ -34,6 +34,8 @@
 	<property name="bcel" location="${basedir}/third_party/bcel"/>
 	<property name="fj" location="${basedir}/third_party/FJ"/>
 	<property name="unicode" location="${basedir}/third_party/unicode"/>
+	<property name="astgen" location="${basedir}/third_party/astgen"/>
+	<property name="plt" location="${basedir}/third_party/plt"/>
     <property name="nodesPackage" value="${blahblahblah}/nodes"/>
     <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
     <property name="nodes"  location="${src}/${nodesPackage}"/>
@@ -43,7 +45,7 @@
     <property name="precedence" location="${parser}/precedence"/>
     <property name="junit" location="${basedir}/third_party/junit"/>
     <property name="junitMem" value="512m"/>
-    <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${junit}/junit.jar"/>
+    <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
     <property environment="env"/>
 
     <target name="help">
@@ -328,6 +330,7 @@
                 <pathelement location="${xtc}/xtc.jar"/>
                 <pathelement location="${bcel}/bcel-5.2.jar"/>
                 <pathelement location="${fj}/concurrent.jar"/>
+                <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -359,6 +362,7 @@
                 <pathelement location="${xtc}/xtc.jar"/>
                 <pathelement location="${bcel}/bcel-5.2.jar"/>
             	<pathelement location="${fj}/concurrent.jar"/>
+            	<pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -388,6 +392,7 @@
             	<pathelement location="${fj}/concurrent.jar"/>
                 <pathelement location="${bcel}/bcel-5.2.jar"/>
             	<pathelement location="${xtc}/xtc.jar"/>
+            	<pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -414,6 +419,7 @@
 	            	<pathelement location="${fj}/concurrent.jar"/>
 	                <pathelement location="${bcel}/bcel-5.2.jar"/>
 	            	<pathelement location="${xtc}/xtc.jar"/>
+	            	<pathelement location="${plt}/plt.jar"/>
 	            </classpath>
 	            <formatter type="brief" usefile="true"/>
 	            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -470,6 +476,7 @@
 	<link href="http://junit.org/junit/javadoc/3.8.1/"/>
 	<link href="http://java.sun.com/j2se/1.5/docs/api/"/>
 	<link href="http://jakarta.apache.org/bcel/apidocs/"/>
+	<link href="http://drjava.org/javadoc/plt/"/>
       </javadoc>
 
     </target>
