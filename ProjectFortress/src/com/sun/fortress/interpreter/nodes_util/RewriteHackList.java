@@ -14,10 +14,6 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-/*
- * Created on May 4, 2007
- *
- */
 package com.sun.fortress.interpreter.nodes_util;
 
 import com.sun.fortress.interpreter.nodes.*;
@@ -32,8 +28,6 @@ import com.sun.fortress.interpreter.useful.NI;
  * These should never be actually inserted into an AST, and are
  * a subtype of Node only to make the type of the rewrite methods
  * a little cleaner.
- *
- * @author chase
  */
 public class RewriteHackList extends AbstractNode {
 
@@ -62,6 +56,7 @@ public class RewriteHackList extends AbstractNode {
         return accept(visitor);
     }
     public void visit(NodeVisitor_void visitor) {}
+    public void output(java.io.Writer writer) {}
     public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }
 }

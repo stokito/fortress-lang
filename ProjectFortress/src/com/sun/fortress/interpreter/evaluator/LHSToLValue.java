@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.nodes.Unpasting;
 import com.sun.fortress.interpreter.nodes.UnpastingBind;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
-import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
+import com.sun.fortress.interpreter.nodes._WrappedFValue;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.NI;
 
@@ -48,7 +48,7 @@ import com.sun.fortress.interpreter.useful.NI;
  * without duplication of computation, find both its current value
  * using Evaluator or AtomicEvaluator, and also assign to it using
  * ALHSEvaluator.  Cache computations are represented using
- * WrappedFValue AST com.sun.fortress.interpreter.nodes.
+ * _WrappedFValue AST com.sun.fortress.interpreter.nodes.
  */
 public class LHSToLValue extends NodeVisitor<LHS>  {
     Evaluator evaluator;
@@ -60,7 +60,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
     private Expr wrapEval(Expr x, String desc) {
         FValue v = x.accept(evaluator);
         if (v instanceof FObject) {
-            return new WrappedFValue(x,v);
+            return new _WrappedFValue(x.getSpan(),v);
         }
         throw new ProgramError(x,evaluator.e,desc);
     }
@@ -71,7 +71,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
         Iterator<Expr> eIt = es.iterator();
         for (FValue unw : unwrapped) {
             Expr e = eIt.next();
-            res.add(new WrappedFValue(e,unw));
+            res.add(new _WrappedFValue(e.getSpan(),unw));
         }
         return res;
     }

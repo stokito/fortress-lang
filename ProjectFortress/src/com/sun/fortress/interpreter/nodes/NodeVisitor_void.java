@@ -29,9 +29,6 @@ import com.sun.fortress.interpreter.useful.*;
 /** An interface for visitors over Node that do not return a value. */
 public interface NodeVisitor_void {
 
-  /** Process an instance of AbstractNode. */
-  public void forAbstractNode(AbstractNode that);
-
   /** Process an instance of AbsExternalSyntax. */
   public void forAbsExternalSyntax(AbsExternalSyntax that);
 
@@ -134,9 +131,6 @@ public interface NodeVisitor_void {
   /** Process an instance of TupleExpr. */
   public void forTupleExpr(TupleExpr that);
 
-  /** Process an instance of KeywordsExpr. */
-  public void forKeywordsExpr(KeywordsExpr that);
-
   /** Process an instance of TypeCase. */
   public void forTypeCase(TypeCase that);
 
@@ -145,6 +139,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of While. */
   public void forWhile(While that);
+
+  /** Process an instance of _WrappedFValue. */
+  public void for_WrappedFValue(_WrappedFValue that);
 
   /** Process an instance of Accumulator. */
   public void forAccumulator(Accumulator that);
@@ -166,6 +163,9 @@ public interface NodeVisitor_void {
 
   /** Process an instance of FnExpr. */
   public void forFnExpr(FnExpr that);
+
+  /** Process an instance of KeywordsExpr. */
+  public void forKeywordsExpr(KeywordsExpr that);
 
   /** Process an instance of GeneratedExpr. */
   public void forGeneratedExpr(GeneratedExpr that);

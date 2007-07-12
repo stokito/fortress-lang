@@ -148,7 +148,7 @@ import com.sun.fortress.interpreter.nodes.VarDecl;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes.While;
-import com.sun.fortress.interpreter.nodes_util.WrappedFValue;
+import com.sun.fortress.interpreter.nodes._WrappedFValue;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.MatchFailure;
@@ -1398,7 +1398,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     @Override
-    public FValue forWrappedFValue(WrappedFValue w) {
+    public FValue for_WrappedFValue(_WrappedFValue w) {
         return w.getFValue();
     }
 }
