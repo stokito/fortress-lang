@@ -17,125 +17,97 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-
-import com.sun.fortress.interpreter.useful.Option;
-import java.util.Comparator;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.useful.IterableOnce;
-import com.sun.fortress.interpreter.useful.UnitIterable;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.interpreter.useful.*;
 
+public abstract class FnDefOrDecl extends AbstractNode implements Generic, Applicable, DefOrDecl {
+  private final List<Modifier> _mods;
+  private final FnName _fnName;
+  private final Option<List<StaticParam>> _staticParams;
+  private final List<Param> _params;
+  private final Option<TypeRef> _returnType;
+  private final List<TypeRef> _throwsClause;
+  private final List<WhereClause> _where;
+  private final Contract _contract;
 
-public abstract class FnDefOrDecl extends AbstractNode implements Generic, Applicable,
-        DefOrDecl {
+  /**
+   * Constructs a FnDefOrDecl.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public FnDefOrDecl(Span in_span, List<Modifier> in_mods, FnName in_fnName, Option<List<StaticParam>> in_staticParams, List<Param> in_params, Option<TypeRef> in_returnType, List<TypeRef> in_throwsClause, List<WhereClause> in_where, Contract in_contract) {
+    super(in_span);
 
-    List<Modifier> mods;
-
-    FnName name;
-
-    Option<List<StaticParam>> staticParams;
-
-    List<Param> params;
-
-    Option<TypeRef> returnType;
-
-    List<TypeRef> throwss;
-
-    List<WhereClause> where;
-
-    Contract contract;
-
-    public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
-            Option<List<StaticParam>> staticParams, List<Param> params,
-            Option<TypeRef> returnType, List<TypeRef> throwss,
-            List<WhereClause> where, Contract contract) {
-        super(s);
-        this.mods = mods;
-        this.name = name;
-        this.staticParams = staticParams;
-        this.params = params;
-        this.returnType = returnType;
-        this.throwss = throwss;
-        this.where = where;
-        this.contract = contract;
+    if (in_mods == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'mods' to the FnDefOrDecl constructor was null");
     }
+    _mods = in_mods;
 
-    @Override
-    public String toString() {
-
-        return NodeUtil.getName(name)
-                + (staticParams.isPresent() ?
-                        Useful.listInOxfords(staticParams.getVal()) : "")
-                + Useful.listInParens(params)
-                + (returnType.isPresent() ? (":" + returnType.getVal()) : "")
-                + "\n\t@" + NodeUtil.getAt(name);
+    if (in_fnName == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'fnName' to the FnDefOrDecl constructor was null");
     }
+    _fnName = in_fnName;
+
+    if (in_staticParams == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'staticParams' to the FnDefOrDecl constructor was null");
+    }
+    _staticParams = in_staticParams;
+
+    if (in_params == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'params' to the FnDefOrDecl constructor was null");
+    }
+    _params = in_params;
+
+    if (in_returnType == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'returnType' to the FnDefOrDecl constructor was null");
+    }
+    _returnType = in_returnType;
+
+    if (in_throwsClause == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'throwsClause' to the FnDefOrDecl constructor was null");
+    }
+    _throwsClause = in_throwsClause;
+
+    if (in_where == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'where' to the FnDefOrDecl constructor was null");
+    }
+    _where = in_where;
+
+    if (in_contract == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'contract' to the FnDefOrDecl constructor was null");
+    }
+    _contract = in_contract;
+  }
 
     public FnDefOrDecl(Span span) {
         super(span);
+        _mods = null;
+        _fnName = null;
+        _staticParams = null;
+        _params = null;
+        _returnType = null;
+        _throwsClause = null;
+        _where = null;
+        _contract = null;
     }
 
-    /**
-     * @return Returns the contract.
-     */
-    public Contract getContract() {
-        return contract;
-    }
+  public List<Modifier> getMods() { return _mods; }
+  public FnName getFnName() { return _fnName; }
+  public Option<List<StaticParam>> getStaticParams() { return _staticParams; }
+  public List<Param> getParams() { return _params; }
+  public Option<TypeRef> getReturnType() { return _returnType; }
+  public List<TypeRef> getThrowsClause() { return _throwsClause; }
+  public List<WhereClause> getWhere() { return _where; }
+  public Contract getContract() { return _contract; }
 
-    /**
-     * @return Returns the mods.
-     */
-    public List<Modifier> getMods() {
-        return mods;
-    }
-
-    /**
-     * @return Returns the name.
-     */
-    public FnName getFnName() {
-        return name;
-    }
-
-    /**
-     * @return Returns the params.
-     */
-    public List<Param> getParams() {
-        return params;
-    }
-
-    /**
-     * @return Returns the returnType.
-     */
-    public Option<TypeRef> getReturnType() {
-        return returnType;
-    }
-
-    /**
-     * @return Returns the throwss.
-     */
-    public List<TypeRef> getThrowsClause() {
-        return throwss;
-    }
-
-    /**
-     * @return Returns the staticParams.
-     */
-    public Option<List<StaticParam>> getStaticParams() {
-        return staticParams;
-    }
-
-    /**
-     * @return Returns the where.
-     */
-    public List<WhereClause> getWhere() {
-        return where;
-    }
-
-    public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
-        return accept(visitor);
-    }
-    public void visit(NodeVisitor_void visitor) {}
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  public abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  public abstract int generateHashCode();
 }
