@@ -17,28 +17,39 @@
 
 package com.sun.fortress.interpreter.nodes;
 
-import com.sun.fortress.interpreter.nodes_util.Printer;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.UIDObject;
-
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-
-import com.sun.fortress.interpreter.useful.HasAt;
-
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
 
 public abstract class AbstractNode extends UIDObject implements HasAt, Node {
-    Span span;
+  private final Span _span;
+  private int _hashCode;
+  private boolean _hasHashCode = false;
+
+  /**
+   * Constructs a AbstractNode.
+   * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+   */
+  public AbstractNode(Span in_span) {
+    super();
+
+    if (in_span == null) {
+      throw new java.lang.IllegalArgumentException("Parameter 'span' to the AbstractNode constructor was null");
+    }
+    _span = in_span;
+    props = _span.getProps();
+  }
 
     List<String> props;
-    
-    protected AbstractNode(Span span) {
-        super();
-        this.span = span;
-        this.props = span.getProps();
-    }
-
+    /**
+     * The internal accept method, that all leaf nodes should implement.
+     */
+    abstract public <T> T accept(NodeVisitor<T> v);
     public void setInParentheses() {
         if (props == null) {
             props = new ArrayList<String>();
@@ -46,33 +57,14 @@ public abstract class AbstractNode extends UIDObject implements HasAt, Node {
         props.add("P");
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "@" + span.begin.at();
-    }
+  public Span getSpan() { return _span; }
 
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
-
-    /**
-     * The internal accept method, that all leaf nodes should implement.
-     */
-    abstract public <T> T accept(NodeVisitor<T> v);
-
-    /**
-     * @return Returns the span.
-     */
-    public Span getSpan() {
-        return span;
-    }
-
-  private int _hashCode;
-  private boolean _hasHashCode = false;
-  public int generateHashCode() {
-    int code = getClass().hashCode();
-    code ^= 0;
-    return code;
-  }
-  public int hashCode() {
+  public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
+  public abstract void visit(NodeVisitor_void visitor);
+  public abstract void output(java.io.Writer writer);
+  public abstract void outputHelp(TabPrintWriter writer, boolean lossless);
+  public abstract int generateHashCode();
+  public final int hashCode() {
     if (! _hasHashCode) { _hashCode = generateHashCode(); _hasHashCode = true; }
     return _hashCode;
   }
