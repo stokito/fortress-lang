@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.useful.*;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 public class NodeUtil {
 
@@ -67,10 +68,16 @@ public class NodeUtil {
      */
     public static int selfParameterIndex(HasAt d) {
         if (d instanceof FnDefOrDecl) {
-            return ((FnDefOrDecl)d).selfParameterIndex();
-        } else {
-            return -1;
+            int i = 0;
+            for (Param p : ((FnDefOrDecl)d).getParams()) {
+                Id id = p.getName();
+                if (WellKnownNames.defaultSelfName.equals(id.getName())) {
+                    return i;
+                }
+                i++;
+            }
         }
+        return -1;    
     }
 
     /* for Applicable ******************************************************/
@@ -78,7 +85,7 @@ public class NodeUtil {
         if (app instanceof FnExpr) {
             return getName(((FnExpr)app).getFnName());
         } else if (app instanceof FnDefOrDecl) {
-            int spi = ((FnDefOrDecl)app).selfParameterIndex();
+            int spi = selfParameterIndex((FnDefOrDecl)app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + getName(((FnDefOrDecl)app).getFnName());
             else

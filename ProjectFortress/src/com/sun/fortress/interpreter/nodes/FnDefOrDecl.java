@@ -47,9 +47,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
 
     Contract contract;
 
-    transient private boolean isAFunctionalMethodKnown;
-    transient private int cachedSelfParameterIndex = -1;
-
     public FnDefOrDecl(Span s, List<Modifier> mods, FnName name,
             Option<List<StaticParam>> staticParams, List<Param> params,
             Option<TypeRef> returnType, List<TypeRef> throwss,
@@ -134,28 +131,6 @@ public abstract class FnDefOrDecl extends AbstractNode implements Generic, Appli
      */
     public List<WhereClause> getWhere() {
         return where;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.DefOrDecl#isAFunctionalMethod()
-     */
-    public int selfParameterIndex() {
-        if (!isAFunctionalMethodKnown) {
-            int i = 0;
-            for (Param p : params) {
-                Id id = p.getName();
-                if (WellKnownNames.defaultSelfName.equals(id.getName())) {
-                    cachedSelfParameterIndex = i;
-                    break;
-                }
-                i++;
-
-            }
-            isAFunctionalMethodKnown = true;
-        }
-        return cachedSelfParameterIndex;
     }
 
     public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
