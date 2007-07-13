@@ -23,23 +23,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public class AbsTraitDecl extends TraitDefOrDecl implements GenericDefOrDecl, AbsDecl {
-  private final List<? extends DefOrDecl> _fns;
 
   /**
    * Constructs a AbsTraitDecl.
    * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
    */
   public AbsTraitDecl(Span in_span, List<Modifier> in_mods, Id in_name, Option<List<StaticParam>> in_staticParams, Option<List<TypeRef>> in_extendsClause, List<TypeRef> in_excludes, Option<List<TypeRef>> in_bounds, List<WhereClause> in_where, List<? extends DefOrDecl> in_fns) {
-    super(in_span, in_mods, in_name, in_staticParams, in_extendsClause, in_excludes, in_bounds, in_where);
+    super(in_span, in_mods, in_name, in_staticParams, in_extendsClause, in_excludes, in_bounds, in_where, in_fns);
+  }
 
-    if (in_fns == null) {
-      throw new java.lang.IllegalArgumentException("Parameter 'fns' to the AbsTraitDecl constructor was null");
-    }
-    _fns = in_fns;
+  /**
+   * Empty constructor, for reflective access.  Clients are
+   * responsible for manually instantiating each field.
+   */
+  protected AbsTraitDecl() {
   }
 
     @Override
@@ -49,10 +51,7 @@ public class AbsTraitDecl extends TraitDefOrDecl implements GenericDefOrDecl, Ab
 
     AbsTraitDecl(Span span) {
         super(span);
-        _fns = null;
     }
-
-  final public List<? extends DefOrDecl> getFns() { return _fns; }
 
   public <RetType> RetType visit(NodeVisitor<RetType> visitor) { return visitor.forAbsTraitDecl(this); }
   public void visit(NodeVisitor_void visitor) { visitor.forAbsTraitDecl(this); }
