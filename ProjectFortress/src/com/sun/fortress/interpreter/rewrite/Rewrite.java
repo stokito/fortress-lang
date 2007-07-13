@@ -48,10 +48,18 @@ import com.sun.fortress.interpreter.useful.Pair;
 public abstract class Rewrite extends NodeReflection {
     static Class[] oneSpanArg = { Span.class };
     @Override
-    protected Constructor defaultConstructorFor(Class cl) throws NoSuchMethodException {
-        return cl.getDeclaredConstructor(oneSpanArg);
+    protected Constructor defaultConstructorFor(Class cl) {
+        try {
+            return cl.getDeclaredConstructor(oneSpanArg);
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+           
+        }
+        return null;
     }
-
+    
     /**
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
@@ -105,12 +113,13 @@ public abstract class Rewrite extends NodeReflection {
                 Object p = visitObject(o);
                 if (p != o) {
                     if (replacement == null) {
-                        Constructor con = constructorFor(n.getClass());
-                        Object[] args = new Object[1];
-                        args[0] = n.getSpan();
-                        if (con == null)
-                            System.err.println(n.getClass());
-                        replacement = (AbstractNode) con.newInstance(args);
+                        replacement = makeNodeFromSpan(null, n.getClass(), n.getSpan());
+//                        Constructor con = constructorFor(n.getClass());
+//                        Object[] args = new Object[1];
+//                        args[0] = n.getSpan();
+//                        if (con == null)
+//                            System.err.println(n.getClass());
+//                        replacement = (AbstractNode) con.newInstance(args);
                         // Copy over earlier fields
                         for (int j = 0; j < i; j++) {
                             Field g = fields[j];

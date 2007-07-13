@@ -18,8 +18,10 @@
 package com.sun.fortress.interpreter.nodes_util;
 
 import com.sun.fortress.interpreter.nodes.*;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,12 +34,14 @@ abstract public class NodeReflection {
     // sort them into a particular order.
 
     public static final String NODES_PACKAGE_PREFIX = "com.sun.fortress.interpreter.nodes.";
+    public static final Object[] args0 = new Object[0];
 
     private HashMap<String, HashMap<String, Field>> shortClassNameToFieldNameToField = new HashMap<String, HashMap<String, Field>>();
 
     private HashMap<String, Class> classMap = new HashMap<String, Class>();
 
     private HashMap<String, Constructor> constructorMap = new HashMap<String, Constructor>();
+    private HashMap<String, Constructor> constructorMapZero = new HashMap<String, Constructor>();
 
     // What happened here is that various forms of node reflection got merged
     // into a
@@ -46,7 +50,20 @@ abstract public class NodeReflection {
     // private HashMap<String, Field[]> fullClassNameToFieldArray = new
     // HashMap<String, Field[]>();
     private HashMap<String, Field[]> shortClassNameToFieldArray = new HashMap<String, Field[]>();
+    
+    private Field spanField;
 
+    protected NodeReflection() {
+        try {
+            spanField = AbstractNode.class.getDeclaredField("_span");
+            spanField.setAccessible(true);
+        } catch (SecurityException e) {
+            throw new Error(e.getMessage());
+        } catch (NoSuchFieldException e) {
+            throw new Error(e.getMessage());
+        }
+    }
+    
     protected Field fieldFor(String class_name, String field_name) {
         return shortClassNameToFieldNameToField.get(class_name).get(field_name);
     }
@@ -55,6 +72,54 @@ abstract public class NodeReflection {
         return constructorMap.get(class_name);
     }
 
+    protected Constructor constructorZeroFor(String class_name) {
+        return constructorMapZero.get(class_name);
+    }
+
+        /**
+         * Makes a new node given a span and string name or class of the node to
+         * be created.  At least one of s and c must be non-null; if both are
+         * non-null, s is used.  THE NODE RETURNED BY THIS METHOD IS IMPROPERLY
+         * INITIALIZED; IT WILL HAVE null FINAL FIELDS, WHICH MUST BE FIXED
+         * USING REFLECTION.
+         * 
+         * This method preferentially uses the zero-arg constructor, if one is
+         * found, otherwise it use the one-span-arg constructor and assigns the
+         * field.  This is intended to ease the transition to the 
+         * ASTgen-generated nodes.
+         * 
+         * @param s
+         * @param c
+         * @param span
+         * @return
+         * @throws InvocationTargetException 
+         * @throws IllegalAccessException 
+         * @throws InstantiationException 
+         * @throws IllegalArgumentException 
+         */
+    protected AbstractNode makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+      // try {
+            Constructor con = s != null ? constructorZeroFor(s) : constructorZeroFor(c);
+            if (con != null) {
+                AbstractNode node = (AbstractNode) con.newInstance(args0);
+                spanField.set(node, span);
+                return node;
+            }
+            con = s != null ? constructorFor(s) : constructorFor(c);
+            Object[] args = new Object[1];
+            args[0] = span;
+            return (AbstractNode) con.newInstance(args);
+//       } catch (IllegalAccessException ex) {
+//           throw new Error(ex.getMessage());
+//       } catch (InstantiationException ex) {
+//           throw new Error(ex.getMessage());
+//       } catch (InvocationTargetException ex) {
+//           throw new Error(ex.getMessage());
+//       }
+       
+        }
+    
+    
     protected Constructor constructorFor(Class cls) {
         String sn = modifiedSimpleName(cls);
         Constructor c = constructorMap.get(sn);
@@ -65,12 +130,37 @@ abstract public class NodeReflection {
         return c;
     }
 
+    protected Constructor constructorZeroFor(Class cls) {
+        String sn = modifiedSimpleName(cls);
+        Constructor c = constructorMapZero.get(sn);
+        if (c == null) {
+            c = constructorFor(cls); // This will force init, if possible
+            c = constructorMapZero.get(sn);
+        }
+        return c;
+    }
+
     protected Field[] fieldArrayFor(String class_name) {
         return shortClassNameToFieldArray.get(class_name);
     }
 
     abstract protected Constructor defaultConstructorFor(Class cl)
-            throws NoSuchMethodException;
+    throws NoSuchMethodException;
+    
+    static Class[] zeroArg = {  };
+    protected Constructor defaultConstructorZeroFor(Class cl) {
+        
+        try {
+            return cl.getDeclaredConstructor(zeroArg);
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            
+        }
+        return null;
+    }
+
 
     protected Class classFor(String class_name) {
         String full_class_name = NODES_PACKAGE_PREFIX + class_name;
@@ -91,8 +181,17 @@ abstract public class NodeReflection {
                 shortClassNameToFieldNameToField.put(class_name, h);
                 classMap.put(class_name, cl);
                 Constructor c = defaultConstructorFor(cl);
-                c.setAccessible(true);
-                constructorMap.put(class_name, c);
+                if (c != null) {
+                    c.setAccessible(true);
+                    constructorMap.put(class_name, c);
+                }
+                Constructor c0 = defaultConstructorZeroFor(cl);
+                if (c0 != null) {
+                    c0.setAccessible(true);
+                    constructorMapZero.put(class_name, c0);
+                }
+                if (c == null && c0 == null)
+                    throw new Error("Could not find an appropriate constructor for " + full_class_name);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
                 throw new Error("Error reading node type " + class_name);

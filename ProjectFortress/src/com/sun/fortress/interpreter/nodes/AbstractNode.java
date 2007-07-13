@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.nodes_util.*;
 import com.sun.fortress.interpreter.useful.*;
 
 public abstract class AbstractNode extends UIDObject implements HasAt, Node {
-  private final Span _span;
+  private final Span _span; // THIS NAME IS KNOWN TO REFLECTION!
   private int _hashCode;
   private boolean _hasHashCode = false;
 

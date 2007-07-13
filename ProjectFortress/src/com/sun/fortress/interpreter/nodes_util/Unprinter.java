@@ -197,9 +197,16 @@ public class Unprinter extends NodeReflection {
     static Class[] oneSpanArg = { Span.class };
 
     @Override
-    protected Constructor defaultConstructorFor(Class cl)
-            throws NoSuchMethodException {
-        return cl.getDeclaredConstructor(oneSpanArg);
+    protected Constructor defaultConstructorFor(Class cl) {
+        try {
+            return cl.getDeclaredConstructor(oneSpanArg);
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+   
+        }
+        return null;
     }
 
     /**
@@ -226,7 +233,7 @@ public class Unprinter extends NodeReflection {
      */
     public AbstractNode readNode(String class_name) throws IOException {
         classFor(class_name); // Loads other tables as a side-effect
-        Constructor con = constructorFor(class_name);
+       
         AbstractNode node = null;
         String next = l.name();
 
@@ -239,9 +246,7 @@ public class Unprinter extends NodeReflection {
         // To be readable, a node class must supply a constructor for
         // a single Span argument.
         try {
-            Object[] args = new Object[1];
-            args[0] = lastSpan;
-            node = (AbstractNode) con.newInstance(args);
+            node = makeNodeFromSpan(class_name, null, lastSpan);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             throw new Error("Error reading node type " + class_name);
