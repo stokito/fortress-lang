@@ -36,7 +36,10 @@ public abstract class Expr extends AbstractNode {
     super(in_span);
   }
 
-
+  protected Expr() {
+      super();
+  }
+  
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
   public abstract void visit(NodeVisitor_void visitor);
   public abstract void output(java.io.Writer writer);

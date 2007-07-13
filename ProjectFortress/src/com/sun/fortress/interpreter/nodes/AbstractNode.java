@@ -44,6 +44,16 @@ public abstract class AbstractNode extends UIDObject implements HasAt, Node {
     _span = in_span;
     props = _span.getProps();
   }
+  
+  /**
+   * For reflection use ONLY.
+   */
+  protected AbstractNode() {
+      super();
+
+      _span = null;
+      props = null;
+    }
 
     List<String> props;
     /**

@@ -47,17 +47,23 @@ public class FieldSelection extends Primary implements LHS {
     }
     _id = in_id;
   }
+  
+  protected FieldSelection() {
+      super();
+      _obj = null;
+      _id = null;
+  }
 
     @Override
     public <T> T accept(NodeVisitor<T> v) {
         return v.forFieldSelection(this);
     }
 
-    FieldSelection(Span span) {
-        super(span);
-        _obj = null;
-        _id = null;
-    }
+//    FieldSelection(Span span) {
+//        super(span);
+//        _obj = null;
+//        _id = null;
+//    }
 
   final public Expr getObj() { return _obj; }
   final public Id getId() { return _id; }

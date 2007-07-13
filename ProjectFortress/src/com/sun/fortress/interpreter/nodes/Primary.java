@@ -35,6 +35,10 @@ public abstract class Primary extends OpExpr {
   public Primary(Span in_span) {
     super(in_span);
   }
+  
+  protected Primary() {
+      super();
+  }
 
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);

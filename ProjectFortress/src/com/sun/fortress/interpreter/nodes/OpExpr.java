@@ -35,6 +35,10 @@ public abstract class OpExpr extends Expr {
   public OpExpr(Span in_span) {
     super(in_span);
   }
+  
+  protected OpExpr() {
+      super();
+  }
 
 
   public abstract <RetType> RetType visit(NodeVisitor<RetType> visitor);
