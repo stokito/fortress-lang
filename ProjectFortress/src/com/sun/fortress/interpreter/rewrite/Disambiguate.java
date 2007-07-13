@@ -39,6 +39,8 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.nodes_util.StringMaker;
+import com.sun.fortress.interpreter.nodes_util.UIDMapFactory;
+import com.sun.fortress.interpreter.nodes_util.UIDObject;
 import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
@@ -194,6 +196,12 @@ public class Disambiguate extends Rewrite {
      */
     BATree<String, StaticParam> visibleGenericParameters;
     BATree<String, StaticParam> usedGenericParameters;
+    
+    /**
+     * Disambiguating environment map -- in what environment was each trait declared?
+     */
+    
+    BATree<UIDObject, Map<String, Thing> > traitDisEnvMap = UIDMapFactory.< Map<String, Thing> >make();
 
     /**
      * All the object exprs (this may generalize to nested functions as well)
@@ -595,7 +603,7 @@ public class Disambiguate extends Rewrite {
      * @param td
      */
     private void accumulateMembersFromExtends(TraitDefOrDecl td) {
-        accumulateMembersFromExtends(td.getExtendsClause(), td.getDisEnv());
+        accumulateMembersFromExtends(td.getExtendsClause(), traitDisEnvMap.get(td) );
     }
 
     private void accumulateMembersFromExtends(Option<List<TypeRef>> xtends, Map<String, Thing> disEnv) {
@@ -633,7 +641,7 @@ public class Disambiguate extends Rewrite {
             String s = NodeUtil.stringName(d);
             if (d instanceof TraitDefOrDecl) {
                 TraitDefOrDecl dod = (TraitDefOrDecl) d;
-                dod.setDisEnv(e);
+                traitDisEnvMap.put(dod, e); // dod.setDisEnv(e);
                 e.put(s, new Trait(dod));
             } else {
                 e.put(s, new Local());
@@ -769,7 +777,7 @@ public class Disambiguate extends Rewrite {
                                     members.add(NodeUtil.stringName(dd));
                                 }
                                 accumulateTraitsAndMethods(tdod.getExtendsClause(),
-                                        tdod.getDisEnv(), members, types,
+                                        traitDisEnvMap.get(tdod), members, types,
                                         visited);
                             }
                         } else if (th==null) {

@@ -43,8 +43,6 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
 
     List<WhereClause> wheres;
 
-    transient private Map<String, Thing> disambiguatingEnvironment;
-
     TraitDefOrDecl(Span in_span, List<Modifier> in_mods, Id in_name, Option<List<StaticParam>> in_staticParams, Option<List<TypeRef>> in_extendsClause, List<TypeRef> in_excludes, Option<List<TypeRef>> in_bounds, List<WhereClause> in_where) {
         super(in_span);
         mods = in_mods;
@@ -107,22 +105,6 @@ public abstract class TraitDefOrDecl extends AbstractNode implements Generic, Ha
      */
     public List<WhereClause> getWhere() {
         return wheres;
-    }
-
-    /**
-     * In order to correctly rewrite object/trait member references, it is
-     * necessary to figure out what traits are extended by what traits (in
-     * general, a trait might be defined in an environment different from its
-     * use, therefore it must capture that environment).
-     *
-     * @param e
-     */
-    public void setDisEnv(Map<String, Thing> e) {
-        disambiguatingEnvironment = e;
-    }
-
-    public Map<String, Thing> getDisEnv() {
-        return disambiguatingEnvironment;
     }
 
     /**
