@@ -33,7 +33,7 @@ import Spacing;
  */
 Expr Literal =
      openparen w closeparen
-     { yyValue = NodeFactory.makeVoidLiteral(createSpan(yyStart,yyCount)); }
+     { yyValue = ExprFactory.makeVoidLiteral(createSpan(yyStart,yyCount)); }
    / NumericLiteral
    / CharLiteral
    / StringLiteral
@@ -51,7 +51,7 @@ Expr Aggregate =
        for (Entry e : (List<Entry>)a2s.list()) {
            elements.add(new com.sun.fortress.interpreter.useful.Pair<Expr,Expr>(e.getKey(), e.getValue()));
        }
-       yyValue = new MapExpr(createSpan(yyStart,yyCount), elements);
+       yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
      }
    / opensquare w RectElements w closesquare ;
 
@@ -59,7 +59,7 @@ Expr Aggregate =
 private ArrayExpr RectElements =
      a1:NoSpaceExpr a2s:MultiDimCons*
      { if (a2s == null || a2s.isEmpty())
-           yyValue = new ArrayElement(a1.getSpan(), a1);
+           yyValue = new ArrayElement(a1.getSpan(), false, a1);
        else
            yyValue = FortressUtil.multiDimCons(a1, a2s.list());
      };
@@ -74,22 +74,22 @@ NumberLiteral NumericLiteral =
    / IntLiteral ;
 
 transient FloatLiteral FloatLiteral = a1:DigitString dot a2:DigitString
-     { yyValue = NodeFactory.makeFloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
+     { yyValue = ExprFactory.makeFloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
 
 transient IntLiteral IntLiteral = a1:DigitString
-     { yyValue = NodeFactory.makeIntLiteral(createSpan(yyStart,yyCount), a1); };
+     { yyValue = ExprFactory.makeIntLiteral(createSpan(yyStart,yyCount), a1); };
 
 private transient String DigitString = [0-9]+;
 
 CharLiteral CharLiteral = "'" a1:CharLiteralContent "'"
-     { yyValue = NodeFactory.makeCharLiteral(createSpan(yyStart,yyCount), a1); };
+     { yyValue = ExprFactory.makeCharLiteral(createSpan(yyStart,yyCount), a1); };
 
 StringLiteral StringLiteral = ["] a1:StringLiteralContent* ["]
      { String str = "";
        for (String s : (List<String>)a1.list()) {
            str = str.concat(s);
        }
-       yyValue = new StringLiteral(createSpan(yyStart,yyCount), str);
+       yyValue = new StringLiteral(createSpan(yyStart,yyCount), false, str);
      };
 private String StringLiteralContent =
      EscapeSequence

@@ -55,7 +55,8 @@ import com.sun.fortress.interpreter.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.nodes.Generic;
 import com.sun.fortress.interpreter.nodes.GenericDefWithParams;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.Node;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.Component;
 import com.sun.fortress.interpreter.nodes.DefOrDecl;
 import com.sun.fortress.interpreter.nodes.DimDecl;
@@ -72,7 +73,6 @@ import com.sun.fortress.interpreter.nodes.LValue;
 import com.sun.fortress.interpreter.nodes.LValueBind;
 import com.sun.fortress.interpreter.nodes.Modifier;
 import com.sun.fortress.interpreter.nodes.ModifierTest;
-import com.sun.fortress.interpreter.nodes.NullNodeVisitor;
 import com.sun.fortress.interpreter.nodes.ObjectDefOrDecl;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
 import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
@@ -137,7 +137,7 @@ import com.sun.fortress.interpreter.useful.Voidoid;
  * type pass in any non-top-level environment).
  *
  */
-public class BuildEnvironments extends NodeVisitor<Voidoid> {
+public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     private int pass = 1;
 
@@ -169,7 +169,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
     }
 
     public void visit(CompilationUnit n) {
-        acceptNode(n);
+        n.visit(this);
     }
 
     BetterEnv containing;
@@ -232,7 +232,15 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     }
 
-    class ForceTraitFinish extends NullNodeVisitor<Voidoid> {
+    class ForceTraitFinish extends NodeAbstractVisitor<Voidoid> {
+
+        /**
+         * Make the default behavior return null, no throw an exception.
+         */
+        public Voidoid defaultCase(Node x) {
+            return null;
+        }
+
         /* (non-Javadoc)
          * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
          */
@@ -271,8 +279,8 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
             return null;
         }
 
-        void accept(DefOrDecl def) {
-            acceptNode(def);
+        void visit(DefOrDecl def) {
+            def.visit(this);
         }
     }
 
@@ -290,7 +298,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
         case 2: doDefs(this, defs); {
             ForceTraitFinish v = new ForceTraitFinish() ;
             for (DefOrDecl def : defs) {
-                v.accept(def);
+                v.visit(def);
             }
         }
         break;
@@ -322,13 +330,13 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
     private static void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
-            inner.acceptNode(def);
+            def.visit(inner);
         }
     }
 
     protected void doDefs(List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
-            acceptNode(def);
+            def.visit(this);
         }
     }
 
@@ -704,9 +712,9 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
 
                 String sname = name.getName();
                 // Create a little expression to run the constructor.
-                Expr init = NodeFactory.makeTightJuxt(x.getSpan(),
-                        NodeFactory.makeVarRefExpr(x.getSpan(), obfuscated(fname)),
-                        NodeFactory.makeVoidLiteral(x.getSpan()));
+                Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
+                      ExprFactory.makeVarRefExpr(x.getSpan(), obfuscated(fname)),
+                      ExprFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, sname, init_value);
 
@@ -1264,7 +1272,7 @@ public class BuildEnvironments extends NodeVisitor<Voidoid> {
                     List<TypeRef> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     for (TypeRef t : types) {
-                        FType st = et.evalType(t); // t.accept(et);
+                        FType st = et.evalType(t); // t.visit(et);
                         if (ft instanceof SymbolicType) {
                             // Treat as "extends".
                             ((SymbolicType) ft).addExtend(st);

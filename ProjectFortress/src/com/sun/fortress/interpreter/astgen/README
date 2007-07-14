@@ -1,0 +1,6 @@
+* Things to do with the Fortress ASTGen input
+ 1. Add comments to describe and give simple examples.
+ 2. Implement not-yet-implemented features in the parser.
+ 3. Restructure arrow types, tuple types, and tuple expressions.
+ 4. Separate nodes for functions and functional methods
+ 5. Rename nodes and fields.

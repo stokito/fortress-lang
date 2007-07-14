@@ -21,6 +21,7 @@
 
 package com.sun.fortress.interpreter.parser;
 import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.useful.Option;
@@ -455,14 +456,16 @@ public final class FortressUtil {
 
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Option<Expr> expr) {
-        return new LocalVarDecl(span, emptyExprs(), lvs, expr);
+        return new LocalVarDecl(span, false, emptyExprs(), lvs, expr);
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Expr expr) {
-        return new LocalVarDecl(span, emptyExprs(), lvs, Some.<Expr>make(expr));
+        return new LocalVarDecl(span, false, emptyExprs(), lvs,
+                                Some.<Expr>make(expr));
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
-        return new LocalVarDecl(span, emptyExprs(), lvs, None.<Expr>make());
+        return new LocalVarDecl(span, false, emptyExprs(), lvs,
+                                None.<Expr>make());
     }
 
     public static LValueBind mkLValueBind(Span span, Id id, TypeRef ty) {
@@ -507,7 +510,7 @@ public final class FortressUtil {
 //                    multi_dim_row span row_dim
 //                      (multi_dim_cons expr dim first :: rest))
     private static ArrayExpr multiDimElement(Expr expr) {
-        return new ArrayElement(expr.getSpan(), expr);
+        return new ArrayElement(expr.getSpan(), false, expr);
     }
     private static ArrayElements addOneMultiDim(ArrayExpr multi, int dim,
                                               Expr expr){
@@ -517,26 +520,26 @@ public final class FortressUtil {
             List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(multi);
             elems.add(elem);
-            return new ArrayElements(span, dim, elems);
+            return new ArrayElements(span, false, dim, elems);
         } else if (multi instanceof ArrayElements) {
             ArrayElements m = (ArrayElements)multi;
             int _dim = m.getDimension();
             List<ArrayExpr> elements = m.getElements();
             if (dim == _dim) {
                 elements.add(elem);
-                return new ArrayElements(span, dim, elements);
+                return new ArrayElements(span, false, dim, elements);
             } else if (dim > _dim) {
                 List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
                 elems.add(multi);
                 elems.add(elem);
-                return new ArrayElements(span, dim, elems);
+                return new ArrayElements(span, false, dim, elems);
             } else if (elements.size() == 0) {
                 throw new ProgramError(multi, "Empty array/matrix literal.");
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
                 ArrayExpr last = elements.get(index);
                 elements.set(index, addOneMultiDim(last, dim, expr));
-                return new ArrayElements(span, _dim, elements);
+                return new ArrayElements(span, false, _dim, elements);
             }
         } else {
             throw new ProgramError(multi,
@@ -554,8 +557,8 @@ public final class FortressUtil {
             List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(_init);
             elems.add(multiDimElement(expr));
-            ArrayElements result = new ArrayElements(spanTwo(_init,expr),
-                                                 pair.getA(), elems);
+            ArrayElements result = new ArrayElements(spanTwo(_init,expr), false,
+                                                     pair.getA(), elems);
             for (Pair<Integer,Expr> _pair : rest.subList(1, rest.size())) {
                 int _dim   = _pair.getA();
                 Expr _expr = _pair.getB();
@@ -660,7 +663,7 @@ public final class FortressUtil {
             if (e instanceof LetExpr) {
                 LetExpr _e = (LetExpr)e;
                 if (_e.getBody().isEmpty()) {
-                    _e = NodeFactory.makeLetExpr(_e, es);
+                    _e = ExprFactory.makeLetExpr(_e, es);
                     es = new ArrayList<Expr>();
                     es.add(_e);
                 } else {
@@ -670,7 +673,7 @@ public final class FortressUtil {
                 es.add(0, e);
             }
         }
-        return new Block(span, es);
+        return new Block(span, false, es);
     }
 
 // (* Turn an expr list into a single TightJuxt *)
@@ -686,7 +689,7 @@ public final class FortressUtil {
             exprs = exprs.reverse();
             List<Expr> javaList = exprs.toJavaList();
             return new TightJuxt(spanAll(javaList.toArray(new AbstractNode[0]),
-                                         javaList.size()), javaList);
+                                         javaList.size()), false, javaList);
         }
     }
 }

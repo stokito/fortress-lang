@@ -29,6 +29,7 @@
 	<property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
 
 	<property name="build" location="build"/>
+	<property name="astgen" location="${src}/${blahblahblah}/astgen"/>
 	<property name="docs" location="docs"/>
 	<property name="xtc" location="${basedir}/third_party/xtc"/>
 	<property name="bcel" location="${basedir}/third_party/bcel"/>
@@ -137,8 +138,10 @@
     <target name="clean"
             description="Delete the ${build} directory tree and generated files.">
         <delete dir="${build}"/>
-        <delete file="${nodes}/NodeVisitor.java"/>
+        <delete dir="${nodes}"/>
         <delete file="${nodes}/BaseNodeVisitor.java"/> <!-- No longer needed, but eases the upgrade-->
+        <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
+        <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
         <delete file="${parser}/precedence/resolver/Operators.java"/>
         <delete file="FortressLibrary.ast"/>
@@ -149,37 +152,6 @@
             <fileset dir="test_library" includes="**/*.tfi" />
             <fileset dir="test_library" includes="**/*.tfs" />
         </delete>
-    </target>
-
-    <!-- Generation of the NodeVisitor sources depends only on the java files
-       and AST files in the ${nodes} directory. Thus, we can determine whether we can safely
-       skip rebuilding these visitors by checking whether the visitor class files are no older
-       than these AST files and awk files. If AST files have not changed but they depend on other
-       files that have, errors will be caught during recompilation.-->
-    <target name="checkVisitorsUptodate" depends="init, compileCommon">
-        <condition property="visitors.uptodate">
-            <and>
-                <uptodate srcfile="${nodesUtil}/BaseNodeMaker.java" targetfile="${nodes}/NodeVisitor.java"/>
-                <uptodate srcfile="${nodes}/leafclasses" targetfile="${nodes}/NodeVisitor.java"/>
-                <uptodate targetfile="${nodesBuild}/NodeVisitor.class">
-                    <srcfiles dir="${nodes}" includes="**/*.java"/>
-                    <srcfiles dir="${nodesUtil}" includes="**/*.java"/>
-                </uptodate>
-            </and>
-        </condition>
-        <echo message="Nodes up to date? ${visitors.uptodate}"/>
-    </target>
-
-    <target name="visitorGen" unless="visitors.uptodate" depends="init, checkVisitorsUptodate, compileCommon"
-            description="Automatically generate visitors for AST nodes.">
-        <echo message="Regenerating visitors"/>
-
-        <java output="${nodes}/NodeVisitor.java" classname="com.sun.fortress.interpreter.nodes_util.BaseNodeMaker" fork="true">
-            <classpath>
-                <pathelement location="${build}"/>
-            </classpath>
-            <arg value="${nodes}/leafclasses"/>
-        </java>
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.
@@ -212,8 +184,33 @@
         </java>
     </target>
 
+    <target name="checkNodesUptodate">
+        <condition property="nodes.uptodate">
+          <and>
+            <available file="${nodes}/AbstractNode.java"/>
+            <uptodate srcfile="${nodes}/AbstractNode.java"
+                      targetfile="${astgen}/Fortress.ast"/>
+          </and>
+        </condition>
+        <echo message="Nodes up to date? ${nodes.uptodate}"/>
+    </target>
 
-    <target name="compile" depends="visitorGen, parser, compileCommon, operatorsGen"
+    <property name="generate-sourcefile" value="${astgen}/Fortress.ast" />
+    <taskdef name="astgen" classpath="third_party/astgen/astgen.jar" classname="edu.rice.cs.astgen.AntTask" />
+
+    <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
+     description="Automatically generate AST nodes.">
+        <echo message="Processing ${generate-sourcefile}" />
+        <astgen file="${generate-sourcefile}" />
+        <move todir="${nodes}">
+          <fileset dir="${astgen}">
+            <include name="**/*.java"/>
+            <exclude name="**/Fortress.ast"/>
+          </fileset>
+        </move>
+    </target>
+
+    <target name="compile" depends="makeAST, parser, compileCommon, operatorsGen"
      description="Compile all interpreter code.">
         <depend srcdir="${src}"
          destdir="${build}"
@@ -234,7 +231,7 @@
         </javac>
     </target>
 
-    <target name="compileLint" depends="visitorGen, parser, compileCommonLint, operatorsGen"
+    <target name="compileLint" depends="makeAST, parser, compileCommonLint, operatorsGen"
      description="Compile all interpreter code.">
         <depend srcdir="${src}"
          destdir="${build}"
@@ -273,10 +270,6 @@
 	            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
 	            <include name="${blahblahblah}/useful/*.java"/>
 	            <include name="${blahblahblah}/unicode/*.java"/>
-
-	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
-	            <include name="${blahblahblah}/nodes_util/InterfaceMaker.java"/>
-	            <include name="${blahblahblah}/nodes_util/BaseNodeMaker.java"/>
 	        </javac>
 	    </target>
 
@@ -298,10 +291,6 @@
 	            <compilerarg value="-Xlint:unchecked"/>
 	            <include name="${blahblahblah}/useful/*.java"/>
 	            <include name="${blahblahblah}/unicode/*.java"/>
-
-	            <!-- Recompile classes used to autogenerate visitors over AST nodes.-->
-	            <include name="${blahblahblah}/nodes_util/InterfaceMaker.java"/>
-	            <include name="${blahblahblah}/nodes_util/BaseNodeMaker.java"/>
 	        </javac>
 	    </target>
 

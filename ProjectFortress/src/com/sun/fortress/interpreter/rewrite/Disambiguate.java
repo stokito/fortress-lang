@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.nodes_util.StringMaker;
 import com.sun.fortress.interpreter.nodes_util.UIDMapFactory;
@@ -62,7 +63,7 @@ import com.sun.fortress.interpreter.nodes.LocalVarDecl;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.useful.None;
 import com.sun.fortress.interpreter.nodes.ObjectDecl;
-import com.sun.fortress.interpreter.nodes.AbsObjectExpr;
+import com.sun.fortress.interpreter.nodes.AbstractObjectExpr;
 import com.sun.fortress.interpreter.nodes.ObjectExpr;
 import com.sun.fortress.interpreter.nodes._RewriteObjectExpr;
 import com.sun.fortress.interpreter.useful.Option;
@@ -161,7 +162,7 @@ public class Disambiguate extends Rewrite {
 
     class Member extends Thing {
         Expr replacement(VarRefExpr original) {
-        FieldSelection fs = new FieldSelection(original.getSpan(),
+            FieldSelection fs = new FieldSelection(original.getSpan(), false,
                                                // Use this constructor
                 // here because it is a
                 // com.sun.fortress.interpreter.rewrite.
@@ -196,11 +197,11 @@ public class Disambiguate extends Rewrite {
      */
     BATree<String, StaticParam> visibleGenericParameters;
     BATree<String, StaticParam> usedGenericParameters;
-    
+
     /**
      * Disambiguating environment map -- in what environment was each trait declared?
      */
-    
+
     BATree<UIDObject, Map<String, Thing> > traitDisEnvMap = UIDMapFactory.< Map<String, Thing> >make();
 
     /**
@@ -305,11 +306,11 @@ public class Disambiguate extends Rewrite {
      */
     Expr dottedReference(Span s, int i) {
         if (i == 0) {
-            return NodeFactory.makeVarRefExpr(s, WellKnownNames.secretSelfName);
+            return ExprFactory.makeVarRefExpr(s, WellKnownNames.secretSelfName);
         }
         if (i > 0) {
-            return new FieldSelection(s, dottedReference(s, i - 1), new Id(s,
-                    PARENT_NAME));
+            return new FieldSelection(s, false, dottedReference(s, i - 1),
+                                      new Id(s, PARENT_NAME));
         } else {
             throw new Error("Confusion in member reference numbering.");
         }
@@ -426,7 +427,7 @@ public class Disambiguate extends Rewrite {
                         int element_index = 0;
                         for (LValue lv : lhs) {
                             newdecls.add(new VarDecl(at, Useful.list(lv),
-                                    new FieldSelection(at, init,
+                                    new FieldSelection(at, false, init,
                                             new Id(at, "$" + element_index))));
                             element_index++;
                         }
@@ -456,10 +457,10 @@ public class Disambiguate extends Rewrite {
                     dumpIfChange(node, n);
                     return n;
 
-                } else if (node instanceof AbsObjectExpr) {
+                } else if (node instanceof AbstractObjectExpr) {
                     // all the methods coming from traits are no longer
                     // eligible for com.sun.fortress.interpreter.rewrite.
-                    AbsObjectExpr oe = (AbsObjectExpr) node;
+                    AbstractObjectExpr oe = (AbstractObjectExpr) node;
                     List<? extends DefOrDecl> defs = oe.getDefOrDecls();
                     Option<List<TypeRef>> xtends = oe.getTraits();
                     // TODO wip
@@ -473,7 +474,7 @@ public class Disambiguate extends Rewrite {
                     // Implicitly parameterized by either visibleGenericParameters,
                     // or by usedGenericParameters.
                     // Note the keys of a BATree are sorted.
-                    n = NodeFactory.make_RewriteObjectExpr((ObjectExpr)n,
+                    n = ExprFactory.make_RewriteObjectExpr((ObjectExpr)n,
                                                           usedGenericParameters);
                     objectExprs.add((_RewriteObjectExpr)n);
 
@@ -588,13 +589,14 @@ public class Disambiguate extends Rewrite {
         Span span = body.getSpan();
         for (int i = gens.size()-1; i >= 0; i--) {
             Generator g = gens.get(i);
-            Expr loopSel = new FieldSelection(g.getSpan(), g.getInit(), what);
+            Expr loopSel = new FieldSelection(g.getSpan(), false, g.getInit(),
+                                              what);
             List<Id> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());
             for (Id b : binds) params.add(NodeFactory.makeParam(b));
-            Expr loopBody = NodeFactory.makeFnExpr(span,params,body);
+            Expr loopBody = ExprFactory.makeFnExpr(span,params,body);
             span = new Span(span, g.getSpan());
-            body = new TightJuxt(span, Useful.list(loopSel,loopBody));
+            body = new TightJuxt(span, false, Useful.list(loopSel,loopBody));
         }
         return (Expr)visitNode(body);
     }

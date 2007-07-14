@@ -57,7 +57,7 @@ Expr NoNewlineExpr = Expr ;
 private Expr Expr := ... ;
 Expr ExprFront :=
      <Assign> a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
+     { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3); }
    / ... ;
 
 Action<Expr> ExprTail :=
@@ -77,7 +77,7 @@ inline Action<Expr> NoNewlineAs =
      s as w a1:TypeRef
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
 
@@ -85,7 +85,7 @@ inline Action<Expr> NoNewlineAsIf =
      s asif w a1:TypeRef
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+               return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
 

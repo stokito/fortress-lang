@@ -33,11 +33,6 @@ public class RewriteHackList extends AbstractNode {
 
     transient private List<AbstractNode> nodes;
 
-    @Override
-    public <T> T accept(NodeVisitor<T> v) {
-        return NI.<T>na("Instances of this helper class should never be spliced into an AST");
-    }
-
     public RewriteHackList() {
         super(new Span());
         nodes = java.util.Collections.<AbstractNode>emptyList();
@@ -53,7 +48,7 @@ public class RewriteHackList extends AbstractNode {
     }
 
     public <RetType> RetType visit(NodeVisitor<RetType> visitor) {
-        return accept(visitor);
+        return NI.<RetType>na("Instances of this helper class should never be spliced into an AST");
     }
     public void visit(NodeVisitor_void visitor) {}
     public void output(java.io.Writer writer) {}

@@ -172,7 +172,7 @@ public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapp
 //      BuildEnvironments be = new BuildEnvironments(e);
 //      assert(null!=e.getType("ZZ32"));
 //      assert(null!=e.getType("String"));
-//      x.accept(be);
+//      x.visit(be);
 //
 //      // SComponent comp = e.getComponent("Scopes"); // TODO, need to implement this
 //      //FValue aVar = e.getValue("aVar");
@@ -203,7 +203,7 @@ public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapp
 //    assertTrue (x instanceof com.sun.fortress.interpreter.nodes.Assignment);
 //    Evaluator eval = new Evaluator(x);
 //    eval.e.putVariable("x", FInt.make(7));
-//    x.accept(eval);
+//    x.visit(eval);
 //    assertTrue(eval.e.getValue("x").getInt() == 3);
 //  }
 
@@ -234,7 +234,7 @@ public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapp
   //   Evaluator eval = new Evaluator(x);
   //   eval.e.putValue("x", FInt.make(7));
   //   eval.e.putValue("y", FInt.make(5));
-  //   FInt res = (FInt) x.accept(eval);
+  //   FInt res = (FInt) x.visit(eval);
   //   assertTrue(res.getInt() == 12);
   // }
 
@@ -260,7 +260,7 @@ public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapp
   //   Evaluator eval = new Evaluator(x);
   //   eval.e.putValue("i",FInt.make(1));
   //   eval.e.putVariable("j",FInt.make(7));
-  //   FBool res = (FBool) x.accept(eval);
+  //   FBool res = (FBool) x.visit(eval);
   //   assertTrue(res.getBool());
   //   try {
   //       eval.e.putValue("j",FInt.make(12)); // Second put should fail
@@ -268,10 +268,10 @@ public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapp
   //   } catch (RedefinitionError ex) {
   //       // Expected
   //   }
-  //   res  = (FBool) x.accept(eval);
+  //   res  = (FBool) x.visit(eval);
   //   assertTrue(res.getBool());
   //   eval.e.assignValue(x,"j",FInt.make(12));
-  //   res  = (FBool) x.accept(eval);
+  //   res  = (FBool) x.visit(eval);
   //   assertTrue(! res.getBool());
   // }
 

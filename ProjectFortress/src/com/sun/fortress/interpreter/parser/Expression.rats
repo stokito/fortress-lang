@@ -53,7 +53,7 @@ Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
 Expr ExprFront =
      <Assign> a1:AssignLefts w a2:AssignOp w a3:Expr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
+     { yyValue = new Assignment(createSpan(yyStart,yyCount),false, a1, a2, a3); }
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
@@ -64,7 +64,7 @@ Expr ExprFront =
        else            ty_opt = Some.<TypeRef>make(a2);
        if (a3 == null) tys = FortressUtil.emptyTypeRefs();
        else            tys = a3;
-       yyValue = NodeFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
+       yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
                                         tys, a4);
      };
 /* ************************************************
@@ -89,7 +89,7 @@ constant inline Action<Expr> As =
      w as w a1:TypeRef
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
 
@@ -97,7 +97,7 @@ constant inline Action<Expr> AsIf =
      w asif w a1:TypeRef
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), (Expr)base, a1);
+               return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
 
@@ -144,7 +144,7 @@ LHS AssignLeft =
       else yyValue = null;
     }
   / a1:Id
-    { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), a1); };
+    { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), false, a1); };
 
 constant transient Action<Expr> AssignLeftTail =
       SubscriptAssign
@@ -158,7 +158,7 @@ constant inline Action<Expr> SubscriptAssign =
               List<Expr> es;
               if (a1 == null) es = FortressUtil.emptyExprs();
               else            es = a1;
-              return NodeFactory.makeSubscriptExpr(createSpan(yyStart,yyCount),
+              return ExprFactory.makeSubscriptExpr(createSpan(yyStart,yyCount),
                                                    base, es);
           }};
     };
@@ -167,7 +167,7 @@ constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new FieldSelection(createSpan(yyStart,yyCount), base, a1);
+              return new FieldSelection(createSpan(yyStart,yyCount), false, base, a1);
           }};
     };
 
@@ -347,8 +347,8 @@ constant PureList<Expr> Primary =
 Expr PrimaryFront =
      Comprehension
    / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
-     { yyValue = new TypeApply(createSpan(yyStart,yyCount),
-                               new VarRefExpr(a1.getSpan(), a1), a2);
+     { yyValue = new TypeApply(createSpan(yyStart,yyCount), false,
+                               new VarRefExpr(a1.getSpan(), false, a1), a2);
      }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -374,7 +374,7 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
                List<Expr> es;
                if (a1 == null) es = FortressUtil.emptyExprs();
                else            es = a1;
-               return PureList.make((Expr)NodeFactory.makeSubscriptExpr(span, arr, es));
+               return PureList.make((Expr)ExprFactory.makeSubscriptExpr(span, arr, es));
            }};
      }
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -386,7 +386,7 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
                if (a2 == null) es = FortressUtil.emptyExprs();
                else            es = a2;
                Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3), a1, a3);
-               return PureList.make((Expr)new SubscriptExpr(span, arr, es,
+               return PureList.make((Expr)new SubscriptExpr(span, false, arr, es,
                                                             Some.<Enclosing>make(op)));
            }};
      };
@@ -397,11 +397,10 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),rcv,a1);
+               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
-                   mth = new TypeApply(createSpan(yyStart,yyCount), mth, a2);
+                   mth = new TypeApply(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(a3, mth);
-
            }};
      }
    / dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
@@ -409,10 +408,10 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),rcv,a1);
+               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
-                   mth = new TypeApply(createSpan(yyStart,yyCount), mth, a2);
-               return PureList.make(NodeFactory.makeVoidLiteral(a1.getSpan()), mth);
+                   mth = new TypeApply(createSpan(yyStart,yyCount),false,mth,a2);
+               return PureList.make(ExprFactory.makeVoidLiteral(a1.getSpan()), mth);
            }};
      };
 
@@ -422,7 +421,7 @@ constant inline Action<PureList<Expr>> FieldSelection =
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldSelection(span,rcv,a1));
+               return PureList.make((Expr)new FieldSelection(span,false,rcv,a1));
            }};
      };
 
@@ -469,7 +468,7 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
    / openparen w closeparen
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
-               return base.cons(NodeFactory.makeVoidLiteral(createSpan(yyStart,yyCount)));
+               return base.cons(ExprFactory.makeVoidLiteral(createSpan(yyStart,yyCount)));
            }};
      }
    / a1:Primary
@@ -495,20 +494,20 @@ Expr FlowExpr =
        else            name = Some.<Id>make(a1);
        if (a2 == null) expr = None.<Expr>make();
        else            expr = Some.<Expr>make(a2);
-       yyValue = new Exit(createSpan(yyStart,yyCount), name, expr);
+       yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
    / a1:Accumulator a2:(w opensquare w GeneratorList w closesquare)? w a3:Expr
      { if (a2 == null) a2 = Collections.<Generator>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), a1, a2, a3);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), false, a1, a2, a3);
      }
    / atomic w a1:AtomicBack
-     { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }
    / tryatomic w a1:AtomicBack
-     { yyValue = new TryAtomicExpr(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new TryAtomicExpr(createSpan(yyStart,yyCount), false, a1); }
    / spawn w a1:Expr
-     { yyValue = new Spawn(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new Spawn(createSpan(yyStart,yyCount), false, a1); }
    / throw w a1:Expr
-     { yyValue = new Throw(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new Throw(createSpan(yyStart,yyCount), false, a1); };
 
 /* AtomicBack ::=
      AssignLefts w AssignOp w Expr
@@ -517,7 +516,7 @@ Expr FlowExpr =
  */
 Expr AtomicBack =
      a1:AssignLefts w a2:AssignOp w a3:Expr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount), a1, a2, a3); }
+     { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3); }
    / OpExpr
    / DelimitedExpr ;
 

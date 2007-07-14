@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.NodeVisitor;
 import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.useful.Option;
@@ -45,7 +46,7 @@ import com.sun.fortress.interpreter.useful.LatticeIntervalMap;
 import com.sun.fortress.interpreter.useful.StringComparer;
 
 
-public class EvaluatorBase<T> extends NodeVisitor<T>  {
+public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     final public BetterEnv e;
 

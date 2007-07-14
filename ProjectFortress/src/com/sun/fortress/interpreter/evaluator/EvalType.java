@@ -44,7 +44,7 @@ import com.sun.fortress.interpreter.nodes.ArrayType;
 import com.sun.fortress.interpreter.nodes.ArrowType;
 import com.sun.fortress.interpreter.nodes.BaseBoolRef;
 import com.sun.fortress.interpreter.nodes.BaseNatRef;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.BoolParam;
 import com.sun.fortress.interpreter.nodes.DimensionParam;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
@@ -73,7 +73,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 
 
-public class EvalType extends NodeVisitor<FType> {
+public class EvalType extends NodeAbstractVisitor<FType> {
 
     BetterEnv env;
     private EvalIndices ___evalIndices;
@@ -84,7 +84,7 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     public FType evalType(TypeRef t) {
-        return acceptNode(t);
+        return t.visit(this);
     }
 
     public static FType getFTypeFromOption(Option<TypeRef> t, BetterEnv e) {
@@ -107,7 +107,7 @@ public class EvalType extends NodeVisitor<FType> {
 
     public static FType getFTypeFromList(List<TypeRef> l,  EvalType et) {
         if (l.size() == 1) {
-            return l.get(0).accept(et);
+            return l.get(0).visit(et);
         }
         return FTypeTuple.make(getFTypeListFromNonEmptyList(l, et));
     }
@@ -139,16 +139,16 @@ public class EvalType extends NodeVisitor<FType> {
 
     private static List<FType> getFTypeListFromNonEmptyList(List<TypeRef> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
-        for (TypeRef t : l) a.add(t.accept(et));
+        for (TypeRef t : l) a.add(t.visit(et));
         return a;
     }
 
     public static FType getFType(TypeRef t, BetterEnv e) {
-        return t.accept(new EvalType(e));
+        return t.visit(new EvalType(e));
     }
 
     public  FType getFType(TypeRef t) {
-        return t.accept(this);
+        return t.visit(this);
     }
 
     public static List<Parameter> paramsToParameters(BetterEnv env,
@@ -286,7 +286,7 @@ public class EvalType extends NodeVisitor<FType> {
 
         for (int i = 0; i < args.size(); i++) {
             TypeRef a = args.get(i);
-            FType t = a.accept(this);
+            FType t = a.visit(this);
             argValues.add(t);
         }
         return argValues;
@@ -299,7 +299,7 @@ public class EvalType extends NodeVisitor<FType> {
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
     public FType forVarargsType(VarargsType rt) {
-        return FTypeRest.make(rt.getType().accept(this));
+        return FTypeRest.make(rt.getType().visit(this));
     }
 
     public FType forBaseBoolRef(BaseBoolRef b) {
@@ -322,7 +322,7 @@ public class EvalType extends NodeVisitor<FType> {
     @Override
     public FType forArrowType(ArrowType at) {
         // TODO Keywords, defaults, still TBI
-        return FTypeArrow.make(getFTypeFromList(at.getDomain(), this), at.getRange().accept(this));
+        return FTypeArrow.make(getFTypeFromList(at.getDomain(), this), at.getRange().visit(this));
     }
 
     @Override
@@ -368,7 +368,7 @@ public class EvalType extends NodeVisitor<FType> {
     }
 
     private long longify(TypeRef type) {
-        FType t = type.accept(this);
+        FType t = type.visit(this);
         if (!(t instanceof IntNat)) {
             throw new ProgramError(type,"StaticArg " + type + " evaluated to " + t + " (instead of IntNat)");
         }
@@ -399,7 +399,7 @@ public class EvalType extends NodeVisitor<FType> {
 
     public FType forTypeArg(TypeArg x) {
         try {
-            return x.getType().accept(this);
+            return x.getType().visit(this);
         }
         catch (ProgramError pe) {
             pe.setWhere(x);
@@ -409,7 +409,7 @@ public class EvalType extends NodeVisitor<FType> {
 
     public FType forParamType(ParamType x) {
         TypeRef t = x.getGeneric();
-        FType ft1 = t.accept(this);
+        FType ft1 = t.visit(this);
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
@@ -423,17 +423,17 @@ public class EvalType extends NodeVisitor<FType> {
      */
     @Override
     public FType forArrayType(ArrayType x) {
-        FType elt_type = x.getElement().accept(this);
+        FType elt_type = x.getElement().visit(this);
         Indices indices = x.getIndices();
 
-        TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.accept(evalIndices());
+        TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.visit(evalIndices());
         List<TypeRange> ltr = f_indices.getRanges();
         return Glue.instantiateGenericType(env, "Array" + ltr.size(), elt_type, ltr, x);
     }
 
     @Override
     public FType forMatrixType(MatrixType x) {
-        FType elt_type = x.getElement().accept(this);
+        FType elt_type = x.getElement().visit(this);
         List<ExtentRange> dimensions = x.getDimensions();
         List<TypeRange> typeRanges = new ArrayList<TypeRange>();
         for (ExtentRange extent : dimensions) {
@@ -448,7 +448,7 @@ public class EvalType extends NodeVisitor<FType> {
         Option<? extends TypeRef> s = extent.getSize();
         FTypeNat natB, natS;
         if (b.isPresent()) {
-            FType bt = b.getVal().accept(this);
+            FType bt = b.getVal().visit(this);
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
                 natB = (FTypeNat)bt;
             } else {
@@ -461,7 +461,7 @@ public class EvalType extends NodeVisitor<FType> {
         }
 
         if (s.isPresent()) {
-            FType st = s.getVal().accept(this);
+            FType st = s.getVal().visit(this);
             if (st instanceof IntNat || st instanceof SymbolicNat) {
                 natS = (FTypeNat)st;
             } else {

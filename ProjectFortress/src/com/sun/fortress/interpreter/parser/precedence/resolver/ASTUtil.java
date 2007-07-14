@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.nodes.Opr;
 import com.sun.fortress.interpreter.nodes.OprExpr;
 import com.sun.fortress.interpreter.nodes.PostFix;
 import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -46,40 +46,40 @@ public class ASTUtil {
     // let nofix (span : span) (op : op) : expr =
     //   opr span (node op.node_span (`Opr op)) []
     public static Expr nofix(Span span, Op op) {
-        return NodeFactory.makeOprExpr(span, new Opr(op.getSpan(), op));
+        return ExprFactory.makeOprExpr(span, new Opr(op.getSpan(), op));
     }
 
     // let infix (span : span) (left : expr) (op : op) (right : expr) : expr =
     //   opr span (node op.node_span (`Opr op)) [left; right]
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
-        return NodeFactory.makeOprExpr(span, new Opr(op.getSpan(), op),
+        return ExprFactory.makeOprExpr(span, new Opr(op.getSpan(), op),
                                        left, right);
     }
 
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
-        return NodeFactory.makeOprExpr(arg.getSpan(), new Opr(op.getSpan(), op),
+        return ExprFactory.makeOprExpr(arg.getSpan(), new Opr(op.getSpan(), op),
                                        arg);
     }
 
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return NodeFactory.makeOprExpr(span, new PostFix(op.getSpan(), op), arg);
+        return ExprFactory.makeOprExpr(span, new PostFix(op.getSpan(), op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
-        return new OprExpr(span, new Opr(op.getSpan(), op), args);
+        return new OprExpr(span, false, new Opr(op.getSpan(), op), args);
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getName(), right.getName()))
-            return new OprExpr(span,
+            return new OprExpr(span, false,
                                new Enclosing(FortressUtil.spanTwo(left, right),
                                              left, right),
                                args);
@@ -95,7 +95,7 @@ public class ASTUtil {
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
     static Expr chain(Span span, Expr first, List<Pair<Op, Expr>> links) {
-        return new ChainExpr(span, first, links);
+        return new ChainExpr(span, false, first, links);
     }
 
     // let loose (exprs : expr list) : expr =
@@ -107,7 +107,7 @@ public class ASTUtil {
                     return e.getExpr();
                 }
             });
-        return new LooseJuxt(spanAll(exprs), _exprs.toJavaList());
+        return new LooseJuxt(spanAll(exprs), false, _exprs.toJavaList());
     }
 
     static Span spanAll(PureList<RealExpr> exprs) {

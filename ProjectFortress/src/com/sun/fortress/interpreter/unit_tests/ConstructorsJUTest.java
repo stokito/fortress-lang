@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.nodes.TupleExpr;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes.VoidLiteral;
 import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.useful.Useful;
 
@@ -156,73 +157,73 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
     public void testLiterals() {
         Span span1 = newSpan("cat", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        StringLiteral sl1 = new StringLiteral(span1, "123");
-        StringLiteral sl2 = new StringLiteral(span2, "123");
-        StringLiteral sl3 = new StringLiteral(span1, "124");
+        StringLiteral sl1 = new StringLiteral(span1, false, "123");
+        StringLiteral sl2 = new StringLiteral(span2, false, "123");
+        StringLiteral sl3 = new StringLiteral(span1, false, "124");
 
         een(sl1, sl2, sl3);
 
-        IntLiteral il1 = NodeFactory.makeIntLiteral(span1, "123");
-        IntLiteral il2 = NodeFactory.makeIntLiteral(span2, "123");
-        IntLiteral il3 = NodeFactory.makeIntLiteral(span1, "124");
+        IntLiteral il1 = ExprFactory.makeIntLiteral(span1, "123");
+        IntLiteral il2 = ExprFactory.makeIntLiteral(span2, "123");
+        IntLiteral il3 = ExprFactory.makeIntLiteral(span1, "124");
 
         een(il1, il2, il3);
 
-        IntLiteral il4 = NodeFactory.makeIntLiteral(span1, new BigInteger("123"));
+        IntLiteral il4 = ExprFactory.makeIntLiteral(span1, new BigInteger("123"));
 
         Assert.assertEquals(il1, il4);
 
-        FloatLiteral fl1 = NodeFactory.makeFloatLiteral(span1, "123");
-        FloatLiteral fl2 = NodeFactory.makeFloatLiteral(span2, "123");
-        FloatLiteral fl3 = NodeFactory.makeFloatLiteral(span1, "124");
+        FloatLiteral fl1 = ExprFactory.makeFloatLiteral(span1, "123");
+        FloatLiteral fl2 = ExprFactory.makeFloatLiteral(span2, "123");
+        FloatLiteral fl3 = ExprFactory.makeFloatLiteral(span1, "124");
         een(fl1, fl2, fl3);
 
         nnn(sl1, il1, fl1);
 
-        FloatLiteral fl4 = NodeFactory.makeFloatLiteral(span1, "123.0");
+        FloatLiteral fl4 = ExprFactory.makeFloatLiteral(span1, "123.0");
         Assert.assertEquals(fl1, fl4);
     }
 
 
     StringLiteral newString(String s) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return new StringLiteral(span1, s);
+        return new StringLiteral(span1, false, s);
     }
     IntLiteral newInt(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
-        return NodeFactory.makeIntLiteral(span1, s);
+        return ExprFactory.makeIntLiteral(span1, s);
     }
     FloatLiteral newFloat(String s) {
         Span span1 = newSpan("emu", 1, 2, 3);
-        return NodeFactory.makeFloatLiteral(span1, s);
+        return ExprFactory.makeFloatLiteral(span1, s);
     }
 
     public void testVarRef() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        VarRefExpr v1 = NodeFactory.makeVarRefExpr(span1, "cat");
-        VarRefExpr v2 = NodeFactory.makeVarRefExpr(span2, "cat");
-        VarRefExpr v3 = NodeFactory.makeVarRefExpr(span1, "dog");
+        VarRefExpr v1 = ExprFactory.makeVarRefExpr(span1, "cat");
+        VarRefExpr v2 = ExprFactory.makeVarRefExpr(span2, "cat");
+        VarRefExpr v3 = ExprFactory.makeVarRefExpr(span1, "dog");
 
         een(v1, v2, v3);
     }
 
     VarRefExpr newVar(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
-        VarRefExpr v1 = NodeFactory.makeVarRefExpr(span1, "cat");
+        VarRefExpr v1 = ExprFactory.makeVarRefExpr(span1, "cat");
         return v1;
     }
 
     public void testTuples() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        TupleExpr t1 = new TupleExpr(span1, Useful.<Expr>list(newString("cat"), newString("dog")));
-        TupleExpr t2 = new TupleExpr(span2, Useful.<Expr>list(newString("cat"), newString("dog")));
-        TupleExpr t3 = new TupleExpr(span1, Useful.<Expr>list(newString("car"), newString("bog")));
+        TupleExpr t1 = new TupleExpr(span1, false, Useful.<Expr>list(newString("cat"), newString("dog")));
+        TupleExpr t2 = new TupleExpr(span2, false, Useful.<Expr>list(newString("cat"), newString("dog")));
+        TupleExpr t3 = new TupleExpr(span1, false, Useful.<Expr>list(newString("car"), newString("bog")));
         een(t1, t2, t3);
 
         try {
-            TupleExpr t4 = new TupleExpr(span1, Collections.<Expr>emptyList());
+            TupleExpr t4 = new TupleExpr(span1, false, Collections.<Expr>emptyList());
             Assert.fail("Should have thrown exception, empty list not allowed");
         } catch (Error e) {
 
@@ -232,8 +233,8 @@ public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWr
     public void testVoid() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        VoidLiteral v1 = NodeFactory.makeVoidLiteral(span1);
-        VoidLiteral v2 = NodeFactory.makeVoidLiteral(span2);
+        VoidLiteral v1 = ExprFactory.makeVoidLiteral(span1);
+        VoidLiteral v2 = ExprFactory.makeVoidLiteral(span2);
         Assert.assertEquals(v1, v2);
     }
 

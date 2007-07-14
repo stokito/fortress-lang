@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
@@ -39,7 +39,7 @@ import com.sun.fortress.interpreter.nodes.UnpastingBind;
 import com.sun.fortress.interpreter.nodes.UnpastingSplit;
 import com.sun.fortress.interpreter.nodes.VarRefExpr;
 import com.sun.fortress.interpreter.nodes._WrappedFValue;
-import com.sun.fortress.interpreter.nodes_util.NodeFactory;
+import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.useful.NI;
 
 
@@ -50,7 +50,7 @@ import com.sun.fortress.interpreter.useful.NI;
  * ALHSEvaluator.  Cache computations are represented using
  * _WrappedFValue AST com.sun.fortress.interpreter.nodes.
  */
-public class LHSToLValue extends NodeVisitor<LHS>  {
+public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     Evaluator evaluator;
 
     LHSToLValue(Evaluator evaluator) {
@@ -58,9 +58,9 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
     }
 
     private Expr wrapEval(Expr x, String desc) {
-        FValue v = x.accept(evaluator);
+        FValue v = x.visit(evaluator);
         if (v instanceof FObject) {
-            return new _WrappedFValue(x.getSpan(),v);
+            return new _WrappedFValue(x.getSpan(), false, v);
         }
         throw new ProgramError(x,evaluator.e,desc);
     }
@@ -71,7 +71,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
         Iterator<Expr> eIt = es.iterator();
         for (FValue unw : unwrapped) {
             Expr e = eIt.next();
-            res.add(new _WrappedFValue(e.getSpan(),unw));
+            res.add(new _WrappedFValue(e.getSpan(), false, unw));
         }
         return res;
     }
@@ -83,7 +83,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
         // TODO: In parallel!
         ArrayList<LHS> res = new ArrayList<LHS>(es.size());
         for (LHS e : es) {
-            res.add(e.accept(this));
+            res.add(e.visit(this));
         }
         return res;
     }
@@ -95,7 +95,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
     public LHS forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
-        return NodeFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs);
+        return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs);
     }
 
     /* (non-Javadoc)
@@ -105,7 +105,7 @@ public class LHSToLValue extends NodeVisitor<LHS>  {
     public LHS forFieldSelection(FieldSelection x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
-        return new FieldSelection(x.getSpan(),from,x.getId());
+        return new FieldSelection(x.getSpan(), false, from, x.getId());
     }
 
     public LHS forVarRefExpr(VarRefExpr x) {

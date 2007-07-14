@@ -1,0 +1,319 @@
+generateemptyconstructor yes;
+
+package com.sun.fortress.interpreter.nodes;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.interpreter.useful.*;
+
+begin ast;
+
+/** Something that can accept a NodeVisitor. This allows interfaces like LHS
+  * to be treated the same as Nodes.  (LHS can't extend Node, because Node is
+  * an abstract class.)
+  */
+interface Node();
+  interface DefOrDecl() extends HasAt;
+    interface AbsDecl();
+    interface Decl();
+/**
+ * An LHS interface is intended to paper over some mix-and-match problems with
+ * left-hand-sides of assignments, local variable declarations, and top-level
+ * declarations.
+ */
+  interface LHS();
+interface Applicable(FnName fnName, Option<List<StaticParam>> staticParams,
+                     List<Param> params, Option<TypeRef> returnType,
+                     List<WhereClause> where)
+          extends HasAt; // Why not extending Node? -- Sukyoung
+interface Generic(Option<List<StaticParam>> staticParams);
+  interface GenericDefOrDecl() extends DefOrDecl;
+    interface GenericDefOrDeclWithParams() extends HasParams;
+    interface GenericDef() extends Decl;
+      interface GenericDefWithParams() extends GenericDefOrDeclWithParams;
+interface HasParams(Option<List<Param>> params,
+                    List<? extends DefOrDecl> defOrDecls);
+interface HasWhere(List<WhereClause> where);
+
+abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
+                     implements HasAt, Node;
+  AbsExternalSyntax(Name openExpander, Id id, Name closeExpander)
+                   implements Decl, AbsDecl;
+  AliasedDottedId(DottedId id, Option<DottedId> alias);
+  AliasedName(FnName name, Option<FnName> alias);
+  ArrayComprehensionClause(List<Expr> bind, Expr init,
+                           List<Generator> gens);
+  Binding(Id name, Expr init);
+  CaseClause(Expr match, List<Expr> body);
+  Contract(List<Expr> requires, List<EnsuresClause> ensures,
+           List<Expr> invariants);
+  abstract CaseParam();
+    CaseParamExpr(Expr expr);
+    CaseParamLargest();
+    CaseParamSmallest();
+  Catch(Id name, List<CatchClause> clauses);
+  CatchClause(TypeRef match, List<Expr> body);
+  abstract CompilationUnit(DottedId name, List<Import> imports);
+    Component(List<Export> exports, List<? extends DefOrDecl> defs);
+    Api(List<? extends DefOrDecl> decls);
+  abstract DimUnitOp();
+    SquareDimUnit();
+    CubicDimUnit();
+    InverseDimUnit();
+  DimDecl(Id id, Option<TypeRef> derived, Option<TypeRef> default)
+          implements Decl;
+  DoFront(Option<Expr> loc, boolean atomic, Expr expr);
+  EnsuresClause(Expr post, Option<Expr> pre);
+  Entry(Expr key, Expr value);
+  Export(List<DottedId> names);
+  abstract Expr(boolean is_parenthesized);
+    AsExpr(Expr expr, TypeRef type);
+    AsIfExpr(Expr expr, TypeRef type);
+    Assignment(List<? extends LHS> lhs, Option<Op> op, Expr rhs);
+    abstract DelimitedExpr();
+      Block(List<Expr> exprs);
+      CaseExpr(CaseParam param, Option<Op> compare, List<CaseClause> clauses,
+               Option<List<Expr>> elseClause);
+      Do(List<DoFront> fronts);
+      For(List<Generator> gens, DoFront body);
+      If(List<IfClause> clauses, Option<Expr> elseClause);
+      Label(Id name, Expr body);
+      abstract AbstractObjectExpr(Option<List<TypeRef>> traits,
+                                  List<? extends DefOrDecl> defOrDecls);
+        ObjectExpr();
+        _RewriteObjectExpr(BATree<String, StaticParam> implicitTypeParameters,
+                           String genSymName,
+                           Option<List<StaticParam>> staticParams,
+                           List<StaticArg> staticArgs,
+                           Option<List<Param>> params)
+                          implements GenericDefWithParams;
+      Try(Expr body, Option<Catch> catchClause, List<TypeRef> forbid,
+          Option<Expr> finallyClause);
+      AbstractTupleExpr(List<Expr> exprs);
+        TupleExpr();
+        KeywordsExpr(List<Pair<Id, Expr>> keywords);
+      TypeCase(List<Binding> bind, List<TypeCaseClause> clauses,
+               Option<List<Expr>> elseClause);
+      VarargsExpr(Expr varargs);
+      While(Expr test, Expr body);
+      /**
+       * A _WrappedFValue permits the interpreter to incorporate intermediate
+       * interpreter-computed values
+       * (com.sun.fortress.interpreter.evaluator.values.FValue) into a
+       * rewritten expression AST (com.sun.fortress.interpreter.nodes.Expr).
+       * This permits us to eg reduce an lvalue once, and then use it
+       * in lvalue OP= expr without duplicate computation.
+       */
+      _WrappedFValue(FValue fValue);
+    abstract FlowExpr();
+      Accumulator(Op op, List<Generator> gens, Expr body);
+      AtomicExpr(Expr expr);
+      Exit(Option<Id> name, Option<Expr> returnExpr);
+      Spawn(Expr body);
+      Throw(Expr expr);
+      TryAtomicExpr(Expr expr);
+    FnExpr(FnName fnName, Option<List<StaticParam>> staticParams,
+           List<Param> params, Option<TypeRef> returnType,
+           List<WhereClause> where, List<TypeRef> throwsClause, Expr body)
+           implements Decl, Applicable;
+    abstract LetExpr(List<Expr> body) implements DefOrDecl;
+      GeneratedExpr(Expr expr, List<Generator> gens);
+      LetFn(List<FnDecl> fns);
+      LocalVarDecl(List<LValue> lhs, Option<Expr> rhs);
+    abstract OpExpr();
+      OprExpr(OprName op, List<Expr> args);
+      abstract Primary();
+        Apply(Expr fn, Expr args);
+        abstract BaseExpr();
+          MapExpr(List<Pair<Expr, Expr>> elements);
+          abstract ArrayExpr();
+            ArrayElement(Expr element);
+            ArrayElements(int dimension, List<ArrayExpr> elements);
+          abstract Literal(String text);
+            abstract NumberLiteral();
+              FloatLiteral(ignoreForEquals String text, BigInteger intPart,
+                           BigInteger numerator, int denomBase, int denomPower);
+              IntLiteral(BigInteger val);
+            CharLiteral(int val);
+            StringLiteral();
+            VoidLiteral();
+          VarRefExpr(Id var) implements LHS;
+        abstract Comprehension();
+          ArrayComprehension(List<ArrayComprehensionClause> clauses);
+          abstract GeneratedComprehension(List<Generator> gens);
+            SetComprehension(Expr element);
+            MapComprehension(Expr key, Expr value);
+            ListComprehension(Expr element);
+        ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+        FieldSelection(Expr obj, Id id) implements LHS;
+        LooseJuxt(List<Expr> exprs);
+        TightJuxt(List<Expr> exprs);
+        TypeApply(Expr expr, List<StaticArg> args);
+      SubscriptExpr(Expr obj, List<Expr> subs, Option<Enclosing> op)
+                   implements LHS;
+    abstract UnitExpr();
+      UnitRef(StaticArg val);
+  ExtentRange(Option<TypeRef> base, Option<TypeRef> size);
+  ExternalSyntax(Name openExpander, Id id, Name closeExpander, Expr expr)
+                implements Decl, AbsDecl;
+  abstract FnDefOrDecl(List<Modifier> mods, FnName fnName,
+                       Option<List<StaticParam>> staticParams,
+                       List<Param> params, Option<TypeRef> returnType,
+                       List<TypeRef> throwsClause, List<WhereClause> where,
+                       Contract contract)
+                      implements Generic, Applicable, DefOrDecl;
+    AbsFnDecl(String selfName) implements Decl, AbsDecl, Applicable;
+    FnDecl(String selfName, Expr body) implements Decl, Applicable;
+// Note well; because this is a useful abstraction for the
+// generalized names seen in Fortress, it will persist into
+// more semantically aware parts of the system (i.e., into
+// the interpreter, compiler, typechecker, etc).
+  abstract FnName();
+    DottedId(List<String> names);
+    Fun(Id name);
+    Name(Option<Id> id, Option<Op> op);
+    abstract OprName();
+      Enclosing(Op open, Op close);
+      Opr(Op op);
+      PostFix(Op op);
+      SubscriptAssign();
+      SubscriptOp();
+/**
+ * Not part of the actual AST; constructed during evaluation of anonymous
+ * functions to give them a name.
+ */
+      AnonymousFnName();
+/**
+ * Not part of the actual AST; constructed during evaluation of anonymous
+ * functions to give them a name.
+ */
+      ConstructorFnName(DefOrDecl def);
+  Generator(List<Id> bind, Expr init);
+  Id(String name);
+  IfClause(Expr test, Expr body);
+  abstract Import();
+    ImportApi(List<AliasedDottedId> apis);
+    abstract ImportFrom(DottedId source);
+      ImportStar(List<Name> except);
+      ImportNames(List<AliasedName> names);
+  abstract Indices();
+    FixedDim(List<ExtentRange> extents);
+  KeywordType(Span span, Id name, TypeRef type);
+  abstract LValue();
+    LValueBind(Id name, Option<TypeRef> type, List<Modifier> mods,
+               boolean mutable) implements LHS;
+    abstract Unpasting();
+      UnpastingBind(Id name, Option<List<ExtentRange>> dim);
+      UnpastingSplit(List<Unpasting> elems, int dim);
+  abstract Modifier();
+    ModifierAbstract();
+    ModifierAtomic();
+    ModifierGetter();
+    ModifierHidden();
+    ModifierIO();
+    ModifierOverride();
+    ModifierPrivate();
+    ModifierSettable();
+    ModifierSetter();
+    ModifierTest();
+    ModifierTransient();
+    ModifierValue();
+    ModifierVar();
+    ModifierWidens();
+    ModifierWrapped();
+  abstract ObjectDefOrDecl(List<Modifier> mods, Id name,
+                           Option<List<StaticParam>> staticParams,
+                           Option<List<Param>> params,
+                           Option<List<TypeRef>> traits,
+                           List<TypeRef> throwsClause, List<WhereClause> where,
+                           Contract contract) implements Generic, DefOrDecl;
+    AbsObjectDecl(List<? extends DefOrDecl> defOrDecls)
+                 implements GenericDefWithParams;
+    ObjectDecl(List<? extends DefOrDecl> defOrDecls)
+                 implements GenericDefOrDeclWithParams, AbsDecl;
+  Op(String name);
+  Param(List<Modifier> mods, Id name, Option<TypeRef> type,
+        Option<Expr> defaultExpr);
+  PropertyDecl(Option<Id> id, List<Param> params, Expr expr)
+              implements Decl, AbsDecl;
+  abstract StaticParam();
+    BoolParam(Id id);
+    DimensionParam(Id id);
+    IntParam(Id id);
+    NatParam(Id id);
+    OperatorParam(Op op);
+    SimpleTypeParam(Id id, Option<List<TypeRef>> extendsClause, boolean absorbs);
+  TestDecl(Id id, List<Generator> gens, Expr expr) implements Decl, AbsDecl;
+  abstract TraitDefOrDecl(List<Modifier> mods, Id name,
+                          Option<List<StaticParam>> staticParams,
+                          Option<List<TypeRef>> extendsClause,
+                          List<TypeRef> excludes, Option<List<TypeRef>> bounds,
+                          List<WhereClause> where, List<? extends DefOrDecl> fns)
+                         implements Generic, HasWhere;
+    AbsTraitDecl() implements GenericDefOrDecl, AbsDecl;
+    TraitDecl() implements GenericDef;
+  TypeCaseClause(List<TypeRef> match, List<Expr> body);
+  abstract TypeRef();
+    ArrowType(List<TypeRef> domain, TypeRef range,
+              List<TypeRef> throwsClause);
+    abstract NonArrowType();
+      abstract TraitType();
+        ArrayType(TypeRef element, Indices indices);
+        ListType(TypeRef element);
+        MapType(TypeRef key, TypeRef value);
+        MatrixType(TypeRef element, List<ExtentRange> dimensions);
+        ParamType(TypeRef generic, List<StaticArg> args);
+        VectorType(TypeRef element, ExtentRange dim);
+      IdType(DottedId name);
+      TupleType(List<TypeRef> elements, List<KeywordType> keywords);
+      VarargsType(TypeRef type);
+      VoidType();
+      abstract DimType();
+        DimRef(StaticArg val);
+        ProductDimType(TypeRef multiplier, DimRef multiplicand);
+        QuotientDimType(TypeRef numerator, DimRef denominator);
+        ProductUnitType(TypeRef multiplier, UnitRef multiplicand);
+        QuotientUnitType(TypeRef numerator, UnitRef denominator);
+        DimTypeConversion(TypeRef type, DimRef dim);
+    // NOTE: StaticArg extends TypeRef because there seems
+    // to be an ambiguity here, since syntactically there is
+    // not a good way to tell the products of typeargs for DimType
+    // and natargs for StaticArg
+    abstract StaticArg();
+      BaseNatRef(int value);
+      BaseOprRef(FnName name);
+      BaseDimRef();
+      BaseUnitRef();
+      abstract BoolRef();
+        BaseBoolRef(boolean bool);
+        NotBoolRef(StaticArg val);
+        OrBoolRef(StaticArg left, StaticArg right);
+        AndBoolRef(StaticArg left, StaticArg right);
+        ImpliesBoolRef(StaticArg left, StaticArg right);
+      abstract CompoundStaticArg();
+        SumStaticArg(List<StaticArg> values);
+        ProductStaticArg(List<StaticArg> values);
+        QuotientStaticArg(TypeRef numerator, TypeRef denominator);
+        ExponentStaticArg(TypeRef base, TypeRef power);
+        DimensionStaticArg(StaticArg val, DimUnitOp op);
+      TypeArg(TypeRef type);
+  UnitDecl(List<Id> names, Option<TypeRef> type, Option<Expr> def, boolean si)
+          implements Decl;
+  abstract VarDefOrDecl(List<LValue> lhs) implements DefOrDecl;
+    AbsVarDecl() implements AbsDecl;
+    VarDecl(Expr init) implements Decl;
+  abstract WhereClause();
+    AbsTypeAlias(Id name, List<StaticParam> staticParams) implements AbsDecl;
+    TypeAlias(Id name, List<StaticParam> staticParams, TypeRef type)
+             implements Decl;
+    WhereBool(Id name);
+    WhereExtends(Id name, List<TypeRef> supers);
+    WhereNat(Id name);
+    WhereUnit(Id name);
+    WhereWidensCoerces(TypeRef first, TypeRef second);
+end;

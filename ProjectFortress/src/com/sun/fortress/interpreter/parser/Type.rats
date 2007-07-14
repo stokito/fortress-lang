@@ -340,7 +340,7 @@ private StaticArg StaticArgFront =
      { yyValue = new BaseUnitRef(createSpan(yyStart,yyCount)); }
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
-       StaticArg one = NodeFactory.makeBaseNatRef(span, NodeFactory.makeIntLiteral(span, "1"));
+       StaticArg one = NodeFactory.makeBaseNatRef(span, ExprFactory.makeIntLiteral(span, "1"));
        yyValue = new QuotientStaticArg(createSpan(yyStart,yyCount), one, a1);
      }
    / a1:DUPreOp sr a2:StaticArg

@@ -31,8 +31,6 @@ public class Span {
 
     public SourceLoc end;
 
-    List<String> props;
-
     @Override
     public int hashCode() {
         return begin.hashCode() * MagicNumbers.p + end.hashCode()
@@ -51,13 +49,11 @@ public class Span {
     public Span() {
         begin = new SourceLocRats();
         end = new SourceLocRats();
-        props = new ArrayList<String>(0);
     }
 
     public Span(SourceLoc b, SourceLoc e) {
         begin = b;
         end = e;
-        props = new ArrayList<String>(0);
     }
 
     /** Span which includes both the given spans.  Assumption: they're
@@ -74,7 +70,6 @@ public class Span {
         } else {
             end = a.getEnd();
         }
-        props = new ArrayList<String>(0);
     }
 
     /**
@@ -89,13 +84,6 @@ public class Span {
      */
     public SourceLoc getEnd() {
         return end;
-    }
-
-    /**
-     * @return Returns the props.
-     */
-    public List<String> getProps() {
-        return props;
     }
 
     @Override

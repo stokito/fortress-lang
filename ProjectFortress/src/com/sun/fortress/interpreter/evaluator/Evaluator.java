@@ -165,7 +165,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     final public static FVoid evVoid = FVoid.V;
 
     public FValue eval(Expr e) {
-        return acceptNode(e);
+        return e.visit(this);
     }
 
     /**
@@ -241,13 +241,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
-        FValue rhs = x.getRhs().accept(this);
+        FValue rhs = x.getRhs().visit(this);
 
         if (possOp.isPresent()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
             Op op = possOp.getVal();
-            Fcn fcn = (Fcn) op.accept(this);
+            Fcn fcn = (Fcn) op.visit(this);
             FValue lhsValue;
             if (lhsSize > 1) {
                 // TODO:  An LHS walks, talks, and barks just like
@@ -258,11 +258,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
                 for (LHS lhs : lhses) {
                     // This should occur in parallel!!!
-                    lhsComps.add(lhs.accept(this));
+                    lhsComps.add(lhs.visit(this));
                 }
                 lhsValue = FTuple.make(lhsComps);
             } else {
-                lhsValue = lhses.get(0).accept(this);
+                lhsValue = lhses.get(0).visit(this);
             }
             List<FValue> vargs = new ArrayList<FValue>(2);
             vargs.add(lhsValue);
@@ -293,7 +293,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (rhsIt != null) {
                 rhs = rhsIt.next();
             }
-            lhs.accept(new ALHSEvaluator(this, rhs));
+            lhs.visit(new ALHSEvaluator(this, rhs));
         }
         return FVoid.V;
     }
@@ -307,7 +307,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             new Callable<FValue>() {
                 public FValue call() {
                     Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
-                    return e.accept(ev);
+                    return e.visit(ev);
                 }
             }
         );
@@ -333,8 +333,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             DoFront f = x.getFronts().get(0);
             if (f.getLoc().isPresent()) return NI("forAtDo");
             if (f.isAtomic())
-                return forAtomicExpr(new AtomicExpr(x.getSpan(),f.getExpr()));
-            return f.getExpr().accept(this);
+                return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
+                                                    f.getExpr()));
+            return f.getExpr().visit(this);
         }
     }
 
@@ -367,7 +368,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     <T extends Expr> List<FValue> evalExprList(List<T> exprs, List<FValue> res) {
         for (Expr expr : exprs) {
-            res.add(expr.accept(this));
+            res.add(expr.visit(this));
         }
         return res;
     }
@@ -395,7 +396,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             } else {
                 try {
-                    res = exp.accept(eval);
+                    res = exp.visit(eval);
                 } catch (ProgramError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
@@ -413,10 +414,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         if (sz==1) {
-            resList.add(exprs.get(0).accept(this));
+            resList.add(exprs.get(0).visit(this));
  } else if (transactionNestingCount > 0) {
    for (Expr exp : exprs) {
-       resList.add(exp.accept(this));
+       resList.add(exp.visit(this));
    }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
@@ -451,12 +452,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     CaseClause findLargest(List<CaseClause> clauses) {
         Iterator<CaseClause> i = clauses.iterator();
         CaseClause c = i.next();
-        FValue max = c.getMatch().accept(this);
+        FValue max = c.getMatch().visit(this);
         CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
-            FValue current = c.getMatch().accept(this);
+            FValue current = c.getMatch().visit(this);
             if (current.getInt() > max.getInt()) {
                 max = current;
                 res = c;
@@ -468,12 +469,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     CaseClause findSmallest(List<CaseClause> clauses) {
         Iterator<CaseClause> i = clauses.iterator();
         CaseClause c = i.next();
-        FValue min = c.getMatch().accept(this);
+        FValue min = c.getMatch().visit(this);
         CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
-            FValue current = c.getMatch().accept(this);
+            FValue current = c.getMatch().visit(this);
             if (current.getInt() < min.getInt()) {
                 min = current;
                 res = c;
@@ -494,7 +495,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return evalExprList(y.getBody(), y);
         } else {
             // Evaluate the parameter
-            FValue paramValue = param.accept(this);
+            FValue paramValue = param.visit(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
             Option<Op> Compare = x.getCompare();
@@ -505,7 +506,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
                 CaseClause c = i.next();
                 // Evaluate the clause
-                FValue match = c.getMatch().accept(this);
+                FValue match = c.getMatch().visit(this);
                 List<FValue> vargs = new ArrayList<FValue>();
                 vargs.add(paramValue);
                 vargs.add(match);
@@ -529,7 +530,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forCaseParamExpr(CaseParamExpr x) {
         Expr expr = x.getExpr();
-        return expr.accept(this);
+        return expr.visit(this);
     }
 
     public FValue forCaseParamLargest(CaseParamLargest x) {
@@ -558,7 +559,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forChainExpr " + x);
         Expr first = x.getFirst();
         List<Pair<Op, Expr>> links = x.getLinks();
-        FValue idVal = first.accept(this);
+        FValue idVal = first.visit(this);
         FBool boolres = FBool.TRUE;
         Iterator<Pair<Op, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
@@ -566,8 +567,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         vargs.add(idVal);
         while (boolres.getBool() && i.hasNext()) {
             Pair<Op, Expr> link = i.next();
-            Fcn fcn = (Fcn) link.getA().accept(this);
-            FValue exprVal = link.getB().accept(this);
+            Fcn fcn = (Fcn) link.getA().visit(this);
+            FValue exprVal = link.getB().visit(this);
             vargs.set(0, idVal);
             vargs.set(1, exprVal);
             boolres = (FBool) functionInvocation(vargs, fcn, x);
@@ -588,7 +589,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // for our tests. -- Eric
     // public FValue forComponent(Component x) {
     // BuildEnvironments be = new BuildEnvironments(e);
-    // x.accept(be);
+    // x.visit(be);
     // return evVoid;
     // }
 
@@ -600,7 +601,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Binding bind = i.next();
             String name = bind.getName().getName();
             Expr init = bind.getInit();
-            FValue val = init.accept(ev);
+            FValue val = init.visit(ev);
             if (init instanceof VarRefExpr
                     && ((VarRefExpr) init).getVar().getName().equals(name)) {
                 /* Avoid shadow error when we bind the same var name */
@@ -690,7 +691,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFieldSelection(FieldSelection x) {
         Expr obj = x.getObj();
         Id fld = x.getId();
-        FValue fobj = obj.accept(this);
+        FValue fobj = obj.visit(this);
         if (fobj instanceof Selectable) {
             Selectable selectable = (Selectable) fobj;
             /*
@@ -737,7 +738,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forFor " + x);
         List<Generator> gens = x.getGens();
         Generator gen = gens.get(0);
-        FGenerator fgen = (FGenerator) gen.accept(this);
+        FGenerator fgen = (FGenerator) gen.visit(this);
         DoFront df = x.getBody();
         Expr body = x;
         if (df.isAtomic()) {
@@ -748,21 +749,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         if (gens.size() > 1) {
             gens = gens.subList(1,gens.size());
-            body = new For(x.getSpan(),gens,df);
+            body = new For(x.getSpan(), false, gens, df);
         }
         new ForLoopTask(fgen, body, this, BaseTask.getCurrentTask()).run();
         return evVoid;
     }
 
     public FValue forFun(Fun x) {
-        return x.getName().accept(this);
+        return x.getName().visit(this);
     }
 
     public FValue forGenerator(Generator x) {
         // debugPrint("forGenerator " + x);
         List<Id> ids = x.getBind();
         Expr init = x.getInit();
-        FValue rval = init.accept(this);
+        FValue rval = init.visit(this);
         FRange range = (FRange)rval;
         return new FGenerator(ids, range);
     }
@@ -775,15 +776,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<IfClause> clause = x.getClauses();
         for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
             IfClause ifclause = i.next();
-            FBool fbool = (FBool) ifclause.getTest().accept(this);
+            FBool fbool = (FBool) ifclause.getTest().visit(this);
             if (fbool.getBool())
-                return ifclause.getBody().accept(this);
+                return ifclause.getBody().visit(this);
             ;
         }
         Option<Expr> else_ = x.getElseClause();
         if (else_.isPresent()) {
             Expr else_expr = else_.getVal();
-            return else_expr.accept(this);
+            return else_expr.visit(this);
         }
         return evVoid;
     }
@@ -875,7 +876,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // of the element, that is).
         throw new InterpreterError(x,"Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
-        // return x.getElement().accept(notInPaste);
+        // return x.getElement().visit(notInPaste);
     }
 
     /**
@@ -972,7 +973,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forOprExpr " + x);
         OprName op = x.getOp();
         List<Expr> args = x.getArgs();
-        FValue fvalue = op.accept(this);
+        FValue fvalue = op.visit(this);
         // Evaluate actual parameters.
         int s = args.size();
         FValue res = evVoid;
@@ -1074,7 +1075,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
         // Should evaluate obj.[](subs, getText)
-        FValue arr = obj.accept(this);
+        FValue arr = obj.visit(this);
         if (!(arr instanceof FObject)) {
             throw new ProgramError(obj, "Value should be an object; got " + arr);
         }
@@ -1111,7 +1112,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FieldSelection fld_sel = (FieldSelection) fcnExpr;
             Expr obj = fld_sel.getObj();
             Id fld = fld_sel.getId();
-            FValue fobj = obj.accept(this);
+            FValue fobj = obj.visit(this);
             return juxtFieldSelection(x, fobj, fld, exprs);
         } else if (fcnExpr instanceof TypeApply) {
             // Peek into the type-apply, see if it actually a generic method
@@ -1124,7 +1125,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 FieldSelection fld_sel = (FieldSelection) expr;
                 Expr obj = fld_sel.getObj();
                 Id fld = fld_sel.getId();
-                FValue fobj = obj.accept(this);
+                FValue fobj = obj.visit(this);
 
                 // "Function" is type-apply of field-selection;
                 // currently that can only be instantiation of
@@ -1174,7 +1175,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         }
 
-        FValue fnVal = fcnExpr.accept(this);
+        FValue fnVal = fcnExpr.visit(this);
         if (fnVal instanceof MethodClosure) {
             return NI.nyi("Functional method application");
         } else {
@@ -1352,11 +1353,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forWhile " + x);
         Expr body = x.getBody();
         Expr test = x.getTest();
-        FBool res = (FBool) test.accept(this);
+        FBool res = (FBool) test.visit(this);
         while (res.getBool() != false) {
             // debugPrint("While loop iter");
-            body.accept(this);
-            res = (FBool) test.accept(this);
+            body.visit(this);
+            res = (FBool) test.visit(this);
         }
         return FVoid.V;
     }
@@ -1385,7 +1386,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     @Override
     public FValue forTypeApply(TypeApply x) {
         Expr expr = x.getExpr();
-        FValue g = expr.accept(this);
+        FValue g = expr.visit(this);
         List<StaticArg> args = x.getArgs();
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);

@@ -40,7 +40,7 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FieldSelection;
@@ -60,7 +60,7 @@ import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
 
-public class LHSEvaluator extends NodeVisitor<Voidoid>  {
+public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
@@ -69,7 +69,7 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
         // Should evaluate obj.[](subs, value)
-        FObject array = (FObject) obj.accept(evaluator);
+        FObject array = (FObject) obj.visit(evaluator);
         Method cl = (Method) array.getSelfEnv().getValue("[]=");
         ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
         subscriptsAndValue.add(value);
@@ -87,7 +87,7 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Expr from = x.getObj();
         Id what = x.getId();
         // TODO need to generalize to dotted names.
-        FValue val = from.accept(evaluator);
+        FValue val = from.visit(evaluator);
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
             obj.getSelfEnv().assignValue(x, what.getName(), value);
@@ -276,7 +276,7 @@ public class LHSEvaluator extends NodeVisitor<Voidoid>  {
         Iterator<FValue> rhsIterator = t.getVals().iterator();
         for (Expr lhs : x.getExprs()) {
             // TODO: arity matching and exotic tuple types.
-            lhs.accept(new LHSEvaluator(evaluator, rhsIterator.next()));
+            lhs.visit(new LHSEvaluator(evaluator, rhsIterator.next()));
         }
 
         return null;

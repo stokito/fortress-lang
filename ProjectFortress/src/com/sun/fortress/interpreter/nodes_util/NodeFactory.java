@@ -92,10 +92,6 @@ public class NodeFactory {
         return new BaseOprRef(span, new Opr(span, op));
     }
 
-    public static CharLiteral makeCharLiteral(Span span, String s) {
-        return new CharLiteral(span, s, s.charAt(0));
-    }
-
     public static ConstructorFnName makeConstructorFnName(DefOrDecl def) {
         return new ConstructorFnName(NodeUtil.getSpan(def), def);
     }
@@ -125,94 +121,6 @@ public class NodeFactory {
         }));
     }
 
-    public static FloatLiteral makeFloatLiteral(Span span, String s) {
-        BigInteger intPart;
-        BigInteger numerator;
-        int denomBase;
-        int denomPower;
-
-        // Trim leading zeroes
-        while (s.length() > 1 && s.charAt(0) == '0') {
-            s = s.substring(1);
-        }
-
-        int dotLoc = s.indexOf('.');
-        int underLoc = s.indexOf('_');
-
-        if (dotLoc == -1) {
-            // No fraction part.
-            numerator = BigInteger.ZERO;
-            denomBase = 1;
-            denomPower = 0;
-            int base;
-            String digits;
-
-            if (underLoc == -1) {
-                digits = s;
-                base = 10;
-            } else {
-                digits = s.substring(0, underLoc);
-                // Base other, no ".", parse as BigInteger and convert.
-                String base_digits = s.substring(underLoc + 1);
-
-                if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                    base = Unicode.numberToValue(base_digits);
-                } else {
-                    base = Integer.parseInt(base_digits);
-                }
-            }
-            digits = dozenalHack(digits, base);
-            intPart = new BigInteger(digits, base);
-
-        } else {
-            // There is a fraction part.
-
-            int base;
-
-            if (underLoc == -1) {
-                base = 10;
-                underLoc = s.length();
-            } else {
-                String base_digits = s.substring(underLoc + 1);
-                if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                    base = Unicode.numberToValue(base_digits);
-                } else {
-                    base = Integer.parseInt(base_digits);
-                }
-            }
-            {
-                String digits = s.substring(0, dotLoc);
-                if (digits.length() > 0) {
-                    digits = dozenalHack(digits, base);
-                    intPart = new BigInteger(digits, base);
-                } else {
-                    intPart = BigInteger.ZERO;
-                }
-
-                digits = s.substring(dotLoc + 1, underLoc);
-
-                // TODO Getting the rounding and overflow dead right is hard.
-                while (digits.length() > 1 && digits.endsWith("0")) {
-                    digits = digits.substring(0, digits.length() - 1);
-                }
-
-                if (digits.length() == 0 || "0".equals(digits)) {
-                    numerator = BigInteger.ZERO;
-                    denomBase = 1;
-                    denomPower = 0;
-
-                } else {
-                    digits = dozenalHack(digits, base);
-                    numerator = new BigInteger(digits, base);
-                    denomBase = base;
-                    denomPower = digits.length();
-                }
-            }
-        }
-        return new FloatLiteral(span, s,
-                                intPart, numerator, denomBase, denomPower);
-    }
-
     public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
                                     Option<Id> optSelfName, FnName name,
                                     Option<List<StaticParam>> staticParams,
@@ -229,20 +137,6 @@ public class NodeFactory {
         }
         return new FnDecl(s, mods, name, staticParams, params, returnType,
                           throwss, where, contract, selfName, body);
-    }
-
-    public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
-        return makeFnExpr(span, params, new None<TypeRef>(),
-                          Collections.<TypeRef>emptyList(), body);
-    }
-
-    public static FnExpr makeFnExpr(Span span, List<Param> params,
-                                    Option<TypeRef> returnType,
-                                    List<TypeRef> throwsClause, Expr body) {
-        return new FnExpr(span, new AnonymousFnName(span),
-                          new None<List<StaticParam>>(), params, returnType,
-                          Collections.<WhereClause>emptyList(), throwsClause,
-                          body);
     }
 
     public static Fun makeFun(Span span, String string) {
@@ -266,40 +160,6 @@ public class NodeFactory {
     public static IdType makeIdType(Span span, Id id) {
         return new IdType(span, makeDottedId(span, id));
     }
-
-    public static IntLiteral makeIntLiteral(Span span, BigInteger val) {
-        return new IntLiteral(span, val.toString(), val);
-    }
-
-    public static IntLiteral makeIntLiteral(Span span, String s) {
-        BigInteger val;
-        int underLoc = s.indexOf('_');
-        if (underLoc == -1) {
-            val = new BigInteger(s);
-        } else {
-            String digits = s.substring(0, underLoc);
-            String base_digits = s.substring(underLoc + 1);
-            int base;
-            if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                base = Unicode.numberToValue(base_digits);
-            } else {
-                base = Integer.parseInt(base_digits);
-            }
-            digits = dozenalHack(digits, base);
-            val = new BigInteger(digits, base);
-        }
-        return new IntLiteral(span, s, val);
-    }
-
-   static String dozenalHack(String digits, int base) {
-        if (base == 12 && Unicode.charactersOverlap(digits, "xXeE")) {
-            digits = digits.replace('x', 'A');
-            digits = digits.replace('X', 'A');
-            digits = digits.replace('e', 'B');
-            digits = digits.replace('E', 'B');
-        }
-        return digits;
-   }
 
     public static LValueBind makeLValue(LValueBind lvb, Id id) {
         return new LValueBind(lvb.getSpan(), id, lvb.getType(), lvb.getMods(),
@@ -350,22 +210,6 @@ public class NodeFactory {
                               new Some<TypeRef>(ty), mods, mutable);
     }
 
-    public static LetExpr makeLetExpr(LetExpr expr, List<Expr> body) {
-        if (expr instanceof GeneratedExpr) {
-            GeneratedExpr exp = (GeneratedExpr) expr;
-            return new GeneratedExpr(exp.getSpan(), body, exp.getExpr(),
-                                     exp.getGens());
-        } else if (expr instanceof LetFn) {
-            return new LetFn(expr.getSpan(), body, ((LetFn)expr).getFns());
-        } else if (expr instanceof LocalVarDecl) {
-            LocalVarDecl exp = (LocalVarDecl) expr;
-            return new LocalVarDecl(exp.getSpan(), body, exp.getLhs(),
-                                    exp.getRhs());
-        } else {
-            throw new Error(expr.getClass() + " is not a subtype of LetExpr.");
-        }
-    }
-
     public static MatrixType makeMatrixType(Span span, TypeRef element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {
@@ -400,48 +244,8 @@ public class NodeFactory {
                               throws_, where, contract, defs2);
     }
 
-    public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
-                         BATree<String, StaticParam> implicit_type_parameters) {
-        List<StaticArg> staticArgs =
-            new ArrayList<StaticArg>(implicit_type_parameters.size());
-        Option<List<StaticParam>> stParams;
-        if (implicit_type_parameters.size() == 0) {
-            stParams = new None<List<StaticParam>>();
-        } else {
-            List<StaticParam> tparams =
-                new ArrayList<StaticParam>(implicit_type_parameters.values());
-            stParams = Some.makeSomeList(tparams);
-            for (String s : implicit_type_parameters.keySet()) {
-                staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
-            }
-        }
-        return new _RewriteObjectExpr(expr.getSpan(), expr.getTraits(),
-                                      expr.getDefOrDecls(),
-                                      implicit_type_parameters, expr.toString(),
-                                      stParams, staticArgs,
-                    new Some<List<Param>>(Collections.<Param>emptyList()));
-    }
-
     public static Op makeOp(Span span, String name) {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
-    }
-
-    public static OprExpr makeOprExpr(Span span, OprName op) {
-        return new OprExpr(span, op, new ArrayList<Expr>());
-    }
-
-    public static OprExpr makeOprExpr(Span span, OprName op, Expr arg) {
-        List<Expr> es = new ArrayList<Expr>();
-        es.add(arg);
-        return new OprExpr(span, op, es);
-    }
-
-    public static OprExpr makeOprExpr(Span span, OprName op, Expr first,
-                                      Expr second) {
-        List<Expr> es = new ArrayList<Expr>();
-        es.add(first);
-        es.add(second);
-        return new OprExpr(span, op, es);
     }
 
     public static Param makeParam(Span span, List<Modifier> mods, Id name,
@@ -475,15 +279,6 @@ public class NodeFactory {
                                    new None<List<TypeRef>>(), false);
     }
 
-    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-                                                  List<Expr> subs) {
-        return new SubscriptExpr(span, obj, subs, None.<Enclosing>make());
-    }
-
-    public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
-        return new TightJuxt(span, Useful.list(first, second));
-    }
-
     public static TupleType makeTupleType(Span span, List<TypeRef> elements) {
         return new TupleType(span, elements,
                              Collections.<KeywordType>emptyList());
@@ -501,13 +296,5 @@ public class NodeFactory {
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);
-    }
-
-    public static VarRefExpr makeVarRefExpr(Span span, String s) {
-        return new VarRefExpr(span, new Id(span, s));
-    }
-
-    public static VoidLiteral makeVoidLiteral(Span span) {
-        return new VoidLiteral(span, "");
     }
 }

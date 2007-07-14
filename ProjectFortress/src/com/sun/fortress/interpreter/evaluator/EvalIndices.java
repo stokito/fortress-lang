@@ -23,12 +23,12 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.ExtentRange;
 import com.sun.fortress.interpreter.nodes.FixedDim;
 
 
-public class EvalIndices extends NodeVisitor<TypeIndices> {
+public class EvalIndices extends NodeAbstractVisitor<TypeIndices> {
 
     EvalType evalType;
 

@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
-import com.sun.fortress.interpreter.nodes.NodeVisitor;
+import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
 import com.sun.fortress.interpreter.nodes.Expr;
 import com.sun.fortress.interpreter.nodes.FnDecl;
 import com.sun.fortress.interpreter.nodes.FnName;
@@ -43,7 +43,7 @@ import com.sun.fortress.interpreter.nodes_util.*;
 
 
 
-public class BuildLetEnvironments extends NodeVisitor<FValue> {
+public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 
     boolean firstPass = true;
 
@@ -94,11 +94,11 @@ public class BuildLetEnvironments extends NodeVisitor<FValue> {
         Evaluator new_eval = new Evaluator(containing);
         if (rhs.isPresent()) {
             if (lhs.size() == 1) {
-                FValue val = rhs.getVal().accept(new_eval);
+                FValue val = rhs.getVal().visit(new_eval);
                 LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, val);
-                lhs.get(0).accept(lhs_eval);
+                lhs.get(0).visit(lhs_eval);
             } else {
-                FValue val = rhs.getVal().accept(new_eval);
+                FValue val = rhs.getVal().visit(new_eval);
 
                 if (!(val instanceof FTuple)) {
                     throw new ProgramError(x, containing,
@@ -113,7 +113,7 @@ public class BuildLetEnvironments extends NodeVisitor<FValue> {
                     FValue rval = j.next();
 
                     LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, rval);
-                    lval.accept(lhs_eval);
+                    lval.visit(lhs_eval);
                 }
             }
         } else {
@@ -122,15 +122,15 @@ public class BuildLetEnvironments extends NodeVisitor<FValue> {
                 if (lval instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) lval;
                     if (lvb.isMutable()) {
-                        FValue fv = lval.accept(new_eval);
-                        FType fvt = lvb.getType().getVal().accept(eval_type);
+                        FValue fv = lval.visit(new_eval);
+                        FType fvt = lvb.getType().getVal().visit(eval_type);
                         containing.putVariable(fv.getString(),fvt);
                     } else {
-                        containing.putValue(lval.accept(new_eval), new IndirectionCell());
+                        containing.putValue(lval.visit(new_eval), new IndirectionCell());
 
                     }
                 } else {
-                    containing.putValue(lval.accept(new_eval), new IndirectionCell());
+                    containing.putValue(lval.visit(new_eval), new IndirectionCell());
                 }
             }
 
@@ -139,7 +139,7 @@ public class BuildLetEnvironments extends NodeVisitor<FValue> {
     }
 
     public FValue doLets(LetExpr exp) {
-        return exp.accept(this);
+        return exp.visit(this);
     }
 
 }

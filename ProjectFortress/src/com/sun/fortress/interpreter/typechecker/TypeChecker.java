@@ -29,11 +29,11 @@ import com.sun.fortress.interpreter.nodes.*;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 
 
-public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
+public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
     public final Types typeAnalyzer = Types.ONLY;
 
     public static TypeCheckerResult check(CompilationUnit p) {
-        return p.accept(new TypeChecker());
+        return p.visit(new TypeChecker());
     }
 
     private final PureList<String> e;
@@ -48,11 +48,11 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
 
     private List<TypeCheckerResult> checkList(List<? extends Node> hosts) {
         List<TypeCheckerResult> result = new LinkedList<TypeCheckerResult>();
-        for (Node h : hosts) result.add(h.accept(this));
+        for (Node h : hosts) result.add(h.visit(this));
         return result;
     }
 
-    public TypeCheckerResult NI(com.sun.fortress.interpreter.useful.HasAt x, String s) {
+    public TypeCheckerResult defaultCase(Node x) {
         return TypeCheckerResult.VALID;
     }
 
@@ -102,7 +102,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
                 }
             }
             TypeChecker typeChecker = extend(topLevelNames);
-            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.accept(typeChecker)); }
+            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.visit(typeChecker)); }
         }
         return result;
     }
@@ -121,7 +121,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
             for (Param p : d.getParams()) {
                 newEnv = newEnv.cons(p.getName().getName());
             }
-            return d.getBody().accept(new TypeChecker(newEnv)); // TODO: Check result of body
+            return d.getBody().visit(new TypeChecker(newEnv)); // TODO: Check result of body
         }
         return TypeCheckerResult.VALID;
     }
@@ -138,14 +138,14 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         TypeChecker newChecker = new TypeChecker(newEnv);
 
         TypeCheckerResult result = TypeCheckerResult.VALID;
-        for (Expr e : d.getBody()) { result = result.combine(e.accept(newChecker)); }
+        for (Expr e : d.getBody()) { result = result.combine(e.visit(newChecker)); }
         return result;
     }
 
     public TypeCheckerResult forDo(Do b) {
         // Do(Span span, List<DoFront> fronts)
         TypeCheckerResult result = TypeCheckerResult.VALID;
-        for (DoFront d : b.getFronts()) { result = result.combine(d.accept(this)); }
+        for (DoFront d : b.getFronts()) { result = result.combine(d.visit(this)); }
         return result;
     }
 
@@ -153,7 +153,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         // Block(Span span, List<Expr> exprs)
         // TODO: make sure the spec allows an empty block
         TypeCheckerResult result = TypeCheckerResult.VALID;
-        for (Expr e : b.getExprs()) { result = result.combine(e.accept(this)); }
+        for (Expr e : b.getExprs()) { result = result.combine(e.visit(this)); }
         return result;
     }
 
@@ -175,7 +175,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forAssignment(Assignment a) {
         List<TypeCheckerResult> left = checkList(a.getLhs());
-        TypeCheckerResult right = a.getRhs().accept(this);
+        TypeCheckerResult right = a.getRhs().visit(this);
         // TODO: check for coercions
         //if (!typeAnalyzer.isSubtype(right, left))
         //    return new TypeCheckerResult(new TypeError("Type " + left + " is not assignable to type " + right));
@@ -183,14 +183,14 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forSubscriptExpr(SubscriptExpr s) {
-        TypeCheckerResult obj = s.getObj().accept(this);
+        TypeCheckerResult obj = s.getObj().visit(this);
         List<TypeCheckerResult> subs = checkList(s.getSubs());
         // TODO: application
         return obj.combine(TypeCheckerResult.combine(PureList.fromJavaList(subs)));
     }
 
     public TypeCheckerResult forAtomicExpr(AtomicExpr ae) {
-        return ae.getExpr().accept(this);
+        return ae.getExpr().visit(this);
     }
 
     public TypeCheckerResult forIf(If e) {
@@ -201,8 +201,8 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         List<TypeCheckerResult> clauseTypes = new LinkedList<TypeCheckerResult>();
 
         for (IfClause clause : e.getClauses()) {
-            TypeCheckerResult testType = clause.getTest().accept(this);
-            TypeCheckerResult bodyType = clause.getBody().accept(this);
+            TypeCheckerResult testType = clause.getTest().visit(this);
+            TypeCheckerResult bodyType = clause.getBody().visit(this);
 
 //            if (! typeAnalyzer.isSubtype(testType, typeAnalyzer.BOOLEAN)) {
 //                return new TypeCheckerResult(new TypeError("Test in if clause is not a Boolean", clause.getTest());
@@ -212,7 +212,7 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
         }
         Option<Expr> else_ = e.getElseClause();
         if (else_.isPresent()) {
-            TypeCheckerResult elseResult = else_.getVal().accept(this);
+            TypeCheckerResult elseResult = else_.getVal().visit(this);
             clauseTypes.add(elseResult);
             result = result.combine(elseResult);
         }
@@ -223,13 +223,13 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
     public TypeCheckerResult forLabel(Label e) {
         // TODO: Add e.getName() to environment for use by exit
         // (but don't do this unti we're testing for it!)
-        return e.getBody().accept(this);
+        return e.getBody().visit(this);
     }
 
     public TypeCheckerResult forDoFront(DoFront e) {
         // TODO: Option<Expr> _at
         // TODO: boolean _atomic
-        return e.getExpr().accept(this);
+        return e.getExpr().visit(this);
     }
 
     public TypeCheckerResult forFor(For e) {
@@ -240,9 +240,9 @@ public final class TypeChecker extends NodeVisitor<TypeCheckerResult> {
             for (Id id : gen.getBind()) {
                 newVars = newVars.cons(id.getName());
             }
-            genResults = genResults.combine(gen.accept(this));
+            genResults = genResults.combine(gen.visit(this));
         }
-        return genResults.combine(e.getBody().accept(new TypeChecker(this.e.append(newVars))));
+        return genResults.combine(e.getBody().visit(new TypeChecker(this.e.append(newVars))));
     }
 //    public TypeCheckerResult forTightJuxt
 

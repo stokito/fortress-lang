@@ -50,7 +50,7 @@ abstract public class NodeReflection {
     // private HashMap<String, Field[]> fullClassNameToFieldArray = new
     // HashMap<String, Field[]>();
     private HashMap<String, Field[]> shortClassNameToFieldArray = new HashMap<String, Field[]>();
-    
+
     private Field spanField;
 
     protected NodeReflection() {
@@ -63,7 +63,7 @@ abstract public class NodeReflection {
             throw new Error(e.getMessage());
         }
     }
-    
+
     protected Field fieldFor(String class_name, String field_name) {
         return shortClassNameToFieldNameToField.get(class_name).get(field_name);
     }
@@ -82,20 +82,20 @@ abstract public class NodeReflection {
          * non-null, s is used.  THE NODE RETURNED BY THIS METHOD IS IMPROPERLY
          * INITIALIZED; IT WILL HAVE null FINAL FIELDS, WHICH MUST BE FIXED
          * USING REFLECTION.
-         * 
+         *
          * This method preferentially uses the zero-arg constructor, if one is
          * found, otherwise it use the one-span-arg constructor and assigns the
-         * field.  This is intended to ease the transition to the 
+         * field.  This is intended to ease the transition to the
          * ASTgen-generated nodes.
-         * 
+         *
          * @param s
          * @param c
          * @param span
          * @return
-         * @throws InvocationTargetException 
-         * @throws IllegalAccessException 
-         * @throws InstantiationException 
-         * @throws IllegalArgumentException 
+         * @throws InvocationTargetException
+         * @throws IllegalAccessException
+         * @throws InstantiationException
+         * @throws IllegalArgumentException
          */
     protected AbstractNode makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
       // try {
@@ -116,10 +116,10 @@ abstract public class NodeReflection {
 //       } catch (InvocationTargetException ex) {
 //           throw new Error(ex.getMessage());
 //       }
-       
+
         }
-    
-    
+
+
     protected Constructor constructorFor(Class cls) {
         String sn = modifiedSimpleName(cls);
         Constructor c = constructorMap.get(sn);
@@ -146,17 +146,17 @@ abstract public class NodeReflection {
 
     abstract protected Constructor defaultConstructorFor(Class cl)
     throws NoSuchMethodException;
-    
+
     static Class[] zeroArg = {  };
     protected Constructor defaultConstructorZeroFor(Class cl) {
-        
+
         try {
             return cl.getDeclaredConstructor(zeroArg);
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
-            
+
         }
         return null;
     }
@@ -227,11 +227,6 @@ abstract public class NodeReflection {
                 }
             }
             icl = icl.getSuperclass();
-        }
-        if (icl == AbstractNode.class) {
-            Field f = AbstractNode.class.getDeclaredField("props");
-            f.setAccessible(true);
-            fal.add(f);
         }
         Field[] ifields = new Field[fal.size()];
         ifields = fal.toArray(ifields);

@@ -23,151 +23,151 @@ import com.sun.fortress.interpreter.useful.*;
 import java.io.IOException;
 import java.util.*;
 
-public class ErrorMsgMaker extends NodeVisitor<String> {
+public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
-    
+
     private ErrorMsgMaker() {}
-    
+
     private final String foldSelf(List<? extends AbstractNode> that) {
         StringBuffer result = new StringBuffer();
         for (AbstractNode elt : that) {
-            result.append(elt.accept(this));
+            result.append(elt.visit(this));
         }
         return result.toString();
     }
-    
+
     private final List<String> mapSelf(List<? extends AbstractNode> that) {
         LinkedList<String> result = new LinkedList<String>();
         for (AbstractNode elt : that) {
-            result.add(elt.accept(this));
+            result.add(elt.visit(this));
         }
         return result;
     }
-    
+
     public String forAbsVarDecl(AbsVarDecl node){
         return "abs " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
-    
+
     public String forArrowType(ArrowType node) {
         return Useful.listInParens(mapSelf(node.getDomain()))
                 + "->"
-                + node.getRange().accept(this)
+                + node.getRange().visit(this)
                 + (node.getThrowsClause().size() > 0 ? (" throws " +
                         Useful.listInCurlies(mapSelf(node.getThrowsClause()))) : "");
     }
-    
+
     public String forBaseNatRef(BaseNatRef node) {
         return ("" + node.getValue());
     }
-    
+
     public String forBoolParam(BoolParam node) {
         return "int " + node.getId().getName();
     }
-    
+
     public String forDottedId(DottedId node) {
         return Useful.dottedList(node.getNames());
     }
-    
+
     public String forFnDefOrDecl(FnDefOrDecl node) {
         return NodeUtil.getName(node.getFnName())
                 + (node.getStaticParams().isPresent() ?
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
-                + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
+                + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().visit(this)) : "")
                 + "\n\t@" + NodeUtil.getAt(node.getFnName());
     }
-    
+
     public String forFun(Fun node) {
         return node.getName().getName();
     }
-    
+
     public String forId(Id node) {
         return node.getName();
     }
 
     public String forIdType(IdType node) {
-        return node.getName().accept(this);
+        return node.getName().visit(this);
     }
-    
+
     public String forIntLiteral(IntLiteral node) {
         return node.getVal().toString();
     }
-    
+
     public String forIntParam(IntParam node) {
         return "int " + node.getId().getName();
     }
-    
+
     public String forKeywordType(KeywordType node) {
-        return "" + node.getName().accept(this) + ":" + node.getType().accept(this);
+        return "" + node.getName().visit(this) + ":" + node.getType().visit(this);
     }
-    
+
     public String forLValueBind(LValueBind node) {
         String r = "";
         if (node.getType().isPresent()) {
-            r = ":" + node.getType().getVal().accept(this);
+            r = ":" + node.getType().getVal().visit(this);
         }
-        return node.getName().accept(this) + r;
+        return node.getName().visit(this) + r;
     }
-    
+
     public String forName(Name node) {
         if (node.getId().isPresent()) {
-            return node.getId().getVal().accept(this);
-        } 
+            return node.getId().getVal().visit(this);
+        }
         else if (node.getOp().isPresent()) {
-            return node.getOp().getVal().accept(this);
-        } 
+            return node.getOp().getVal().visit(this);
+        }
         else {
             throw new Error("Uninitialized Name.");
         }
     }
-    
+
     public String forNatParam(NatParam node) {
         return "nat " + node.getId().getName();
     }
-    
+
     public String forAbstractNode(AbstractNode node) {
         return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
     }
-    
+
     public String forOperatorParam(OperatorParam node) {
         return "opr " + node.getOp().getName();
     }
-    
+
     public String forParam(Param node) {
         StringBuffer sb = new StringBuffer();
-        sb.append(String.valueOf(node.getName().accept(this)));
+        sb.append(String.valueOf(node.getName().visit(this)));
         if (node.getType().isPresent()) {
             sb.append(":");
-            sb.append(node.getType().getVal().accept(this));
+            sb.append(node.getType().getVal().visit(this));
         }
         if (node.getDefaultExpr().isPresent()) {
             sb.append("=");
-            sb.append(node.getDefaultExpr().getVal().accept(this));
+            sb.append(node.getDefaultExpr().getVal().visit(this));
         }
         return sb.toString();
     }
-    
+
     public String forParamType(ParamType node) {
-        return node.getGeneric().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
+        return node.getGeneric().visit(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
     }
-    
-    public String forVarargsType(VarargsType node) { 
-        return node.getType().accept(this) + "...";
+
+    public String forVarargsType(VarargsType node) {
+        return node.getType().visit(this) + "...";
     }
-    
+
     public String forSimpleTypeParam(SimpleTypeParam node) {
         return node.getId().getName();
     }
-    
+
     public String forTupleType(TupleType node) {
         return Useful.listInParens(mapSelf(node.getElements()));
     }
-    
+
     public String forTypeArg(TypeArg node) {
-        return String.valueOf(node.getType().accept(this));
+        return String.valueOf(node.getType().visit(this));
     }
-    
+
     public String forVarDecl(VarDecl node) {
-        return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
+        return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().visit(this) + node.getSpan();
     }
 }
