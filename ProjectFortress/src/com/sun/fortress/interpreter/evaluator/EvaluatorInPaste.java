@@ -44,7 +44,7 @@ public class EvaluatorInPaste extends Evaluator {
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
         Evaluator notInPaste = new Evaluator(this);
-        return x.getElement().visit(notInPaste);
+        return x.getElement().accept(notInPaste);
     }
 
     EvaluatorInPaste(Evaluator e) {

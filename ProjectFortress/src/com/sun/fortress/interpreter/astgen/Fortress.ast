@@ -1,4 +1,5 @@
 generateemptyconstructor yes;
+visitmethod accept;
 
 package com.sun.fortress.interpreter.nodes;
 import java.io.IOException;

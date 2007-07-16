@@ -59,6 +59,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     /* (non-Javadoc)
@@ -69,7 +70,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
         // Should evaluate obj.[](subs, value)
-        FObject array = (FObject) obj.visit(evaluator);
+        FObject array = (FObject) obj.accept(evaluator);
         Method cl = (Method) array.getSelfEnv().getValue("[]=");
         ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
         subscriptsAndValue.add(value);
@@ -87,7 +88,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         Expr from = x.getObj();
         Id what = x.getId();
         // TODO need to generalize to dotted names.
-        FValue val = from.visit(evaluator);
+        FValue val = from.accept(evaluator);
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
             obj.getSelfEnv().assignValue(x, what.getName(), value);
@@ -116,8 +117,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (ft != null) {
             // Check that variable can receive type
             if (!ft.typeMatch(value)) {
-                throw new ProgramError(x, e, "TypeRef mismatch assigning " + value +
-                                       " (type " + value.type() +") to " + s + " (type " + ft + ")");
+                throw new ProgramError(x, e, 
+                        errorMsg("TypeRef mismatch assigning ", value,
+                                       " (type ", value.type(), ") to ", s, " (type ", ft, ")"));
             }
         }
         e.assignValue(x, s, value);
@@ -171,7 +173,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 // the type system?  Not sure.
 
                 throw new ProgramError(x, evaluator.e,
-                            "Can't infer element type for array construction");
+                            errorMsg("Can't infer element type for array construction"));
             }
 
             /*
@@ -239,8 +241,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);
                     else {
-                        throw new ProgramError(x, evaluator.e, "RHS expression type " + value.type() +
-                                               " is not assignable to LHS type " + outerType);
+                        throw new ProgramError(x, evaluator.e, 
+                                errorMsg("RHS expression type ", value.type(),
+                                               " is not assignable to LHS type ", outerType));
                     }
                 } else {
                     if (mutable)
@@ -270,13 +273,13 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public Voidoid forTupleExpr(TupleExpr x) {
         if (!(value instanceof FTuple)) {
             throw new ProgramError(x, evaluator.e,
-                                   "RHS yields non-tuple " + value);
+                                   errorMsg("RHS yields non-tuple ", value));
         }
         FTuple t = (FTuple)value;
         Iterator<FValue> rhsIterator = t.getVals().iterator();
         for (Expr lhs : x.getExprs()) {
             // TODO: arity matching and exotic tuple types.
-            lhs.visit(new LHSEvaluator(evaluator, rhsIterator.next()));
+            lhs.accept(new LHSEvaluator(evaluator, rhsIterator.next()));
         }
 
         return null;

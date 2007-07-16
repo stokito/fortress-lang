@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.useful.Factory1P;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Memo1P;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class GenericConstructor extends FConstructedValue implements Factory1P<List<FType>, Simple_fcn, HasAt> {
     private class Factory implements Factory1P<List<FType>, Constructor, HasAt> {
@@ -98,7 +99,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {
         throw new ProgramError(x, e,
-                "Generic instantiation (size) mismatch, expected " + params + " got " + args);
+                errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", args));
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);

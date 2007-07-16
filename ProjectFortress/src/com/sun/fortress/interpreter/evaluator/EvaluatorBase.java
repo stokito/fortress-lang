@@ -45,6 +45,7 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.LatticeIntervalMap;
 import com.sun.fortress.interpreter.useful.StringComparer;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
@@ -59,7 +60,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         if (foo instanceof Fcn) {
             return functionInvocation(args, (Fcn) foo, loc);
         } else {
-            throw new ProgramError(loc, "Not a Fcn: " + foo);
+            throw new ProgramError(loc, errorMsg("Not a Fcn: ", foo));
         }
     }
 
@@ -110,7 +111,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             // why can't we just skip if missing?
             if (!t.isPresent())
                 throw new ProgramError(loc,
-                        "Parameter needs type for generic resolution");
+                        errorMsg("Parameter needs type for generic resolution"));
             FType at = a.type();
             try {
                 at.unify(e, tp_set, abm, t.getVal());

@@ -97,6 +97,8 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Voidoid;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 /**
  * This comment is not yet true; it is a goal.
  *
@@ -169,7 +171,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public void visit(CompilationUnit n) {
-        n.visit(this);
+        n.accept(this);
     }
 
     BetterEnv containing;
@@ -280,7 +282,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
 
         void visit(DefOrDecl def) {
-            def.visit(this);
+            def.accept(this);
         }
     }
 
@@ -330,13 +332,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     private static void doDefs(BuildEnvironments inner, List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
-            def.visit(inner);
+            def.accept(inner);
         }
     }
 
     protected void doDefs(List<? extends DefOrDecl> defs) {
         for (DefOrDecl def : defs) {
-            def.visit(this);
+            def.accept(this);
         }
     }
 
@@ -404,9 +406,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (ft != null) {
                 if (!ft.typeMatch(value)) {
                     throw new ProgramError(where, e,
-                            "TypeRef mismatch binding " + value + " (type "
-                                    + value.type() + ") to " + name + " (type "
-                                    + ft + ")");
+                            errorMsg("TypeRef mismatch binding ", value, " (type ",
+                                     value.type(), ") to ", name, " (type ",
+                                     ft, ")"));
                 }
                 putValue(e, name, value, ft);
             } else {
@@ -700,8 +702,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
             } else {
                 // It is a singleton; do not expose the constructor, do
-                // visit
-                // the interior environment.
+                // visit the interior environment.
                 // BetterEnv interior = new SpineEnv(e, x);
 
                 // TODO - binding into "containing", or "bindInto"?
@@ -1022,9 +1023,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
-                                    "TypeRef mismatch binding " + value + " (type "
-                                            + value.type() + ") to " + name + " (type "
-                                            + ft + ")");
+                                    errorMsg("TypeRef mismatch binding ", value, " (type ",
+                                             value.type(), ") to ", name, " (type ",
+                                             ft, ")"));
                         }
                     } else {
                         ft = FTypeDynamic.ONLY;
@@ -1038,9 +1039,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
-                                 "TypeRef mismatch binding " + value + " (type "
-                                 + value.type() + ") to " + name + " (type "
-                                 + ft + ")");
+                                  errorMsg("TypeRef mismatch binding ", value, " (type ",
+                                  value.type(), ") to ", name, " (type ",
+                                  ft, ")"));
                         }
                     }
                 }

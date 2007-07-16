@@ -37,6 +37,7 @@ import com.sun.fortress.interpreter.useful.BoundingMap;
 import com.sun.fortress.interpreter.useful.MagicNumbers;
 import com.sun.fortress.interpreter.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 abstract public class FType implements Comparable<FType> {
 
@@ -151,7 +152,7 @@ abstract public class FType implements Comparable<FType> {
 
     private void addExcludesInner(FType t) {
         if (t == this)
-            throw new ProgramError("TypeRef cannot exclude itself: " + t);
+            throw new ProgramError(errorMsg("TypeRef cannot exclude itself: ", t));
         excludes.syncPut(t);
     }
 
@@ -395,9 +396,10 @@ abstract public class FType implements Comparable<FType> {
             if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val);
             abm.assign(savedAbm);
         }
-        throw new ProgramError(val,env,"Cannot unify "+this+"("+
-                                       this.getClass()+")\n  with "+ val +
-                                       "("+val.getClass()+")");
+        throw new ProgramError(val,env,
+                errorMsg("Cannot unify ", this, "(", 
+                                       this.getClass(), ")\n  with ", val,
+                                       "(", val.getClass(), ")"));
     }
 
 }

@@ -42,6 +42,7 @@ import com.sun.fortress.interpreter.nodes._WrappedFValue;
 import com.sun.fortress.interpreter.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.useful.NI;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
  * LHSToLValue evaluates the provided LHS to the point that we can,
@@ -58,11 +59,11 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     }
 
     private Expr wrapEval(Expr x, String desc) {
-        FValue v = x.visit(evaluator);
+        FValue v = x.accept(evaluator);
         if (v instanceof FObject) {
             return new _WrappedFValue(x.getSpan(), false, v);
         }
-        throw new ProgramError(x,evaluator.e,desc);
+        throw new ProgramError(x,evaluator.e, errorMsg(desc));
     }
 
     public List<Expr> wrapEvalParallel(List<Expr> es) {
@@ -83,7 +84,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         // TODO: In parallel!
         ArrayList<LHS> res = new ArrayList<LHS>(es.size());
         for (LHS e : es) {
-            res.add(e.visit(this));
+            res.add(e.accept(this));
         }
         return res;
     }

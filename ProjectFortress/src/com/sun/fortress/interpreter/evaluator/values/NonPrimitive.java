@@ -35,6 +35,8 @@ import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.NI;
 import com.sun.fortress.interpreter.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 public abstract class NonPrimitive extends Simple_fcn {
 
     static final List<FValue> VOID_ARG = Collections.singletonList((FValue)FVoid.V);
@@ -131,12 +133,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                     FValue arg = argsIter.next();
                     if (!restType.typeMatch(arg)) {
                         throw new ProgramError(loc, within,
-                                               "Closure/Constructor for "
-                                               + NodeUtil.stringName(getAt())
-                                               + " rest parameter " + i + " ("
-                                               + param.getName()
-                                               + ":" + restType
-                                               + "...) got type " + arg.type());
+                                errorMsg("Closure/Constructor for ",
+                                          NodeUtil.stringName(getAt()),
+                                          " rest parameter ", i, " (",
+                                          param.getName(),
+                                          ":", restType,
+                                          "...) got type ", arg.type()));
                     }
                 }
             } else {
@@ -144,12 +146,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                 FValue arg = argsIter.next();
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, within,
-                            "Closure/Constructor for "
-                                    + NodeUtil.stringName(getAt())
-                                    + " parameter " + i + " ("
-                                    + param.getName() + ":"
-                                    + param.getType() + ") got type "
-                                    + arg.type());
+                            errorMsg("Closure/Constructor for ",
+                                     NodeUtil.stringName(getAt()),
+                                     " parameter ", i, " (",
+                                     param.getName(), ":",
+                                     param.getType(), ") got type ",
+                                     arg.type()));
                 }
             }
         }
@@ -212,12 +214,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                 i++;
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, env,
-                            "Closure/Constructor for "
-                                    + NodeUtil.stringName(getAt())
-                                    + " parameter " + i + " ("
-                                    + param.getName() + ":"
-                                    + paramType + ") got type "
-                                    + arg.type() + " with arg "+ arg);
+                            errorMsg("Closure/Constructor for ",
+                                     NodeUtil.stringName(getAt()),
+                                     " parameter ", i, " (",
+                                     param.getName(), ":",
+                                     paramType, ") got type ",
+                                     arg.type(), " with arg ", arg));
                 }
                 try {
                     if (param.getMutable()) {
@@ -242,9 +244,9 @@ public abstract class NonPrimitive extends Simple_fcn {
         List<FValue> args = fixupArgCount(args0);
         if (args==null) {
             throw new ProgramError(loc,
-                                   "Incorrect number of arguments, expected "+
-                                   Useful.listInParens(params) + ", got " +
-                                   Useful.listInParens(args0));
+                                   errorMsg("Incorrect number of arguments, expected ",
+                                    Useful.listInParens(params), ", got ",
+                                    Useful.listInParens(args0)));
         }
         return args;
     }

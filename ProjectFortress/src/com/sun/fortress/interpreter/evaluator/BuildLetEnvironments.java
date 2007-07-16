@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.nodes.Param;
 import com.sun.fortress.interpreter.nodes.TypeRef;
 import com.sun.fortress.interpreter.nodes_util.*;
 
-
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 
@@ -94,15 +94,15 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         Evaluator new_eval = new Evaluator(containing);
         if (rhs.isPresent()) {
             if (lhs.size() == 1) {
-                FValue val = rhs.getVal().visit(new_eval);
+                FValue val = rhs.getVal().accept(new_eval);
                 LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, val);
-                lhs.get(0).visit(lhs_eval);
+                lhs.get(0).accept(lhs_eval);
             } else {
-                FValue val = rhs.getVal().visit(new_eval);
+                FValue val = rhs.getVal().accept(new_eval);
 
                 if (!(val instanceof FTuple)) {
                     throw new ProgramError(x, containing,
-                                           "RHS does not yield a tuple");
+                                           errorMsg("RHS does not yield a tuple"));
                 }
 
                 FTuple rTuple = (FTuple) val;
@@ -113,7 +113,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                     FValue rval = j.next();
 
                     LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, rval);
-                    lval.visit(lhs_eval);
+                    lval.accept(lhs_eval);
                 }
             }
         } else {
@@ -122,15 +122,15 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                 if (lval instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) lval;
                     if (lvb.isMutable()) {
-                        FValue fv = lval.visit(new_eval);
-                        FType fvt = lvb.getType().getVal().visit(eval_type);
+                        FValue fv = lval.accept(new_eval);
+                        FType fvt = lvb.getType().getVal().accept(eval_type);
                         containing.putVariable(fv.getString(),fvt);
                     } else {
-                        containing.putValue(lval.visit(new_eval), new IndirectionCell());
+                        containing.putValue(lval.accept(new_eval), new IndirectionCell());
 
                     }
                 } else {
-                    containing.putValue(lval.visit(new_eval), new IndirectionCell());
+                    containing.putValue(lval.accept(new_eval), new IndirectionCell());
                 }
             }
 
@@ -139,7 +139,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
     }
 
     public FValue doLets(LetExpr exp) {
-        return exp.visit(this);
+        return exp.accept(this);
     }
 
 }

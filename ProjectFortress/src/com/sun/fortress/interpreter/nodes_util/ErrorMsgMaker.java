@@ -26,32 +26,28 @@ import java.util.*;
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
-    private ErrorMsgMaker() {}
-
-    private final String foldSelf(List<? extends AbstractNode> that) {
-        StringBuffer result = new StringBuffer();
-        for (AbstractNode elt : that) {
-            result.append(elt.visit(this));
-        }
-        return result.toString();
+    public static String makeErrorMsg(AbstractNode node) {
+        return node.accept(ErrorMsgMaker.ONLY);
     }
-
+    
+    private ErrorMsgMaker() {}
+    
     private final List<String> mapSelf(List<? extends AbstractNode> that) {
         LinkedList<String> result = new LinkedList<String>();
         for (AbstractNode elt : that) {
-            result.add(elt.visit(this));
+            result.add(elt.accept(this));
         }
         return result;
     }
 
-    public String forAbsVarDecl(AbsVarDecl node){
+    public String forAbsVarDecl(AbsVarDecl node) {
         return "abs " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
 
     public String forArrowType(ArrowType node) {
         return Useful.listInParens(mapSelf(node.getDomain()))
                 + "->"
-                + node.getRange().visit(this)
+                + node.getRange().accept(this)
                 + (node.getThrowsClause().size() > 0 ? (" throws " +
                         Useful.listInCurlies(mapSelf(node.getThrowsClause()))) : "");
     }
@@ -73,7 +69,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 + (node.getStaticParams().isPresent() ?
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
-                + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().visit(this)) : "")
+                + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
                 + "\n\t@" + NodeUtil.getAt(node.getFnName());
     }
 
@@ -86,7 +82,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forIdType(IdType node) {
-        return node.getName().visit(this);
+        return node.getName().accept(this);
     }
 
     public String forIntLiteral(IntLiteral node) {
@@ -98,23 +94,23 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forKeywordType(KeywordType node) {
-        return "" + node.getName().visit(this) + ":" + node.getType().visit(this);
+        return "" + node.getName().accept(this) + ":" + node.getType().accept(this);
     }
 
     public String forLValueBind(LValueBind node) {
         String r = "";
         if (node.getType().isPresent()) {
-            r = ":" + node.getType().getVal().visit(this);
+            r = ":" + node.getType().getVal().accept(this);
         }
-        return node.getName().visit(this) + r;
+        return node.getName().accept(this) + r;
     }
 
     public String forName(Name node) {
         if (node.getId().isPresent()) {
-            return node.getId().getVal().visit(this);
+            return node.getId().getVal().accept(this);
         }
         else if (node.getOp().isPresent()) {
-            return node.getOp().getVal().visit(this);
+            return node.getOp().getVal().accept(this);
         }
         else {
             throw new Error("Uninitialized Name.");
@@ -135,24 +131,24 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forParam(Param node) {
         StringBuffer sb = new StringBuffer();
-        sb.append(String.valueOf(node.getName().visit(this)));
+        sb.append(String.valueOf(node.getName().accept(this)));
         if (node.getType().isPresent()) {
             sb.append(":");
-            sb.append(node.getType().getVal().visit(this));
+            sb.append(node.getType().getVal().accept(this));
         }
         if (node.getDefaultExpr().isPresent()) {
             sb.append("=");
-            sb.append(node.getDefaultExpr().getVal().visit(this));
+            sb.append(node.getDefaultExpr().getVal().accept(this));
         }
         return sb.toString();
     }
 
     public String forParamType(ParamType node) {
-        return node.getGeneric().visit(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
+        return node.getGeneric().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
     }
 
     public String forVarargsType(VarargsType node) {
-        return node.getType().visit(this) + "...";
+        return node.getType().accept(this) + "...";
     }
 
     public String forSimpleTypeParam(SimpleTypeParam node) {
@@ -164,10 +160,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTypeArg(TypeArg node) {
-        return String.valueOf(node.getType().visit(this));
+        return String.valueOf(node.getType().accept(this));
     }
 
     public String forVarDecl(VarDecl node) {
-        return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().visit(this) + node.getSpan();
+        return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
     }
 }

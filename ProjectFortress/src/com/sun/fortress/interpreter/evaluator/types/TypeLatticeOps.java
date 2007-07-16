@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.useful.DualLattice;
 import com.sun.fortress.interpreter.useful.LatticeOps;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class TypeLatticeOps implements LatticeOps<FType> {
 
@@ -36,7 +37,8 @@ public class TypeLatticeOps implements LatticeOps<FType> {
         // if (y.subtypeOf(x)) return x;
         Set<FType> s = x.join(y);
         if (s.size() != 1)
-            throw new ProgramError("Join(" + x + ", " + y + ") not a singleton: " +  s);
+            throw new ProgramError
+                    (errorMsg("Join(", x, ", ", y, ") not a singleton: ", s));
         return s.iterator().next();
     }
 
@@ -45,7 +47,8 @@ public class TypeLatticeOps implements LatticeOps<FType> {
         // if (y.subtypeOf(x)) return y;
         Set<FType> s = x.meet(y);
         if (s.size() != 1)
-            throw new ProgramError("Meet(" + x + ", " + y + ") not a singleton: " +  s);
+            throw new ProgramError
+                    (errorMsg("Meet(", x, ", ", y, ") not a singleton: ", s));
         return s.iterator().next();
     }
 

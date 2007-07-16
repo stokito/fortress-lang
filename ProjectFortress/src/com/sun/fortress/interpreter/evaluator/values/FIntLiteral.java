@@ -22,6 +22,8 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 public class FIntLiteral extends FValue implements HasIntValue {
 
     public static final BigInteger INT_MIN =
@@ -65,10 +67,10 @@ public class FIntLiteral extends FValue implements HasIntValue {
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 
     public int getInt() {
-        throw new ProgramError("Value "+value+" does not fit in ZZ32.");
+        throw new ProgramError(errorMsg("Value ", value, " does not fit in ZZ32."));
     }
     public long getLong() {
-        throw new ProgramError("Value "+value+" does not fit in ZZ64.");
+        throw new ProgramError(errorMsg("Value ", value, " does not fit in ZZ64."));
     }
     public BigInteger getLit() { return value; }
     public double getFloat() { return value.doubleValue(); }

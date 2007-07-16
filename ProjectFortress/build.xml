@@ -23,20 +23,20 @@
     </description>
 
     <!-- Set global properties for this build. -->
-	<property name="src" location="src"/>
+ <property name="src" location="src"/>
 
-	<property name="blahblahblah" value="com/sun/fortress/interpreter"/>
-	<property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
+ <property name="blahblahblah" value="com/sun/fortress/interpreter"/>
+ <property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
 
-	<property name="build" location="build"/>
-	<property name="astgen" location="${src}/${blahblahblah}/astgen"/>
-	<property name="docs" location="docs"/>
-	<property name="xtc" location="${basedir}/third_party/xtc"/>
-	<property name="bcel" location="${basedir}/third_party/bcel"/>
-	<property name="fj" location="${basedir}/third_party/FJ"/>
-	<property name="unicode" location="${basedir}/third_party/unicode"/>
-	<property name="astgen" location="${basedir}/third_party/astgen"/>
-	<property name="plt" location="${basedir}/third_party/plt"/>
+ <property name="build" location="build"/>
+ <property name="astgen" location="${src}/${blahblahblah}/astgen"/>
+ <property name="docs" location="docs"/>
+ <property name="xtc" location="${basedir}/third_party/xtc"/>
+ <property name="bcel" location="${basedir}/third_party/bcel"/>
+ <property name="fj" location="${basedir}/third_party/FJ"/>
+ <property name="unicode" location="${basedir}/third_party/unicode"/>
+ <property name="astgen" location="${basedir}/third_party/astgen"/>
+ <property name="plt" location="${basedir}/third_party/plt"/>
     <property name="nodesPackage" value="${blahblahblah}/nodes"/>
     <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
     <property name="nodes"  location="${src}/${nodesPackage}"/>
@@ -188,8 +188,8 @@
         <condition property="nodes.uptodate">
           <and>
             <available file="${nodes}/AbstractNode.java"/>
-            <uptodate srcfile="${nodes}/AbstractNode.java"
-                      targetfile="${astgen}/Fortress.ast"/>
+            <uptodate srcfile="${astgen}/Fortress.ast"
+                      targetfile="${nodes}/AbstractNode.java"/>
           </and>
         </condition>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
@@ -252,49 +252,49 @@
         </javac>
     </target>
 
-	   <target name="compileCommon" depends="init"
-	     description="Compile interpreter-indepedent code.">
-	        <depend srcdir="${src}"
-	         destdir="${build}"
-	         closure="yes"
-	         cache="${basedir}/.dependencies"/>
-	        <javac
-	            srcdir="${src}"
-	            destdir="${build}"
-	            source="1.5"
-	            debug="true"
-	            classpath="${compile.classpath}">
+    <target name="compileCommon" depends="init"
+      description="Compile interpreter-indepedent code.">
+         <depend srcdir="${src}"
+          destdir="${build}"
+          closure="yes"
+          cache="${basedir}/.dependencies"/>
+         <javac
+             srcdir="${src}"
+             destdir="${build}"
+             source="1.5"
+             debug="true"
+             classpath="${compile.classpath}">
 
-	            <!-- Uncomment the following line to print unchecked warnings
-	                 (here and in the 'compile' target. -->
-	            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
-	            <include name="${blahblahblah}/useful/*.java"/>
-	            <include name="${blahblahblah}/unicode/*.java"/>
-	        </javac>
-	    </target>
+             <!-- Uncomment the following line to print unchecked warnings
+                  (here and in the 'compile' target. -->
+             <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+             <include name="${blahblahblah}/useful/*.java"/>
+             <include name="${blahblahblah}/unicode/*.java"/>
+         </javac>
+     </target>
 
-	   <target name="compileCommonLint" depends="init"
-	     description="Compile interpreter-indepedent code.">
-	        <depend srcdir="${src}"
-	         destdir="${build}"
-	         closure="yes"
-	         cache="${basedir}/.dependencies"/>
-	        <javac
-	            srcdir="${src}"
-	            destdir="${build}"
-	            source="1.5"
-	            debug="true"
-	            classpath="${compile.classpath}">
+    <target name="compileCommonLint" depends="init"
+      description="Compile interpreter-indepedent code.">
+         <depend srcdir="${src}"
+          destdir="${build}"
+          closure="yes"
+          cache="${basedir}/.dependencies"/>
+         <javac
+             srcdir="${src}"
+             destdir="${build}"
+             source="1.5"
+             debug="true"
+             classpath="${compile.classpath}">
 
-	            <!-- Uncomment the following line to print unchecked warnings
-	                 (here and in the 'compile' target. -->
-	            <compilerarg value="-Xlint:unchecked"/>
-	            <include name="${blahblahblah}/useful/*.java"/>
-	            <include name="${blahblahblah}/unicode/*.java"/>
-	        </javac>
-	    </target>
+             <!-- Uncomment the following line to print unchecked warnings
+                  (here and in the 'compile' target. -->
+             <compilerarg value="-Xlint:unchecked"/>
+             <include name="${blahblahblah}/useful/*.java"/>
+             <include name="${blahblahblah}/unicode/*.java"/>
+         </javac>
+     </target>
 
-	    <target name="jar" depends="compile"
+     <target name="jar" depends="compile"
             description="Package up the interpreter in a jar.">
         <jar
             destfile="../components/fortress/FORTRESS/lib/interpreter.jar"
@@ -347,11 +347,11 @@
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath>
-            	<pathelement location="${build}"/>
+             <pathelement location="${build}"/>
                 <pathelement location="${xtc}/xtc.jar"/>
                 <pathelement location="${bcel}/bcel-5.2.jar"/>
-            	<pathelement location="${fj}/concurrent.jar"/>
-            	<pathelement location="${plt}/plt.jar"/>
+             <pathelement location="${fj}/concurrent.jar"/>
+             <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -378,10 +378,10 @@
                failureProperty="not.passing.yet">
             <classpath>
                 <pathelement location="${build}"/>
-            	<pathelement location="${fj}/concurrent.jar"/>
+             <pathelement location="${fj}/concurrent.jar"/>
                 <pathelement location="${bcel}/bcel-5.2.jar"/>
-            	<pathelement location="${xtc}/xtc.jar"/>
-            	<pathelement location="${plt}/plt.jar"/>
+             <pathelement location="${xtc}/xtc.jar"/>
+             <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
@@ -392,32 +392,32 @@
         </junit>
     </target>
 
-	   <target name="testDemos" depends="compile"
-	            description="Run demos in a test harness.">
-	        <mkdir dir="${basedir}/TEST-RESULTS"/>
-	        <junit printsummary="on"
-	               haltonerror="off"
-	               haltonfailure="off"
-	               showoutput="yes"
-	               fork="true"
-	               maxmemory="${junitMem}"
-	               errorProperty="demos"
-	               failureProperty="demos">
-	            <classpath>
-	                <pathelement location="${build}"/>
-	            	<pathelement location="${fj}/concurrent.jar"/>
-	                <pathelement location="${bcel}/bcel-5.2.jar"/>
-	            	<pathelement location="${xtc}/xtc.jar"/>
-	            	<pathelement location="${plt}/plt.jar"/>
-	            </classpath>
-	            <formatter type="brief" usefile="true"/>
-	            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
-	                <fileset dir="${build}">
-	                    <include name="**/DemoTests.class"/>
-	                </fileset>
-	            </batchtest>
-	        </junit>
-	    </target>
+    <target name="testDemos" depends="compile"
+             description="Run demos in a test harness.">
+         <mkdir dir="${basedir}/TEST-RESULTS"/>
+         <junit printsummary="on"
+                haltonerror="off"
+                haltonfailure="off"
+                showoutput="yes"
+                fork="true"
+                maxmemory="${junitMem}"
+                errorProperty="demos"
+                failureProperty="demos">
+             <classpath>
+                 <pathelement location="${build}"/>
+              <pathelement location="${fj}/concurrent.jar"/>
+                 <pathelement location="${bcel}/bcel-5.2.jar"/>
+              <pathelement location="${xtc}/xtc.jar"/>
+              <pathelement location="${plt}/plt.jar"/>
+             </classpath>
+             <formatter type="brief" usefile="true"/>
+             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+                 <fileset dir="${build}">
+                     <include name="**/DemoTests.class"/>
+                 </fileset>
+             </batchtest>
+         </junit>
+     </target>
 
 
     <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"
@@ -451,21 +451,21 @@
 
     <target name="doc" depends="compile">
       <javadoc overview="${src}/overview.html" destdir="${docs}" classpath="${compile.classpath}">
-<!--	<classpath>
-	  <pathelement location="${compiler.classpath}"/>
-	</classpath> -->
-	<packageset dir="${src}">
-	  <include name="**/*"/>
-	</packageset>
+<!-- <classpath>
+   <pathelement location="${compiler.classpath}"/>
+ </classpath> -->
+ <packageset dir="${src}">
+   <include name="**/*"/>
+ </packageset>
 
-	<header><![CDATA[Fortress Interpreter]]></header>
-	<doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
-	<group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
+ <header><![CDATA[Fortress Interpreter]]></header>
+ <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
+ <group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
 
-	<link href="http://junit.org/junit/javadoc/3.8.1/"/>
-	<link href="http://java.sun.com/j2se/1.5/docs/api/"/>
-	<link href="http://jakarta.apache.org/bcel/apidocs/"/>
-	<link href="http://drjava.org/javadoc/plt/"/>
+ <link href="http://junit.org/junit/javadoc/3.8.1/"/>
+ <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+ <link href="http://jakarta.apache.org/bcel/apidocs/"/>
+ <link href="http://drjava.org/javadoc/plt/"/>
       </javadoc>
 
     </target>

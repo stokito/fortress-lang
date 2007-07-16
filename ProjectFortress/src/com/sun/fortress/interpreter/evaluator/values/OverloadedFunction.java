@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.nodes.FnName;
+import com.sun.fortress.interpreter.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
 import com.sun.fortress.interpreter.nodes.StaticArg;
 import com.sun.fortress.interpreter.nodes.StaticParam;
@@ -43,6 +44,7 @@ import com.sun.fortress.interpreter.useful.Memo1P;
 import com.sun.fortress.interpreter.useful.Ordinal;
 import com.sun.fortress.interpreter.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class  OverloadedFunction extends Fcn
     implements Factory1P<List<FType>, Fcn, HasAt>{
@@ -228,11 +230,11 @@ public class  OverloadedFunction extends Fcn
                 if (!distinct && (sawSymbolic1 || sawSymbolic2)) {
                     String explanation;
                     if (sawSymbolic1 && sawSymbolic2)
-                        explanation = "\nBecause " + o1 + " and " + o2 + " have parameters\n";
+                        explanation = errorMsg("\nBecause ", o1, " and ", o2, " have parameters\n");
                     else if (sawSymbolic1)
-                        explanation = "\nBecause " + o1 + " has a parameter\n";
+                        explanation = errorMsg("\nBecause ", o1, " has a parameter\n");
                     else
-                        explanation = "\nBecause " + o2 + " has a parameter\n";
+                        explanation = errorMsg("\nBecause ", o2, " has a parameter\n");
                     explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
                     throw new ProgramError(o1, o2, within, explanation);
                 }
@@ -241,28 +243,28 @@ public class  OverloadedFunction extends Fcn
                     String s1 = parameterName(unrelated, o1);
                     String s2 = parameterName(unrelated, o2);
 
-                    String explanation = Ordinal.ordinal(unrelated+1) + " parameters " +s1 + ":" + pl1 + " and " + s2 + ":" + pl2 + " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present";
+                    String explanation = errorMsg(Ordinal.ordinal(unrelated+1), " parameters ", s1, ":", pl1, " and ", s2, ":", pl2, " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
                     throw new ProgramError(o1, o2, within, explanation);
                 }
 
                 if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, overloads)) {
                     throw new ProgramError(o1, o2, within,
-                            "Overloading of\n\t(first) " + o1 + " and\n\t(second) " + o2 + " fails because\n\t" +
-                            formatParameterComparison(p1better, o1, o2, "more") + " but\n\t" +
-                            formatParameterComparison(p2better, o1, o2, "less"));
+                            errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
+                            formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
+                            formatParameterComparison(p2better, o1, o2, "less")));
                 }
                 if (!distinct && p1better < 0 && p2better < 0 ) {
                     String explanation = null;
                     if (l1 == l2 && rest1 == rest2) {
                         if (unequal)
-                        explanation = "Overloading of " + o1 + " and " + o2 +
-                        " fails because their parameter lists have potentially overlapping (non-excluding) types";
+                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                        " fails because their parameter lists have potentially overlapping (non-excluding) types");
                         else
-                            explanation = "Overloading of " + o1 + " and " + o2 +
-                        " fails because their parameter lists have the same types";
+                            explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                        " fails because their parameter lists have the same types");
                     } else
-                        explanation = "Overloading of " + o1 + " and " + o2 +
-                        " fails because of ambiguity in overlapping rest (...) parameters";
+                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
+                        " fails because of ambiguity in overlapping rest (...) parameters");
                     throw new ProgramError(o1, o2, within, explanation);
                 }
             }
@@ -382,8 +384,8 @@ public class  OverloadedFunction extends Fcn
             if (best == -1) {
                 // TODO add checks for COERCE, right here.
                 throw new ProgramError(loc,  within,
-                             "Failed to find matching overload, args = " +
-                             Useful.listInParens(args) + ", overload = " + this);
+                             errorMsg("Failed to find matching overload, args = ",
+                             Useful.listInParens(args), ", overload = ", this));
             }
 
             best_f = overloads.get(best).getFn();
@@ -436,8 +438,8 @@ public class  OverloadedFunction extends Fcn
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
-            throw new ProgramError("Failed to find matching overload, args = " +
-                    Useful.listInParens(args) + ", overload = " + this);
+            throw new ProgramError(errorMsg("Failed to find matching overload, args = ",
+                    Useful.listInParens(args), ", overload = ", this));
         }
         return best;
     }
@@ -525,7 +527,8 @@ public class  OverloadedFunction extends Fcn
                return of;
            }
            if (f != null) return f;
-           throw new ProgramError("No matches for instantiation of overloaded " + OverloadedFunction.this + " with " + args);
+           throw new ProgramError(errorMsg("No matches for instantiation of overloaded ",
+                   OverloadedFunction.this, " with ", args));
         }
     }
 

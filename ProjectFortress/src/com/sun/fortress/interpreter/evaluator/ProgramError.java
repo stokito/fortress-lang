@@ -21,8 +21,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import com.sun.fortress.interpreter.nodes.AbstractNode;
 import com.sun.fortress.interpreter.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.useful.HasAt;
+
+import static com.sun.fortress.interpreter.nodes_util.ErrorMsgMaker.makeErrorMsg;
 
 public class ProgramError extends Error {
 
@@ -34,6 +37,19 @@ public class ProgramError extends Error {
     HasAt where;
     HasAt where2;
     Environment within;
+    
+    public static String errorMsg(Object... messages) {
+        StringBuffer fullMessage = new StringBuffer();
+        for (Object message : messages) {
+            if (message instanceof AbstractNode) {
+                fullMessage.append(makeErrorMsg((AbstractNode)message));
+            }
+            else {
+                fullMessage.append(message.toString());
+            }
+        }
+        return fullMessage.toString();
+    }
 
     public ProgramError setWhere(HasAt where) {
         this.where = where;

@@ -21,6 +21,7 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
  * A BaseEnv supplies (enforces!) some overloadings that
@@ -58,7 +59,8 @@ abstract public class BaseEnv implements Environment {
     public void assignValue(HasAt loc, String str, FValue f2) {
         // TODO track down references, catch error, and fix.
         if (hasValue(str)) putValueUnconditionally(str, f2);
-        else throw new ProgramError(loc,this,"Cannot assign to unbound " + str);
+        else throw new ProgramError(loc,this,
+                errorMsg("Cannot assign to unbound ", str));
     }
 
     abstract public void putValueUnconditionally(String str, FValue f2);

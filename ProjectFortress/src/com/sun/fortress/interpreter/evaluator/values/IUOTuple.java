@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.useful.HasAt;
 import com.sun.fortress.interpreter.useful.Useful;
 
-
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
  * Like a tuple, but not. Useful for intermediate results from array pastings
@@ -86,14 +86,14 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                     rank_seen = element_rank;
                 } else if (rank_seen != element_rank) {
                     throw new ProgramError(at,
-                            "Mixed-rank pastings within array/matrix paste");
+                            errorMsg("Mixed-rank pastings within array/matrix paste"));
                 }
                 element_rank = ((IUOTuple) i).elementRank;
 
                 // non-tuple #1 -- there should be no other tuple elements
             } else if (rank_seen > 0) {
                 throw new ProgramError(at,
-                        "Mixed-rank (paste/nonpaste) elements within array/matrix paste");
+                        errorMsg("Mixed-rank (paste/nonpaste) elements within array/matrix paste"));
                 // The rank is negative or zero, make it zero
             } else {
                 rank_seen = 0;
@@ -105,7 +105,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                 element_rank_seen = element_rank;
             } else if (element_rank_seen != element_rank && element_rank > 0) {
                 throw new ProgramError(at,
-                        "Mixed-rank elements within array/matrix paste");
+                        errorMsg("Mixed-rank elements within array/matrix paste"));
             }
 
         }
@@ -166,9 +166,10 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         if (lens[rank - 1] == 0) {
             lens[rank - 1] = l;
         } else if (lens[rank - 1] != l) {
-            throw new ProgramError(at, "At paste level " + rank
-                    + " pasting lengths " + l + " and " + lens[rank]
-                    + " do not match");
+            throw new ProgramError(at, 
+                    errorMsg("At paste level ", rank,
+                        " pasting lengths ", l, " and ", lens[rank],
+                        " do not match"));
         }
     }
 
@@ -200,26 +201,28 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 along_k[coordinate[k]] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at, "Element at "
-                                        + Useful.coordInDelimiters("[",
-                                                coordinate, k, "]")
-                                        + " has extent " + length
-                                        + " along axis " + k
-                                        + " but an earlier element has length "
-                                        + current);
+                                throw new ProgramError(at, 
+                                        errorMsg("Element at ",
+                                            Useful.coordInDelimiters("[",
+                                                coordinate, k, "]"),
+                                            " has extent ", length,
+                                            " along axis ", k,
+                                            " but an earlier element has length ",
+                                            current));
                             }
                         } else {
                             int current = extentSums[k];
                             if (current < 0) {
                                 extentSums[k] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at, "Element at "
-                                        + Useful.coordInDelimiters("[",
-                                                coordinate, "]")
-                                        + " has extent " + length
-                                        + " along axis " + k
-                                        + " but an earlier element has length "
-                                        + current);
+                                throw new ProgramError(at, 
+                                        errorMsg("Element at ",
+                                            Useful.coordInDelimiters("[",
+                                                coordinate, "]"),
+                                            " has extent ", length,
+                                            " along axis ", k,
+                                            " but an earlier element has length ",
+                                            current));
                             }
                         }
                     }
