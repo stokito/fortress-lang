@@ -18,9 +18,6 @@
 component arrayComp
 export Executable
 
-(* Currently does not parse; mapping separator must be fixed when
-   grammar is updated. *)
-
 run(args:String...):() = do
   a : ZZ32[17] = [ i |-> i | i <- 0#17 ]
   for i <- 0#17 do
