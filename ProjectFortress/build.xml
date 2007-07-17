@@ -29,13 +29,12 @@
  <property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
 
  <property name="build" location="build"/>
- <property name="astgen" location="${src}/${blahblahblah}/astgen"/>
+ <property name="astgen" location="astgen"/>
  <property name="docs" location="docs"/>
  <property name="xtc" location="${basedir}/third_party/xtc"/>
  <property name="bcel" location="${basedir}/third_party/bcel"/>
  <property name="fj" location="${basedir}/third_party/FJ"/>
  <property name="unicode" location="${basedir}/third_party/unicode"/>
- <property name="astgen" location="${basedir}/third_party/astgen"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
     <property name="nodesPackage" value="${blahblahblah}/nodes"/>
     <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
