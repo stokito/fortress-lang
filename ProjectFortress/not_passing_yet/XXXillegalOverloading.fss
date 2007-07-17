@@ -28,7 +28,7 @@ object A
 end
 
 run(args: String...): () = do
-  println("This should've failed statically with a bad overloading!")
+  println("This should've f a i l ed statically with a bad overloading!")
   x: ZZ32 = 17
   A.f(x,x)
 end

@@ -301,15 +301,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forAtomicExpr(AtomicExpr x) {
-        final Expr e = x.getExpr();
+        final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
         transactionNestingCount += 1;
 
         FValue res = BaseTask.doIt (
             new Callable<FValue>() {
                 public FValue call() {
-                    Evaluator ev = new Evaluator(new BetterEnv(current.e, e));
-                    return e.accept(ev);
+                    Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                    return expr.accept(ev);
                 }
             }
         );
@@ -829,19 +829,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FValue> evaled = evalExprListParallel(exprs);
         Boolean inFunction = true;
         Stack<FValue> stack = new Stack<FValue>();
-        for (FValue e : evaled) {
-            if (e instanceof Fcn) {
+        for (FValue val : evaled) {
+            if (val instanceof Fcn) {
                 if (!inFunction) {
                     stack.push(juxtApplyStack(stack, times, x));
                     inFunction = true;
                 }
-                stack.push(e);
+                stack.push(val);
             } else if (inFunction) {
                 inFunction = false;
-                stack.push(e);
+                stack.push(val);
             } else {
                 FValue r = stack.pop();
-                r = functionInvocation(Useful.list(r, e), times, x);
+                r = functionInvocation(Useful.list(r, val), times, x);
                 stack.push(r);
             }
         }

@@ -89,8 +89,8 @@ public class UnicodeCollisions {
 
     static void forAllRemoving(ArrayList l, final String s, Map<String, UnicodeCollisions> m) {
         XForm x = new XForm() {
-            String translate(String x) {
-                return x.replace(s, "");
+            String translate(String str) {
+                return str.replace(s, "");
            }};
         for (int i = 0; i < l.size(); i++)
             ((UnicodeCollisions) l.get(i)).addUnderXForm(m, x);

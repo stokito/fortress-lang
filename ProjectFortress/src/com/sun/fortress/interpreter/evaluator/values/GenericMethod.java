@@ -84,13 +84,13 @@ public class GenericMethod extends MethodClosure implements
     private class Factory implements
             Factory1P<List<FType>, MethodClosure, HasAt> {
 
-        public MethodClosure make(List<FType> args, HasAt within) {
-            BetterEnv clenv = new BetterEnv(evaluationEnv, within); // TODO is this the right environment?
+        public MethodClosure make(List<FType> args, HasAt location) {
+            BetterEnv clenv = new BetterEnv(evaluationEnv, location); // TODO is this the right environment?
             // It looks like it might be, or else good enough.  The disambiguating
             // pass effectively hides all the names defined in the interior
             // of the trait.
             List<StaticParam> params = getDef().getStaticParams().getVal();
-            EvalType.bindGenericParameters(params, args, clenv, within,
+            EvalType.bindGenericParameters(params, args, clenv, location,
                     getDef());
             clenv.bless();
             return newClosure(clenv, args);
@@ -100,8 +100,8 @@ public class GenericMethod extends MethodClosure implements
     Memo1P<List<FType>, MethodClosure, HasAt> memo = new Memo1P<List<FType>, MethodClosure, HasAt>(
             new Factory());
 
-    public MethodClosure make(List<FType> l, HasAt within) {
-        return memo.make(l, within);
+    public MethodClosure make(List<FType> l, HasAt location) {
+        return memo.make(l, location);
     }
 
     public GenericMethod(BetterEnv declarationEnv, BetterEnv evaluationEnv,
@@ -118,12 +118,12 @@ public class GenericMethod extends MethodClosure implements
     //
     //    }
 
-    public MethodClosure typeApply(List<StaticArg> args, BetterEnv e, HasAt within) {
+    public MethodClosure typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
         List<StaticParam> params = getDef().getStaticParams().getVal();
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != params.size()) {
-            throw new ProgramError(within, e,
+            throw new ProgramError(location, e,
                     "Generic instantiation (size) mismatch, expected " + params
                             + " got " + args);
         }
@@ -132,7 +132,7 @@ public class GenericMethod extends MethodClosure implements
         // to pass two parameters instead of one.
 
         ArrayList<FType> argValues = et.forStaticArgList(args);
-        return make(argValues, within);
+        return make(argValues, location);
     }
 
     public Closure finishInitializing() {

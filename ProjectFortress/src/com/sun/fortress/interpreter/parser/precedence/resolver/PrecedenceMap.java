@@ -244,8 +244,8 @@ public class PrecedenceMap {
      */
     public boolean isValidChaining(Collection<String> ops) {
         Set<CanonOp> reps = getSimilarSet(ops);
-        for (CanonOp rep : reps) {
-            if (!chain.get(rep).containsAll(reps)) return false;
+        for (CanonOp c_rep : reps) {
+            if (!chain.get(c_rep).containsAll(reps)) return false;
         }
         return true;
     }

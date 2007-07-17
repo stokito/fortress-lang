@@ -56,9 +56,9 @@ public class FTypeObjectInstance extends FTypeObject implements
      *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv unify_env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        return unifyNonVarGeneric(env,tp_set,abm,val);
+        return unifyNonVarGeneric(unify_env,tp_set,abm,val);
     }
 
 }

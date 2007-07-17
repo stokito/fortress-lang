@@ -491,7 +491,7 @@ public class  OverloadedFunction extends Fcn
 
     private class Factory implements Factory1P<List<FType>, Fcn, HasAt> {
 
-        public Fcn make(List<FType> args, HasAt within) {
+        public Fcn make(List<FType> args, HasAt location) {
             // TODO finish this.
 
             SingleFcn   f = null;
@@ -507,7 +507,7 @@ public class  OverloadedFunction extends Fcn
 
                     if (compatible(args, gf.getFnDefOrDecl().getStaticParams().getVal())) {
 
-                        SingleFcn tf = gf.typeApply(within, args);
+                        SingleFcn tf = gf.typeApply(location, args);
                         if (f == null) {
                             f = tf;
                         } else if (of == null) {
@@ -534,8 +534,8 @@ public class  OverloadedFunction extends Fcn
 
      Memo1P<List<FType>, Fcn, HasAt> memo = new Memo1P<List<FType>, Fcn, HasAt>(new Factory());
 
-    public Fcn make(List<FType> l, HasAt within) {
-        return memo.make(l, within);
+    public Fcn make(List<FType> l, HasAt location) {
+        return memo.make(l, location);
     }
 
 
@@ -552,13 +552,13 @@ public class  OverloadedFunction extends Fcn
        return true;
     }
 
-    public Fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt within) {
+    public Fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
         ArrayList<FType> argValues = et.forStaticArgList(args);
 
-        return typeApply(e, within, argValues);
+        return typeApply(e, location, argValues);
     }
 
     /**
@@ -571,9 +571,9 @@ public class  OverloadedFunction extends Fcn
      * @return
      * @throws ProgramError
      */
-    Fcn typeApply(BetterEnv e, HasAt within, List<FType> argValues) throws ProgramError {
+    Fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
         // Need to filter for matching generics in the overloaded type.
-        return make(argValues, within);
+        return make(argValues, location);
     }
 
 

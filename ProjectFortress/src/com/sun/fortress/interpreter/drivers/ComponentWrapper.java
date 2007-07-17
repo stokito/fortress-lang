@@ -116,11 +116,11 @@ public class ComponentWrapper {
     /**
      *
      */
-    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments be) {
+    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env) {
         dis = new Disambiguate();
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
-        be.visit(cu);
+        build_env.visit(cu);
 
         return cu;
     }

@@ -87,11 +87,11 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     public FValue getValue() {
-        FValue theValue = node.getValue();
-        if (theValue == null) {
+        FValue the_value = node.getValue();
+        if (the_value == null) {
             throw new ProgramError("Attempt to read uninitialized variable");
         }
-        return theValue;
+        return the_value;
     }
 
 }

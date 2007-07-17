@@ -93,11 +93,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                                                                 // expose for
                                                                 // second pass.
 
+                    // Perhaps make this conditional on nothing being symbolic here?
                     be.scanForFunctionalMethodNames(ftt, td.getFns(), true);
                     be.secondPass();
                     be.finishTrait(td, ftt, clenv);
                     be.thirdPass();
-                    be.scanForFunctionalMethodNames(ftt, td.getFns(), true);
                     rval = ftt;
                 } else if (dod instanceof ObjectDecl) {
                     ObjectDecl td = (ObjectDecl) dod;
@@ -155,12 +155,12 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     }
 
     public FType typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
-        List<StaticParam> params = def.getStaticParams().getVal();
+        List<StaticParam> static_params = def.getStaticParams().getVal();
 
         // Evaluate each of the args in e, inject into clenv.
-        if (args.size() != params.size()) {
+        if (args.size() != static_params.size()) {
             throw new ProgramError(x, e,
-                                   errorMsg("Generic instantiation (size) mismatch, expected ", Useful.listInOxfords(params),
+                                   errorMsg("Generic instantiation (size) mismatch, expected ", Useful.listInOxfords(static_params),
                                             " got ", Useful.listInOxfords(args)));
         }
         EvalType et = new EvalType(e);

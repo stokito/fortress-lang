@@ -40,14 +40,24 @@ public class FileTests {
         String f;
         String dir;
         String name;
-        boolean failsOnly;
+        
+        /**
+         * If true, only print test output for unexpected results.
+         */
+        boolean unexpectedOnly;
+      
+        
+        boolean printSuccess;
+        boolean printFailure;
 
-        public FSSTest(String d, String s, boolean failsOnly) {
+        public FSSTest(String d, String s, boolean unexpected_only, boolean expect_failure) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
             this.name = s;
-            this.failsOnly = failsOnly;
+            this.unexpectedOnly = unexpected_only;
+            this.printSuccess = !unexpected_only || expect_failure;
+            this.printFailure = !unexpected_only || !expect_failure;
         }
 
         public String getName() {
@@ -58,9 +68,9 @@ public class FileTests {
             PrintStream oldOut = System.out;
             PrintStream oldErr = System.err;
             WireTappedPrintStream wt_err =
-                WireTappedPrintStream.make(System.err, failsOnly);
+                WireTappedPrintStream.make(System.err, unexpectedOnly);
             WireTappedPrintStream wt_out =
-                WireTappedPrintStream.make(System.out, failsOnly);
+                WireTappedPrintStream.make(System.out, unexpectedOnly);
             System.setErr(wt_err);
             System.setOut(wt_out);
 
@@ -86,7 +96,7 @@ public class FileTests {
                         }
                         else {
                             // oldOut.print(" RUNNING"); oldOut.flush();
-                            if (!failsOnly) System.out.println();
+                            if (!unexpectedOnly) System.out.println();
                             if (name.equals("tennisRanking")) {
                                 ArrayList<String> args = new ArrayList<String>();
                                 args.add(dir + "/tennis050307");
@@ -107,8 +117,10 @@ public class FileTests {
             } 
             catch (Throwable ex) {
                 if (f.contains("XXX")) {
-                    wt_err.flush(false);
-                    wt_out.flush(false);
+                    // "Failed", but correctly
+                    // !unexpectedOnly || expectFailure
+                    wt_err.flush(printSuccess);
+                    wt_out.flush(printSuccess);
                     String exFirstLine = ex.toString();
                     int crLoc = exFirstLine.indexOf("\n");
                     if (crLoc == -1) crLoc = exFirstLine.length();
@@ -117,12 +129,16 @@ public class FileTests {
                     return;
                 } 
                 else {
-                    // Unexpected
-                    if (failsOnly) System.out.println();
-                    wt_err.flush(true);
-                    wt_out.flush(true);
-                    System.out.println(" UNEXPECTED exception " + ex);
-                    throw ex;
+                    // Failed, really
+                    if (printFailure) System.out.println();
+                    wt_err.flush(printFailure);
+                    wt_out.flush(printFailure);
+                    if (printFailure) {
+                        System.out.println(" UNEXPECTED exception " + ex);
+                        throw ex;
+                    } else {
+                        System.out.println(" UNEXPECTED exception");
+                        fail(ex.getMessage());                    }
                 }
             }
 
@@ -134,22 +150,23 @@ public class FileTests {
             if (f.contains("XXX")) {
                 // NOTE expect to see this on STANDARD OUTPUT, not ERROR.
                 if (outs.contains("fail") || outs.contains("FAIL")) {
-                    wt_err.flush(false);
-                    wt_out.flush(false);
+                    wt_err.flush(printSuccess);
+                    wt_out.flush(printSuccess);
                     // Saw a failure, that is good.
                     System.out.println(" Saw expected failure " );
                 } else {
-                    if (failsOnly) System.out.println();
-                    wt_err.flush(true);
-                    wt_out.flush(true);
+                    if (printFailure) System.out.println();
+                    wt_err.flush(printFailure);
+                    wt_out.flush(printFailure);
+                    System.out.println(" Missing expected failure " );
                     // Expected exception, saw none.
                     fail("Expected failure or exception, saw none.");
                 }
             } else {
                 boolean anyFails = outs.contains("fail") || outs.contains("FAIL");
                     System.out.println(anyFails ? " FAIL" : " OK");
-                    wt_err.flush(anyFails);
-                    wt_out.flush(anyFails);
+                    wt_err.flush(anyFails ? printFailure : printSuccess);
+                    wt_out.flush(anyFails ? printFailure : printSuccess);
 
                     assertFalse("Saw failure string", anyFails);
 
@@ -184,11 +201,11 @@ public class FileTests {
     }
 
     public static void main(String[] args) {
-        junit.textui.TestRunner.run(FileTests.suite("tests", true));
-        junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false));
+        junit.textui.TestRunner.run(FileTests.suite("tests", true, false));
+        junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false, true));
     }
 
-    public static Test suite(String dirname, boolean failsOnly) {
+    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
         dirname = ProjectProperties.backslashToSlash(dirname);
@@ -201,7 +218,7 @@ public class FileTests {
                 if (s.endsWith(".fss")) {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
-                    suite.addTest(new FSSTest(dirname, s.substring(0, l), failsOnly));
+                    suite.addTest(new FSSTest(dirname, s.substring(0, l), failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");
                     suite.addTest(new JSTTest(dirname, s.substring(0, l)));

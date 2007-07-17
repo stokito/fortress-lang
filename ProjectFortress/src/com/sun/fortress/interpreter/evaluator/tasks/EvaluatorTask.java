@@ -52,7 +52,8 @@ public class EvaluatorTask extends BaseTask {
         catch (Throwable e) {
             causedException = true;
             err = e;
-            System.err.println("\nGot exception:\n" + e);
+            //System.err.println("\nGot exception:\n" + e);
+            e.printStackTrace();
         }
         finalizeTask();
     }

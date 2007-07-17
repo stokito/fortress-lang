@@ -179,9 +179,9 @@ public class Disambiguate extends Rewrite {
         }
         String s;
         Expr replacement(VarRefExpr original) {
-            Expr e = dottedReference(original.getSpan(),
+            Expr expr = dottedReference(original.getSpan(),
                     objectNestingDepth - nestedness);
-            return e;
+            return expr;
         }
         public String toString() { return "Self("+s+")@"+nestedness; }
 
@@ -261,27 +261,27 @@ public class Disambiguate extends Rewrite {
     /**
      * Adds, to the supplied environment, constructors for any object
      * expressions encountered the tree(s) processed by this Disambiguator.
-     * @param e
+     * @param env
      */
-    public void registerObjectExprs(BetterEnv e) {
+    public void registerObjectExprs(BetterEnv env) {
         for (_RewriteObjectExpr oe : objectExprs) {
             String name = oe.getGenSymName();
             Option<List<StaticParam>> params = oe.getStaticParams();
             if (! params.isPresent()) {
                 // Regular constructor
-                FTypeObject fto = new FTypeObject(name, e, oe, oe.getDefOrDecls());
-                e.putType(name, fto);
-                BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, e, oe);
-                Constructor con = new Constructor(e, fto, oe, NodeFactory.makeFun(name), oe.getDefOrDecls());
+                FTypeObject fto = new FTypeObject(name, env, oe, oe.getDefOrDecls());
+                env.putType(name, fto);
+                BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, env, oe);
+                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeFun(name), oe.getDefOrDecls());
                 con.setParams(Collections.<Parameter> emptyList());
-                e.putValue(name, con);
+                env.putValue(name, con);
                 con.finishInitializing();
             } else {
                 // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(e, oe, oe.getDefOrDecls());
-                e.putType(name, fto);
-                GenericConstructor con = new GenericConstructor(e, oe);
-                e.putValue(name, con);
+                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDefOrDecls());
+                env.putType(name, fto);
+                GenericConstructor con = new GenericConstructor(env, oe);
+                env.putValue(name, con);
             }
         }
     }
@@ -627,9 +627,9 @@ public class Disambiguate extends Rewrite {
                 System.err.println("Rewritten method body:");
                 NodeUtil.dump(System.err, n);
                 System.err.println();
-            } catch (IOException e) {
+            } catch (IOException ex) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                ex.printStackTrace();
             }
 
         }

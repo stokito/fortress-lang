@@ -103,10 +103,10 @@ public class FGenericFunction extends SingleFcn
 
     private class Factory implements Factory1P<List<FType>, Simple_fcn, HasAt> {
 
-        public Simple_fcn make(List<FType> args, HasAt within) {
-            BetterEnv clenv = new BetterEnv(getEnv(), within);
+        public Simple_fcn make(List<FType> args, HasAt location) {
+            BetterEnv clenv = new BetterEnv(getEnv(), location);
             List<StaticParam> params = fndef.getStaticParams().getVal();
-            EvalType.bindGenericParameters(params, args, clenv, within, fndef);
+            EvalType.bindGenericParameters(params, args, clenv, location, fndef);
 
             return newClosure(clenv, args);
         }
@@ -116,8 +116,8 @@ public class FGenericFunction extends SingleFcn
 
      Memo1P<List<FType>, Simple_fcn, HasAt> memo = new Memo1P<List<FType>, Simple_fcn, HasAt>(new Factory());
 
-    public Simple_fcn make(List<FType> l, HasAt within) {
-        return memo.make(l, within);
+    public Simple_fcn make(List<FType> l, HasAt location) {
+        return memo.make(l, location);
     }
 
     FnDefOrDecl fndef;
@@ -135,13 +135,13 @@ public class FGenericFunction extends SingleFcn
         this.fndef = fndef;
     }
 
-    public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt within) {
+    public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory
         // to pass two parameters instead of one.
         ArrayList<FType> argValues = et.forStaticArgList(args);
 
-        return typeApply(e, within, argValues);
+        return typeApply(e, location, argValues);
     }
 
     /**
@@ -149,24 +149,24 @@ public class FGenericFunction extends SingleFcn
      *
      * @param args
      * @param e
-     * @param within
+     * @param location
      * @param argValues
      * @return
      * @throws ProgramError
      */
-    Simple_fcn typeApply(BetterEnv e, HasAt within, List<FType> argValues) throws ProgramError {
+    Simple_fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
         List<StaticParam> params = fndef.getStaticParams().getVal();
 
         // Evaluate each of the args in e, inject into clenv.
         if (argValues.size() != params.size() ) {
-            throw new ProgramError(within, e,  
+            throw new ProgramError(location, e,  
                     errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", argValues));
         }
-        return make(argValues, within);
+        return make(argValues, location);
     }
 
-    Simple_fcn typeApply(HasAt within, List<FType> argValues) throws ProgramError {
-        return make(argValues, within);
+    Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
+        return make(argValues, location);
     }
 
     @Override
