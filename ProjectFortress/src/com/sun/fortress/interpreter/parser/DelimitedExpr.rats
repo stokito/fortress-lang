@@ -280,7 +280,7 @@ Comprehension Comprehension =
 /* The operator "|->" should not be in the left-hand sides of map expressions
    and map/array comprehensions.
  */
-String mapstoOp = !("|->" w Expr (w mapsto / wr bar)) "|->" ;
+String mapstoOp = !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->" ;
 
 /* Entry ::= Expr w |-> w Expr */
 Entry Entry = a1:Expr w mapsto w a2:Expr
