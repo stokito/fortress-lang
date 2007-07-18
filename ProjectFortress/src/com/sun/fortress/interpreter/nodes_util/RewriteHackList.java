@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.interpreter.useful.Voidoid;
 
 /**
  * If the name isn't a clue, this class exists only to make it
@@ -54,4 +55,15 @@ public class RewriteHackList extends AbstractNode {
     public void output(java.io.Writer writer) {}
     public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }
+    
+    /** Generate a human-readable representation that can be deserialized. */
+    public String serialize() { 
+        return NI.<String>na("Instances of this helper class should never be serialized");
+    }
+    /** Generate a human-readable representation that can be deserialized. */
+    public void serialize(java.io.Writer writer) {
+        NI.<Voidoid>na("Instances of this helper class should never be serialized");
+    }
+    
+    
 }
