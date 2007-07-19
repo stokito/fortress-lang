@@ -17,6 +17,12 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+# This script reads a "bunch" of tests (currently, all who name begins
+# with the letter "a"), writes their ASTs to disk, then runs a program that
+# reads ASTs and writes them to disk, and then compares that the twice-written
+# AST does not differ from the once-written AST.  Notice that AST writing itself
+# might omit information, so what this is really testing is AST reading.
+
 if (uname | egrep -q CYGWIN) ; then 
   CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/dstm2/dstm2.jar;third_party/bcel/bcel-5.2.jar"
 else
@@ -35,6 +41,8 @@ com.sun.fortress.interpreter.drivers.fs -parseOnly -ast $i
   mv $TFSNAME $A
 done
 
+# Tup is an old testing driver that reads ASTs, in bunches, and writes them
+# back to disk, in bunches.
 java -cp "$CP" com.sun.fortress.interpreter.drivers.Tup -fileout=tfs $A/*.tfs
 for i in $A/*.tfs; do
   diff $i ${i}2
