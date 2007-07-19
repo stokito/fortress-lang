@@ -450,9 +450,6 @@
 
     <target name="doc" depends="compile">
       <javadoc overview="${src}/overview.html" destdir="${docs}" classpath="${compile.classpath}">
-<!-- <classpath>
-   <pathelement location="${compiler.classpath}"/>
- </classpath> -->
  <packageset dir="${src}">
    <include name="**/*"/>
  </packageset>
@@ -469,4 +466,9 @@
 
     </target>
 
+    <target name="testNPY" description="Graphically run all tests that are not yet expected to pass">
+        <java classname="junit.swingui.TestRunner" classpath="${compile.classpath}" fork="true" maxmemory="320m" spawn="yes">
+	    <arg value="com.sun.fortress.interpreter.drivers.NotPassingYet"/>
+        </java>
+    </target>
 </project>
