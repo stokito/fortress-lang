@@ -22,6 +22,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.nodes.AbstractNode;
+import com.sun.fortress.interpreter.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.interpreter.useful.EquivalenceClass;
 import com.sun.fortress.interpreter.useful.Fn;
 import com.sun.fortress.interpreter.useful.Useful;
@@ -31,6 +33,13 @@ public abstract class FValue {
     //   public static final FValue ZERO = new FInt(0);
     //  public static final FValue ONE = new FInt(1);
 
+    protected static String s(Object node) {
+        return node == null ? "NULL" :
+        (node instanceof AbstractNode) ?
+        ErrorMsgMaker.makeErrorMsg((AbstractNode) node) :
+            node.toString();
+    }
+    
     public String toString() {
         return getClass().getSimpleName() + " " + getString();
     }
