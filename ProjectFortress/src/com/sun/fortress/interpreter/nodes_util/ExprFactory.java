@@ -243,182 +243,194 @@ public class ExprFactory {
     }
 
     public static Expr makeInParentheses(Expr expr) {
-        if (expr instanceof AsExpr) {
-            AsExpr e = (AsExpr)expr;
-            return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
-        } else if (expr instanceof AsIfExpr) {
-            AsIfExpr e = (AsIfExpr)expr;
-            return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
-        } else if (expr instanceof Assignment) {
-            Assignment e = (Assignment)expr;
-            return new Assignment(e.getSpan(), true, e.getLhs(), e.getOp(),
-                                  e.getRhs());
-        } else if (expr instanceof Block) {
-            Block e = (Block)expr;
-            return new Block(e.getSpan(), true, e.getExprs());
-        } else if (expr instanceof CaseExpr) {
-            CaseExpr e = (CaseExpr)expr;
-            return new CaseExpr(e.getSpan(), true, e.getParam(), e.getCompare(),
-                                e.getClauses(), e.getElseClause());
-        } else if (expr instanceof Do) {
-            Do e = (Do)expr;
-            return new Do(e.getSpan(), true, e.getFronts());
-        } else if (expr instanceof For) {
-            For e = (For)expr;
-            return new For(e.getSpan(), true, e.getGens(), e.getBody());
-        } else if (expr instanceof If) {
-            If e = (If)expr;
-            return new If(e.getSpan(), true, e.getClauses(), e.getElseClause());
-        } else if (expr instanceof Label) {
-            Label e = (Label)expr;
-            return new Label(e.getSpan(), true, e.getName(), e.getBody());
-        } else if (expr instanceof ObjectExpr) {
-            ObjectExpr e = (ObjectExpr)expr;
-            return new ObjectExpr(e.getSpan(), true, e.getTraits(),
-                                  e.getDefOrDecls());
-        } else if (expr instanceof _RewriteObjectExpr) {
-            _RewriteObjectExpr e = (_RewriteObjectExpr)expr;
-            return new _RewriteObjectExpr(e.getSpan(), true, e.getTraits(),
-                                          e.getDefOrDecls(),
-                                          e.getImplicitTypeParameters(),
-                                          e.getGenSymName(), e.getStaticParams(),
-                                          e.getStaticArgs(), e.getParams());
-        } else if (expr instanceof Try) {
-            Try e = (Try)expr;
-            return new Try(e.getSpan(), true, e.getBody(), e.getCatchClause(),
-                           e.getForbid(), e.getFinallyClause());
-        } else if (expr instanceof TupleExpr) {
-            TupleExpr e = (TupleExpr)expr;
-            return new TupleExpr(e.getSpan(), true, e.getExprs());
-        } else if (expr instanceof KeywordsExpr) {
-            KeywordsExpr e = (KeywordsExpr)expr;
-            return new KeywordsExpr(e.getSpan(), true, e.getExprs(),
-                                    e.getKeywords());
-        } else if (expr instanceof TypeCase) {
-            TypeCase e = (TypeCase)expr;
-            return new TypeCase(e.getSpan(), true, e.getBind(), e.getClauses(),
-                                e.getElseClause());
-        } else if (expr instanceof VarargsExpr) {
-            VarargsExpr e = (VarargsExpr)expr;
-            return new VarargsExpr(e.getSpan(), true, e.getVarargs());
-        } else if (expr instanceof While) {
-            While e = (While)expr;
-            return new While(e.getSpan(), true, e.getTest(), e.getBody());
-        } else if (expr instanceof _WrappedFValue) {
-            _WrappedFValue e = (_WrappedFValue)expr;
-            return new _WrappedFValue(e.getSpan(), true, e.getFValue());
-        } else if (expr instanceof Accumulator) {
-            Accumulator e = (Accumulator)expr;
-            return new Accumulator(e.getSpan(), true, e.getOp(), e.getGens(),
-                                   e.getBody());
-        } else if (expr instanceof AtomicExpr) {
-            AtomicExpr e = (AtomicExpr)expr;
-            return new AtomicExpr(e.getSpan(), true, e.getExpr());
-        } else if (expr instanceof Exit) {
-            Exit e = (Exit)expr;
-            return new Exit(e.getSpan(), true, e.getName(), e.getReturnExpr());
-        } else if (expr instanceof Spawn) {
-            Spawn e = (Spawn)expr;
-            return new Spawn(e.getSpan(), true, e.getBody());
-        } else if (expr instanceof Throw) {
-            Throw e = (Throw)expr;
-            return new Throw(e.getSpan(), true, e.getExpr());
-        } else if (expr instanceof TryAtomicExpr) {
-            TryAtomicExpr e = (TryAtomicExpr)expr;
-            return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
-        } else if (expr instanceof FnExpr) {
-            FnExpr e = (FnExpr)expr;
-            return new FnExpr(e.getSpan(), true, e.getFnName(),
-                              e.getStaticParams(), e.getParams(),
-                              e.getReturnType(), e.getWhere(),
-                              e.getThrowsClause(), e.getBody());
-        } else if (expr instanceof GeneratedExpr) {
-            GeneratedExpr e = (GeneratedExpr)expr;
-            return new GeneratedExpr(e.getSpan(), true, e.getBody(), e.getExpr(),
-                                     e.getGens());
-        } else if (expr instanceof LetFn) {
-            LetFn e = (LetFn)expr;
-            return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
-        } else if (expr instanceof LocalVarDecl) {
-            LocalVarDecl e = (LocalVarDecl)expr;
-            return new LocalVarDecl(e.getSpan(), true, e.getBody(), e.getLhs(),
-                                    e.getRhs());
-        } else if (expr instanceof OprExpr) {
-            OprExpr e = (OprExpr)expr;
-            return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
-        } else if (expr instanceof Apply) {
-            Apply e = (Apply)expr;
-            return new Apply(e.getSpan(), true, e.getFn(), e.getArgs());
-        } else if (expr instanceof MapExpr) {
-            MapExpr e = (MapExpr)expr;
-            return new MapExpr(e.getSpan(), true, e.getElements());
-        } else if (expr instanceof ArrayElement) {
-            ArrayElement e = (ArrayElement)expr;
-            return new ArrayElement(e.getSpan(), true, e.getElement());
-        } else if (expr instanceof ArrayElements) {
-            ArrayElements e = (ArrayElements)expr;
-            return new ArrayElements(e.getSpan(), true, e.getDimension(),
-                                     e.getElements());
-        } else if (expr instanceof FloatLiteral) {
-            FloatLiteral e = (FloatLiteral)expr;
-            return new FloatLiteral(e.getSpan(), true, e.getText(),
-                                    e.getIntPart(), e.getNumerator(),
-                                    e.getDenomBase(), e.getDenomPower());
-        } else if (expr instanceof IntLiteral) {
-            IntLiteral e = (IntLiteral)expr;
-            return new IntLiteral(e.getSpan(), true, e.getText(), e.getVal());
-        } else if (expr instanceof CharLiteral) {
-            CharLiteral e = (CharLiteral)expr;
-            return new CharLiteral(e.getSpan(), true, e.getText(), e.getVal());
-        } else if (expr instanceof StringLiteral) {
-            StringLiteral e = (StringLiteral)expr;
-            return new StringLiteral(e.getSpan(), true, e.getText());
-        } else if (expr instanceof VoidLiteral) {
-            VoidLiteral e = (VoidLiteral)expr;
-            return new VoidLiteral(e.getSpan(), true, e.getText());
-        } else if (expr instanceof VarRefExpr) {
-            VarRefExpr e = (VarRefExpr)expr;
-            return new VarRefExpr(e.getSpan(), true, e.getVar());
-        } else if (expr instanceof ArrayComprehension) {
-            ArrayComprehension e = (ArrayComprehension)expr;
-            return new ArrayComprehension(e.getSpan(), true, e.getClauses());
-        } else if (expr instanceof SetComprehension) {
-            SetComprehension e = (SetComprehension)expr;
-            return new SetComprehension(e.getSpan(), true, e.getGens(),
-                                        e.getElement());
-        } else if (expr instanceof MapComprehension) {
-            MapComprehension e = (MapComprehension)expr;
-            return new MapComprehension(e.getSpan(), true, e.getGens(),
-                                        e.getKey(), e.getValue());
-        } else if (expr instanceof ListComprehension) {
-            ListComprehension e = (ListComprehension)expr;
-            return new ListComprehension(e.getSpan(), true, e.getGens(),
-                                         e.getElement());
-        } else if (expr instanceof ChainExpr) {
-            ChainExpr e = (ChainExpr)expr;
-            return new ChainExpr(e.getSpan(), true, e.getFirst(), e.getLinks());
-        } else if (expr instanceof FieldSelection) {
-            FieldSelection e = (FieldSelection)expr;
-            return new FieldSelection(e.getSpan(), true, e.getObj(), e.getId());
-        } else if (expr instanceof LooseJuxt) {
-            LooseJuxt e = (LooseJuxt)expr;
-            return new LooseJuxt(e.getSpan(), true, e.getExprs());
-        } else if (expr instanceof TightJuxt) {
-            TightJuxt e = (TightJuxt)expr;
-            return new TightJuxt(e.getSpan(), true, e.getExprs());
-        } else if (expr instanceof TypeApply) {
-            TypeApply e = (TypeApply)expr;
-            return new TypeApply(e.getSpan(), true, e.getExpr(), e.getArgs());
-        } else if (expr instanceof SubscriptExpr) {
-            SubscriptExpr e = (SubscriptExpr)expr;
-            return new SubscriptExpr(e.getSpan(), true, e.getObj(), e.getSubs(),
-                                     e.getOp());
-        } else if (expr instanceof UnitRef) {
-            UnitRef e = (UnitRef)expr;
-            return new UnitRef(e.getSpan(), true, e.getVal());
-        } else {
-            throw new InterpreterError("makeInParentheses: " + expr.getClass() +
-                                       " is not a subtype of Expr.");
-        }
+        return expr.accept(new NodeAbstractVisitor<Expr>() {
+            public Expr forAsExpr(AsExpr e) {
+                return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
+            }
+            public Expr forAsIfExpr(AsIfExpr e) {
+                return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
+            }
+            public Expr forAssignment(Assignment e) {
+                return new Assignment(e.getSpan(), true, e.getLhs(), e.getOp(),
+                                      e.getRhs());
+            }
+            public Expr forBlock(Block e) {
+                return new Block(e.getSpan(), true, e.getExprs());
+            }
+            public Expr forCaseExpr(CaseExpr e) {
+                return new CaseExpr(e.getSpan(), true, e.getParam(),
+                                    e.getCompare(), e.getClauses(),
+                                    e.getElseClause());
+            }
+            public Expr forDo(Do e) {
+                return new Do(e.getSpan(), true, e.getFronts());
+            }
+            public Expr forFor(For e) {
+                return new For(e.getSpan(), true, e.getGens(), e.getBody());
+            }
+            public Expr forIf(If e) {
+                return new If(e.getSpan(), true, e.getClauses(),
+                              e.getElseClause());
+            }
+            public Expr forLabel(Label e) {
+                return new Label(e.getSpan(), true, e.getName(), e.getBody());
+            }
+            public Expr forObjectExpr(ObjectExpr e) {
+                return new ObjectExpr(e.getSpan(), true, e.getTraits(),
+                                      e.getDefOrDecls());
+            }
+            public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
+                return new _RewriteObjectExpr(e.getSpan(), true, e.getTraits(),
+                                              e.getDefOrDecls(),
+                                              e.getImplicitTypeParameters(),
+                                              e.getGenSymName(),
+                                              e.getStaticParams(),
+                                              e.getStaticArgs(), e.getParams());
+            }
+            public Expr forTry(Try e) {
+                return new Try(e.getSpan(), true, e.getBody(),
+                               e.getCatchClause(), e.getForbid(),
+                               e.getFinallyClause());
+            }
+            public Expr forTupleExpr(TupleExpr e) {
+                return new TupleExpr(e.getSpan(), true, e.getExprs());
+            }
+            public Expr forKeywordsExpr(KeywordsExpr e) {
+                return new KeywordsExpr(e.getSpan(), true, e.getExprs(),
+                                        e.getKeywords());
+            }
+            public Expr forTypeCase(TypeCase e) {
+                return new TypeCase(e.getSpan(), true, e.getBind(),
+                                    e.getClauses(), e.getElseClause());
+            }
+            public Expr forVarargsExpr(VarargsExpr e) {
+                return new VarargsExpr(e.getSpan(), true, e.getVarargs());
+            }
+            public Expr forWhile(While e) {
+                return new While(e.getSpan(), true, e.getTest(), e.getBody());
+            }
+            public Expr for_WrappedFValue(_WrappedFValue e) {
+                return new _WrappedFValue(e.getSpan(), true, e.getFValue());
+            }
+            public Expr forAccumulator(Accumulator e) {
+                return new Accumulator(e.getSpan(), true, e.getOp(), e.getGens(),
+                                       e.getBody());
+            }
+            public Expr forAtomicExpr(AtomicExpr e) {
+                return new AtomicExpr(e.getSpan(), true, e.getExpr());
+            }
+            public Expr forExit(Exit e) {
+                return new Exit(e.getSpan(), true, e.getName(),
+                                e.getReturnExpr());
+            }
+            public Expr forSpawn(Spawn e) {
+                return new Spawn(e.getSpan(), true, e.getBody());
+            }
+            public Expr forThrow(Throw e) {
+                return new Throw(e.getSpan(), true, e.getExpr());
+            }
+            public Expr forTryAtomicExpr(TryAtomicExpr e) {
+                return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
+            }
+            public Expr forFnExpr(FnExpr e) {
+                return new FnExpr(e.getSpan(), true, e.getFnName(),
+                                  e.getStaticParams(), e.getParams(),
+                                  e.getReturnType(), e.getWhere(),
+                                  e.getThrowsClause(), e.getBody());
+            }
+            public Expr forGeneratedExpr(GeneratedExpr e) {
+                return new GeneratedExpr(e.getSpan(), true, e.getBody(),
+                                         e.getExpr(), e.getGens());
+            }
+            public Expr forLetFn(LetFn e) {
+                return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
+            }
+            public Expr forLocalVarDecl(LocalVarDecl e) {
+                return new LocalVarDecl(e.getSpan(), true, e.getBody(),
+                                        e.getLhs(), e.getRhs());
+            }
+            public Expr forOprExpr(OprExpr e) {
+                return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
+            }
+            public Expr forApply(Apply e) {
+                return new Apply(e.getSpan(), true, e.getFn(), e.getArgs());
+            }
+            public Expr forMapExpr(MapExpr e) {
+                return new MapExpr(e.getSpan(), true, e.getElements());
+            }
+            public Expr forArrayElement(ArrayElement e) {
+                return new ArrayElement(e.getSpan(), true, e.getElement());
+            }
+            public Expr forArrayElements(ArrayElements e) {
+                return new ArrayElements(e.getSpan(), true, e.getDimension(),
+                                         e.getElements());
+            }
+            public Expr forFloatLiteral(FloatLiteral e) {
+                return new FloatLiteral(e.getSpan(), true, e.getText(),
+                                        e.getIntPart(), e.getNumerator(),
+                                        e.getDenomBase(), e.getDenomPower());
+            }
+            public Expr forIntLiteral(IntLiteral e) {
+                return new IntLiteral(e.getSpan(), true, e.getText(),
+                                      e.getVal());
+            }
+            public Expr forCharLiteral(CharLiteral e) {
+                return new CharLiteral(e.getSpan(), true, e.getText(),
+                                       e.getVal());
+            }
+            public Expr forStringLiteral(StringLiteral e) {
+                return new StringLiteral(e.getSpan(), true, e.getText());
+            }
+            public Expr forVoidLiteral(VoidLiteral e) {
+                return new VoidLiteral(e.getSpan(), true, e.getText());
+            }
+            public Expr forVarRefExpr(VarRefExpr e) {
+                return new VarRefExpr(e.getSpan(), true, e.getVar());
+            }
+            public Expr forArrayComprehension(ArrayComprehension e) {
+                return new ArrayComprehension(e.getSpan(), true, e.getClauses());
+            }
+            public Expr forSetComprehension(SetComprehension e) {
+                return new SetComprehension(e.getSpan(), true, e.getGens(),
+                                            e.getElement());
+            }
+            public Expr forMapComprehension(MapComprehension e) {
+                return new MapComprehension(e.getSpan(), true, e.getGens(),
+                                            e.getKey(), e.getValue());
+            }
+            public Expr forListComprehension(ListComprehension e) {
+                return new ListComprehension(e.getSpan(), true, e.getGens(),
+                                             e.getElement());
+            }
+            public Expr forChainExpr(ChainExpr e) {
+                return new ChainExpr(e.getSpan(), true, e.getFirst(),
+                                     e.getLinks());
+            }
+            public Expr forFieldSelection(FieldSelection e) {
+                return new FieldSelection(e.getSpan(), true, e.getObj(),
+                                          e.getId());
+            }
+            public Expr forLooseJuxt(LooseJuxt e) {
+                return new LooseJuxt(e.getSpan(), true, e.getExprs());
+            }
+            public Expr forTightJuxt(TightJuxt e) {
+                return new TightJuxt(e.getSpan(), true, e.getExprs());
+            }
+            public Expr forTypeApply(TypeApply e) {
+                return new TypeApply(e.getSpan(), true, e.getExpr(),
+                                     e.getArgs());
+            }
+            public Expr forSubscriptExpr(SubscriptExpr e) {
+                return new SubscriptExpr(e.getSpan(), true, e.getObj(),
+                                         e.getSubs(), e.getOp());
+            }
+            public Expr forUnitRef(UnitRef e) {
+                return new UnitRef(e.getSpan(), true, e.getVal());
+            }
+            public Expr defaultCase(Node x) {
+                throw new InterpreterError("makeInParentheses: " + x.getClass() +
+                                           " is not a subtype of Expr.");
+            }
+        });
     }
 }
