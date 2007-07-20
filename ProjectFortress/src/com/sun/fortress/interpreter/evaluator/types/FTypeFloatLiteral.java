@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 public class FTypeFloatLiteral extends FType {
     public final static FTypeFloatLiteral ONLY = new FTypeFloatLiteral();

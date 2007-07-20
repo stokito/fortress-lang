@@ -25,12 +25,12 @@ import java.util.Map;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.Api;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes.Component;
-import com.sun.fortress.interpreter.nodes_util.StringMaker;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 
 public class ComponentWrapper {

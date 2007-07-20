@@ -25,12 +25,12 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.AssignedList;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.AssignedList;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 public class FunctionalMethod extends Closure {
 

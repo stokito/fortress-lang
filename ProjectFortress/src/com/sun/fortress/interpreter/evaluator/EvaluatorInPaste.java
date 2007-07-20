@@ -21,9 +21,9 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
-import com.sun.fortress.interpreter.nodes.ArrayExpr;
-import com.sun.fortress.interpreter.nodes.ArrayElement;
-import com.sun.fortress.interpreter.nodes.ArrayElements;
+import com.sun.fortress.nodes.ArrayExpr;
+import com.sun.fortress.nodes.ArrayElement;
+import com.sun.fortress.nodes.ArrayElements;
 
 
 public class EvaluatorInPaste extends Evaluator {

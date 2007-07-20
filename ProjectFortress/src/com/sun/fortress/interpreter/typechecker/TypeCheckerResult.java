@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.PureList;
 
 public final class TypeCheckerResult {
     public static final TypeCheckerResult VALID = new TypeCheckerResult();

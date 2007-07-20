@@ -22,11 +22,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.ErrorMsgMaker;
-import com.sun.fortress.interpreter.useful.EquivalenceClass;
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.ErrorMsgMaker;
+import com.sun.fortress.useful.EquivalenceClass;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Useful;
 
 
 public abstract class FValue {

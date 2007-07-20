@@ -21,9 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 
 public class TypeFixedDimIndices extends TypeIndices {

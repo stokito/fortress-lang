@@ -30,9 +30,9 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Lower;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.None;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealPrecedence;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.useful.VarArgs;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.VarArgs;
 
 
 /* The following file is the automatially-generated list of operator

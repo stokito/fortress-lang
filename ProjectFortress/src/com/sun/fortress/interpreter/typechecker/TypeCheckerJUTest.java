@@ -26,10 +26,10 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.useful.TcWrapper;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.TcWrapper;
 
 /**
  * Tests that specific files in the tests directory contain static errors.  Ensuring that

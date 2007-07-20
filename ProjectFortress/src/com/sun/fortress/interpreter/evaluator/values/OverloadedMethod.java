@@ -22,11 +22,11 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.Fun;
-import com.sun.fortress.interpreter.nodes_util.NodeFactory;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.Fun;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 
 public class OverloadedMethod extends OverloadedFunction implements Method {

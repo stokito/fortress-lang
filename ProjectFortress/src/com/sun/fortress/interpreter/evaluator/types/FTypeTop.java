@@ -23,9 +23,9 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.interpreter.nodes.DefOrDecl;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 
 public class FTypeTop extends FTypeTrait {

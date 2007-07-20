@@ -26,12 +26,12 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes_util.Unprinter;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.useful.WireTappedPrintStream;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.WireTappedPrintStream;
 
 public class FileTests {
 

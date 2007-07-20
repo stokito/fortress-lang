@@ -22,10 +22,10 @@ package com.sun.fortress.interpreter.evaluator;
 
 import java.util.Set;
 
-import com.sun.fortress.interpreter.useful.BASet;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.StringComparer;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.Useful;
 
 public class CircularDependenceError extends ProgramError {
 

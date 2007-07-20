@@ -25,6 +25,7 @@
     <!-- Set global properties for this build. -->
  <property name="src" location="src"/>
 
+ <property name="package.prefix" value="com/sun/fortress"/>
  <property name="blahblahblah" value="com/sun/fortress/interpreter"/>
  <property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
 
@@ -36,8 +37,8 @@
  <property name="fj" location="${basedir}/third_party/FJ"/>
  <property name="unicode" location="${basedir}/third_party/unicode"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
- <property name="nodesPackage" value="${blahblahblah}/nodes"/>
- <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
+ <property name="nodesPackage" value="${package.prefix}/nodes"/>
+ <property name="nodesUtil"  location="${package.prefix}/nodes_util"/>
  <property name="nodes"  location="${src}/${nodesPackage}"/>
  <property name="nodesBuild" location="${build}/${nodesPackage}"/>
  <property name="parser"  location="${src}/${blahblahblah}/parser"/>

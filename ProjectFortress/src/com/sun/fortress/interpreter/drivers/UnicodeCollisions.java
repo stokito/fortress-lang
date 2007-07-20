@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 public class UnicodeCollisions {
     // 0028;LEFT PARENTHESIS;Ps;0;ON;;;;;Y;OPENING PARENTHESIS;;;;

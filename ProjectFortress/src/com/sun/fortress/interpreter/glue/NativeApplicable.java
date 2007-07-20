@@ -17,22 +17,22 @@
 
 package com.sun.fortress.interpreter.glue;
 
+import com.sun.fortress.nodes_util.NodeFactory;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.Fun;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes.WhereClause;
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.Fun;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 
 public class NativeApplicable implements Applicable {

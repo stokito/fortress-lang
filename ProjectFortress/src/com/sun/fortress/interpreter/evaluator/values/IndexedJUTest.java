@@ -25,7 +25,7 @@ import junit.framework.TestCase;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 
-public class IndexedJUTest extends com.sun.fortress.interpreter.useful.TcWrapper {
+public class IndexedJUTest extends com.sun.fortress.useful.TcWrapper {
 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()

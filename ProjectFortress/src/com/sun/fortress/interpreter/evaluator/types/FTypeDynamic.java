@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.Useful;
 
 
 public class FTypeDynamic extends FType {

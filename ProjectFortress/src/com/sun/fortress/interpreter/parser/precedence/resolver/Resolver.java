@@ -23,9 +23,9 @@ package com.sun.fortress.interpreter.parser.precedence.resolver;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.Op;
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Chain;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Equal;
@@ -50,10 +50,10 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Right;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Tight;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.TightChain;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.TightInfix;
-import com.sun.fortress.interpreter.useful.Cons;
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.Pair;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.PureList;
 
 /*
  * This class implements the functionality for resolving operator precedence during parsing.

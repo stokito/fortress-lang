@@ -23,9 +23,9 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGenerator;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.AbstractNode;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.AbstractNode;
 
 
 public class FGenerator extends FValue {

@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.nodes.DefOrDecl;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.BoundingMap;
+import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BoundingMap;
 
 
 public class FTypeObjectInstance extends FTypeObject implements

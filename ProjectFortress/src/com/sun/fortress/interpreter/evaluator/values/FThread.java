@@ -21,7 +21,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
-import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 
 public class FThread extends FConstructedValue {

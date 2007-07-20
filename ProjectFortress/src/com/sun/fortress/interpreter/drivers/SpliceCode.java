@@ -20,7 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 public class SpliceCode {
     static StringBuffer readReader(BufferedReader br) throws IOException {

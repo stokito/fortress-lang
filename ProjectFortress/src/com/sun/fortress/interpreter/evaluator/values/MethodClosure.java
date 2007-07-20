@@ -23,11 +23,11 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Hasher;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Hasher;
+import com.sun.fortress.useful.Useful;
 
 
 public class MethodClosure extends Closure implements Method {

@@ -153,10 +153,10 @@ Expr Parenthesized =
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list());
        if (a2 != null) es.add(new VarargsExpr(a2.getSpan(), false, a2));
-       List<com.sun.fortress.interpreter.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.interpreter.useful.Pair<Id,Expr>>();
-       ks.add(new com.sun.fortress.interpreter.useful.Pair<Id,Expr>(a3.getName(), a3.getInit()));
+       List<com.sun.fortress.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.useful.Pair<Id,Expr>>();
+       ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(a3.getName(), a3.getInit()));
        for (Binding b : (List<Binding>)a4s.list()) {
-           ks.add(new com.sun.fortress.interpreter.useful.Pair<Id,Expr>(b.getName(), b.getInit()));
+           ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(b.getName(), b.getInit()));
        }
        yyValue = new KeywordsExpr(createSpan(yyStart,yyCount), false, es, ks);
      }
@@ -290,17 +290,17 @@ Entry Entry = a1:Expr w mapsto w a2:Expr
      IdOrInt w |-> w Expr
    | ( w IdOrInt w , w IdOrIntList w ) w |-> w Expr
  */
-com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
+com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
      a1:IdOrInt w mapsto w a2:Expr
      { List<Expr> exprs = FortressUtil.mkList(a1);
-       yyValue = new com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr>(exprs, a2);
+       yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a2);
      }
    / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w a3:Expr
      { List<Expr> exprs = FortressUtil.mkList(a1);
        for (Expr i : a2) {
            exprs.add(i);
        }
-       yyValue = new com.sun.fortress.interpreter.useful.Pair<List<Expr>,Expr>(exprs, a3);
+       yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
      };
 
 /* IdOrInt ::= Id | IntLiteral */

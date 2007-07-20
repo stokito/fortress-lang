@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sun.fortress.interpreter.drivers.Driver;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 
 public class EvaluatorTask extends BaseTask {

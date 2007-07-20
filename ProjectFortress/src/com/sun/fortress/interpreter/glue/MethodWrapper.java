@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 
 /**

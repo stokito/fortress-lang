@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.interpreter.nodes.Component;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
 
 /**

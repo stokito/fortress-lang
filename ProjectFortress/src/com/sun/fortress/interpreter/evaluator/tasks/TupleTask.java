@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.nodes.Expr;
 
 public class TupleTask extends BaseTask {
     Evaluator eval;

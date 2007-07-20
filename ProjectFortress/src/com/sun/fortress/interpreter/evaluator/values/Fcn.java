@@ -20,9 +20,9 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
 
 
 abstract public class Fcn extends FConstructedValue {

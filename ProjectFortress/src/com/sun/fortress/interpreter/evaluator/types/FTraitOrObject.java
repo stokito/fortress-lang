@@ -28,19 +28,19 @@ import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.DefOrDecl;
-import com.sun.fortress.interpreter.nodes.ParamType;
-import com.sun.fortress.interpreter.nodes.StaticArg;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TraitDefOrDecl;
-import com.sun.fortress.interpreter.nodes.TypeArg;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.EmptyLatticeIntervalError;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.TopSort;
-import com.sun.fortress.interpreter.useful.TopSortItemImpl;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.ParamType;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.EmptyLatticeIntervalError;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.TopSort;
+import com.sun.fortress.useful.TopSortItemImpl;
+import com.sun.fortress.useful.Useful;
 
 abstract public class FTraitOrObject extends FType {
     

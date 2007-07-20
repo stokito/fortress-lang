@@ -21,11 +21,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.NodeReflection;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Pair;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.NodeReflection;
+import com.sun.fortress.useful.Some;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Pair;
 
 
 abstract public class Visit extends NodeReflection {

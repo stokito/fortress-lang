@@ -45,11 +45,11 @@ Expr Literal =
  */
 Expr Aggregate =
      opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
-     { List<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>> elements =
-           new ArrayList<com.sun.fortress.interpreter.useful.Pair<Expr,Expr>>();
-       elements.add(new com.sun.fortress.interpreter.useful.Pair<Expr,Expr>(a1.getKey(), a1.getValue()));
+     { List<com.sun.fortress.useful.Pair<Expr,Expr>> elements =
+           new ArrayList<com.sun.fortress.useful.Pair<Expr,Expr>>();
+       elements.add(new com.sun.fortress.useful.Pair<Expr,Expr>(a1.getKey(), a1.getValue()));
        for (Entry e : (List<Entry>)a2s.list()) {
-           elements.add(new com.sun.fortress.interpreter.useful.Pair<Expr,Expr>(e.getKey(), e.getValue()));
+           elements.add(new com.sun.fortress.useful.Pair<Expr,Expr>(e.getKey(), e.getValue()));
        }
        yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
      }
@@ -65,9 +65,9 @@ private ArrayExpr RectElements =
      };
 
 /* MultiDimCons ::= RectSeparator NoSpaceExpr */
-com.sun.fortress.interpreter.useful.Pair<Integer,Expr> MultiDimCons =
+com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
      a1:RectSeparator a2:NoSpaceExpr
-     { yyValue = new com.sun.fortress.interpreter.useful.Pair<Integer,Expr>(a1,a2); };
+     { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
 
 NumberLiteral NumericLiteral =
      FloatLiteral

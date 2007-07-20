@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.values.FGenerator;
-import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.nodes.Expr;
 
 public class ForLoopTask extends BaseTask {
     FGenerator fgen;

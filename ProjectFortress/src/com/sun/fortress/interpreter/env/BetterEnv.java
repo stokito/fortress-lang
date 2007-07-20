@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.env;
 
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.StringMaker;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,12 +44,11 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.BATreeNode;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.StringComparer;
-import com.sun.fortress.interpreter.useful.Visitor2;
+import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.useful.BATreeNode;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.Visitor2;
 
 
 public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {

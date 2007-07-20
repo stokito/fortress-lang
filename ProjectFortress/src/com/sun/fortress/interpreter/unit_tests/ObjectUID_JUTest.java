@@ -19,11 +19,11 @@ package com.sun.fortress.interpreter.unit_tests;
 
 import junit.framework.Assert;
 
-import com.sun.fortress.interpreter.nodes_util.UIDComparator;
-import com.sun.fortress.interpreter.nodes_util.UIDMapFactory;
-import com.sun.fortress.interpreter.nodes_util.UIDObject;
-import com.sun.fortress.interpreter.useful.BATree;
-import com.sun.fortress.interpreter.useful.TcWrapper;
+import com.sun.fortress.nodes_util.UIDComparator;
+import com.sun.fortress.nodes_util.UIDMapFactory;
+import com.sun.fortress.nodes_util.UIDObject;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.TcWrapper;
 
 public class ObjectUID_JUTest extends TcWrapper {
 

@@ -21,9 +21,9 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.useful.Hasher;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Hasher;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.Useful;
 
 
 abstract public class Simple_fcn extends SingleFcn {

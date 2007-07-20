@@ -29,8 +29,8 @@ import xtc.parser.ParseError;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
 
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.Printer;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.Printer;
 
 public class ParserDriver {
 

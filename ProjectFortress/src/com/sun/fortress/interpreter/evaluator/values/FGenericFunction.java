@@ -26,17 +26,17 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.StaticArg;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes_util.NodeComparator;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.BATree;
-import com.sun.fortress.interpreter.useful.Factory1P;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Memo1P;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.Factory1P;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Memo1P;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

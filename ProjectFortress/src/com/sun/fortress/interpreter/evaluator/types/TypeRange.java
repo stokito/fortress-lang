@@ -26,8 +26,8 @@ import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.NI;
 
 
 public class TypeRange {

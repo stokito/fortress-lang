@@ -25,14 +25,14 @@ import java.util.Collection;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes_util.HasSomeExtraState;
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.NodeReflection;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.nodes_util.RewriteHackList;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Pair;
+import com.sun.fortress.nodes_util.HasSomeExtraState;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.NodeReflection;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.nodes_util.RewriteHackList;
+import com.sun.fortress.useful.Some;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.useful.Pair;
 
 
 /**

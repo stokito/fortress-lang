@@ -22,13 +22,13 @@
 package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.useful.MagicNumbers;
 
 public class FnHeaderFront {
     private Option<Id> receiver;

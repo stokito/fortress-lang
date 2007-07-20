@@ -22,10 +22,10 @@ import java.util.regex.Pattern;
 import java.util.Arrays;
 
 import com.sun.fortress.interpreter.drivers.*;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes.Component;
-import com.sun.fortress.interpreter.nodes.Api;
-import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.useful.Option;
 
 public final class Shell extends ShellObject {
    /* Patterns for parsing shell messages.*/

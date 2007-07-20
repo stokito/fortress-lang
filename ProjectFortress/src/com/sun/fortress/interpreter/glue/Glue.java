@@ -29,9 +29,9 @@ import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.interpreter.useful.Factory1P;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Factory1P;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 
 public class Glue {

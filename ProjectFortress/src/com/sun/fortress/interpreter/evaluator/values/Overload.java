@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 
 // Note: implements Comparable, but only for equivalance classes of

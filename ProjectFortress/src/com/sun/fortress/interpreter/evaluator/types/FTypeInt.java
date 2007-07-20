@@ -19,8 +19,8 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.useful.Useful;
-import com.sun.fortress.interpreter.useful.VarArgs;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.VarArgs;
 
 
 public class FTypeInt extends FType {

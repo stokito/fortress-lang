@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitDecl;
 
 public class STraitDef extends Base {
 

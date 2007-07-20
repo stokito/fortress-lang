@@ -19,9 +19,9 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.useful.Factory1;
-import com.sun.fortress.interpreter.useful.Memo1;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Factory1;
+import com.sun.fortress.useful.Memo1;
+import com.sun.fortress.useful.Useful;
 
 
 public class FTypeOverloadedArrow extends FType {

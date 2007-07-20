@@ -18,22 +18,22 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.nodes.AbsFnDecl;
-import com.sun.fortress.interpreter.nodes.AbsObjectDecl;
-import com.sun.fortress.interpreter.nodes.AbsTraitDecl;
-import com.sun.fortress.interpreter.nodes.Api;
-import com.sun.fortress.interpreter.nodes.Component;
-import com.sun.fortress.interpreter.nodes.DimDecl;
-import com.sun.fortress.interpreter.nodes.FnDecl;
-import com.sun.fortress.interpreter.nodes.ImportApi;
-import com.sun.fortress.interpreter.nodes.ImportNames;
-import com.sun.fortress.interpreter.nodes.ImportStar;
-import com.sun.fortress.interpreter.nodes.ObjectDecl;
-import com.sun.fortress.interpreter.nodes.TraitDecl;
-import com.sun.fortress.interpreter.nodes.TypeAlias;
-import com.sun.fortress.interpreter.nodes.BaseDimRef;
-import com.sun.fortress.interpreter.nodes.UnitDecl;
-import com.sun.fortress.interpreter.useful.Voidoid;
+import com.sun.fortress.nodes.AbsFnDecl;
+import com.sun.fortress.nodes.AbsObjectDecl;
+import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.DimDecl;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.BaseDimRef;
+import com.sun.fortress.nodes.UnitDecl;
+import com.sun.fortress.useful.Voidoid;
 
 
 /**

@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.Comparator;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes_util.NodeComparator;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes_util.NodeComparator;
 
 
 public interface  GenericFunctionOrMethod {

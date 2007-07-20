@@ -23,8 +23,8 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.DefOrDecl;
-import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.useful.NI;
 
 
 abstract public class SymbolicType extends FTypeTrait {

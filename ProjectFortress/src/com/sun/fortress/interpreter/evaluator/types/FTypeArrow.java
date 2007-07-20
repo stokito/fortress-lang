@@ -23,14 +23,14 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.ArrowType;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.Factory2;
-import com.sun.fortress.interpreter.useful.Fn2;
-import com.sun.fortress.interpreter.useful.Memo2;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.Factory2;
+import com.sun.fortress.useful.Fn2;
+import com.sun.fortress.useful.Memo2;
+import com.sun.fortress.useful.Useful;
 
 
 // TODO Need to memoize this to preserve Equality.

@@ -26,11 +26,11 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes_util.Printer;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.interpreter.typechecker.TypeCheckerResult;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Useful;
 
 public class fs {
 

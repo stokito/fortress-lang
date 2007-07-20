@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeBufferedWriter;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.useful.MagicNumbers;
 
 
 public class FBufferedWriter extends FValue {

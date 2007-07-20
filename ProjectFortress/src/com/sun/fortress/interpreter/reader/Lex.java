@@ -22,7 +22,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 
-import com.sun.fortress.interpreter.nodes_util.Unprinter;
+import com.sun.fortress.nodes_util.Unprinter;
 
 public class Lex {
     BufferedReader reader;

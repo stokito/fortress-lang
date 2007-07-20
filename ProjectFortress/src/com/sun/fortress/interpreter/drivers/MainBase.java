@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes.CompilationUnit;
-import com.sun.fortress.interpreter.nodes_util.Printer;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.Printer;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Some;
+import com.sun.fortress.useful.Useful;
 
 public abstract class MainBase {
     static protected String baseName(boolean stripDir, String s, String suffix) {

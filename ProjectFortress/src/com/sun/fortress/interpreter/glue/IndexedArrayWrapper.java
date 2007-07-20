@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.IndexedSource;
 import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {

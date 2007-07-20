@@ -30,17 +30,17 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.FnDecl;
-import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
-import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.LValue;
-import com.sun.fortress.interpreter.nodes.LValueBind;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.VarDecl;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.Voidoid;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.Voidoid;
 
 
 public class BuildTraitEnvironment extends BuildEnvironments {

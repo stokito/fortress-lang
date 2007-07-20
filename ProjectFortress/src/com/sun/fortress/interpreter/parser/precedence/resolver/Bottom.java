@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.parser.precedence.resolver;
 
 import com.sun.fortress.interpreter.parser.precedence.opexpr.PostfixOpExpr;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.PureList;
 
 
 public class Bottom extends EnclosingStack {

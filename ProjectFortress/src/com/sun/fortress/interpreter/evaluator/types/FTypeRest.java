@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import com.sun.fortress.interpreter.useful.Factory1;
-import com.sun.fortress.interpreter.useful.Memo1;
+import com.sun.fortress.useful.Factory1;
+import com.sun.fortress.useful.Memo1;
 
 public class FTypeRest extends FType {
     private static class Factory implements Factory1<FType, FType> {

@@ -28,10 +28,10 @@ import com.sun.fortress.interpreter.parser.precedence.opexpr.Higher;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Lower;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.None;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.Precedence;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 
-public class PrecedenceMapJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
+public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
     final PrecedenceMap pm = PrecedenceMap.ONLY;
 
     public static void main(String[] args) {

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 public class FTypeRange extends FType {
     public final static FTypeRange ONLY = new FTypeRange(Integer.MIN_VALUE,

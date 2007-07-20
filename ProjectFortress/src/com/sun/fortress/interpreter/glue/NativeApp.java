@@ -17,24 +17,24 @@
 
 package com.sun.fortress.interpreter.glue;
 
+import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.StringLiteral;
-import com.sun.fortress.interpreter.nodes.TightJuxt;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes.VarRefExpr;
-import com.sun.fortress.interpreter.nodes.WhereClause;
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StringLiteral;
+import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.useful.Useful;
 
 
 /**

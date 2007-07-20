@@ -22,7 +22,7 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.Component;
+import com.sun.fortress.nodes.Component;
 
 
 public class SComponent extends Base {

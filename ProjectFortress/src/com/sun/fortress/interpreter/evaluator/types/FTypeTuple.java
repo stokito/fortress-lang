@@ -27,16 +27,16 @@ import java.util.TreeSet;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.VarargsType;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TupleType;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.Factory1;
-import com.sun.fortress.interpreter.useful.ListComparer;
-import com.sun.fortress.interpreter.useful.Memo1C;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.VarargsType;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TupleType;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.Factory1;
+import com.sun.fortress.useful.ListComparer;
+import com.sun.fortress.useful.Memo1C;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 
 // TODO need to memoize this to preserver type EQuality

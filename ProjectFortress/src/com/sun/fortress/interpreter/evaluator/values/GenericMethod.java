@@ -27,22 +27,22 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
-import com.sun.fortress.interpreter.nodes.Applicable;
-import com.sun.fortress.interpreter.nodes.DimensionParam;
-import com.sun.fortress.interpreter.nodes.FnDefOrDecl;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.NatParam;
-import com.sun.fortress.interpreter.nodes.OperatorParam;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.SimpleTypeParam;
-import com.sun.fortress.interpreter.nodes.StaticArg;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes_util.NodeComparator;
-import com.sun.fortress.interpreter.useful.Factory1P;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.Memo1P;
+import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.DimensionParam;
+import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.useful.Factory1P;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Memo1P;
 
 
 public class GenericMethod extends MethodClosure implements

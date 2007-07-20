@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
 public class FTypeVector extends FAggregateType {
     public FTypeVector() {

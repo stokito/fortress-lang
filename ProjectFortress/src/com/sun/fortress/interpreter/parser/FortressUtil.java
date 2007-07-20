@@ -20,22 +20,60 @@
  */
 
 package com.sun.fortress.interpreter.parser;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.ExprFactory;
-import com.sun.fortress.interpreter.nodes_util.NodeFactory;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
+import com.sun.fortress.nodes.AbsFnDecl;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.ArrayElement;
+import com.sun.fortress.nodes.ArrayElements;
+import com.sun.fortress.nodes.ArrayExpr;
+import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.Contract;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.EnsuresClause;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LetExpr;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierAtomic;
+import com.sun.fortress.nodes.ModifierGetter;
+import com.sun.fortress.nodes.ModifierHidden;
+import com.sun.fortress.nodes.ModifierIO;
+import com.sun.fortress.nodes.ModifierPrivate;
+import com.sun.fortress.nodes.ModifierSettable;
+import com.sun.fortress.nodes.ModifierSetter;
+import com.sun.fortress.nodes.ModifierTest;
+import com.sun.fortress.nodes.ModifierValue;
+import com.sun.fortress.nodes.ModifierVar;
+import com.sun.fortress.nodes.ModifierWidens;
+import com.sun.fortress.nodes.ModifierWrapped;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Unpasting;
+import com.sun.fortress.nodes.UnpastingBind;
+import com.sun.fortress.nodes.UnpastingSplit;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Some;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.useful.Cons;
-import com.sun.fortress.interpreter.useful.Pair;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.PureList;
 
 public final class FortressUtil {
     public static void println(String arg) {

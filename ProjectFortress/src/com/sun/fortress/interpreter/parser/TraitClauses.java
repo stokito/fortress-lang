@@ -22,12 +22,12 @@
 package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes.WhereClause;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.useful.MagicNumbers;
 
 public class TraitClauses {
 

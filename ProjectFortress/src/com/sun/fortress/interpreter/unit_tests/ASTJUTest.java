@@ -28,17 +28,17 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.interpreter.nodes.IntLiteral;
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.Printer;
-import com.sun.fortress.interpreter.nodes_util.Unprinter;
+import com.sun.fortress.nodes.IntLiteral;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.Printer;
+import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
 
 /*
  * JUnit based test
  */
 
-public class ASTJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
+public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     public ASTJUTest(String testName) {
         super(testName);
@@ -281,8 +281,8 @@ public class ASTJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
         l.name(); // Reading "("
         AbstractNode x = up.readNode(l.name()); // Reading name of class
 
-        assertTrue (x instanceof com.sun.fortress.interpreter.nodes.Contract);
-        (new com.sun.fortress.interpreter.nodes_util.Printer(true, true, true)).dump(x, out, 0);
+        assertTrue (x instanceof com.sun.fortress.nodes.Contract);
+        (new com.sun.fortress.nodes_util.Printer(true, true, true)).dump(x, out, 0);
         out.println();
     }
 

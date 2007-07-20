@@ -32,9 +32,9 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes_util.Printer;
-import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes_util.Printer;
+import com.sun.fortress.useful.NI;
 
 
 class LeafEnv extends CommonEnv {

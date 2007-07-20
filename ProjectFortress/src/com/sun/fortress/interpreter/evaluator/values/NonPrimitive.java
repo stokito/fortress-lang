@@ -30,10 +30,10 @@ import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.NI;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

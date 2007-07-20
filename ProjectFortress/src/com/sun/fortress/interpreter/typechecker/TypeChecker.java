@@ -17,16 +17,49 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
-import com.sun.fortress.interpreter.useful.Option;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Assignment;
+import com.sun.fortress.nodes.AtomicExpr;
+import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.Do;
+import com.sun.fortress.nodes.DoFront;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.For;
+import com.sun.fortress.nodes.Fun;
+import com.sun.fortress.nodes.Generator;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.If;
+import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Label;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.ObjectDefOrDecl;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.PropertyDecl;
+import com.sun.fortress.nodes.SubscriptExpr;
+import com.sun.fortress.nodes.TestDecl;
+import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.Unpasting;
+import com.sun.fortress.nodes.VarDefOrDecl;
+import com.sun.fortress.nodes.VarRefExpr;
 import java.util.List;
 import java.util.LinkedList;
 
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.PureList;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.*;
-import com.sun.fortress.interpreter.nodes.*;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 
 public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {

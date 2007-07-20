@@ -17,9 +17,9 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.Op;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.useful.PureList;
 
 
 /**

@@ -21,13 +21,13 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.nodes.BaseNatRef;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.ABoundingMap;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.Factory1;
-import com.sun.fortress.interpreter.useful.Memo1;
+import com.sun.fortress.nodes.BaseNatRef;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.ABoundingMap;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.Factory1;
+import com.sun.fortress.useful.Memo1;
 
 
 public class IntNat extends FTypeNat {

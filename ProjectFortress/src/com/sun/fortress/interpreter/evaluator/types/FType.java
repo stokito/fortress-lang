@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.StringMaker;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -27,15 +29,14 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.IdType;
-import com.sun.fortress.interpreter.nodes.VarargsType;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.useful.BASet;
-import com.sun.fortress.interpreter.useful.BoundingMap;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.VarargsType;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

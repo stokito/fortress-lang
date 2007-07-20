@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 /*
  * An InterpreterError should be thrown when the interpreter finds

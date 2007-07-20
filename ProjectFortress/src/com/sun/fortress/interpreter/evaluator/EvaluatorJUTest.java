@@ -34,9 +34,9 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FRangeIterator;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
-public class EvaluatorJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
+public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     public EvaluatorJUTest() {
         super("EvaluatorJUTest");

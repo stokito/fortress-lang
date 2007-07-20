@@ -20,8 +20,8 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.useful.DualLattice;
-import com.sun.fortress.interpreter.useful.LatticeOps;
+import com.sun.fortress.useful.DualLattice;
+import com.sun.fortress.useful.LatticeOps;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

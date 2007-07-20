@@ -22,8 +22,8 @@
 package com.sun.fortress.interpreter.parser;
 
 import java.util.List;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes.TypeRef;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes.TypeRef;
 
 public class Excludes extends TraitClause {
     private List<TypeRef> excludes  = FortressUtil.emptyTypeRefs();

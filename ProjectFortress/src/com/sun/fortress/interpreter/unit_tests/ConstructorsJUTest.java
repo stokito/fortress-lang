@@ -17,30 +17,33 @@
 
 package com.sun.fortress.interpreter.unit_tests;
 
+import com.sun.fortress.nodes_util.SourceLoc;
+import com.sun.fortress.nodes_util.SourceLocRats;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.StringMaker;
 import java.math.BigInteger;
 import java.util.Collections;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.nodes.Export;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.FloatLiteral;
-import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.ImportStar;
-import com.sun.fortress.interpreter.nodes.IntLiteral;
-import com.sun.fortress.interpreter.nodes_util.*;
-import com.sun.fortress.interpreter.nodes.StringLiteral;
-import com.sun.fortress.interpreter.nodes.TupleExpr;
-import com.sun.fortress.interpreter.nodes.VarRefExpr;
-import com.sun.fortress.interpreter.nodes.VoidLiteral;
-import com.sun.fortress.interpreter.nodes_util.NodeFactory;
-import com.sun.fortress.interpreter.nodes_util.ExprFactory;
+import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.Export;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FloatLiteral;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.IntLiteral;
+import com.sun.fortress.nodes.StringLiteral;
+import com.sun.fortress.nodes.TupleExpr;
+import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VoidLiteral;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.parser.FortressUtil;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 
-public class ConstructorsJUTest extends com.sun.fortress.interpreter.useful.TcWrapper  {
+public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testSourceLoc() {
         SourceLoc sl1 = new SourceLocRats("cat", 1, 2);
         SourceLoc sl2 = new SourceLocRats("cat", 1, 2);

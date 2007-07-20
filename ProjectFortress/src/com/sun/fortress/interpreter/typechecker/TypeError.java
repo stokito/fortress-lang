@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.typechecker;
 
-import com.sun.fortress.interpreter.nodes.AbstractNode;
+import com.sun.fortress.nodes.AbstractNode;
 
 public class TypeError extends RuntimeException {
     private AbstractNode n;

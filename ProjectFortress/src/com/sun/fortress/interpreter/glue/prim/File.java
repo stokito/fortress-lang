@@ -20,7 +20,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import com.sun.fortress.interpreter.useful.Useful;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 
 /**

@@ -21,7 +21,7 @@
  */
 package com.sun.fortress.interpreter.parser;
 
-import com.sun.fortress.interpreter.nodes_util.Span;
+import com.sun.fortress.nodes_util.Span;
 
 public abstract class TraitClause {
 

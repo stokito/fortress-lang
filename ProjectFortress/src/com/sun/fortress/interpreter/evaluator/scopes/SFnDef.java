@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDecl;
 
 
 public class SFnDef extends Base {

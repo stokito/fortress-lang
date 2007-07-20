@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.nodes.Applicable;
+import com.sun.fortress.nodes.Applicable;
 
 /**
  * When a generic function is instantiated, the result is a closure instance,

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator;
 
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

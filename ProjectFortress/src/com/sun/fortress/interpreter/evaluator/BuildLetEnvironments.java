@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
+import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,19 +28,18 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
-import com.sun.fortress.interpreter.nodes.NodeAbstractVisitor;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.FnDecl;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.nodes.LValue;
-import com.sun.fortress.interpreter.nodes.LValueBind;
-import com.sun.fortress.interpreter.nodes.LetExpr;
-import com.sun.fortress.interpreter.nodes.LetFn;
-import com.sun.fortress.interpreter.nodes.LocalVarDecl;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.nodes.Param;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.nodes_util.*;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LetExpr;
+import com.sun.fortress.nodes.LetFn;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.TypeRef;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

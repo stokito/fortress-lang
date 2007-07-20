@@ -21,11 +21,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import com.sun.fortress.interpreter.nodes.AbstractNode;
-import com.sun.fortress.interpreter.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
 
-import static com.sun.fortress.interpreter.nodes_util.ErrorMsgMaker.makeErrorMsg;
+import static com.sun.fortress.nodes_util.ErrorMsgMaker.makeErrorMsg;
 
 public class ProgramError extends Error {
 

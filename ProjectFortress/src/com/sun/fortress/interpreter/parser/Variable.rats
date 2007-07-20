@@ -106,8 +106,8 @@ LValue VarWType = a1:Id w a2:IsType
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* InitVal ::= (=|:=) w NoNewlineExpr */
-com.sun.fortress.interpreter.useful.Pair<Expr,Boolean> InitVal = a1:(equals / colonequals) w a2:NoNewlineExpr
-     { yyValue = new com.sun.fortress.interpreter.useful.Pair<Expr,Boolean>(a2, a1.equals(":=")); };
+com.sun.fortress.useful.Pair<Expr,Boolean> InitVal = a1:(equals / colonequals) w a2:NoNewlineExpr
+     { yyValue = new com.sun.fortress.useful.Pair<Expr,Boolean>(a2, a1.equals(":=")); };
 
 /* AbsVarDecl ::=
      AbsVarMods? VarWTypes

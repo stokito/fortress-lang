@@ -23,22 +23,22 @@ package com.sun.fortress.interpreter.parser.precedence.resolver;
 import java.lang.reflect.Array;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.ChainExpr;
-import com.sun.fortress.interpreter.nodes.Enclosing;
-import com.sun.fortress.interpreter.nodes.Expr;
-import com.sun.fortress.interpreter.nodes.LooseJuxt;
-import com.sun.fortress.interpreter.nodes.Op;
-import com.sun.fortress.interpreter.nodes.Opr;
-import com.sun.fortress.interpreter.nodes.OprExpr;
-import com.sun.fortress.interpreter.nodes.PostFix;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.nodes_util.ExprFactory;
+import com.sun.fortress.nodes.ChainExpr;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.Opr;
+import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.PostFix;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.interpreter.parser.FortressUtil;
 import com.sun.fortress.interpreter.parser.precedence.opexpr.RealExpr;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.useful.Fn;
-import com.sun.fortress.interpreter.useful.Pair;
-import com.sun.fortress.interpreter.useful.PureList;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.PureList;
 
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {

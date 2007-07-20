@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.useful.MagicNumbers;
 
 public class FInt extends FValue implements HasIntValue {
   private final int val;

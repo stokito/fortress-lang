@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.Api;
+import com.sun.fortress.nodes.Api;
 
 public class SApi extends Base {
 

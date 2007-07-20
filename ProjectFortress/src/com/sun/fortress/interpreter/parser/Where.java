@@ -22,11 +22,11 @@
 package com.sun.fortress.interpreter.parser;
 
 import java.util.List;
-import com.sun.fortress.interpreter.nodes_util.Span;
-import com.sun.fortress.interpreter.useful.Option;
-import com.sun.fortress.interpreter.useful.Some;
-import com.sun.fortress.interpreter.useful.None;
-import com.sun.fortress.interpreter.nodes.WhereClause;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Some;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.nodes.WhereClause;
 
 public class Where extends TraitClause {
     private Option<List<WhereClause>> where = None.<List<WhereClause>>make();

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.useful.HasAt;
 
 
 public class FArray extends FConstructedValue implements IndexedShape {

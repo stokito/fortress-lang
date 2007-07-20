@@ -22,10 +22,10 @@
 package com.sun.fortress.interpreter.parser;
 import java.util.List;
 
-import com.sun.fortress.interpreter.nodes.Id;
-import com.sun.fortress.interpreter.nodes.StaticParam;
-import com.sun.fortress.interpreter.nodes.TypeRef;
-import com.sun.fortress.interpreter.useful.MagicNumbers;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.useful.MagicNumbers;
 
 public class TraitHeader {
 

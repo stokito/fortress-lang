@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.nodes.ObjectDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 
 public class SObjectDef extends Base {
 

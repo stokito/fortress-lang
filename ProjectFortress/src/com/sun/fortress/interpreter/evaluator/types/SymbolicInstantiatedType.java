@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.nodes.DefOrDecl;
+import com.sun.fortress.nodes.DefOrDecl;
 
 public class SymbolicInstantiatedType extends SymbolicType {
 

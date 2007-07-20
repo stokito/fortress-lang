@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.DottedId;
+import com.sun.fortress.nodes.DottedId;
 
 
 public class EmptyEnv extends CommonEnv {

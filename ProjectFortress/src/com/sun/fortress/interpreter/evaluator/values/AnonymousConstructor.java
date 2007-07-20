@@ -23,8 +23,8 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.nodes.FnName;
-import com.sun.fortress.interpreter.useful.HasAt;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.useful.HasAt;
 
 
 public class AnonymousConstructor extends NonPrimitive {

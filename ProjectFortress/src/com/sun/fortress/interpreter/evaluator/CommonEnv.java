@@ -26,9 +26,9 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.DottedId;
-import com.sun.fortress.interpreter.useful.HasAt;
-import com.sun.fortress.interpreter.useful.NI;
+import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 

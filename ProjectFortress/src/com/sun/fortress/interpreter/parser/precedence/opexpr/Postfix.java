@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.parser.precedence.opexpr;
 
-import com.sun.fortress.interpreter.nodes.Op;
+import com.sun.fortress.nodes.Op;
 
 /**
  * Class Postfix, a component of the OpExpr composite hierarchy.

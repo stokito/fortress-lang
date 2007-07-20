@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.nodes.Expr;
+import com.sun.fortress.nodes.Expr;
 
 public class LazilyEvaluatedCell extends IndirectionCell {
     Expr exp;
