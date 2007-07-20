@@ -36,17 +36,23 @@
  <property name="fj" location="${basedir}/third_party/FJ"/>
  <property name="unicode" location="${basedir}/third_party/unicode"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
-    <property name="nodesPackage" value="${blahblahblah}/nodes"/>
-    <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
-    <property name="nodes"  location="${src}/${nodesPackage}"/>
-    <property name="nodesBuild" location="${build}/${nodesPackage}"/>
-    <property name="parser"  location="${src}/${blahblahblah}/parser"/>
-    <property name="build.classpath" location="${build}"/>
-    <property name="precedence" location="${parser}/precedence"/>
-    <property name="junit" location="${basedir}/third_party/junit"/>
-    <property name="junitMem" value="512m"/>
-    <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
-    <property environment="env"/>
+ <property name="nodesPackage" value="${blahblahblah}/nodes"/>
+ <property name="nodesUtil"  location="${src}/${blahblahblah}/nodes_util"/>
+ <property name="nodes"  location="${src}/${nodesPackage}"/>
+ <property name="nodesBuild" location="${build}/${nodesPackage}"/>
+ <property name="parser"  location="${src}/${blahblahblah}/parser"/>
+ <property name="build.classpath" location="${build}"/>
+ <property name="precedence" location="${parser}/precedence"/>
+ <property name="junit" location="${basedir}/third_party/junit"/>
+ <property name="junitMem" value="512m"/>
+ <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
+
+ <property name="testFortress" location=".TEST_FORTRESS"/>
+ <property name="installerDir" location=".installer"/>
+ <property name="protofortress" location="${basedir}/fortress/FORTRESS"/>
+ <property name="protofortress.lib" location="${protofortress}/lib"/>
+
+ <property environment="env"/>
 
     <target name="help">
         <echo message="ant init, visitorGen, parser, compile, jar, clean, test,
@@ -293,7 +299,7 @@
          </javac>
      </target>
 
-     <target name="jar" depends="compile"
+     <target name="interpreter-jar" depends="compile"
             description="Package up the interpreter in a jar.">
         <jar
             destfile="../components/fortress/FORTRESS/lib/interpreter.jar"
@@ -465,6 +471,101 @@
       </javadoc>
 
     </target>
+
+
+  <target name="jar" depends="compile"
+	  description="Package up a Fortress distribution as a self-extracting jar.">
+    <tstamp>
+      <format 
+	  property="jar.DSTAMP" 
+	  timezone="GMT"
+	  pattern="yyyy_MMdd_hhmm"/>
+    </tstamp>
+
+    <!-- Extract Ant jars into build directory to be packaged up.-->
+    <unjar src="${protofortress}/lib/ant.jar" dest="${build}"/>
+    <unjar src="${protofortress}/lib/ant-launcher.jar" dest="${build}"/>
+
+    <!-- Place anthooks.jar in the protofortress. -->
+    <copy file="${src}/com/sun/fortress/shell/anthooks.xml" todir="${protofortress}/bin"/>
+      
+    <!-- Package up class files as a new shell.jar,
+	 and place them in the protofortress. -->
+    <jar
+	destfile="fortress/FORTRESS/lib/shell.jar"
+	basedir="${build}"
+	includes="**/*"/>
+    
+    <!-- Then package up the protofortress and place it
+	 in the build directory (so it can be extracted later). -->
+    <jar 
+	destfile="${build}/com/sun/fortress/shell/fortress.jar"
+	basedir="fortress"
+	includes="**/*" />
+
+    <!-- Write timestamp of jar creation to a file for retrieval during extraction. -->
+    <echo message="${jar.DSTAMP}" file="${build}/TIMESTAMP"/>
+    
+    <!-- Finally, package up the build directory into a jar that 
+	 extracts the protofortress at a destination site. -->
+    <jar 
+	destfile="Fortress_${jar.DSTAMP}.jar"
+	basedir="${build}"
+	includes="**/*" >
+      <manifest>
+	<attribute name="Manifest-Version" value="${jar.DSTAMP}"/>
+	<attribute name="Created-By" value="Sun Microsystems, Inc."/> 
+	<attribute name="Main-Class" value="com.sun.fortress.shell.Extractor"/>
+	<section name="common/class1.class">
+	  <attribute name="Sealed" value="false"/>
+	</section>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="copy.anthooks" depends="init" unless="anthooks.uptodate">
+    <copy file="${src}/com/sun/fortress/shell/anthooks.xml" 
+	  todir="${build}/com/sun/fortress/shell"
+	  overwrite="false"/>
+  </target>
+
+  <target name="installer" depends="compile"
+	  description="build a new installer as a jar">
+    <delete dir="${installerDir}"/>
+    <mkdir dir="${installerDir}/fortress"/>
+    <copy todir="${installerDir}/fortress/FORTRESS">
+      <fileset dir="FORTRESS"/>
+    </copy>
+    <copy todir="${installerDir}/fortress/bin">
+      <fileset dir="bin"/>
+    </copy>
+    <copy file="docs/installer/README.txt" todir="${installerDir}/fortress"/>
+    <tar
+	destfile="fortress.tar.gz"
+	basedir="${installerDir}"
+	longfile="fail"
+	compression="gzip"
+	/>
+    <delete dir="${installerDir}"/>
+  </target>
+  
+  <target name="createNestedJarUpgrade"
+	  description="wrap up a jar for inclusion in a mock upgrade">
+    <jar
+	destfile="jars/fortress_mock_upgrade/java/mock_upgrade.jar"
+	basedir="jars/nested_jar_upgrade"
+	includes="**/*"
+	/>
+  </target>
+
+  <target name="createMockUpgrade" depends="createNestedJarUpgrade"
+	  description="build a mock upgrade file for testing selfupgrade">
+    <jar
+	destfile="FORTRESS/test/fortress_mock_upgrade.jar"
+	basedir="jars/fortress_mock_upgrade"
+	includes="**/*"
+	/>
+  </target>
 
     <target name="testNPY" description="Graphically run all tests that are not yet expected to pass">
         <java classname="junit.swingui.TestRunner" classpath="${compile.classpath}" fork="true" maxmemory="320m" spawn="yes">
