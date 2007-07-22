@@ -148,7 +148,7 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRefExpr;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._WrappedFValue;
+import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MatchFailure;
@@ -704,7 +704,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //                throw ex;
 //            }
         } else {
-            throw new ProgramError(x, e, 
+            throw new ProgramError(x, e,
                     errorMsg("Non-object cannot have field ", fld.getName()));
         }
 
@@ -979,7 +979,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
          */
 
         if (!(fvalue instanceof Fcn)) {
-            throw new ProgramError(x, e, 
+            throw new ProgramError(x, e,
                     errorMsg("Operator ", NodeUtil.stringName(op),
                              " has a non-function value ", fvalue));
         }
@@ -1064,7 +1064,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
-            throw new ProgramError(obj, 
+            throw new ProgramError(obj,
                     errorMsg("Value should be an object; got " + arr));
         }
         FObject array = (FObject) arr;
@@ -1205,7 +1205,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         } else {
             // TODO Could be a fragment of a component/api name, too.
-            throw new ProgramError(x, 
+            throw new ProgramError(x,
                     errorMsg("", fobj, ".", fld,
                              " but not object.something"));
         }
@@ -1387,7 +1387,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return super.forTypeApply(x);
     }
 
-    @Override
     public FValue for_WrappedFValue(_WrappedFValue w) {
         return w.getFValue();
     }

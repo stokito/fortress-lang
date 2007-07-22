@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 
@@ -127,15 +126,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                              Option<List<Expr>> elseClause);
             VarargsExpr(Expr varargs);
             While(Expr test, Expr body);
-            /**
-             * A _WrappedFValue permits the interpreter to incorporate intermediate
-             * interpreter-computed values
-             * (com.sun.fortress.interpreter.evaluator.values.FValue) into a
-             * rewritten expression AST (com.sun.fortress.interpreter.nodes.Expr).
-             * This permits us to eg reduce an lvalue once, and then use it
-             * in lvalue OP= expr without duplicate computation.
-             */
-            _WrappedFValue(FValue fValue);
         abstract FlowExpr();
             Accumulator(Op op, List<Generator> gens, Expr body);
             AtomicExpr(Expr expr);

@@ -309,9 +309,6 @@ public class ExprFactory {
             public Expr forWhile(While e) {
                 return new While(e.getSpan(), true, e.getTest(), e.getBody());
             }
-            public Expr for_WrappedFValue(_WrappedFValue e) {
-                return new _WrappedFValue(e.getSpan(), true, e.getFValue());
-            }
             public Expr forAccumulator(Accumulator e) {
                 return new Accumulator(e.getSpan(), true, e.getOp(), e.getGens(),
                                        e.getBody());
