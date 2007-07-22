@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.VarRefExpr;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.interpreter.parser.FortressUtil;
+import com.sun.fortress.parser.FortressUtil;
 import com.sun.fortress.useful.Useful;
 
 public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {

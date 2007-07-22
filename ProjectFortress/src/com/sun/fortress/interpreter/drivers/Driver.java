@@ -65,7 +65,7 @@ import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Name;
-import com.sun.fortress.interpreter.parser.Fortress;
+import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
 import com.sun.fortress.useful.CheckedNullPointerException;
@@ -441,7 +441,7 @@ public class Driver {
                                 });
 
                         importAllExcept(e, api_e, from_e, except_names,
-                                        from_apiname, 
+                                        from_apiname,
                                         StringMaker.fromDottedId
                                             (from_cw.getComponent().getName()));
 

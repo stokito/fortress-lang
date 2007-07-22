@@ -24,7 +24,7 @@ import java.math.BigInteger;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.parser.precedence.resolver.PrecedenceMap;
+import com.sun.fortress.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
