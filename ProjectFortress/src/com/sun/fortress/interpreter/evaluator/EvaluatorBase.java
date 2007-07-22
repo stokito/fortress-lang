@@ -31,9 +31,12 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+
+import com.sun.fortress.nodes.FnDefOrDecl;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -49,6 +52,8 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
+    protected static final boolean DUMP_INFERENCE = false;
+    
     final public BetterEnv e;
 
     protected EvaluatorBase(BetterEnv e) {
@@ -78,8 +83,11 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 //            }
 //
 //            foo = sfcn;
-
-            foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
+            try {
+                foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
+            } catch (ProgramError ex) {
+                throw ex;
+            }
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
         }
         return foo.apply(args, loc, e);
@@ -92,19 +100,34 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
     public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
             FGenericFunction appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
         FGenericFunction bar = (FGenericFunction) appliedThing;
-        Option<List<StaticParam>> otparams = bar.getFnDefOrDecl()
-                .getStaticParams();
+        FnDefOrDecl fndod =  bar.getFnDefOrDecl();
+        Option<List<StaticParam>> otparams = fndod.getStaticParams();
         List<StaticParam> tparams = otparams.getVal();
         List<Param> params = bar.getFnDefOrDecl().getParams();
+        EvalType et = new EvalType(e);
         // The types of the actual parameters ought to unify with the
         // types of the formal parameters.
+        // TODO WE MUST MOVE TO THE FULL LATTICE INTERVAL MAP
         BoundingMap<String, FType, TypeLatticeOps> abm = new
-          ABoundingMap
-          //LatticeIntervalMap
+          //ABoundingMap
+          LatticeIntervalMap
           <String, FType, TypeLatticeOps>(TypeLatticeOps.V, StringComparer.V);
         Iterator<Param> pit = params.iterator();
         Param p = null;
         Set<StaticParam> tp_set = new HashSet<StaticParam>(tparams);
+        for (StaticParam sp : tparams) {
+            if (sp instanceof SimpleTypeParam) {
+                SimpleTypeParam stp = (SimpleTypeParam) sp;
+                Option<List<TypeRef>> ec = stp.getExtendsClause();
+                if (ec.isPresent()) {
+                    String stp_name = stp.getId().getName();
+                    for (TypeRef tr : ec.getVal()) {
+                        // Preinstall bounds in the boundingmap
+                        abm.meetPut(stp_name, et.evalType(tr));
+                    }
+                }
+            }
+        }
         for (FValue a : args) {
             p = pit.hasNext() ? pit.next() : p;
             Option<TypeRef> t = p.getType();
@@ -123,6 +146,37 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
         }
 
+        if (DUMP_INFERENCE)
+            System.err.println("ABM 0={" + abm + "}");
+        
+       /*
+        * Filter the inference through the result type, making it more
+        * specific (which is less-specific, for arrow domain types).
+        */
+        
+        MakeInferenceSpecific mis = new MakeInferenceSpecific(abm);
+        
+        // TODO: There is still a lurking error in inference, probably in arrow types.
+        
+//        for (Param param : params) {
+//            Option<TypeRef> t = param.getType();
+//            t.getVal().accept(mis);
+//        }
+//        if (DUMP_INFERENCE) 
+//            System.err.println("ABM 1={" + abm + "}");
+           
+        Option<TypeRef> opt_rt = fndod.getReturnType();
+       
+        if (opt_rt.isPresent())
+           opt_rt.getVal().accept(mis);
+
+        if (DUMP_INFERENCE)
+            System.err.println("ABM 2={" + abm + "}");
+        
+        /*
+         * Iterate over static parameters, choosing least-general binding
+         * for each one.
+         */
         ArrayList<FType> tl = new ArrayList<FType>(tparams.size());
         for (StaticParam tp : tparams) {
             FType t = abm.get(NodeUtil.getName(tp));

@@ -247,6 +247,8 @@ abstract public class FType implements Comparable<FType> {
         Class us = getClass();
         Class them = other.getClass();
         if (us == them) return true;
+        if (other == BottomType.ONLY)
+            return false;
         // TODO There's some type instantiations missing, but I do not know what
         // good ones would be, and the code is correct anyway.
         return them.isAssignableFrom(us);
@@ -354,12 +356,29 @@ abstract public class FType implements Comparable<FType> {
 
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        if (DUMP_UNIFY) {
-            System.out.println("unify FType "+this+" and "+val);
-            System.out.println("    ("+this.getClass().getName()+")");
+        boolean rc;
+//        return (val instanceof IdType &&
+//                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
+        if (! (val instanceof IdType)) {
+            rc = false;
+        } else if (name.equals(StringMaker.fromDottedId(((IdType)val).getName()))) {
+            rc = true;
+        } else {
+            FType other = env.getTypeNull(((IdType)val).getName());
+        
+            if (other == null) {
+                rc = false;
+            } else {
+                // Let the unification succeed if there's a subtype relationship.
+                rc = this.subtypeOf(other);
+            }
         }
-        return (val instanceof IdType &&
-                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
+        if (DUMP_UNIFY) {
+            System.out.println("unify FType "+this+" and "+val + (rc ? " OK " : " NO ") + "("+this.getClass().getSimpleName()+
+                    "), abm="+abm);
+        }
+  
+        return rc;
     }
 
     /** One-sided unification of this fully-computed FType with a signature.
@@ -384,8 +403,17 @@ abstract public class FType implements Comparable<FType> {
             for (StaticParam tp : tp_set) {
                 String k = NodeUtil.getName(tp);
                 if (k.equals(nm)) {
-                    if (DUMP_UNIFY) System.out.println("Recording "+k+"="+this);
-                    abm.joinPut(k, this);
+                    if (DUMP_UNIFY) System.out.print("Trying "+k+"="+this);
+                    try {
+                       abm.joinPut(k, this);
+                    } catch (Error th) {
+                        if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
+                        throw th;
+                    } catch (RuntimeException th) {
+                        if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
+                        throw th;
+                    }
+                    if (DUMP_UNIFY) System.out.print(" result abm= " + abm);
                     return;
                 }
             }
@@ -394,13 +422,20 @@ abstract public class FType implements Comparable<FType> {
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
             if (t.unifyNonVar(env, tp_set, abm, val)) return;
-            if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val);
+            if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }
         throw new ProgramError(val,env,
-                errorMsg("Cannot unify ", this, "(", 
-                                       this.getClass(), ")\n  with ", val,
-                                       "(", val.getClass(), ")"));
+                errorMsg("Cannot unify ",
+                          this,
+                          "(", 
+                          this.getClass(),
+                          ")\n  with ",
+                          val,
+                          "(",
+                          val.getClass(),
+                          ") abm=" + abm
+                          ));
     }
 
 }

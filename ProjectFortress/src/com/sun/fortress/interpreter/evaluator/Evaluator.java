@@ -112,6 +112,7 @@ import com.sun.fortress.nodes.ArrayExpr;
 import com.sun.fortress.nodes.ArrayElement;
 import com.sun.fortress.nodes.ArrayElements;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
@@ -155,6 +156,7 @@ import com.sun.fortress.useful.MatchFailure;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
+
 
 import java.util.concurrent.Callable;
 
@@ -711,8 +713,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFnExpr(FnExpr x) {
-        Closure cl = new Closure(e, x);
-        return cl.finishInitializing();
+        Option<TypeRef> return_type = x.getReturnType();
+        List<Param> params = x.getParams();
+        Closure cl = new Closure(e, x); // , return_type, params);
+        cl.finishInitializing();
+        return cl; 
     }
 
     public FValue forAbsFnDecl(AbsFnDecl x) {

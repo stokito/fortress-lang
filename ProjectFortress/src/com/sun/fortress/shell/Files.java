@@ -18,9 +18,9 @@
 package com.sun.fortress.shell;
 
 import java.io.*;
-import org.apache.tools.ant.*;
-import org.apache.tools.ant.taskdefs.*;
-import org.apache.tools.ant.types.selectors.*;
+//import org.apache.tools.ant.*;
+//import org.apache.tools.ant.taskdefs.*;
+//import org.apache.tools.ant.types.selectors.*;
 
 /* 
  * This convenience class provides a simple API for common file actions.

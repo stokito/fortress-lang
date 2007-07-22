@@ -83,7 +83,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
   }
 
   public String getString() {
-      return odefOrDecl.toString();
+      return s(odefOrDecl);
   }
 
   protected Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {

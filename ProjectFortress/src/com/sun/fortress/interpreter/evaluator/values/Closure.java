@@ -24,8 +24,11 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.scopes.Scope;
+import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
+import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Applicable;
@@ -72,7 +75,7 @@ public class Closure extends NonPrimitive implements Scope {
     }
 
     public String toString() {
-        return instArgs == null ? String.valueOf(def) : (def + Useful.listInOxfords(instArgs));
+        return (instArgs == null ? s(def) : (s(def) + Useful.listInOxfords(instArgs))) + " " + (type() != null ? type() : "NULL");
     }
 
     public Closure(BetterEnv e, Applicable fndef) {
@@ -95,6 +98,17 @@ public class Closure extends NonPrimitive implements Scope {
         instArgs = method.instArgs;
         setParamsAndReturnType(method.getParams(), method.returnType);
     }
+
+//    public Closure(BetterEnv e, FnExpr x, Option<TypeRef> return_type,
+//            List<Param> params) {
+//        super(e);
+//        def = NativeApp.checkAndLoadNative(x);
+//        EvalType et = new EvalType(e);
+//        setParamsAndReturnType(
+//                et.paramsToParameters(e, params),
+//                return_type.isPresent() ? et.evalType(return_type.getVal()) : BottomType.ONLY
+//                );
+//    }
 
     private void setReturnType(FType rt) {
         // TODO need to get this test right
@@ -177,6 +191,9 @@ public class Closure extends NonPrimitive implements Scope {
         BetterEnv env = getEvalEnv(); // should need this for types,
                                     // below.
         FType ft = EvalType.getFTypeFromOption(rt, env);
+        if (ft instanceof FTypeDynamic)
+            ft = BottomType.ONLY;
+        
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);

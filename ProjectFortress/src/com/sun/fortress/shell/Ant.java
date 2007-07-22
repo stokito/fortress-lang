@@ -19,8 +19,8 @@ package com.sun.fortress.shell;
 
 import java.io.*;
 import java.util.*;
-import org.apache.tools.ant.*;
-import org.apache.tools.ant.launch.Launcher;
+//import org.apache.tools.ant.*;
+//import org.apache.tools.ant.launch.Launcher;
 
 /* 
  * Class for handling dispatches to the Ant targets kept in anthooks.xml.

@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
 import com.sun.fortress.useful.Fn2;
 import com.sun.fortress.useful.Memo2;
@@ -116,8 +117,10 @@ public class FTypeArrow extends FType {
      */
     @Override
     public Set<FType> join(FType other) {
-        if (other instanceof FTypeDynamic) {
+        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
             return Useful.<FType>set(other);
+        } else if (other instanceof BottomType) {
+            return Useful.<FType>set(this);
         } else if (other instanceof FTypeArrow) {
             FTypeArrow fta_other = (FTypeArrow) other;
             return Useful.<FType, FType, FType>setProduct(this.domain.meet(fta_other.domain),
@@ -130,8 +133,10 @@ public class FTypeArrow extends FType {
      */
     @Override
     public Set<FType> meet(FType other) {
-        if (other instanceof FTypeDynamic) {
+        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
             return Useful.<FType>set(this);
+        } else if (other instanceof BottomType) {
+            return Useful.<FType>set(other);
         } else if (other instanceof FTypeArrow) {
             FTypeArrow fta_other = (FTypeArrow) other;
             return Useful.<FType, FType, FType>setProduct(this.domain.join(fta_other.domain),
@@ -143,9 +148,10 @@ public class FTypeArrow extends FType {
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
-            System.out.println("unify arrow "+this+" and "+val);
+            System.out.println("unify arrow "+this+" and "+val+", abm="+abm);
         if (!(val instanceof ArrowType)) {
-            System.out.println("       non-arrow");
+            if (FType.DUMP_UNIFY)
+                System.out.println("       non-arrow");
             return false;
         }
         ArrowType arr = (ArrowType) val;
@@ -161,6 +167,8 @@ public class FTypeArrow extends FType {
                 return false;
             }
         } catch (ProgramError p) {
+            return false;
+        } catch (EmptyLatticeIntervalError p) {
             return false;
         }
         return true;

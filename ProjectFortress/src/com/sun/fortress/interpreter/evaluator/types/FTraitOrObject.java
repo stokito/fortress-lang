@@ -216,7 +216,7 @@ abstract public class FTraitOrObject extends FType {
      */
     protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
-            System.out.println("unify GT/O  "+this+" and "+val);
+            System.out.println("unify GT/O  "+this+" and "+val + " abm= " + abm);
         if (!(val instanceof ParamType)) {
             return false;
         }

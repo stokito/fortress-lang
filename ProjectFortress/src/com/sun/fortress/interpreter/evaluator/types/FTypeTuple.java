@@ -180,8 +180,10 @@ public class FTypeTuple extends FType {
 
     public Set<FType> meet(FType other) {
         TreeSet<FType> result = new TreeSet<FType>();
-        if (other instanceof FTypeDynamic) {
+        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
             result.add(this);
+        } else if (other instanceof BottomType) {
+            result.add(other);
         } else if (other instanceof FTypeTuple) {
             FTypeTuple ftt_other = (FTypeTuple) other;
             Set<List<FType>> slf = meet(l, ftt_other.l);
@@ -195,8 +197,10 @@ public class FTypeTuple extends FType {
 
     public Set<FType> join(FType other) {
         TreeSet<FType> result = new TreeSet<FType>();
-        if (other instanceof FTypeDynamic) {
+        if (other instanceof FTypeDynamic || other instanceof FTypeTop) {
             result.add(other);
+        } else if (other instanceof BottomType) {
+            result.add(this);
         } else if (other instanceof FTypeTuple) {
             FTypeTuple ftt_other = (FTypeTuple) other;
             Set<List<FType>> slf = join(l, ftt_other.l);
@@ -347,7 +351,7 @@ public class FTypeTuple extends FType {
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
-            System.out.println("unify tuple "+this+" and "+val);
+            System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
         if (!(val instanceof TupleType)) return false;
         TupleType tup = (TupleType) val;
         if (!(tup.getKeywords().isEmpty())) return false;

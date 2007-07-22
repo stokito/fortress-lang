@@ -53,7 +53,7 @@ public class TypeLatticeOps implements LatticeOps<FType> {
     }
 
     public FType one() {
-        return FTypeDynamic.ONLY;
+        return FTypeTop.ONLY;
     }
 
     public FType zero() {

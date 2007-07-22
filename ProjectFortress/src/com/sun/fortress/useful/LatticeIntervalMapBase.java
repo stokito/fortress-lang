@@ -135,6 +135,10 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
         throw new Error("unimplemented");
     }
       
+      public String toString() {
+          return table.toString();
+      }
+      
       /** Used for backtracking during unification */
       abstract public void assign(BoundingMap<T,U,L> replacement);
    

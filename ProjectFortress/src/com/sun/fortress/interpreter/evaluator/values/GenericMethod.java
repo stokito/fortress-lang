@@ -53,7 +53,7 @@ public class GenericMethod extends MethodClosure implements
      */
     @Override
     public String getString() {
-        return getDef().toString();
+        return s(getDef());
     }
 
     boolean isTraitMethod;

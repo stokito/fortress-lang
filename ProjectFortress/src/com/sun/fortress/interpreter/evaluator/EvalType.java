@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
@@ -158,14 +159,25 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             // There must be some way to get the generic parameter attached.
             return Collections.<Parameter>emptyList();
         }
+        return paramsToParameters(new EvalType(env), params);
+    }
+
+    public static List<Parameter> paramsToParameters(EvalType e,
+            List<Param> params) {
+        if (params.size() == 0) {
+            // There must be some way to get the generic parameter attached.
+            return Collections.<Parameter>emptyList();
+        }
         int i = 0;
         List<Parameter> fparams = new ArrayList<Parameter>(params.size());
-        EvalType e = new EvalType(env);
         for (Param in_p : params) {
             Id id = in_p.getName();
             String pname = id.getName();
             Option<TypeRef> type = in_p.getType();
             FType ptype = e.getFTypeFromOption(type);
+            // TOP?  or Dynamic?
+            if (ptype instanceof FTypeDynamic)
+                ptype = FTypeTop.ONLY;
             Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
             fparams.add(i++, fp);
         }

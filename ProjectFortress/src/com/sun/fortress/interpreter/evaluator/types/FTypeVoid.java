@@ -34,4 +34,7 @@ public class FTypeVoid extends FTypeTuple {
         }
     }
 
+    public String toString() {
+        return "()";
+    }
 }

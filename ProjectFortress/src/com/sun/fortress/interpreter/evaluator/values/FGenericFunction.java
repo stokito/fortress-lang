@@ -85,7 +85,7 @@ public class FGenericFunction extends SingleFcn
      */
     @Override
     public String getString() {
-        return fndef.toString();
+        return s(fndef);
     }
 
     @Override

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.IOException;
+
 public class UIDObject {
 
     /* (non-Javadoc)
@@ -29,6 +31,25 @@ public class UIDObject {
     public int hashCode() {
         return (int) uid ^ (int) (uid >>> 32);
     }
+     
+    /**
+     * If none of the nodes override, this provides a somewhat terser toString
+     * than the generated formatting.
+     */
+    @Override
+    public String toString() {
+        Printer p = new Printer();
+        StringBuffer sb = new StringBuffer();
+        try {
+            p.dump(this, sb);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return sb.toString();
+    }
+     
+
 
     static private Object lock = new Object();
     static private long seedUID = 0x7b546b0e12fd2559L;

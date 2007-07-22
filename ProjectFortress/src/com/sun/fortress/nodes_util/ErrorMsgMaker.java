@@ -70,8 +70,9 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
                 + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
-                + "\n\t@" + NodeUtil.getAt(node.getFnName());
+                + "@" + NodeUtil.getAt(node.getFnName());
     }
+
 
     public String forFun(Fun node) {
         return node.getName().getName();

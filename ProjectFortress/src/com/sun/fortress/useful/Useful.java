@@ -69,6 +69,10 @@ public class Useful {
 
     public static <T> String listInDelimiters(String left, Collection<T> l,
             String right) {
+        return listInDelimiters(left, l, right, ",");
+    }
+    public static <T> String listInDelimiters(String left, Collection<T> l,
+            String right, String sep) {
         StringBuffer sb = new StringBuffer();
         sb.append(left);
         boolean first = true;
@@ -76,7 +80,7 @@ public class Useful {
             if (first)
                 first = false;
             else
-                sb.append(",");
+                sb.append(sep);
             sb.append(String.valueOf(x));
         }
         sb.append(right);

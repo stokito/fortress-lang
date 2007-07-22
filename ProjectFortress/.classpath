@@ -6,6 +6,7 @@
 	<classpathentry kind="lib" path="third_party/dstm2/dstm2.jar"/>
 	<classpathentry kind="lib" path="third_party/bcel/bcel-5.2.jar"/>
 	<classpathentry kind="lib" path="third_party/junit/junit.jar" sourcepath="third_party/junit/junit_src.jar"/>
+	<classpathentry kind="lib" path="third_party/plt/plt.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

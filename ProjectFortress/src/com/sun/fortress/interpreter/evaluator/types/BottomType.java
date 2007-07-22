@@ -19,10 +19,21 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 public class BottomType extends FType {
 
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#subtypeOf(com.sun.fortress.interpreter.evaluator.types.FType)
+     */
+    @Override
+    public boolean subtypeOf(FType other) {
+        return true;
+    }
+
     private BottomType(String s) {
         super(s);
     }
 
     static public BottomType ONLY = new BottomType("BottomType");
 
+    public String toString() {
+        return "BOTTOM";
+    }
 }

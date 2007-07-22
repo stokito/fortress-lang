@@ -59,7 +59,7 @@ public class  OverloadedFunction extends Fcn
 
     public String getString() {
 
-        return Useful.listInCurlies(overloads);
+        return Useful.listInDelimiters("{\n\t",overloads, "}", "\n\t");
     }
 
     public boolean getFinished() {
