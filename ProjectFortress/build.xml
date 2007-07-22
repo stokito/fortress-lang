@@ -22,42 +22,60 @@
         The Fortress interpreter, implemented in Java.
     </description>
 
-    <!-- Set global properties for this build. -->
- <property name="src" location="src"/>
-
- <property name="package.prefix" value="com/sun/fortress"/>
- <property name="blahblahblah" value="com/sun/fortress/interpreter"/>
- <property name="blahDOTblah" value="com.sun.fortress.interpreter"/>
-
- <property name="build" location="build"/>
+<!-- Set global properties for this build. -->
+ <property name="packagePrefix" value="com/sun/fortress"/>
+ <property name="package.prefix" value="com.sun.fortress"/>
+ <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
+ <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
+ <!-- Directories in the ${basedir} directory -->
  <property name="astgen" location="astgen"/>
+ <property name="build" location="build"/>
  <property name="docs" location="docs"/>
- <property name="xtc" location="${basedir}/third_party/xtc"/>
+ <property name="src" location="src"/>
+ <!-- Third party jar files -->
+ <property name="astgen.third" location="${basedir}/third_party/astgen"/>
  <property name="bcel" location="${basedir}/third_party/bcel"/>
  <property name="fj" location="${basedir}/third_party/FJ"/>
- <property name="unicode" location="${basedir}/third_party/unicode"/>
+ <property name="junit" location="${basedir}/third_party/junit"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
- <property name="nodesPackage" value="${package.prefix}/nodes"/>
- <property name="nodesUtil"  location="${package.prefix}/nodes_util"/>
+ <property name="unicode.third" location="${basedir}/third_party/unicode"/>
+ <property name="xtc" location="${basedir}/third_party/xtc"/>
+ <!-- astgen -->
+ <property name="generate-sourcefile" value="${astgen}/Fortress.ast" />
+ <!-- nodes -->
+ <property name="nodesPackage" value="${packagePrefix}/nodes"/>
  <property name="nodes"  location="${src}/${nodesPackage}"/>
  <property name="nodesBuild" location="${build}/${nodesPackage}"/>
- <property name="parser"  location="${src}/${blahblahblah}/parser"/>
- <property name="build.classpath" location="${build}"/>
+ <!-- nodes_util -->
+ <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
+ <!-- parser -->
+ <property name="parser"  location="${src}/${interpreterPrefix}/parser"/>
  <property name="precedence" location="${parser}/precedence"/>
- <property name="junit" location="${basedir}/third_party/junit"/>
- <property name="junitMem" value="512m"/>
- <property name="compile.classpath" value="${build.classpath}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
-
+ <property name="precedenceResolver" location="${parser}/precedence/resolver"/>
+ <!-- unicode -->
+ <property name="unicodePackage" value="${packagePrefix}/unicode"/>
+ <property name="unicode" location="${src}/${packagePrefix}/unicode"/>
+ <property name="unicodeBuild" location="${build}/${unicodePackage}"/>
+ <!-- useful -->
+ <property name="usefulPackage" value="${packagePrefix}/useful"/>
+ <!-- for fortress installation -->
  <property name="testFortress" location=".TEST_FORTRESS"/>
  <property name="installerDir" location=".installer"/>
  <property name="protofortress" location="${basedir}/fortress/FORTRESS"/>
  <property name="protofortress.lib" location="${protofortress}/lib"/>
-
+<!-- for tests -->
+ <property name="test.results" location="${basedir}/TEST-RESULTS"/>
+<!-- other setting -->
+ <property name="junitMem" value="512m"/>
+ <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property environment="env"/>
 
     <target name="help">
-        <echo message="ant init, visitorGen, parser, compile, jar, clean, test,
-        testParser, testAll, testNotPassing"/>
+        <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
+checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
+compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
+parser, reportNotPassing, systemProperties, test, testAll, testDemos,
+testNotPassing, testOnly"/>
     </target>
 
     <condition property="correct.environment">
@@ -137,19 +155,16 @@
         <tstamp/>
         <!-- Create the build directory structure used by compile. -->
         <mkdir dir="${build}"/>
-        <!-- Create the precedence types directory structure. -->
-        <mkdir dir="${precedence}/opexpr"/>
     </target>
 
     <target name="clean"
             description="Delete the ${build} directory tree and generated files.">
         <delete dir="${build}"/>
         <delete dir="${nodes}"/>
-        <delete file="${nodes}/BaseNodeVisitor.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
-        <delete file="${parser}/precedence/resolver/Operators.java"/>
+        <delete file="${precedenceResolver}/Operators.java"/>
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
@@ -167,14 +182,14 @@
     <target name="checkOperatorsUptodate" depends="init, compileCommon">
         <condition property="operators.uptodate">
             <and>
-                <uptodate srcfile="${unicode}/UnicodeData.500.txt"
-                          targetfile="${parser}/precedence/resolver/Operators.java"/>
-                <uptodate srcfile="${parser}/precedence/resolver/operators.txt"
-                          targetfile="${parser}/precedence/resolver/Operators.java"/>
-                <uptodate srcfile="${build}/${blahblahblah}/unicode/OperatorStuffGenerator.class"
-                          targetfile="${parser}/precedence/resolver/Operators.java"/>
-                <uptodate srcfile="${build}/${blahblahblah}/unicode/Element.class"
-                          targetfile="${parser}/precedence/resolver/Operators.java"/>
+                <uptodate srcfile="${unicode.third}/UnicodeData.500.txt"
+                          targetfile="${precedenceResolver}/Operators.java"/>
+                <uptodate srcfile="${precedenceResolver}/operators.txt"
+                          targetfile="${precedenceResolver}/Operators.java"/>
+                <uptodate srcfile="${unicodeBuild}/OperatorStuffGenerator.class"
+                          targetfile="${precedenceResolver}/Operators.java"/>
+                <uptodate srcfile="${unicodeBuild}/Element.class"
+                          targetfile="${precedenceResolver}/Operators.java"/>
             </and>
         </condition>
         <echo message="Operators up to date? ${operators.uptodate}"/>
@@ -183,7 +198,7 @@
     <target name="operatorsGen"  unless="operators.uptodate" depends="init, compileCommon, checkOperatorsUptodate"
      description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating operators"/>
-        <java classname="${blahDOTblah}.unicode.OperatorStuffGenerator" fork="true">
+        <java classname="${package.prefix}.unicode.OperatorStuffGenerator" fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
@@ -201,8 +216,7 @@
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
     </target>
 
-    <property name="generate-sourcefile" value="${astgen}/Fortress.ast" />
-    <taskdef name="astgen" classpath="third_party/astgen/astgen.jar" classname="edu.rice.cs.astgen.AntTask" />
+    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar" classname="edu.rice.cs.astgen.AntTask" />
 
     <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
      description="Automatically generate AST nodes.">
@@ -232,8 +246,8 @@
                  (here and in the 'compileCommon' target. -->
             <!-- <compilerarg value="-Xlint:unchecked"/>  -->
             <include name="**/*.java"/>
-            <exclude name="${blahblahblah}/useful/*.java"/>
-            <exclude name="${blahblahblah}/unicode/*.java"/>
+            <exclude name="${usefulPackage}/*.java"/>
+            <exclude name="${unicodePackage}/*.java"/>
         </javac>
     </target>
 
@@ -253,8 +267,8 @@
                  (here and in the 'compileCommon' target. -->
             <compilerarg value="-Xlint:unchecked"/>
             <include name="**/*.java"/>
-            <exclude name="${blahblahblah}/useful/*.java"/>
-            <exclude name="${blahblahblah}/unicode/*.java"/>
+            <exclude name="${usefulPackage}/*.java"/>
+            <exclude name="${unicodePackage}/*.java"/>
         </javac>
     </target>
 
@@ -274,10 +288,15 @@
              <!-- Uncomment the following line to print unchecked warnings
                   (here and in the 'compile' target. -->
              <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+<!--
+             <include name="${usefulPackage}/*.java"/>
+             <include name="${unicodePackage}/*.java"/>
+-->
              <include name="${blahblahblah}/useful/*.java"/>
              <include name="${blahblahblah}/unicode/*.java"/>
          </javac>
      </target>
+<property name="blahblahblah" value="com/sun/fortress"/>
 
     <target name="compileCommonLint" depends="init"
       description="Compile interpreter-indepedent code.">
@@ -295,8 +314,8 @@
              <!-- Uncomment the following line to print unchecked warnings
                   (here and in the 'compile' target. -->
              <compilerarg value="-Xlint:unchecked"/>
-             <include name="${blahblahblah}/useful/*.java"/>
-             <include name="${blahblahblah}/unicode/*.java"/>
+             <include name="${usefulPackage}/*.java"/>
+             <include name="${unicodePackage}/*.java"/>
          </javac>
      </target>
 
@@ -311,7 +330,7 @@
 
     <target name="testOnly" depends="compile"
             description="Run a single test case.">
-        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <mkdir dir="${test.results}"/>
         <junit printsummary="off"
                haltonerror="off"
                haltonfailure="off"
@@ -328,7 +347,7 @@
                 <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
-            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <and>
                       <filename name="**/*${testPattern}*/**" />
@@ -343,7 +362,7 @@
 
     <target name="test" depends="compile"
             description="Run all unit and system tests expected to pass.">
-        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <mkdir dir="${test.results}"/>
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -354,13 +373,13 @@
                failureProperty="tests.failed">
             <classpath>
              <pathelement location="${build}"/>
-                <pathelement location="${xtc}/xtc.jar"/>
-                <pathelement location="${bcel}/bcel-5.2.jar"/>
+             <pathelement location="${xtc}/xtc.jar"/>
+             <pathelement location="${bcel}/bcel-5.2.jar"/>
              <pathelement location="${fj}/concurrent.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
@@ -373,7 +392,7 @@
 
     <target name="testNotPassing" depends="compile"
             description="Run system tests that aren't passing yet.">
-        <mkdir dir="${basedir}/TEST-RESULTS"/>
+        <mkdir dir="${test.results}"/>
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -383,14 +402,14 @@
                errorProperty="not.passing.yet"
                failureProperty="not.passing.yet">
             <classpath>
-                <pathelement location="${build}"/>
+             <pathelement location="${build}"/>
              <pathelement location="${fj}/concurrent.jar"/>
-                <pathelement location="${bcel}/bcel-5.2.jar"/>
+             <pathelement location="${bcel}/bcel-5.2.jar"/>
              <pathelement location="${xtc}/xtc.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
-            <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+            <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <include name="**/*NotPassingYet.class"/>
                 </fileset>
@@ -400,7 +419,7 @@
 
     <target name="testDemos" depends="compile"
              description="Run demos in a test harness.">
-         <mkdir dir="${basedir}/TEST-RESULTS"/>
+         <mkdir dir="${test.results}"/>
          <junit printsummary="on"
                 haltonerror="off"
                 haltonfailure="off"
@@ -410,21 +429,20 @@
                 errorProperty="demos"
                 failureProperty="demos">
              <classpath>
-                 <pathelement location="${build}"/>
+              <pathelement location="${build}"/>
               <pathelement location="${fj}/concurrent.jar"/>
-                 <pathelement location="${bcel}/bcel-5.2.jar"/>
+              <pathelement location="${bcel}/bcel-5.2.jar"/>
               <pathelement location="${xtc}/xtc.jar"/>
               <pathelement location="${plt}/plt.jar"/>
              </classpath>
              <formatter type="brief" usefile="true"/>
-             <batchtest fork="true" todir="${basedir}/TEST-RESULTS">
+             <batchtest fork="true" todir="${test.results}">
                  <fileset dir="${build}">
                      <include name="**/DemoTests.class"/>
                  </fileset>
              </batchtest>
          </junit>
      </target>
-
 
     <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"
             description="Run all tests, including those known not to pass yet.">
@@ -477,8 +495,8 @@
   <target name="jar" depends="compile"
 	  description="Package up a Fortress distribution as a self-extracting jar.">
     <tstamp>
-      <format 
-	  property="jar.DSTAMP" 
+      <format
+	  property="jar.DSTAMP"
 	  timezone="GMT"
 	  pattern="yyyy_MMdd_hhmm"/>
     </tstamp>
@@ -489,33 +507,33 @@
 
     <!-- Place anthooks.jar in the protofortress. -->
     <copy file="${src}/com/sun/fortress/shell/anthooks.xml" todir="${protofortress}/bin"/>
-      
+
     <!-- Package up class files as a new shell.jar,
 	 and place them in the protofortress. -->
     <jar
 	destfile="fortress/FORTRESS/lib/shell.jar"
 	basedir="${build}"
 	includes="**/*"/>
-    
+
     <!-- Then package up the protofortress and place it
 	 in the build directory (so it can be extracted later). -->
-    <jar 
+    <jar
 	destfile="${build}/com/sun/fortress/shell/fortress.jar"
 	basedir="fortress"
 	includes="**/*" />
 
     <!-- Write timestamp of jar creation to a file for retrieval during extraction. -->
     <echo message="${jar.DSTAMP}" file="${build}/TIMESTAMP"/>
-    
-    <!-- Finally, package up the build directory into a jar that 
+
+    <!-- Finally, package up the build directory into a jar that
 	 extracts the protofortress at a destination site. -->
-    <jar 
+    <jar
 	destfile="Fortress_${jar.DSTAMP}.jar"
 	basedir="${build}"
 	includes="**/*" >
       <manifest>
 	<attribute name="Manifest-Version" value="${jar.DSTAMP}"/>
-	<attribute name="Created-By" value="Sun Microsystems, Inc."/> 
+	<attribute name="Created-By" value="Sun Microsystems, Inc."/>
 	<attribute name="Main-Class" value="com.sun.fortress.shell.Extractor"/>
 	<section name="common/class1.class">
 	  <attribute name="Sealed" value="false"/>
@@ -525,7 +543,7 @@
   </target>
 
   <target name="copy.anthooks" depends="init" unless="anthooks.uptodate">
-    <copy file="${src}/com/sun/fortress/shell/anthooks.xml" 
+    <copy file="${src}/com/sun/fortress/shell/anthooks.xml"
 	  todir="${build}/com/sun/fortress/shell"
 	  overwrite="false"/>
   </target>
@@ -549,7 +567,7 @@
 	/>
     <delete dir="${installerDir}"/>
   </target>
-  
+
   <target name="createNestedJarUpgrade"
 	  description="wrap up a jar for inclusion in a mock upgrade">
     <jar

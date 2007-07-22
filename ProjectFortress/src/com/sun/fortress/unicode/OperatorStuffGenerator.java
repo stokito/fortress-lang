@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.unicode;
+package com.sun.fortress.unicode;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

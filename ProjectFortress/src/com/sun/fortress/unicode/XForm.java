@@ -15,25 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.unicode;
+package com.sun.fortress.unicode;
 
-import java.util.HashSet;
 
-public class NamedXForm {
-    NamedXForm(String s) {
-        name = s;
+abstract class XForm extends NamedXForm {
+    XForm(String s) {
+        super(s);
     }
 
-    String name;
-    public String toString() {
-        return name;
-    }
+    abstract String translate(String x);
 
-    HashSet<String> aliases = new HashSet<String>();
-
-    public void addName(String t, String s) {
-        // Intrinsic collisions are not the fault of this transform
-        if (! t.equals(s))
-                aliases.add(t);
-    }
 }
