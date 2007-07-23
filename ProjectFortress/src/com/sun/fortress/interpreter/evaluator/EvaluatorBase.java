@@ -99,6 +99,10 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      */
     public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
             FGenericFunction appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
+        
+        if (DUMP_INFERENCE)
+            System.err.println("IAIGF " + appliedThing + " with " + args);
+        
         FGenericFunction bar = (FGenericFunction) appliedThing;
         FnDefOrDecl fndod =  bar.getFnDefOrDecl();
         Option<List<StaticParam>> otparams = fndod.getStaticParams();
@@ -185,6 +189,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             tl.add(t);
         }
         Simple_fcn sfcn = bar.make(tl, loc);
+        if (DUMP_INFERENCE)
+            System.err.println("Result " + sfcn);
         return sfcn;
     }
 

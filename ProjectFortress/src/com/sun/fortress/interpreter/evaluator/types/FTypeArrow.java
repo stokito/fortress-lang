@@ -159,10 +159,13 @@ public class FTypeArrow extends FType {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
             List<TypeRef> valdom = arr.getDomain();
-            if (domain instanceof FTypeTuple) {
-                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom);
-            } else if (valdom.size()==1) {
+            
+            // Problems with tuples of 1 vs multiple args.
+            // Must spot the single-parameter binding to tuple case first.
+            if (valdom.size()==1) {
                 domain.unify(env, tp_set, dual, valdom.get(0));
+            } else if (domain instanceof FTypeTuple) {
+                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom);
             } else {
                 return false;
             }
