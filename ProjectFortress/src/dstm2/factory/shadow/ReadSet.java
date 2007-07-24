@@ -36,7 +36,7 @@ import dstm2.Transaction;
 import dstm2.exceptions.PanicException;
 import java.util.AbstractSet;
 
-class ReadSet extends AbstractSet<Transaction> {
+public class ReadSet extends AbstractSet<Transaction> {
   
   /**
    * This value is public to facilitate unit testing.

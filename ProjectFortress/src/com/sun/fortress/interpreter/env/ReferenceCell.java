@@ -22,9 +22,13 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-
-import dstm2.atomic;
-import dstm2.factory.Factory;
+import dstm2.ContentionManager;
+import dstm2.exceptions.AbortedException;
+import dstm2.exceptions.PanicException;
+import dstm2.factory.shadow.ReadSet;
+import dstm2.factory.shadow.Recoverable;
+import dstm2.Transaction;
+import java.util.Set;
 
 
 /**
@@ -34,46 +38,90 @@ import dstm2.factory.Factory;
 public class ReferenceCell extends IndirectionCell {
     private FType theType;
     protected FNode node;
-    static Factory<FNode> factory = FortressTaskRunner.makeFactory(FNode.class);
+    Recoverable rnode;
+    ContentionManager manager;
+    Transaction writer;
+    ReadSet readers;
 
+    private final static String FORMAT = "Unexpected transaction state: %s";
+    /**
+     * A transaction switches to exclusive mode after being aborted this many times.
+     */
+    public static final int CONFLICT_THRESHOLD = 8;
 
     ReferenceCell(FType t, FValue v) {
         super();
         theType = t;
-	node = factory.create();
-        node.setValue(v);
+	node = new FNode(v);
+	rnode = (Recoverable)node;
+	manager = FortressTaskRunner.getContentionManager();
+	writer = Transaction.COMMITTED;
+	readers = new ReadSet();
     }
 
     ReferenceCell(FType t) {
         super();
         theType = t;
-        node = factory.create();
+	node = new FNode();
+	rnode = (Recoverable)node;
+	manager = FortressTaskRunner.getContentionManager();
+	writer = Transaction.COMMITTED;
+	readers = new ReadSet();
     }
 
     ReferenceCell() {
         super();
-        node = factory.create();
+	node = new FNode();
+	rnode = (Recoverable)node;
+	manager = FortressTaskRunner.getContentionManager();
+	writer = Transaction.COMMITTED;
+	readers = new ReadSet();
     }
 
     public void assignValue(FValue f2) {
-        theValue = f2;
-        node.setValue(f2);
+	Transaction me  = FortressTaskRunner.getTransaction();
+	Transaction other = null;
+	Set<Transaction> others = null;
+	while (true) {
+	    synchronized (this) {
+		others = readWriteConflict(me);
+		if (others == null) {
+		    other = openWrite(me);
+		    if (other == null) {
+			node.setValue(f2);
+			return;
+		    }
+		}
+	    }
+	    if (others != null) {
+		manager.resolveConflict(me, others);
+	    } else if (other != null) {
+		manager.resolveConflict(me, other);
+	    }
+	}
     }
 
     public FType getType() {
         return theType;
     }
 
+    class FNode implements Recoverable {
+	FValue val;
+	FValue oldVal;
 
-    @atomic public interface FNode {
-        FValue getValue();
-        void setValue(FValue value);
+	void setValue(FValue value) { val = value;};
+	FNode(FValue value) {val = value;}
+	FNode() {}
+	FValue getValue() { return val;}
+
+	public void backup() { oldVal = val; }
+	public void recover() { val = oldVal; }
     }
 
     public void storeValue(FValue f2) {
         if (node.getValue() != null)
             throw new InterpreterError("Internal error, second store of indirection cell");
-        node.setValue(f2);
+	assignValue(f2);
     }
 
     public void storeType(FType f2) {
@@ -87,11 +135,112 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     public FValue getValue() {
-        FValue the_value = node.getValue();
-        if (the_value == null) {
-            throw new ProgramError("Attempt to read uninitialized variable");
-        }
-        return the_value;
+	Transaction me  = FortressTaskRunner.getTransaction();
+	Transaction other = null;
+	while (true) {
+	    synchronized (this) {
+		other = openRead(me);
+		//other = openWrite(me);
+		if (other == null) {
+		    FValue theValue = node.getValue();
+		    if (theValue == null) {
+			throw new ProgramError("Attempt to read uninitialized variable");
+		    }
+		    return theValue;
+		}
+	    }
+	    manager.resolveConflict(me, other);
+	}
     }
+
+  /**
+   * Tries to open object for reading. Returns reference to conflicting transaction, if one exists
+   **/
+  public Transaction openRead(Transaction me) {
+    // don't try read sharing if contention seems high
+    if (me == null) {	// restore object if latest writer aborted
+      if (writer.isAborted()) {
+        rnode.recover();
+        writer = Transaction.COMMITTED;
+      }
+      return null;
+    }
+    if (me.attempts > CONFLICT_THRESHOLD) {
+      return openWrite(me);
+    }
+    // Am I still active?
+    if (!me.isActive()) {
+      throw new AbortedException();
+    }
+    // Have I already opened this object?
+    if (writer == me) {
+      return null;
+    }
+    switch (writer.getStatus()) {
+      case ACTIVE:
+        return writer;
+      case COMMITTED:
+        break;
+      case ABORTED:
+        rnode.recover();
+        break;
+      default:
+        throw new PanicException(FORMAT, writer.getStatus());
+    }
+    writer = Transaction.COMMITTED;
+    readers.add(me);
+    manager.openSucceeded();
+    return null;
+  }
+  
+  /**
+   * Tries to open object for reading.
+   * Returns reference to conflicting transaction, if one exists
+   **/
+  Transaction openWrite(Transaction me) {
+    boolean cacheHit = false;  // already open for read?
+    // not in a transaction
+    if (me == null) {	// restore object if latest writer aborted
+      if (writer.isAborted()) {
+        rnode.recover();
+        writer = Transaction.COMMITTED;
+      }
+      return null;
+    }
+    if (!me.isActive()) {
+      throw new AbortedException();
+    }
+    if (me == writer) {
+      return null;
+    }
+    switch (writer.getStatus()) {
+      case ACTIVE:
+        return writer;
+      case COMMITTED:
+        rnode.backup();
+        break;
+      case ABORTED:
+        rnode.recover();
+        break;
+      default:
+        throw new PanicException(FORMAT, writer.getStatus());
+    }
+    writer = me;
+    if (!cacheHit) {
+      me.memRefs++;
+      manager.openSucceeded();
+    }
+    return null;
+  }
+
+  public Set<Transaction> readWriteConflict(Transaction me) {
+    for (Transaction reader : readers) {
+      if (reader.isActive() && reader != me) {
+        return readers;
+      }
+    }
+    readers.clear();
+    return null;
+  }
 
 }
