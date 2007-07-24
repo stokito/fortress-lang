@@ -38,10 +38,10 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.GenericDefOrDeclWithParams;
+import com.sun.fortress.nodes.GenericAbsDeclOrDeclWithParams;
 import com.sun.fortress.nodes.HasParams;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.useful.Option;
@@ -63,9 +63,9 @@ public class Constructor extends AnonymousConstructor {
 
     public Constructor(BetterEnv env,
             FTypeObject selfType,
-            GenericDefOrDeclWithParams def) {
+            GenericAbsDeclOrDeclWithParams def) {
         this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def),
-                def.getDefOrDecls());
+                def.getAbsDeclOrDecls());
         addParamsToCollection(def, parameterNames);
     }
 
@@ -112,7 +112,7 @@ public class Constructor extends AnonymousConstructor {
     // TODO need to copy the field names
 
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
-                FnName name, List<? extends DefOrDecl> defs) {
+                FnName name, List<? extends AbsDeclOrDecl> defs) {
         super(env, selfType, def); // TODO verify that this is the proper env.
         this.cfn = name;
         this.defs = defs;
@@ -428,7 +428,7 @@ public class Constructor extends AnonymousConstructor {
     boolean finished = false;
 
     FnName cfn;
-    List<? extends DefOrDecl> defs;
+    List<? extends AbsDeclOrDecl> defs;
 
     MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
         new MultiMap<FTraitOrObject, SingleFcn>();

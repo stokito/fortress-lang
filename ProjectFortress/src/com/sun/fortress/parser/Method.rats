@@ -34,7 +34,7 @@ import Spacing;
    MdDef
  | (abstract w)? MdMods? MdHeaderFront FnHeaderClause
  */
-FnDefOrDecl MdDecl =
+FnAbsDeclOrDecl MdDecl =
      MdDef
    / a1:(abstract w)? a2:MdMods? a3:MdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
@@ -80,7 +80,7 @@ private FnHeaderFront MdHeaderFront =
    GetterSetterDef
  | (abstract w) FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
  */
-FnDefOrDecl GetterSetterDecl =
+FnAbsDeclOrDecl GetterSetterDecl =
      GetterSetterDef
    / a1:(abstract w)? a2:FnMods? a3:GetterSetterMod a4:MdHeaderFront
      a5:FnHeaderClause
@@ -96,7 +96,7 @@ FnDefOrDecl GetterSetterDecl =
 /* GetterSetterDef ::=
    FnMods? GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
-FnDefOrDecl GetterSetterDef =
+FnAbsDeclOrDecl GetterSetterDef =
      a1:FnMods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
      a5:NoNewlineExpr
      { if (a1 == null) a1 = new ArrayList<Modifier>();
@@ -129,7 +129,7 @@ AbsFnDecl AbsGetterSetterDecl =
      coerce (w StaticParams)? w ( w Id w IsType w ) CoercionClauses w (widens w)?
      = w NoNewlineExpr
  */
-DefOrDecl Coercion =
+AbsDeclOrDecl Coercion =
      coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
      a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
@@ -145,7 +145,7 @@ DefOrDecl Coercion =
 /* AbsCoercion ::=
      coerce (w StaticParams)? w ( w Id w IsType w ) CoercionClauses (w widens)?
  */
-DefOrDecl AbsCoercion =
+AbsDeclOrDecl AbsCoercion =
      coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
      a4:CoercionClauses a5:(w widens)?
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();

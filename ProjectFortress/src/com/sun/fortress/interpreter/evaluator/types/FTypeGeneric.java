@@ -26,14 +26,14 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
-import com.sun.fortress.nodes.GenericDefOrDecl;
+import com.sun.fortress.nodes.GenericAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
@@ -44,7 +44,7 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
-    public FTypeGeneric(BetterEnv e, GenericDefOrDecl d, List<? extends DefOrDecl> members) {
+    public FTypeGeneric(BetterEnv e, GenericAbsDeclOrDecl d, List<? extends AbsDeclOrDecl> members) {
         super(NodeUtil.stringName(d));
         env = e;
         def = d;
@@ -67,7 +67,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
     String genericName;
 
-    List<? extends DefOrDecl> members;
+    List<? extends AbsDeclOrDecl> members;
 
     private class Factory implements
             LazyFactory1P<List<FType>, FTraitOrObject, HasAt> {
@@ -82,11 +82,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
             FTraitOrObject rval;
 
-            if (def instanceof DefOrDecl) {
-                DefOrDecl dod = (DefOrDecl) def;
-                if (dod instanceof TraitDefOrDecl) {
-                    TraitDefOrDecl td = (TraitDefOrDecl) dod;
-                    FTypeTrait ftt = new FTypeTraitInstance(td.getName()
+            if (def instanceof AbsDeclOrDecl) {
+                AbsDeclOrDecl dod = (AbsDeclOrDecl) def;
+                if (dod instanceof TraitAbsDeclOrDecl) {
+                    TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
+                    FTypeTrait ftt = new FTypeTraitInstance(td.getId()
                             .getName(), clenv, FTypeGeneric.this, args, members);
                     FTraitOrObject old = map.put(args, ftt); // Must put
                                                                 // early to
@@ -94,23 +94,23 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                                                                 // second pass.
 
                     // Perhaps make this conditional on nothing being symbolic here?
-                    be.scanForFunctionalMethodNames(ftt, td.getFns(), true);
+                    be.scanForFunctionalMethodNames(ftt, td.getAbsDeclOrDecls(), true);
                     be.secondPass();
                     be.finishTrait(td, ftt, clenv);
                     be.thirdPass();
                     rval = ftt;
                 } else if (dod instanceof ObjectDecl) {
                     ObjectDecl td = (ObjectDecl) dod;
-                    FTypeObject fto = new FTypeObjectInstance(td.getName()
+                    FTypeObject fto = new FTypeObjectInstance(td.getId()
                             .getName(), clenv, FTypeGeneric.this, args, members);
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
-                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
                     be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
                     rval = fto;
                 } else if (dod instanceof _RewriteObjectExpr) {
                     _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
@@ -119,11 +119,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
-                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
                     be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getDefOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
 
                     rval = fto;
                 } else {

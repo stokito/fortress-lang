@@ -2,7 +2,6 @@
  - Dimensions and units.
  - Where-clause constraints - nat, int, bool, and unit constraints.
  - Static arguments - nat (minus), int, bool, dimension, unit, and ident.
- - Parallel block expressions.
 
 * Rats! files: Fortress syntax
  - Fortress.rats
@@ -66,7 +65,6 @@
 
  - DelimitedExpr.rats
    Expressions beginning and ending with keywords.
-   NYI: Parallel block expressions.
 
  - LocalDecl.rats
    Local declarations within block expressions.

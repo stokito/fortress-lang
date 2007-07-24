@@ -36,7 +36,7 @@ public CompilationUnit File =
      w CompilationUnit w
    / a1:(w Imports)? w a2:Exports a3:(w Decls)? w
      { if (a1 == null) a1 = Collections.<Import>emptyList();
-       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       if (a3 == null) a3 = Collections.<AbsDeclOrDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedId name = NodeFactory.makeDottedId(span, file.substring(0,file.length()-4));
@@ -54,7 +54,7 @@ public CompilationUnit File =
        yyValue = new Api(span, name, a1, a2);
      }
    / w a1:Imports a2:(w AbsDecls)? w
-     { if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+     { if (a2 == null) a2 = Collections.<AbsDeclOrDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedId name;
@@ -77,14 +77,14 @@ private CompilationUnit CompilationUnit =
 private Component Component =
      component w a1:DottedId a2:(w Imports)? w a3:Exports a4:(w Decls)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
-       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
+       if (a4 == null) a4 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);
      };
 
 /* Api ::= api w DottedId (w Imports)? (w AbsDecls)? w end */
 private Api Api = api w a1:DottedId a2:(w Imports)? a3:(w AbsDecls)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
-       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       if (a3 == null) a3 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);
      };
 

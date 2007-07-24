@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.useful.BoundingMap;
@@ -37,7 +37,7 @@ import com.sun.fortress.useful.BoundingMap;
  */
 public class FTypeTraitInstance extends FTypeTrait implements GenericTypeInstance {
 
-    public FTypeTraitInstance(String name, BetterEnv interior, FTypeGeneric generic, List<FType> args, List<? extends DefOrDecl> members) {
+    public FTypeTraitInstance(String name, BetterEnv interior, FTypeGeneric generic, List<FType> args, List<? extends AbsDeclOrDecl> members) {
         super(name, interior, interior.getAt(), members);
         this.generic = generic;
         this.args = args;

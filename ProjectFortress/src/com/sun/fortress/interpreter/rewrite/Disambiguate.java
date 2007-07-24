@@ -44,7 +44,7 @@ import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
@@ -74,7 +74,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRefExpr;
@@ -151,9 +151,9 @@ public class Disambiguate extends Rewrite {
      * what names are in scope, though not necessarily what they mean.
      */
     class Trait extends Local {
-        TraitDefOrDecl defOrDecl;
+        TraitAbsDeclOrDecl defOrDecl;
 
-        Trait(TraitDefOrDecl dod) {
+        Trait(TraitAbsDeclOrDecl dod) {
             defOrDecl = dod;
         }
         public String toString() { return "Trait="+defOrDecl; }
@@ -269,16 +269,16 @@ public class Disambiguate extends Rewrite {
             Option<List<StaticParam>> params = oe.getStaticParams();
             if (! params.isPresent()) {
                 // Regular constructor
-                FTypeObject fto = new FTypeObject(name, env, oe, oe.getDefOrDecls());
+                FTypeObject fto = new FTypeObject(name, env, oe, oe.getAbsDeclOrDecls());
                 env.putType(name, fto);
-                BuildEnvironments.finishObjectTrait(oe.getTraits(), null, null, fto, env, oe);
-                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeFun(name), oe.getDefOrDecls());
+                BuildEnvironments.finishObjectTrait(oe.getExtendsClause(), null, null, fto, env, oe);
+                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeFun(name), oe.getAbsDeclOrDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 env.putValue(name, con);
                 con.finishInitializing();
             } else {
                 // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDefOrDecls());
+                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getAbsDeclOrDecls());
                 env.putType(name, fto);
                 GenericConstructor con = new GenericConstructor(env, oe);
                 env.putValue(name, con);
@@ -349,7 +349,7 @@ public class Disambiguate extends Rewrite {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Component com = (Component) node;
-            List<? extends DefOrDecl> defs = com.getDefs();
+            List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
             return visitNode(node);
 
@@ -382,7 +382,7 @@ public class Disambiguate extends Rewrite {
                     return newName(vre, s);
                 } else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
-                    Id id = lvb.getName();
+                    Id id = lvb.getId();
                     if ("_".equals(id.getName())) {
                         return NodeFactory.makeLValue(lvb, new Id(id.getSpan(), "_$" + id.getSpan() ));
                     }
@@ -461,8 +461,8 @@ public class Disambiguate extends Rewrite {
                     // all the methods coming from traits are no longer
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
-                    List<? extends DefOrDecl> defs = oe.getDefOrDecls();
-                    Option<List<TypeRef>> xtends = oe.getTraits();
+                    List<? extends AbsDeclOrDecl> defs = oe.getAbsDeclOrDecls();
+                    Option<List<TypeRef>> xtends = oe.getExtendsClause();
                     // TODO wip
 
                     objectNestingDepth++;
@@ -508,10 +508,10 @@ public class Disambiguate extends Rewrite {
                     // extended traits
                     // are mapped to "self".
                     ObjectDecl od = (ObjectDecl) node;
-                    List<? extends DefOrDecl> defs = od.getDefOrDecls();
+                    List<? extends AbsDeclOrDecl> defs = od.getAbsDeclOrDecls();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
-                    Option<List<TypeRef>> xtends = od.getTraits();
+                    Option<List<TypeRef>> xtends = od.getExtendsClause();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -524,9 +524,9 @@ public class Disambiguate extends Rewrite {
                     AbstractNode n = visitNode(node);
 
                     return n;
-                } else if (node instanceof TraitDefOrDecl) {
-                    TraitDefOrDecl td = (TraitDefOrDecl) node;
-                    List<? extends DefOrDecl> defs = td.getFns();
+                } else if (node instanceof TraitAbsDeclOrDecl) {
+                    TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) node;
+                    List<? extends AbsDeclOrDecl> defs = td.getAbsDeclOrDecls();
                     Option<List<StaticParam>> tparams = td.getStaticParams();
                     // TODO wip
                     objectNestingDepth++;
@@ -604,7 +604,7 @@ public class Disambiguate extends Rewrite {
     /**
      * @param td
      */
-    private void accumulateMembersFromExtends(TraitDefOrDecl td) {
+    private void accumulateMembersFromExtends(TraitAbsDeclOrDecl td) {
         accumulateMembersFromExtends(td.getExtendsClause(), traitDisEnvMap.get(td) );
     }
 
@@ -638,11 +638,11 @@ public class Disambiguate extends Rewrite {
     /**
      * @param defs
      */
-    private void defsToLocals(List<? extends DefOrDecl> defs) {
-        for (DefOrDecl d : defs) {
+    private void defsToLocals(List<? extends AbsDeclOrDecl> defs) {
+        for (AbsDeclOrDecl d : defs) {
             String s = NodeUtil.stringName(d);
-            if (d instanceof TraitDefOrDecl) {
-                TraitDefOrDecl dod = (TraitDefOrDecl) d;
+            if (d instanceof TraitAbsDeclOrDecl) {
+                TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
                 traitDisEnvMap.put(dod, e); // dod.setDisEnv(e);
                 e.put(s, new Trait(dod));
             } else {
@@ -692,8 +692,8 @@ public class Disambiguate extends Rewrite {
     /**
      * @param defs
      */
-    private void defsToMembers(List<? extends DefOrDecl> defs) {
-        for (DefOrDecl d : defs)
+    private void defsToMembers(List<? extends AbsDeclOrDecl> defs) {
+        for (AbsDeclOrDecl d : defs)
             for (String s: NodeUtil.stringNames(d))
             e.put(s, new Member());
 
@@ -768,14 +768,14 @@ public class Disambiguate extends Rewrite {
                         }
                         if (th instanceof Trait) {
                             Trait tr = (Trait) th;
-                            TraitDefOrDecl tdod = tr.defOrDecl;
+                            TraitAbsDeclOrDecl tdod = tr.defOrDecl;
                             if (!(visited.contains(tdod))) {
                                 visited.add(tdod);
                                 // Process this trait -- add its name, as well
                                 // as all the members
                                 // types.add(s); // The trait is known by this
                                                 // name.
-                                for (DefOrDecl dd : tdod.getFns()) {
+                                for (AbsDeclOrDecl dd : tdod.getAbsDeclOrDecls()) {
                                     members.add(NodeUtil.stringName(dd));
                                 }
                                 accumulateTraitsAndMethods(tdod.getExtendsClause(),

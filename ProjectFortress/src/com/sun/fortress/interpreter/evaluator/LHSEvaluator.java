@@ -117,7 +117,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (ft != null) {
             // Check that variable can receive type
             if (!ft.typeMatch(value)) {
-                throw new ProgramError(x, e, 
+                throw new ProgramError(x, e,
                         errorMsg("TypeRef mismatch assigning ", value,
                                        " (type ", value.type(), ") to ", s, " (type ", ft, ")"));
             }
@@ -131,7 +131,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
-        Id id = x.getName();
+        Id id = x.getId();
         Option<List<ExtentRange>> dim = x.getDim();
         return super.forUnpastingBind(x);
     }
@@ -147,7 +147,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     }
 
     public Voidoid forLValueBind(LValueBind x) {
-        Id name = x.getName();
+        Id name = x.getId();
         Option<TypeRef> type = x.getType();
         String s = name.getName();
         boolean mutable = x.isMutable();
@@ -241,7 +241,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);
                     else {
-                        throw new ProgramError(x, evaluator.e, 
+                        throw new ProgramError(x, evaluator.e,
                                 errorMsg("RHS expression type ", value.type(),
                                                " is not assignable to LHS type ", outerType));
                     }

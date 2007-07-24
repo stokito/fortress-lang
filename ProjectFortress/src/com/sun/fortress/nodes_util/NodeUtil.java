@@ -67,9 +67,9 @@ public class NodeUtil {
      * or -1 if it does not appear.
      */
     public static int selfParameterIndex(HasAt d) {
-        if (d instanceof FnDefOrDecl) {
+        if (d instanceof FnAbsDeclOrDecl) {
             int i = 0;
-            for (Param p : ((FnDefOrDecl)d).getParams()) {
+            for (Param p : ((FnAbsDeclOrDecl)d).getParams()) {
                 Id id = p.getName();
                 if (WellKnownNames.defaultSelfName.equals(id.getName())) {
                     return i;
@@ -77,19 +77,19 @@ public class NodeUtil {
                 i++;
             }
         }
-        return -1;    
+        return -1;
     }
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
         if (app instanceof FnExpr) {
             return getName(((FnExpr)app).getFnName());
-        } else if (app instanceof FnDefOrDecl) {
-            int spi = selfParameterIndex((FnDefOrDecl)app);
+        } else if (app instanceof FnAbsDeclOrDecl) {
+            int spi = selfParameterIndex((FnAbsDeclOrDecl)app);
             if (spi >= 0)
-                return "rm$" + spi + "$" + getName(((FnDefOrDecl)app).getFnName());
+                return "rm$" + spi + "$" + getName(((FnAbsDeclOrDecl)app).getFnName());
             else
-                return getName(((FnDefOrDecl)app).getFnName());
+                return getName(((FnAbsDeclOrDecl)app).getFnName());
         } else if (app instanceof NativeApp) {
             return getName(((NativeApp)app).getFnName());
         } else if (app instanceof NativeApplicable) {
@@ -195,16 +195,16 @@ public class NodeUtil {
     public static String stringName(HasAt node) {
         if (node instanceof DimDecl) {
             return ((DimDecl)node).getId().getName();
-        } else if (node instanceof FnDefOrDecl) {
-            return NodeUtil.getName(((FnDefOrDecl)node).getFnName());
+        } else if (node instanceof FnAbsDeclOrDecl) {
+            return NodeUtil.getName(((FnAbsDeclOrDecl)node).getFnName());
         } else if (node instanceof FnName) {
             return NodeUtil.getName((FnName)node);
-        } else if (node instanceof ObjectDefOrDecl) {
-            return ((ObjectDefOrDecl)node).getName().getName();
+        } else if (node instanceof ObjectAbsDeclOrDecl) {
+            return ((ObjectAbsDeclOrDecl)node).getId().getName();
         } else if (node instanceof _RewriteObjectExpr) {
             return ((_RewriteObjectExpr)node).getGenSymName();
-        } else if (node instanceof TraitDefOrDecl) {
-            return ((TraitDefOrDecl)node).getName().getName();
+        } else if (node instanceof TraitAbsDeclOrDecl) {
+            return ((TraitAbsDeclOrDecl)node).getId().getName();
         } else if (node instanceof TypeAlias) {
             return ((TypeAlias)node).getName().getName();
         } else if (node instanceof UnitDecl) {
@@ -221,9 +221,9 @@ public class NodeUtil {
     /* stringNames *********************************************************/
     public static IterableOnce<String> stringNames(LValue d) {
         if (d instanceof LValueBind) {
-            return new UnitIterable<String>(((LValueBind)d).getName().getName());
+            return new UnitIterable<String>(((LValueBind)d).getId().getName());
         } else if (d instanceof UnpastingBind) {
-            return new UnitIterable<String>(((UnpastingBind)d).getName().getName());
+            return new UnitIterable<String>(((UnpastingBind)d).getId().getName());
         } else if (d instanceof UnpastingSplit) {
             return new IterableOnceForLValueList(((UnpastingSplit)d).getElems());
         } else {
@@ -231,7 +231,7 @@ public class NodeUtil {
         }
     }
 
-    public static IterableOnce<String> stringNames(DefOrDecl d) {
+    public static IterableOnce<String> stringNames(AbsDeclOrDecl d) {
         if (d instanceof AbsExternalSyntax) {
             return new UnitIterable<String>(((AbsExternalSyntax)d).getId().getName());
         } else if (d instanceof AbsTypeAlias) {
@@ -242,16 +242,16 @@ public class NodeUtil {
             return new UnitIterable<String>(((ExternalSyntax)d).getId().getName());
         } else if (d instanceof FnExpr) {
             return new UnitIterable<String>(NodeUtil.getName(((FnExpr)d).getFnName()));
-        } else if (d instanceof FnDefOrDecl) {
-            return new UnitIterable<String>(NodeUtil.getName(((FnDefOrDecl)d).getFnName()));
+        } else if (d instanceof FnAbsDeclOrDecl) {
+            return new UnitIterable<String>(NodeUtil.getName(((FnAbsDeclOrDecl)d).getFnName()));
         } else if (d instanceof GeneratedExpr) {
             return new UnitIterable<String>("GeneratedExpr");
         } else if (d instanceof LetFn) {
             return new UnitIterable<String>(((LetFn)d).getClass().getSimpleName());
         } else if (d instanceof LocalVarDecl) {
                    return new IterableOnceForLValueList(((LocalVarDecl)d).getLhs());
-        } else if (d instanceof ObjectDefOrDecl) {
-            return new UnitIterable<String>(((ObjectDefOrDecl)d).getName().getName());
+        } else if (d instanceof ObjectAbsDeclOrDecl) {
+            return new UnitIterable<String>(((ObjectAbsDeclOrDecl)d).getId().getName());
         } else if (d instanceof _RewriteObjectExpr) {
             return new UnitIterable<String>(((_RewriteObjectExpr)d).getGenSymName());
         } else if (d instanceof PropertyDecl) {
@@ -264,15 +264,15 @@ public class NodeUtil {
             }
         } else if (d instanceof TestDecl) {
             return new UnitIterable<String>(((TestDecl)d).getId().getName());
-        } else if (d instanceof TraitDefOrDecl) {
-            return new UnitIterable<String>(((TraitDefOrDecl)d).getName().getName());
+        } else if (d instanceof TraitAbsDeclOrDecl) {
+            return new UnitIterable<String>(((TraitAbsDeclOrDecl)d).getId().getName());
         } else if (d instanceof TypeAlias) {
             return new UnitIterable<String>(((TypeAlias)d).getName().getName());
         } else if (d instanceof UnitDecl) {
             return new IterableOnceTranslatingList<Id, String>(((UnitDecl)d).
                                                     getNames(), IdtoStringFn);
-        } else if (d instanceof VarDefOrDecl) {
-            return new IterableOnceForLValueList(((VarDefOrDecl)d).getLhs());
+        } else if (d instanceof VarAbsDeclOrDecl) {
+            return new IterableOnceForLValueList(((VarAbsDeclOrDecl)d).getLhs());
         } else {
             throw new Error("NodeUtil.stringNames: Uncovered DefOrDecl " + d.getClass());
         }

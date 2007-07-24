@@ -114,10 +114,10 @@ public class NodeComparator {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;
             return NodeUtil.getName(((FnExpr)left).getFnName()).compareTo(NodeUtil.getName(((FnExpr)right).getFnName()));
-        } else if (left instanceof FnDefOrDecl) {
+        } else if (left instanceof FnAbsDeclOrDecl) {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;
-            return compare(left, (FnDefOrDecl)right);
+            return compare(left, (FnAbsDeclOrDecl)right);
         } else if (left instanceof NativeApp) {
             return Useful.compareClasses(left, right);
         } else if (left instanceof NativeApplicable) {
@@ -148,7 +148,7 @@ public class NodeComparator {
         return 0;
     }
 
-    public static int compare(FnDefOrDecl left, FnDefOrDecl right) {
+    public static int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
         FnName fn0 = left.getFnName();
         FnName fn1 = right.getFnName();
         int x = NodeComparator.compare(fn0, fn1);
@@ -187,7 +187,7 @@ public class NodeComparator {
     }
 
     public static int compare(KeywordType left, KeywordType right) {
-        return compare(left.getName(), right.getName(),
+        return compare(left.getId(), right.getId(),
                        left.getType(), right.getType());
     }
 

@@ -92,7 +92,7 @@ public class NodeFactory {
         return new BaseOprRef(span, new Opr(span, op));
     }
 
-    public static ConstructorFnName makeConstructorFnName(DefOrDecl def) {
+    public static ConstructorFnName makeConstructorFnName(AbsDeclOrDecl def) {
         return new ConstructorFnName(NodeUtil.getSpan(def), def);
     }
 
@@ -167,7 +167,7 @@ public class NodeFactory {
     }
 
     public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
                               lvb.getMods(), mutable);
     }
 
@@ -177,25 +177,25 @@ public class NodeFactory {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
                               mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods,
                                             boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
                               mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(),
                               new Some<TypeRef>(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
                                         boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(),
                               new Some<TypeRef>(ty), lvb.getMods(), mutable);
     }
 
@@ -206,7 +206,7 @@ public class NodeFactory {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+        return new LValueBind(lvb.getSpan(), lvb.getId(),
                               new Some<TypeRef>(ty), mods, mutable);
     }
 

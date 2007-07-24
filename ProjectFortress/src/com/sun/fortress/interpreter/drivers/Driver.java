@@ -376,7 +376,7 @@ public class Driver {
                     ImportApi ix = (ImportApi) i;
                     List<AliasedDottedId> apis = ix.getApis();
                     for (AliasedDottedId adi : apis) {
-                        DottedId id = adi.getId();
+                        DottedId id = adi.getDottedId();
                         String from_apiname = StringMaker.fromDottedId(id);
 
                         Option<DottedId> alias = adi.getAlias();
@@ -411,9 +411,9 @@ public class Driver {
 
                     if (ix instanceof ImportNames) {
                         /* A set of names */
-                        List<AliasedName> names = ((ImportNames) ix).getNames();
+                        List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
                         for (AliasedName an : names) {
-                            FnName name = an.getName();
+                            FnName name = an.getFnName();
                             Option<FnName> alias = an.getAlias();
                             /*
                              * If alias exists, associate the binding from
@@ -425,7 +425,7 @@ public class Driver {
                                    StringMaker.
                                        fromDottedId(from_cw.
                                                        getComponent().
-                                                           getName()));
+                                                           getDottedId()));
 
                         }
 
@@ -443,7 +443,7 @@ public class Driver {
                         importAllExcept(e, api_e, from_e, except_names,
                                         from_apiname,
                                         StringMaker.fromDottedId
-                                            (from_cw.getComponent().getName()));
+                                            (from_cw.getComponent().getDottedId()));
 
                     }
                 } else {
@@ -599,7 +599,7 @@ public class Driver {
                 ImportApi ix = (ImportApi) i;
                 List<AliasedDottedId> apis = ix.getApis();
                 for (AliasedDottedId adi : apis) {
-                    DottedId id = adi.getId();
+                    DottedId id = adi.getDottedId();
                     ensureApiImplemented(linker, pile, id);
                 }
             }

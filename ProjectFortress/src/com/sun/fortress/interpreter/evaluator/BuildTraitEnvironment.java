@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
@@ -60,8 +60,8 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         return new PartiallyDefinedMethod(containing, methodEnvironment, x);
     }
 
-    protected GenericMethod newGenericClosure(BetterEnv e, FnDefOrDecl x) {
-        return new GenericMethod(containing, methodEnvironment, x, true); 
+    protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
+        return new GenericMethod(containing, methodEnvironment, x, true);
     }
 
     /**
@@ -90,7 +90,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
                 if (lv instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) lv;
 
-                    Id name = lvb.getName();
+                    Id name = lvb.getId();
                     String s = name.getName();
                     fields.add(s);
                 }

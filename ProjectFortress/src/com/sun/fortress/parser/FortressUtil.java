@@ -31,7 +31,7 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.EnsuresClause;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
@@ -97,8 +97,8 @@ public final class FortressUtil {
         return Collections.<Expr>emptyList();
     }
 
-    public static List<FnDefOrDecl> emptyFnDefOrDecls() {
-        return Collections.<FnDefOrDecl>emptyList();
+    public static List<FnAbsDeclOrDecl> emptyFnDefOrDecls() {
+        return Collections.<FnAbsDeclOrDecl>emptyList();
     }
 
     public static List<Modifier> emptyModifiers() {

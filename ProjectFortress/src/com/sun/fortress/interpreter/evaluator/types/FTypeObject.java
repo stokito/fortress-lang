@@ -20,14 +20,14 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.DefOrDecl;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
 
 
 public class FTypeObject extends FTraitOrObject {
 
-    public FTypeObject(String name, BetterEnv env, HasAt at, List<? extends DefOrDecl> members) {
+    public FTypeObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members) {
         super(name, env, at, members);
         cannotBeExtended = true;
     }

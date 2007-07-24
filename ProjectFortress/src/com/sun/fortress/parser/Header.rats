@@ -237,19 +237,20 @@ private List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
        else            yyValue = a1;
      };
 
-/* Ensures  ::= ensures w { (w ProvidedList)? w } */
+/* Ensures  ::= ensures w { (w EnsuresClauseList)? w } */
 private List<EnsuresClause> Ensures =
-     ensures w opencurly a1:(w ProvidedList)? w closecurly
+     ensures w opencurly a1:(w EnsuresClauseList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyEnsuresClauses();
        else            yyValue = a1;
      };
 
-/* ProvidedList ::= Provided (w , w Provided)* */
-private List<EnsuresClause> ProvidedList = a1:Provided a2s:(w comma w Provided)*
+/* EnsuresClauseList ::= EnsuresClause (w , w EnsuresClause)* */
+private List<EnsuresClause> EnsuresClauseList =
+     a1:EnsuresClause a2s:(w comma w EnsuresClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Provided ::= Expr (w provided w Expr)? */
-private EnsuresClause Provided = a1:Expr a2:(w provided w Expr)?
+/* EnsuresClause ::= Expr (w provided w Expr)? */
+private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
      { Option<Expr> ensures;
        if (a2 == null) ensures = None.<Expr>make();
        else            ensures = Some.<Expr>make(a2);

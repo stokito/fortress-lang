@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimensionParam;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OperatorParam;
@@ -105,7 +105,7 @@ public class GenericMethod extends MethodClosure implements
     }
 
     public GenericMethod(BetterEnv declarationEnv, BetterEnv evaluationEnv,
-            FnDefOrDecl fndef, boolean isTraitMethod) {
+            FnAbsDeclOrDecl fndef, boolean isTraitMethod) {
         super(// new SpineEnv(declarationEnv, fndef), // Add an extra scope/layer for the generics.
                 declarationEnv, // not yet, it changes overloading semantics.
                 fndef);
@@ -113,7 +113,7 @@ public class GenericMethod extends MethodClosure implements
         this.evaluationEnv = evaluationEnv;
     }
 
-    //    public GenericMethod(Environment declarationEnv, Environment traitEnv, FnDefOrDecl fndef, String selfName) {
+    //    public GenericMethod(Environment declarationEnv, Environment traitEnv, FnAbsDeclOrDecl fndef, String selfName) {
     //        super(declarationEnv, fndef, selfName);
     //
     //    }

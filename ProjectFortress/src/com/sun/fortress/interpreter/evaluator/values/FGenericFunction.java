@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -120,9 +120,9 @@ public class FGenericFunction extends SingleFcn
         return memo.make(l, location);
     }
 
-    FnDefOrDecl fndef;
+    FnAbsDeclOrDecl fndef;
 
-    public FnDefOrDecl getFnDefOrDecl() {
+    public FnAbsDeclOrDecl getFnDefOrDecl() {
         return fndef;
     }
 
@@ -130,7 +130,7 @@ public class FGenericFunction extends SingleFcn
         return getWithin();
     }
 
-    public FGenericFunction(BetterEnv e, FnDefOrDecl fndef) {
+    public FGenericFunction(BetterEnv e, FnAbsDeclOrDecl fndef) {
         super(e);
         this.fndef = fndef;
     }

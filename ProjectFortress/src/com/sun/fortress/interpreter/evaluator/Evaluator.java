@@ -587,7 +587,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FType> res = new ArrayList<FType>();
         for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
             Binding bind = i.next();
-            String name = bind.getName().getName();
+            String name = bind.getId().getName();
             Expr init = bind.getInit();
             FValue val = init.accept(ev);
             if (init instanceof VarRefExpr
@@ -668,7 +668,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We need to do something with it -- CHF
     public FValue forExport(Export x) {
         // debugPrint("forExport " + x);
-        List<DottedId> name = x.getNames();
+        List<DottedId> name = x.getDottedIds();
         return null;
     }
 
@@ -717,7 +717,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<Param> params = x.getParams();
         Closure cl = new Closure(e, x); // , return_type, params);
         cl.finishInitializing();
-        return cl; 
+        return cl;
     }
 
     public FValue forAbsFnDecl(AbsFnDecl x) {
@@ -789,7 +789,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLValueBind(LValueBind x) {
-        Id name = x.getName();
+        Id name = x.getId();
         String s = name.getName();
         return FString.make(s);
     }

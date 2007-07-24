@@ -118,7 +118,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      */
     @Override
     public LHS forUnpastingBind(UnpastingBind x) {
-        Id id = x.getName();
+        Id id = x.getId();
         Option<List<ExtentRange>> dim = x.getDim();
         return super.forUnpastingBind(x);
     }

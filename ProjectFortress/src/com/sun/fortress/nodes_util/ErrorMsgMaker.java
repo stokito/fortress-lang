@@ -29,9 +29,9 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static String makeErrorMsg(AbstractNode node) {
         return node.accept(ErrorMsgMaker.ONLY);
     }
-    
+
     private ErrorMsgMaker() {}
-    
+
     private final List<String> mapSelf(List<? extends AbstractNode> that) {
         LinkedList<String> result = new LinkedList<String>();
         for (AbstractNode elt : that) {
@@ -64,7 +64,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return Useful.dottedList(node.getNames());
     }
 
-    public String forFnDefOrDecl(FnDefOrDecl node) {
+    public String forFnDefOrDecl(FnAbsDeclOrDecl node) {
         return NodeUtil.getName(node.getFnName())
                 + (node.getStaticParams().isPresent() ?
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
@@ -95,7 +95,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forKeywordType(KeywordType node) {
-        return "" + node.getName().accept(this) + ":" + node.getType().accept(this);
+        return "" + node.getId().accept(this) + ":" + node.getType().accept(this);
     }
 
     public String forLValueBind(LValueBind node) {
@@ -103,7 +103,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         if (node.getType().isPresent()) {
             r = ":" + node.getType().getVal().accept(this);
         }
-        return node.getName().accept(this) + r;
+        return node.getId().accept(this) + r;
     }
 
     public String forName(Name node) {

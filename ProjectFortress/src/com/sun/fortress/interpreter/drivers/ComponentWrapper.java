@@ -64,7 +64,7 @@ public class ComponentWrapper {
      */
     public ComponentWrapper(Component comp, ComponentWrapper api) {
         this(comp);
-        exports.put(StringMaker.fromDottedId(api.getComponent().getName()),api);
+        exports.put(StringMaker.fromDottedId(api.getComponent().getDottedId()),api);
     }
 
     @Override

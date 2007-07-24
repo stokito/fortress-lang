@@ -35,7 +35,7 @@ import Spacing;
 TraitDecl TraitDecl =
      a1:TraitMods? a2:TraitHeaderFront a3:TraitClauses a4:(w GoInATrait)? w end
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
+       if (a4 == null) a4 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue =
         new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
                       Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
@@ -75,48 +75,48 @@ private TraitClause TraitClause =
      (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
    | (Coercions br)? GoBackInATrait
  */
-private List<DefOrDecl> GoInATrait =
+private List<AbsDeclOrDecl> GoInATrait =
      a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
        if (a3 != null) yyValue.addAll(a3);
      }
    / a1:(Coercions br)? a2:GoBackInATrait
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
      };
 
 /* Coercions ::= Coercion (br Coercion)* */
-private List<DefOrDecl> Coercions = a1:Coercion a2s:(br Coercion)*
+private List<AbsDeclOrDecl> Coercions = a1:Coercion a2s:(br Coercion)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
-private List<DefOrDecl> GoFrontInATrait =
+private List<AbsDeclOrDecl> GoFrontInATrait =
      a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesFrontInATrait ::= AbsFldDecl | GetterSetterDecl | PropertyDecl */
-private DefOrDecl GoesFrontInATrait =
+private AbsDeclOrDecl GoesFrontInATrait =
      AbsFldDecl
    / GetterSetterDecl
    / PropertyDecl ;
 
 /* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
-private List<DefOrDecl> GoBackInATrait =
+private List<AbsDeclOrDecl> GoBackInATrait =
      a1:GoesBackInATrait a2s:(br GoesBackInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesBackInATrait ::= MdDecl | PropertyDecl */
-private DefOrDecl GoesBackInATrait =
+private AbsDeclOrDecl GoesBackInATrait =
      MdDecl
    / PropertyDecl ;
 
 /* ObjectDecl ::= ObjectMods? ObjectHeader (w GoInAnObject)? w end */
 ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       if (a3 == null) a3 = Collections.<AbsDeclOrDecl>emptyList();
        Contract contract;
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> o = fhc.getContractClause();
@@ -177,37 +177,37 @@ Param Param :=
      (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
    | (Coercions br)? GoBackInAnObject
  */
-List<DefOrDecl> GoInAnObject =
+List<AbsDeclOrDecl> GoInAnObject =
      a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
        if (a3 != null) yyValue.addAll(a3);
      }
    / a1:(Coercions br)? a2:GoBackInAnObject
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
      };
 
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
-private List<DefOrDecl> GoFrontInAnObject =
+private List<AbsDeclOrDecl> GoFrontInAnObject =
      a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesFrontInAnObject ::= FldDecl | GetterSetterDef | PropertyDecl */
-private DefOrDecl GoesFrontInAnObject =
+private AbsDeclOrDecl GoesFrontInAnObject =
      FldDecl
    / GetterSetterDef
    / PropertyDecl ;
 
 /* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
-private List<DefOrDecl> GoBackInAnObject =
+private List<AbsDeclOrDecl> GoBackInAnObject =
      a1:GoesBackInAnObject a2s:(br GoesBackInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* GoesBackInAnObject ::= MdDef | PropertyDecl */
-private DefOrDecl GoesBackInAnObject =
+private AbsDeclOrDecl GoesBackInAnObject =
      MdDef
    / PropertyDecl ;
 
@@ -215,7 +215,7 @@ private DefOrDecl GoesBackInAnObject =
 AbsTraitDecl AbsTraitDecl =
      a1:AbsTraitMods? a2:TraitHeaderFront a3:AbsTraitClauses a4:(w AbsGoInATrait)? w end
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a4 == null) a4 = Collections.<DefOrDecl>emptyList();
+       if (a4 == null) a4 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue = new AbsTraitDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
@@ -251,41 +251,41 @@ private TraitClause AbsTraitClause =
      (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
    | (AbsCoercions br)? AbsGoBackInATrait
  */
-private List<DefOrDecl> AbsGoInATrait =
+private List<AbsDeclOrDecl> AbsGoInATrait =
      a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
        if (a3 != null) yyValue.addAll(a3);
      }
    / a1:(AbsCoercions br)? a2:AbsGoBackInATrait
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
      };
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
-private List<DefOrDecl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
+private List<AbsDeclOrDecl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
-private List<DefOrDecl> AbsGoFrontInATrait =
+private List<AbsDeclOrDecl> AbsGoFrontInATrait =
      a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesFrontInATrait ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
-private DefOrDecl AbsGoesFrontInATrait =
+private AbsDeclOrDecl AbsGoesFrontInATrait =
      ApiFldDecl
    / AbsGetterSetterDecl
    / PropertyDecl ;
 
 /* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
-private List<DefOrDecl> AbsGoBackInATrait =
+private List<AbsDeclOrDecl> AbsGoBackInATrait =
      a1:AbsGoesBackInATrait a2s:(br AbsGoesBackInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesBackInATrait ::= AbsMdDecl | PropertyDecl */
-private DefOrDecl AbsGoesBackInATrait =
+private AbsDeclOrDecl AbsGoesBackInATrait =
      AbsMdDecl
    / PropertyDecl ;
 
@@ -293,7 +293,7 @@ private DefOrDecl AbsGoesBackInATrait =
 AbsObjectDecl AbsObjectDecl =
      a1:AbsObjectMods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       if (a3 == null) a3 = Collections.<DefOrDecl>emptyList();
+       if (a3 == null) a3 = Collections.<AbsDeclOrDecl>emptyList();
        Contract contract;
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> o = fhc.getContractClause();
@@ -312,36 +312,36 @@ AbsObjectDecl AbsObjectDecl =
      (AbsCoercions br)? AbsGoFrontInAnObject (br AbsGoBackInAnObject)?
    | (AbsCoercions br)? AbsGoBackInAnObject
  */
-List<DefOrDecl> AbsGoInAnObject =
+List<AbsDeclOrDecl> AbsGoInAnObject =
      a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
        if (a3 != null) yyValue.addAll(a3);
      }
    / a1:(AbsCoercions br)? a2:AbsGoBackInAnObject
-     { yyValue = new ArrayList<DefOrDecl>();
+     { yyValue = new ArrayList<AbsDeclOrDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
      };
 
 /* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */
-private List<DefOrDecl> AbsGoFrontInAnObject =
+private List<AbsDeclOrDecl> AbsGoFrontInAnObject =
      a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesFrontInAnObject ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
-private DefOrDecl AbsGoesFrontInAnObject =
+private AbsDeclOrDecl AbsGoesFrontInAnObject =
      ApiFldDecl
    / AbsGetterSetterDecl
    / PropertyDecl ;
 
 /* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
-private List<DefOrDecl> AbsGoBackInAnObject =
+private List<AbsDeclOrDecl> AbsGoBackInAnObject =
      a1:AbsGoesBackInAnObject a2s:(br AbsGoesBackInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
-private DefOrDecl AbsGoesBackInAnObject =
+private AbsDeclOrDecl AbsGoesBackInAnObject =
      AbsMdDecl
    / PropertyDecl ;

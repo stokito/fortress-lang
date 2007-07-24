@@ -28,11 +28,11 @@ import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.ParamType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.useful.BoundingMap;
@@ -51,7 +51,7 @@ abstract public class FTraitOrObject extends FType {
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
    
-    List<? extends DefOrDecl> members;
+    List<? extends AbsDeclOrDecl> members;
 
     abstract protected void finishInitializing();
 
@@ -139,7 +139,7 @@ abstract public class FTraitOrObject extends FType {
         }
     }
 
-    public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends DefOrDecl> members) {
+    public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members) {
         super(name);
         this.env = env;
         this.members = members;
@@ -154,7 +154,7 @@ abstract public class FTraitOrObject extends FType {
         return env;
     }
 
-     public List<? extends DefOrDecl> getASTmembers() {
+     public List<? extends AbsDeclOrDecl> getASTmembers() {
         return members;
     }
 

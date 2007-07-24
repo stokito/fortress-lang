@@ -27,7 +27,7 @@ import Other;
 import Spacing;
 
 /* Decls ::= Decl (br Decl)* */
-List<DefOrDecl> Decls = a1:Decl a2s:(br Decl)*
+List<AbsDeclOrDecl> Decls = a1:Decl a2s:(br Decl)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Decl ::=
@@ -41,7 +41,7 @@ List<DefOrDecl> Decls = a1:Decl a2s:(br Decl)*
    | PropertyDecl
    | ExternalSyntax
 */
-private DefOrDecl Decl =
+private AbsDeclOrDecl Decl =
      TraitDecl
    / ObjectDecl
    / VarDecl
@@ -56,7 +56,7 @@ private DefOrDecl Decl =
    / ExternalSyntax ;
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
-List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
+List<AbsDeclOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AbsDecl ::=
@@ -70,7 +70,7 @@ List<DefOrDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | PropertyDecl
    | AbsExternalSyntax
  */
-private DefOrDecl AbsDecl =
+private AbsDeclOrDecl AbsDecl =
      AbsTraitDecl
    / AbsObjectDecl
    / AbsVarDecl

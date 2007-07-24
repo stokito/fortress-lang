@@ -24,12 +24,12 @@ import com.sun.fortress.nodes.AtomicExpr;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Fun;
@@ -43,14 +43,14 @@ import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.ObjectDefOrDecl;
+import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PropertyDecl;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TestDecl;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.Unpasting;
-import com.sun.fortress.nodes.VarDefOrDecl;
+import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarRefExpr;
 import java.util.List;
 import java.util.LinkedList;
@@ -96,19 +96,19 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forComponent(Component c) {
         // Component(Span span, DottedId name, List<Import> imports, List<Export> exports,
-        //           List<? extends DefOrDecl> defs)
+        //           List<? extends AbsDeclOrDecl> defs)
         TypeCheckerResult result = TypeCheckerResult.VALID; // Components are innocent until proven guilty.
 
         PureList<String> topLevelNames = PureList.make();
 
         if (c.getImports().isEmpty()) { // TODO: handle imports
-            for (DefOrDecl d : c.getDefs()) {
-                if (d instanceof ObjectDefOrDecl) {
-                    ObjectDefOrDecl _d = (ObjectDefOrDecl)d;
-                    topLevelNames = topLevelNames.cons(_d.getName().getName());
+            for (AbsDeclOrDecl d : c.getDecls()) {
+                if (d instanceof ObjectAbsDeclOrDecl) {
+                    ObjectAbsDeclOrDecl _d = (ObjectAbsDeclOrDecl)d;
+                    topLevelNames = topLevelNames.cons(_d.getId().getName());
                 }
-                else if (d instanceof FnDefOrDecl) {
-                    FnDefOrDecl _d = (FnDefOrDecl)d;
+                else if (d instanceof FnAbsDeclOrDecl) {
+                    FnAbsDeclOrDecl _d = (FnAbsDeclOrDecl)d;
                     FnName fnName = _d.getFnName();
 
                     // There are many types of fnNames, such as OprName.
@@ -118,14 +118,14 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
                         topLevelNames = topLevelNames.cons(fun.getName().getName());
                     }
                 }
-                else if (d instanceof VarDefOrDecl) {
-                    VarDefOrDecl _d = (VarDefOrDecl)d;
+                else if (d instanceof VarAbsDeclOrDecl) {
+                    VarAbsDeclOrDecl _d = (VarAbsDeclOrDecl)d;
 
                     for (String name : NodeUtil.stringNames(_d)) {
                         topLevelNames = topLevelNames.cons(name);
                     }
                 }
-                else  if (d instanceof TraitDefOrDecl || // TODO: implement these things
+                else  if (d instanceof TraitAbsDeclOrDecl || // TODO: implement these things
                           d instanceof PropertyDecl ||
                           d instanceof TestDecl) {
                     return TypeCheckerResult.VALID;
@@ -135,13 +135,13 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
                 }
             }
             TypeChecker typeChecker = extend(topLevelNames);
-            for (DefOrDecl d : c.getDefs()) { result = result.combine(d.accept(typeChecker)); }
+            for (AbsDeclOrDecl d : c.getDecls()) { result = result.combine(d.accept(typeChecker)); }
         }
         return result;
     }
 
     public TypeCheckerResult forApi(Api a) {
-        // Api(Span span, DottedId name, List<Import> imports, List<? extends DefOrDecl> defs)
+        // Api(Span span, DottedId name, List<Import> imports, List<? extends AbsDeclOrDecl> defs)
         return TypeCheckerResult.VALID;
     }
 
@@ -165,7 +165,7 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
         // LocalVarDecl(Span span, List<Expr> body, List<LValue> lhs, Option<Expr> rhs)
         PureList<String> newEnv = e;
         for (LValue l : d.getLhs()) {
-            if (l instanceof LValueBind) newEnv = newEnv.cons(((LValueBind) l).getName().getName());
+            if (l instanceof LValueBind) newEnv = newEnv.cons(((LValueBind) l).getId().getName());
             else if (l instanceof Unpasting) return TypeCheckerResult.VALID; // TODO: handle
         }
         TypeChecker newChecker = new TypeChecker(newEnv);

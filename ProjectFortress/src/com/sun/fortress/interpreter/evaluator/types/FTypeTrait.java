@@ -21,8 +21,8 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
-import com.sun.fortress.nodes.DefOrDecl;
-import com.sun.fortress.nodes.TraitDefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
 
 
@@ -41,7 +41,7 @@ public class FTypeTrait extends FTraitOrObject {
     volatile BetterEnv membersOf;
     volatile protected boolean membersInitialized; // initially false
 
-    public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends DefOrDecl> members) {
+    public FTypeTrait(String name, BetterEnv interior, HasAt at, List<? extends AbsDeclOrDecl> members) {
         super(name, interior, at, members);
         this.membersOf = new BetterEnv(at);
     }
@@ -63,7 +63,7 @@ public class FTypeTrait extends FTraitOrObject {
     protected void initializeMembers() {
         BetterEnv into = getMembersInternal();
         BetterEnv forTraitMethods = getMethodExecutionEnv();
-        List<? extends DefOrDecl> defs = getASTmembers();
+        List<? extends AbsDeclOrDecl> defs = getASTmembers();
         
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, null);

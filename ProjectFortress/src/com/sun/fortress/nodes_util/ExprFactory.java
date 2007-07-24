@@ -235,8 +235,8 @@ public class ExprFactory {
                 staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
             }
         }
-        return new _RewriteObjectExpr(expr.getSpan(), false, expr.getTraits(),
-                                      expr.getDefOrDecls(),
+        return new _RewriteObjectExpr(expr.getSpan(), false, expr.getExtendsClause(),
+                                      expr.getAbsDeclOrDecls(),
                                       implicit_type_parameters, expr.toString(),
                                       stParams, staticArgs,
                     new Some<List<Param>>(Collections.<Param>emptyList()));
@@ -273,15 +273,15 @@ public class ExprFactory {
                               e.getElseClause());
             }
             public Expr forLabel(Label e) {
-                return new Label(e.getSpan(), true, e.getName(), e.getBody());
+                return new Label(e.getSpan(), true, e.getId(), e.getBody());
             }
             public Expr forObjectExpr(ObjectExpr e) {
-                return new ObjectExpr(e.getSpan(), true, e.getTraits(),
-                                      e.getDefOrDecls());
+                return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
+                                      e.getAbsDeclOrDecls());
             }
             public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
-                return new _RewriteObjectExpr(e.getSpan(), true, e.getTraits(),
-                                              e.getDefOrDecls(),
+                return new _RewriteObjectExpr(e.getSpan(), true, e.getExtendsClause(),
+                                              e.getAbsDeclOrDecls(),
                                               e.getImplicitTypeParameters(),
                                               e.getGenSymName(),
                                               e.getStaticParams(),

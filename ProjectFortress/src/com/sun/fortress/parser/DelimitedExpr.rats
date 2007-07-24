@@ -49,7 +49,7 @@ Expr DelimitedExpr =
      Parenthesized
    / object a1:(w Extends)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyTypeRefs();
-       if (a2 == null) a2 = Collections.<DefOrDecl>emptyList();
+       if (a2 == null) a2 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue = new ObjectExpr(createSpan(yyStart,yyCount), false,
                                 Some.<TypeRef>makeSomeListOrNone(a1), a2);
      }
@@ -154,9 +154,9 @@ Expr Parenthesized =
      { List<Expr> es = FortressUtil.mkList(a1s.list());
        if (a2 != null) es.add(new VarargsExpr(a2.getSpan(), false, a2));
        List<com.sun.fortress.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.useful.Pair<Id,Expr>>();
-       ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(a3.getName(), a3.getInit()));
+       ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(a3.getId(), a3.getInit()));
        for (Binding b : (List<Binding>)a4s.list()) {
-           ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(b.getName(), b.getInit()));
+           ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(b.getId(), b.getInit()));
        }
        yyValue = new KeywordsExpr(createSpan(yyStart,yyCount), false, es, ks);
      }

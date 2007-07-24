@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 
 
 public class BuildObjectEnvironment extends BuildTraitEnvironment {
@@ -39,7 +39,7 @@ public class BuildObjectEnvironment extends BuildTraitEnvironment {
         return new MethodClosure(e,x);
     }
 
-    protected GenericMethod newGenericClosure(BetterEnv e, FnDefOrDecl x) {
+    protected GenericMethod newGenericClosure(BetterEnv e, FnAbsDeclOrDecl x) {
         return new GenericMethod(e, e, x, false); // TODO need to get notself methods done
     }
 

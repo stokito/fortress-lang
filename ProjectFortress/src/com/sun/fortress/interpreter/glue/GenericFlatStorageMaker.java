@@ -39,8 +39,8 @@ import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DefOrDecl;
-import com.sun.fortress.nodes.GenericDefOrDeclWithParams;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.GenericAbsDeclOrDeclWithParams;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NatParam;
@@ -124,7 +124,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
     public GenericFlatStorageMaker(BetterEnv e) {
         super(e,bogusObjectDecl());
         // Emptylist might be wrong here for the def-or-decls
-        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDefOrDecl(), Collections.<DefOrDecl>emptyList()));
+        e.putType("FlatStorageMaker", new FTypeGeneric(e, getDefOrDecl(), Collections.<AbsDeclOrDecl>emptyList()));
     }
 
     /* (non-Javadoc)
@@ -215,7 +215,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
             return new FlatStorage(selfType, lex_env, self_env, t, n);
         }
 
-        public FlatStorageMaker(BetterEnv clenv, FTypeObject objectType, GenericDefOrDeclWithParams odef, FType t, Number n) {
+        public FlatStorageMaker(BetterEnv clenv, FTypeObject objectType, GenericAbsDeclOrDeclWithParams odef, FType t, Number n) {
             super(clenv, objectType, odef);
             this.t = t;
             this.n = n.longValue();

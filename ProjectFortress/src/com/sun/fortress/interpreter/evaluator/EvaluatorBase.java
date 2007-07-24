@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 
-import com.sun.fortress.nodes.FnDefOrDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.AbstractNode;
@@ -104,7 +104,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             System.err.println("IAIGF " + appliedThing + " with " + args);
         
         FGenericFunction bar = (FGenericFunction) appliedThing;
-        FnDefOrDecl fndod =  bar.getFnDefOrDecl();
+        FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
         Option<List<StaticParam>> otparams = fndod.getStaticParams();
         List<StaticParam> tparams = otparams.getVal();
         List<Param> params = bar.getFnDefOrDecl().getParams();

@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.DefOrDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.useful.NI;
 
 public class SymbolicWhereType extends SymbolicType {
@@ -31,7 +31,7 @@ public class SymbolicWhereType extends SymbolicType {
      * @param interior
      */
     public SymbolicWhereType(String name, BetterEnv interior) {
-        super(name, interior, Collections.<DefOrDecl>emptyList());
+        super(name, interior, Collections.<AbsDeclOrDecl>emptyList());
         NI.nyi("Where clauses cause a stack overflow error");
         // TODO Auto-generated constructor stub
     }
