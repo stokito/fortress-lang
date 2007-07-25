@@ -57,21 +57,23 @@ public class ExprFactory {
             if (underLoc == -1) {
                 digits = s;
                 base = 10;
-            } else {
+            } 
+            else {
                 digits = s.substring(0, underLoc);
                 // Base other, no ".", parse as BigInteger and convert.
                 String base_digits = s.substring(underLoc + 1);
 
                 if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                     base = Unicode.numberToValue(base_digits);
-                } else {
+                } 
+                else {
                     base = Integer.parseInt(base_digits);
                 }
             }
             digits = dozenalHack(digits, base);
             intPart = new BigInteger(digits, base);
-
-        } else {
+        } 
+        else {
             // There is a fraction part.
 
             int base;
@@ -79,11 +81,13 @@ public class ExprFactory {
             if (underLoc == -1) {
                 base = 10;
                 underLoc = s.length();
-            } else {
+            } 
+            else {
                 String base_digits = s.substring(underLoc + 1);
                 if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                     base = Unicode.numberToValue(base_digits);
-                } else {
+                } 
+                else {
                     base = Integer.parseInt(base_digits);
                 }
             }
@@ -92,7 +96,8 @@ public class ExprFactory {
                 if (digits.length() > 0) {
                     digits = dozenalHack(digits, base);
                     intPart = new BigInteger(digits, base);
-                } else {
+                } 
+                else {
                     intPart = BigInteger.ZERO;
                 }
 
@@ -108,7 +113,8 @@ public class ExprFactory {
                     denomBase = 1;
                     denomPower = 0;
 
-                } else {
+                } 
+                else {
                     digits = dozenalHack(digits, base);
                     numerator = new BigInteger(digits, base);
                     denomBase = base;
@@ -143,13 +149,15 @@ public class ExprFactory {
         int underLoc = s.indexOf('_');
         if (underLoc == -1) {
             val = new BigInteger(s);
-        } else {
+        } 
+        else {
             String digits = s.substring(0, underLoc);
             String base_digits = s.substring(underLoc + 1);
             int base;
             if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                 base = Unicode.numberToValue(base_digits);
-            } else {
+            } 
+            else {
                 base = Integer.parseInt(base_digits);
             }
             digits = dozenalHack(digits, base);
@@ -169,21 +177,22 @@ public class ExprFactory {
    }
 
 
-    public static LetExpr makeLetExpr(LetExpr expr, List<Expr> body) {
-        if (expr instanceof GeneratedExpr) {
-            GeneratedExpr exp = (GeneratedExpr) expr;
-            return new GeneratedExpr(exp.getSpan(), false, body, exp.getExpr(),
-                                     exp.getGens());
-        } else if (expr instanceof LetFn) {
-            return new LetFn(expr.getSpan(),false, body, ((LetFn)expr).getFns());
-        } else if (expr instanceof LocalVarDecl) {
-            LocalVarDecl exp = (LocalVarDecl) expr;
-            return new LocalVarDecl(exp.getSpan(), false, body, exp.getLhs(),
-                                    exp.getRhs());
-        } else {
-            throw new Error(expr.getClass() + " is not a subtype of LetExpr.");
-        }
-    }
+    public static LetExpr makeLetExpr(final LetExpr expr, final List<Expr> body) {
+        return expr.accept(new NodeAbstractVisitor<LetExpr>() {
+            public LetExpr forGeneratedExpr(GeneratedExpr expr) {
+                return new GeneratedExpr(expr.getSpan(), false, body, expr.getExpr(),
+                                         expr.getGens());
+            }
+            public LetExpr forLetFn(LetFn expr) {
+                return new LetFn(expr.getSpan(),false, body, expr.getFns());
+            } 
+            public LetExpr forLocalVarDecl(LocalVarDecl expr) {
+                return new LocalVarDecl(expr.getSpan(), false, body, expr.getLhs(),
+                                        expr.getRhs());
+            }
+        });
+    }                
+                           
 
     public static OprExpr makeOprExpr(Span span, OprName op) {
         return new OprExpr(span, false, op, new ArrayList<Expr>());
@@ -227,7 +236,8 @@ public class ExprFactory {
         Option<List<StaticParam>> stParams;
         if (implicit_type_parameters.size() == 0) {
             stParams = new None<List<StaticParam>>();
-        } else {
+        } 
+        else {
             List<StaticParam> tparams =
                 new ArrayList<StaticParam>(implicit_type_parameters.values());
             stParams = Some.makeSomeList(tparams);

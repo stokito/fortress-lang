@@ -130,65 +130,82 @@ public class NodeUtil {
 
     /* getName *************************************************************/
     public static String getName(FnName n) {
-        if (n instanceof DottedId) {
-            String name;
-            List<String> names = ((DottedId)n).getNames();
-            if (names.size() == 0) {
-                throw new Error("Non-empty string is expected.");
-            } else {
-                name = names.get(0);
+        return n.accept(new NodeAbstractVisitor<String>() {
+            public String forDottedId(DottedId n) {
+                String name;
+                List<String> names = n.getNames();
+                if (names.size() == 0) {
+                    throw new Error("Non-empty string is expected.");
+                } else {
+                    name = names.get(0);
+                }
+                for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
+                    name += "." + ns.next();
+                }
+                return name;
             }
-            for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
-                name += "." + ns.next();
+            public String forFun(Fun n) {
+                return n.getName().getName();
             }
-            return name;
-        } else if (n instanceof Fun) {
-            return ((Fun)n).getName().getName();
-        } else if (n instanceof Name) {
-            Option<Id> id = ((Name)n).getId();
-            Option<Op> op = ((Name)n).getOp();
-            if (id instanceof Some) {
-                return ((Id) ((Some) id).getVal()).getName();
-            } else if (op instanceof Some) {
-                return ((Op) ((Some) op).getVal()).getName();
-            } else {
-                throw new Error("Uninitialized Name.");
+            public String forName(Name n) {
+                Option<Id> id = n.getId();
+                Option<Op> op = n.getOp();
+                if (id instanceof Some) {
+                    return ((Id) ((Some) id).getVal()).getName();
+                } 
+                else if (op instanceof Some) {
+                    return ((Op) ((Some) op).getVal()).getName();
+                } 
+                else {
+                    throw new Error("Uninitialized Name.");
+                }
             }
-        } else if (n instanceof Opr) {
-            return ((Opr)n).getOp().getName();
-        } else if (n instanceof PostFix) {
-            return ((PostFix)n).getOp().getName();
-        } else if (n instanceof Enclosing) {
-            return ((Enclosing)n).getOpen().getName();
-        } else if (n instanceof SubscriptOp) {
-            return "[]";
-        } else if (n instanceof SubscriptAssign) {
-            return "[]=";
-        } else if (n instanceof AnonymousFnName) {
-            return n.getSpan().toString();
-        } else if (n instanceof ConstructorFnName) {
-            ConstructorFnName fn = (ConstructorFnName)n;
+            public String forOpr(Opr n) {
+                return n.getOp().getName();
+            }
+            public String forPostFix(PostFix n) {
+                return n.getOp().getName();
+            }
+            public String forEnclosing(Enclosing n) {
+                return n.getOpen().getName();
+            }
+            public String forSubscriptOp(SubscriptOp n) {
+                return "[]";
+            }
+            public String forSubscriptAssign(SubscriptAssign n) {
+                return "[]=";
+            }
+            public String forAnonymousFnName(AnonymousFnName n) {
+                return n.getSpan().toString();
+            }
+            public String forConstructorFnName(ConstructorFnName n) {
             // TODO Auto-generated method stub
-            return stringName(fn.getDef());
-        } else { throw new Error("NodeUtil.getName: uncovered FnName " + n.getClass());
-        }
+            return stringName(n.getDef());
+            }
+        });
     }
 
     public static String getName(StaticParam p) {
-        if (p instanceof BoolParam) {
-            return ((BoolParam)p).getId().getName();
-        } else if (p instanceof DimensionParam) {
-            return ((DimensionParam)p).getId().getName();
-        } else if (p instanceof IntParam) {
-            return ((IntParam)p).getId().getName();
-        } else if (p instanceof NatParam) {
-            return ((NatParam)p).getId().getName();
-        } else if (p instanceof OperatorParam) {
-            return ((OperatorParam)p).getOp().getName();
-        } else if (p instanceof SimpleTypeParam) {
-            return ((SimpleTypeParam)p).getId().getName();
-        } else { throw new Error("NodeUtil.getName: uncovered StaticParam " + p.getClass());
-        }
+        return p.accept(new NodeAbstractVisitor<String>() {
+            public String forBoolParam(BoolParam p) {
+                return p.getId().getName();
+            }
+            public String forDimensionParam(DimensionParam p) {
+                return p.getId().getName();
+            }
+            public String forIntParam(IntParam p) {
+                return p.getId().getName();
+            }
+            public String forNatParam(NatParam p) {
+                return p.getId().getName();
+            }
+            public String forOperatorParam(OperatorParam p) {
+                return p.getOp().getName();
+            }
+            public String forSimpleTypeParam(SimpleTypeParam p) {
+                return p.getId().getName();
+            }
+        });
     }
 
     /* stringName **********************************************************/
@@ -220,61 +237,79 @@ public class NodeUtil {
 
     /* stringNames *********************************************************/
     public static IterableOnce<String> stringNames(LValue d) {
-        if (d instanceof LValueBind) {
-            return new UnitIterable<String>(((LValueBind)d).getId().getName());
-        } else if (d instanceof UnpastingBind) {
-            return new UnitIterable<String>(((UnpastingBind)d).getId().getName());
-        } else if (d instanceof UnpastingSplit) {
-            return new IterableOnceForLValueList(((UnpastingSplit)d).getElems());
-        } else {
-            throw new Error("NodeUtil.stringNames: Uncovered LValue " + d.getClass());
-        }
+        return d.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
+            public IterableOnce<String> forLValueBind(LValueBind d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forUnpastingBind(UnpastingBind d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forUnpastingSplit(UnpastingSplit d) {
+                return new IterableOnceForLValueList(d.getElems());
+            }
+        });
     }
 
     public static IterableOnce<String> stringNames(AbsDeclOrDecl d) {
-        if (d instanceof AbsExternalSyntax) {
-            return new UnitIterable<String>(((AbsExternalSyntax)d).getId().getName());
-        } else if (d instanceof DimDecl) {
-            return new UnitIterable<String>(((DimDecl)d).getId().getName());
-        } else if (d instanceof ExternalSyntax) {
-            return new UnitIterable<String>(((ExternalSyntax)d).getId().getName());
-        } else if (d instanceof FnExpr) {
-            return new UnitIterable<String>(NodeUtil.getName(((FnExpr)d).getFnName()));
-        } else if (d instanceof FnAbsDeclOrDecl) {
-            return new UnitIterable<String>(NodeUtil.getName(((FnAbsDeclOrDecl)d).getFnName()));
-        } else if (d instanceof GeneratedExpr) {
-            return new UnitIterable<String>("GeneratedExpr");
-        } else if (d instanceof LetFn) {
-            return new UnitIterable<String>(((LetFn)d).getClass().getSimpleName());
-        } else if (d instanceof LocalVarDecl) {
-                   return new IterableOnceForLValueList(((LocalVarDecl)d).getLhs());
-        } else if (d instanceof ObjectAbsDeclOrDecl) {
-            return new UnitIterable<String>(((ObjectAbsDeclOrDecl)d).getId().getName());
-        } else if (d instanceof _RewriteObjectExpr) {
-            return new UnitIterable<String>(((_RewriteObjectExpr)d).getGenSymName());
-        } else if (d instanceof PropertyDecl) {
-            Option<Id> id = ((PropertyDecl)d).getId();
-            if (id.isPresent()) {
-                Some s = (Some) id;
-                return new UnitIterable<String>(((Id)(s.getVal())).getName());
-            } else {
-                return new UnitIterable<String>("_");
+        return d.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
+            public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
+                return new UnitIterable<String>(d.getId().getName());
             }
-        } else if (d instanceof TestDecl) {
-            return new UnitIterable<String>(((TestDecl)d).getId().getName());
-        } else if (d instanceof TraitAbsDeclOrDecl) {
-            return new UnitIterable<String>(((TraitAbsDeclOrDecl)d).getId().getName());
-        } else if (d instanceof TypeAlias) {
-            return new UnitIterable<String>(((TypeAlias)d).getId().getName());
-        } else if (d instanceof UnitDecl) {
-            return new IterableOnceTranslatingList<Id, String>(((UnitDecl)d).
-                                                    getNames(), IdtoStringFn);
-        } else if (d instanceof VarAbsDeclOrDecl) {
-            return new IterableOnceForLValueList(((VarAbsDeclOrDecl)d).getLhs());
-        } else {
-            throw new Error("NodeUtil.stringNames: Uncovered AbsDeclOrDecl " + d.getClass());
-        }
+            public IterableOnce<String> forDimDecl(DimDecl d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forFnExpr(FnExpr d) {
+                return new UnitIterable<String>(NodeUtil.getName(d.getFnName()));
+            }
+            public IterableOnce<String> forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
+                return new UnitIterable<String>(NodeUtil.getName(d.getFnName()));
+            }
+            public IterableOnce<String> forGeneratedExpr(GeneratedExpr d) {
+                return new UnitIterable<String>("GeneratedExpr");
+            }
+            public IterableOnce<String> forLetFn(LetFn d) {
+                return new UnitIterable<String>(d.getClass().getSimpleName());
+            }
+            public IterableOnce<String> forLocalVarDecl(LocalVarDecl d) {
+                return new IterableOnceForLValueList(d.getLhs());
+            }
+            public IterableOnce<String> forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> for_RewriteObjectExpr(_RewriteObjectExpr d) {
+                return new UnitIterable<String>(d.getGenSymName());
+            }
+            public IterableOnce<String> forPropertyDecl(PropertyDecl d) {
+                Option<Id> id = d.getId();
+                if (id.isPresent()) {
+                    Some s = (Some) id;
+                    return new UnitIterable<String>(((Id)(s.getVal())).getName());
+                } else {
+                    return new UnitIterable<String>("_");
+                }
+            }
+            public IterableOnce<String> forTestDecl(TestDecl d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forTypeAlias(TypeAlias d) {
+                return new UnitIterable<String>(d.getId().getName());
+            }
+            public IterableOnce<String> forUnitDecl(UnitDecl d) {
+                return new IterableOnceTranslatingList<Id, String>(d.getNames(), IdtoStringFn);
+            }
+            public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
+                return new IterableOnceForLValueList(d.getLhs());
+            }
+        });
     }
+            
+            
 
     /* dump ****************************************************************/
     public static String dump(AbstractNode n) {
