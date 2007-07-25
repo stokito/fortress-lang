@@ -502,27 +502,106 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              */
             LocalVarDecl(List<LValue> lhs, Option<Expr> rhs);
         /**
-         *
-         *
-         * e.g.)
+         * expression that is simple or using operators
          */
         abstract OpExpr();
+            /**
+             * expression using operators
+             * OpExpr ::= EncloserOp OpExpr? EncloserOp?
+             *          | OpExpr EncloserOp OpExpr?
+             *          | Primary
+             * EncloserOp ::= Encloser
+             *              | Op
+             * e.g.) 3 + 5
+             */
             OprExpr(OprName op, List<Expr> args);
+            /**
+             * primary expression
+             */
             abstract Primary();
+                /**
+                 * functional application
+                 * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
+                 *           | Primary . Id ([\StaticArgList\])? ()
+                 *           | Primary Parenthesized
+                 *           | Primary ()
+                 *           | Primary Primary
+                 * e.g.) myString.replace("foo", "few")
+                 * e.g.) log log n
+                 */
                 Apply(Expr fn, Expr args);
+                /**
+                 * simple expression
+                 */
                 abstract BaseExpr();
+                    /**
+                     * map expression
+                     * Aggregate ::= { Entry (, Entry)* }
+                     * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
+                     */
                     MapExpr(List<Pair<Expr, Expr>> elements);
+                    /**
+                     * array expression
+                     * Aggregate ::= [ RectElements ]
+                     * RectElements ::= Expr MultiDimCons*
+                     * MultiDimCons ::= RectSeparator Expr
+                     * RectSeparator ::= ;+
+                     *                 | Whitespace
+                     * e.g.) [1 2 3; 4 5 6; 7 8 9]
+                     */
                     abstract ArrayExpr();
+                        /**
+                         * array with a single element
+                         * e.g.) [3]
+                         */
                         ArrayElement(Expr element);
+                        /**
+                         * array with multiple elements
+                         * e.g.) [3 4 5; 6 7 8]
+                         */
                         ArrayElements(int dimension, List<ArrayExpr> elements);
+                    /**
+                     * literal
+                     */
                     abstract Literal(String text);
+                        /**
+                         * number literal
+                         */
                         abstract NumberLiteral();
-                            FloatLiteral(ignoreForEquals String text, BigInteger intPart,
-                                                     BigInteger numerator, int denomBase, int denomPower);
+                            /**
+                             * float literal
+                             * e.g.) 3.5
+                             */
+                            FloatLiteral(ignoreForEquals String text,
+                                         BigInteger intPart,
+                                         BigInteger numerator, int denomBase,
+                                         int denomPower);
+                            /**
+                             * int literal
+                             * e.g.) 7
+                             */
                             IntLiteral(BigInteger val);
+                        /**
+                         * char literal
+                         * e.g.) 'c'
+                         */
                         CharLiteral(int val);
+                        /**
+                         * string literal
+                         * e.g.) "string"
+                         */
                         StringLiteral();
+                        /**
+                         * void literal
+                         * e.g.) ()
+                         */
                         VoidLiteral();
+                    /**
+                     * variable reference
+                     * BaseExpr ::= Id
+                     *            | self
+                     * e.g.) length
+                     */
                     VarRefExpr(Id var) implements LHS;
                 /**
                  * comprehension expression
@@ -561,33 +640,33 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                          */
                         ListComprehension(Expr element);
                 /**
-                 *
-                 *
-                 * e.g.)
+                 * chain expression
+                 * Certain infix mathematical operators that are traditionally
+                 * regarded as relational operators, delivering boolean results,
+                 * may be chained.
+                 * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                  */
                 ChainExpr(Expr first, List<Pair<Op, Expr>> links);
                 /**
-                 *
-                 *
-                 * e.g.)
+                 * field selection expression
+                 * Primary ::= Primary . Id
+                 * e.g.) Empty.length
                  */
                 FieldSelection(Expr obj, Id id) implements LHS;
                 /**
-                 *
-                 *
-                 * e.g.)
+                 * juxtaposition with intervening whitespace
+                 * e.g.) 3 5
                  */
                 LooseJuxt(List<Expr> exprs);
                 /**
-                 *
-                 *
-                 * e.g.)
+                 * juxtaposition without intervening whitespace
+                 * e.g.) f(3+5)
                  */
                 TightJuxt(List<Expr> exprs);
                 /**
-                 *
-                 *
-                 * e.g.)
+                 * expression with static instantiations
+                 * Primary ::= Id[\StaticArgList\]
+                 * e.g.) identity[\String\]
                  */
                 TypeApply(Expr expr, List<StaticArg> args);
             /**
@@ -739,7 +818,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     Generator(List<Id> bind, Expr init);
     /**
      * identifier
-     * BaseExpr ::= Id
      * e.g.) hashCode
      */
     Id(String name);
