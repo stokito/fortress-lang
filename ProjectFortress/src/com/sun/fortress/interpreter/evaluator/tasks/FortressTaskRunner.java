@@ -19,15 +19,13 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 
 import EDU.oswego.cs.dl.util.concurrent.FJTask;
 import EDU.oswego.cs.dl.util.concurrent.FJTaskRunner;
-import dstm2.exceptions.AbortedException;
-import dstm2.exceptions.GracefulException;
-import dstm2.exceptions.PanicException;
-import dstm2.exceptions.SnapshotException;
-import dstm2.factory.AtomicFactory;
-import dstm2.factory.Factory;
- 
-import dstm2.ContentionManager;
-import dstm2.Transaction;
+
+import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
+import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -40,21 +38,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import static dstm2.Defaults.*;
+
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 public class FortressTaskRunner extends FJTaskRunner {
-
-/**
+ /**
  * Contention manager class.
  */
     protected static Class contentionManagerClass;
-
-/**
- * Adapter class.
- */
-    public static Class<dstm2.factory.Adapter> adapterClass;
 
 /**
  * Set to true when benchmark runs out of time.
@@ -93,10 +85,6 @@ public class FortressTaskRunner extends FJTaskRunner {
 
     private static Object lock = new Object();
 
-// Memo-ize factories so we don't have to recreate them.
-    private static Map<Class,Factory> factoryTable
-        = Collections.synchronizedMap(new HashMap<Class, Factory>());
-
     public volatile BaseTask currentTask;
 
     public BaseTask getCurrentTask() {return currentTask;}
@@ -105,9 +93,8 @@ public class FortressTaskRunner extends FJTaskRunner {
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
 	super(group); 
         try {
-            Class managerClass = Class.forName("dstm2.manager.FortressManager");
+            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager");
             setContentionManagerClass(managerClass);
-            setAdapterClass("dstm2.factory.fortress.Adapter");
         } catch (ClassNotFoundException ex) {
             System.out.println("UhOh Contention Manager not found");
             System.exit(0);
@@ -119,13 +106,13 @@ public class FortressTaskRunner extends FJTaskRunner {
      * Establishes a contention manager.  You must call this method
      * before creating any <code>Thread</code>.
      *
-     * @see dstm2.ContentionManager
+     * @see com.sun.fortress.interpreter.evaluator.transactions.ContentionManager
      * @param theClass class of desired contention manager.
      */
     public static void setContentionManagerClass(Class theClass) {
 	Class cm;
 	try {
-	    cm = Class.forName("dstm2.ContentionManager");
+	    cm = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
 	} catch (ClassNotFoundException e) {
 	    throw new PanicException(e);
 	}
@@ -133,19 +120,7 @@ public class FortressTaskRunner extends FJTaskRunner {
 	    contentionManagerClass = theClass;
 	} catch (Exception e) {
 	    throw new PanicException("The class " + theClass
-				     + " does not implement dstm2.ContentionManager");
-	}
-    }
-
-    /**
-     * set Adapter class for this thread
-     * @param adapterClassName adapter class as string
-     */
-    public static void setAdapterClass(String adapterClassName) {
-	try {
-	    adapterClass = (Class<dstm2.factory.Adapter>)Class.forName(adapterClassName);
-	} catch (ClassNotFoundException ex) {
-	    throw new PanicException("Adapter class not found: %s\n", adapterClassName);
+				     + " does not implement com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
 	}
     }
 
@@ -180,24 +155,6 @@ public class FortressTaskRunner extends FJTaskRunner {
      */
     static public ContentionManager getContentionManager() {
 	return _threadState.get().manager;
-    }
-
-    /**
-     * Create a new factory instance.
-     * @param _class class to implement
-     * @return new factory
-     */
-    static public <T> Factory<T> makeFactory(Class<T> _class) {
-	try {
-	    Factory<T> factory = (Factory<T>) factoryTable.get(_class);
-	    if (factory == null) {
-		factory =  new AtomicFactory<T>(_class, adapterClass);
-		factoryTable.put(_class, factory);
-	    }
-	    return factory;
-	} catch (Exception e) {
-	    throw new PanicException(e);
-	}
     }
 
     /**

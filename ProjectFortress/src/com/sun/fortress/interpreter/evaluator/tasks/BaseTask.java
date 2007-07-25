@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException;
 
 import EDU.oswego.cs.dl.util.concurrent.FJTask;
-import dstm2.exceptions.AbortedException;
-import dstm2.exceptions.GracefulException;
-import dstm2.exceptions.PanicException;
-import dstm2.exceptions.SnapshotException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 

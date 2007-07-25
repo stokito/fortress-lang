@@ -26,7 +26,6 @@ import java.util.Stack;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
-import com.sun.fortress.interpreter.evaluator.tasks.ForLoopTask;
 import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -722,28 +721,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forAbsFnDecl(AbsFnDecl x) {
         return NI("forFnDecl");
-    }
-
-
-    public FValue forFor(For x) {
-        // debugPrint("forFor " + x);
-        List<Generator> gens = x.getGens();
-        Generator gen = gens.get(0);
-        FGenerator fgen = (FGenerator) gen.accept(this);
-        DoFront df = x.getBody();
-        Expr body = x;
-        if (df.isAtomic()) {
-            NI("forAtomicDo");
-        }
-        if (df.getLoc().isPresent()) {
-            NI("forAtDo");
-        }
-        if (gens.size() > 1) {
-            gens = gens.subList(1,gens.size());
-            body = new For(x.getSpan(), false, gens, df);
-        }
-        new ForLoopTask(fgen, body, this, BaseTask.getCurrentTask()).run();
-        return evVoid;
     }
 
     public FValue forFun(Fun x) {

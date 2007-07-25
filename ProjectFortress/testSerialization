@@ -24,9 +24,9 @@
 # might omit information, so what this is really testing is AST reading.
 
 if (uname | egrep -q CYGWIN) ; then 
-  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/dstm2/dstm2.jar;third_party/bcel/bcel-5.2.jar;third_party/plt/plt.jar"
+  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/plt/plt.jar"
 else
-  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar:third_party/plt/plt.jar"
+  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/plt/plt.jar"
 fi
 
 A=testSerializationScratch

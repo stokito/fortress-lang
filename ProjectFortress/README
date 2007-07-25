@@ -69,11 +69,11 @@ usage information for the driver.
 Or you can invoke the interpreter directly by replacing 'hello.fss'
 with the name of your program in the following command:
 
-java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar" com.sun.fortress.interpreter.drivers.fs hello.fss
+java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/plt/plt.jar" com.sun.fortress.interpreter.drivers.fs hello.fss
 
 and get the usage of the driver by:
 
-java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/dstm2/dstm2.jar:third_party/bcel/bcel-5.2.jar" com.sun.fortress.interpreter.drivers.fs --help
+java -cp "build:third_party/xtc/xtc.jar:third_party/FJ/concurrent.jar:third_party/plt/plt.jar" com.sun.fortress.interpreter.drivers.fs --help
 
 If all else fails, look at the ./fortress script to see if your system
 has peculiarities (for example cygwin requires ; separators in the
@@ -189,10 +189,10 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
   typecase isn't nearly as useful as you might think, since it cannot
   bind type variables; we are working to address this shortcoming.
 
-* The "atomic" construct uses the DSTM2 transactional memory library.
-  Nested transactions are flattened.  We use their obstruction free
-  algorithm with a simple backoff contention manager.  Reductions are
-  not yet implemented, so perform an explicit atomic update instead.
+* The "atomic" construct uses code from the DSTM2 transactional memory 
+  library.  Nested transactions are flattened.  We use their obstruction 
+  free algorithm with a simple backoff contention manager.  Reductions 
+  are not yet implemented, so perform an explicit atomic update instead.
 
 LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 

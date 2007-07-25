@@ -1,0 +1,62 @@
+
+AggressiveManager.java,333
+public class AggressiveManager AggressiveManager43,1735
+  public AggressiveManager(AggressiveManager.AggressiveManager45,1791
+  public void resolveConflict(AggressiveManager.resolveConflict47,1826
+  public long getPriority(AggressiveManager.getPriority51,1922
+  public void setPriority(AggressiveManager.setPriority55,2006
+
+BackoffManager.java,321
+public class BackoffManager BackoffManager44,1748
+  public BackoffManager(BackoffManager.BackoffManager53,1968
+  public void openSucceeded(BackoffManager.openSucceeded56,2027
+  public void resolveConflict(BackoffManager.resolveConflict60,2114
+  public void resolveConflict(BackoffManager.resolveConflict80,2687
+
+BaseManager.java,520
+public class BaseManager BaseManager42,1787
+  public BaseManager(BaseManager.BaseManager46,1910
+  public void resolveConflict(BaseManager.resolveConflict50,1958
+  public void resolveConflict(BaseManager.resolveConflict53,2032
+  public long getPriority(BaseManager.getPriority56,2116
+  public void setPriority(BaseManager.setPriority60,2172
+  public void openSucceeded(BaseManager.openSucceeded64,2239
+  protected void sleep(BaseManager.sleep71,2398
+  public void committed(BaseManager.committed79,2586
+
+EruptionManager.java,258
+public class EruptionManager EruptionManager67,2951
+  public EruptionManager(EruptionManager.EruptionManager71,3096
+  public void resolveConflict(EruptionManager.resolveConflict75,3150
+  public void openSucceeded(EruptionManager.openSucceeded97,3867
+
+FortressManager.java,329
+public class FortressManager FortressManager46,1780
+  public FortressManager(FortressManager.FortressManager55,2001
+  public void openSucceeded(FortressManager.openSucceeded58,2061
+  public void resolveConflict(FortressManager.resolveConflict63,2149
+  public void resolveConflict(FortressManager.resolveConflict69,2312
+
+GreedyManager.java,241
+public class GreedyManager GreedyManager48,2052
+  public void resolveConflict(GreedyManager.resolveConflict49,2101
+  public void committed(GreedyManager.committed61,2496
+  public void openSucceeded(GreedyManager.openSucceeded65,2551
+
+KarmaManager.java,236
+public class KarmaManager KarmaManager60,2662
+  public void resolveConflict(KarmaManager.resolveConflict63,2753
+  public void committed(KarmaManager.committed77,3199
+  public void openSucceeded(KarmaManager.openSucceeded81,3254
+
+KindergartenManager.java,215
+public class KindergartenManager KindergartenManager45,1738
+  public KindergartenManager(KindergartenManager.KindergartenManager52,2013
+  public void resolveConflict(KindergartenManager.resolveConflict59,2178
+
+PriorityManager.java,317
+public class PriorityManager PriorityManager42,1668
+  public PriorityManager(PriorityManager.PriorityManager44,1722
+  public void resolveConflict(PriorityManager.resolveConflict46,1755
+  public long getPriority(PriorityManager.getPriority54,1944
+  public void setPriority(PriorityManager.setPriority58,2028

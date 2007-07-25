@@ -15,4 +15,4 @@ REM #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or register
 REM #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 REM ################################################################################
 
-java -cp "build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/dstm2/dstm2.jar;third_party/bcel/bcel-5.2.jar;third_party/plt/plt.jar" junit.swingui.TestRunner com.sun.fortress.interpreter.drivers.SystemJUTests
+java -cp "build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/FJ/concurrent.jar;third_party/plt/plt.jar" junit.swingui.TestRunner com.sun.fortress.interpreter.drivers.SystemJUTests

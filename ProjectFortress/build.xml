@@ -34,7 +34,6 @@
  <property name="src" location="src"/>
  <!-- Third party jar files -->
  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
- <property name="bcel" location="${basedir}/third_party/bcel"/>
  <property name="fj" location="${basedir}/third_party/FJ"/>
  <property name="junit" location="${basedir}/third_party/junit"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
@@ -67,7 +66,7 @@
  <property name="test.results" location="${basedir}/TEST-RESULTS"/>
 <!-- other setting -->
  <property name="junitMem" value="512m"/>
- <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${fj}/concurrent.jar:${bcel}/bcel-5.2.jar:${plt}/plt.jar:${junit}/junit.jar"/>
+ <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${fj}/concurrent.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property environment="env"/>
 
     <target name="help">
@@ -342,7 +341,6 @@ testNotPassing, testOnly"/>
             <classpath>
                 <pathelement location="${build}"/>
                 <pathelement location="${xtc}/xtc.jar"/>
-                <pathelement location="${bcel}/bcel-5.2.jar"/>
                 <pathelement location="${fj}/concurrent.jar"/>
                 <pathelement location="${plt}/plt.jar"/>
             </classpath>
@@ -374,7 +372,6 @@ testNotPassing, testOnly"/>
             <classpath>
              <pathelement location="${build}"/>
              <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${bcel}/bcel-5.2.jar"/>
              <pathelement location="${fj}/concurrent.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
@@ -404,7 +401,6 @@ testNotPassing, testOnly"/>
             <classpath>
              <pathelement location="${build}"/>
              <pathelement location="${fj}/concurrent.jar"/>
-             <pathelement location="${bcel}/bcel-5.2.jar"/>
              <pathelement location="${xtc}/xtc.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
@@ -431,7 +427,6 @@ testNotPassing, testOnly"/>
              <classpath>
               <pathelement location="${build}"/>
               <pathelement location="${fj}/concurrent.jar"/>
-              <pathelement location="${bcel}/bcel-5.2.jar"/>
               <pathelement location="${xtc}/xtc.jar"/>
               <pathelement location="${plt}/plt.jar"/>
              </classpath>
@@ -485,7 +480,6 @@ testNotPassing, testOnly"/>
 
  <link href="http://junit.org/junit/javadoc/3.8.1/"/>
  <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
- <link href="http://jakarta.apache.org/bcel/apidocs/"/>
  <link href="http://drjava.org/javadoc/plt/"/>
       </javadoc>
 

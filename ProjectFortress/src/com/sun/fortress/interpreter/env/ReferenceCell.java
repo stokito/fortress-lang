@@ -22,12 +22,12 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import dstm2.ContentionManager;
-import dstm2.exceptions.AbortedException;
-import dstm2.exceptions.PanicException;
-import dstm2.factory.shadow.ReadSet;
-import dstm2.factory.shadow.Recoverable;
-import dstm2.Transaction;
+import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
+import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
+import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
+import com.sun.fortress.interpreter.evaluator.transactions.Recoverable;
+import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Set;
 
 
