@@ -66,7 +66,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     protected boolean hasRest() {
         return lastParamIsRest;
     }
-
+    
     /**
      * @param params
      *            The params to set.

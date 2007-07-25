@@ -22,6 +22,11 @@ package com.sun.fortress.useful;
 
 public class EmptyLatticeIntervalError extends Error {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -8206456290428711990L;
+
     public EmptyLatticeIntervalError() {
         // TODO Auto-generated constructor stub
     }

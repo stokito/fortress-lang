@@ -53,6 +53,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.ReversedList;
+import com.sun.fortress.useful.Useful;
 
 
 public class Constructor extends AnonymousConstructor {
@@ -423,6 +424,12 @@ public class Constructor extends AnonymousConstructor {
 
     public String getString() {
         return NodeUtil.stringName(cfn);
+    }
+    
+    public String toString() {
+        String name = getFnName().toString();
+        
+        return (s(selfType)) + Useful.listInParens(getDomain()) + cfn.at();
     }
 
     boolean finished = false;

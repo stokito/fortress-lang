@@ -19,6 +19,11 @@ package com.sun.fortress.useful;
 
 public class CheckedNullPointerException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3938875379343754616L;
+
     public CheckedNullPointerException() {
         // TODO Auto-generated constructor stub
     }

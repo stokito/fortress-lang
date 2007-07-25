@@ -22,7 +22,7 @@ addGetterPrefixes yes;
 usePLT yes;
 tabSize 4;
 allowNulls no;
-generateToString yes;
+generateToString no;
 generateEquals yes;
 generateSerializers yes;
 

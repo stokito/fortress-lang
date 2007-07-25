@@ -75,7 +75,11 @@ public class Closure extends NonPrimitive implements Scope {
     }
 
     public String toString() {
-        return (instArgs == null ? s(def) : (s(def) + Useful.listInOxfords(instArgs))) + " " + (type() != null ? type() : "NULL");
+        String name = getFnName().toString();
+        
+        return ((instArgs == null ? s(def) :
+            (s(def) + Useful.listInOxfords(instArgs))) + " " +
+            (type() != null ? type() : "NULL")) + def.at();
     }
 
     public Closure(BetterEnv e, Applicable fndef) {

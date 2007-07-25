@@ -49,8 +49,8 @@ public class PartiallyDefinedMethod extends MethodClosure {
     }
 
     public String toString() {
-        return instArgs == null ? ("TraitMethod for " + s(def)) : ("TraitMethod " +
-                Useful.listInOxfords(instArgs)+ " for " + s(def));
+        return (instArgs == null ?
+                s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
     }
 
     public PartiallyDefinedMethod(BetterEnv within, BetterEnv evaluationEnv, Applicable fndef) {

@@ -70,7 +70,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
                 + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
-                + "@" + NodeUtil.getAt(node.getFnName());
+                ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
 
 
@@ -122,6 +122,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "nat " + node.getId().getName();
     }
 
+    public String forOpr(Opr node) {
+        return node.getOp().getName();
+    }
+    
     public String forAbstractNode(AbstractNode node) {
         return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
     }

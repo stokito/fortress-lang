@@ -19,7 +19,10 @@ package com.sun.fortress.nodes_util;
 
 import java.io.IOException;
 
-public class UIDObject {
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.useful.HasAt;
+
+public class UIDObject implements HasAt {
 
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
@@ -38,6 +41,18 @@ public class UIDObject {
      */
     @Override
     public String toString() {
+        if (this instanceof AbstractNode)
+            return ErrorMsgMaker.makeErrorMsg((AbstractNode) this);
+        return super.toString();
+    }
+    
+    public String at() {
+        if (this instanceof AbstractNode)
+            return ((AbstractNode) this).getSpan().toString();
+        throw new Error("Class " + this.getClass().toString() + " needs to a case in UIDObject.at()");
+    }
+    
+    public String toStringVerbose() {
         Printer p = new Printer();
         StringBuffer sb = new StringBuffer();
         try {
@@ -48,8 +63,6 @@ public class UIDObject {
         }
         return sb.toString();
     }
-     
-
 
     static private Object lock = new Object();
     static private long seedUID = 0x7b546b0e12fd2559L;

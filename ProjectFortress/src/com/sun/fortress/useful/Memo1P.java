@@ -38,6 +38,9 @@ public class Memo1P<Index, Value, Param> implements Factory1P<Index, Value, Para
         if (result == null) {
             result = factory.make(probe, param);
             map.put(probe, result);
+//            Great place for testing toString
+//            System.err.println(result);
+//            System.err.println();;
         }
         return result;
     }

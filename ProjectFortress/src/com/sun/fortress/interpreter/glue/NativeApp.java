@@ -91,7 +91,7 @@ public abstract class NativeApp implements Applicable {
     public String stringName() { return NodeUtil.stringName(a); }
 
     public String toString() {
-        return (NodeUtil.stringName(a)+"(native " + this.getClass()+")");
+        return (NodeUtil.stringName(a)+"(native " + this.getClass().getSimpleName()+")");
     }
 
     /**
