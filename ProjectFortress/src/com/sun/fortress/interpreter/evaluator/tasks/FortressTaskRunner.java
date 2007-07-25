@@ -47,11 +47,6 @@ public class FortressTaskRunner extends FJTaskRunner {
  * Contention manager class.
  */
     protected static Class contentionManagerClass;
-
-/**
- * Set to true when benchmark runs out of time.
- **/
-    public static volatile boolean stop = false;
 /**
  * number of committed transactions for all threads
  */
@@ -167,7 +162,7 @@ public class FortressTaskRunner extends FJTaskRunner {
 	ContentionManager manager = threadState.manager;
 	T result = null;
 	try {
-	    while (!FortressTaskRunner.stop) {
+	    while (true) {
 		threadState.beginTransaction();
 		try {
 		    result = xaction.call();
@@ -192,13 +187,9 @@ public class FortressTaskRunner extends FJTaskRunner {
 		threadState.transaction.attempts++;
 		// transaction aborted
 	    }
-	    if (threadState.transaction != null) {
-		threadState.abortTransaction();
-	    }
 	} finally {
 	    threadState.transaction = null;
 	}
-	throw new GracefulException();
     }
     /**
      * Execute transaction
@@ -309,7 +300,6 @@ public class FortressTaskRunner extends FJTaskRunner {
 	totalCommitted = 0;
 	totalCommittedMemRefs = 0;
 	totalTotalMemRefs = 0;
-	stop = false;
     }
 
     /**
