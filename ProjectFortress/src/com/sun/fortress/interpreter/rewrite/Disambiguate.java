@@ -389,7 +389,7 @@ public class Disambiguate extends Rewrite {
                 } else if (node instanceof IdType) {
                     IdType vre = (IdType) node;
 
-                    String s = StringMaker.fromDottedId(vre.getName());
+                    String s = StringMaker.fromDottedId(vre.getDottedId());
                     StaticParam tp = visibleGenericParameters.get(s);
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);
@@ -656,7 +656,7 @@ public class Disambiguate extends Rewrite {
      */
     private void paramsToLocals(List<? extends Param> params) {
         for (Param d : params) {
-            String s = d.getName().getName();
+            String s = d.getId().getName();
             // "self" is not a local.
             if (! s.equals(currentSelfName))
                 e.put(s, new Local());
@@ -705,7 +705,7 @@ public class Disambiguate extends Rewrite {
     private void paramsToMembers(Option<List<Param>> params) {
         if (params.isPresent())
             for (Param d : params.getVal()) {
-                String s = d.getName().getName();
+                String s = d.getId().getName();
                 e.put(s, new Member());
             }
     }
@@ -755,7 +755,7 @@ public class Disambiguate extends Rewrite {
                 }
                 if (t instanceof IdType) {
                     IdType it = (IdType) t;
-                    DottedId d = it.getName();
+                    DottedId d = it.getDottedId();
                     List<String> names = d.getNames();
                     if (names.size() == 1) {
                         // TODO we've got to generalize this to DottedId names.

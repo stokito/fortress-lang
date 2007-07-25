@@ -265,12 +265,12 @@ public class NodeFactory {
     }
 
     public static Param makeParam(Param param, Expr expr) {
-        return new Param(param.getSpan(), param.getMods(), param.getName(),
+        return new Param(param.getSpan(), param.getMods(), param.getId(),
                          param.getType(), new Some<Expr>(expr));
     }
 
     public static Param makeParam(Param param, List<Modifier> mods) {
-        return new Param(param.getSpan(), mods, param.getName(),
+        return new Param(param.getSpan(), mods, param.getId(),
                          param.getType(), param.getDefaultExpr());
     }
 

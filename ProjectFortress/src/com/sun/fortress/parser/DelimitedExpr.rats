@@ -109,7 +109,7 @@ Expr DelimitedExpr =
      { Option<List<Expr>> caseElse;
        if (a3 == null) caseElse = None.<List<Expr>>make();
        else            caseElse = Some.<Expr>makeSomeListOrNone(a3);
-       yyValue = new TypeCase(createSpan(yyStart,yyCount), false, a1, a2, caseElse);
+       yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1, a2, caseElse);
      }
    / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
@@ -226,14 +226,14 @@ private Binding Binding = a1:Id w equals w a2:Expr
      { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
-private List<TypeCaseClause> TypecaseClauses =
+private List<TypecaseClause> TypecaseClauses =
      a1:TypecaseClause a2s:(br TypecaseClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* TypecaseClause ::= TypecaseTypeRefs w => w BlockElems */
-TypeCaseClause TypecaseClause =
+TypecaseClause TypecaseClause =
      a1:TypecaseTypeRefs w match w a2:BlockElems
-     { yyValue = new TypeCaseClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new TypecaseClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseTypeRefs ::=
      ( w TypeRefList w )

@@ -83,7 +83,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forIdType(IdType node) {
-        return node.getName().accept(this);
+        return node.getDottedId().accept(this);
     }
 
     public String forIntLiteral(IntLiteral node) {
@@ -132,7 +132,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forParam(Param node) {
         StringBuffer sb = new StringBuffer();
-        sb.append(String.valueOf(node.getName().accept(this)));
+        sb.append(String.valueOf(node.getId().accept(this)));
         if (node.getType().isPresent()) {
             sb.append(":");
             sb.append(node.getType().getVal().accept(this));

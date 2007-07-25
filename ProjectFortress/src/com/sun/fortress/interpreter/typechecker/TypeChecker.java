@@ -152,7 +152,7 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
         if (!d.getStaticParams().isPresent()) { // TODO: static param bindings
             PureList<String> newEnv = e;
             for (Param p : d.getParams()) {
-                newEnv = newEnv.cons(p.getName().getName());
+                newEnv = newEnv.cons(p.getId().getName());
             }
             return d.getBody().accept(new TypeChecker(newEnv)); // TODO: Check result of body
         }

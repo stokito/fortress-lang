@@ -171,7 +171,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         int i = 0;
         List<Parameter> fparams = new ArrayList<Parameter>(params.size());
         for (Param in_p : params) {
-            Id id = in_p.getName();
+            Id id = in_p.getId();
             String pname = id.getName();
             Option<TypeRef> type = in_p.getType();
             FType ptype = e.getFTypeFromOption(type);
@@ -254,7 +254,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv, 
+                    throw new ProgramError(within, clenv,
                             errorMsg("Expected IntNat, got ", a, " for param ", p, " instantiating ", what));
                 }
             } else if (p instanceof IntParam) {
@@ -265,7 +265,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv, 
+                    throw new ProgramError(within, clenv,
                             errorMsg("Expected IntNat, got ", a, " for param ", p, " instantiating ", what));
                 }
             } else if (p instanceof BoolParam) {
@@ -273,7 +273,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutBool(NodeUtil.getName(p), ((Bool)a).getBooleanValue(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv, 
+                    throw new ProgramError(within, clenv,
                             errorMsg("Expected Bool, got ", a, " for param ", p, " instantiating ", what));
                 }
             } else if (p instanceof SimpleTypeParam) {
@@ -293,7 +293,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             } else if (p instanceof DimensionParam) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
-                throw new ProgramError(within, clenv, 
+                throw new ProgramError(within, clenv,
                         errorMsg("Unexpected generic parameter ", p));
             }
          }
@@ -327,7 +327,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forIdType(IdType i) {
         try {
-            FType result = env.getType(i.getName());
+            FType result = env.getType(i.getDottedId());
             return result;
         } catch (ProgramError p) {
             p.setWhere(i);
@@ -433,7 +433,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
-            throw new ProgramError(x, env, 
+            throw new ProgramError(x, env,
                     errorMsg("Expected generic type, got ", ft1, " instead"));
         }
     }

@@ -192,7 +192,7 @@ public class NodeComparator {
     }
 
     public static int compare(Param left, Param right) {
-        int x = left.getName().getName().compareTo(right.getName().getName());
+        int x = left.getId().getName().compareTo(right.getId().getName());
         if (x != 0) return x;
         x = compareOptionalTypeRef(left.getType(), right.getType());
         if (x != 0) return x;
@@ -275,21 +275,12 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(IdType left, IdType right) {
-        return compare(left.getName(), right.getName());
+        return compare(left.getDottedId(), right.getDottedId());
     }
 
     static int subtypeCompareTo(Indices left, Indices right) {
         throw new Error("subtypeCompareTo(" + left.getClass() + " " +
                         right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(ListType left, ListType right) {
-        return compare(left.getElement(), right.getElement());
-    }
-
-    static int subtypeCompareTo(MapType left, MapType right) {
-        return compare(left.getKey(), right.getKey(),
-                       left.getValue(), right.getValue());
     }
 
     static int subtypeCompareTo(MatrixType left, MatrixType right) {
@@ -300,7 +291,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(BaseOprRef left, BaseOprRef right) {
-        return compare(left.getName(), right.getName());
+        return compare(left.getFnName(), right.getFnName());
     }
 
     static int subtypeCompareTo(ParamType left, ParamType right) {
@@ -366,12 +357,6 @@ public class NodeComparator {
     static int subtypeCompareTo(TypeRef left, TypeRef right) {
         throw new Error("subtypeCompareTo(" + left.getClass() + " " +
                         right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(VectorType left, VectorType right) {
-        // TODO Don't I need to worry about reducing the fraction?
-        return compare(left.getElement(), right.getElement(),
-                       left.getDim(), right.getDim());
     }
 
     static int subtypeCompareTo(VoidType left, VoidType right) {

@@ -1,30 +1,30 @@
-/********************************************************************************
-    Copyright 2006 Sun Microsystems, Inc., 
-    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software. 
-    Government users are subject to the Sun Microsystems, Inc. standard 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-********************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.shell;
 import java.io.*;
 
 public abstract class ShellObject {
    protected static final String SEP = File.separator;
-   
+
    /* Relative location of the resident fortress to the jar file this class is packaged into. */
    protected static final String FORTRESS = fortressLocation();
-   
-   private static String fortressLocation() { 
+
+   private static String fortressLocation() {
       try {
          return new File(System.getenv("FORTRESS")).getCanonicalPath();
       }

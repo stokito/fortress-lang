@@ -361,11 +361,11 @@ abstract public class FType implements Comparable<FType> {
 //                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
         if (! (val instanceof IdType)) {
             rc = false;
-        } else if (name.equals(StringMaker.fromDottedId(((IdType)val).getName()))) {
+        } else if (name.equals(StringMaker.fromDottedId(((IdType)val).getDottedId()))) {
             rc = true;
         } else {
-            FType other = env.getTypeNull(((IdType)val).getName());
-        
+            FType other = env.getTypeNull(((IdType)val).getDottedId());
+
             if (other == null) {
                 rc = false;
             } else {
@@ -377,7 +377,7 @@ abstract public class FType implements Comparable<FType> {
             System.out.println("unify FType "+this+" and "+val + (rc ? " OK " : " NO ") + "("+this.getClass().getSimpleName()+
                     "), abm="+abm);
         }
-  
+
         return rc;
     }
 
@@ -399,7 +399,7 @@ abstract public class FType implements Comparable<FType> {
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
-            String nm = StringMaker.fromDottedId(id_val.getName());
+            String nm = StringMaker.fromDottedId(id_val.getDottedId());
             for (StaticParam tp : tp_set) {
                 String k = NodeUtil.getName(tp);
                 if (k.equals(nm)) {
@@ -428,7 +428,7 @@ abstract public class FType implements Comparable<FType> {
         throw new ProgramError(val,env,
                 errorMsg("Cannot unify ",
                           this,
-                          "(", 
+                          "(",
                           this.getClass(),
                           ")\n  with ",
                           val,

@@ -31,8 +31,6 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseNatRef;
 import com.sun.fortress.nodes.BaseOprRef;
 import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.ListType;
-import com.sun.fortress.nodes.MapType;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
@@ -44,7 +42,6 @@ import com.sun.fortress.nodes.TypeApply;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarargsType;
-import com.sun.fortress.nodes.VectorType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.useful.BoundingMap;
@@ -54,30 +51,30 @@ import com.sun.fortress.useful.BoundingMap;
  * specific where needed.  In practice, this only matters in the dual
  * table, because consumers of a map automatically see the most-specific
  * inference.  This form of "lazy clamping" seems to get better results.
- * 
+ *
  * Keep in mind that this is a feeble approximation of what we really
  * need from type inference.
- * 
+ *
  * @author chase
  */
 public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
-    
+
     BoundingMap<String, FType, TypeLatticeOps> abm;
     MakeInferenceSpecific dual;
     boolean doClamp;
-    
+
     MakeInferenceSpecific(BoundingMap<String, FType, TypeLatticeOps> abm) {
         this.abm = abm;
         dual = new MakeInferenceSpecific (abm.dual(), this);
     }
-    
+
     private MakeInferenceSpecific(BoundingMap<String, FType, TypeLatticeOps> abm,
             MakeInferenceSpecific dual) {
         this.abm = abm;
         this.dual = dual;
         this.doClamp = true;
     }
-    
+
     public void defaultCase(Node that) {
         throw new Error("Missing visitor for " + that.getClass());
     }
@@ -85,7 +82,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      protected void acceptList(List<? extends AbstractNode> nodes, NodeAbstractVisitor_void visitor) {
         for (AbstractNode node: nodes)
             node.accept(visitor);
-        
+
     }
 
      /* (non-Javadoc)
@@ -111,7 +108,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forIdType(IdType that) {
-        String s = StringMaker.fromDottedId(that.getName());
+        String s = StringMaker.fromDottedId(that.getDottedId());
         if (doClamp) {
             FType t = abm.get(s);
             if (t != null) {
@@ -120,8 +117,8 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
         }
     }
 
- 
-    
+
+
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArrayType(com.sun.fortress.nodes.ArrayType)
      */
@@ -141,28 +138,11 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forListType(com.sun.fortress.nodes.ListType)
-     */
-    @Override
-    public void forListType(ListType that) {
-        that.getElement().accept(this);
-   }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forMapType(com.sun.fortress.nodes.MapType)
-     */
-    @Override
-    public void forMapType(MapType that) {
-        that.getValue().accept(this);
-        that.getKey().accept(dual);
-    }
-
-    /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forMatrixType(com.sun.fortress.nodes.MatrixType)
      */
     @Override
     public void forMatrixType(MatrixType that) {
-        that.getElement().accept(this);       
+        that.getElement().accept(this);
     }
 
     /* (non-Javadoc)
@@ -173,14 +153,6 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
         acceptList(that.getElements(), this);
     }
 
-  
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVectorType(com.sun.fortress.nodes.VectorType)
-     */
-    @Override
-    public void forVectorType(VectorType that) {
-        that.getElement().accept(this);       
-    }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVoidType(com.sun.fortress.nodes.VoidType)

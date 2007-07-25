@@ -87,8 +87,6 @@ private TypeRef NonArrowType =
 
 /* TraitType ::=
      DottedId (w [\ w StaticArgList w \])?
-   | { w TypeRef w |-> w TypeRef w }
-   | <| w TypeRef w |>
    | TypeRef [ (w ArraySize)? w ]
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
@@ -102,11 +100,7 @@ private TypeRef TraitTypeFront =
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new ParamType(createSpan(yyStart,yyCount),
                                     new IdType(a1.getSpan(), a1), a2);
-     }
-   / opencurly w a1:TypeRef w mapsto w a2:TypeRef w closecurly
-     { yyValue = new MapType(createSpan(yyStart,yyCount), a1, a2); }
-   / openangle w a1:TypeRef w closeangle
-     { yyValue = new ListType(createSpan(yyStart,yyCount), a1); };
+     };
 
 private TypeRef NonArrowTypeFront =
      TupleType

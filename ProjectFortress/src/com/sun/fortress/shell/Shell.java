@@ -1,5 +1,5 @@
-/********************************************************************************
-    Copyright 2006 Sun Microsystems, Inc.,
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-********************************************************************************/
+ ******************************************************************************/
 
 package com.sun.fortress.shell;
 

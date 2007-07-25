@@ -1,28 +1,28 @@
 <?xml version="1.0" ?>
 
-  <!-- Copyright 2006 Sun Microsystems, Inc., 
-       4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+  <!-- Copyright 2007 Sun Microsystems, Inc.,
+       4150 Network Circle, Santa Clara, California 95054, U.S.A.
        All rights reserved.
 
-      U.S. Government Rights - Commercial software. 
-      Government users are subject to the Sun Microsystems, Inc. standard 
+      U.S. Government Rights - Commercial software.
+      Government users are subject to the Sun Microsystems, Inc. standard
       license agreement and applicable provisions of the FAR and its supplements.
- 
+
       Use is subject to license terms.
 
       This distribution may include materials developed by third parties.
 
-      Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+      Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
       trademarks of Sun Microsystems, Inc. in the U.S. and other countries. -->
 
-<project name="Fortress" basedir=".."> 
+<project name="Fortress" basedir="..">
   <!-- basedir is at the top of the fortress, one level up. -->
   <description>
     Ant targets defined as hooks for use by the fortress shell.
     When building a fortress, this script is copied into a build.xml
     file for internal use by the new fortress.
   </description>
-  
+
   <property name="binLoc" location="${basedir}/bin"/>
 
   <target name="extract"
@@ -32,20 +32,20 @@
     <chmod file="${fortressLoc}/Fortress/bin/fortress" perm="a+x"/>
     <echo message="Fortress extracted to ${fortressLoc}."/>
   </target>
-   
+
   <target name="compile"
 	  description="Compile the given source file and install the resulting components into the fortress.">
     <exec dir="${binLoc}" executable="fortress.run" output="${componentName}">
       <arg line="parse ${sourcefile}"/>
     </exec>
   </target>
-      
-  <target name="installer" 
+
+  <target name="installer"
 	  description="build a new installer as a jar">
     <delete dir="${installerDir}"/>
     <mkdir dir="${installerDir}/fortress"/>
     <copy todir="${installerDir}/fortress/FORTRESS">
-      <fileset dir="FORTRESS"/>    
+      <fileset dir="FORTRESS"/>
     </copy>
     <copy todir="${installerDir}/fortress/bin">
       <fileset dir="bin"/>
@@ -84,7 +84,7 @@
     </condition>
     <delete dir=".selfupgrade"/>
   </target>
-  
+
   <target name="selfupgrade" if="run.jarfile" depends="prep.selfupgrade">
     <java jar="lib/selfupgrade.jar"/>
   </target>

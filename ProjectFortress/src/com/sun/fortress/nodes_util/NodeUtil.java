@@ -70,7 +70,7 @@ public class NodeUtil {
         if (d instanceof FnAbsDeclOrDecl) {
             int i = 0;
             for (Param p : ((FnAbsDeclOrDecl)d).getParams()) {
-                Id id = p.getName();
+                Id id = p.getId();
                 if (WellKnownNames.defaultSelfName.equals(id.getName())) {
                     return i;
                 }
@@ -206,7 +206,7 @@ public class NodeUtil {
         } else if (node instanceof TraitAbsDeclOrDecl) {
             return ((TraitAbsDeclOrDecl)node).getId().getName();
         } else if (node instanceof TypeAlias) {
-            return ((TypeAlias)node).getName().getName();
+            return ((TypeAlias)node).getId().getName();
         } else if (node instanceof UnitDecl) {
             return ((UnitDecl)node).getNames().toString();
         } else {
@@ -234,8 +234,6 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(AbsDeclOrDecl d) {
         if (d instanceof AbsExternalSyntax) {
             return new UnitIterable<String>(((AbsExternalSyntax)d).getId().getName());
-        } else if (d instanceof AbsTypeAlias) {
-            return new UnitIterable<String>(((AbsTypeAlias)d).getName().getName());
         } else if (d instanceof DimDecl) {
             return new UnitIterable<String>(((DimDecl)d).getId().getName());
         } else if (d instanceof ExternalSyntax) {
@@ -267,7 +265,7 @@ public class NodeUtil {
         } else if (d instanceof TraitAbsDeclOrDecl) {
             return new UnitIterable<String>(((TraitAbsDeclOrDecl)d).getId().getName());
         } else if (d instanceof TypeAlias) {
-            return new UnitIterable<String>(((TypeAlias)d).getName().getName());
+            return new UnitIterable<String>(((TypeAlias)d).getId().getName());
         } else if (d instanceof UnitDecl) {
             return new IterableOnceTranslatingList<Id, String>(((UnitDecl)d).
                                                     getNames(), IdtoStringFn);

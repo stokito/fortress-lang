@@ -1242,7 +1242,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             for (WhereClause w : wheres) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
-                    Id name = we.getName();
+                    Id name = we.getId();
                     String string_name = name.getName();
                     // List<TypeRef> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
@@ -1269,7 +1269,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             for (WhereClause w : wheres) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
-                    Id name = we.getName();
+                    Id name = we.getId();
                     String string_name = name.getName();
                     List<TypeRef> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
@@ -1297,7 +1297,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     // For now, assume that the order in the where clause is
                     // topological.
                     TypeAlias ta = (TypeAlias) w;
-                    Id name = ta.getName();
+                    Id name = ta.getId();
                     TypeRef type = ta.getType();
                     interior.putType(name.getName(), et.evalType(type));
                 } else {

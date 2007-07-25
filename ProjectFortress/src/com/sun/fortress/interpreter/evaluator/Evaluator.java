@@ -138,8 +138,8 @@ import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeApply;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeCase;
-import com.sun.fortress.nodes.TypeCaseClause;
+import com.sun.fortress.nodes.Typecase;
+import com.sun.fortress.nodes.TypecaseClause;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.BaseDimRef;
 import com.sun.fortress.nodes.UnitDecl;
@@ -582,7 +582,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public List<FType> evalTypeCaseBinding(Evaluator ev,
-            TypeCase x) {
+            Typecase x) {
         List<Binding> bindings = x.getBind();
         List<FType> res = new ArrayList<FType>();
         for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
@@ -603,8 +603,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    private boolean moreSpecificHelper(TypeCaseClause candidate,
-            TypeCaseClause current, Evaluator ev) {
+    private boolean moreSpecificHelper(TypecaseClause candidate,
+            TypecaseClause current, Evaluator ev) {
         List<TypeRef> candType = candidate.getMatch();
         List<TypeRef> curType = current.getMatch();
         List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
@@ -620,13 +620,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // the
     // best matches so far, it should only get added to the result list once.
 
-    public List<TypeCaseClause> BestMatches(TypeCaseClause candidate,
-            List<TypeCaseClause> bestSoFar, Evaluator ev) {
-        List<TypeCaseClause> result = new ArrayList<TypeCaseClause>();
+    public List<TypecaseClause> BestMatches(TypecaseClause candidate,
+            List<TypecaseClause> bestSoFar, Evaluator ev) {
+        List<TypecaseClause> result = new ArrayList<TypecaseClause>();
         boolean addedCandidate = false;
 
-        for (Iterator<TypeCaseClause> i = bestSoFar.iterator(); i.hasNext();) {
-            TypeCaseClause current = i.next();
+        for (Iterator<TypecaseClause> i = bestSoFar.iterator(); i.hasNext();) {
+            TypecaseClause current = i.next();
             if (moreSpecificHelper(candidate, current, ev)) {
                 if (!addedCandidate) {
                     result.add(candidate);
@@ -1263,13 +1263,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return FTuple.make(evalExprListParallel(exprs));
     }
 
-    public FValue forTypeCase(TypeCase x) {
+    public FValue forTypecase(Typecase x) {
         Evaluator ev = new Evaluator(this, x);
         List<FType> res = evalTypeCaseBinding(ev, x);
         FValue result = evVoid;
-        List<TypeCaseClause> clauses = x.getClauses();
+        List<TypecaseClause> clauses = x.getClauses();
 
-        for (TypeCaseClause c : clauses) {
+        for (TypecaseClause c : clauses) {
             List<TypeRef> match = c.getMatch();
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
@@ -1294,7 +1294,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forTypeCaseClause(TypeCaseClause x) {
+    public FValue forTypecaseClause(TypecaseClause x) {
         return NI("forTypeClause");
     }
 

@@ -299,8 +299,8 @@ public class ExprFactory {
                 return new KeywordsExpr(e.getSpan(), true, e.getExprs(),
                                         e.getKeywords());
             }
-            public Expr forTypeCase(TypeCase e) {
-                return new TypeCase(e.getSpan(), true, e.getBind(),
+            public Expr forTypeCase(Typecase e) {
+                return new Typecase(e.getSpan(), true, e.getBind(),
                                     e.getClauses(), e.getElseClause());
             }
             public Expr forVarargsExpr(VarargsExpr e) {
@@ -317,7 +317,7 @@ public class ExprFactory {
                 return new AtomicExpr(e.getSpan(), true, e.getExpr());
             }
             public Expr forExit(Exit e) {
-                return new Exit(e.getSpan(), true, e.getName(),
+                return new Exit(e.getSpan(), true, e.getOptId(),
                                 e.getReturnExpr());
             }
             public Expr forSpawn(Spawn e) {

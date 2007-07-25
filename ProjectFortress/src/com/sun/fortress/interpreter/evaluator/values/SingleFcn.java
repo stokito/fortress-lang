@@ -173,7 +173,7 @@ public abstract class SingleFcn extends Fcn {
                 NI.nyi("Where clauses - type alias");
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getName();
+                String we_name = we.getId().getName();
                 // List<TypeRef> we_supers = we.getSupers();
                 if (ge.getTypeNull(we_name) == null) {
                     // Add name
@@ -222,7 +222,7 @@ public abstract class SingleFcn extends Fcn {
                 TypeAlias ta = (TypeAlias) wc;
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getName();
+                String we_name = we.getId().getName();
                 List<TypeRef> we_supers = we.getSupers();
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
                 st.addExtends(eval_type.getFTypeListFromList(we_supers));
