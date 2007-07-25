@@ -1204,6 +1204,12 @@ object OrReduction extends Reduction[\Boolean\]
     join(a: Boolean, b: Boolean): Boolean = a OR b
 end
 
+object StringReduction extends Reduction[\String\]
+    getter toString() = "StringReduction"
+    empty(): Boolean = ""
+    join(a:String, b:String): String = a b
+end
+
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     getter toString()="mapReduce.Reduction"
     empty() = z

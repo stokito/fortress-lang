@@ -52,7 +52,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
         if (best == -1) {
             // TODO add checks for COERCE, right here.
             throw new ProgramError(loc,  within,
-                         "Failed to find matching overload, args = " +
+                         "Failed to find matching method overload, args = " +
                          Useful.listInParens(args) + ", overload = " + this);
         }
 

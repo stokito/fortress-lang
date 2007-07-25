@@ -19,9 +19,6 @@ component PureListQuick
 import * from PureList
 export Executable
 
-mkContig(r:Range[\ZZ32\]): PureList[\ZZ32\] =
-  r.generate[\PureList[\ZZ32\]\](Concat[\ZZ32\](), singleton[\ZZ32\])
-
 assertStr(a:ZZ32, b:ZZ32, s:String, l: PureList[\ZZ32\]) =
   if a=/=b then
     fail(a "=/=" b ": " s l.toString())
@@ -63,18 +60,24 @@ end
 
 run(args:String...):() = do
   print("The adventure begins")
-  testLens : ZZ32[20] = [ 0 1 2 7 10]  (* The sizes which turned up bugs *)
-  for (_,i) <- seq(testLens) do
+  (* The sizes which turned up bugs *)
+  testLens : PureList[\ZZ32\] = <|0,1,2,7,10|>
+  (* Causes null pointer exception
+     println(testLens.generate[\ZZ32\](SumReduction,identity[\ZZ32\])) *)
+  for i <- seq(testLens) do
       print("\n" i ":")
-      li = mkContig(0#i)
+      li = list(0#i)
+      println(li)
       chkPop(li,i)
       chkExtract(li,i)
       (ll,lr) = li.split()
       lii = ll.append(lr)
       chkPop(lii,i)
+      rli=li.reverse()
       for j <- 0#i do
           print(".")
           assertStr(li[j],j,"indexing wrong for ",li)
+          assertStr(rli[i-j-1],j,"reverse indexing wrong for ",rli)
       end
       for j <- 0#(i+1) do
           print(".")
@@ -85,9 +88,9 @@ run(args:String...):() = do
           assertStr(l1.size(),j," take size wrong ", l1)
           assertStr(r1.size(),i-j, " drop size wrong ", r1)
       end
-      for (_,j) <- testLens do
+      for j <- testLens do
           print(".")
-          lj = mkContig(i#j)
+          lj = list(i#j)
           chkPop(li.append(lj),i+j)
       end
   end

@@ -438,7 +438,7 @@ public class  OverloadedFunction extends Fcn
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
-            throw new ProgramError(errorMsg("Failed to find matching overload, args = ",
+            throw new ProgramError(loc,errorMsg("Failed to find best matching overload, args = ",
                     Useful.listInParens(args), ", overload = ", this));
         }
         return best;

@@ -53,6 +53,8 @@ end
 
 emptyList[\E\](): PureList[\E\]
 singleton[\E\](e:E): PureList[\E\]
+opr [\E\]<| xs: E... |>: PureList[\E\]
+list[\E\](g:Generator[\E\]):PureList[\E\]
 
 object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
   empty(): PureList[\E\]

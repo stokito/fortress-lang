@@ -95,8 +95,8 @@ fmt3(i:ZZ32): String =
     (if i < 10 then "   " elif i < 100 then "  " elif i < 1000 then " " else "" end) i
 
 
-median[\I\](gen: Generator[\I\], f: I -> ZZ32): (ZZ32,I) = do
-    n = gen.generate[\ZZ32\](SumReduction[\ZZ32\](), f)
+median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
+    n = gen.generate[\ZZ32\](SumReduction[\ZZ32\](), bucket)
     half = n DIV 2
     s: ZZ32 := 0
     var med: I
