@@ -88,7 +88,7 @@ public class FortressTaskRunner extends FJTaskRunner {
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
 	super(group); 
         try {
-            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager");
+            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.BackoffManager");
             setContentionManagerClass(managerClass);
         } catch (ClassNotFoundException ex) {
             System.out.println("UhOh Contention Manager not found");
