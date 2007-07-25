@@ -1296,11 +1296,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forAbsVarDecl(AbsVarDecl x) {
-        return NI("forVarDecl");
+        return NI("forAbsVarDecl");
     }
 
     public FValue forVarDecl(VarDecl x) {
-        return NI("forVarDef");
+        return NI("forVarDecl");
     }
 
     public FValue forVarRefExpr(VarRefExpr x) {

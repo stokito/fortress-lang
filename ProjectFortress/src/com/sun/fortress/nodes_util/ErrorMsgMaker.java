@@ -64,7 +64,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return Useful.dottedList(node.getNames());
     }
 
-    public String forFnDefOrDecl(FnAbsDeclOrDecl node) {
+    public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
         return NodeUtil.getName(node.getFnName())
                 + (node.getStaticParams().isPresent() ?
                         Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")

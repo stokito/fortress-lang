@@ -55,7 +55,7 @@ interface Node();
          */
         interface Decl();
     /**
-     * left-hand-sides of assignments, local variable declarations, and
+     * left-hand-side of assignments, local variable declarations, or
      * top-level declarations.
      */
     interface LHS();
@@ -105,6 +105,11 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     /**
      * syntax expanders declaration in APIs
      * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
+     * OpenExpander ::= Id
+     *                | LeftEncloser
+     * CloseExpander ::= Id
+     *                 | RightEncloser
+     *                 | end
      * e.g.) syntax sql e end
      */
     AbsExternalSyntax(Name openExpander, Id id, Name closeExpander)
@@ -116,7 +121,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      */
     AliasedDottedId(DottedId dottedId, Option<DottedId> alias);
     /**
-     * aliased dotted name used in import statements
+     * aliased name used in import statements
      * AliasedName ::= Id (as DottedId)?
      *               | opr Op (as Op)?
      *               | opr EncloserPair (as EncloserPair)?
@@ -125,8 +130,12 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     AliasedName(FnName fnName, Option<FnName> alias);
     /**
      * array comprehension clause
+     * ArrayComprehensionLeft ::= IdOrInt |-> Expr
+     *                          | ( IdOrInt, IdOrIntList ) |-> Expr
+     * IdOrInt ::= Id
+     *           | IntLiteral
      * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorList
-     * e.g.) [(x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}]
+     * e.g.) (x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}
      */
     ArrayComprehensionClause(List<Expr> bind, Expr init, List<Generator> gens);
     /**
@@ -610,10 +619,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                     /**
                      * array comprehension
                      * Comprehension ::= [ ArrayComprehensionClause + ]
-                     * ArrayComprehensionLeft ::= IdOrInt |->  Expr
-                     *                          | (IdOrInt, IdOrIntList) |-> Expr
-                     * IdOrInt ::= Id
-                     *           | IntLiteral
                      * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
                      */
                     ArrayComprehension(List<ArrayComprehensionClause> clauses);
@@ -698,11 +703,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     /**
      * syntax expanders declaration in APIs
      * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
-     * OpenExpander ::= Id
-     *                | LeftEncloser
-     * CloseExpander ::= Id
-     *                 | RightEncloser
-     *                 | end
      * e.g.) syntax sql e end = parseSQL(e)
      */
     ExternalSyntax(Name openExpander, Id id, Name closeExpander, Expr expr)

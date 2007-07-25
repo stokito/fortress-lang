@@ -97,10 +97,6 @@ public final class FortressUtil {
         return Collections.<Expr>emptyList();
     }
 
-    public static List<FnAbsDeclOrDecl> emptyFnDefOrDecls() {
-        return Collections.<FnAbsDeclOrDecl>emptyList();
-    }
-
     public static List<Modifier> emptyModifiers() {
         return Collections.<Modifier>emptyList();
     }

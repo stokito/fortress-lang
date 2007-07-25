@@ -272,7 +272,7 @@ public class NodeUtil {
         } else if (d instanceof VarAbsDeclOrDecl) {
             return new IterableOnceForLValueList(((VarAbsDeclOrDecl)d).getLhs());
         } else {
-            throw new Error("NodeUtil.stringNames: Uncovered DefOrDecl " + d.getClass());
+            throw new Error("NodeUtil.stringNames: Uncovered AbsDeclOrDecl " + d.getClass());
         }
     }
 
