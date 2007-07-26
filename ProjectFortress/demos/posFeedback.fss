@@ -103,7 +103,7 @@ median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
     for i <- seq(gen) do
         if s <= half then
             med := i
-            s += f i
+            s += bucket i
         end
     end
     (n, med)
