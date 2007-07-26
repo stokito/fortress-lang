@@ -36,17 +36,17 @@ import Spacing;
      BlockElem br BlockElems
    | BlockElem (w ;)?
  */
-List<Expr> BlockElems =
+Block BlockElems =
      a1:BlockElem br a2:BlockElems
-     { yyValue = FortressUtil.mkList(a1, a2); }
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1, a2)); }
    / a1:BlockElem
      &(w Elifs / w Else / br CaseClause / br TypecaseTypeRefs / br CaseElse
      / w end / w Catch / w forbid / w finally)
-     { yyValue = FortressUtil.mkList(a1); }
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); }
    / a1:BlockElem w semicolon
      &(w Elifs / w Else / w CaseClause / w TypecaseTypeRefs / w CaseElse
      / w end / w Catch / w forbid / w finally)
-     { yyValue = FortressUtil.mkList(a1); };
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); };
 
 /* BlockElem ::=
      LocalVarFnDecl

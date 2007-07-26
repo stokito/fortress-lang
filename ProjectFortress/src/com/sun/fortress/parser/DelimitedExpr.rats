@@ -58,39 +58,37 @@ Expr DelimitedExpr =
      { if (!a1.getName().equals(a3.getName()))
            throw new ProgramError(a1, "Mismatched identifiers for "
                                       + "label expressions.");
-       yyValue = new Label(createSpan(yyStart,yyCount), false, a1,
-                           FortressUtil.doBlock(a2));
+       yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
    / while w a1:Expr w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
    / for w a1:GeneratorList w a2:DoFront w end
      { yyValue = new For(createSpan(yyStart,yyCount), false, a1, a2); }
    / if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
-     { Expr body = FortressUtil.doBlock(a2);
-       IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
+     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
-       Option<Expr> elseC;
-       if (a4 == null) elseC = None.<Expr>make();
-       else            elseC = Some.<Expr>make(a4);
+       Option<Block> elseC;
+       if (a4 == null) elseC = None.<Block>make();
+       else            elseC = Some.<Block>make(a4);
        yyValue = new If(createSpan(yyStart,yyCount), false, clauses, elseC);
      }
    / openparen w if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? w a4:Else
        (w end)? w closeparen
-     { Expr body = FortressUtil.doBlock(a2);
-       IfClause ic = new IfClause(FortressUtil.spanTwo(a1,body), a1, body);
+     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
-       yyValue = new If(createSpan(yyStart,yyCount),false,clauses,Some.<Expr>make(a4));
+       yyValue = new If(createSpan(yyStart,yyCount),false,clauses,
+                        Some.<Block>make(a4));
      }
    / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
      { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
        Option<Op> compare;
        if (a2 == null) compare = None.<Op>make();
        else            compare = Some.<Op>make(a2);
-       if (a4 == null) a4 = FortressUtil.emptyExprs();
+       if (a4 == null) a4 = FortressUtil.doBlock(FortressUtil.emptyExprs());
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, new Some<List<Expr>>(a4));
+                              a3, new Some<Block>(a4));
      }
    / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
      { CaseParam e1;
@@ -102,25 +100,25 @@ Expr DelimitedExpr =
        if (a2 == null) compare = None.<Op>make();
        else            compare = Some.<Op>make(a2);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, new Some<List<Expr>>(FortressUtil.emptyExprs()));
+                              a3, new Some<Block>(FortressUtil.doBlock(FortressUtil.emptyExprs())));
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end
-     { Option<List<Expr>> caseElse;
-       if (a3 == null) caseElse = None.<List<Expr>>make();
-       else            caseElse = Some.<Expr>makeSomeListOrNone(a3);
+     { Option<Block> caseElse;
+       if (a3 == null) caseElse = None.<Block>make();
+       else            caseElse = Some.<Block>make(a3);
        yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1, a2, caseElse);
      }
    / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
      { Option<Catch> catch_;
-       Option<Expr> finally_;
+       Option<Block> finally_;
        if (a2 == null) catch_ = None.<Catch>make();
        else            catch_ = Some.<Catch>make(a2);
        if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
-       if (a4 == null) finally_ = None.<Expr>make();
-       else            finally_ = Some.<Expr>make(FortressUtil.doBlock(a4));
-       yyValue = new Try(createSpan(yyStart,yyCount), false, FortressUtil.doBlock(a1),
+       if (a4 == null) finally_ = None.<Block>make();
+       else            finally_ = Some.<Block>make(a4);
+       yyValue = new Try(createSpan(yyStart,yyCount), false, a1,
                          catch_, a3, finally_);
      };
 
@@ -139,9 +137,8 @@ private DoFront DoFront =
        Boolean atomic;
        if (a2 == null) atomic = false;
        else            atomic = true;
-       if (a3 == null) a3 = FortressUtil.emptyExprs();
-       yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic,
-                             FortressUtil.doBlock(a3));
+       if (a3 == null) a3 = FortressUtil.doBlock(FortressUtil.emptyExprs());
+       yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic, a3);
      };
 
 /* Parenthesized ::=
@@ -187,20 +184,17 @@ List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
 
 /* Elif ::= elif w Expr w then w BlockElems */
 private IfClause Elif = elif w a1:Expr w then w a2:BlockElems
-     { yyValue = new IfClause(createSpan(yyStart,yyCount), a1,
-                              FortressUtil.doBlock(a2));
-     };
+     { yyValue = new IfClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Else ::= else w BlockElems */
-Expr Else = else w a1:BlockElems
-     { yyValue = FortressUtil.doBlock(a1); };
+Block Else = else w yyValue:BlockElems;
 
 /* CaseClauses ::= CaseClause (br CaseClause)* */
 private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CaseElse ::= else w => w BlockElems */
-List<Expr> CaseElse = else w match w BlockElems ;
+Block CaseElse = else w match w BlockElems ;
 
 /* TypecaseBindings ::=
      ( w BindingList w )

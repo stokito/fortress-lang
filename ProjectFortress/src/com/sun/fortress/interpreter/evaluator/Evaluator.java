@@ -492,10 +492,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         if (param instanceof CaseParamLargest) {
             CaseClause y = findLargest(clauses);
-            return evalExprList(y.getBody(), y);
+            return forBlock(y.getBody());
         } else if (param instanceof CaseParamSmallest) {
             CaseClause y = findSmallest(clauses);
-            return evalExprList(y.getBody(), y);
+            return forBlock(y.getBody());
         } else {
             // Evaluate the parameter
             FValue paramValue = param.accept(this);
@@ -520,12 +520,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
                 FBool success = (FBool) functionInvocation(vargs, actual, c);
                 if (success.getBool())
-                    return evalExprList(c.getBody(), c);
+                    return forBlock(c.getBody());
             }
-            Option<List<Expr>> _else = x.getElseClause();
+            Option<Block> _else = x.getElseClause();
             if (_else.isPresent()) {
                 // TODO need an Else node to hang a location on
-                return evalExprList(_else.getVal(), x);
+                return forBlock(_else.getVal());
             }
             return evVoid;
         }
@@ -749,9 +749,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return ifclause.getBody().accept(this);
             ;
         }
-        Option<Expr> else_ = x.getElseClause();
+        Option<Block> else_ = x.getElseClause();
         if (else_.isPresent()) {
-            Expr else_expr = else_.getVal();
+            Block else_expr = else_.getVal();
             return else_expr.accept(this);
         }
         return evVoid;
@@ -1254,17 +1254,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FType resTuple = FTypeTuple.make(res);
 
             if (resTuple.subtypeOf(matchTuple)) {
-                List<Expr> body = c.getBody();
-                result = evalExprList(body, c);
+                Block body = c.getBody();
+                result = forBlock(body);
                 return result;
             }
         }
 
-        Option<List<Expr>> el = x.getElseClause();
+        Option<Block> el = x.getElseClause();
         if (el.isPresent()) {
-            List<Expr> elseClauses = el.getVal();
+            Block elseClauses = el.getVal();
             // TODO really ought to have a node, with a location, for this list
-            result = evalExprList(elseClauses, x);
+            result = forBlock(elseClauses);
             return result;
         } else {
             throw new MatchFailure();

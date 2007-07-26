@@ -243,7 +243,7 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
             clauseTypes.add(bodyType);
             result = result.combine(testType.combine(bodyType));
         }
-        Option<Expr> else_ = e.getElseClause();
+        Option<Block> else_ = e.getElseClause();
         if (else_.isPresent()) {
             TypeCheckerResult elseResult = else_.getVal().accept(this);
             clauseTypes.add(elseResult);

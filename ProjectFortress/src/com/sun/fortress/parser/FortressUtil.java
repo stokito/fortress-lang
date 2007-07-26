@@ -54,6 +54,7 @@ import com.sun.fortress.nodes.ModifierWrapped;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
@@ -107,6 +108,10 @@ public final class FortressUtil {
 
     public static List<StaticParam> emptyStaticParams() {
         return Collections.<StaticParam>emptyList();
+    }
+
+    public static List<TraitType> emptyTraitTypes() {
+        return Collections.<TraitType>emptyList();
     }
 
     public static List<TypeRef> emptyTypeRefs() {

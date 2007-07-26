@@ -6,5 +6,12 @@
  5. Rename nodes and fields.
 
 * Criteria for the Fortress ASTGen input
- 1. reverse engineering the source code
+ 1. reverse engineering the source code should be possible
  2. convenience for visitors (vs if/then/else instanceof testing)
+ 3. use subtypes (classes) for variance rather than wrappers (abstract clases)
+ 4. don't propogate the subtype structure to enclosing method
+
+* UIDObject
+ 1. It should have things for uniqueness.
+ 2. It should not include things that are applicable only for nodes.
+ 3. It should include things that are shared by nodes and the other parts of the interpreter.
