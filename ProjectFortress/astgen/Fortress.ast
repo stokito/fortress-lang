@@ -54,6 +54,11 @@ interface Node();
          * declaration in components
          */
         interface Decl();
+        /**
+         * top-level variable, local variable, and field declaration
+         * in components or APIs
+         */
+        interface VarFieldAbsDeclOrDecl();
     /**
      * left-hand-side of assignments, local variable declarations, or
      * top-level declarations.
@@ -613,7 +618,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         /**
          * expression used in block expressions
          */
-        abstract LetExpr(List<Expr> body) implements AbsDeclOrDecl;
+        abstract LetExpr(List<Expr> body);
             /**
              * generated expression
              * BlockElem ::= Expr(, GeneratorList)?
@@ -642,7 +647,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *                  | Unpasting
              * e.g.) localVar x = 3
              */
-            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs);
+            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs)
+                        implements VarFieldAbsDeclOrDecl;
         /**
          * expression that is simple or using operators
          */
@@ -1222,9 +1228,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         UnitParam(Id id, Option<DimRef> dim, boolean absorbs);
     /**
      * name representing functionals
-     * Note well; because this is a useful abstraction for the generalized names
-     * seen in Fortress, it will persist into more semantically aware parts of
-     * the system (i.e., into the interpreter, compiler, typechecker, etc).
      */
     abstract FnName();
         /**
@@ -1234,19 +1237,19 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          */
         DottedId(List<String> names);
         /**
-         * internal name for anonymous functionals
+         * internal name for anonymous function expressions
          * not created during parsing but during evaluation
          * e.g.) name for "fn x => x + 1"
          */
         AnonymousFnName();
         /**
-         * internal name for anonymous constructors
+         * internal name for anonymous constructor expressions
          * not created during parsing but during evaluation
          * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
          */
         ConstructorFnName(AbsDeclOrDecl def);
         /**
-         * operator name
+         * name representing operators
          */
         abstract OprName();
             /**

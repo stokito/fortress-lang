@@ -4,7 +4,6 @@
 2) Decl/AbsDecl/AbsDeclOrDecl
 Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an Decl.  And then "AbsDeclOrDecl" should be the union of these sets of values.
 3) rename TypeRef to something else
-4) TraitAbsDeclOrDecl and ObjectAbsDeclOrDecl are screaming for a common superclass.  AbsExternalSyntax and ExternalSyntax also.
 
 
  1. Eric -- TupleExpr/TupleType/ArrowType
