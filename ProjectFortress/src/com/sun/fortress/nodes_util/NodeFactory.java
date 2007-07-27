@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser.precedence.resolver.PrecedenceMap;
 
 public class NodeFactory {
+    /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
                                           Option<Id> optSelfName, FnName name,
                                           Option<List<StaticParam>> staticParams,
@@ -55,6 +56,7 @@ public class NodeFactory {
                                new Some<FnName>(alias));
     }
 
+    /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
     public static AliasedName makeAliasedName(Span span, OprName op) {
         return new AliasedName(span, op, new None<FnName>());
     }
@@ -96,6 +98,7 @@ public class NodeFactory {
         return new ConstructorFnName(NodeUtil.getSpan(def), def);
     }
 
+  /** Alternatively, you can invoke the Contract constructor without any parameters */
     public static Contract makeContract() {
         return new Contract(new Span(), Collections.<Expr> emptyList(),
                             Collections.<EnsuresClause> emptyList(),
@@ -131,6 +134,7 @@ public class NodeFactory {
         return makeDottedId(span, string);
     }
 
+    /** Alternatively, you can invoke the FnDecl constructor without a selfName */
     public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
                                     Option<Id> optSelfName, FnName name,
                                     Option<List<StaticParam>> staticParams,
@@ -149,6 +153,7 @@ public class NodeFactory {
                           throwss, where, contract, selfName, body);
     }
 
+    /** Alternatively, you can invoke the Id constructor without a span */
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
@@ -227,6 +232,7 @@ public class NodeFactory {
         return new NatParam(new Span(), new Id(new Span(), name));
     }
 
+    /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
                                             Id name,
@@ -275,6 +281,7 @@ public class NodeFactory {
                                    new None<List<TraitType>>(), false);
     }
 
+    /** Alternatively, you can invoke the TupleType constructor without keywords */
     public static TupleType makeTupleType(Span span, List<TypeRef> elements) {
         return new TupleType(span, elements,
                              Collections.<KeywordType>emptyList());

@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 begin ast;
 
@@ -101,8 +102,8 @@ interface GenericAbsDeclOrDeclWithParams() extends Generic, AbsDeclOrDecl,
 /**
  * top-level node abstract class
  */
-abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
-                                                 implements Node;
+abstract AbstractNode(ignoreForEquals Span span = new Span())
+                     extends UIDObject implements Node;
     /**
      * compilation unit
      * Both Component and Api have List<? extends AbsDeclOrDecl> instead of
@@ -169,28 +170,36 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) longComplexName as shortName
      */
-    AliasedName(FnName fnName, Option<FnName> alias);
+    AliasedName(FnName fnName, Option<FnName> alias = new None<FnName>());
     /**
      * aliased dotted id used in import statements
      * AliasedDottedId ::= DottedId (as DottedId)?
      * e.g.) com.sun.fortress.parser.precedence.resolver as precedence.resolver
      */
-    AliasedDottedId(DottedId dottedId, Option<DottedId> alias);
+    AliasedDottedId(DottedId dottedId,
+                    Option<DottedId> alias = new None<DottedId>());
     /**
      * trait or object declaration in components or APIs
      */
-    abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods, Id id,
-                                      Option<List<StaticParam>> staticParams,
-                                      Option<List<TraitType>> extendsClause,
-                                      List<WhereClause> where,
+    abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
+                                          = Collections.<Modifier>emptyList(),
+                                      Id id,
+                                      Option<List<StaticParam>> staticParams
+                                          = new None<List<StaticParam>>(),
+                                      Option<List<TraitType>> extendsClause
+                                          = new None<List<TraitType>>(),
+                                      List<WhereClause> where
+                                          = Collections.<WhereClause>emptyList(),
                                       List<? extends AbsDeclOrDecl> decls)
                                      implements Generic, HasWhere, AbsDeclOrDecl,
                                                 GenericAbsDeclOrDecl;
         /**
          * trait declaration in components or APIs
          */
-        abstract TraitAbsDeclOrDecl(List<TraitType> excludes,
-                                    Option<List<TraitType>> comprises);
+        abstract TraitAbsDeclOrDecl(List<TraitType> excludes
+                                        = Collections.<TraitType>emptyList(),
+                                    Option<List<TraitType>> comprises
+                                        = new None<List<TraitType>>());
             /**
              * trait declaration in APIs
              * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
@@ -221,9 +230,11 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         /**
          * object declaration in components or APIs
          */
-        abstract ObjectAbsDeclOrDecl(Option<List<Param>> params,
-                                     List<TypeRef> throwsClause,
-                                     Contract contract)
+        abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
+                                         = new None<List<Param>>(),
+                                     List<TypeRef> throwsClause
+                                         = Collections.<TypeRef>emptyList(),
+                                     Contract contract = new Contract())
                                     implements HasParams, GenericWithParams,
                                                GenericAbsDeclOrDeclWithParams;
             /**
@@ -278,7 +289,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         /**
          * e.g.) var x: ZZ32
          */
-        LValueBind(Id id, Option<TypeRef> type, List<Modifier> mods,
+        LValueBind(Id id, Option<TypeRef> type = new None<TypeRef>(),
+                   List<Modifier> mods = Collections.<Modifier>emptyList(),
                    boolean mutable) implements LHS;
         /**
          * left-hand side of matrix unpasting
@@ -303,11 +315,19 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     /**
      * functional declaration in components and APIs
      */
-    abstract FnAbsDeclOrDecl(List<Modifier> mods, FnName fnName,
-                             Option<List<StaticParam>> staticParams,
-                             List<Param> params, Option<TypeRef> returnType,
-                             List<TypeRef> throwsClause, List<WhereClause> where,
-                             Contract contract)
+    abstract FnAbsDeclOrDecl(List<Modifier> mods
+                                 = Collections.<Modifier>emptyList(),
+                             FnName fnName,
+                             Option<List<StaticParam>> staticParams
+                                 = new None<List<StaticParam>>(),
+                             List<Param> params,
+                             Option<TypeRef> returnType
+                                 = new None<TypeRef>(),
+                             List<TypeRef> throwsClause
+                                 = Collections.<TypeRef>emptyList(),
+                             List<WhereClause> where
+                                 = Collections.<WhereClause>emptyList(),
+                             Contract contract = new Contract())
                             implements Generic, Applicable, Decl, GenericDecl;
         /**
          * functional declaration in APIs
@@ -324,22 +344,23 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * SubscriptAssignParam ::= Varargs | Param
          * e.g.) swap (x: Object, y: Object): (Object, Object)
          */
-        AbsFnDecl(String selfName) implements AbsDecl;
+        AbsFnDecl(String selfName = WellKnownNames.defaultSelfName) implements AbsDecl;
         /**
          * functional declaration in components
          * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause (= Expr)?
          *          | FnSig
          * e.g.) swap (x, y) = (y, x)
          */
-        FnDecl(String selfName, Expr body);
+        FnDecl(String selfName = WellKnownNames.defaultSelfName, Expr body);
     /**
      * value parameter of functional declarations and object declarations
      * e.g.) x: ZZ32 = 3
      * e.g.) self
      * e.g.) transient x: String
      */
-    Param(List<Modifier> mods, Id id, Option<TypeRef> type,
-          Option<Expr> defaultExpr);
+    Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+          Id id, Option<TypeRef> type = new None<TypeRef>(),
+          Option<Expr> defaultExpr = new None<Expr>());
     /**
      * dimension declaration (Not Yet Implemented in the Parser!)
      * DimUnitDecl ::= dim Id (= DimRef)? (default Id)?
@@ -347,7 +368,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      *               | dim Id (= DimRef)? (unit | SI_unit) Id+ (= Expr)?
      * e.g.) dim Length SI_unit meter meters m
      */
-    DimDecl(Id id, Option<TypeRef> derived, Option<TypeRef> default)
+    DimDecl(Id id, Option<TypeRef> derived = new None<TypeRef>(),
+            Option<TypeRef> default = new None<TypeRef>())
            implements Decl, AbsDecl;
     /**
      * unit declaration (Not Yet Implemented in the Parser!)
@@ -356,7 +378,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      *               | dim Id ( = DimRef )? ( unit | SI_unit ) Id+ ( = Expr)?
      * e.g.) unit inch inches: Length
      */
-    UnitDecl(List<Id> names, Option<TypeRef> type, Option<Expr> def, boolean si)
+    UnitDecl(List<Id> names, Option<TypeRef> type = new None<TypeRef>(),
+             Option<Expr> def = new None<Expr>(), boolean si)
             implements Decl, AbsDecl;
     /**
      * test declaration
@@ -369,7 +392,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
      * e.g.) property fIsMonotonic = FORALL (x: ZZ, y: ZZ) (x < y) -> (f(x) < f(y))
      */
-    PropertyDecl(Option<Id> id, List<Param> params, Expr expr)
+    PropertyDecl(Option<Id> id = new None<Id>(), List<Param> params, Expr expr)
                 implements Decl, AbsDecl;
     /**
      * syntax expanders declaration in components and APIs
@@ -397,7 +420,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     /**
      * expression
      */
-    abstract Expr(boolean is_parenthesized);
+    abstract Expr(boolean parenthesized = false);
         /**
          * type ascription expression
          * Expr ::= Expr as TypeRef
@@ -444,8 +467,9 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *         1 kilometer => "we were wrong again"
              *       end
              */
-            CaseExpr(CaseParam param, Option<Op> compare,
-                     List<CaseClause> clauses, Option<Block> elseClause);
+            CaseExpr(CaseParam param, Option<Op> compare = new None<Op>(),
+                     List<CaseClause> clauses,
+                     Option<Block> elseClause = new None<Block>());
             /**
              * do expression
              * Do ::= (DoFront also)* DoFront end
@@ -475,7 +499,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *       elif x IN {3, 4, 5} then 3
              *       else 6 end
              */
-            If(List<IfClause> clauses, Option<Block> elseClause);
+            If(List<IfClause> clauses, Option<Block> elseClause = new None<Block>());
             /**
              * label expression
              * DelimitedExpr ::= label Id BlockElems end Id
@@ -490,7 +514,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
             /**
              * object expression
              */
-            abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause,
+            abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause
+                                            = new None<List<TraitType>>(),
                                         List<? extends AbsDeclOrDecl> decls);
                 /**
                  * object expression
@@ -520,8 +545,9 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *       forbid IOException
              *       end
              */
-            Try(Block body, Option<Catch> catchClause, List<TypeRef> forbid,
-                Option<Block> finallyClause);
+            Try(Block body, Option<Catch> catchClause = new None<Catch>(),
+                List<TypeRef> forbid = Collections.<TypeRef>emptyList(),
+                Option<Block> finallyClause = new None<Block>());
             /**
              * tuple expression (Mismatch with the Spec!)
              * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
@@ -547,7 +573,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *       end
              */
             Typecase(List<Binding> bind, List<TypecaseClause> clauses,
-                     Option<Block> elseClause);
+                     Option<Block> elseClause = new None<Block>());
             /**
              * varargs expression used in tuple expressions (Mismatch with the Spec!)
              * VarargsExpr ::= Expr...
@@ -584,7 +610,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              * FlowExpr ::= exit Id? (with Expr)?
              * e.g.) exit I_95 with x32B
              */
-            Exit(Option<Id> optId, Option<Expr> returnExpr);
+            Exit(Option<Id> optId = new None<Id>(),
+                 Option<Expr> returnExpr = new None<Expr>());
             /**
              * spawn expression
              * FlowExpr ::= spawn Expr
@@ -608,9 +635,15 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * Expr ::= fn ValParam IsType? Throws? => Expr
          * e.g.) fn x => x + 2
          */
-        FnExpr(FnName fnName, Option<List<StaticParam>> staticParams,
-               List<Param> params, Option<TypeRef> returnType,
-               List<WhereClause> where, List<TypeRef> throwsClause, Expr body)
+        FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
+               boolean parenthesized = false,
+               FnName fnName = new AnonymousFnName(in_span),
+               Option<List<StaticParam>> staticParams = new None<List<StaticParam>>(),
+               List<Param> params,
+               Option<TypeRef> returnType = new None<TypeRef>(),
+               List<WhereClause> where = Collections.<WhereClause>emptyList(),
+               List<TypeRef> throwsClause = Collections.<TypeRef>emptyList(),
+               Expr body)
               implements Applicable;
         /**
          * expression used in block expressions
@@ -644,7 +677,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *                  | Unpasting
              * e.g.) localVar x = 3
              */
-            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs)
+            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = new None<Expr>())
                         implements VarFieldAbsDeclOrDecl;
         /**
          * expression that is simple or using operators
@@ -659,7 +692,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *              | Op
              * e.g.) 3 + 5
              */
-            OprExpr(OprName op, List<Expr> args);
+            OprExpr(OprName op,
+                    List<Expr> args = Collections.<Expr>emptyList());
             /**
              * primary expression
              */
@@ -725,12 +759,13 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                              * int literal
                              * e.g.) 7
                              */
-                            IntLiteral(BigInteger val);
+                            IntLiteral(String text = in_val.toString(),
+                                       BigInteger val);
                         /**
                          * char literal
                          * e.g.) 'c'
                          */
-                        CharLiteral(int val);
+                        CharLiteral(int val = in_text.charAt(0));
                         /**
                          * string literal
                          * e.g.) "string"
@@ -740,7 +775,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                          * void literal
                          * e.g.) ()
                          */
-                        VoidLiteral();
+                        VoidLiteral(String text = "");
                     /**
                      * variable reference
                      * BaseExpr ::= Id
@@ -809,14 +844,16 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                  * Primary ::= Id[\StaticArgList\]
                  * e.g.) identity[\String\]
                  */
-                FnRef(Expr expr, List<StaticArg> args);
+                FnRef(Expr expr,
+                      List<StaticArg> args = Collections.<StaticArg>emptyList());
             /**
              * subscripting expression
              * SubscriptExpr ::= Primary [ ExprList? ]
              *                 | Primary LeftEncloser ExprList? RightEncloser
              * e.g.) a[i]
              */
-            SubscriptExpr(Expr obj, List<Expr> subs, Option<Enclosing> op)
+            SubscriptExpr(Expr obj, List<Expr> subs,
+                          Option<Enclosing> op = new None<Enclosing>())
                          implements LHS;
         /**
          * unit expression representing units
@@ -880,7 +917,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *             | SimpleTupleType
              * e.g.)
              */
-            TupleType(List<TypeRef> elements, List<KeywordType> keywords);
+            TupleType(List<TypeRef> elements,
+                      List<KeywordType> keywords = Collections.<KeywordType>emptyList());
             /**
              * varargs type used in tuple types (Mismatch with the Spec!)
              * TypeRef ...
@@ -1054,7 +1092,10 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * TypeAlias ::= type Id StaticParams? = TypeRef
          * e.g.) type IntList = List[\ZZ64\]
          */
-        TypeAlias(Id id, List<StaticParam> staticParams, TypeRef type)
+        TypeAlias(Id id,
+                  List<StaticParam> staticParams
+                      = Collections.<StaticParam>emptyList(),
+                  TypeRef type)
                  implements Decl, AbsDecl;
         /* bool parameter declared in where clauses (Mismatch with the Spec!)
          * WhereClause ::= bool Id
@@ -1104,14 +1145,15 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * Invariant ::= invariant { ExprList? }
      * e.g.) requires { n GE 0 } ensures { result GE 0 }
      */
-    Contract(List<Expr> requires, List<EnsuresClause> ensures,
-             List<Expr> invariants);
+    Contract(List<Expr> requires = Collections.<Expr>emptyList(),
+             List<EnsuresClause> ensures = Collections.<EnsuresClause>emptyList(),
+             List<Expr> invariants = Collections.<Expr>emptyList());
     /**
      * ensures clause used in contracts
      * EnsuresClause ::= Expr (provided Expr)?
      * e.g.) sorted(result) provided sorted(input)
      */
-    EnsuresClause(Expr post, Option<Expr> pre);
+    EnsuresClause(Expr post, Option<Expr> pre = new None<Expr>());
     /**
      * modifier
      */
@@ -1215,14 +1257,17 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * StaticParam ::= Id Extends? ( absorbs unit )?
          * e.g.) EltType extends Number absorbs unit
          */
-        SimpleTypeParam(Id id, Option<List<TraitType>> extendsClause,
-                        boolean absorbs);
+        SimpleTypeParam(Id id,
+                        Option<List<TraitType>> extendsClause = 
+                            new None<List<TraitType>>(),
+                        boolean absorbs = false);
        /**
          * unit parameter
          * StaticParam ::= unit Id ( : DimRef )? ( absorbs unit )?
          * e.g.) unit U absrbs unit
          */
-        UnitParam(Id id, Option<DimRef> dim, boolean absorbs);
+        UnitParam(Id id, Option<DimRef> dim = new None<DimRef>(),
+                  boolean absorbs = false);
     /**
      * name representing functionals
      */
@@ -1332,7 +1377,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * DoFront ::= (at Expr)? atomic? do BlockElems?
      * e.g.) at a.region(j) do w := a_j
      */
-    DoFront(Option<Expr> loc, boolean atomic, Block expr);
+    DoFront(Option<Expr> loc = new None<Expr>(),
+            boolean atomic = false, Block expr);
     /**
      * if clause used in if expressions
      * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end

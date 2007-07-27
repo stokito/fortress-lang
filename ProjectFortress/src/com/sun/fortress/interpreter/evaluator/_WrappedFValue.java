@@ -113,7 +113,7 @@ public class _WrappedFValue extends DelimitedExpr {
             writer.printEscaped(temp_span);
         } else { writer.print(temp_span); }
 
-        boolean temp_is_parenthesized = isIs_parenthesized();
+        boolean temp_is_parenthesized = isParenthesized();
         writer.startLine();
         writer.print("is_parenthesized = ");
         writer.print(temp_is_parenthesized);
@@ -139,8 +139,8 @@ public class _WrappedFValue extends DelimitedExpr {
             return false;
         } else {
             _WrappedFValue casted = (_WrappedFValue) obj;
-            boolean temp_is_parenthesized = isIs_parenthesized();
-            boolean casted_is_parenthesized = casted.isIs_parenthesized();
+            boolean temp_is_parenthesized = isParenthesized();
+            boolean casted_is_parenthesized = casted.isParenthesized();
             if (!(temp_is_parenthesized == casted_is_parenthesized)) return false;
             FValue temp_fValue = getFValue();
             FValue casted_fValue = casted.getFValue();
@@ -156,7 +156,7 @@ public class _WrappedFValue extends DelimitedExpr {
      */
     public int generateHashCode() {
         int code = getClass().hashCode();
-        boolean temp_is_parenthesized = isIs_parenthesized();
+        boolean temp_is_parenthesized = isParenthesized();
         code ^= temp_is_parenthesized ? 1231 : 1237;
         FValue temp_fValue = getFValue();
         code ^= temp_fValue.hashCode();

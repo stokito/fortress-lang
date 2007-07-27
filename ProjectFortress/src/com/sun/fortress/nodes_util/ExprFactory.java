@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser.precedence.resolver.PrecedenceMap;
 
 public class ExprFactory {
+    /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
     public static CharLiteral makeCharLiteral(Span span, String s) {
         return new CharLiteral(span, false, s, s.charAt(0));
     }
@@ -126,6 +127,7 @@ public class ExprFactory {
                                 intPart, numerator, denomBase, denomPower);
     }
 
+    /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
         return makeFnExpr(span, params, new None<TypeRef>(),
                           Collections.<TypeRef>emptyList(), body);
@@ -140,6 +142,7 @@ public class ExprFactory {
                           body);
     }
 
+    /** Alternatively, you can invoke the IntLiteral constructor without parenthesized or text */
     public static IntLiteral makeIntLiteral(Span span, BigInteger val) {
         return new IntLiteral(span, false, val.toString(), val);
     }
@@ -194,6 +197,7 @@ public class ExprFactory {
     }
 
 
+    /** Alternatively, you can invoke the OprExpr constructor without parenthesized or args */
     public static OprExpr makeOprExpr(Span span, OprName op) {
         return new OprExpr(span, false, op, new ArrayList<Expr>());
     }
@@ -212,6 +216,7 @@ public class ExprFactory {
         return new OprExpr(span, false, op, es);
     }
 
+    /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs) {
         return new SubscriptExpr(span, false, obj, subs, None.<Enclosing>make());
@@ -225,6 +230,7 @@ public class ExprFactory {
         return new VarRef(span, false, new Id(span, s));
     }
 
+    /** Alternatively, you can invoke the VoidLiteral constructor without parenthesized or text */
     public static VoidLiteral makeVoidLiteral(Span span) {
         return new VoidLiteral(span, false, "");
     }
