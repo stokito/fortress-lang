@@ -94,7 +94,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                                                                 // second pass.
 
                     // Perhaps make this conditional on nothing being symbolic here?
-                    be.scanForFunctionalMethodNames(ftt, td.getAbsDeclOrDecls(), true);
+                    be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
                     be.secondPass();
                     be.finishTrait(td, ftt, clenv);
                     be.thirdPass();
@@ -106,11 +106,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
-                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
                     be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
                     rval = fto;
                 } else if (dod instanceof _RewriteObjectExpr) {
                     _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
@@ -119,11 +119,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     map.put(args, fto); // Must put early to expose for second
                                         // pass.
 
-                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
                     be.secondPass();
                     be.finishObjectTrait(td, fto);
                     be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getAbsDeclOrDecls(), true);
+                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
 
                     rval = fto;
                 } else {

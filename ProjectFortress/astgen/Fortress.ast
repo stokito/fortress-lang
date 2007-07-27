@@ -91,7 +91,7 @@ interface Generic(Option<List<StaticParam>> staticParams);
  * with value parameters
  */
 interface HasParams(Option<List<Param>> params,
-                    List<? extends AbsDeclOrDecl> absDeclOrDecls);
+                    List<? extends AbsDeclOrDecl> decls);
 /**
  * with a where clause
  */
@@ -111,7 +111,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * CompilationUnit ::= Component | Api
      */
     abstract CompilationUnit(DottedId dottedId, List<Import> imports,
-                             List<? extends AbsDeclOrDecl> absDeclOrDecls);
+                             List<? extends AbsDeclOrDecl> decls);
         /**
          * component
          * Component ::= component DottedId Imports? Exports Decls? end
@@ -176,73 +176,72 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      */
     AliasedDottedId(DottedId dottedId, Option<DottedId> alias);
     /**
-     * trait declaration in components or APIs
+     * trait or object declaration in components or APIs
      */
-    abstract TraitAbsDeclOrDecl(List<Modifier> mods, Id id,
-                                Option<List<StaticParam>> staticParams,
-                                Option<List<TraitType>> extendsClause,
-                                List<TraitType> excludes,
-                                Option<List<TraitType>> comprises,
-                                List<WhereClause> where,
-                                List<? extends AbsDeclOrDecl> absDeclOrDecls)
-                               implements Generic, HasWhere;
+    abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods, Id id,
+                                      Option<List<StaticParam>> staticParams,
+                                      Option<List<TraitType>> extendsClause,
+                                      List<WhereClause> where,
+                                      List<? extends AbsDeclOrDecl> decls)
+                                     implements Generic, HasWhere;
         /**
-         * trait declaration in APIs
-         * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
-         *                  AbsGoInATrait? end
-         * TraitHeaderFront ::= trait Id StaticParams? Extends?
-         * AbsTraitClause ::= Excludes | AbsComprises | Where
-         * AbsTraitMod ::= value | test
-         * Extends ::= extends TraitTypes
-         * Excludes ::= excludes TraitTypes
-         * AbsComprises ::= comprises ComprisingTypes
-         * ComprisingTypes ::= TraitType | { ComprisingTypeList }
-         * e.g.) trait List[\alpha\] comprises { Cons[\alpha\], Empty[\alpha\] }
-         *         cons(x: alph): List[\alpha\]
-         *       end
+         * trait declaration in components or APIs
          */
-        AbsTraitDecl() implements GenericAbsDeclOrDecl, AbsDecl;
+        abstract TraitAbsDeclOrDecl(List<TraitType> excludes,
+                                    Option<List<TraitType>> comprises)
+                                   implements Generic, HasWhere;
+            /**
+             * trait declaration in APIs
+             * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
+             *                  AbsGoInATrait? end
+             * TraitHeaderFront ::= trait Id StaticParams? Extends?
+             * AbsTraitClause ::= Excludes | AbsComprises | Where
+             * AbsTraitMod ::= value | test
+             * Extends ::= extends TraitTypes
+             * Excludes ::= excludes TraitTypes
+             * AbsComprises ::= comprises ComprisingTypes
+             * ComprisingTypes ::= TraitType | { ComprisingTypeList }
+             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+             *         cons(x: alph): List[\alpha\]
+             *       end
+             */
+            AbsTraitDecl() implements GenericAbsDeclOrDecl, AbsDecl;
+            /**
+             * trait declaration in components
+             * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
+             *                 end
+             * TraitClause ::= Excludes | Comprises | Where
+             * Comprises ::= comprises TraitTypes
+             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+             *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
+             *       end
+             */
+            TraitDecl() implements GenericDecl;
         /**
-         * trait declaration in components
-         * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait? end
-         * TraitClause ::= Excludes | Comprises | Where
-         * Comprises ::= comprises TraitTypes
-         * e.g.) trait List[\alpha\] comprises { Cons[\alpha\], Empty[\alpha\] }
-         *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
-         *       end
+         * object declaration in components or APIs
          */
-        TraitDecl() implements GenericDecl;
-    /**
-     * object declaration in components or APIs
-     */
-    abstract ObjectAbsDeclOrDecl(List<Modifier> mods, Id id,
-                                 Option<List<StaticParam>> staticParams,
-                                 Option<List<Param>> params,
-                                 Option<List<TraitType>> extendsClause,
-                                 List<TypeRef> throwsClause,
-                                 List<WhereClause> where,
-                                 Contract contract)
-                                implements Generic, AbsDeclOrDecl;
-        /**
-         * object declaration in APIs
-         * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
-         * ObjectHeader ::= object Id StaticParams? ObjectValParam? Extends?
-         *                  FnClauses
-         * FnClauses ::= Throws? Where? Contract
-         * Throws ::= throws MayTraitTypes
-         * e.g.) object Empty[\alph\]() extends List[\alpha\] end
-         */
-        AbsObjectDecl(List<? extends AbsDeclOrDecl> absDeclOrDecls)
-                     implements GenericAbsDeclOrDeclWithParams, AbsDecl;
-        /**
-         * object declaration in components
-         * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
-         * e.g.) object Empty[\alph\]() extends List[\alpha\]
-         *         length() = 0
-         *       end
-         */
-        ObjectDecl(List<? extends AbsDeclOrDecl> absDeclOrDecls)
-                  implements GenericDeclWithParams;
+        abstract ObjectAbsDeclOrDecl(Option<List<Param>> params,
+                                     List<TypeRef> throwsClause,
+                                     Contract contract)
+                                    implements Generic, AbsDeclOrDecl;
+            /**
+             * object declaration in APIs
+             * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
+             * ObjectHeader ::= object Id StaticParams? ObjectValParam? Extends?
+             *                  FnClauses
+             * FnClauses ::= Throws? Where? Contract
+             * Throws ::= throws MayTraitTypes
+             * e.g.) object Empty[\alph\]() extends List[\alpha\] end
+             */
+            AbsObjectDecl() implements GenericAbsDeclOrDeclWithParams, AbsDecl;
+            /**
+             * object declaration in components
+             * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
+             * e.g.) object Empty[\alph\]() extends List[\alpha\]
+             *         length() = 0
+             *       end
+             */
+            ObjectDecl() implements GenericDeclWithParams;
     /**
      * variable declaration in components or APIs
      */
@@ -411,7 +410,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * AssignLefts ::= ( AssignLeft(, AssignLeft)* )
          *               | AssignLeft
          * AssignLeft ::= SubscriptExpr
-         *              | FieldSelection
+         *              | MemberSelection
          *              | Id
          * e.g.) x += 1
          */
@@ -486,7 +485,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              * object expression
              */
             abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause,
-                                        List<? extends AbsDeclOrDecl> absDeclOrDecls);
+                                        List<? extends AbsDeclOrDecl> decls);
                 /**
                  * object expression
                  * DelimitedExpr ::= object Extends? GoInAnObject end
@@ -787,7 +786,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                  * Primary ::= Primary . Id
                  * e.g.) Empty.length
                  */
-                FieldSelection(Expr obj, Id id) implements LHS;
+                MemberSelection(Expr obj, Id id) implements LHS;
                 /**
                  * juxtaposition with intervening whitespace
                  * e.g.) 3 5
@@ -1274,7 +1273,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              * e.g.) a[i]
              */
             SubscriptOp();
-/*******************************************************************************/
     /**
      * array comprehension clause
      * ArrayComprehensionLeft ::= IdOrInt |-> Expr

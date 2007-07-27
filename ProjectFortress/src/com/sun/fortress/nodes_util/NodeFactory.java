@@ -236,8 +236,8 @@ public class NodeFactory {
                                             List<TypeRef> throws_,
                                             List<WhereClause> where,
                                             Contract contract) {
-        return new ObjectDecl(new Span(), mods, name, stParams, params, traits,
-                              throws_, where, contract, defs2);
+        return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
+                              defs2, params, throws_, contract);
     }
 
     public static Op makeOp(Span span, String name) {

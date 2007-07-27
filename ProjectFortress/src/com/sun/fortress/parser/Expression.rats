@@ -132,10 +132,10 @@ List<LHS> AssignLefts =
 
 /* AssignLeft ::=
      SubscriptExpr
-   | FieldSelection
+   | MemberSelection
    | Id
    SubscriptExpr ::= Primay [ (w ExprList)? w ]
-   FieldSelection ::= Primary . Id
+   MemberSelection ::= Primary . Id
  */
 LHS AssignLeft =
     seed:PrimaryFront list:AssignLeftTail+
@@ -148,7 +148,7 @@ LHS AssignLeft =
 
 constant transient Action<Expr> AssignLeftTail =
       SubscriptAssign
-    / FieldSelectionAssign
+    / MemberSelectionAssign
     ;
 
 constant inline Action<Expr> SubscriptAssign =
@@ -163,11 +163,11 @@ constant inline Action<Expr> SubscriptAssign =
           }};
     };
 
-constant inline Action<Expr> FieldSelectionAssign =
+constant inline Action<Expr> MemberSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new FieldSelection(createSpan(yyStart,yyCount), false, base, a1);
+              return new MemberSelection(createSpan(yyStart,yyCount), false, base, a1);
           }};
     };
 
@@ -362,7 +362,7 @@ Expr PrimaryFront =
 constant transient Action<PureList<Expr>> PrimaryTail =
      SubscriptExpr
    / MethodInvocation
-   / FieldSelection
+   / MemberSelection
    / ExponentExpr
    / TightJuxtaposition
    ;
@@ -399,7 +399,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
+               Expr mth = new MemberSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
                    mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(a3, mth);
@@ -410,20 +410,21 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
+               Expr mth = new MemberSelection(FortressUtil.spanTwo(rcv,a1),
+                                              false,rcv,a1);
                if (a2 != null)
                    mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(ExprFactory.makeVoidLiteral(a1.getSpan()), mth);
            }};
      };
 
-constant inline Action<PureList<Expr>> FieldSelection =
+constant inline Action<PureList<Expr>> MemberSelection =
      dot a1:Id
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldSelection(span,false,rcv,a1));
+               return PureList.make((Expr)new MemberSelection(span,false,rcv,a1));
            }};
      };
 

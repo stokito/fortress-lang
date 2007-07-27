@@ -87,7 +87,7 @@ import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FieldSelection;
+import com.sun.fortress.nodes.MemberSelection;
 import com.sun.fortress.nodes.FloatLiteral;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
@@ -674,7 +674,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forExtentRange");
     }
 
-    public FValue forFieldSelection(FieldSelection x) {
+    public FValue forMemberSelection(MemberSelection x) {
         Expr obj = x.getObj();
         Id fld = x.getId();
         FValue fobj = obj.accept(this);
@@ -1069,25 +1069,25 @@ public class Evaluator extends EvaluatorBase<FValue> {
             throw new InterpreterError(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
-        if (fcnExpr instanceof FieldSelection) {
-            // In this case, open code the FieldSelection evaluation
+        if (fcnExpr instanceof MemberSelection) {
+            // In this case, open code the MemberSelection evaluation
             // so that the object can be preserved. Alternate
             // strategy might be to generate a closure from
             // the field selection.
-            FieldSelection fld_sel = (FieldSelection) fcnExpr;
+            MemberSelection fld_sel = (MemberSelection) fcnExpr;
             Expr obj = fld_sel.getObj();
             Id fld = fld_sel.getId();
             FValue fobj = obj.accept(this);
-            return juxtFieldSelection(x, fobj, fld, exprs);
+            return juxtMemberSelection(x, fobj, fld, exprs);
         } else if (fcnExpr instanceof FnRef) {
             // Peek into the type-apply, see if it actually a generic method
             // being instantiated.
             FnRef tax = (FnRef) fcnExpr;
             Expr expr = tax.getExpr();
             List<StaticArg> args = tax.getArgs();
-            if (expr instanceof FieldSelection) {
+            if (expr instanceof MemberSelection) {
 
-                FieldSelection fld_sel = (FieldSelection) expr;
+                MemberSelection fld_sel = (MemberSelection) expr;
                 Expr obj = fld_sel.getObj();
                 Id fld = fld_sel.getId();
                 FValue fobj = obj.accept(this);
@@ -1157,7 +1157,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      * @throws ProgramError
      */
-    private FValue juxtFieldSelection(TightJuxt x, FValue fobj, Id fld,
+    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
             List<Expr> exprs) throws ProgramError {
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;

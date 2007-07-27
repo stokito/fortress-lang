@@ -66,7 +66,7 @@ public class Constructor extends AnonymousConstructor {
             FTypeObject selfType,
             GenericAbsDeclOrDeclWithParams def) {
         this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def),
-                def.getAbsDeclOrDecls());
+                def.getDecls());
         addParamsToCollection(def, parameterNames);
     }
 

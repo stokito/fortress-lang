@@ -102,7 +102,7 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
         PureList<String> topLevelNames = PureList.make();
 
         if (c.getImports().isEmpty()) { // TODO: handle imports
-            for (AbsDeclOrDecl d : c.getAbsDeclOrDecls()) {
+            for (AbsDeclOrDecl d : c.getDecls()) {
                 if (d instanceof ObjectAbsDeclOrDecl) {
                     ObjectAbsDeclOrDecl _d = (ObjectAbsDeclOrDecl)d;
                     topLevelNames = topLevelNames.cons(_d.getId().getName());
@@ -135,7 +135,7 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
                 }
             }
             TypeChecker typeChecker = extend(topLevelNames);
-            for (AbsDeclOrDecl d : c.getAbsDeclOrDecls()) { result = result.combine(d.accept(typeChecker)); }
+            for (AbsDeclOrDecl d : c.getDecls()) { result = result.combine(d.accept(typeChecker)); }
         }
         return result;
     }

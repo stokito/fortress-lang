@@ -48,7 +48,7 @@ import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FieldSelection;
+import com.sun.fortress.nodes.MemberSelection;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.For;
@@ -162,7 +162,7 @@ public class Disambiguate extends Rewrite {
 
     class Member extends Thing {
         Expr replacement(VarRef original) {
-            FieldSelection fs = new FieldSelection(original.getSpan(), false,
+            MemberSelection fs = new MemberSelection(original.getSpan(), false,
                                                // Use this constructor
                 // here because it is a
                 // com.sun.fortress.interpreter.rewrite.
@@ -269,16 +269,18 @@ public class Disambiguate extends Rewrite {
             Option<List<StaticParam>> params = oe.getStaticParams();
             if (! params.isPresent()) {
                 // Regular constructor
-                FTypeObject fto = new FTypeObject(name, env, oe, oe.getAbsDeclOrDecls());
+                FTypeObject fto = new FTypeObject(name, env, oe, oe.getDecls());
                 env.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(oe.getExtendsClause(), null, null, fto, env, oe);
-                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeDottedId(name), oe.getAbsDeclOrDecls());
+                Constructor con = new Constructor(env, fto, oe,
+                                                  NodeFactory.makeDottedId(name),
+                                                  oe.getDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 env.putValue(name, con);
                 con.finishInitializing();
             } else {
                 // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getAbsDeclOrDecls());
+                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls());
                 env.putType(name, fto);
                 GenericConstructor con = new GenericConstructor(env, oe);
                 env.putValue(name, con);
@@ -309,7 +311,7 @@ public class Disambiguate extends Rewrite {
             return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
         }
         if (i > 0) {
-            return new FieldSelection(s, false, dottedReference(s, i - 1),
+            return new MemberSelection(s, false, dottedReference(s, i - 1),
                                       new Id(s, PARENT_NAME));
         } else {
             throw new Error("Confusion in member reference numbering.");
@@ -349,7 +351,7 @@ public class Disambiguate extends Rewrite {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Component com = (Component) node;
-            List<? extends AbsDeclOrDecl> defs = com.getAbsDeclOrDecls();
+            List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
             return visitNode(node);
 
@@ -395,7 +397,7 @@ public class Disambiguate extends Rewrite {
                         usedGenericParameters.put(s, tp);
                     }
 
-                } else if (node instanceof FieldSelection) {
+                } else if (node instanceof MemberSelection) {
                     atTopLevelInsideTraitOrObject = false;
                     // Believe that any field selection is already
                     // disambiguated. In an ordinary method, "self"
@@ -406,7 +408,7 @@ public class Disambiguate extends Rewrite {
 
                     // However, since the LHS of a field selection might
                     // be a method invocation, we DO need to check that.
-                    FieldSelection fs = (FieldSelection) node;
+                    MemberSelection fs = (MemberSelection) node;
 
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
@@ -427,7 +429,7 @@ public class Disambiguate extends Rewrite {
                         int element_index = 0;
                         for (LValue lv : lhs) {
                             newdecls.add(new VarDecl(at, Useful.list(lv),
-                                    new FieldSelection(at, false, init,
+                                    new MemberSelection(at, false, init,
                                             new Id(at, "$" + element_index))));
                             element_index++;
                         }
@@ -461,7 +463,7 @@ public class Disambiguate extends Rewrite {
                     // all the methods coming from traits are no longer
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
-                    List<? extends AbsDeclOrDecl> defs = oe.getAbsDeclOrDecls();
+                    List<? extends AbsDeclOrDecl> defs = oe.getDecls();
                     Option<List<TraitType>> xtends = oe.getExtendsClause();
                     // TODO wip
 
@@ -508,7 +510,7 @@ public class Disambiguate extends Rewrite {
                     // extended traits
                     // are mapped to "self".
                     ObjectDecl od = (ObjectDecl) node;
-                    List<? extends AbsDeclOrDecl> defs = od.getAbsDeclOrDecls();
+                    List<? extends AbsDeclOrDecl> defs = od.getDecls();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
                     Option<List<TraitType>> xtends = od.getExtendsClause();
@@ -526,7 +528,7 @@ public class Disambiguate extends Rewrite {
                     return n;
                 } else if (node instanceof TraitAbsDeclOrDecl) {
                     TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) node;
-                    List<? extends AbsDeclOrDecl> defs = td.getAbsDeclOrDecls();
+                    List<? extends AbsDeclOrDecl> defs = td.getDecls();
                     Option<List<StaticParam>> tparams = td.getStaticParams();
                     // TODO wip
                     objectNestingDepth++;
@@ -589,7 +591,7 @@ public class Disambiguate extends Rewrite {
         Span span = body.getSpan();
         for (int i = gens.size()-1; i >= 0; i--) {
             Generator g = gens.get(i);
-            Expr loopSel = new FieldSelection(g.getSpan(), false, g.getInit(),
+            Expr loopSel = new MemberSelection(g.getSpan(), false, g.getInit(),
                                               what);
             List<Id> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());
@@ -775,7 +777,7 @@ public class Disambiguate extends Rewrite {
                                 // as all the members
                                 // types.add(s); // The trait is known by this
                                                 // name.
-                                for (AbsDeclOrDecl dd : tdod.getAbsDeclOrDecls()) {
+                                for (AbsDeclOrDecl dd : tdod.getDecls()) {
                                     members.add(NodeUtil.stringName(dd));
                                 }
                                 accumulateTraitsAndMethods(tdod.getExtendsClause(),

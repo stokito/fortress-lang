@@ -246,7 +246,7 @@ public class ExprFactory {
             }
         }
         return new _RewriteObjectExpr(expr.getSpan(), false, expr.getExtendsClause(),
-                                      expr.getAbsDeclOrDecls(),
+                                      expr.getDecls(),
                                       implicit_type_parameters, expr.toString(),
                                       stParams, staticArgs,
                     new Some<List<Param>>(Collections.<Param>emptyList()));
@@ -287,11 +287,11 @@ public class ExprFactory {
             }
             public Expr forObjectExpr(ObjectExpr e) {
                 return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
-                                      e.getAbsDeclOrDecls());
+                                      e.getDecls());
             }
             public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
-                return new _RewriteObjectExpr(e.getSpan(), true, e.getExtendsClause(),
-                                              e.getAbsDeclOrDecls(),
+                return new _RewriteObjectExpr(e.getSpan(), true,
+                                              e.getExtendsClause(), e.getDecls(),
                                               e.getImplicitTypeParameters(),
                                               e.getGenSymName(),
                                               e.getStaticParams(),
@@ -413,8 +413,8 @@ public class ExprFactory {
                 return new ChainExpr(e.getSpan(), true, e.getFirst(),
                                      e.getLinks());
             }
-            public Expr forFieldSelection(FieldSelection e) {
-                return new FieldSelection(e.getSpan(), true, e.getObj(),
+            public Expr forMemberSelection(MemberSelection e) {
+                return new MemberSelection(e.getSpan(), true, e.getObj(),
                                           e.getId());
             }
             public Expr forLooseJuxt(LooseJuxt e) {

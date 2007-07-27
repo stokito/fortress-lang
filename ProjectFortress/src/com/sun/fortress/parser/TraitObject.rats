@@ -40,8 +40,8 @@ TraitDecl TraitDecl =
         new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
                       Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
                       Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
-                      a3.getExcludes(), a3.getComprises(),
-                      FortressUtil.getListVal(a3.getWhere()), a4);
+                      FortressUtil.getListVal(a3.getWhere()), a4,
+                      a3.getExcludes(), a3.getComprises());
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w Extends)? */
@@ -125,10 +125,9 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
        yyValue = new ObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            a2.getParams(),
             Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
-            FortressUtil.getListVal(fhc.getThrowsClause()),
-            FortressUtil.getListVal(fhc.getWhereClause()), contract, a3);
+            FortressUtil.getListVal(fhc.getWhereClause()), a3, a2.getParams(),
+            FortressUtil.getListVal(fhc.getThrowsClause()), contract);
      };
 
 /* ObjectHeader ::=
@@ -220,8 +219,8 @@ AbsTraitDecl AbsTraitDecl =
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
             Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
-            a3.getExcludes(), a3.getComprises(),
-            FortressUtil.getListVal(a3.getWhere()), a4);
+            FortressUtil.getListVal(a3.getWhere()), a4,
+            a3.getExcludes(), a3.getComprises());
      };
 
 
@@ -302,10 +301,10 @@ AbsObjectDecl AbsObjectDecl =
        yyValue = new AbsObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            a2.getParams(),
             Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
-            FortressUtil.getListVal(fhc.getThrowsClause()),
-            FortressUtil.getListVal(fhc.getWhereClause()), contract, a3);
+            FortressUtil.getListVal(fhc.getWhereClause()), a3,
+            a2.getParams(), FortressUtil.getListVal(fhc.getThrowsClause()),
+            contract);
      };
 
 /* AbsGoInAnObject ::=
