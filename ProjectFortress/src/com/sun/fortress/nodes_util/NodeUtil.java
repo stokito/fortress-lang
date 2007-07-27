@@ -147,19 +147,6 @@ public class NodeUtil {
                 }
                 return name;
             }
-            public String forName(Name n) {
-                Option<Id> id = n.getId();
-                Option<Op> op = n.getOp();
-                if (id instanceof Some) {
-                    return ((Id) ((Some) id).getVal()).getName();
-                }
-                else if (op instanceof Some) {
-                    return ((Op) ((Some) op).getVal()).getName();
-                }
-                else {
-                    throw new Error("Uninitialized Name.");
-                }
-            }
             public String forOpr(Opr n) {
                 return n.getOp().getName();
             }

@@ -92,21 +92,21 @@ ExternalSyntax ExternalSyntax =
      { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
 
 /* OpenExpander ::= Id | LeftEncloser */
-Name OpenExpander =
+FnName OpenExpander =
      a1:Id
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); }
    / a1:LeftEncloser
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); };
 
 /* CloseExpander ::= Id | RightEncloser | end */
-Name CloseExpander =
+FnName CloseExpander =
      a1:Id
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); }
    / a1:RightEncloser
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); }
    / end
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = NodeFactory.makeName(span, new Id(span, "end"));
+       yyValue = NodeFactory.makeFnName(span, new Id(span, "end"));
      };
 
 /* AbsExternalSyntax ::= syntax w OpenExpander w Id w CloseExpander */

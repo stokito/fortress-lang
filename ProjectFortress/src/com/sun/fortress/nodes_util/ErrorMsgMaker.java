@@ -102,18 +102,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getId().accept(this) + r;
     }
 
-    public String forName(Name node) {
-        if (node.getId().isPresent()) {
-            return node.getId().getVal().accept(this);
-        }
-        else if (node.getOp().isPresent()) {
-            return node.getOp().getVal().accept(this);
-        }
-        else {
-            throw new Error("Uninitialized Name.");
-        }
-    }
-
     public String forNatParam(NatParam node) {
         return "nat " + node.getId().getName();
     }

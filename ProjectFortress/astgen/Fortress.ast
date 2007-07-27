@@ -137,12 +137,15 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         /**
          * ImportFrom ::= * (except Names)? from DottedId
          *              | AliasedNames from DottedId
+         * Name ::= Id
+         *        | opr Op
+         *        | opr EncloserPair
          */
         abstract ImportFrom(DottedId source);
             /**
              * e.g.) import * from Set
              */
-            ImportStar(List<Name> except);
+            ImportStar(List<FnName> except);
             /**
              * e.g.) import {empty, union} from Set
              */
@@ -377,14 +380,14 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      *                 | end
      * e.g.) syntax sql e end
      */
-    AbsExternalSyntax(Name openExpander, Id id, Name closeExpander)
+    AbsExternalSyntax(FnName openExpander, Id id, FnName closeExpander)
                      implements AbsDecl;
     /**
      * syntax expanders declaration in APIs
      * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
      * e.g.) syntax sql e end = parseSQL(e)
      */
-    ExternalSyntax(Name openExpander, Id id, Name closeExpander, Expr expr)
+    ExternalSyntax(FnName openExpander, Id id, FnName closeExpander, Expr expr)
                   implements Decl;
     /**
      * expression
@@ -1227,14 +1230,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * e.g.) com.sun.fortress.nodes_util.getName
          */
         DottedId(List<String> names);
-        /**
-         * identifier or operator name
-         * Name ::= Id
-         *        | opr Op
-         *        | opr EncloserPair
-         * e.g.) opr +
-         */
-        Name(Option<Id> id, Option<Op> op);
         /**
          * internal name for anonymous functionals
          * not created during parsing but during evaluation

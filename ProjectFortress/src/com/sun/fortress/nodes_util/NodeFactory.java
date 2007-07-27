@@ -46,12 +46,12 @@ public class NodeFactory {
     }
 
     public static AliasedName makeAliasedName(Span span, Id id) {
-        return new AliasedName(span, makeName(id.getSpan(), id),
+        return new AliasedName(span, makeFnName(id.getSpan(), id),
                                new None<FnName>());
     }
 
     public static AliasedName makeAliasedName(Span span, Id id, DottedId alias) {
-        return new AliasedName(span, makeName(id.getSpan(), id),
+        return new AliasedName(span, makeFnName(id.getSpan(), id),
                                new Some<FnName>(alias));
     }
 
@@ -215,12 +215,12 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
-    public static Name makeName(Span span, Id id) {
-        return new Name(span, new Some<Id>(id), new None<Op>());
+    public static FnName makeFnName(Span span, Id id) {
+        return makeDottedId(span, id);
     }
 
-    public static Name makeName(Span span, Op op) {
-        return new Name(span, new None<Id>(), new Some<Op>(op));
+    public static FnName makeFnName(Span span, Op op) {
+        return new Opr(span, op);
     }
 
     public static NatParam makeNatParam(String name) {

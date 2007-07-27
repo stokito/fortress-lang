@@ -53,7 +53,7 @@ AbsFnDecl FnSig =
                                             new Id(i.getSpan(), "_"), i));
        }
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          (FnName)a1, params, a2.getRange());
+                                          a1, params, a2.getRange());
      };
 
 /* AbsFnDecl ::=

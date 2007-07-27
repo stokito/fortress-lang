@@ -64,7 +64,6 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.Name;
 import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
@@ -431,11 +430,11 @@ public class Driver {
 
                     } else if (ix instanceof ImportStar) {
                         /* All names BUT excepts, as they are listed. */
-                        final List<Name> excepts = ((ImportStar) ix)
+                        final List<FnName> excepts = ((ImportStar) ix)
                                 .getExcept();
                         final List<String> except_names = Useful.applyToAll(
-                                excepts, new Fn<Name, String>() {
-                                    public String apply(Name n) {
+                                excepts, new Fn<FnName, String>() {
+                                    public String apply(FnName n) {
                                         return NodeUtil.getName(n);
                                     }
                                 });

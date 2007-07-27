@@ -107,20 +107,20 @@ private Import Import =
  */
 private ImportFrom ImportFrom =
      star a1:(w except w Names)? w from w a2:DottedId
-     { if (a1 == null) a1 = Collections.<Name>emptyList();
+     { if (a1 == null) a1 = Collections.<FnName>emptyList();
        yyValue = new ImportStar(createSpan(yyStart,yyCount), a2, a1);
      }
    / a1:AliasedNames w from w a2:DottedId
      { yyValue = new ImportNames(createSpan(yyStart,yyCount), a2, a1); };
 
 /* Names ::= Name | { w NameList w } */
-private List<Name> Names =
+private List<FnName> Names =
      a1:Name
      { yyValue = FortressUtil.mkList(a1); }
    / opencurly w NameList w closecurly ;
 
 /* NameList ::= Name (w , w Name)* */
-private List<Name> NameList = a1:Name a2s:(w comma w Name)*
+private List<FnName> NameList = a1:Name a2s:(w comma w Name)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AliasedNames ::=

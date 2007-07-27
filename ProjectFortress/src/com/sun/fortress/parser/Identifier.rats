@@ -52,11 +52,11 @@ List<Id> IdOrIdTuple =
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
 /* Name ::= Id | opr w Op */
-Name Name =
+FnName Name =
      a1:Id
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); }
    / opr w a1:Op
-     { yyValue = NodeFactory.makeName(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); };
 
 /* DottedId ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
