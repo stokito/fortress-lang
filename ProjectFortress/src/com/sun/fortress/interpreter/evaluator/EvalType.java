@@ -67,6 +67,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SumStaticArg;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -114,14 +115,14 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeTuple.make(getFTypeListFromNonEmptyList(l, et));
     }
 
-    public static List<FType> getFTypeListFromList(List<TypeRef> l, BetterEnv e) {
+    public static List<FType> getFTypeListFromList(List<? extends TypeRef> l, BetterEnv e) {
         EvalType et = new EvalType(e);
         return et.getFTypeListFromList(l);
     }
 
-    public List<FType> getFTypeListFromOptionList(Option<List<TypeRef>> ol) {
+    public List<FType> getFTypeListFromOptionList(Option<List<TraitType>> ol) {
         if (ol.isPresent()) {
-            List<TypeRef> extl = ol.getVal();
+            List<TraitType> extl = ol.getVal();
             return this.getFTypeListFromList(extl);
         } else {
             return Collections.<FType>emptyList();
@@ -129,7 +130,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
 
-    public List<FType> getFTypeListFromList(List<TypeRef> l) {
+    public List<FType> getFTypeListFromList(List<? extends TypeRef> l) {
         if (l == null || l.size() == 1 && (l.get(0) instanceof VoidType)) {
             // Flatten out voids.
             // Should this be mutable?
@@ -139,7 +140,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return getFTypeListFromNonEmptyList(l, this);
     }
 
-    private static List<FType> getFTypeListFromNonEmptyList(List<TypeRef> l, EvalType et) {
+    private static List<FType> getFTypeListFromNonEmptyList(List<? extends TypeRef> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
         for (TypeRef t : l) a.add(t.accept(et));
         return a;

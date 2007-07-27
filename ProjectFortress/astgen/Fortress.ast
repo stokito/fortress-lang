@@ -104,9 +104,14 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                      implements HasAt, Node;
     /**
      * compilation unit
+     * Both Component and Api have List<? extends AbsDeclOrDecl> instead of
+     * List<Decl> for Component and List<AbsDecl> for Api because DimUnitDecl,
+     * TypeAlias, TestDecl, and PropertyDecl implements both AbsDecl and Decl
+     * and thus the parser needs to produce List<? extends AbsDeclOrDecl>.
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(DottedId dottedId, List<Import> imports);
+    abstract CompilationUnit(DottedId dottedId, List<Import> imports,
+                             List<? extends AbsDeclOrDecl> absDeclOrDecls);
         /**
          * component
          * Component ::= component DottedId Imports? Exports Decls? end
@@ -115,7 +120,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          *         run(args:String...) = print "Hello, World!\n"
          *       end
          */
-        Component(List<Export> exports, List<? extends AbsDeclOrDecl> decls);
+        Component(List<Export> exports);
         /**
          * API
          * Api ::= api DottedId Imports? AbsDecls? end
@@ -123,7 +128,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          *         run(args:String...):()
          *       end
          */
-        Api(List<? extends AbsDeclOrDecl> absDecls);
+        Api();
     /**
      * import statement
      * Import ::= import ImportFrom | import AliasedDottedIds
@@ -157,6 +162,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * AliasedName ::= Id (as DottedId)?
      *               | opr Op (as Op)?
      *               | opr EncloserPair (as EncloserPair)?
+     * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) longComplexName as shortName
      */
     AliasedName(FnName fnName, Option<FnName> alias);
@@ -171,9 +177,9 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      */
     abstract TraitAbsDeclOrDecl(List<Modifier> mods, Id id,
                                 Option<List<StaticParam>> staticParams,
-                                Option<List<TypeRef>> extendsClause,
-                                List<TypeRef> excludes,
-                                Option<List<TypeRef>> comprises,
+                                Option<List<TraitType>> extendsClause,
+                                List<TraitType> excludes,
+                                Option<List<TraitType>> comprises,
                                 List<WhereClause> where,
                                 List<? extends AbsDeclOrDecl> absDeclOrDecls)
                                implements Generic, HasWhere;
@@ -181,7 +187,13 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * trait declaration in APIs
          * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
          *                  AbsGoInATrait? end
+         * TraitHeaderFront ::= trait Id StaticParams? Extends?
          * AbsTraitClause ::= Excludes | AbsComprises | Where
+         * AbsTraitMod ::= value | test
+         * Extends ::= extends TraitTypes
+         * Excludes ::= excludes TraitTypes
+         * AbsComprises ::= comprises ComprisingTypes
+         * ComprisingTypes ::= TraitType | { ComprisingTypeList }
          * e.g.) trait List[\alpha\] comprises { Cons[\alpha\], Empty[\alpha\] }
          *         cons(x: alph): List[\alpha\]
          *       end
@@ -190,8 +202,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
         /**
          * trait declaration in components
          * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait? end
-         * TraitHeaderFront ::= trait Id StaticParams? Extends?
          * TraitClause ::= Excludes | Comprises | Where
+         * Comprises ::= comprises TraitTypes
          * e.g.) trait List[\alpha\] comprises { Cons[\alpha\], Empty[\alpha\] }
          *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
          *       end
@@ -203,7 +215,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     abstract ObjectAbsDeclOrDecl(List<Modifier> mods, Id id,
                                  Option<List<StaticParam>> staticParams,
                                  Option<List<Param>> params,
-                                 Option<List<TypeRef>> extendsClause,
+                                 Option<List<TraitType>> extendsClause,
                                  List<TypeRef> throwsClause,
                                  List<WhereClause> where,
                                  Contract contract)
@@ -213,6 +225,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
          * ObjectHeader ::= object Id StaticParams? ObjectValParam? Extends?
          *                  FnClauses
+         * FnClauses ::= Throws? Where? Contract
+         * Throws ::= throws MayTraitTypes
          * e.g.) object Empty[\alph\]() extends List[\alpha\] end
          */
         AbsObjectDecl(List<? extends AbsDeclOrDecl> absDeclOrDecls)
@@ -330,16 +344,16 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * e.g.) dim Length SI_unit meter meters m
      */
     DimDecl(Id id, Option<TypeRef> derived, Option<TypeRef> default)
-           implements Decl;
+           implements Decl, AbsDecl;
     /**
-     * unit declaration
+     * unit declaration (Not Yet Implemented in the Parser!)
      * DimUnitDecl ::= dim Id ( = DimRef )? ( default Id)?
      *               | ( unit | SI_unit ) Id+ ( : DimRef )? ( = Expr)?
      *               | dim Id ( = DimRef )? ( unit | SI_unit ) Id+ ( = Expr)?
      * e.g.) unit inch inches: Length
      */
     UnitDecl(List<Id> names, Option<TypeRef> type, Option<Expr> def, boolean si)
-            implements Decl;
+            implements Decl, AbsDecl;
     /**
      * test declaration
      * TestDecl ::= test Id [GeneratorList] = Expr
@@ -364,14 +378,14 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
      * e.g.) syntax sql e end
      */
     AbsExternalSyntax(Name openExpander, Id id, Name closeExpander)
-                     implements Decl, AbsDecl;
+                     implements AbsDecl;
     /**
      * syntax expanders declaration in APIs
      * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
      * e.g.) syntax sql e end = parseSQL(e)
      */
     ExternalSyntax(Name openExpander, Id id, Name closeExpander, Expr expr)
-                  implements Decl, AbsDecl;
+                  implements Decl;
     /**
      * expression
      */
@@ -468,7 +482,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
             /**
              * object expression
              */
-            abstract AbstractObjectExpr(Option<List<TypeRef>> extendsClause,
+            abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause,
                                         List<? extends AbsDeclOrDecl> absDeclOrDecls);
                 /**
                  * object expression
@@ -502,10 +516,10 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                 Option<Block> finallyClause);
             /**
              * tuple expression (Mismatch with the Spec!)
-             * Parenthesized ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
-             *                 | NoKeyTuple
+             * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
+             *             | NoKeyTuple
              * NoKeyTuple ::= ( (Expr,)* Expr... )
-             *              | ( (Expr,)* Expr )
+             *              | ( (Expr,)+ Expr )
              * e.g.) (1, 2, [3 4]..., x = 5)
              */
             AbstractTupleExpr(List<Expr> exprs);
@@ -1032,7 +1046,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * e.g.) type IntList = List[\ZZ64\]
          */
         TypeAlias(Id id, List<StaticParam> staticParams, TypeRef type)
-                 implements Decl;
+                 implements Decl, AbsDecl;
         /* bool parameter declared in where clauses (Mismatch with the Spec!)
          * WhereClause ::= bool Id
          * e.g.) bool ninf
@@ -1192,7 +1206,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * StaticParam ::= Id Extends? ( absorbs unit )?
          * e.g.) EltType extends Number absorbs unit
          */
-        SimpleTypeParam(Id id, Option<List<TypeRef>> extendsClause,
+        SimpleTypeParam(Id id, Option<List<TraitType>> extendsClause,
                         boolean absorbs);
        /**
          * unit parameter

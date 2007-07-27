@@ -94,6 +94,15 @@ public class NodeComparator {
     public final static AnyListComparer<StaticArg> staticArgListComparer =
         new AnyListComparer(staticArgComparer);
 
+    static class TraitTypeComparer implements Comparator<TraitType> {
+        public int compare(TraitType left, TraitType right) {
+            return compare(left, right);
+        }
+    }
+    final static TraitTypeComparer traitTypeComparer = new TraitTypeComparer();
+    public final static AnyListComparer<TraitType> traitTypeListComparer =
+        new AnyListComparer(traitTypeComparer);
+
     static class TypeRefComparer implements Comparator<TypeRef> {
         public int compare(TypeRef left, TypeRef right) {
             return compare(left, right);
@@ -338,9 +347,9 @@ public class NodeComparator {
         if (!left.getExtendsClause().isPresent()) {
             return 0;
         }
-        List<TypeRef> l = left.getExtendsClause().getVal();
-        List<TypeRef> ol = right.getExtendsClause().getVal();
-        return typeRefListComparer.compare(l, ol);
+        List<TraitType> l = left.getExtendsClause().getVal();
+        List<TraitType> ol = right.getExtendsClause().getVal();
+        return traitTypeListComparer.compare(l, ol);
     }
 
     static int subtypeCompareTo(StaticParam left, StaticParam right) {

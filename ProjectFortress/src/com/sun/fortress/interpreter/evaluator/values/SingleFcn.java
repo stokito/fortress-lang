@@ -38,6 +38,7 @@ import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
@@ -205,7 +206,7 @@ public abstract class SingleFcn extends Fcn {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
-                Option<List<TypeRef>> oext = stp.getExtendsClause();
+                Option<List<TraitType>> oext = stp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.

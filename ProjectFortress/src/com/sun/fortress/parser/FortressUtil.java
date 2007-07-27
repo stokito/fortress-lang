@@ -160,6 +160,27 @@ public final class FortressUtil {
         return l;
     }
 
+    public static List<TypeRef> toTypeRefList(List<TraitType> tys) {
+        List<TypeRef> result = new ArrayList<TypeRef>();
+        for (TraitType ty : tys) {
+            result.add((TypeRef)ty);
+        }
+        return result;
+    }
+
+    public static Option<List<TypeRef>> toTypeRefList(Option<List<TraitType>> tys) {
+        List<TypeRef> result = new ArrayList<TypeRef>();
+        if (tys.isPresent()) {
+            List<TraitType> _tys = ((Some<List<TraitType>>)tys).getVal();
+            for (TraitType ty : _tys) {
+                result.add((TypeRef)ty);
+            }
+            return Some.<List<TypeRef>>make(result);
+        } else {
+            return None.<List<TypeRef>>make();
+        }
+    }
+
     private static void multiple(Modifier m) {
         throw new ProgramError(m, "A modifier must not occur multiple times");
     }

@@ -26,17 +26,17 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.None;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.TraitType;
 
 public class Comprises extends TraitClause {
-    private Option<List<TypeRef>> comprises = None.<List<TypeRef>>make();
+    private Option<List<TraitType>> comprises = None.<List<TraitType>>make();
 
-    public Comprises(Span span, List<TypeRef> comprises) {
+    public Comprises(Span span, List<TraitType> comprises) {
         super(span);
-        this.comprises = Some.<List<TypeRef>>make(comprises);
+        this.comprises = Some.<List<TraitType>>make(comprises);
     }
 
-    public Option<List<TypeRef>> getComprises() {
+    public Option<List<TraitType>> getComprises() {
         return comprises;
     }
 

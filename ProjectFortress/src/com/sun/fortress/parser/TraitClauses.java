@@ -25,14 +25,15 @@ import java.util.List;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.MagicNumbers;
 
 public class TraitClauses {
 
-    private List<TypeRef>         excludes  = FortressUtil.emptyTypeRefs();
-    private Option<List<TypeRef>> comprises = None.<List<TypeRef>>make();
+    private List<TraitType>         excludes  = FortressUtil.emptyTraitTypes();
+    private Option<List<TraitType>> comprises = None.<List<TraitType>>make();
     private Option<List<WhereClause>> where = None.<List<WhereClause>>make();
     private boolean setExcludes  = false;
     private boolean setComprises = false;
@@ -40,11 +41,11 @@ public class TraitClauses {
 
     public TraitClauses() {}
 
-    public List<TypeRef> getExcludes() {
+    public List<TraitType> getExcludes() {
         return excludes;
     }
 
-    public Option<List<TypeRef>> getComprises() {
+    public Option<List<TraitType>> getComprises() {
         return comprises;
     }
 

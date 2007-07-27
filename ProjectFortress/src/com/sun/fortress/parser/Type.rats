@@ -46,8 +46,6 @@ TypeRef IsType = colon w TypeRef ;
 
    TraitType ::=
      DottedId (w [\ w StaticArgList w \])?
-   | { w TypeRef w |-> w TypeRef w }
-   | <| w TypeRef w |>
    | TypeRef w [ (w ArraySize)? w ]
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
@@ -91,11 +89,11 @@ private TypeRef NonArrowType =
    | TypeRef ^ StaticArgFront
    | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
-TypeRef TraitType =
+TraitType TraitType =
      seed:TraitTypeFront list:NonArrowTypeTail*
-     { yyValue = (TypeRef)apply(list, seed); };
+     { yyValue = (TraitType)apply(list, seed); };
 
-private TypeRef TraitTypeFront =
+private TraitType TraitTypeFront =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new ParamType(createSpan(yyStart,yyCount),

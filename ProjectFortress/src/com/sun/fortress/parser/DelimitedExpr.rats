@@ -32,7 +32,8 @@ import Symbol;
 import Spacing;
 
 /* DelimitedExpr ::=
-     Parenthesized
+     TupleExpr
+   | Parenthesized
    | object (w Extends)? (w GoInAnObject)? w end
    | Do
    | label w Id w BlockElems w end w Id
@@ -46,12 +47,13 @@ import Spacing;
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)? (w finally w BlockElems)? w end
  */
 Expr DelimitedExpr =
-     Parenthesized
+     TupleExpr
+   / Parenthesized
    / object a1:(w Extends)? a2:(w GoInAnObject)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyTypeRefs();
+     { if (a1 == null) a1 = FortressUtil.emptyTraitTypes();
        if (a2 == null) a2 = Collections.<AbsDeclOrDecl>emptyList();
        yyValue = new ObjectExpr(createSpan(yyStart,yyCount), false,
-                                Some.<TypeRef>makeSomeListOrNone(a1), a2);
+                                Some.<TraitType>makeSomeListOrNone(a1), a2);
      }
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
@@ -115,11 +117,11 @@ Expr DelimitedExpr =
        Option<Block> finally_;
        if (a2 == null) catch_ = None.<Catch>make();
        else            catch_ = Some.<Catch>make(a2);
-       if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
+       if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
        if (a4 == null) finally_ = None.<Block>make();
        else            finally_ = Some.<Block>make(a4);
        yyValue = new Try(createSpan(yyStart,yyCount), false, a1,
-                         catch_, a3, finally_);
+                         catch_, FortressUtil.toTypeRefList(a3), finally_);
      };
 
 /* Do ::= (DoFront w also w)* DoFront w end */
@@ -141,11 +143,11 @@ private DoFront DoFront =
        yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic, a3);
      };
 
-/* Parenthesized ::=
+/* TupleExpr ::=
      ( w (Expr w , w)* (Expr w ... w , w)? Binding (w , w Binding)* w )
    | NoKeyTuple
  */
-Expr Parenthesized =
+Expr TupleExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list());
@@ -161,7 +163,7 @@ Expr Parenthesized =
 
 /* NoKeyTuple ::=
      ( w (Expr w , w)*  Expr w ... w )
-   | ( w (Expr w , w)*  Expr w )
+   | ( w (Expr w , w)+  Expr w )
  */
 Expr NoKeyTuple =
      openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
@@ -169,14 +171,15 @@ Expr NoKeyTuple =
                                            new VarargsExpr(a2.getSpan(), false, a2));
        yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es);
      }
-   / openparen w a1s:(Expr w comma w)* a2:Expr w closeparen
-     { if (a1s.list().isEmpty()) {
-           yyValue = ExprFactory.makeInParentheses(a2);
-       } else {
-           List<Expr> es = FortressUtil.mkList(a1s.list(), a2);
-           yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es);
-       }
-     };
+   / openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
+     { List<Expr> es = FortressUtil.mkList(a1s.list(), a2);
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es);
+     } ;
+
+/* Parenthesized ::= ( w Expr w ) */
+Expr Parenthesized =
+     openparen w a1:Expr w closeparen
+     { yyValue = ExprFactory.makeInParentheses(a1); };
 
 /* Elifs ::= Elif (w Elif)* */
 List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
@@ -306,9 +309,10 @@ Expr IdOrInt =
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* BaseExpr ::= NoKeyTuple | Literal | Aggregate | Id | self */
+/* BaseExpr ::= NoKeyTuple | Parenthesized | Literal | Aggregate | Id | self */
 Expr BaseExpr =
      NoKeyTuple
+   / Parenthesized
    / Literal
    / Aggregate
    / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), false, a1); }

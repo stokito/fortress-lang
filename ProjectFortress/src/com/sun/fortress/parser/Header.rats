@@ -31,28 +31,28 @@ import Symbol;
 import Spacing;
 
 /* Extends ::= extends w TraitTypes */
-List<TypeRef> Extends = extends w TraitTypes ;
+List<TraitType> Extends = extends w TraitTypes ;
 
 /* Excludes ::= excludes w TraitTypes */
-List<TypeRef> Excludes = excludes w TraitTypes ;
+List<TraitType> Excludes = excludes w TraitTypes ;
 
 /* Comprises ::= comprises w TraitTypes */
-List<TypeRef> Comprises = comprises w TraitTypes ;
+List<TraitType> Comprises = comprises w TraitTypes ;
 
 /* AbsComprises ::= comprises w ComprisingTypes */
-List<TypeRef> AbsComprises = comprises w ComprisingTypes ;
+List<TraitType> AbsComprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
-List<TypeRef> TraitTypes =
+List<TraitType> TraitTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / opencurly w TraitTypeList w closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
-private List<TypeRef> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
+private List<TraitType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
-private List<TypeRef> ComprisingTypes =
+private List<TraitType> ComprisingTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
    / opencurly w ComprisingTypeList w closecurly ;
 
@@ -60,9 +60,9 @@ private List<TypeRef> ComprisingTypes =
      ...
    | TraitType (w , w TraitType)* (w , w ...)?
  */
-private List<TypeRef> ComprisingTypeList =
+private List<TraitType> ComprisingTypeList =
      ellipses
-     { yyValue = FortressUtil.emptyTypeRefs(); }
+     { yyValue = FortressUtil.emptyTraitTypes(); }
    / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
@@ -87,7 +87,8 @@ private List<WhereClause> WhereClauseList =
  */
 private WhereClause WhereClause =
      a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1,
+FortressUtil.toTypeRefList(a2)); }
    / TypeAlias
    / NatConstraint
    / IntConstraint
@@ -468,9 +469,9 @@ private List<StaticParam> StaticParamList =
 */
 private StaticParam StaticParam =
      a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
-     { Option<List<TypeRef>> extends_;
-       if (a2 == null) extends_ = None.<List<TypeRef>>make();
-       else            extends_ = Some.<TypeRef>makeSomeListOrNone(a2);
+     { Option<List<TraitType>> extends_;
+       if (a2 == null) extends_ = None.<List<TraitType>>make();
+       else            extends_ = Some.<TraitType>makeSomeListOrNone(a2);
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;

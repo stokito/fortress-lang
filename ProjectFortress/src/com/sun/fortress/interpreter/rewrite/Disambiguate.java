@@ -75,6 +75,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRefExpr;
@@ -349,7 +350,7 @@ public class Disambiguate extends Rewrite {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Component com = (Component) node;
-            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            List<? extends AbsDeclOrDecl> defs = com.getAbsDeclOrDecls();
             defsToLocals(defs);
             return visitNode(node);
 
@@ -462,7 +463,7 @@ public class Disambiguate extends Rewrite {
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
                     List<? extends AbsDeclOrDecl> defs = oe.getAbsDeclOrDecls();
-                    Option<List<TypeRef>> xtends = oe.getExtendsClause();
+                    Option<List<TraitType>> xtends = oe.getExtendsClause();
                     // TODO wip
 
                     objectNestingDepth++;
@@ -511,7 +512,7 @@ public class Disambiguate extends Rewrite {
                     List<? extends AbsDeclOrDecl> defs = od.getAbsDeclOrDecls();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
-                    Option<List<TypeRef>> xtends = od.getExtendsClause();
+                    Option<List<TraitType>> xtends = od.getExtendsClause();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -608,7 +609,7 @@ public class Disambiguate extends Rewrite {
         accumulateMembersFromExtends(td.getExtendsClause(), traitDisEnvMap.get(td) );
     }
 
-    private void accumulateMembersFromExtends(Option<List<TypeRef>> xtends, Map<String, Thing> disEnv) {
+    private void accumulateMembersFromExtends(Option<List<TraitType>> xtends, Map<String, Thing> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
         Set<AbstractNode> visited = new HashSet<AbstractNode>();
@@ -742,11 +743,11 @@ public class Disambiguate extends Rewrite {
      *            (bookkeeping) to prevent revisiting, and possible looping on
      *            bad inputs
      */
-    private void accumulateTraitsAndMethods(Option<List<TypeRef>> oxtends,
+    private void accumulateTraitsAndMethods(Option<List<TraitType>> oxtends,
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
             Set<AbstractNode> visited) {
         if (oxtends.isPresent()) {
-            List<TypeRef> xtends = oxtends.getVal();
+            List<? extends TypeRef> xtends = oxtends.getVal();
 
             for (TypeRef t : xtends) {
                 // First de-parameterize the type

@@ -40,6 +40,7 @@ import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.ABoundingMap;
@@ -53,7 +54,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     protected static final boolean DUMP_INFERENCE = false;
-    
+
     final public BetterEnv e;
 
     protected EvaluatorBase(BetterEnv e) {
@@ -99,10 +100,10 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      */
     public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
             FGenericFunction appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
-        
+
         if (DUMP_INFERENCE)
             System.err.println("IAIGF " + appliedThing + " with " + args);
-        
+
         FGenericFunction bar = (FGenericFunction) appliedThing;
         FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
         Option<List<StaticParam>> otparams = fndod.getStaticParams();
@@ -122,7 +123,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (StaticParam sp : tparams) {
             if (sp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) sp;
-                Option<List<TypeRef>> ec = stp.getExtendsClause();
+                Option<List<TraitType>> ec = stp.getExtendsClause();
                 if (ec.isPresent()) {
                     String stp_name = stp.getId().getName();
                     for (TypeRef tr : ec.getVal()) {
@@ -152,31 +153,31 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
         if (DUMP_INFERENCE)
             System.err.println("ABM 0={" + abm + "}");
-        
+
        /*
         * Filter the inference through the result type, making it more
         * specific (which is less-specific, for arrow domain types).
         */
-        
+
         MakeInferenceSpecific mis = new MakeInferenceSpecific(abm);
-        
+
         // TODO: There is still a lurking error in inference, probably in arrow types.
-        
+
 //        for (Param param : params) {
 //            Option<TypeRef> t = param.getType();
 //            t.getVal().accept(mis);
 //        }
-//        if (DUMP_INFERENCE) 
+//        if (DUMP_INFERENCE)
 //            System.err.println("ABM 1={" + abm + "}");
-           
+
         Option<TypeRef> opt_rt = fndod.getReturnType();
-       
+
         if (opt_rt.isPresent())
            opt_rt.getVal().accept(mis);
 
         if (DUMP_INFERENCE)
             System.err.println("ABM 2={" + abm + "}");
-        
+
         /*
          * Iterate over static parameters, choosing least-general binding
          * for each one.

@@ -86,6 +86,7 @@ import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.BaseDimRef;
 import com.sun.fortress.nodes.UnitDecl;
@@ -223,7 +224,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forApi(Api x) {
-        List<? extends AbsDeclOrDecl> decls = x.getAbsDecls();
+        List<? extends AbsDeclOrDecl> decls = x.getAbsDeclOrDecls();
 
         switch (pass) {
         case 1:
@@ -294,7 +295,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forComponent(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<? extends AbsDeclOrDecl> defs = x.getAbsDeclOrDecls();
         switch (pass) {
         case 1: forComponent1(x); break;
 
@@ -312,7 +313,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public Voidoid forComponentDefs(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<? extends AbsDeclOrDecl> defs = x.getAbsDeclOrDecls();
         doDefs(this, defs);
         return null;
     }
@@ -321,7 +322,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         DottedId name = x.getDottedId();
         // List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<? extends AbsDeclOrDecl> defs = x.getAbsDeclOrDecls();
 
         SComponent comp = new SComponent(BetterEnv.primitive(x), x);
         containing.putComponent(name, comp);
@@ -1211,7 +1212,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @param interior
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, BetterEnv interior) {
-        Option<List<TypeRef>> extends_ = x.getExtendsClause();
+        Option<List<TraitType>> extends_ = x.getExtendsClause();
         interior = new BetterEnv(interior, x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
@@ -1309,18 +1310,18 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public void finishObjectTrait(ObjectAbsDeclOrDecl x, FTypeObject ftt) {
-        Option<List<TypeRef>> extends_ = x.getExtendsClause();
+        Option<List<TraitType>> extends_ = x.getExtendsClause();
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
-        Option<List<TypeRef>> extends_ = x.getExtendsClause();
+        Option<List<TraitType>> extends_ = x.getExtendsClause();
         // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }
 
-    static public void finishObjectTrait(Option<List<TypeRef>> extends_,
-            List<TypeRef> excludes, List<WhereClause> wheres, FTypeObject ftt,
+    static public void finishObjectTrait(Option<List<TraitType>> extends_,
+            List<? extends TypeRef> excludes, List<WhereClause> wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);
         EvalType et = processWhereClauses(wheres, interior);

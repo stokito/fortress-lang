@@ -331,11 +331,13 @@ PureList<OpExpr> LooseInfix =
    | LeftEncloser (w ExprList)? w RightEncloser
    | Primary [ (w ExprList)? w ]
    | Primary LeftEncloser (w ExprList)? w RightEncloser
+   | Primary . Id ([\ w StaticArgList w \])? TupleExpr
    | Primary . Id ([\ w StaticArgList w \])? Parenthesized
    | Primary . Id ([\ w StaticArgList w \])? ( w )
    | Primary . Id
    | Primary ^ BaseExpr
    | Primary ExponentOp
+   | Primary TupleExpr
    | Primary Parenthesized
    | Primary ( w )
    | Primary Primary
@@ -393,7 +395,7 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
 
 constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
-     a3:Parenthesized
+     a3:(TupleExpr / Parenthesized)
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
@@ -459,7 +461,7 @@ constant inline Action<PureList<Expr>> ExponentExpr =
      };
 
 constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
-     a1:Parenthesized
+     a1:(TupleExpr / Parenthesized)
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                return base.cons(a1);

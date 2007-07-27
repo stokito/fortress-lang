@@ -26,7 +26,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.useful.MagicNumbers;
 
 public class ObjectHeader {
@@ -34,11 +34,11 @@ public class ObjectHeader {
     private Id name;
     private List<StaticParam> staticParams;
     private Option<List<Param>> params;
-    private List<TypeRef> extendsClause;
+    private List<TraitType> extendsClause;
     private FnHeaderClause fnHeaderClause;
 
     public ObjectHeader(Id name, List<StaticParam> staticParams,
-                        Option<List<Param>> params, List<TypeRef> extendsClause,
+                        Option<List<Param>> params, List<TraitType> extendsClause,
                         FnHeaderClause fnHeaderClause) {
         this.name = name;
         this.staticParams = staticParams;
@@ -59,7 +59,7 @@ public class ObjectHeader {
         return params;
     }
 
-    public List<TypeRef> getExtendsClause() {
+    public List<TraitType> getExtendsClause() {
         return extendsClause;
     }
 

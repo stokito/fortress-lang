@@ -1,8 +1,12 @@
+* Questions and Answers
+ 1. Option<List<TypeRef>> vs List<TypeRef>
+
 * Things to do with the Fortress ASTGen input
  1. Add comments to describe and give simple examples.
  2. Implement not-yet-implemented features in the parser.
  3. Restructure arrow types, tuple types, and tuple expressions.
- 4. Separate nodes for functions and functional methods
+ 4. Separate nodes for
+    function/functional method/dotted method/coercion/operator/getter/setter
  5. Rename nodes and fields.
 
 * Criteria for the Fortress ASTGen input
@@ -10,8 +14,20 @@
  2. convenience for visitors (vs if/then/else instanceof testing)
  3. use subtypes (classes) for variance rather than wrappers (abstract clases)
  4. don't propogate the subtype structure to enclosing method
+ 5. only leaves are concrete classes
 
 * UIDObject
  1. It should have things for uniqueness.
  2. It should not include things that are applicable only for nodes.
  3. It should include things that are shared by nodes and the other parts of the interpreter.
+
+* Dan's comments
+
+- If Decl is to include FnExprs and LetExprs, can we introduce a new (abstract class) type that encompasses everything that can occur in a CompilationUnit, TraitDecl, etc.?  I assume the parser would never create a CompilationUnit that contained a LetExpr, and that we would never expect to create one by other means.
+
+- Common fields should be hoisted where possible and where it makes sense (AbsObjectDecl/ObjectDecl both share defOrDecls, for example).  If there's not a common supertype, we should think about creating one.  (I wouldn't expect this where two classes have fields with the same types but different meanings, though.)
+
+
+- I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
+
+- It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.

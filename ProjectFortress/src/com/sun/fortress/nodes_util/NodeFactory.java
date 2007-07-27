@@ -236,7 +236,7 @@ public class NodeFactory {
                                             Id name,
                                             Option<List<StaticParam>> stParams,
                                             Option<List<Param>> params,
-                                            Option<List<TypeRef>> traits,
+                                            Option<List<TraitType>> traits,
                                             List<TypeRef> throws_,
                                             List<WhereClause> where,
                                             Contract contract) {
@@ -276,7 +276,7 @@ public class NodeFactory {
 
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
-                                   new None<List<TypeRef>>(), false);
+                                   new None<List<TraitType>>(), false);
     }
 
     public static TupleType makeTupleType(Span span, List<TypeRef> elements) {
