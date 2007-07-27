@@ -370,24 +370,28 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
     PropertyDecl(Option<Id> id, List<Param> params, Expr expr)
                 implements Decl, AbsDecl;
     /**
-     * syntax expanders declaration in APIs
-     * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
-     * OpenExpander ::= Id
-     *                | LeftEncloser
-     * CloseExpander ::= Id
-     *                 | RightEncloser
-     *                 | end
-     * e.g.) syntax sql e end
+     * syntax expanders declaration in components and APIs
      */
-    AbsExternalSyntax(FnName openExpander, Id id, FnName closeExpander)
-                     implements AbsDecl;
-    /**
-     * syntax expanders declaration in APIs
-     * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
-     * e.g.) syntax sql e end = parseSQL(e)
-     */
-    ExternalSyntax(FnName openExpander, Id id, FnName closeExpander, Expr expr)
-                  implements Decl;
+    abstract ExternalSyntaxAbsDeclOrDecl(FnName openExpander, Id id,
+                                         FnName closeExpander)
+                                        implements AbsDeclOrDecl;
+        /**
+         * syntax expanders declaration in APIs
+         * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
+         * OpenExpander ::= Id
+         *                | LeftEncloser
+         * CloseExpander ::= Id
+         *                 | RightEncloser
+         *                 | end
+         * e.g.) syntax sql e end
+         */
+        AbsExternalSyntax() implements AbsDecl;
+        /**
+         * syntax expanders declaration in APIs
+         * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
+         * e.g.) syntax sql e end = parseSQL(e)
+         */
+        ExternalSyntax(Expr expr) implements Decl;
     /**
      * expression
      */

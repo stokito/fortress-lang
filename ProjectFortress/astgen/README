@@ -20,6 +20,7 @@ Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an De
 
 * Questions and Answers
  1. Option<List<TypeRef>> vs List<TypeRef>
+ 2. FnName hierarchy
 
 * Things to do with the Fortress ASTGen input
  1. Add comments to describe and give simple examples.
@@ -42,8 +43,6 @@ Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an De
  3. It should include things that are shared by nodes and the other parts of the interpreter.
 
 * Dan's comments
-
-- If Decl is to include FnExprs and LetExprs, can we introduce a new (abstract class) type that encompasses everything that can occur in a CompilationUnit, TraitDecl, etc.?  I assume the parser would never create a CompilationUnit that contained a LetExpr, and that we would never expect to create one by other means.
 
 - Common fields should be hoisted where possible and where it makes sense (AbsObjectDecl/ObjectDecl both share defOrDecls, for example).  If there's not a common supertype, we should think about creating one.  (I wouldn't expect this where two classes have fields with the same types but different meanings, though.)
 
