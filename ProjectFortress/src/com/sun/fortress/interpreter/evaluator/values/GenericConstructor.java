@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericAbsDeclOrDeclWithParams;
+import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -69,16 +69,16 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
         return memo.make(l, within);
     }
 
-    public GenericConstructor(Environment env, GenericAbsDeclOrDeclWithParams odefOrDecl) {
+    public GenericConstructor(Environment env, GenericWithParams odefOrDecl) {
         this.env = env;
         this.odefOrDecl = odefOrDecl;
 
     }
 
   Environment env;
-  GenericAbsDeclOrDeclWithParams odefOrDecl;
+  GenericWithParams odefOrDecl;
 
-  public GenericAbsDeclOrDeclWithParams getDefOrDecl() {
+  public GenericWithParams getDefOrDecl() {
       return odefOrDecl;
   }
 

@@ -41,11 +41,11 @@ begin ast;
 /**
  * top-level node interface
  */
-interface Node();
+interface Node() extends HasAt;
     /**
      * declaration in components or APIs
      */
-    interface AbsDeclOrDecl() extends HasAt;
+    interface AbsDeclOrDecl();
         /**
          * declaration in APIs
          */
@@ -64,49 +64,45 @@ interface Node();
      * top-level declarations.
      */
     interface LHS();
+    /**
+     * with static parameters
+     * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl, and FnAbsDeclOrDecl
+     */
+    interface Generic(Option<List<StaticParam>> staticParams);
+    /**
+     * with value parameters
+     */
+    interface HasParams(Option<List<Param>> params,
+                        List<? extends AbsDeclOrDecl> decls);
+    /**
+     * with a where clause
+     */
+    interface HasWhere(List<WhereClause> where);
+
+
 /**
  * functional declaration or function expression
  */
 interface Applicable(FnName fnName, Option<List<StaticParam>> staticParams,
                      List<Param> params, Option<TypeRef> returnType,
                      List<WhereClause> where) extends HasAt;
+
 /**
- * with static parameters
- * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl, and FnAbsDeclOrDecl
+ * intersections of interface types
  */
-interface Generic(Option<List<StaticParam>> staticParams);
-    /**
-     * implemented by AbsTraitDecl
-     */
-    interface GenericAbsDeclOrDecl() extends AbsDeclOrDecl;
-        /**
-         * implemented by AbsObjectDecl
-         */
-        interface GenericAbsDeclOrDeclWithParams() extends HasParams;
-        /**
-         * implemented by TraitDecl
-         */
-        interface GenericDecl() extends Decl;
-            /**
-             * implemented by ObjectDecl and ObjectExpr
-             */
-            interface GenericDeclWithParams()
-                      extends GenericAbsDeclOrDeclWithParams;
-/**
- * with value parameters
- */
-interface HasParams(Option<List<Param>> params,
-                    List<? extends AbsDeclOrDecl> decls);
-/**
- * with a where clause
- */
-interface HasWhere(List<WhereClause> where);
+interface GenericWithParams() extends Generic, HasParams;
+interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
+    interface GenericDecl() extends Generic, Decl;
+interface GenericAbsDeclOrDeclWithParams() extends Generic, AbsDeclOrDecl,
+              HasParams, GenericWithParams, GenericAbsDeclOrDecl;
+    interface GenericDeclWithParams() extends Generic, Decl, HasParams;
+
 
 /**
  * top-level node abstract class
  */
 abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
-                     implements HasAt, Node;
+                                                 implements Node;
     /**
      * compilation unit
      * Both Component and Api have List<? extends AbsDeclOrDecl> instead of
@@ -188,13 +184,13 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                                       Option<List<TraitType>> extendsClause,
                                       List<WhereClause> where,
                                       List<? extends AbsDeclOrDecl> decls)
-                                     implements Generic, HasWhere;
+                                     implements Generic, HasWhere, AbsDeclOrDecl,
+                                                GenericAbsDeclOrDecl;
         /**
          * trait declaration in components or APIs
          */
         abstract TraitAbsDeclOrDecl(List<TraitType> excludes,
-                                    Option<List<TraitType>> comprises)
-                                   implements Generic, HasWhere;
+                                    Option<List<TraitType>> comprises);
             /**
              * trait declaration in APIs
              * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
@@ -210,7 +206,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *         cons(x: alph): List[\alpha\]
              *       end
              */
-            AbsTraitDecl() implements GenericAbsDeclOrDecl, AbsDecl;
+            AbsTraitDecl() implements AbsDecl;
             /**
              * trait declaration in components
              * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
@@ -221,14 +217,15 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
              *       end
              */
-            TraitDecl() implements GenericDecl;
+            TraitDecl() implements Decl, GenericDecl;
         /**
          * object declaration in components or APIs
          */
         abstract ObjectAbsDeclOrDecl(Option<List<Param>> params,
                                      List<TypeRef> throwsClause,
                                      Contract contract)
-                                    implements Generic, AbsDeclOrDecl;
+                                    implements HasParams, GenericWithParams,
+                                               GenericAbsDeclOrDeclWithParams;
             /**
              * object declaration in APIs
              * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
@@ -238,7 +235,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              * Throws ::= throws MayTraitTypes
              * e.g.) object Empty[\alph\]() extends List[\alpha\] end
              */
-            AbsObjectDecl() implements GenericAbsDeclOrDeclWithParams, AbsDecl;
+            AbsObjectDecl() implements AbsDecl;
             /**
              * object declaration in components
              * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
@@ -246,7 +243,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              *         length() = 0
              *       end
              */
-            ObjectDecl() implements GenericDeclWithParams;
+            ObjectDecl() implements Decl, GenericDecl, GenericDeclWithParams;
     /**
      * variable declaration in components or APIs
      */
@@ -311,7 +308,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                              List<Param> params, Option<TypeRef> returnType,
                              List<TypeRef> throwsClause, List<WhereClause> where,
                              Contract contract)
-                            implements Generic, Applicable, AbsDeclOrDecl;
+                            implements Generic, Applicable, Decl, GenericDecl;
         /**
          * functional declaration in APIs
          * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
@@ -327,14 +324,14 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * SubscriptAssignParam ::= Varargs | Param
          * e.g.) swap (x: Object, y: Object): (Object, Object)
          */
-        AbsFnDecl(String selfName) implements Decl, AbsDecl, Applicable;
+        AbsFnDecl(String selfName) implements AbsDecl;
         /**
          * functional declaration in components
          * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause (= Expr)?
          *          | FnSig
          * e.g.) swap (x, y) = (y, x)
          */
-        FnDecl(String selfName, Expr body) implements Decl, Applicable;
+        FnDecl(String selfName, Expr body);
     /**
      * value parameter of functional declarations and object declarations
      * e.g.) x: ZZ32 = 3
@@ -512,7 +509,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                                    Option<List<StaticParam>> staticParams,
                                    List<StaticArg> staticArgs,
                                    Option<List<Param>> params)
-                                  implements GenericDeclWithParams;
+                                  implements Generic, HasParams, GenericWithParams;
             /**
              * try expression
              * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
@@ -1247,7 +1244,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          * not created during parsing but during evaluation
          * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
          */
-        ConstructorFnName(AbsDeclOrDecl def);
+        ConstructorFnName(GenericWithParams def);
         /**
          * name representing operators
          */

@@ -41,7 +41,7 @@ import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.GenericAbsDeclOrDeclWithParams;
+import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.useful.Option;
@@ -64,7 +64,7 @@ public class Constructor extends AnonymousConstructor {
 
     public Constructor(BetterEnv env,
             FTypeObject selfType,
-            GenericAbsDeclOrDeclWithParams def) {
+            GenericWithParams def) {
         this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def),
                 def.getDecls());
         addParamsToCollection(def, parameterNames);

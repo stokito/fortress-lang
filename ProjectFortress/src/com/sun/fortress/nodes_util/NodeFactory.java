@@ -92,7 +92,7 @@ public class NodeFactory {
         return new BaseOprRef(span, new Opr(span, op));
     }
 
-    public static ConstructorFnName makeConstructorFnName(AbsDeclOrDecl def) {
+    public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
         return new ConstructorFnName(NodeUtil.getSpan(def), def);
     }
 

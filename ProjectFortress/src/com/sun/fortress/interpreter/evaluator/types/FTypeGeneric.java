@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
-import com.sun.fortress.nodes.GenericAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.StaticArg;
@@ -44,7 +43,7 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
-    public FTypeGeneric(BetterEnv e, GenericAbsDeclOrDecl d, List<? extends AbsDeclOrDecl> members) {
+    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members) {
         super(NodeUtil.stringName(d));
         env = e;
         def = d;
