@@ -25,7 +25,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
@@ -36,7 +35,7 @@ import com.sun.fortress.useful.Useful;
 public class Dummy_fcn extends Simple_fcn {
     private List<FType> domain;
     private String allocationSite;
-    private FnName fnName  = NodeFactory.makeFun(new Span(), "Dummy");
+    private FnName fnName  = NodeFactory.makeDottedId("Dummy");
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Fcn#getFnName()

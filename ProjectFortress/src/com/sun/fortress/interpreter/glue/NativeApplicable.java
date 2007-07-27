@@ -24,7 +24,6 @@ import java.util.List;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
@@ -41,7 +40,7 @@ public class NativeApplicable implements Applicable {
 
     NativeApplicable(String name) {
         this.name = name;
-        this.fnName = NodeFactory.makeFun(name);
+        this.fnName = NodeFactory.makeDottedId(name);
     }
 
     public String toString() {

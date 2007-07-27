@@ -27,12 +27,12 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
+import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
@@ -113,9 +113,9 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
 
                     // There are many types of fnNames, such as OprName.
                     // But only names of functions are placed in the top-level scope of variables.
-                    if (fnName instanceof Fun) {
-                        Fun fun = (Fun)fnName;
-                        topLevelNames = topLevelNames.cons(fun.getName().getName());
+                    if (fnName instanceof DottedId) {
+                        DottedId fun = (DottedId)fnName;
+                        topLevelNames = topLevelNames.cons(NodeUtil.getName(fun));
                     }
                 }
                 else if (d instanceof VarAbsDeclOrDecl) {

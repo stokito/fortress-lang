@@ -134,8 +134,11 @@ public class NodeUtil {
             public String forDottedId(DottedId n) {
                 String name;
                 List<String> names = n.getNames();
-                if (names.size() == 0) {
+                int size = names.size();
+                if (size == 0) {
                     throw new Error("Non-empty string is expected.");
+                } else if (size == 1) {
+                    return names.get(0);
                 } else {
                     name = names.get(0);
                 }
@@ -144,18 +147,15 @@ public class NodeUtil {
                 }
                 return name;
             }
-            public String forFun(Fun n) {
-                return n.getName().getName();
-            }
             public String forName(Name n) {
                 Option<Id> id = n.getId();
                 Option<Op> op = n.getOp();
                 if (id instanceof Some) {
                     return ((Id) ((Some) id).getVal()).getName();
-                } 
+                }
                 else if (op instanceof Some) {
                     return ((Op) ((Some) op).getVal()).getName();
-                } 
+                }
                 else {
                     throw new Error("Uninitialized Name.");
                 }
@@ -308,8 +308,8 @@ public class NodeUtil {
             }
         });
     }
-            
-            
+
+
 
     /* dump ****************************************************************/
     public static String dump(AbstractNode n) {

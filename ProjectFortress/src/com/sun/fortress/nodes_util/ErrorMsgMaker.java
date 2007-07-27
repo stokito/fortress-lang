@@ -74,10 +74,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
 
-    public String forFun(Fun node) {
-        return node.getName().getName();
-    }
-
     public String forId(Id node) {
         return node.getName();
     }
@@ -125,7 +121,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forOpr(Opr node) {
         return node.getOp().getName();
     }
-    
+
     public String forAbstractNode(AbstractNode node) {
         return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
     }

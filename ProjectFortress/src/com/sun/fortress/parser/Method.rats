@@ -71,8 +71,8 @@ AbsFnDecl AbsMdDecl =
 private FnHeaderFront MdHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount), a1),
-                                   a2, a3);
+       yyValue = new FnHeaderFront(NodeFactory.makeDottedId(createSpan(yyStart,yyCount),
+                                                a1.getName()), a2, a3);
      }
    / OpHeaderFront ;
 
@@ -138,7 +138,7 @@ AbsDeclOrDecl Coercion =
        if (a5 != null) mods.add(new ModifierWidens(createSpan(yyStart,8)));
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       new Fun(span, new Id(span,"coerce")), a1,
+                                       NodeFactory.makeDottedId(span, "coerce"), a1,
                                        params, a4, a6);
      };
 
@@ -154,6 +154,6 @@ AbsDeclOrDecl AbsCoercion =
        if (a5 != null) mods.add(new ModifierWidens(createSpan(yyStart,8)));
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          new Fun(span, new Id(span,"coerce")),
+                                          NodeFactory.makeDottedId(span, "coerce"),
                                           a1, params, a4);
     };

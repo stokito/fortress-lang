@@ -74,6 +74,7 @@ AbsFnDecl AbsFnDecl =
 FnHeaderFront FnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(new Fun(createSpan(yyStart,yyCount),a1),a2,a3);
+       yyValue = new FnHeaderFront(NodeFactory.makeDottedId(createSpan(yyStart,yyCount),
+                                                a1.getName()),a2,a3);
      }
    / OpHeaderFront ;

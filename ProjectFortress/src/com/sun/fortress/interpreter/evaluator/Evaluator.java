@@ -91,7 +91,6 @@ import com.sun.fortress.nodes.FieldSelection;
 import com.sun.fortress.nodes.FloatLiteral;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
@@ -721,10 +720,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forAbsFnDecl(AbsFnDecl x) {
         return NI("forFnDecl");
-    }
-
-    public FValue forFun(Fun x) {
-        return x.getName().accept(this);
     }
 
     public FValue forGenerator(Generator x) {

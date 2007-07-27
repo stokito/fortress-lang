@@ -23,7 +23,6 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
@@ -32,13 +31,13 @@ import com.sun.fortress.useful.Useful;
 public class OverloadedMethod extends OverloadedFunction implements Method {
 
     public OverloadedMethod(String fnName, BetterEnv within) {
-        super(NodeFactory.makeFun(fnName), within);
+        super(NodeFactory.makeDottedId(fnName), within);
         // TODO Auto-generated constructor stub
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
             BetterEnv within) {
-        super(NodeFactory.makeFun(fnName), ssf, within);
+        super(NodeFactory.makeDottedId(fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
 

@@ -34,7 +34,6 @@ import com.sun.fortress.interpreter.evaluator.values.Dummy_fcn;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -75,7 +74,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     private int overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {
         OverloadedFunction fcn = new OverloadedFunction(
-              NodeFactory.makeFun(new Span(), "dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
+              NodeFactory.makeDottedId("dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
         for(List<FType> cl: clauses) {
             fcn.addOverload(simple_overload(cl));
         }

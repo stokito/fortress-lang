@@ -1,3 +1,15 @@
+* TODO
+ 1. Eric -- TupleExpr/TupleType/ArrowType
+ 2. Dan -- interfaces
+ 3. compile a list of Q/A from the emails with Dan
+ 4. clean up Fortress.ast
+ 5. clean up NodeFactory.java
+ 6. clean up ExprFactory.java
+ 7. clean up NodeUtil.java
+ 8. clean up NodeComparator.java
+ 9. clean up error messages
+
+
 * Questions and Answers
  1. Option<List<TypeRef>> vs List<TypeRef>
 

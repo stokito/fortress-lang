@@ -1228,17 +1228,25 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
          */
         DottedId(List<String> names);
         /**
-         * functional name
-         * e.g.) isEmpty
-         */
-        Fun(Id name);
-        /**
          * identifier or operator name
          * Name ::= Id
          *        | opr Op
+         *        | opr EncloserPair
          * e.g.) opr +
          */
         Name(Option<Id> id, Option<Op> op);
+        /**
+         * internal name for anonymous functionals
+         * not created during parsing but during evaluation
+         * e.g.) name for "fn x => x + 1"
+         */
+        AnonymousFnName();
+        /**
+         * internal name for anonymous constructors
+         * not created during parsing but during evaluation
+         * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
+         */
+        ConstructorFnName(AbsDeclOrDecl def);
         /**
          * operator name
          */
@@ -1250,7 +1258,8 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              */
             Enclosing(Op open, Op close);
             /**
-             * operator
+             * operator that is not an encloser, a postfix operator,
+             * a subscripted assignment, a subscripting operator
              * e.g.) COMPOSE
              * e.g.) +
              */
@@ -1261,7 +1270,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              */
             PostFix(Op op);
             /**
-             * subscripted assignment [ ] :=
+             * subscripted assignment operator [ ] :=
              * e.g.) a[i] := 1
              */
             SubscriptAssign();
@@ -1270,18 +1279,6 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
              * e.g.) a[i]
              */
             SubscriptOp();
-            /**
-             * name for anonymous functionals
-             * not created during parsing but during evaluation
-             * e.g.) name for "fn x => x + 1"
-             */
-            AnonymousFnName();
-            /**
-             * name for anonymous constructors
-             * not created during parsing but during evaluation
-             * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
-             */
-            ConstructorFnName(AbsDeclOrDecl def);
 /*******************************************************************************/
     /**
      * array comprehension clause

@@ -52,7 +52,6 @@ import com.sun.fortress.nodes.FieldSelection;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.Fun;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
@@ -273,7 +272,7 @@ public class Disambiguate extends Rewrite {
                 FTypeObject fto = new FTypeObject(name, env, oe, oe.getAbsDeclOrDecls());
                 env.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(oe.getExtendsClause(), null, null, fto, env, oe);
-                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeFun(name), oe.getAbsDeclOrDecls());
+                Constructor con = new Constructor(env, fto, oe, NodeFactory.makeDottedId(name), oe.getAbsDeclOrDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 env.putValue(name, con);
                 con.finishInitializing();

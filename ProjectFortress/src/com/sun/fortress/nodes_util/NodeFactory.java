@@ -121,6 +121,16 @@ public class NodeFactory {
         }));
     }
 
+    /**
+     * Call this only for names that have no location. (When/if this constructor
+     * disappears, it will be because we have a better plan for those names, and
+     * its disappearance will identify all those places that need updating).
+     */
+    public static DottedId makeDottedId(String string) {
+        Span span = new Span();
+        return makeDottedId(span, string);
+    }
+
     public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
                                     Option<Id> optSelfName, FnName name,
                                     Option<List<StaticParam>> staticParams,
@@ -137,20 +147,6 @@ public class NodeFactory {
         }
         return new FnDecl(s, mods, name, staticParams, params, returnType,
                           throwss, where, contract, selfName, body);
-    }
-
-    public static Fun makeFun(Span span, String string) {
-        return new Fun(span, new Id(span, string));
-    }
-
-    /**
-     * Call this only for names that have no location. (When/if this constructor
-     * disappears, it will be because we have a better plan for those names, and
-     * its disappearance will identify all those places that need updating).
-     */
-    public static Fun makeFun(String string) {
-        Span span = new Span();
-        return new Fun(span, new Id(span, string));
     }
 
     public static Id makeId(String string) {
