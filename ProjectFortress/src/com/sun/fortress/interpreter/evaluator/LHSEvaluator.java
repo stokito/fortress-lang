@@ -54,7 +54,7 @@ import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
@@ -109,7 +109,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     boolean debug = false;
     public void debugPrint(String debugString) {if (debug) System.out.println(debugString);}
 
-    public Voidoid forVarRefExpr(VarRefExpr x) {
+    public Voidoid forVarRef(VarRef x) {
         Id var = x.getVar();
         String s = var.getName();
         Environment e = evaluator.e;

@@ -135,7 +135,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.TypeApply;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
@@ -145,7 +145,7 @@ import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
@@ -589,8 +589,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             String name = bind.getId().getName();
             Expr init = bind.getInit();
             FValue val = init.accept(ev);
-            if (init instanceof VarRefExpr
-                    && ((VarRefExpr) init).getVar().getName().equals(name)) {
+            if (init instanceof VarRef
+                    && ((VarRef) init).getVar().getName().equals(name)) {
                 /* Avoid shadow error when we bind the same var name */
                 ev.e.putValueUnconditionally(name, val);
             } else {
@@ -1084,10 +1084,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Id fld = fld_sel.getId();
             FValue fobj = obj.accept(this);
             return juxtFieldSelection(x, fobj, fld, exprs);
-        } else if (fcnExpr instanceof TypeApply) {
+        } else if (fcnExpr instanceof FnRef) {
             // Peek into the type-apply, see if it actually a generic method
             // being instantiated.
-            TypeApply tax = (TypeApply) fcnExpr;
+            FnRef tax = (FnRef) fcnExpr;
             Expr expr = tax.getExpr();
             List<StaticArg> args = tax.getArgs();
             if (expr instanceof FieldSelection) {
@@ -1130,12 +1130,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
                     } else {
                         throw new ProgramError(x, fobject.getSelfEnv(),
-                                errorMsg("Unexpected Selection result in Juxt of TypeApply of Selection, ",
+                                errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
                                         cl));
                     }
                 } else {
                     throw new ProgramError(x,
-                            errorMsg("Unexpected Selection LHS in Juxt of TypeApply of Selection, ",
+                            errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
                                      fobj));
 
                 }
@@ -1303,11 +1303,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forVarDecl");
     }
 
-    public FValue forVarRefExpr(VarRefExpr x) {
-        // debugPrint("forVarRefExpr " + x);
+    public FValue forVarRef(VarRef x) {
+        // debugPrint("forVarRef " + x);
         Id var = x.getVar();
         String s = var.getName();
-        // debugPrint("forVarRefExpr " + s);
+        // debugPrint("forVarRef " + s);
 
         FValue res = e.getValueNull(s);
 
@@ -1352,10 +1352,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeApply(com.sun.fortress.interpreter.nodes.TypeApply)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnRef(com.sun.fortress.interpreter.nodes.FnRef)
      */
     @Override
-    public FValue forTypeApply(TypeApply x) {
+    public FValue forFnRef(FnRef x) {
         Expr expr = x.getExpr();
         FValue g = expr.accept(this);
         List<StaticArg> args = x.getArgs();
@@ -1366,7 +1366,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
         }
-        return super.forTypeApply(x);
+        return super.forFnRef(x);
     }
 
     public FValue for_WrappedFValue(_WrappedFValue w) {

@@ -211,7 +211,7 @@ private List<Binding> TypecaseBindings =
    / a1:Id
      { yyValue = FortressUtil.mkList(
                          new Binding(createSpan(yyStart,yyCount), a1,
-                                     new VarRefExpr(a1.getSpan(), false, a1)));
+                                     new VarRef(a1.getSpan(), false, a1)));
      };
 
 /* BindingList ::= Binding (w , w Binding)*  */
@@ -302,7 +302,7 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
 
 /* IdOrInt ::= Id | IntLiteral */
 Expr IdOrInt =
-     a1:Id { yyValue = new VarRefExpr(a1.getSpan(), false, a1); }
+     a1:Id { yyValue = new VarRef(a1.getSpan(), false, a1); }
    / IntLiteral ;
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
@@ -315,8 +315,8 @@ Expr BaseExpr =
    / Parenthesized
    / Literal
    / Aggregate
-   / a1:Id   { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), false, a1); }
-   / a1:self { yyValue = ExprFactory.makeVarRefExpr(createSpan(yyStart,yyCount), a1); };
+   / a1:Id   { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
+   / a1:self { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*

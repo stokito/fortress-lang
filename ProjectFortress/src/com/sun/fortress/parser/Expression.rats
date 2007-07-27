@@ -144,7 +144,7 @@ LHS AssignLeft =
       else yyValue = null;
     }
   / a1:Id
-    { yyValue = new VarRefExpr(createSpan(yyStart,yyCount), false, a1); };
+    { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
 
 constant transient Action<Expr> AssignLeftTail =
       SubscriptAssign
@@ -349,8 +349,8 @@ constant PureList<Expr> Primary =
 Expr PrimaryFront =
      Comprehension
    / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
-     { yyValue = new TypeApply(createSpan(yyStart,yyCount), false,
-                               new VarRefExpr(a1.getSpan(), false, a1), a2);
+     { yyValue = new FnRef(createSpan(yyStart,yyCount), false,
+                           new VarRef(a1.getSpan(), false, a1), a2);
      }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -401,7 +401,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
                Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
-                   mth = new TypeApply(createSpan(yyStart,yyCount),false,mth,a2);
+                   mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(a3, mth);
            }};
      }
@@ -412,7 +412,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
                Expr mth = new FieldSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
-                   mth = new TypeApply(createSpan(yyStart,yyCount),false,mth,a2);
+                   mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(ExprFactory.makeVoidLiteral(a1.getSpan()), mth);
            }};
      };

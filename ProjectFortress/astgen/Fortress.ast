@@ -738,7 +738,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                      *            | self
                      * e.g.) length
                      */
-                    VarRefExpr(Id var) implements LHS;
+                    VarRef(Id var) implements LHS;
                 /**
                  * comprehension expression
                  */
@@ -800,7 +800,7 @@ abstract AbstractNode(ignoreForEquals Span span) extends UIDObject
                  * Primary ::= Id[\StaticArgList\]
                  * e.g.) identity[\String\]
                  */
-                TypeApply(Expr expr, List<StaticArg> args);
+                FnRef(Expr expr, List<StaticArg> args);
             /**
              * subscripting expression
              * SubscriptExpr ::= Primary [ ExprList? ]

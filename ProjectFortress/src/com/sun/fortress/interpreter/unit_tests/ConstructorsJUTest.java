@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.IntLiteral;
 import com.sun.fortress.nodes.StringLiteral;
 import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -204,16 +204,16 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testVarRef() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        VarRefExpr v1 = ExprFactory.makeVarRefExpr(span1, "cat");
-        VarRefExpr v2 = ExprFactory.makeVarRefExpr(span2, "cat");
-        VarRefExpr v3 = ExprFactory.makeVarRefExpr(span1, "dog");
+        VarRef v1 = ExprFactory.makeVarRef(span1, "cat");
+        VarRef v2 = ExprFactory.makeVarRef(span2, "cat");
+        VarRef v3 = ExprFactory.makeVarRef(span1, "dog");
 
         een(v1, v2, v3);
     }
 
-    VarRefExpr newVar(String s) {
+    VarRef newVar(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
-        VarRefExpr v1 = ExprFactory.makeVarRefExpr(span1, "cat");
+        VarRef v1 = ExprFactory.makeVarRef(span1, "cat");
         return v1;
     }
 

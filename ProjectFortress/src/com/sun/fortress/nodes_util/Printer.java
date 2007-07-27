@@ -176,7 +176,7 @@ public class Printer extends NodeReflection {
             Class cl = x.getClass();
             String clname = cl.getSimpleName();
             int oneLinerNestingInc = (o instanceof DottedId
-                    || o instanceof Literal || o instanceof VarRefExpr || o instanceof Opr) ? 1
+                    || o instanceof Literal || o instanceof VarRef || o instanceof Opr) ? 1
                     : 0;
             oneLinerNesting += oneLinerNestingInc;
 

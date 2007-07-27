@@ -57,7 +57,7 @@ public class ExprFactory {
             if (underLoc == -1) {
                 digits = s;
                 base = 10;
-            } 
+            }
             else {
                 digits = s.substring(0, underLoc);
                 // Base other, no ".", parse as BigInteger and convert.
@@ -65,14 +65,14 @@ public class ExprFactory {
 
                 if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                     base = Unicode.numberToValue(base_digits);
-                } 
+                }
                 else {
                     base = Integer.parseInt(base_digits);
                 }
             }
             digits = dozenalHack(digits, base);
             intPart = new BigInteger(digits, base);
-        } 
+        }
         else {
             // There is a fraction part.
 
@@ -81,12 +81,12 @@ public class ExprFactory {
             if (underLoc == -1) {
                 base = 10;
                 underLoc = s.length();
-            } 
+            }
             else {
                 String base_digits = s.substring(underLoc + 1);
                 if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                     base = Unicode.numberToValue(base_digits);
-                } 
+                }
                 else {
                     base = Integer.parseInt(base_digits);
                 }
@@ -96,7 +96,7 @@ public class ExprFactory {
                 if (digits.length() > 0) {
                     digits = dozenalHack(digits, base);
                     intPart = new BigInteger(digits, base);
-                } 
+                }
                 else {
                     intPart = BigInteger.ZERO;
                 }
@@ -113,7 +113,7 @@ public class ExprFactory {
                     denomBase = 1;
                     denomPower = 0;
 
-                } 
+                }
                 else {
                     digits = dozenalHack(digits, base);
                     numerator = new BigInteger(digits, base);
@@ -149,14 +149,14 @@ public class ExprFactory {
         int underLoc = s.indexOf('_');
         if (underLoc == -1) {
             val = new BigInteger(s);
-        } 
+        }
         else {
             String digits = s.substring(0, underLoc);
             String base_digits = s.substring(underLoc + 1);
             int base;
             if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
                 base = Unicode.numberToValue(base_digits);
-            } 
+            }
             else {
                 base = Integer.parseInt(base_digits);
             }
@@ -185,14 +185,14 @@ public class ExprFactory {
             }
             public LetExpr forLetFn(LetFn expr) {
                 return new LetFn(expr.getSpan(),false, body, expr.getFns());
-            } 
+            }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
                 return new LocalVarDecl(expr.getSpan(), false, body, expr.getLhs(),
                                         expr.getRhs());
             }
         });
-    }                
-                           
+    }
+
 
     public static OprExpr makeOprExpr(Span span, OprName op) {
         return new OprExpr(span, false, op, new ArrayList<Expr>());
@@ -221,8 +221,8 @@ public class ExprFactory {
         return new TightJuxt(span, false, Useful.list(first, second));
     }
 
-    public static VarRefExpr makeVarRefExpr(Span span, String s) {
-        return new VarRefExpr(span, false, new Id(span, s));
+    public static VarRef makeVarRef(Span span, String s) {
+        return new VarRef(span, false, new Id(span, s));
     }
 
     public static VoidLiteral makeVoidLiteral(Span span) {
@@ -236,7 +236,7 @@ public class ExprFactory {
         Option<List<StaticParam>> stParams;
         if (implicit_type_parameters.size() == 0) {
             stParams = new None<List<StaticParam>>();
-        } 
+        }
         else {
             List<StaticParam> tparams =
                 new ArrayList<StaticParam>(implicit_type_parameters.values());
@@ -391,8 +391,8 @@ public class ExprFactory {
             public Expr forVoidLiteral(VoidLiteral e) {
                 return new VoidLiteral(e.getSpan(), true, e.getText());
             }
-            public Expr forVarRefExpr(VarRefExpr e) {
-                return new VarRefExpr(e.getSpan(), true, e.getVar());
+            public Expr forVarRef(VarRef e) {
+                return new VarRef(e.getSpan(), true, e.getVar());
             }
             public Expr forArrayComprehension(ArrayComprehension e) {
                 return new ArrayComprehension(e.getSpan(), true, e.getClauses());
@@ -423,9 +423,8 @@ public class ExprFactory {
             public Expr forTightJuxt(TightJuxt e) {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
-            public Expr forTypeApply(TypeApply e) {
-                return new TypeApply(e.getSpan(), true, e.getExpr(),
-                                     e.getArgs());
+            public Expr forFnRef(FnRef e) {
+                return new FnRef(e.getSpan(), true, e.getExpr(), e.getArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),

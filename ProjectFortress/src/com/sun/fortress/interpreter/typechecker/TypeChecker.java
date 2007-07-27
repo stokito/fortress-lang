@@ -51,7 +51,7 @@ import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -197,8 +197,8 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
         LIB_NAMES.add("false");
     }
 
-    public TypeCheckerResult forVarRefExpr(VarRefExpr v) {
-        // VarRefExpr(Span span, Id var)
+    public TypeCheckerResult forVarRef(VarRef v) {
+        // VarRef(Span span, Id var)
         String s = v.getVar().getName();
         if ((!e.contains(s)) && (!LIB_NAMES.contains(s))) {
             return new TypeCheckerResult(new TypeError("Reference to undefined variable " + s, v));

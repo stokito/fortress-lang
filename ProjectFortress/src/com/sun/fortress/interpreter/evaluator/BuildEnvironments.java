@@ -91,7 +91,7 @@ import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.BaseDimRef;
 import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
@@ -716,7 +716,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 String sname = name.getName();
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
-                      ExprFactory.makeVarRefExpr(x.getSpan(), obfuscated(fname)),
+                      ExprFactory.makeVarRef(x.getSpan(), obfuscated(fname)),
                       ExprFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, sname, init_value);

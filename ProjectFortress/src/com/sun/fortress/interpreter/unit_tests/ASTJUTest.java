@@ -256,7 +256,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
 //    public void testMakeAssignment() throws IOException {
 //        String s =
 //            "(Assignment \n"+
-//             "       lhs=(VarRefExpr  var=(Id name=\"x\"))\n"+
+//             "       lhs=(VarRef  var=(Id name=\"x\"))\n"+
 //             "       rhs=(IntLiteral text=\"3\" val=3))\n";
 //        Lex l = new Lex(bs(s));
 //        Unprinter up = new Unprinter(l);

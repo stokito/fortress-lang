@@ -1,34 +1,19 @@
-/*
- * Transaction.java
- *
- * Copyright 2006 Sun Microsystems, Inc., 4150 Network Circle, Santa
- * Clara, California 95054, U.S.A.  All rights reserved.  
- * 
- * Sun Microsystems, Inc. has intellectual property rights relating to
- * technology embodied in the product that is described in this
- * document.  In particular, and without limitation, these
- * intellectual property rights may include one or more of the
- * U.S. patents listed at http://www.sun.com/patents and one or more
- * additional patents or pending patent applications in the U.S. and
- * in other countries.
- * 
- * U.S. Government Rights - Commercial software.
- * Government users are subject to the Sun Microsystems, Inc. standard
- * license agreement and applicable provisions of the FAR and its
- * supplements.  Use is subject to license terms.  Sun, Sun
- * Microsystems, the Sun logo and Java are trademarks or registered
- * trademarks of Sun Microsystems, Inc. in the U.S. and other
- * countries.  
- * 
- * This product is covered and controlled by U.S. Export Control laws
- * and may be subject to the export or import laws in other countries.
- * Nuclear, missile, chemical biological weapons or nuclear maritime
- * end uses or end users, whether direct or indirect, are strictly
- * prohibited.  Export or reexport to countries subject to
- * U.S. embargo or to entities identified on U.S. export exclusion
- * lists, including, but not limited to, the denied persons and
- * specially designated nationals lists is strictly prohibited.
- */
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
@@ -45,12 +30,12 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  */
 
 public class Transaction {
-  
+
   /**
    * Possible transaction status
    **/
   public enum Status {ABORTED, ACTIVE, COMMITTED};
-  
+
   /**
    * Predefined committed transaction
    */
@@ -59,22 +44,22 @@ public class Transaction {
    * Predefined orted transaction
    */
   public static Transaction ABORTED   = new Transaction(Status.ABORTED);
-  
+
   /**
    * Is transaction waiting for another?
    */
   public boolean waiting = false;
-  
+
   /**
    * Number of times this transaction tried
    */
   public int attempts = 0;
-  
+
   /**
    * Number of unique memory references so far.
    */
   public int memRefs = 0;
-  
+
   /**
    * Time in nanos when transaction started
    */
@@ -83,22 +68,22 @@ public class Transaction {
    * Time in nanos when transaction committed or aborted
    */
   public long stopTime = 0;
-  
+
   // generate unique ids
   private static AtomicInteger unique = new AtomicInteger(100);
-  
+
   /** Updater for status */
   private static final
       AtomicReferenceFieldUpdater<Transaction, Status>
       statusUpdater = AtomicReferenceFieldUpdater.newUpdater
       (Transaction.class, Status.class, "status");
-  
+
   private volatile Status status;
-  
+
   private long id;
-  
+
   private ContentionManager manager;
-  
+
   /**
    * Creates a new, active transaction.
    */
@@ -107,7 +92,7 @@ public class Transaction {
     this.id = this.startTime = System.nanoTime();
     this.manager = FortressTaskRunner.getContentionManager();
   }
-  
+
   /**
    * Creates a new transaction with given status.
    * @param myStatus active, committed, or aborted
@@ -116,7 +101,7 @@ public class Transaction {
     this.status = myStatus;
     this.startTime = 0;
   }
-  
+
   /**
    * Access the transaction's current status.
    * @return current transaction status
@@ -124,7 +109,7 @@ public class Transaction {
   public Status getStatus() {
     return status;
   }
-  
+
   /**
    * Tests whether transaction is active.
    * @return whether transaction is active
@@ -132,7 +117,7 @@ public class Transaction {
   public boolean isActive() {
     return this.getStatus() == Status.ACTIVE;
   }
-  
+
   /**
    * Tests whether transaction is aborted.
    * @return whether transaction is aborted
@@ -140,7 +125,7 @@ public class Transaction {
   public boolean isAborted() {
       return this.getStatus() == Status.ABORTED;
   }
-  
+
   /**
    * Tests whether transaction is committed.
    * @return whether transaction is committed
@@ -148,7 +133,7 @@ public class Transaction {
   public boolean isCommitted() {
     return (this.getStatus() == Status.COMMITTED);
   }
-  
+
   /**
    * Tests whether transaction is committed or active.
    * @return whether transaction is committed or active
@@ -166,7 +151,7 @@ public class Transaction {
         throw new PanicException("unexpected transaction state: " + status);
     }
   }
-  
+
   /**
    * Tries to commit transaction
    * @return whether transaction was committed
@@ -185,7 +170,7 @@ public class Transaction {
       wakeUp();
     }
   }
-  
+
   /**
    * Tries to abort transaction
    * @return whether transaction was aborted (not necessarily by this call)
@@ -202,7 +187,7 @@ public class Transaction {
       wakeUp();
     }
   }
-  
+
   /**
    * Returns a string representation of this transaction
    * @return the string representcodes[ation
@@ -219,7 +204,7 @@ public class Transaction {
         return "Transaction" + this.startTime + "[???]";
     }
   }
-  
+
   /**
    * Block caller while transaction is active.
    */
@@ -240,14 +225,14 @@ public class Transaction {
       } catch (InterruptedException ex) {}
     }
   }
-  
+
   /**
    * Wake up any transactions waiting for this one to finish.
    */
   public synchronized void wakeUp() {
     notifyAll();
   }
-  
+
   /**
    * This transaction's contention manager
    * @return the manager

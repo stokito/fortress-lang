@@ -38,7 +38,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NonArrowType;
 import com.sun.fortress.nodes.ParamType;
 import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.TypeApply;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarargsType;

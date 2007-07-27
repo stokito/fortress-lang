@@ -36,7 +36,7 @@ import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeApply;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;

@@ -141,7 +141,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      "     name=(Id @7:4 name=\"f1\")" +
 //      "     type=(Some val=(IdType @7:9 name=(DottedId names=[\"ZZ32\"]))))" +
 //      "    (FnDecl @8:11" +
-//      "     body=(VarRefExpr var=(Id name=\"f1\"))" +
+//      "     body=(VarRef var=(Id name=\"f1\"))" +
 //      "     contract=(Contract @8:6)" +
 //      "     name=(Fun" +
 //      "      name_=(Id @8:4 name=\"g1\")))])" +
@@ -149,8 +149,8 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      "   body=(OprExpr @11:13~17" +
 //      "    op=(Opr @11:15 op=(Op name=\"+\"))" +
 //      "    args=[" +
-//      "     (VarRefExpr @11:13 var=(Id name=\"aVar\"))" +
-//      "     (VarRefExpr @11:17 var=(Id name=\"x\"))])" +
+//      "     (VarRef @11:13 var=(Id name=\"aVar\"))" +
+//      "     (VarRef @11:17 var=(Id name=\"x\"))])" +
 //      "   contract=(Contract @11:6)" +
 //      "   name=(Fun" +
 //      "    name_=(Id @11:3 name=\"fn1\"))" +
@@ -192,7 +192,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 // public void testForAssignment() throws IOException {
 //    // x = 3
 //    String s =        "(Assignment \n"+
-//      "       lhs=(VarRefExpr  var=(Id name=\"x\"))\n"+
+//      "       lhs=(VarRef  var=(Id name=\"x\"))\n"+
 //      "       rhs=(IntLiteral text=\"3\" val=3))\n";
 //    Lex l = new Lex(bs(s));
 //
@@ -219,13 +219,13 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
   //     " (OprExpr \n " +
   //     " op=(Opr op=(Op name=\"*\")) \n " +
   //     " args=[ \n " +
-  //     " (VarRefExpr var=(Id name=\"x\")) \n " +
-  //     " (VarRefExpr  var=(Id name=\"y\"))]) \n " +
+  //     " (VarRef var=(Id name=\"x\")) \n " +
+  //     " (VarRef var=(Id name=\"y\"))]) \n " +
   //     " (OprExpr \n " +
   //     " op=(Opr op=(Op name=\"+\")) \n " +
   //     " args=[ \n " +
-  //     " (VarRefExpr var=(Id name=\"x\")) \n " +
-  //     " (VarRefExpr var=(Id name=\"y\"))])]) \n ";
+  //     " (VarRef var=(Id name=\"x\")) \n " +
+  //     " (VarRef var=(Id name=\"y\"))])]) \n ";
   //   Lex l = new Lex(bs(s));
   //   Unprinter up = new Unprinter(l);
   //   l.name(); // Reading "("
@@ -242,11 +242,11 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 
   // public void testForChainExpr() throws IOException {
   //   String s = "(ChainExpr \n" +
-  //     " first=(VarRefExpr var=(Id name=\"i\")) \n" +
+  //     " first=(VarRef var=(Id name=\"i\")) \n" +
   //     " links=[ \n " +
   //     " (Pair \n " +
   //     " (Op name=\"<\") \n " +
-  //     " (VarRefExpr var=(Id name=\"j\"))) \n " +
+  //     " (VarRef var=(Id name=\"j\"))) \n " +
   //     " (Pair \n " +
   //     " (Op name=\"<\") \n " +
   //     " (IntLiteral text=\"10\" val=10))] \n " +

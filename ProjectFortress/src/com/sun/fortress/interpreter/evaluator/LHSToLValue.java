@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.NI;
@@ -109,7 +109,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         return new FieldSelection(x.getSpan(), false, from, x.getId());
     }
 
-    public LHS forVarRefExpr(VarRefExpr x) {
+    public LHS forVarRef(VarRef x) {
         return x;
     }
 

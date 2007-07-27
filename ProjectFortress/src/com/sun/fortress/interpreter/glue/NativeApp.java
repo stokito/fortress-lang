@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteral;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TypeRef;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.Useful;
 
@@ -127,9 +127,9 @@ public abstract class NativeApp implements Applicable {
         if (juxts.size()!=2) return defn;
         Expr fn = juxts.get(0);
         Expr arg = juxts.get(1);
-        if (!(fn instanceof VarRefExpr &&
+        if (!(fn instanceof VarRef &&
               arg instanceof StringLiteral)) return defn;
-        VarRefExpr func = (VarRefExpr)fn;
+        VarRef func = (VarRef)fn;
         if (!func.getVar().getName().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteral)arg).getText();
         try {

@@ -78,7 +78,7 @@ import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRefExpr;
+import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
@@ -137,7 +137,7 @@ public class Disambiguate extends Rewrite {
         Thing() {
             nestedness = objectNestingDepth;
         }
-        Expr replacement(VarRefExpr original) {
+        Expr replacement(VarRef original) {
             return original;
         }
         public String toString() { return "Thing@"+nestedness; }
@@ -162,7 +162,7 @@ public class Disambiguate extends Rewrite {
     }
 
     class Member extends Thing {
-        Expr replacement(VarRefExpr original) {
+        Expr replacement(VarRef original) {
             FieldSelection fs = new FieldSelection(original.getSpan(), false,
                                                // Use this constructor
                 // here because it is a
@@ -179,7 +179,7 @@ public class Disambiguate extends Rewrite {
             this.s = s;
         }
         String s;
-        Expr replacement(VarRefExpr original) {
+        Expr replacement(VarRef original) {
             Expr expr = dottedReference(original.getSpan(),
                     objectNestingDepth - nestedness);
             return expr;
@@ -287,7 +287,7 @@ public class Disambiguate extends Rewrite {
         }
     }
 
-    Expr newName(VarRefExpr vre, String s) {
+    Expr newName(VarRef vre, String s) {
         Thing t = e.get(s);
         if (t == null) {
             return vre;
@@ -307,7 +307,7 @@ public class Disambiguate extends Rewrite {
      */
     Expr dottedReference(Span s, int i) {
         if (i == 0) {
-            return ExprFactory.makeVarRefExpr(s, WellKnownNames.secretSelfName);
+            return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
         }
         if (i > 0) {
             return new FieldSelection(s, false, dottedReference(s, i - 1),
@@ -372,8 +372,8 @@ public class Disambiguate extends Rewrite {
                  *
                  */
 
-                if (node instanceof VarRefExpr) {
-                    VarRefExpr vre = (VarRefExpr) node;
+                if (node instanceof VarRef) {
+                    VarRef vre = (VarRef) node;
                     Id id = vre.getVar();
                     String s = id.getName();
                     StaticParam tp = visibleGenericParameters.get(s);
