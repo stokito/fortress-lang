@@ -74,7 +74,7 @@ public class NodeFactory {
     }
 
     public static ArrowType makeArrowType(Span span, TypeRef domain,
-                                          TypeRef range,
+                                          NonArrowType range,
                                           List<TraitType> throws_) {
         List<TypeRef> domains;
         if (domain instanceof TupleType) {
@@ -209,6 +209,13 @@ public class NodeFactory {
         }
         return new LValueBind(lvb.getSpan(), lvb.getId(),
                               new Some<TypeRef>(ty), mods, mutable);
+    }
+
+    public static MatrixType makeMatrixType(Span span, TypeRef element,
+                                            ExtentRange dimension) {
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        dims.add(dimension);
+        return new MatrixType(span, element, dims);
     }
 
     public static MatrixType makeMatrixType(Span span, TypeRef element,

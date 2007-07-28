@@ -600,7 +600,7 @@ trait Array1[\T, nat b0, nat s0\]
     SeqRange[\ZZ32\](0,s0).map[\(ZZ32,T)\](fn (i: ZZ32): (ZZ32,T) =>
                                               (b0+i,self.get(i)))
 
-  fill(f:(ZZ32)->T):Array1[\T,b0,s0\] = do
+  fill(f:ZZ32->T):Array1[\T,b0,s0\] = do
     ParRange[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
     self
   end
