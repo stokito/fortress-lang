@@ -69,7 +69,7 @@ constant transient TypeRef TypeRef =
 /* ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)? */
 ArrowType ArrowType =
      a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { if (a3 == null) a3 = FortressUtil.emptyTypeRefs();
+     { if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
        yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
                                            a1, a2, a3);
      };

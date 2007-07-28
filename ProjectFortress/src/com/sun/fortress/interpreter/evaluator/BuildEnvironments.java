@@ -1272,7 +1272,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     WhereExtends we = (WhereExtends) w;
                     Id name = we.getId();
                     String string_name = name.getName();
-                    List<TypeRef> types = we.getSupers();
+                    List<TraitType> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     for (TypeRef t : types) {
                         FType st = et.evalType(t); // t.visit(et);

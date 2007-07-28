@@ -87,8 +87,7 @@ private List<WhereClause> WhereClauseList =
  */
 private WhereClause WhereClause =
      a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1,
-FortressUtil.toTypeRefList(a2)); }
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / TypeAlias
    / NatConstraint
    / IntConstraint
@@ -201,11 +200,11 @@ FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
 FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
-     { Option<List<TypeRef>>     throwsClause;
+     { Option<List<TraitType>>   throwsClause;
        Option<List<WhereClause>> whereClause;
        Option<Contract>          contractClause;
-       if (a1 == null) throwsClause   = None.<List<TypeRef>>make();
-       else            throwsClause   = Some.<TypeRef>makeSomeListOrNone(a1);
+       if (a1 == null) throwsClause   = None.<List<TraitType>>make();
+       else            throwsClause   = Some.<TraitType>makeSomeListOrNone(a1);
        if (a2 == null) whereClause    = None.<List<WhereClause>>make();
        else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a2);
        if (a3 == null) contractClause = None.<Contract>make();
@@ -215,11 +214,11 @@ FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
      };
 
 /* Throws ::= throws w MayTraitTypes */
-List<TypeRef> Throws = throws w MayTraitTypes ;
+List<TraitType> Throws = throws w MayTraitTypes ;
 
 /* MayTraitTypes ::= { w } | TraitTypes  */
-private List<TypeRef> MayTraitTypes =
-     opencurly w closecurly { yyValue = FortressUtil.emptyTypeRefs(); }
+private List<TraitType> MayTraitTypes =
+     opencurly w closecurly { yyValue = FortressUtil.emptyTraitTypes(); }
    / TraitTypes ;
 
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
@@ -273,7 +272,7 @@ FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
        else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a1);
        if (a2 == null) contractClause = None.<Contract>make();
        else            contractClause = Some.<Contract>make(a2);
-       yyValue = new FnHeaderClause(None.<List<TypeRef>>make(), whereClause,
+       yyValue = new FnHeaderClause(None.<List<TraitType>>make(), whereClause,
                                     contractClause, None.<TypeRef>make());
      };
 

@@ -130,12 +130,12 @@ public class ExprFactory {
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
         return makeFnExpr(span, params, new None<TypeRef>(),
-                          Collections.<TypeRef>emptyList(), body);
+                          Collections.<TraitType>emptyList(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
                                     Option<TypeRef> returnType,
-                                    List<TypeRef> throwsClause, Expr body) {
+                                    List<TraitType> throwsClause, Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
                           new None<List<StaticParam>>(), params, returnType,
                           Collections.<WhereClause>emptyList(), throwsClause,

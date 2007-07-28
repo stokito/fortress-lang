@@ -33,7 +33,7 @@ public class NodeFactory {
                                           Option<List<StaticParam>> staticParams,
                                           List<Param> params,
                                           Option<TypeRef> returnType,
-                                          List<TypeRef> throwss,
+                                          List<TraitType> throwss,
                                           List<WhereClause> where,
                                           Contract contract) {
         String selfName;
@@ -75,7 +75,7 @@ public class NodeFactory {
 
     public static ArrowType makeArrowType(Span span, TypeRef domain,
                                           TypeRef range,
-                                          List<TypeRef> throws_) {
+                                          List<TraitType> throws_) {
         List<TypeRef> domains;
         if (domain instanceof TupleType) {
             domains = ((TupleType)domain).getElements();
@@ -140,7 +140,7 @@ public class NodeFactory {
                                     Option<List<StaticParam>> staticParams,
                                     List<Param> params,
                                     Option<TypeRef> returnType,
-                                    List<TypeRef> throwss,
+                                    List<TraitType> throwss,
                                     List<WhereClause> where, Contract contract,
                                     Expr body) {
         String selfName;
@@ -239,7 +239,7 @@ public class NodeFactory {
                                             Option<List<StaticParam>> stParams,
                                             Option<List<Param>> params,
                                             Option<List<TraitType>> traits,
-                                            List<TypeRef> throws_,
+                                            List<TraitType> throws_,
                                             List<WhereClause> where,
                                             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,

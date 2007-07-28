@@ -1,47 +1,55 @@
+* Differences between the Concrete Syntax Grammar (CSG) in the specification
+  and the Abstract Syntax Tree (AST) in Fortress.ast
+ 1) NONTERMINAL"s" NONTERMINAL"List"
+
+
+* Criteria for the Differences in CSG and AST
+ 1) It should be possible to reverse-engineer the source code from AST.
+ 2) Convenience for visitors is more preferrable to instanceof testing.
+ 3) Subclasses for variants are more preferrable to a class with a field.
+ 4) Do not propogate the subtype structure of a field to the enclosing method.
+ 5) Only leaves should be concrete classes.
+
+
+* Frequently Asked Questions and Answers for Fortress.ast
+ 1) Why does it distinguish between List<TypeRef> and Option<List<TypeRef>>?
+
+ 2) What are the purposes of the interfaces?
+
+ 3) What does the FnName hierarchy mean?
+    FnName (abstract)      : name representing a functional
+        DottedId           : qualified name
+        AnonymousFnName    : internal name for anonymous function expression
+        ConstructorFnName  : internal name for anonymous constructor expression
+        OprName (abstract) : name representing an operator
+            Enclosing      : a pair of enclosing operators
+            PostFix        : a postfix operator
+            SubscriptAssign: subscripted assignment operator [ ] :=
+            SubscriptOp    : subscripting operator [ ]
+            Opr            : all the other operator
+
+ 4) What is the root of the node hierarchy, UIDObject?
+   - It provides a unique identification for each node.
+   - It should not include things that are applicable only to nodes.
+   - It should include things that are shared by nodes and the other parts
+     of the interpreter such as the "at" method.
+
+
+* Nodes That May Be Added Later
+ 1) Separate nodes for top-level functions, local functions, dotted methods,
+    functional methods, operators, coercions, getters, and setters.
+ 2) MethodInvocation and FieldSelection instead of MemberSelection
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 * TODO
- 0.
+ 1. clean up Fortress.ast
+
+0) TypeRef --> TraitType
 1) Option<List<TypeRef>> vs List<TypeRef>
 2) Decl/AbsDecl/AbsDeclOrDecl
 Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an Decl.  And then "AbsDeclOrDecl" should be the union of these sets of values.
 3) rename TypeRef to something else
-
-
- 1. Eric -- TupleExpr/TupleType/ArrowType
- 2. Dan -- interfaces
- 3. compile a list of Q/A from the emails with Dan
- 4. clean up Fortress.ast
- 5. clean up NodeFactory.java
- 6. clean up ExprFactory.java
- 7. clean up NodeUtil.java
- 8. clean up NodeComparator.java
- 9. clean up error messages
-
-
-* Questions and Answers
- 1. Option<List<TypeRef>> vs List<TypeRef>
- 2. FnName hierarchy
-
-* Things to do with the Fortress ASTGen input
- 1. Add comments to describe and give simple examples.
- 2. Implement not-yet-implemented features in the parser.
- 3. Restructure arrow types, tuple types, and tuple expressions.
- 4. Separate nodes for
-    function/functional method/dotted method/coercion/operator/getter/setter
- 5. Rename nodes and fields.
-
-* Criteria for the Fortress ASTGen input
- 1. reverse engineering the source code should be possible
- 2. convenience for visitors (vs if/then/else instanceof testing)
- 3. use subtypes (classes) for variance rather than wrappers (abstract clases)
- 4. don't propogate the subtype structure to enclosing method
- 5. only leaves are concrete classes
-
-* UIDObject
- 1. It should have things for uniqueness.
- 2. It should not include things that are applicable only for nodes.
- 3. It should include things that are shared by nodes and the other parts of the interpreter.
-
-* Dan's comments
 
 - Common fields should be hoisted where possible and where it makes sense (AbsObjectDecl/ObjectDecl both share defOrDecls, for example).  If there's not a common supertype, we should think about creating one.  (I wouldn't expect this where two classes have fields with the same types but different meanings, though.)
 
@@ -49,3 +57,15 @@ Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an De
 - I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
 
 - It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.
+
+
+
+ 2. Dan -- interfaces
+ 3. Eric -- TupleExpr/TupleType/ArrowType
+ 4. move java files from the parser directory to the parser_util directory
+ 5. clean up NodeFactory.java
+ 6. clean up ExprFactory.java
+ 7. clean up NodeUtil.java
+ 8. clean up NodeComparator.java
+ 9. clean up error messages
+10. Implement not-yet-implemented features in the parser.

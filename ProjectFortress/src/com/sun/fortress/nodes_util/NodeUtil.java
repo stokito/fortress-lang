@@ -29,6 +29,8 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 public class NodeUtil {
 
+    public static final String defaultSelfName = WellKnownNames.defaultSelfName;
+
     /* for AbstractNode ****************************************************/
     /**
      *

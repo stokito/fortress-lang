@@ -224,7 +224,7 @@ public abstract class SingleFcn extends Fcn {
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
                 String we_name = we.getId().getName();
-                List<TypeRef> we_supers = we.getSupers();
+                List<TraitType> we_supers = we.getSupers();
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
                 st.addExtends(eval_type.getFTypeListFromList(we_supers));
             }

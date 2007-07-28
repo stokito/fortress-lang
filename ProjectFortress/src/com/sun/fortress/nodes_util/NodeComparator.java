@@ -263,7 +263,7 @@ public class NodeComparator {
         if (x != 0) return x;
         x = typeRefListComparer.compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        x = typeRefListComparer.compare(left.getThrowsClause(), right.getThrowsClause());
+        x = traitTypeListComparer.compare(left.getThrowsClause(), right.getThrowsClause());
         return x;
     }
 

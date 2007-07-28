@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 begin ast;
 
@@ -232,8 +231,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
                                          = new None<List<Param>>(),
-                                     List<TypeRef> throwsClause
-                                         = Collections.<TypeRef>emptyList(),
+                                     List<TraitType> throwsClause
+                                         = Collections.<TraitType>emptyList(),
                                      Contract contract = new Contract())
                                     implements HasParams, GenericWithParams,
                                                GenericAbsDeclOrDeclWithParams;
@@ -323,8 +322,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              List<Param> params,
                              Option<TypeRef> returnType
                                  = new None<TypeRef>(),
-                             List<TypeRef> throwsClause
-                                 = Collections.<TypeRef>emptyList(),
+                             List<TraitType> throwsClause
+                                 = Collections.<TraitType>emptyList(),
                              List<WhereClause> where
                                  = Collections.<WhereClause>emptyList(),
                              Contract contract = new Contract())
@@ -344,14 +343,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * SubscriptAssignParam ::= Varargs | Param
          * e.g.) swap (x: Object, y: Object): (Object, Object)
          */
-        AbsFnDecl(String selfName = WellKnownNames.defaultSelfName) implements AbsDecl;
+        AbsFnDecl(String selfName = NodeUtil.defaultSelfName) implements AbsDecl;
         /**
          * functional declaration in components
          * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause (= Expr)?
          *          | FnSig
          * e.g.) swap (x, y) = (y, x)
          */
-        FnDecl(String selfName = WellKnownNames.defaultSelfName, Expr body);
+        FnDecl(String selfName = NodeUtil.defaultSelfName, Expr body);
     /**
      * value parameter of functional declarations and object declarations
      * e.g.) x: ZZ32 = 3
@@ -642,7 +641,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                List<Param> params,
                Option<TypeRef> returnType = new None<TypeRef>(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),
-               List<TypeRef> throwsClause = Collections.<TypeRef>emptyList(),
+               List<TraitType> throwsClause = Collections.<TraitType>emptyList(),
                Expr body)
               implements Applicable;
         /**
@@ -877,7 +876,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
         ArrowType(List<TypeRef> domain, TypeRef range,
-                  List<TypeRef> throwsClause);
+                  List<TraitType> throwsClause);
         /**
          * nonarrow type
          */
@@ -1106,7 +1105,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * WhereClause ::= Id Extends
          * e.g.) T extends Object
          */
-        WhereExtends(Id id, List<TypeRef> supers);
+        WhereExtends(Id id, List<TraitType> supers);
         /* nat parameter declared in where clauses (Mismatch with the Spec!)
          * WhereClause ::= nat Id
          * e.g.) nat length
@@ -1258,7 +1257,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) EltType extends Number absorbs unit
          */
         SimpleTypeParam(Id id,
-                        Option<List<TraitType>> extendsClause = 
+                        Option<List<TraitType>> extendsClause =
                             new None<List<TraitType>>(),
                         boolean absorbs = false);
        /**

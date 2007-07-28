@@ -433,7 +433,7 @@ public final class FortressUtil {
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         Option<Id> receiver,
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
-        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
         if (fhc.getContractClause().isPresent())
@@ -454,7 +454,7 @@ public final class FortressUtil {
                                         FnName name, List<StaticParam> sparams,
                                         List<Param> params,
                                         FnHeaderClause fhc) {
-        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
         if (fhc.getContractClause().isPresent())
@@ -473,7 +473,7 @@ public final class FortressUtil {
                              Some.<StaticParam>makeSomeListOrNone(
                                                FortressUtil.emptyStaticParams()),
                              params, Some.<TypeRef>make(ty),
-                             FortressUtil.emptyTypeRefs(),
+                             FortressUtil.emptyTraitTypes(),
                              FortressUtil.emptyWhereClauses(),
                              FortressUtil.emptyContract());
     }
@@ -481,7 +481,7 @@ public final class FortressUtil {
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
                                   Option<Id> receiver, FnHeaderFront fhf,
                                   FnHeaderClause fhc, Expr expr) {
-        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
         if (fhc.getContractClause().isPresent())
@@ -496,7 +496,7 @@ public final class FortressUtil {
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods, FnName name,
                                   List<StaticParam> sparams, List<Param> params,
                                   FnHeaderClause fhc, Expr expr) {
-        List<TypeRef> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
+        List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
         if (fhc.getContractClause().isPresent())
