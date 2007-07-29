@@ -162,9 +162,10 @@ testNotPassing, testOnly"/>
         <delete dir="${build}"/>
         <delete dir="${nodes}"/>
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
-        <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
+        <delete file="${nodesUtil}/InterfaceMaker.java"/ <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
+        <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
