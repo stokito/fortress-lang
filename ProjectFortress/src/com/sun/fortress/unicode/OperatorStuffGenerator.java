@@ -69,9 +69,9 @@ public class OperatorStuffGenerator {
     public static void main(String[] args) {
         // com.sun.fortress.interpreter.unicode/UnicodeData.410.txt java-interpreter/src/com.sun.fortress.interpreter.unicode/ operators.txt  Syntax.java
         String unicodeFile = ProjectProperties.BASEDIR + "third_party/unicode/UnicodeData.500.txt";
-        String dir = ProjectProperties.BASEDIR + "src/com/sun/fortress/parser/precedence/resolver/";
+        String dir = ProjectProperties.BASEDIR + "src/com/sun/fortress/parser_util/precedence_resolver/";
         String operatorFile = dir + "operators.txt";
-        String pkg = "com.sun.fortress.parser.precedence.resolver";
+        String pkg = "com.sun.fortress.parser_util.precedence_resolver";
         String cls = "Operators";
         String theJavaFile = dir + cls + ".java"; // The Java File
 

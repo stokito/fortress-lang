@@ -49,8 +49,9 @@
  <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
  <!-- parser -->
  <property name="parser"  location="${src}/${packagePrefix}/parser"/>
- <property name="precedence" location="${parser}/precedence"/>
- <property name="precedenceResolver" location="${parser}/precedence/resolver"/>
+ <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
+ <property name="precedence" location="${parserUtil}/precedence"/>
+ <property name="precedenceResolver" location="${parserUtil}/precedence_resolver"/>
  <!-- unicode -->
  <property name="unicodePackage" value="${packagePrefix}/unicode"/>
  <property name="unicode" location="${src}/${packagePrefix}/unicode"/>

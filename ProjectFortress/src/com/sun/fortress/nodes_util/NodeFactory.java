@@ -24,7 +24,7 @@ import java.math.BigInteger;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.parser.precedence.resolver.PrecedenceMap;
+import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */

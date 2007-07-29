@@ -25,7 +25,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.parser.precedence.resolver.PrecedenceMap;
+import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
