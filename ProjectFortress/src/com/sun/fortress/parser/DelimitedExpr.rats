@@ -120,8 +120,8 @@ Expr DelimitedExpr =
        if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
        if (a4 == null) finally_ = None.<Block>make();
        else            finally_ = Some.<Block>make(a4);
-       yyValue = new Try(createSpan(yyStart,yyCount), false, a1,
-                         catch_, FortressUtil.toTypeRefList(a3), finally_);
+       yyValue = new Try(createSpan(yyStart,yyCount), false, a1, catch_, a3,
+                         finally_);
      };
 
 /* Do ::= (DoFront w also w)* DoFront w end */

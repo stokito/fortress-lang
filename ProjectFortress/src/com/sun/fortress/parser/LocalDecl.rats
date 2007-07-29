@@ -96,7 +96,7 @@ private FnDecl LocalFnDecl =
      Id
    | Unpasting
  */
-AbsDeclOrDecl VarDecl :=
+VarFieldAbsDeclOrDecl VarDecl :=
      a1:(var w)? a2:VarWTypes s a3:InitVal
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        else if (a3.getB()) a2 = FortressUtil.setMutable(a2);

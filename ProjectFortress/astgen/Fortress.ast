@@ -92,10 +92,10 @@ interface Applicable(FnName fnName, Option<List<StaticParam>> staticParams,
  */
 interface GenericWithParams() extends Generic, HasParams;
 interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
-    interface GenericDecl() extends Generic, Decl;
-interface GenericAbsDeclOrDeclWithParams() extends Generic, AbsDeclOrDecl,
-              HasParams, GenericWithParams, GenericAbsDeclOrDecl;
-    interface GenericDeclWithParams() extends Generic, Decl, HasParams;
+    interface GenericDecl() extends Decl;
+interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
+                                                   GenericAbsDeclOrDecl;
+    interface GenericDeclWithParams() extends GenericDecl;
 
 
 /**
@@ -105,14 +105,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      extends UIDObject implements Node;
     /**
      * compilation unit
-     * Both Component and Api have List<? extends AbsDeclOrDecl> instead of
-     * List<Decl> for Component and List<AbsDecl> for Api because DimUnitDecl,
-     * TypeAlias, TestDecl, and PropertyDecl implements both AbsDecl and Decl
-     * and thus the parser needs to produce List<? extends AbsDeclOrDecl>.
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(DottedId dottedId, List<Import> imports,
-                             List<? extends AbsDeclOrDecl> decls);
+    abstract CompilationUnit(DottedId dottedId, List<Import> imports);
         /**
          * component
          * Component ::= component DottedId Imports? Exports Decls? end
@@ -121,7 +116,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *         run(args:String...) = print "Hello, World!\n"
          *       end
          */
-        Component(List<Export> exports);
+        Component(List<Export> exports, List<? extends Decl> decls);
         /**
          * API
          * Api ::= api DottedId Imports? AbsDecls? end
@@ -129,7 +124,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *         run(args:String...):()
          *       end
          */
-        Api();
+        Api(List<? extends AbsDecl> decls);
     /**
      * import statement
      * Import ::= import ImportFrom | import AliasedDottedIds
@@ -190,8 +185,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                       List<WhereClause> where
                                           = Collections.<WhereClause>emptyList(),
                                       List<? extends AbsDeclOrDecl> decls)
-                                     implements Generic, HasWhere, AbsDeclOrDecl,
-                                                GenericAbsDeclOrDecl;
+                                     implements HasWhere, GenericAbsDeclOrDecl;
         /**
          * trait declaration in components or APIs
          */
@@ -225,7 +219,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
              *       end
              */
-            TraitDecl() implements Decl, GenericDecl;
+            TraitDecl() implements GenericDecl;
         /**
          * object declaration in components or APIs
          */
@@ -234,8 +228,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                      List<TraitType> throwsClause
                                          = Collections.<TraitType>emptyList(),
                                      Contract contract = new Contract())
-                                    implements HasParams, GenericWithParams,
-                                               GenericAbsDeclOrDeclWithParams;
+                                    implements GenericAbsDeclOrDeclWithParams;
             /**
              * object declaration in APIs
              * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
@@ -253,11 +246,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         length() = 0
              *       end
              */
-            ObjectDecl() implements Decl, GenericDecl, GenericDeclWithParams;
+            ObjectDecl() implements GenericDeclWithParams;
     /**
      * variable declaration in components or APIs
      */
-    abstract VarAbsDeclOrDecl(List<LValue> lhs) implements AbsDeclOrDecl;
+    abstract VarAbsDeclOrDecl(List<LValue> lhs) implements AbsDeclOrDecl,
+                                                           VarFieldAbsDeclOrDecl;
         /**
          * variable declaration in APIs
          * AbsVarDecl ::= AbsVarMods? VarWTypes
@@ -327,7 +321,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              List<WhereClause> where
                                  = Collections.<WhereClause>emptyList(),
                              Contract contract = new Contract())
-                            implements Generic, Applicable, Decl, GenericDecl;
+                            implements Applicable, GenericDecl;
         /**
          * functional declaration in APIs
          * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
@@ -533,7 +527,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                    Option<List<StaticParam>> staticParams,
                                    List<StaticArg> staticArgs,
                                    Option<List<Param>> params)
-                                  implements Generic, HasParams, GenericWithParams;
+                                  implements GenericWithParams;
             /**
              * try expression
              * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
@@ -545,7 +539,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       end
              */
             Try(Block body, Option<Catch> catchClause = new None<Catch>(),
-                List<TypeRef> forbid = Collections.<TypeRef>emptyList(),
+                List<TraitType> forbid = Collections.<TraitType>emptyList(),
                 Option<Block> finallyClause = new None<Block>());
             /**
              * tuple expression (Mismatch with the Spec!)
@@ -875,7 +869,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * ArrowType ::= NonArrowType -> NonArrowType Throws?
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
-        ArrowType(List<TypeRef> domain, TypeRef range,
+        ArrowType(List<TypeRef> domain, NonArrowType range,
                   List<TraitType> throwsClause);
         /**
          * nonarrow type
@@ -1370,7 +1364,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * CatchClause ::= TraitType => BlockElems
      * e.g.) IOException => throw ForbiddenException(e)
      */
-    CatchClause(TypeRef match, Block body);
+    CatchClause(TraitType match, Block body);
     /**
      * block expression used in do expressions
      * DoFront ::= (at Expr)? atomic? do BlockElems?

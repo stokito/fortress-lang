@@ -36,6 +36,6 @@ import Spacing;
    | ( w FldWType (w , w FldWType)+ w )
    FldWType ::= Id w IsType
  */
-AbsDeclOrDecl FldDecl = VarDecl ;
+VarFieldAbsDeclOrDecl FldDecl = VarDecl ;
 
 List<Modifier> VarMods := FldMods ;
