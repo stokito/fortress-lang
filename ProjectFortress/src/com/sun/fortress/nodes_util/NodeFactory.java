@@ -250,7 +250,7 @@ public class NodeFactory {
                                             List<WhereClause> where,
                                             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
-                              defs2, params, throws_, contract);
+                              params, throws_, contract, defs2);
     }
 
     public static Op makeOp(Span span, String name) {

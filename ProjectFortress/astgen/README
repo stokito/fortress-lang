@@ -69,3 +69,122 @@ Note that AbsFnDecl implements them both.  AbsExternalSyntax should not be an De
  8. clean up NodeComparator.java
  9. clean up error messages
 10. Implement not-yet-implemented features in the parser.
+
+CompilationUnit
+TraitObjectAbsDeclOrDecl
+AbstractObjectExpr
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::=
+     ( w TypeRef w )
+   | ArrowType
+   | NonArrowType
+
+ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)?
+
+NonArrowType ::=
+     TraitType
+   | TupleType
+   | ( w )
+   | DimType
+
+TraitType ::=
+     DottedId (w [\ w StaticArgList w \])?
+   | TypeRef w [ (w ArraySize)? w ]
+   | TypeRef ^ StaticArgFront
+   | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::=
+     ( w TypeRef w )
+   | NonArrowType w -> w NonArrowType (w Throws)?
+   | NonArrowType
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::=
+     ( w TypeRef w )
+   | NonArrowType ArrowTypeTail?
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::=
+     ( w TypeRef w )
+   | TraitType ArrowTypeTail?
+   | TupleType ArrowTypeTail?
+   | ( w ) ArrowTypeTail?
+   | DimType ArrowTypeTail?
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::=
+     ( w TypeRef w )
+   | DottedId (w [\ w StaticArgList w \])? ArrowTypeTail?
+   | TupleType ArrowTypeTail?
+   | ( w ) ArrowTypeTail?
+   | TypeRef w [ (w ArraySize)? w ] ArrowTypeTail?
+   | TypeRef ^ StaticArgFront ArrowTypeTail?
+   | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w ) ArrowTypeTail?
+/*
+   | DimType ArrowTypeTail?
+*/
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::= TypeRefFront TypeRefTail*
+TypeRefFront ::=
+     ( w TypeRef w )
+   | DottedId (w [\ w StaticArgList w \])? ArrowTypeTail?
+   | TupleType ArrowTypeTail?
+   | ( w ) ArrowTypeTail?
+/*
+   | DimType ArrowTypeTail?
+*/
+TypeRefTail ::=
+     w [ (w ArraySize)? w ] ArrowTypeTail?
+   | ^ StaticArgFront ArrowTypeTail?
+   | ^ ( w ExtentRange (w x w ExtentRange)* w ) ArrowTypeTail?
+
+ArrowTypeTail ::= w -> w NonArrowType (w Throws)?
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TypeRef ::= TypeRefFront TypeRefTail*
+TypeRefFront ::=
+     ( w TypeRef w )
+   | TypeRefFrontNonArrow  w -> w NonArrowType (w Throws)?
+   | TypeRefFrontNonArrow
+
+TypeRefFrontNonArrow ::=
+     DottedId (w [\ w StaticArgList w \])?
+   | TupleType
+   | ( w )
+/*
+   | DimType
+*/
+
+TypeRefTail ::=
+     w [ (w ArraySize)? w ] ArrowTypeTail?
+   | ^ StaticArgFront ArrowTypeTail?
+   | ^ ( w ExtentRange (w x w ExtentRange)* w ) ArrowTypeTail?
+
+ArrowTypeTail ::= w -> w NonArrowType (w Throws)?
+
+ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)?
+
+NonArrowType ::=
+     TraitType
+   | TupleType
+   | ( w )
+/*
+   | DimType
+*/
+
+TraitType ::=
+     DottedId (w [\ w StaticArgList w \])?
+   | TypeRef w [ (w ArraySize)? w ]
+   | TypeRef ^ StaticArgFront
+   | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )

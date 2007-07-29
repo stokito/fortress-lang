@@ -61,6 +61,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;

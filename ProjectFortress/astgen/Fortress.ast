@@ -54,11 +54,11 @@ interface Node() extends HasAt;
          * declaration in components
          */
         interface Decl();
-        /**
-         * top-level variable, local variable, and field declaration
-         * in components or APIs
-         */
-        interface VarFieldAbsDeclOrDecl();
+            /**
+             * top-level variable, local variable, and field declaration
+             * in components or APIs
+             */
+            interface VarFieldAbsDeclOrDecl() extends AbsDecl;
     /**
      * left-hand-side of assignments, local variable declarations, or
      * top-level declarations.
@@ -192,7 +192,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract TraitAbsDeclOrDecl(List<TraitType> excludes
                                         = Collections.<TraitType>emptyList(),
                                     Option<List<TraitType>> comprises
-                                        = new None<List<TraitType>>());
+                                        = new None<List<TraitType>>(),
+                                    List<? extends AbsDeclOrDecl> decls);
             /**
              * trait declaration in APIs
              * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
@@ -208,7 +209,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         cons(x: alph): List[\alpha\]
              *       end
              */
-            AbsTraitDecl() implements AbsDecl;
+            AbsTraitDecl(List<? extends AbsDecl> decls) implements AbsDecl;
             /**
              * trait declaration in components
              * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
@@ -219,7 +220,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
              *       end
              */
-            TraitDecl() implements GenericDecl;
+            TraitDecl(List<? extends Decl> decls) implements GenericDecl;
         /**
          * object declaration in components or APIs
          */
@@ -227,7 +228,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                          = new None<List<Param>>(),
                                      List<TraitType> throwsClause
                                          = Collections.<TraitType>emptyList(),
-                                     Contract contract = new Contract())
+                                     Contract contract = new Contract(),
+                                     List<? extends AbsDeclOrDecl> decls)
                                     implements GenericAbsDeclOrDeclWithParams;
             /**
              * object declaration in APIs
@@ -238,7 +240,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * Throws ::= throws MayTraitTypes
              * e.g.) object Empty[\alph\]() extends List[\alpha\] end
              */
-            AbsObjectDecl() implements AbsDecl;
+            AbsObjectDecl(List<? extends AbsDecl> decls) implements AbsDecl;
             /**
              * object declaration in components
              * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
@@ -246,12 +248,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         length() = 0
              *       end
              */
-            ObjectDecl() implements GenericDeclWithParams;
+            ObjectDecl(List<? extends Decl> decls)
+                      implements GenericDeclWithParams;
     /**
      * variable declaration in components or APIs
      */
-    abstract VarAbsDeclOrDecl(List<LValue> lhs) implements AbsDeclOrDecl,
-                                                           VarFieldAbsDeclOrDecl;
+    abstract VarAbsDeclOrDecl(List<LValue> lhs) implements VarFieldAbsDeclOrDecl;
         /**
          * variable declaration in APIs
          * AbsVarDecl ::= AbsVarMods? VarWTypes
@@ -509,7 +511,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause
                                             = new None<List<TraitType>>(),
-                                        List<? extends AbsDeclOrDecl> decls);
+                                        List<? extends Decl> decls);
                 /**
                  * object expression
                  * DelimitedExpr ::= object Extends? GoInAnObject end

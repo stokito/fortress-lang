@@ -45,6 +45,10 @@ import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbsDecl;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
@@ -526,9 +530,25 @@ public class Disambiguate extends Rewrite {
                     AbstractNode n = visitNode(node);
 
                     return n;
-                } else if (node instanceof TraitAbsDeclOrDecl) {
-                    TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) node;
-                    List<? extends AbsDeclOrDecl> defs = td.getDecls();
+                } else if (node instanceof AbsTraitDecl) {
+                    AbsTraitDecl td = (AbsTraitDecl) node;
+                    List<? extends AbsDecl> defs = td.getDecls();
+                    Option<List<StaticParam>> tparams = td.getStaticParams();
+                    // TODO wip
+                    objectNestingDepth++;
+                    atTopLevelInsideTraitOrObject = true;
+                    defsToMembers(defs);
+                    immediateDef = tparamsToLocals(tparams, immediateDef);
+
+                    accumulateMembersFromExtends(td);
+
+                    inTrait = true;
+                    AbstractNode n = visitNode(node);
+                    inTrait = false;
+                    return n;
+                } else if (node instanceof TraitDecl) {
+                    TraitDecl td = (TraitDecl) node;
+                    List<? extends Decl> defs = td.getDecls();
                     Option<List<StaticParam>> tparams = td.getStaticParams();
                     // TODO wip
                     objectNestingDepth++;
