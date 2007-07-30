@@ -24,8 +24,8 @@ fib(n:ZZ32): ZZ32 =
   end
 
 run(args:String...):()=do
-  println(fib(20))
-  println(fib(25))
+  assert(fib(20),6765,"fib(20) wrong")
+  assert(fib(25),75025,"fib(25) wrong")
 end
 
 end
