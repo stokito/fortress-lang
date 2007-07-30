@@ -82,6 +82,8 @@ value object PureList[\E\]( it: FingerTree[\E\] )
           (_,res) = it.index(n)
           res
       end
+  opr [n:Range[\ZZ32\]]: PureList[\E\] =
+      drop(n.base()).take(n.size())
   split(n:ZZ32): (PureList[\E\], PureList[\E\]) =
       if n <= 0 then
           (emptyList[\E\](),self)
@@ -96,7 +98,20 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       (PureList[\E\](l),PureList[\E\](r))
     end
   reverse(): PureList[\E\] =  PureList[\E\](it.revMap(identity[\E\]))
-      (* generate[\PureList[\E\]\](ConcatReverse[\E\](), singleton[\E\]) *)
+  zip[\F\](other: PureList[\F\]): Generator[\(E,F)\] =
+      ZipGenerator[\E,F\](self,other)
+  filter(p: E -> Boolean): PureList[\E\] =
+      generate[\PureList[\E\]\](Concat[\E\](),
+                                fn (x)=> if p(x) then singleton[\E\](x)
+                                         else emptyList[\E\]() end)
+  opr =(self, other: PureList[\E\]): Boolean = do
+      println("In PureList =")
+      if self.size() = other.size() then
+          println("Sizes match")
+          self.zip[\E\](other).generate[\Boolean\](AndReduction,
+                                                   fn(a,b) => a=b)
+      else println("Sizes don't match"); false end
+    end
   toString():String =
     "<|" caseLeft[\E,String\](
              it,fn ( )=> " ",
@@ -137,9 +152,56 @@ caseLeft[\E,R\](l: NonEmptyFingerTree[\E\], _: ()->R,
 
 value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
         extends { SequentialGenerator[\E\] }
-  getter size(): ZZ32 = leafSize(it)
-  generate[\R\](r: Reduction[\R\], body: E->R): R =
-      it.seqgen[\R\](r,fn (x: E): R => body(x))
+    getter size(): ZZ32 = leafSize(it)
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        it.seqgen[\R\](r,fn (x: E): R => body(x))
+end
+
+(* The ZipGenerator works by first chopping the lists so that they are
+the same size, then successively splitting them.  The first argument
+is used as a template to guide the splitting process; the second
+argument is then split to match. *)
+value object ZipGenerator[\A,B\](transient x0: PureList[\A\],
+                                 transient y0: PureList[\B\])
+        extends { Generator[\(A,B)\] }
+    sz = (x0.size() MIN y0.size())
+    xs = x0.take(sz)
+    ys = y0.take(sz)
+    getter size() = sz
+    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
+        zgen(a: PureList[\A\], b: PureList[\B\]): R =
+          if a.size() > 1 then
+              (al,ar) = a.split()
+              (bl,br) = b.split(al.size())
+              r.join(zgen(al,bl),zgen(ar,br))
+          elif a.empty() then
+              r.empty()
+          else
+              body(a[0],b[0])
+          end
+        zgen(xs,ys)
+      end
+end
+
+value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:PureList[\A\], ys:PureList[\B\])
+        extends { SequentialGenerator[\E\] }
+    getter size() = sz
+    generate[\R\](r: Reduction[\R\], body: E->R): R = do
+        zgen(a: PureList[\A\], b: PureList[\B\]): R =
+          if a.size() > 1 then
+              (al,ar) = a.split()
+              (bl,br) = b.split(al.size())
+              zgl = zgen(al,bl)
+              zgr = zgen(ar,br)
+              r.join(zgl,zgr)
+          elif a.empty() then
+              r.empty()
+          else
+              body(a[0],b[0])
+          end
+        zgen(xs,ys)
+      end
 end
 
 emptyList[\E\](): PureList[\E\] = PureList[\E\](D0[\E\]())
@@ -178,12 +240,6 @@ end
 object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
   empty(): PureList[\E\] = PureList[\E\](D0[\E\]())
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
-end
-
-(* A reduction object for concatenating lists in reverse. *)
-object ConcatReverse[\E\]() extends Reduction[\ PureList[\E\] \]
-  empty(): PureList[\E\] = PureList[\E\](D0[\E\]())
-  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = b.append(a)
 end
 
 object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]

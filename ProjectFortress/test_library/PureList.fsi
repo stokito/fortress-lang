@@ -46,8 +46,13 @@ value object PureList[\E\]( it: FingerTree[\SizedBase[\E\]\] )
   take(n:ZZ32): PureList[\E\]
   drop(n:ZZ32): PureList[\E\]
   opr [n:ZZ32]: E
+  opr [n:Range[\ZZ32\]]: PureList[\E\]
   split(n:ZZ32): (PureList[\E\], PureList[\E\])
   split(): (PureList[\E\], PureList[\E\])
+  reverse(): PureList[\E\]
+  zip[\F\](other: PureList[\F\]): Generator[\(E,F)\]
+  filter(p: E -> Boolean): PureList[\E\]
+  opr =(self, other: PureList[\E\]): Boolean
   toString():String
 end
 

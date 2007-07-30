@@ -29,15 +29,24 @@ assertStr(a:Boolean, s:String, l: PureList[\ZZ32\]) =
     fail("Failed assertion: " s l.toString())
   end
 
-chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = do
-  n : ZZ32 := 0
+assertStr(a:Boolean, s:String, l: PureList[\ZZ32\], r: PureList[\ZZ32\]) =
+  if NOT a then
+    fail("Failed assertion: " s l.toString() " and " r.toString())
+  end
+
+chkPop(l:PureList[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
+  assertStr(sz,l.size()," .size() mismatch in ",l)
+  n : ZZ32 := fro
   for e <- seq(l) do
       assertStr(e,n,"Element wrong in ",l)
-      n+=1
+      n+=by
   end
-  assertStr(n,sz," size mismatch in ",l)
-  assertStr(sz,l.size()," .size() mismatch in ",l)
+  assertStr(n, fro + sz by," size mismatch in ",l)
 end
+
+chkPop(l:PureList[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPop(l,fro,sz,1)
+
+chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = chkPop(l,0,sz,1)
 
 chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
   ll : PureList[\ZZ32\] := l
@@ -67,12 +76,13 @@ run(args:String...):() = do
   for i <- seq(testLens) do
       print("\n" i ":")
       li = list(0#i)
-      println(li)
       chkPop(li,i)
       chkExtract(li,i)
       (ll,lr) = li.split()
       lii = ll.append(lr)
       chkPop(lii,i)
+      fli = li.filter(fn x => x REM 2 = 0)
+      chkPop(fli,0,(i+1) DIV 2,2)
       rli=li.reverse()
       for j <- 0#i do
           print(".")
@@ -82,16 +92,24 @@ run(args:String...):() = do
       for j <- 0#(i+1) do
           print(".")
           (l,r) = li.split(j)
-          assertStr(l.size(),j," left split size wrong ", l)
-          assertStr(r.size(),i-j, " right split size wrong ", r)
+          chkPop(l,j)
+          chkPop(r,j,i-j)
           (l1,r1) = (li.take(j),li.drop(j))
-          assertStr(l1.size(),j," take size wrong ", l1)
-          assertStr(r1.size(),i-j, " drop size wrong ", r1)
+          chkPop(l1,j)
+          chkPop(r1,j,i-j)
+          (l2,r2) = (li[0#j],li[j#(i-j)])
+          chkPop(l2,j)
+          chkPop(r2,j,i-j)
       end
       for j <- testLens do
           print(".")
           lj = list(i#j)
           chkPop(li.append(lj),i+j)
+          gz = li.zip[\ZZ32\](lj)
+          assert(gz.size(),li.size() MIN lj.size(), "zip size wrong")
+          assertStr(gz.generate[\Boolean\](AndReduction,
+                                           fn (x,y):Boolean => x+i=y),
+                    "zip mismatch ",li,lj)
       end
   end
   println("\nSucceeded")
