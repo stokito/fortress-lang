@@ -315,9 +315,6 @@ public class ExprFactory {
                 return new Typecase(e.getSpan(), true, e.getBind(),
                                     e.getClauses(), e.getElseClause());
             }
-            public Expr forVarargsExpr(VarargsExpr e) {
-                return new VarargsExpr(e.getSpan(), true, e.getVarargs());
-            }
             public Expr forWhile(While e) {
                 return new While(e.getSpan(), true, e.getTest(), e.getBody());
             }

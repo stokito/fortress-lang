@@ -565,12 +565,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             Typecase(List<Binding> bind, List<TypecaseClause> clauses,
                      Option<Block> elseClause = None.<Block>make());
             /**
-             * varargs expression used in tuple expressions (Mismatch with the Spec!)
-             * VarargsExpr ::= Expr...
-             * e.g.) [3 4 5]...
-             */
-            VarargsExpr(Expr varargs);
-            /**
              * while expression
              * DelimitedExpr ::= while Expr Do
              * e.g.) while x < 10 do print x; x += 1 end
@@ -1465,4 +1459,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) grams per cubic centimeter
          */
         InverseDimUnit();
+    /**
+     * varargs expression used in tuple expressions (Mismatch with the Spec!)
+     * VarargsExpr ::= Expr...
+     * e.g.) [3 4 5]...
+     */
+    VarargsExpr(Expr varargs);
 end;
