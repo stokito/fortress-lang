@@ -1045,7 +1045,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     errorMsg("Value should be an object; got " + arr));
         }
         FObject array = (FObject) arr;
-        FValue ixing = array.getSelfEnv().getValue("[]");
+        FValue ixing = array.getSelfEnv().getValueNull("[]");
         if (ixing == null || !(ixing instanceof Method)) {
             throw new ProgramError(x,
                     errorMsg("Could not find appropriate definition of opr [] on ",

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public abstract class FConstructedValue extends FValue {
     /**
@@ -25,7 +26,22 @@ public abstract class FConstructedValue extends FValue {
      */
     private FType ftype;
 
-    public FType type() { return ftype; }
+    /**
+     * Getter for ftype.  Should always be non-null, but right now
+     * FGenericFunction never calls setFtype and this returns null in
+     * that case.  This leads to extensive bugs particularly when a
+     * generic function is overloaded along with non-generic siblings,
+     * or when a generic function is passed as an argument to an
+     * overloaded function without providing an explicit type
+     * instantiation.  Delete "&& false" to enable checking if you're
+     * trying to fix this bug.
+     */
+    public FType type() {
+        if (ftype==null && false) {
+            throw new NullPointerException(errorMsg("No type information for ", this));
+        }
+        return ftype;
+    }
 
     /**
      * @param ftype The ftype to set.

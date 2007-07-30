@@ -141,6 +141,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 throw new ProgramError(loc,
                         errorMsg("Parameter needs type for generic resolution"));
             FType at = a.type();
+            if (at==null) {
+                throw new Error(errorMsg(NodeUtil.getAt(loc)," Argument ",a," has no type information"));
+            }
             try {
                 at.unify(e, tp_set, abm, t.getVal());
             } catch (ProgramError ex) {

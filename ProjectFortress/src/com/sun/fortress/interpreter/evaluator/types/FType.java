@@ -413,7 +413,7 @@ abstract public class FType implements Comparable<FType> {
                         if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
                         throw th;
                     }
-                    if (DUMP_UNIFY) System.out.print(" result abm= " + abm);
+                    if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
                     return;
                 }
             }
@@ -422,7 +422,7 @@ abstract public class FType implements Comparable<FType> {
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
             if (t.unifyNonVar(env, tp_set, abm, val)) return;
-            if (DUMP_UNIFY) System.out.println("            "+this+" !=  "+val+", abm=" + abm);
+            if (DUMP_UNIFY) System.out.println("            "+t+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }
         throw new ProgramError(val,env,
