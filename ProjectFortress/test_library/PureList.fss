@@ -95,8 +95,8 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       (l,r) = it.split()
       (PureList[\E\](l),PureList[\E\](r))
     end
-  reverse(): PureList[\E\] =
-      generate[\PureList[\E\]\](ConcatReverse[\E\](), singleton[\E\])
+  reverse(): PureList[\E\] =  PureList[\E\](it.revMap(identity[\E\]))
+      (* generate[\PureList[\E\]\](ConcatReverse[\E\](), singleton[\E\]) *)
   toString():String =
     "<|" caseLeft[\E,String\](
              it,fn ( )=> " ",
@@ -164,11 +164,14 @@ trait Sized
     leafSize(self):ZZ32
 end
 
-trait FTStructure[\E\] extends { Sized }
+trait FTStructure[\E\] extends Sized
+    comprises { FingerTree[\E\], D04[\E\] }
   generate[\R\](r: Reduction[\R\], body: E->R): R
   seqgen[\R\](r: Reduction[\R\], body: E->R): R
   ivgen[\R\](leftIndex: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
   sivgen[\R\](leftIndex: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
+  split():(FTStructure[\E\],FTStructure[\E\])
+  revMap(f:E -> E):FTStructure[\E\]
 end
 
 (* A reduction object for concatenating lists. *)
@@ -348,6 +351,7 @@ object D0[\E\]() extends { D01[\E\] }
   index(_:ZZ32): (ZZ32, E) = fail("D0[] should never be called.")
   split(_:ZZ32): (D0[\E\],D0[\E\]) = split()
   split(): (D0[\E\],D0[\E\]) = (self,self)
+  revMap(f:E->E): D0[\E\] = self
 end
 
 object D1[\E\](a:E)
@@ -403,6 +407,7 @@ object D1[\E\](a:E)
       e = D0[\E\]()
       (e,a,e)
     end
+  revMap(f:E->E): D1[\E\] = D1[\E\](f(a))
 end
 
 object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
@@ -486,6 +491,7 @@ object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
           (D1[\E\](a), b, D0[\E\]())
       end
   split():(D1[\E\],D1[\E\]) = (D1[\E\](a),D1[\E\](b))
+  revMap(f:E->E): D2[\E\] = D2[\E\](f(b),f(a))
 end
 
 object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
@@ -587,6 +593,7 @@ object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
           end
       end
   split():(D2[\E\],D1[\E\]) = (D2[\E\](a,b),D1[\E\](c))
+  revMap(f:E->E): D3[\E\] = D3[\E\](f(c),f(b),f(a))
 end
 
 object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
@@ -709,6 +716,7 @@ object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
           end
       end
   split():(D2[\E\],D2[\E\]) = (D2[\E\](a,b),D2[\E\](c,d))
+  revMap(f:E->E): D4[\E\] = D4[\E\](f(d),f(c),f(b),f(a))
 end
 
 object Deep[\E\]
@@ -878,6 +886,10 @@ object Deep[\E\]
               (deepR[\E\](l,m,rl), rm, rr.toFinger())
           end
       end
+  revMap(f: E->E): Deep[\E\] =
+      Deep[\E\](r.revMap(f),
+                m.revMap(fn (x:D23[\E\]):D23[\E\] => x.revMap(f)),
+                l.revMap(f))
 end
 
 deepL[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]) =
