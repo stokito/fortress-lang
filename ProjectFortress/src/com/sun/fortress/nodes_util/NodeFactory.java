@@ -135,23 +135,25 @@ public class NodeFactory {
         return makeDottedId(span, string);
     }
 
-    /** Alternatively, you can invoke the FnDecl constructor without a selfName */
-    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
-                                    Option<Id> optSelfName, FnName name,
-                                    Option<List<StaticParam>> staticParams,
-                                    List<Param> params,
-                                    Option<TypeRef> returnType,
-                                    List<TraitType> throwss,
-                                    List<WhereClause> where, Contract contract,
-                                    Expr body) {
+    /**
+     * Alternatively, you can invoke the FnDef constructor without a selfName
+     */
+    public static FnDef makeFnDecl(Span s, List<Modifier> mods,
+                                   Option<Id> optSelfName, FnName name,
+                                   Option<List<StaticParam>> staticParams,
+                                   List<Param> params,
+                                   Option<TypeRef> returnType,
+                                   List<TraitType> throwss,
+                                   List<WhereClause> where, Contract contract,
+                                   Expr body) {
         String selfName;
         if (optSelfName.isPresent()) {
             selfName = optSelfName.getVal().getName();
         } else {
             selfName = WellKnownNames.defaultSelfName;
         }
-        return new FnDecl(s, mods, name, staticParams, params, returnType,
-                          throwss, where, contract, selfName, body);
+        return new FnDef(s, mods, name, staticParams, params, returnType,
+                         throwss, where, contract, selfName, body);
     }
 
     /** Alternatively, you can invoke the Id constructor without a span */

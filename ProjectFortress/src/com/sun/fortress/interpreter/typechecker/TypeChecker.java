@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.For;
@@ -145,8 +145,8 @@ public final class TypeChecker extends NodeAbstractVisitor<TypeCheckerResult> {
         return TypeCheckerResult.VALID;
     }
 
-    public TypeCheckerResult forFnDecl(FnDecl d) {
-        // FnDecl(Span span, List<Modifier> mods, FnName name, Option<List<StaticParam>> staticParams,
+    public TypeCheckerResult forFnDef(FnDef d) {
+        // FnDef(Span span, List<Modifier> mods, FnName name, Option<List<StaticParam>> staticParams,
         //        List<Param> params, Option<TypeRef> returnType, List<TypeRef> throwss,
         //        List<WhereClause> where, Contract contract, Expr body)
         if (!d.getStaticParams().isPresent()) { // TODO: static param bindings

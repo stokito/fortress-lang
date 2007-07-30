@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DimDecl;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
@@ -71,7 +71,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
     public Voidoid forAbsFnDecl(AbsFnDecl x) {
@@ -80,10 +80,10 @@ public class EvalVarsEnvironment extends BuildEnvironments {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
+     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDef(com.sun.fortress.interpreter.nodes.FnDef)
      */
     @Override
-    public Voidoid forFnDecl(FnDecl x) {
+    public Voidoid forFnDef(FnDef x) {
         return null;
 
     }

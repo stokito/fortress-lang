@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.values.PartiallyDefinedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
@@ -94,7 +94,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         return null;
     }
 
-    protected void forFnDecl3(FnDecl x) {
+    protected void forFnDef3(FnDef x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 

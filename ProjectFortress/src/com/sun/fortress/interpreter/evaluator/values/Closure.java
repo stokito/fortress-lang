@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.useful.Option;

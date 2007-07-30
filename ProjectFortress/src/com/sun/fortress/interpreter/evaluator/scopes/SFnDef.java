@@ -18,12 +18,12 @@
 package com.sun.fortress.interpreter.evaluator.scopes;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 
 
 public class SFnDef extends Base {
 
-    public SFnDef(Environment environment, FnDecl f) {
+    public SFnDef(Environment environment, FnDef f) {
         super(environment);
         // TODO Auto-generated constructor stub
     }

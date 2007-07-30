@@ -63,7 +63,7 @@ private Expr BlockElem =
 /* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
 private LetExpr LocalVarFnDecl =
      a1:LocalFnDecl a2s:(br LocalFnDecl)*
-     { List<FnDecl> fns = FortressUtil.mkList(a1, a2s.list());
+     { List<FnDef> fns = FortressUtil.mkList(a1, a2s.list());
        yyValue = new LetFn(createSpan(yyStart,yyCount), false,
                            FortressUtil.emptyExprs(), fns);
      }
@@ -72,7 +72,7 @@ private LetExpr LocalVarFnDecl =
 /* LocalFnDecl ::=
      LocalFnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
-private FnDecl LocalFnDecl =
+private FnDef LocalFnDecl =
      a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w
      a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();

@@ -54,7 +54,7 @@ import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.MemberSelection;
 import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
@@ -442,9 +442,9 @@ public class Disambiguate extends Rewrite {
                     // handled
                     // at the enclosing block.
 
-                } else if (node instanceof FnDecl) {
+                } else if (node instanceof FnDef) {
                     // params no longer eligible for com.sun.fortress.interpreter.rewrite.
-                    FnDecl fndef = (FnDecl) node;
+                    FnDef fndef = (FnDef) node;
                     if (atTopLevelInsideTraitOrObject) {
                         currentSelfName = fndef.getSelfName();
                         e.put(currentSelfName, new SelfRewrite(currentSelfName));
@@ -502,7 +502,7 @@ public class Disambiguate extends Rewrite {
                     atTopLevelInsideTraitOrObject = false;
                     // defined var is no longer eligible for rewrite.
                     LetFn lf = (LetFn) node;
-                    List<FnDecl> defs = lf.getFns();
+                    List<FnDef> defs = lf.getFns();
                     defsToLocals(defs);
                     // All the function names are in scope in the function
                     // definitions, and in the body of code that follows them.

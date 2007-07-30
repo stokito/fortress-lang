@@ -65,7 +65,7 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Id;
@@ -433,7 +433,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
 
 
-    private void forFnDecl1(FnDecl x) {
+    private void forFnDef1(FnDef x) {
         Option<List<StaticParam>> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
@@ -464,11 +464,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     }
 
-   private void forFnDecl2(FnDecl x) {
+   private void forFnDef2(FnDef x) {
 
    }
    // Overridden in BuildTraitEnvironment
-   protected void forFnDecl3(FnDecl x) {
+   protected void forFnDef3(FnDef x) {
        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
 
@@ -509,21 +509,21 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
            }
        }
   }
-   private void forFnDecl4(FnDecl x) {
+   private void forFnDef4(FnDef x) {
    }
 
  /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDef)
      */
     @Override
-    public Voidoid forFnDecl(FnDecl x) {
+    public Voidoid forFnDef(FnDef x) {
         switch (pass) {
-        case 1: forFnDecl1(x); break;
-        case 2: forFnDecl2(x); break;
-        case 3: forFnDecl3(x); break;
-        case 4: forFnDecl4(x); break;
+        case 1: forFnDef1(x); break;
+        case 2: forFnDef2(x); break;
+        case 3: forFnDef3(x); break;
+        case 4: forFnDef4(x); break;
         }
        return null;
     }
@@ -1449,7 +1449,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
     public Voidoid forAbsFnDecl(AbsFnDecl x) {

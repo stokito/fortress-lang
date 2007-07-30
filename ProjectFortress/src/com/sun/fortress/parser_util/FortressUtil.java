@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.EnsuresClause;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Id;
@@ -493,9 +493,9 @@ public final class FortressUtil {
                              FortressUtil.emptyContract());
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
-                                  Option<Id> receiver, FnHeaderFront fhf,
-                                  FnHeaderClause fhc, Expr expr) {
+    public static FnDef mkFnDecl(Span span, List<Modifier> mods,
+                                 Option<Id> receiver, FnHeaderFront fhf,
+                                 FnHeaderClause fhc, Expr expr) {
         List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
@@ -508,9 +508,9 @@ public final class FortressUtil {
                     contract, expr);
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods, FnName name,
-                                  List<StaticParam> sparams, List<Param> params,
-                                  FnHeaderClause fhc, Expr expr) {
+    public static FnDef mkFnDecl(Span span, List<Modifier> mods, FnName name,
+                                 List<StaticParam> sparams, List<Param> params,
+                                 FnHeaderClause fhc, Expr expr) {
         List<TraitType> throws_ = FortressUtil.getListVal(fhc.getThrowsClause());
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
         Contract contract;
@@ -523,9 +523,9 @@ public final class FortressUtil {
                           contract, expr);
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
-                                  FnHeaderFront fhf, FnHeaderClause fhc,
-                                  Expr expr) {
+    public static FnDef mkFnDecl(Span span, List<Modifier> mods,
+                                 FnHeaderFront fhf, FnHeaderClause fhc,
+                                 Expr expr) {
         return mkFnDecl(span, mods, None.<Id>make(), fhf, fhc, expr);
     }
 

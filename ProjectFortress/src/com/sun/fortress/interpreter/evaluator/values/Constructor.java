@@ -39,7 +39,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
@@ -356,7 +356,7 @@ public class Constructor extends AnonymousConstructor {
         if (sf instanceof MethodClosure) {
             MethodClosure pdm = (MethodClosure) sf;
             Applicable a = pdm.getDef();
-            if (a instanceof FnDecl)
+            if (a instanceof FnDef)
                 return false;
             return true;
         }

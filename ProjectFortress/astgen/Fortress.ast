@@ -320,7 +320,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                  = Collections.<TraitType>emptyList(),
                              List<WhereClause> where
                                  = Collections.<WhereClause>emptyList(),
-                             Contract contract = new Contract())
+                             Contract contract = new Contract(),
+                             String selfName = NodeUtil.defaultSelfName)
                             implements Applicable, GenericDecl;
         /**
          * functional declaration in APIs
@@ -336,16 +337,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *                 | opr (Op | ExponentOp | Encloser) StaticParams? ValParam
          * SubscriptAssignParam ::= Varargs | Param
          * FnHeaderClause ::= IsType? FnClauses
+         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
+         *          | FnSig
          * e.g.) swap (x: Object, y: Object): (Object, Object)
          */
-        AbsFnDecl(String selfName = NodeUtil.defaultSelfName) implements AbsDecl;
+        AbsFnDecl() implements AbsDecl;
         /**
          * functional declaration in components
-         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause (= Expr)?
-         *          | FnSig
+         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
          * e.g.) swap (x, y) = (y, x)
          */
-        FnDecl(String selfName = NodeUtil.defaultSelfName, Expr body);
+        abstract FnDecl();
+            FnDef(Expr body);
     /**
      * value parameter of functional declarations and object declarations
      * e.g.) x: ZZ32 = 3
@@ -644,7 +647,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * LocalFnDecl ::= LocalFnMods? FnHeaderFront FnHeaderClause = Expr
              * e.g.) localFn(x: ZZ32) = x + 2
              */
-            LetFn(List<FnDecl> fns);
+            LetFn(List<FnDef> fns);
             /**
              * local variable declaration
              * LocalVarDecl ::= var? LocalVarWTypes InitVal

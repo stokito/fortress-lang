@@ -122,8 +122,8 @@ public class NodeUtil {
 
     /* getBody *************************************************************/
     public static Option<Expr> getBody(Applicable def) {
-        if (def instanceof FnDecl)
-            return new Some<Expr>(((FnDecl)def).getBody());
+        if (def instanceof FnDef)
+            return new Some<Expr>(((FnDef)def).getBody());
         else if (def instanceof FnExpr)
             return new Some<Expr>(((FnExpr)def).getBody());
         else

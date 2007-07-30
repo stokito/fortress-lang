@@ -718,7 +718,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forAbsFnDecl(AbsFnDecl x) {
-        return NI("forFnDecl");
+        return NI("forAbsFnDecl");
     }
 
     public FValue forGenerator(Generator x) {
