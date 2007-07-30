@@ -309,11 +309,7 @@ public class ExprFactory {
                                e.getFinallyClause());
             }
             public Expr forTupleExpr(TupleExpr e) {
-                return new TupleExpr(e.getSpan(), true, e.getExprs());
-            }
-            public Expr forKeywordsExpr(KeywordsExpr e) {
-                return new KeywordsExpr(e.getSpan(), true, e.getExprs(),
-                                        e.getKeywords());
+                return new TupleExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
             }
             public Expr forTypeCase(Typecase e) {
                 return new Typecase(e.getSpan(), true, e.getBind(),

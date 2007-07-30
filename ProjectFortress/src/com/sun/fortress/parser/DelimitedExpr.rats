@@ -151,13 +151,15 @@ Expr TupleExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list());
-       if (a2 != null) es.add(new VarargsExpr(a2.getSpan(), false, a2));
-       List<com.sun.fortress.useful.Pair<Id,Expr>> ks = new ArrayList<com.sun.fortress.useful.Pair<Id,Expr>>();
-       ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(a3.getId(), a3.getInit()));
+       Option<VarargsExpr> vs = ((a2 != null) ? 
+                              new Some<VarargsExpr>(new VarargsExpr(a2.getSpan(), false, a2)) : 
+                              new None<VarargsExpr>());
+       List<com.sun.fortress.nodes.Binding> ks = new ArrayList<com.sun.fortress.nodes.Binding>();
+       ks.add(new com.sun.fortress.nodes.Binding(a3.getId(), a3.getInit()));
        for (Binding b : (List<Binding>)a4s.list()) {
-           ks.add(new com.sun.fortress.useful.Pair<Id,Expr>(b.getId(), b.getInit()));
+           ks.add(b);
        }
-       yyValue = new KeywordsExpr(createSpan(yyStart,yyCount), false, es, ks);
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es, vs, ks);
      }
    / NoKeyTuple ;
 
@@ -167,9 +169,9 @@ Expr TupleExpr =
  */
 Expr NoKeyTuple =
      openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { List<Expr> es = FortressUtil.mkList(a1s.list(),
-                                           new VarargsExpr(a2.getSpan(), false, a2));
-       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es);
+     { List<Expr> es = a1s.list();
+       Option<VarargsExpr> vs = new Some<VarargsExpr>(new VarargsExpr(a2.getSpan(), false, a2));
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es, vs);
      }
    / openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list(), a2);

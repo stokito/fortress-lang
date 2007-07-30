@@ -96,7 +96,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteral;
-import com.sun.fortress.nodes.KeywordsExpr;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
@@ -754,10 +753,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forIfClause(IfClause x) {
         return NI("This ought not be called.");
-    }
-
-    public FValue forKeywordsExpr(KeywordsExpr x) {
-        return NI("forKeywordsExpr");
     }
 
     public FValue forLValueBind(LValueBind x) {

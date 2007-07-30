@@ -546,14 +546,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * tuple expression (Mismatch with the Spec!)
              * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
-             *             | NoKeyTuple
-             * NoKeyTuple ::= ( (Expr,)* Expr... )
-             *              | ( (Expr,)+ Expr )
              * e.g.) (1, 2, [3 4]..., x = 5)
              */
-            AbstractTupleExpr(List<Expr> exprs);
-                TupleExpr();
-                KeywordsExpr(List<Pair<Id, Expr>> keywords);
+            TupleExpr(List<Expr> exprs, Option<VarargsExpr> varargs = new None<VarargsExpr>(), List<Binding> keywords = Collections.<Binding>emptyList());
             /**
              * typecase expression
              * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
