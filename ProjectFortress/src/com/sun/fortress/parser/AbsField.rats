@@ -41,9 +41,9 @@ List<Modifier> VarMods := AbsFldMods ;
 
 /* ApiFldDecl ::= ApiFldMods? Id w IsType */
 VarFieldAbsDeclOrDecl ApiFldDecl = a1:ApiFldMods? a2:Id w a3:IsType
-     { List<LValue> lhs;
+     { List<LValueBind> lhs;
        if (a1 == null)
-            lhs = FortressUtil.mkList((LValue)FortressUtil.mkLValueBind(a2, a3));
-       else lhs = FortressUtil.mkList((LValue)FortressUtil.mkLValueBind(a2, a3, a1));
+            lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3));
+       else lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3, a1));
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lhs);
      };

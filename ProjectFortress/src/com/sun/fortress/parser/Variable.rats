@@ -46,13 +46,13 @@ VarFieldAbsDeclOrDecl VarDecl =
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
    / a1:VarMods? a2:IdOrIdTuple w equals w a3:NoNewlineExpr
-     { List<LValue> lvs;
+     { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
        else lvs = FortressUtil.ids2Lvs(a2);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a3);
      }
    / a1:VarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses w a4:InitVal
-     { List<LValue> lvs;
+     { List<LValueBind> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
            else           lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
@@ -68,7 +68,7 @@ VarFieldAbsDeclOrDecl VarDecl =
        if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
-       List<LValue> lvs;
+       List<LValueBind> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
            else           lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
@@ -95,14 +95,14 @@ private Modifier VarMod =
      VarWType
    | ( w VarWType (w , w VarWType)+ w )
  */
-List<LValue> VarWTypes =
+List<LValueBind> VarWTypes =
      a1:VarWType
      { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:VarWType a2s:(w comma w VarWType)+ w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* VarWType ::= Id w IsType */
-LValue VarWType = a1:Id w a2:IsType
+LValueBind VarWType = a1:Id w a2:IsType
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* InitVal ::= (=|:=) w NoNewlineExpr */
@@ -120,7 +120,7 @@ AbsVarDecl AbsVarDecl =
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses
-     { List<LValue> lvs;
+     { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
@@ -131,7 +131,7 @@ AbsVarDecl AbsVarDecl =
        if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
-       List<LValue> lvs;
+       List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
        yyValue = new AbsVarDecl(span, lvs);

@@ -100,15 +100,18 @@ VarFieldAbsDeclOrDecl VarDecl :=
      a1:(var w)? a2:VarWTypes s a3:InitVal
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
+                                             FortressUtil.toLValueList(a2),
                                              a3.getA());
      }
    / a1:(var w)? a2:VarWTypes
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2);
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
+                                             FortressUtil.toLValueList(a2));
      }
    / a1:(var w)? a2:VarWoTypes s equals s a3:NoNewlineExpr
-     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+     { if (a1 != null) a2 = FortressUtil.setMutableLValue(a2,
+                                                          createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
      }
    / a1:(var w)? a2:VarWoTypes s colon s a3:TypeRef s ellipses a4:(s InitVal)?
@@ -156,7 +159,7 @@ VarFieldAbsDeclOrDecl VarDecl :=
 LocalVarDecl LocalVarDecl = a1:VarDecl
      { yyValue = (LocalVarDecl)a1; };
 
-LValue VarWType := a1:Id s colon s a2:TypeRef
+LValueBind VarWType := a1:Id s colon s a2:TypeRef
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* VarWoTypes ::=

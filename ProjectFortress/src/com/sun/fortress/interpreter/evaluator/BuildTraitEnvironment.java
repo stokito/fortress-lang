@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.StaticParam;
@@ -85,15 +84,11 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 
     public Voidoid forVarDecl(VarDecl x) {
         if (fields != null) {
-            List<LValue> lhs = x.getLhs();
-            for (LValue lv : lhs) {
-                if (lv instanceof LValueBind) {
-                    LValueBind lvb = (LValueBind) lv;
-
+            List<LValueBind> lhs = x.getLhs();
+            for (LValueBind lvb : lhs) {
                     Id name = lvb.getId();
                     String s = name.getName();
                     fields.add(s);
-                }
             }
         }
         return null;

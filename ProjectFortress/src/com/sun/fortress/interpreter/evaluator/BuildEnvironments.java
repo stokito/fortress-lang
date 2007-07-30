@@ -72,7 +72,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierTest;
@@ -912,16 +911,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     private void forVarDecl1(VarDecl x) {
-        List<LValue> lhs = x.getLhs();
+        List<LValueBind> lhs = x.getLhs();
 
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
-        LValue lv = lhs.get(0);
+        LValueBind lvb = lhs.get(0);
 
-        if (lv instanceof LValueBind) {
-          LValueBind lvb = (LValueBind) lv;
           Option<TypeRef> type = lvb.getType();
           Id name = lvb.getId();
           String sname = name.getName();
@@ -939,11 +936,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
               pe.setWhere(x);
               throw pe;
           }
-
-      } else {
-          throw new InterpreterError(x,
-                  "Don't support arbitary LHS in Var decl yet");
-      }
 
 //        int index = 0;
 
@@ -993,20 +985,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     private void forVarDecl4(VarDecl x) {
 
-        List<LValue> lhs = x.getLhs();
+        List<LValueBind> lhs = x.getLhs();
 
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
         Expr init = x.getInit();
         // int index = 0;
-        LValue lv = lhs.get(0);
+        LValueBind lvb = lhs.get(0);
 
 
          {
-            if (lv instanceof LValueBind) {
-                LValueBind lvb = (LValueBind) lv;
-
                 Option<TypeRef> type = lvb.getType();
                 Id name = lvb.getId();
                 String sname = name.getName();
@@ -1048,10 +1037,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                         }
                     }
                 }
-            } else {
-                throw new InterpreterError(x,
-                        "Don't support arbitary LHS in Var decl yet");
-            }
         }
 
     }
@@ -1439,15 +1424,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     private void doAbsVarDecl(AbsVarDecl x) {
-        List<LValue> lhs = x.getLhs();
+        List<LValueBind> lhs = x.getLhs();
 
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<TypeRef> type = x.getType();
-        LValue lv = lhs.get(0);
+        LValueBind lvb = lhs.get(0);
 
-        if (lv instanceof LValueBind) {
-            LValueBind lvb = (LValueBind) lv;
             Id name = lvb.getId();
             String sname = name.getName();
 
@@ -1461,11 +1444,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 pe.setWhere(x);
                 throw pe;
             }
-
-        } else {
-            throw new InterpreterError(x,
-                           "Don't support arbitary LHS in Var decl yet");
-        }
     }
 
     /*

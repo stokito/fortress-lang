@@ -59,7 +59,6 @@ import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -417,21 +416,21 @@ public class Disambiguate extends Rewrite {
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
                     VarDecl vd = (VarDecl) node;
-                    List<LValue> lhs = vd.getLhs();
+                    List<LValueBind> lhs = vd.getLhs();
 
                     if (lhs.size() > 1) {
                         // Introduce a temporary, then initialize elements
                         // piece-by-piece.
                         Expr init = vd.getInit();
                         init = (Expr) visitNode(init);
-                        lhs = (List<LValue>) visitList(lhs);
+                        lhs = (List<LValueBind>) visitList(lhs);
                         ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
                         String temp = "t$" + (++tempCount);
                         Span at = vd.getSpan();
                         VarDecl new_vd = NodeFactory.makeVarDecl(at, new Id(at, temp), init);
                         newdecls.add(new_vd);
                         int element_index = 0;
-                        for (LValue lv : lhs) {
+                        for (LValueBind lv : lhs) {
                             newdecls.add(new VarDecl(at, Useful.list(lv),
                                     new MemberSelection(at, false, init,
                                             new Id(at, "$" + element_index))));

@@ -48,21 +48,22 @@ public class NodeFactory {
 
     public static AliasedName makeAliasedName(Span span, Id id) {
         return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               new None<FnName>());
+                               None.<FnName>make());
     }
 
     public static AliasedName makeAliasedName(Span span, Id id, DottedId alias) {
         return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               new Some<FnName>(alias));
+                               Some.<FnName>make(alias));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
     public static AliasedName makeAliasedName(Span span, OprName op) {
-        return new AliasedName(span, op, new None<FnName>());
+        return new AliasedName(span, op, None.<FnName>make());
     }
 
-    public static AliasedName makeAliasedName(Span span, OprName op, OprName alias) {
-        return new AliasedName(span, op, new Some<FnName>(alias));
+    public static AliasedName makeAliasedName(Span span, OprName op,
+                                              OprName alias) {
+        return new AliasedName(span, op, Some.<FnName>make(alias));
     }
 
     public static ArrayType makeArrayType(Span span, TypeRef element,
@@ -190,14 +191,14 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              new Some<TypeRef>(ty), lvb.getMods(),
+                              Some.<TypeRef>make(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
                                         boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              new Some<TypeRef>(ty), lvb.getMods(), mutable);
+                              Some.<TypeRef>make(ty), lvb.getMods(), mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
@@ -208,7 +209,7 @@ public class NodeFactory {
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              new Some<TypeRef>(ty), mods, mutable);
+                              Some.<TypeRef>make(ty), mods, mutable);
     }
 
     public static MatrixType makeMatrixType(Span span, TypeRef element,
@@ -259,23 +260,23 @@ public class NodeFactory {
 
     public static Param makeParam(Span span, List<Modifier> mods, Id name,
                                   TypeRef type) {
-        return new Param(span, mods, name, new Some<TypeRef>(type),
-                         new None<Expr>());
+        return new Param(span, mods, name, Some.<TypeRef>make(type),
+                         None.<Expr>make());
     }
 
     public static Param makeParam(Id name, TypeRef type) {
         return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         new Some<TypeRef>(type), new None<Expr>());
+                         Some.<TypeRef>make(type), None.<Expr>make());
     }
 
     public static Param makeParam(Id name) {
         return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         new None<TypeRef>(), new None<Expr>());
+                         None.<TypeRef>make(), None.<Expr>make());
     }
 
     public static Param makeParam(Param param, Expr expr) {
         return new Param(param.getSpan(), param.getMods(), param.getId(),
-                         param.getType(), new Some<Expr>(expr));
+                         param.getType(), Some.<Expr>make(expr));
     }
 
     public static Param makeParam(Param param, List<Modifier> mods) {
@@ -285,7 +286,7 @@ public class NodeFactory {
 
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
-                                   new None<List<TraitType>>(), false);
+                                   None.<List<TraitType>>make(), false);
     }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
@@ -300,9 +301,9 @@ public class NodeFactory {
     }
 
     public static VarDecl makeVarDecl(Span span, Id id, Expr init) {
-        return new VarDecl(span, Useful.<LValue>list(
+        return new VarDecl(span, Useful.<LValueBind>list(
                                 new LValueBind(span, id,
-                                               new None<TypeRef>(),
+                                               None.<TypeRef>make(),
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);

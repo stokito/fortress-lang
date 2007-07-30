@@ -129,7 +129,7 @@ public class ExprFactory {
 
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
-        return makeFnExpr(span, params, new None<TypeRef>(),
+        return makeFnExpr(span, params, None.<TypeRef>make(),
                           Collections.<TraitType>emptyList(), body);
     }
 
@@ -137,7 +137,7 @@ public class ExprFactory {
                                     Option<TypeRef> returnType,
                                     List<TraitType> throwsClause, Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
-                          new None<List<StaticParam>>(), params, returnType,
+                          None.<List<StaticParam>>make(), params, returnType,
                           Collections.<WhereClause>emptyList(), throwsClause,
                           body);
     }
@@ -183,15 +183,15 @@ public class ExprFactory {
     public static LetExpr makeLetExpr(final LetExpr expr, final List<Expr> body) {
         return expr.accept(new NodeAbstractVisitor<LetExpr>() {
             public LetExpr forGeneratedExpr(GeneratedExpr expr) {
-                return new GeneratedExpr(expr.getSpan(), false, body, expr.getExpr(),
-                                         expr.getGens());
+                return new GeneratedExpr(expr.getSpan(), false, body,
+                                         expr.getExpr(), expr.getGens());
             }
             public LetExpr forLetFn(LetFn expr) {
                 return new LetFn(expr.getSpan(),false, body, expr.getFns());
             }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
-                return new LocalVarDecl(expr.getSpan(), false, body, expr.getLhs(),
-                                        expr.getRhs());
+                return new LocalVarDecl(expr.getSpan(), false, body,
+                                        expr.getLhs(), expr.getRhs());
             }
         });
     }
@@ -241,7 +241,7 @@ public class ExprFactory {
             new ArrayList<StaticArg>(implicit_type_parameters.size());
         Option<List<StaticParam>> stParams;
         if (implicit_type_parameters.size() == 0) {
-            stParams = new None<List<StaticParam>>();
+            stParams = None.<List<StaticParam>>make();
         }
         else {
             List<StaticParam> tparams =
@@ -251,11 +251,11 @@ public class ExprFactory {
                 staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
             }
         }
-        return new _RewriteObjectExpr(expr.getSpan(), false, expr.getExtendsClause(),
-                                      expr.getDecls(),
+        return new _RewriteObjectExpr(expr.getSpan(), false,
+                                      expr.getExtendsClause(), expr.getDecls(),
                                       implicit_type_parameters, expr.toString(),
                                       stParams, staticArgs,
-                    new Some<List<Param>>(Collections.<Param>emptyList()));
+                    Some.<List<Param>>make(Collections.<Param>emptyList()));
     }
 
     public static Expr makeInParentheses(Expr expr) {
