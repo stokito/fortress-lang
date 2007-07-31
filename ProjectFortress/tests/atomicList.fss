@@ -22,7 +22,7 @@ trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
    car():E
    cdr():List[\E\]
    cons(x:E):List[\E\]
-   empty():Boolean
+   isEmpty():Boolean
    toString():()
    count():ZZ32
 end
@@ -32,7 +32,7 @@ object Empty[\E\]() extends List[\E\]
    cdr():List[\E\] = do ThrowError(" Empty List has no cdr") cdr() end   
    cons(z:E) =  Elem[\E\](z, self)
    toString() = " Empty"
-   empty() = true
+   isEmpty() = true
    count() = 0
 end
 
@@ -41,7 +41,7 @@ object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
    cdr():List[\E\] = rest
    cons(z:E) = Elem[\E\](z,self)
    toString() = " " val ", " rest.toString()
-   empty() = false
+   isEmpty() = false
    count() = 1 + cdr().count()
 end
 

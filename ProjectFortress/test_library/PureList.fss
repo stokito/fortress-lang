@@ -44,7 +44,7 @@ export PureList
 value object PureList[\E\]( it: FingerTree[\E\] )
       extends { Generator[\E\] }
   getter size(): ZZ32 = leafSize(it)
-  getter empty(): Boolean = it.empty()
+  getter isEmpty(): Boolean = it.isEmpty()
   getter left():Maybe[\E\] = left1(it)
   getter right():Maybe[\E\] = right1(it)
   getter extractLeft(): Maybe[\(E,PureList[\E\])\] = extractLeft1(it)
@@ -175,7 +175,7 @@ value object ZipGenerator[\A,B\](transient x0: PureList[\A\],
               (al,ar) = a.split()
               (bl,br) = b.split(al.size())
               r.join(zgen(al,bl),zgen(ar,br))
-          elif a.empty() then
+          elif a.isEmpty() then
               r.empty()
           else
               body(a[0],b[0])
@@ -195,7 +195,7 @@ value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:PureList[\A\], ys:PureList[\B\])
               zgl = zgen(al,bl)
               zgr = zgen(ar,br)
               r.join(zgl,zgr)
-          elif a.empty() then
+          elif a.isEmpty() then
               r.empty()
           else
               body(a[0],b[0])
@@ -275,7 +275,7 @@ end
 
 trait NonEmptyFingerTree[\E\] extends FingerTree[\E\]
     comprises { D1[\E\], Deep[\E\] }
-  getter empty(): Boolean = false
+  getter isEmpty(): Boolean = false
   getter left():E
   getter right():E
   getter extractLeft():(E,FingerTree[\E\])
@@ -306,7 +306,7 @@ end
 
 trait D14[\E\] extends D04[\E\]
     comprises { D13[\E\], D24[\E\] }
-  getter empty(): Boolean = false
+  getter isEmpty(): Boolean = false
   getter uncons() : (E,D03[\E\])
   getter unsnoc() : (D03[\E\],E)
   getter car() : E
@@ -387,7 +387,7 @@ trait D34[\E\] extends D24[\E\]
 end
 
 object D0[\E\]() extends { D01[\E\] }
-  getter empty():Boolean = true
+  getter isEmpty():Boolean = true
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   ivgen[\R\](_: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.empty()

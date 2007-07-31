@@ -19,7 +19,7 @@ api Map
 
 trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   size():ZZ32
-  empty():Boolean
+  isEmpty():Boolean
   getPair():(Key, Val)
   getKey():Key
   getVal():Val

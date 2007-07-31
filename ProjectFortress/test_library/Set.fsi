@@ -19,7 +19,7 @@ api Set
 
 trait TreeSet[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    size():ZZ32
-   empty():Boolean
+   isEmpty():Boolean
    getVal():E
    getLeftChild():TreeSet[\E\]
    getRightChild():TreeSet[\E\]

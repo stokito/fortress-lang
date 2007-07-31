@@ -22,7 +22,7 @@ weight:ZZ32 = 3
 
 trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   size():ZZ32
-  empty():Boolean
+  isEmpty():Boolean
   getPair():(Key, Val)
   getKey():Key
   getVal():Val
@@ -45,7 +45,7 @@ end
 
 object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   size():ZZ32 = 0
-  empty():Boolean = true
+  isEmpty():Boolean = true
   getPair():(Key, Val) = getPair()
   getKey():Key = getKey()
   getVal():Val = getVal()
@@ -70,7 +70,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
 
   tuple(k:Key,v:Val):(Key,Val) = (k,v)
   size():ZZ32 = sz
-  empty():Boolean = false
+  isEmpty():Boolean = false
   getPair():(Key, Val) = pair
   getKey():Key = key
   getVal():Val = val
@@ -95,7 +95,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
     (k, v) = two
     res DOT= k "|->" v
     temp := delmin
-    while (NOT temp.empty()) do
+    while (NOT temp.isEmpty()) do
       (twoo, delminn) = temp.removeMinimum()
       (kk,vv) = twoo
       res DOT= ", " kk "|->" vv
@@ -111,7 +111,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
     end
 
   removeMinimum() =
-    if left.empty() then (pair,right)
+    if left.isEmpty() then (pair,right)
     else
       (min, delmin) = left.removeMinimum()
       (min, balancedAdd(pair,delmin,right))

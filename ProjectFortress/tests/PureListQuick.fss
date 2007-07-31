@@ -56,7 +56,7 @@ chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
       assertStr(ll.left().unJust(),i,"left wrong in ",ll)
       ll := ll0
   end
-  assertStr(ll.empty()," not empty after extractLeft(); it's ",ll)
+  assertStr(ll.isEmpty()," not empty after extractLeft(); it's ",ll)
   ll := l
   for i <- seq(1#sz) do
       (ll0,e) = ll.extractRight().unJust()
@@ -64,7 +64,7 @@ chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
       assertStr(ll.right().unJust(),sz-i,"right wrong in ",ll)
       ll := ll0
   end
-  assertStr(ll.empty()," not empty after extractRight(); it's ",ll)
+  assertStr(ll.isEmpty()," not empty after extractRight(); it's ",ll)
 end
 
 run(args:String...):() = do

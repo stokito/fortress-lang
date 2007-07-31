@@ -595,7 +595,7 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
     toSortResult:Array[\(ZZ32,String),ZZ32\] := array[\(ZZ32,String)\](numPlayers)
     index: ZZ32 := 0
     visitDatabase(t: TreeMap[\String,Player\]) =
-      if NOT t.empty() then
+      if NOT t.isEmpty() then
         v = t.getVal()
         (* if never played any game in this term, then -50 penalties *)
         if v.thisGames = 0

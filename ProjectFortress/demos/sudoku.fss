@@ -47,7 +47,7 @@ removeElement(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    s:TreeSet[\ZZ32\] = b[i,j]
    if s.member(elem) then      (* Don't delete the element being removed! *)
       r = s.delete(elem)
-      if NOT r.empty() then
+      if NOT r.isEmpty() then
          b[i,j] := r
       end
    end

@@ -22,7 +22,7 @@ weight:ZZ32 = 4
 
 trait TreeSet[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    size():ZZ32
-   empty():Boolean
+   isEmpty():Boolean
    getVal():E
    getLeftChild():TreeSet[\E\]
    getRightChild():TreeSet[\E\]
@@ -49,14 +49,14 @@ end
 
 object EmptySet[\E\]() extends TreeSet[\E\]
    size():ZZ32 = 0
-   empty():Boolean = true
-   getVal():E = getVal()
+   isEmpty():Boolean = true
+   getVal():E = fail("Empty set: cannot getVal()")
    getLeftChild():TreeSet[\E\] = self
    getRightChild():TreeSet[\E\] = self
    printTree():() = print " EmptySet"
    toString():String = "{}"
    member(x:E):Boolean = false
-   minimum():E = minimum()
+   minimum():E = fail("Empty set: no minimum element.")
    removeMinimum():(E, TreeSet[\E\]) = (minimum(), self)
    add(z:E):TreeSet[\E\] = NodeSet[\E\](z,self,self)
    delete(z:E):TreeSet[\E\] = self
@@ -73,7 +73,7 @@ end
 object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeSet[\E\]
    sz:ZZ32 = 1 + left.size() + right.size()
    size():ZZ32 = sz
-   empty():Boolean = false
+   isEmpty():Boolean = false
    getVal():E = val
    getLeftChild():TreeSet[\E\] = left
    getRightChild():TreeSet[\E\] = right
@@ -93,7 +93,7 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
       (min, delmin) = temp.removeMinimum()
       res DOT= min
       temp := delmin
-      while (NOT temp.empty()) do
+      while (NOT temp.isEmpty()) do
         (minn, delminn) = temp.removeMinimum()
         res DOT= "," minn
         temp := delminn
@@ -127,11 +127,11 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
    balancedDelete(r:TreeSet[\E\]):TreeSet[\E\] = self
 
    minimum():E = do
-      if left.empty() then val else left.minimum() end
+      if left.isEmpty() then val else left.minimum() end
    end
 
    removeMinimum() =
-     if left.empty() then (val,right)
+     if left.isEmpty() then (val,right)
      else
        (min, delmin) = left.removeMinimum()
        (min, balancedAdd(val,delmin,right))
