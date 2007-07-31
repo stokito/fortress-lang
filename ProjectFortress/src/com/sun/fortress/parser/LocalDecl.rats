@@ -96,7 +96,7 @@ private FnDef LocalFnDecl =
      Id
    | Unpasting
  */
-VarFieldAbsDeclOrDecl VarDecl :=
+LocalVarDecl LocalVarDecl =
      a1:(var w)? a2:VarWTypes s a3:InitVal
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
@@ -156,8 +156,6 @@ VarFieldAbsDeclOrDecl VarDecl :=
        }
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      };
-LocalVarDecl LocalVarDecl = a1:VarDecl
-     { yyValue = (LocalVarDecl)a1; };
 
 LValueBind VarWType := a1:Id s colon s a2:TypeRef
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };

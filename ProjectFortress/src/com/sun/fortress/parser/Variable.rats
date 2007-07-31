@@ -35,7 +35,7 @@ import Spacing;
    | VarMods? IdOrIdTuple w : w TypeRef w ... w InitVal
    | VarMods? IdOrIdTuple w : w SimpleTupleType w InitVal
  */
-VarFieldAbsDeclOrDecl VarDecl =
+VarDecl VarDecl =
      a1:VarMods? a2:VarWTypes w a3:InitVal
      { if (a1 != null) {
            if (a3.getB()) a2 = FortressUtil.setModsAndMutable(a2, a1);

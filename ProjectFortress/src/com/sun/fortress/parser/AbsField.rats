@@ -35,12 +35,12 @@ import Spacing;
    | ( w AbsFldWType (w , w AbsFldWType)+ w )
    AbsFldWType ::= Id w IsType
  */
-VarFieldAbsDeclOrDecl AbsFldDecl = AbsVarDecl ;
+AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
 List<Modifier> VarMods := AbsFldMods ;
 
 /* ApiFldDecl ::= ApiFldMods? Id w IsType */
-VarFieldAbsDeclOrDecl ApiFldDecl = a1:ApiFldMods? a2:Id w a3:IsType
+AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:Id w a3:IsType
      { List<LValueBind> lhs;
        if (a1 == null)
             lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3));
