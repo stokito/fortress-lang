@@ -150,12 +150,12 @@ private DoFront DoFront =
 Expr TupleExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
-     { List<Expr> es = FortressUtil.mkList(a1s.list());
-       Option<VarargsExpr> vs = ((a2 != null) ? 
-                              new Some<VarargsExpr>(new VarargsExpr(a2.getSpan(), a2)) : 
-                              new None<VarargsExpr>());
-       List<com.sun.fortress.nodes.Binding> ks = new ArrayList<com.sun.fortress.nodes.Binding>();
-       ks.add(new com.sun.fortress.nodes.Binding(a3.getId(), a3.getInit()));
+     { List<Expr> es = a1s.list();
+       Option<VarargsExpr> vs = ((a2 != null) ?
+                              Some.<VarargsExpr>make(new VarargsExpr(a2.getSpan(), a2)) :
+                              None.<VarargsExpr>make());
+       List<Binding> ks = new ArrayList<Binding>();
+       ks.add(new Binding(a3.getId(), a3.getInit()));
        for (Binding b : (List<Binding>)a4s.list()) {
            ks.add(b);
        }
@@ -169,9 +169,8 @@ Expr TupleExpr =
  */
 Expr NoKeyTuple =
      openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { List<Expr> es = a1s.list();
-       Option<VarargsExpr> vs = new Some<VarargsExpr>(new VarargsExpr(a2.getSpan(), a2));
-       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es, vs);
+     { Option<VarargsExpr> vs = Some.<VarargsExpr>make(new VarargsExpr(a2.getSpan(), a2));
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, a1s.list(), vs);
      }
    / openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list(), a2);
