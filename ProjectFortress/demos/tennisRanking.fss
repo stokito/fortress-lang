@@ -36,9 +36,9 @@ export Executable
         the number of games played in this term,
         the points earned in the season so far, and
         the points earned in this term.
-      MVP (Most Valuable  Player): who earned the points the most
-      MEP (Most Energetic Player): who played the games  the most
-      MIP (Most Improved  Player): who rose   the ranks  the most
+      MVP (Most Valuable  Player): who earned the most points
+      MEP (Most Energetic Player): who played the most games
+      MIP (Most Improved  Player): who rose   the most ranks
  *)
 (* 
    Rules to calculuate the ranking
