@@ -1,6 +1,113 @@
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast
- 1) NONTERMINAL"s" NONTERMINAL"List"
+ 1) CSG defines productions for "NONTERMINALs" and "NONTERMINALList". For
+    example:
+
+Imports  ::= Import+
+Name     ::= Name | { NameList }
+NameList ::= Name(, Name)*
+
+    AST does not define such productions but use "List<NONTERMINAL>" instead.
+    For example, "List<Name>" is used instead of "NameList".
+
+ 2) CSG provides productions for componet and API declarations that do not
+    include their "component DottedId/end" and "api DottedId/end" reserved
+    words:
+
+File ::= CompilationUnit
+       | Imports? Exports Decls?
+       | Imports? AbsDecls
+       | Imports AbsDecls?
+
+    AST does not provide such productions: They are all translated to
+    CompilationUnit.
+
+ 3) CSG distinguishes occurrences of "Id", "opr Op", and "opr EncloserPair".
+    For example:
+
+AliasedName ::= Id (as DottedId)?
+              | opr Op (as Op)?
+              | opr EncloserPair (as EncloserPair)?
+EncloserPair ::= LeftEncloser RightEncloser
+
+    AST does not distinguish them but uses FnName as follows:
+
+AliasedName(FnName fnName, Option<FnName> alias = new None<FnName>());
+
+ 4) CSG classifies declarations that can occur in trait, abstract trait, object,
+    and abstract object declarations in detail.  For example:
+
+GoInATrait        ::= Coercions? GoFrontInATrait GoBackInATrait?
+                    | Coercions? GoBackInATrait
+GoesFrontInATrait ::= AbsFldDecl
+                    | GetterSetterDecl
+                    | PropertyDecl
+GoesBackInATrait  ::= MdDecl
+                    | PropertyDecl
+
+    AST does not classify them but abstracts them as lists of Decls or lists of
+    AbsDecls as follows:
+
+TraitDecl(List<? extends Decl> decls) implements GenericDecl;
+
+ 5) CSG distinguishes kinds of modifiers for each declaration can have.  For
+    example:
+
+AbsTraitMod ::= value | test
+
+    AST does not distinguish them but abstracts them as lists of Modifiers
+    as follows:
+
+TraitObjectAbsDeclOrDecl(List<M<odifier> mods ...)
+
+ 6) CSG has productions for most of clauses.  For example:
+
+Extends ::= extends TraitTypes
+
+    AST does not have such productions.  For example:
+
+TraitObjectAbsDeclOrDecl(..., Option<List<TraitType>> extendsClause ...)
+
+ 7) CSG distinguishes parameters of objects, methods, and functions.  For
+    example:
+
+...
+
+    AST does not distinguish them but abstracts them as follows:
+
+ 8) CSG distinguishes various forms of left-hand sides of variable and field
+    declarations.  For example:
+
+VarDecl ::= VarMods? VarWTypes InitVal
+          | VarMods? IdOrIdTuple = Expr
+          | VarMods? IdOrIdTuple : TypeRef ... InitVal
+          | VarMods? IdOrIdTuple : SimpleTupleType InitVal
+
+    AST does not distinguish them but abstracts them as follows:
+
+abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements VarFieldAbsDeclOrDecl;
+LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
+           List<Modifier> mods = Collections.<Modifier>emptyList(),
+           boolean mutable) implements LHS;
+
+ 9) CSG distinguishes functional declarations in APIs and components (AbsFnDecl
+    and FnDecl, respectively) but it does not distinguish functional declarations
+    with and without body expressions.  AST does not distinguishes functional
+    declarations in APIs and functional declarations without body expressions
+    in components (both AbsFnDecl) but it distinguishes functional declarations
+    without body expressions in components (AbsFnDecl) and functional
+    declarations with body expressions (FnDef) in components.  These differences
+    are purely due to the different interests between the parser which cares
+    about syntactic entities and the later phases of the compiler which care
+    about semantic entities.
+
+
+ .) Unpasting syntax is slightly different.
+
+
+
+
+
 
 
 * Criteria for the Differences in CSG and AST
@@ -9,7 +116,7 @@
  3) Subclasses for variants are more preferrable to a class with a field.
  4) Do not propogate the subtype structure of a field to the enclosing method.
  5) Only leaves should be concrete classes.
-
+ 6) Common fields should be hoisted where possible and where it makes sense.
 
 * Frequently Asked Questions and Answers for Fortress.ast
  1) Why does it distinguish between List<TypeRef> and Option<List<TypeRef>>?
@@ -42,25 +149,24 @@
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
 * TODO
  1. clean up Fortress.ast
 
 1) Option<List<TypeRef>> vs List<TypeRef>
+
 2) rename TypeRef to something else
+ It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.
 
-- Common fields should be hoisted where possible and where it makes sense (AbsObjectDecl/ObjectDecl both share defOrDecls, for example).  If there's not a common supertype, we should think about creating one.  (I wouldn't expect this where two classes have fields with the same types but different meanings, though.)
+3) StaticArg
+ I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
 
-
-- I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
-
-- It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.
 
 
 
  2. Dan -- interfaces
  3. Eric -- TupleExpr/TupleType/ArrowType
- 5. clean up NodeFactory.java
- 6. clean up ExprFactory.java
+ 6. clean up FortressUtil.java
  7. clean up NodeUtil.java
  8. clean up NodeComparator.java
  9. clean up error messages
