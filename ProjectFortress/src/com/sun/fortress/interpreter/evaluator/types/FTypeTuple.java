@@ -36,6 +36,9 @@ import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.useful.Memo1C;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.None;
+import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 
 
@@ -43,7 +46,8 @@ import com.sun.fortress.useful.Useful;
 public class FTypeTuple extends FType {
 
     static ListComparer<FType> listComparer = new ListComparer<FType>();
-
+    List<FType> l;
+    
     private static class Factory implements Factory1<List<FType>, FType> {
 
         public FType make(List<FType> part1) {
@@ -62,8 +66,6 @@ public class FTypeTuple extends FType {
     static public FType make(List<FType> l) {
         return l.size() == 0 ? FTypeVoid.ONLY : memo.make(l);
     }
-
-    List<FType> l;
 
     protected FTypeTuple(List<FType> l) {
         super("Tuple"); // TODO need a better name -- ought to do it lazily
@@ -146,7 +148,6 @@ public class FTypeTuple extends FType {
             return false;
         }
     }
-
 
     /**
      * Tests subtype-of for a pair of tuple sections. Returns true iff
@@ -318,7 +319,7 @@ public class FTypeTuple extends FType {
      */
     public boolean unifyTuple(BetterEnv env, Set<StaticParam> tp_set,
                               BoundingMap<String, FType, TypeLatticeOps> abm,
-                              List<TypeRef> vals) {
+                              List<TypeRef> vals, Option<VarargsType> varargs) {
         Iterator<FType> ftIterator = l.iterator();
         Iterator<TypeRef> trIterator = vals.iterator();
         FType ft = null;
@@ -329,9 +330,9 @@ public class FTypeTuple extends FType {
                 tr = trIterator.next();
                 ft.unify(env,tp_set,abm,tr);
             }
-            while (tr instanceof VarargsType && ftIterator.hasNext()) {
+            while (varargs.isPresent() && ftIterator.hasNext()) {
                 ft = ftIterator.next();
-                ft.unify(env,tp_set,abm,tr);
+                ft.unify(env, tp_set, abm, varargs.getVal());
             }
             while (ft instanceof FTypeRest && trIterator.hasNext()) {
                 tr = trIterator.next();
@@ -355,7 +356,7 @@ public class FTypeTuple extends FType {
         if (!(val instanceof TupleType)) return false;
         TupleType tup = (TupleType) val;
         if (!(tup.getKeywords().isEmpty())) return false;
-        return unifyTuple(env, tp_set, abm, tup.getElements());
+        return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
     }
 
 }

@@ -133,7 +133,7 @@ Decl Coercion =
      coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
      a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
-       List<Param> params = FortressUtil.mkList(NodeFactory.makeParam(a2, a3));
+       List<Param> params = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeParam(a2, a3));
        List<Modifier> mods = new ArrayList<Modifier>();
        if (a5 != null) mods.add(new ModifierWidens(createSpan(yyStart,8)));
        Span span = createSpan(yyStart+9,8);
@@ -149,7 +149,7 @@ AbsDecl AbsCoercion =
      coerce a1:(w StaticParams)? w openparen w a2:Id w a3:IsType w closeparen
      a4:CoercionClauses a5:(w widens)?
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
-       List<Param> params = FortressUtil.mkList(NodeFactory.makeParam(a2, a3));
+       List<Param> params = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeParam(a2, a3));
        List<Modifier> mods = new ArrayList<Modifier>();
        if (a5 != null) mods.add(new ModifierWidens(createSpan(yyStart,8)));
        Span span = createSpan(yyStart+9,8);

@@ -270,15 +270,17 @@ TypeRef TupleType =
      openparen w a1s:(TypeRef w comma w)* a2:(TypeRef w ellipses w comma w)?
        a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<TypeRef>   ts1 = a1s.list();
-       if (a2 != null) ts1.add(new VarargsType(createSpan(yyStart,yyCount), a2));
-       List<KeywordType> ts2 = a4s.list();
-       ts2.add(0, a3);
-       yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2);
+       Option<VarargsType> ts2 = ((a2 != null)? 
+                                   new Some<VarargsType>(new VarargsType(createSpan(yyStart,yyCount), a2)) :
+                                   new None<VarargsType>());
+       List<KeywordType> ts3 = a4s.list();
+       ts3.add(0, a3);
+       yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2, ts3);
      }
    / openparen w a1s:(TypeRef w comma w)* a2:TypeRef w ellipses w closeparen
-     { List<TypeRef> ts = FortressUtil.mkList(a1s.list());
-       ts.add(new VarargsType(createSpan(yyStart,yyCount), a2));
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts);
+     { List<TypeRef> ts1 = FortressUtil.mkList(a1s.list());
+       Option<VarargsType> ts2 = new Some<VarargsType>(new VarargsType(createSpan(yyStart,yyCount), a2));
+       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts1, ts2);
      }
    / SimpleTupleType ;
 
@@ -290,7 +292,7 @@ private KeywordType KeywordType = a1:Id w equals w a2:TypeRef
 TupleType SimpleTupleType =
      openparen w a1:TypeRef w comma w a2:TypeRefList w closeparen
      { List<TypeRef> ts = FortressUtil.mkList(a1, a2);
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts);
+       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts, new None<VarargsType>());
      };
 
 /* TypeRefList ::= TypeRef (w , w TypeRef)* */

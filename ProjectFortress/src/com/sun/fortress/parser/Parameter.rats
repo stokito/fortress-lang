@@ -31,7 +31,7 @@ import Spacing;
 /* ValParam ::= Id | ( (w Params)? w ) */
 List<Param> ValParam =
      a1:Id
-     { yyValue = FortressUtil.mkList(NodeFactory.makeParam(a1)); }
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeParam(a1)); }
    / openparen a1:(w Params)? w closeparen
      { if (a1 == null) yyValue = FortressUtil.emptyParams();
        else            yyValue = a1;
@@ -45,29 +45,29 @@ List<Param> ValParam =
 List<Param> Params =
      a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
-     { yyValue = FortressUtil.mkList(a1s.list());
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
        if (a2 != null) yyValue.add(a2);
        yyValue.add(a3);
        yyValue.addAll(a4s.list());
      }
    / a1s:(Param w comma w)* a2:Varargs
-     { yyValue = FortressUtil.mkList(a1s.list(), a2); }
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list(), a2); }
    /  a1:Param a2s:(w comma w Param)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
 
 /* Varargs ::= Id w : w TypeRef w ... */
-Param VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
-     { TypeRef ty = new VarargsType(a2.getSpan(), a2);
-       yyValue = NodeFactory.makeParam(a1, ty);
+VarargsParam VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
+     { VarargsType ty = new VarargsType(a2.getSpan(), a2);
+       yyValue = NodeFactory.makeVarargsParam(a1, ty);
      };
-Param Varargs = VarargsParam ;
+VarargsParam Varargs = VarargsParam ;
 
 /* Keyword ::= Param w = w Expr */
 Param Keyword = a1:Param w equals w a2:Expr
      { yyValue = NodeFactory.makeParam(a1, a2); };
 
 /* Param ::= Id (w IsType)? | TypeRef */
-Param PlainParam =
+NormalParam PlainParam =
      a1:Id a2:(w IsType)?
      { if (a2 == null) yyValue = NodeFactory.makeParam(a1);
        else            yyValue = NodeFactory.makeParam(a1, a2);
@@ -75,7 +75,7 @@ Param PlainParam =
    / a1:TypeRef
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount), "_"),
                                        a1); };
-Param Param = PlainParam ;
+NormalParam Param = PlainParam ;
 
 /* OpHeaderFront ::=
      opr (w StaticParams)? w (LeftEncloser | Encloser) w Params w

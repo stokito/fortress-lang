@@ -393,9 +393,6 @@ abstract public class FType implements Comparable<FType> {
      * one is final.
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
-        if (val instanceof VarargsType) {
-            val = ((VarargsType) val).getType();
-        }
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
@@ -438,4 +435,11 @@ abstract public class FType implements Comparable<FType> {
                           ));
     }
 
+    /**
+     * Convenience method for unifying with a VarargsType (e.g., "T..."). 
+     * VarargsTypes are special forms that appear only in TupleTypes. They are not TypeRefs.
+     */
+    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
+        unify(env, tp_set, abm, val.getType());
+    }
 }

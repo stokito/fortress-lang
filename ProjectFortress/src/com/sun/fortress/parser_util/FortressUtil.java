@@ -127,34 +127,34 @@ public final class FortressUtil {
         else               return Collections.<T>emptyList();
     }
 
-    public static <T> List<T> mkList(T first) {
-        List<T> l = new ArrayList<T>();
+    public static <U, T extends U> List<U> mkList(T first) {
+        List<U> l = new ArrayList<U>();
         l.add(first);
         return l;
     }
 
-    public static <T> List<T> mkList(List<T> all) {
-        List<T> l = new ArrayList<T>();
+    public static <U, T extends U> List<U> mkList(List<T> all) {
+        List<U> l = new ArrayList<U>();
         l.addAll(all);
         return l;
     }
 
-    public static <T> List<T> mkList(T first, T second) {
-        List<T> l = new ArrayList<T>();
+    public static <U, T extends U> List<U> mkList(T first, T second) {
+        List<U> l = new ArrayList<U>();
         l.add(first);
         l.add(second);
         return l;
     }
 
-    public static <T> List<T> mkList(T first, List<T> rest) {
-        List<T> l = new ArrayList<T>();
+    public static <U, T extends U> List<U> mkList(U first, List<T> rest) {
+        List<U> l = new ArrayList<U>();
         l.add(first);
         l.addAll(rest);
         return l;
     }
 
-    public static <T> List<T> mkList(List<T> rest, T last) {
-        List<T> l = new ArrayList<T>();
+    public static <U, T extends U> List<U> mkList(List<T> rest, U last) {
+        List<U> l = new ArrayList<U>();
         l.addAll(rest);
         l.add(last);
         return l;
@@ -206,13 +206,13 @@ public final class FortressUtil {
         boolean m_widens   = false;
         boolean m_wrapped  = false;
         for (Modifier m : mods) {
-	    if (m instanceof ModifierAtomic) {
+     if (m instanceof ModifierAtomic) {
                 if (m_atomic) multiple(m);
                 else m_atomic = true;
-	        } else if (m instanceof ModifierGetter) {
+         } else if (m instanceof ModifierGetter) {
                 if (m_getter) multiple(m);
                 else m_getter = true;
-	        } else if (m instanceof ModifierHidden) {
+         } else if (m instanceof ModifierHidden) {
                 if (m_hidden) multiple(m);
                 else m_hidden = true;
             } else if (m instanceof ModifierIO) {
@@ -224,7 +224,7 @@ public final class FortressUtil {
             } else if (m instanceof ModifierSettable) {
                 if (m_settable) multiple(m);
                 else m_settable = true;
-	        } else if (m instanceof ModifierSetter) {
+         } else if (m instanceof ModifierSetter) {
                 if (m_setter) multiple(m);
                 else m_setter = true;
             } else if (m instanceof ModifierTest) {

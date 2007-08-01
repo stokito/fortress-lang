@@ -41,38 +41,11 @@ import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.nodes.ArrayType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseBoolRef;
-import com.sun.fortress.nodes.BaseNatRef;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.BoolParam;
-import com.sun.fortress.nodes.DimensionParam;
-import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.Indices;
-import com.sun.fortress.nodes.IntParam;
-import com.sun.fortress.nodes.MatrixType;
-import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.ParamType;
-import com.sun.fortress.nodes.ProductStaticArg;
-import com.sun.fortress.nodes.VarargsType;
-import com.sun.fortress.nodes.SimpleTypeParam;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.SumStaticArg;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
-import com.sun.fortress.nodes.VoidType;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
@@ -153,6 +126,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     public  FType getFType(TypeRef t) {
         return t.accept(this);
     }
+    
+    public FType getFType(VarargsType t) {
+        return t.accept(this);
+    }
 
     public static List<Parameter> paramsToParameters(BetterEnv env,
             List<Param> params) {
@@ -174,8 +151,14 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         for (Param in_p : params) {
             Id id = in_p.getId();
             String pname = id.getName();
-            Option<TypeRef> type = in_p.getType();
-            FType ptype = e.getFTypeFromOption(type);
+            FType ptype; 
+            if (in_p instanceof NormalParam) {
+                Option<TypeRef> type = ((NormalParam)in_p).getType();
+                ptype = e.getFTypeFromOption(type);
+            }
+            else { // in_p instanceof VarargsParam
+                ptype = e.getFType(((VarargsParam)in_p).getVarargsType());
+            }
             // TOP?  or Dynamic?
             if (ptype instanceof FTypeDynamic)
                 ptype = FTypeTop.ONLY;

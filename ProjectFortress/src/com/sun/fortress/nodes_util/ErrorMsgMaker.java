@@ -118,7 +118,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "opr " + node.getOp().getName();
     }
 
-    public String forParam(Param node) {
+    public String forNormalParam(NormalParam node) {
         StringBuffer sb = new StringBuffer();
         sb.append(String.valueOf(node.getId().accept(this)));
         if (node.getType().isPresent()) {
@@ -129,6 +129,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             sb.append("=");
             sb.append(node.getDefaultExpr().getVal().accept(this));
         }
+        return sb.toString();
+    }
+    
+    public String forVarargsParam(VarargsParam node) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(String.valueOf(node.getId().accept(this)));
+        sb.append(":");
+        sb.append(node.getVarargsType().accept(this));
+        
         return sb.toString();
     }
 

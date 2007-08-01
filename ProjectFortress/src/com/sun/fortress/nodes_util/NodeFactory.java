@@ -259,30 +259,45 @@ public class NodeFactory {
     public static Op makeOp(Span span, String name) {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
+    
+    
+    public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
+        return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
+    }
+    
+    public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
+        return new VarargsParam(param.getSpan(), mods, param.getId(),
+                         param.getVarargsType());
+    }
 
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+    public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods, Id name,
+                                        VarargsType type) {
+        return new VarargsParam(span, mods, name, type);
+    }
+        
+    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
                                   TypeRef type) {
-        return new Param(span, mods, name, Some.<TypeRef>make(type),
+        return new NormalParam(span, mods, name, Some.<TypeRef>make(type),
                          None.<Expr>make());
     }
 
-    public static Param makeParam(Id name, TypeRef type) {
-        return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
+    public static NormalParam makeParam(Id name, TypeRef type) {
+        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
                          Some.<TypeRef>make(type), None.<Expr>make());
     }
-
-    public static Param makeParam(Id name) {
-        return new Param(name.getSpan(), Collections.<Modifier>emptyList(), name,
+        
+    public static NormalParam makeParam(Id name) {
+        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
                          None.<TypeRef>make(), None.<Expr>make());
     }
 
-    public static Param makeParam(Param param, Expr expr) {
-        return new Param(param.getSpan(), param.getMods(), param.getId(),
+    public static NormalParam makeParam(NormalParam param, Expr expr) {
+        return new NormalParam(param.getSpan(), param.getMods(), param.getId(),
                          param.getType(), Some.<Expr>make(expr));
     }
 
-    public static Param makeParam(Param param, List<Modifier> mods) {
-        return new Param(param.getSpan(), mods, param.getId(),
+    public static NormalParam makeParam(NormalParam param, List<Modifier> mods) {
+        return new NormalParam(param.getSpan(), mods, param.getId(),
                          param.getType(), param.getDefaultExpr());
     }
 
@@ -292,8 +307,8 @@ public class NodeFactory {
     }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
-    public static TupleType makeTupleType(Span span, List<TypeRef> elements) {
-        return new TupleType(span, elements,
+    public static TupleType makeTupleType(Span span, List<TypeRef> elements, Option<VarargsType> varargs) {
+        return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
     }
 

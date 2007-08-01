@@ -36,7 +36,7 @@ List<Param> ValParam := openparen a1:(w Params)? w closeparen
        else            yyValue = a1;
      };
 
-Param Param :=
+NormalParam Param :=
      PlainParam
    / a1:self
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount),

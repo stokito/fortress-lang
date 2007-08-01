@@ -203,7 +203,12 @@ public class NodeComparator {
     public static int compare(Param left, Param right) {
         int x = left.getId().getName().compareTo(right.getId().getName());
         if (x != 0) return x;
-        x = compareOptionalTypeRef(left.getType(), right.getType());
+        if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
+            x = compareOptionalTypeRef(((NormalParam)left).getType(), ((NormalParam)right).getType());
+        }
+        if ((left instanceof VarargsParam) && (right instanceof VarargsParam)) {
+            x = compare(((VarargsParam)left).getVarargsType().getType(), ((VarargsParam)right).getVarargsType().getType());
+        }
         if (x != 0) return x;
         // TODO default expr, mods, must enter into comparison also.
         return x;

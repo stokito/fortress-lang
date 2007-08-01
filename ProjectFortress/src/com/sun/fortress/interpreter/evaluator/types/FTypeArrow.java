@@ -26,11 +26,13 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
 import com.sun.fortress.useful.Fn2;
 import com.sun.fortress.useful.Memo2;
+import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Useful;
 
 
@@ -165,7 +167,7 @@ public class FTypeArrow extends FType {
             if (valdom.size()==1) {
                 domain.unify(env, tp_set, dual, valdom.get(0));
             } else if (domain instanceof FTypeTuple) {
-                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom);
+                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, valdom, new None<VarargsType>());
             } else {
                 return false;
             }

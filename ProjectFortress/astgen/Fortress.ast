@@ -349,9 +349,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) self
      * e.g.) transient x: String
      */
-    Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-          Id id, Option<TypeRef> type = None.<TypeRef>make(),
-          Option<Expr> defaultExpr = None.<Expr>make());
+    abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(), Id id);
+        NormalParam(Option<TypeRef> type = None.<TypeRef>make(), Option<Expr> defaultExpr = None.<Expr>make());
+        VarargsParam(VarargsType varargsType);
     /**
      * dimension declaration (Not Yet Implemented in the Parser!)
      * DimUnitDecl ::= dim Id (= DimRef)? (default Id)?
@@ -903,13 +903,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.)
              */
             TupleType(List<TypeRef> elements,
+                      Option<VarargsType> varargs = new None<VarargsType>(),
                       List<KeywordType> keywords = Collections.<KeywordType>emptyList());
-            /**
-             * varargs type used in tuple types (Mismatch with the Spec!)
-             * TypeRef ...
-             * e.g.) ZZ32...
-             */
-            VarargsType(TypeRef type);
             /**
              * void type
              * e.g.) ()
@@ -1466,4 +1461,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) [3 4 5]...
      */
     VarargsExpr(Expr varargs);
+    /**
+     * varargs type used in tuple types (Mismatch with the Spec!)
+     * TypeRef ...
+     * e.g.) ZZ32...
+     */
+    VarargsType(TypeRef type);
 end;

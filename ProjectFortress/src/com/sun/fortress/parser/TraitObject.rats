@@ -159,11 +159,11 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
    ObjectParam   ::= ParamFldMods? Param
                  |   transient w Param
  */
-Param Varargs := transient w a1:VarargsParam
-     { yyValue = NodeFactory.makeParam(a1, FortressUtil.mkList(
+VarargsParam Varargs := transient w a1:VarargsParam
+     { yyValue = NodeFactory.makeVarargsParam(a1, FortressUtil.mkList(
                     (Modifier)new ModifierTransient(createSpan(yyStart,9)))); };
 
-Param Param :=
+NormalParam Param :=
      a1:ParamFldMods? a2:PlainParam
      { if (a1 != null) yyValue = NodeFactory.makeParam(a2, a1);
        else yyValue = a2;

@@ -32,11 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.NodeVisitor;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.SimpleTypeParam;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -134,24 +130,30 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
         }
         for (FValue a : args) {
-            p = pit.hasNext() ? pit.next() : p;
-            Option<TypeRef> t = p.getType();
-            // why can't we just skip if missing?
-            if (!t.isPresent())
-                throw new ProgramError(loc,
-                        errorMsg("Parameter needs type for generic resolution"));
             FType at = a.type();
             if (at==null) {
                 throw new Error(errorMsg(NodeUtil.getAt(loc)," Argument ",a," has no type information"));
             }
+            p = pit.hasNext() ? pit.next() : p;
             try {
-                at.unify(e, tp_set, abm, t.getVal());
-            } catch (ProgramError ex) {
+                if (p instanceof NormalParam) {
+                    Option<TypeRef> t = ((NormalParam)p).getType();
+                    // why can't we just skip if missing?
+                    if (!t.isPresent())
+                        throw new ProgramError(loc,
+                                               errorMsg("Parameter needs type for generic resolution"));
+                    at.unify(e, tp_set, abm, t.getVal());
+                }
+                else { // p instanceof VarargsParam
+                    at.unify(e, tp_set, abm, ((VarargsParam)p).getVarargsType());
+                }
+            }
+            catch (ProgramError ex) {
                 /* Give decent feedback when unification fails. */
                 ex.setWithin(e);
                 ex.setWhere(loc);
                 throw ex;
-            }
+            }   
         }
 
         if (DUMP_INFERENCE)
