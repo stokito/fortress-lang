@@ -77,9 +77,6 @@ import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
-import com.sun.fortress.interpreter.typechecker.TypeChecker;
-import com.sun.fortress.interpreter.typechecker.TypeError;
-import com.sun.fortress.interpreter.typechecker.TypeCheckerResult;
 
 public class Driver {
 
@@ -163,27 +160,6 @@ public class Driver {
         return parseToJavaAst(reportedFileName, Useful.utf8BufferedFileReader(reportedFileName));
     }
 
-
-    /**
-     * Perform static analysis on the given program.
-     * @return  {@code true} iff the program is considered well-formed by the type checker.
-     */
-    public static TypeCheckerResult check(CompilationUnit p) {
-        TypeCheckerResult result = TypeChecker.check(p);
-        PureList<TypeError> errors = result.getErrors();
-
-        for (TypeError error : errors) {
-            System.err.println("STATIC ERROR: " + error.getMessage() + error.getLocation());
-        }
-
-        if (result.hasErrors()) {
-            int errorCount = result.errorCount();
-            if (errorCount == 1) { System.err.println("THERE WAS " + errors.size() + " STATIC ERROR"); }
-            else { System.err.println("THERE WERE " + errors.size() + " STATIC ERRORS"); }
-
-        }
-        return result;
-    }
 
     /**
      * Runs a command and captures its output and errors streams.

@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.interpreter.typechecker.TypeCheckerResult;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.Useful;
 
@@ -44,7 +43,6 @@ public class fs {
     private static boolean tryRats = false;
     private static String explicitParser = null;
     private static boolean parseOnly = false;
-    private static boolean checkOnly = false;
     private static boolean libraryTest = false;
     private static boolean test = false;
     private static boolean pause = false;
@@ -78,8 +76,6 @@ public class fs {
                     pause = true;
                 } else if ("-parseOnly".equalsIgnoreCase(s)) {
                   parseOnly = true;
-                } else if ("-checkOnly".equalsIgnoreCase(s)) {
-                  checkOnly = true;
                 } else if ("-libraryTest".equalsIgnoreCase(s)) {
                   libraryTest = true;
                 } else if ("-v".equalsIgnoreCase(s)) {
@@ -157,21 +153,13 @@ public class fs {
             else if (!parseOnly) {
                 CompilationUnit _p = p.getVal();
                 
-                if (verbose) { System.err.println("Checking"); }
-                begin = System.currentTimeMillis();
-                TypeCheckerResult tcResult = Driver.check(_p);
-                reportCompletion("Static checking", begin);
-
-                if (tcResult.hasErrors()) { System.err.println("FAIL: Static error(s)."); }
-                else if (!checkOnly) {
-                    if (verbose) {
-                        if (test) { System.err.println("Running Tests"); }
-                        System.err.println("Interpreting");
-                    }
-                    begin = System.currentTimeMillis();
-                    Driver.runProgram(_p, test, libraryTest, listArgs);
-                    reportCompletion("Program execution", begin);
+                if (verbose) {
+                  if (test) { System.err.println("Running Tests"); }
+                  System.err.println("Interpreting");
                 }
+                begin = System.currentTimeMillis();
+                Driver.runProgram(_p, test, libraryTest, listArgs);
+                reportCompletion("Program execution", begin);
             }
             
         }
@@ -192,12 +180,11 @@ public class fs {
     }
 
     static void usage() {
-        System.err.println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] [-checkOnly] filename run-args");
+        System.err.println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] filename run-args");
         System.err.println("Iteratively parses and executes a Fortress source file.");
         System.err.println("The -ast option writes out the ast.");
         System.err.println("The -pause option performs a reset and gc after running the program, and then waits for input.");
         System.err.println("The -parseOnly option parses but does not evaluate the program.");
-        System.err.println("The -checkOnly option statically checks but does not evaluate the program.");
         System.err.println("The -v option is more verbose.");
     }
 

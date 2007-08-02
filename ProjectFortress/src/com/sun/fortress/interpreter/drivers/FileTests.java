@@ -88,7 +88,6 @@ public class FileTests {
                     }
                     else {
                         CompilationUnit p = _p.getVal();
-                        if (Driver.check(p).hasErrors()) { throw new Exception("Static error"); }
                         
                         if (anns.compile) {
                             // oldOut.print(" COMPILING"); oldOut.flush();
