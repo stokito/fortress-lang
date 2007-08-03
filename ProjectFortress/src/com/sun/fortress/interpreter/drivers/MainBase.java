@@ -120,10 +120,12 @@ public abstract class MainBase {
                         + outSuffix);
                 out = fout;
             }
-            (new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
-                    .dump(p, out, 0);
-            if (fout != null)
-                fout.close();
+            try {
+                new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty).dump(p, out, 0);
+            }
+            finally {
+                if (fout != null) { fout.close(); }
+            }
         }
         if (interpret) {
             Driver.runProgram(p, false, fortressArgs);
@@ -140,10 +142,12 @@ public abstract class MainBase {
                         + outSuffix);
                 out = fout;
             }
-            (new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty))
-                    .dump(p, out, 0);
-            if (fout != null)
-                fout.close();
+            try {
+                new Printer(firstFieldOnNewLine, oneLineVarRef, skipEmpty).dump(p, out, 0);
+            }
+            finally {
+                if (fout != null) { fout.close(); }
+            }
         }
         if (interpret) {
             Driver.runProgram(p.getVal(), false, fortressArgs);

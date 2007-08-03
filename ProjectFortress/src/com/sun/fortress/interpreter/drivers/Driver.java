@@ -96,7 +96,8 @@ public class Driver {
     public static Option<CompilationUnit> readJavaAst(String fileName)
             throws IOException {
         BufferedReader br = Useful.utf8BufferedFileReader(fileName);
-        return readJavaAst(fileName, br);
+        try { return readJavaAst(fileName, br); }
+        finally { br.close(); }
     }
 
     /**
@@ -157,7 +158,9 @@ public class Driver {
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
     public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
-        return parseToJavaAst(reportedFileName, Useful.utf8BufferedFileReader(reportedFileName));
+        BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
+        try { return parseToJavaAst(reportedFileName, r); }
+        finally { r.close(); }
     }
 
 
@@ -232,8 +235,8 @@ public class Driver {
     public static void writeJavaAst(CompilationUnit p, String s)
             throws IOException {
         BufferedWriter fout = Useful.utf8BufferedFileWriter(s);
-        writeJavaAst(p, fout);
-        fout.close();
+        try { writeJavaAst(p, fout); }
+        finally { fout.close(); }
     }
 
     /**
@@ -724,17 +727,17 @@ public class Driver {
     {
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
 
-           // try {
-                System.err.println("Missing or stale preparsed AST "
-                                   + libraryTree + ", rebuilding from source "
-                                   + librarySource );
+            System.err.println("Missing or stale preparsed AST "
+                               + libraryTree + ", rebuilding from source "
+                               + librarySource );
 
-                long begin = System.currentTimeMillis();
+            long begin = System.currentTimeMillis();
 
+            BufferedReader r = Useful.utf8BufferedFileReader(librarySource);
+            try {
                 // Because of the check above, we can retrieve the value of
                 // the Option immediately.
-                CompilationUnit c = parseToJavaAst(librarySource, Useful
-                        .utf8BufferedFileReader(librarySource)).getVal();
+                CompilationUnit c = parseToJavaAst(librarySource, r).getVal();
 
                 System.err.println
                     ("Parsed " + librarySource + ": "
@@ -742,6 +745,8 @@ public class Driver {
                          + " milliseconds");
                 writeJavaAst(c, libraryTree);
                 return c;
+            }
+            finally { r.close(); }   
         }
         else {
             long begin = System.currentTimeMillis();

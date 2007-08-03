@@ -22,10 +22,12 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Api;
 
 public class ApiIndex extends CompilationUnitIndex {
-  
-  public ApiIndex(Api ast, Map<String, Variable> variables, Relation<String, Function> functions,
-                  Map<String, TraitIndex> traits) {
-    super(ast, variables, functions, traits);
-  }
-  
+    
+    public ApiIndex(Api ast,
+                    Map<String, Variable> variables,
+                    Relation<String, Function> functions,
+                    Map<String, TraitIndex> traits) {
+        super(ast, variables, functions, traits);
+    }
+    
 }

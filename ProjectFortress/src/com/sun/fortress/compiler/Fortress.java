@@ -25,63 +25,77 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 
-public abstract class Fortress {
+import com.sun.fortress.useful.NI;
 
-  protected abstract Map<String, ApiIndex> apis();
-
-  protected abstract void addApi(String name, ApiIndex definition);
-  
-  protected abstract void addComponent(String name, ComponentIndex definition);
-  
-  /**
-   * Compile all definitions in the given files, and any additional sources that they depend on,
-   * and add them to the fortress.
-   */
-  public Iterable<? extends StaticError> compile(Iterable<File> files) {
-    GlobalEnvironment env = new GlobalEnvironment(apis());
+public class Fortress {
     
-    Parser.Result pr = Parser.parse(files, env);
-    if (!pr.isSuccessful()) { return pr.errors(); }
+    private final FortressRepository _repository;
     
-    IndexBuilder.Result ir = IndexBuilder.build(pr.asts());
-    if (!ir.isSuccessful()) { return ir.errors(); }
+    public Fortress(FortressRepository repository) { _repository = repository; }
     
-    // Handle APIs first
-    
-    Disambiguator.ApiResult drForApis =
-      Disambiguator.disambiguateApis(ir.apis(),
-                                     new GlobalEnvironment(CollectUtil.compose(apis(), ir.apis())));
-    if (!drForApis.isSuccessful()) { return drForApis.errors(); }
-    
-    StaticChecker.ApiResult crForApis =
-      StaticChecker.checkApis(drForApis.apis(),
-                              new GlobalEnvironment(CollectUtil.compose(apis(), drForApis.apis())));
-    if (!crForApis.isSuccessful()) { return crForApis.errors(); }
-    
-    for (Map.Entry<String, ApiIndex> newApi : drForApis.apis().entrySet()) {
-      addApi(newApi.getKey(), newApi.getValue());
+    /**
+     * Compile all definitions in the given files, and any additional sources that
+     * they depend on, and add them to the fortress.
+     */
+    public Iterable<? extends StaticError> compile(File... files) {
+        return compile(IterUtil.asIterable(files));
     }
     
-    // Handle components
-    
-    Disambiguator.ComponentResult dr = Disambiguator.disambiguateComponents(ir.components(), env);
-    if (!dr.isSuccessful()) { return dr.errors(); }
+    /**
+     * Compile all definitions in the given files, and any additional sources that
+     * they depend on, and add them to the fortress.
+     */
+    public Iterable<? extends StaticError> compile(Iterable<File> files) {
+        GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
         
-    StaticChecker.ComponentResult cr = StaticChecker.checkComponents(dr.components(), env);
-    if (!cr.isSuccessful()) { return cr.errors(); }
-    
-    // Additional optimization phases can be inserted here
-    
-    for (Map.Entry<String, ComponentIndex> newComponent : cr.components().entrySet()) {
-      addComponent(newComponent.getKey(), newComponent.getValue());
+        Parser.Result pr = Parser.parse(files, env);
+        if (!pr.isSuccessful()) { return pr.errors(); }
+        
+        IndexBuilder.Result ir = IndexBuilder.build(pr.asts());
+        if (!ir.isSuccessful()) { return ir.errors(); }
+        
+        // Handle APIs first
+        
+        GlobalEnvironment envWithApis1 =
+            new GlobalEnvironment(CollectUtil.compose(_repository.apis(), ir.apis()));
+        Disambiguator.ApiResult drForApis =
+            Disambiguator.disambiguateApis(ir.apis(), envWithApis1);
+        if (!drForApis.isSuccessful()) { return drForApis.errors(); }
+        
+        GlobalEnvironment envWithApis2 =
+            new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
+                                                      drForApis.apis()));
+        StaticChecker.ApiResult crForApis =
+            StaticChecker.checkApis(drForApis.apis(), envWithApis2);
+        if (!crForApis.isSuccessful()) { return crForApis.errors(); }
+        
+        for (Map.Entry<String, ApiIndex> newApi : drForApis.apis().entrySet()) {
+            _repository.addApi(newApi.getKey(), newApi.getValue());
+        }
+        
+        // Handle components
+        
+        Disambiguator.ComponentResult dr =
+            Disambiguator.disambiguateComponents(ir.components(), env);
+        if (!dr.isSuccessful()) { return dr.errors(); }
+        
+        StaticChecker.ComponentResult cr =
+            StaticChecker.checkComponents(dr.components(), env);
+        if (!cr.isSuccessful()) { return cr.errors(); }
+        
+        // Additional optimization phases can be inserted here
+        
+        for (Map.Entry<String, ComponentIndex> newComponent :
+                 cr.components().entrySet()) {
+            _repository.addComponent(newComponent.getKey(), newComponent.getValue());
+        }
+        
+        return IterUtil.empty();
     }
     
-    return IterUtil.empty();
-  }
-      
-  public void run(String componentName) {
-    throw new RuntimeException("Not implemented");
-  }
-
-  
+    
+    public void run(String componentName) {
+        NI.nyi();
+    }
+    
 }

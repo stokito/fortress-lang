@@ -20,12 +20,12 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.LValueBind;
 
 public class FieldSetterMethod extends Method {
-  
-  private final LValueBind _ast;
-  private final String _declaringTrait;
-  
-  public FieldSetterMethod(LValueBind ast, String declaringTrait) {
-    _ast = ast;
-    _declaringTrait = declaringTrait;
-  }
+    
+    private final LValueBind _ast;
+    private final String _declaringTrait;
+    
+    public FieldSetterMethod(LValueBind ast, String declaringTrait) {
+        _ast = ast;
+        _declaringTrait = declaringTrait;
+    }
 }

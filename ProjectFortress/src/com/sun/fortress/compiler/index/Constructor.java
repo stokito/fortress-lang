@@ -18,8 +18,8 @@
 package com.sun.fortress.compiler.index;
 
 public class Constructor extends Function {
-  
-  private final String _declaringTrait;
-  
-  public Constructor(String declaringTrait) { _declaringTrait = declaringTrait; }
+    
+    private final String _declaringTrait;
+    
+    public Constructor(String declaringTrait) { _declaringTrait = declaringTrait; }
 }

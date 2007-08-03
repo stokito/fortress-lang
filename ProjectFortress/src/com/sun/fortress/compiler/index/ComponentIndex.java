@@ -26,20 +26,20 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.useful.NI;
 
 public class ComponentIndex extends CompilationUnitIndex {
-  
-  private final Set<VarDecl> _initializers;
-  
-  public ComponentIndex(Component ast,
-                        Map<String, Variable> variables,
-                        Set<VarDecl> initializers,
-                        Relation<String, Function> functions,
-                        Map<String, TraitIndex> traits) {
-    super(ast, variables, functions, traits);
-    _initializers = initializers;
-  }
-  
-  public Set<VarDecl> initializers() {
-    return NI.nyi();
-  }
-  
+    
+    private final Set<VarDecl> _initializers;
+    
+    public ComponentIndex(Component ast,
+                          Map<String, Variable> variables,
+                          Set<VarDecl> initializers,
+                          Relation<String, Function> functions,
+                          Map<String, TraitIndex> traits) {
+        super(ast, variables, functions, traits);
+        _initializers = initializers;
+    }
+    
+    public Set<VarDecl> initializers() {
+        return NI.nyi();
+    }
+    
 }

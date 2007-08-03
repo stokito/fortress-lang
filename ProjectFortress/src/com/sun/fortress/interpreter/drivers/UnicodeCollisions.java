@@ -100,11 +100,14 @@ public class UnicodeCollisions {
         BufferedReader is = Useful.utf8BufferedFileReader(args[0]);
         ArrayList<UnicodeCollisions> chars = new ArrayList<UnicodeCollisions>();
         HashMap<String, UnicodeCollisions> h = new HashMap<String, UnicodeCollisions>();
-        String l = is.readLine();
-        while (l != null) {
-            chars.add(new UnicodeCollisions(l));
-            l = is.readLine();
+        try {
+            String l = is.readLine();
+            while (l != null) {
+                chars.add(new UnicodeCollisions(l));
+                l = is.readLine();
+            }
         }
+        finally { is.close(); }
 
         forAll(chars, new XForm() {
             String translate(String x) {

@@ -19,10 +19,10 @@ package com.sun.fortress.compiler.index;
 
 /** Represents the variable produced by a singleton object declaration. */
 public class SingletonVariable extends Variable {
-  private final String _declaringTrait;
-  
-  public SingletonVariable(String declaringTrait) {
-    _declaringTrait = declaringTrait;
-  }
-  
+    private final String _declaringTrait;
+    
+    public SingletonVariable(String declaringTrait) {
+        _declaringTrait = declaringTrait;
+    }
+    
 }

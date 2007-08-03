@@ -21,12 +21,12 @@ import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 
 public class GlobalEnvironment {
-  private Map<String, ApiIndex> _apis;
-  
-  public GlobalEnvironment(Map<String, ApiIndex> apis) { _apis = apis; }
-
-  public boolean definesApi(String name) { return _apis.containsKey(name); }
-  
-  public ApiIndex api(String name) { return _apis.get(name); }
-  
+    private Map<String, ApiIndex> _apis;
+    
+    public GlobalEnvironment(Map<String, ApiIndex> apis) { _apis = apis; }
+    
+    public boolean definesApi(String name) { return _apis.containsKey(name); }
+    
+    public ApiIndex api(String name) { return _apis.get(name); }
+    
 }

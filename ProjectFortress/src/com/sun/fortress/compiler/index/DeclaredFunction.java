@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 
 public class DeclaredFunction extends Function {
-  private final FnAbsDeclOrDecl _ast;
-  
-  public DeclaredFunction(FnAbsDeclOrDecl ast) { _ast = ast; }
+    private final FnAbsDeclOrDecl _ast;
+    
+    public DeclaredFunction(FnAbsDeclOrDecl ast) { _ast = ast; }
 }

@@ -23,16 +23,20 @@ import java.io.InputStreamReader;
 import com.sun.fortress.useful.Useful;
 
 public class SpliceCode {
+    
     static StringBuffer readReader(BufferedReader br) throws IOException {
-        StringBuffer sb = new StringBuffer();
-        String s = br.readLine();
-        while (s != null) {
-            sb.append(s);sb.append("\n");
-            s = br.readLine();
+        try {
+            StringBuffer sb = new StringBuffer();
+            String s = br.readLine();
+            while (s != null) {
+                sb.append(s);sb.append("\n");
+                s = br.readLine();
+            }
+            return sb;
         }
-        br.close();
-        return sb;
+        finally { br.close(); }
     }
+    
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: java SpliceCode Original.java < inserted > modified");

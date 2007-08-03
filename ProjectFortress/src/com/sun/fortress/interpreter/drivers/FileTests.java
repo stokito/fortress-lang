@@ -74,15 +74,16 @@ public class FileTests {
             System.setErr(wt_err);
             System.setOut(wt_out);
 
+            String s = f.replaceFirst(".*/", "");
+            String tmpFile = "/tmp/" + s + ".ast";
+            String fssFile = f + ".fss";
+            BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
-                    String s = f.replaceFirst(".*/", "");
-                    String tmpFile = "/tmp/" + s + ".ast";
-                    String fssFile = f + ".fss";
                     Annotations anns = new Annotations(fssFile);
-                    Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, Useful.utf8BufferedFileReader(fssFile));
-  
+                    Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, in);
+                    
                     if (! _p.isPresent()) { 
                         throw new Exception("Syntax error"); 
                     }
@@ -108,12 +109,13 @@ public class FileTests {
                             }
                         }
                     }
-                } 
+                }
                 finally {
                     System.setErr(oldErr);
                     System.setOut(oldOut);
+                    in.close();
                 }
-            } 
+            }
             catch (Throwable ex) {
                 if (f.contains("XXX")) {
                     // "Failed", but correctly

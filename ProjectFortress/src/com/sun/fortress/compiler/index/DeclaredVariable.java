@@ -20,8 +20,8 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.LValueBind;
 
 public class DeclaredVariable extends Variable {
-  
-  private final LValueBind _ast;
-  
-  public DeclaredVariable(LValueBind ast) { _ast = ast; }
+    
+    private final LValueBind _ast;
+    
+    public DeclaredVariable(LValueBind ast) { _ast = ast; }
 }

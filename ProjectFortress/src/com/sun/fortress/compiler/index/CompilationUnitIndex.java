@@ -26,39 +26,40 @@ import com.sun.fortress.useful.NI;
 
 /** Comprises {@link ApiIndex} and {@link CompilationUnit}. */
 public class CompilationUnitIndex {
-  
-  private final CompilationUnit _ast;
-  private final Map<String, Variable> _variables;
-  private final Relation<String, Function> _functions;
-  private final Map<String, TraitIndex> _traits;
-  
-  public CompilationUnitIndex(CompilationUnit ast, Map<String, Variable> variables,
-                              Relation<String, Function> functions,
-                              Map<String, TraitIndex> traits) {
-    _ast = ast;
-    _variables = variables;
-    _functions = functions;
-    _traits = traits;
-  }
-  
-  public Set<String> exports() {
-    return NI.nyi();
-  }
-
-  public Set<String> imports() {
-    return NI.nyi();
-  }
-  
-  public Map<String, Variable> variables() {
-    return NI.nyi();
-  }
-  
-  public Relation<String, Function> functions() {
-    return NI.nyi();
-  }
-
-  public Map<String, TraitIndex> traits() {
-    return NI.nyi();
-  }
-  
+    
+    private final CompilationUnit _ast;
+    private final Map<String, Variable> _variables;
+    private final Relation<String, Function> _functions;
+    private final Map<String, TraitIndex> _traits;
+    
+    public CompilationUnitIndex(CompilationUnit ast,
+                                Map<String, Variable> variables,
+                                Relation<String, Function> functions,
+                                Map<String, TraitIndex> traits) {
+        _ast = ast;
+        _variables = variables;
+        _functions = functions;
+        _traits = traits;
+    }
+    
+    public Set<String> exports() {
+        return NI.nyi();
+    }
+    
+    public Set<String> imports() {
+        return NI.nyi();
+    }
+    
+    public Map<String, Variable> variables() {
+        return NI.nyi();
+    }
+    
+    public Relation<String, Function> functions() {
+        return NI.nyi();
+    }
+    
+    public Map<String, TraitIndex> traits() {
+        return NI.nyi();
+    }
+    
 }

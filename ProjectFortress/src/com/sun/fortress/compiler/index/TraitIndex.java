@@ -31,55 +31,55 @@ import com.sun.fortress.useful.NI;
  * {@link ObjectTraitIndex}.
  */
 public abstract class TraitIndex {
-  
-  private final TraitObjectAbsDeclOrDecl _ast;
-  private final Map<String, Method> _getters;
-  private final Map<String, Method> _setters;
-  private final Set<Function> _coercions;
-  private final Relation<String, Method> _dottedMethods;
-  private final Relation<String, FunctionalMethod> _functionalMethods;
-  
-  public TraitIndex(TraitObjectAbsDeclOrDecl ast,
-                    Map<String, Method> getters,
-                    Map<String, Method> setters,
-                    Set<Function> coercions,
-                    Relation<String, Method> dottedMethods,
-                    Relation<String, FunctionalMethod> functionalMethods) {
-    _ast = ast;
-    _getters = getters;
-    _setters = setters;
-    _coercions = coercions;
-    _dottedMethods = dottedMethods;
-    _functionalMethods = functionalMethods;
-  }
-
-  
-  public Map<String, StaticParam> staticParameters() {
-    return NI.nyi();
-  }
-  
-  public Set<TypeRef> extendsTypes() {
-    return NI.nyi();
-  }
-  
-  public Map<String, Method> getters() {
-    return NI.nyi();
-  }
-  
-  public Map<String, Method> setters() {
-    return NI.nyi();
-  }
-  
-  public Set<Function> coercions() {
-    return NI.nyi();
-  }
-  
-  public Relation<String, Method> dottedMethods() {
-    return NI.nyi();
-  }
-  
-  public Relation<String, FunctionalMethod> functionalMethods() {
-    return NI.nyi();
-  }
-  
+    
+    private final TraitObjectAbsDeclOrDecl _ast;
+    private final Map<String, Method> _getters;
+    private final Map<String, Method> _setters;
+    private final Set<Function> _coercions;
+    private final Relation<String, Method> _dottedMethods;
+    private final Relation<String, FunctionalMethod> _functionalMethods;
+    
+    public TraitIndex(TraitObjectAbsDeclOrDecl ast,
+                      Map<String, Method> getters,
+                      Map<String, Method> setters,
+                      Set<Function> coercions,
+                      Relation<String, Method> dottedMethods,
+                      Relation<String, FunctionalMethod> functionalMethods) {
+        _ast = ast;
+        _getters = getters;
+        _setters = setters;
+        _coercions = coercions;
+        _dottedMethods = dottedMethods;
+        _functionalMethods = functionalMethods;
+    }
+    
+    
+    public Map<String, StaticParam> staticParameters() {
+        return NI.nyi();
+    }
+    
+    public Set<TypeRef> extendsTypes() {
+        return NI.nyi();
+    }
+    
+    public Map<String, Method> getters() {
+        return NI.nyi();
+    }
+    
+    public Map<String, Method> setters() {
+        return NI.nyi();
+    }
+    
+    public Set<Function> coercions() {
+        return NI.nyi();
+    }
+    
+    public Relation<String, Method> dottedMethods() {
+        return NI.nyi();
+    }
+    
+    public Relation<String, FunctionalMethod> functionalMethods() {
+        return NI.nyi();
+    }
+    
 }

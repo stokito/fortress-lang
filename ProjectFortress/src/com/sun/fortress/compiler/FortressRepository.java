@@ -17,26 +17,24 @@
 
 package com.sun.fortress.compiler;
 
-import edu.rice.cs.plt.iter.IterUtil;
+import java.util.Map;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
 
-public class StaticPhaseResult {
+/**
+ * Allows the {@link Fortress} class to interface with a custom repository
+ * implementation.  May be based on a file system, database, transient memory, etc.
+ */
+public interface FortressRepository {
     
-    private final Iterable<? extends StaticError> _errors;
+    /**
+     * Provide an updating view of the apis present in the repository.  Need not support 
+     * mutation.
+     */
+    public Map<String, ApiIndex> apis();
     
-    public StaticPhaseResult() {
-        this(IterUtil.<StaticError>empty());
-    }
+    public void addApi(String name, ApiIndex definition);
     
-    public StaticPhaseResult(Iterable<? extends StaticError> errors) {
-        _errors = errors;
-    }
-    
-    public StaticPhaseResult(StaticPhaseResult r1, StaticPhaseResult r2) {
-        _errors = IterUtil.compose(r1._errors, r2._errors);
-    }
-    
-    public boolean isSuccessful() { return IterUtil.isEmpty(_errors); }
-    
-    public Iterable<? extends StaticError> errors() { return _errors; }
+    public void addComponent(String name, ComponentIndex definition);
     
 }

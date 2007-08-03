@@ -28,35 +28,36 @@ import com.sun.fortress.useful.NI;
 
 /** Wraps an object declaration. */
 public class ObjectTraitIndex extends TraitIndex {
-  
-  private final Option<Constructor> _constructor;
-  private final Map<String, Variable> _fields;
-  private final Set<VarDecl> _fieldInitializers;
-  
-  public ObjectTraitIndex(ObjectAbsDeclOrDecl ast, Option<Constructor> constructor,
-                          Map<String, Variable> fields,
-                          Set<VarDecl> fieldInitializers,
-                          Map<String, Method> getters,
-                          Map<String, Method> setters,
-                          Set<Function>coercions,
-                          Relation<String, Method> dottedMethods,
-                          Relation<String, FunctionalMethod> functionalMethods) {
-    super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
-    _constructor = constructor;
-    _fields = fields;
-    _fieldInitializers = fieldInitializers;
-  }
-
-  public Option<Constructor> constructor() {
-    return NI.nyi();
-  }
-  
-  public Map<String, Variable> fields() {
-    return NI.nyi();
-  }
-  
-  public Set<VarDecl> fieldInitializers() {
-    return NI.nyi();
-  }
-  
+    
+    private final Option<Constructor> _constructor;
+    private final Map<String, Variable> _fields;
+    private final Set<VarDecl> _fieldInitializers;
+    
+    public ObjectTraitIndex(ObjectAbsDeclOrDecl ast,
+                            Option<Constructor> constructor,
+                            Map<String, Variable> fields,
+                            Set<VarDecl> fieldInitializers,
+                            Map<String, Method> getters,
+                            Map<String, Method> setters,
+                            Set<Function>coercions,
+                            Relation<String, Method> dottedMethods,
+                            Relation<String, FunctionalMethod> functionalMethods) {
+        super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
+        _constructor = constructor;
+        _fields = fields;
+        _fieldInitializers = fieldInitializers;
+    }
+    
+    public Option<Constructor> constructor() {
+        return NI.nyi();
+    }
+    
+    public Map<String, Variable> fields() {
+        return NI.nyi();
+    }
+    
+    public Set<VarDecl> fieldInitializers() {
+        return NI.nyi();
+    }
+    
 }

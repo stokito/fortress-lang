@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.Param;
 
 public class ParamVariable extends Variable {
-  private Param _ast;
-  
-  public ParamVariable(Param ast) { _ast = ast; }
+    private Param _ast;
+    
+    public ParamVariable(Param ast) { _ast = ast; }
 }

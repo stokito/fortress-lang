@@ -24,12 +24,12 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
  * (methods have distinct receivers).
  */
 public class FunctionalMethod extends Function {
-  
-  private final FnAbsDeclOrDecl _ast;
-  private final String _declaringTrait;
-  
-  public FunctionalMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
-    _ast = ast;
-    _declaringTrait = declaringTrait;
-  }
+    
+    private final FnAbsDeclOrDecl _ast;
+    private final String _declaringTrait;
+    
+    public FunctionalMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
+        _ast = ast;
+        _declaringTrait = declaringTrait;
+    }
 }

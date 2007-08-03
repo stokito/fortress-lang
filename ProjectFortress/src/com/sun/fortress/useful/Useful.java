@@ -571,8 +571,15 @@ public class Useful {
      * @throws FileNotFoundException
      */
     static public BufferedReader utf8BufferedFileReader(String s) throws FileNotFoundException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(s), Charset.forName("UTF-8")));
-        return br;
+        return new BufferedReader(new InputStreamReader(new FileInputStream(s), Charset.forName("UTF-8")));
+    }
+
+    /**
+     * Returns a BufferedReader for the file f, with encoding assumed to be UTF-8.
+     * @throws FileNotFoundException
+     */
+    static public BufferedReader utf8BufferedFileReader(File f) throws FileNotFoundException {
+        return new BufferedReader(new InputStreamReader(new FileInputStream(f), Charset.forName("UTF-8")));
     }
 
     /**
@@ -581,6 +588,14 @@ public class Useful {
      */
     static public BufferedWriter utf8BufferedFileWriter(String s) throws FileNotFoundException {
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(s), Charset.forName("UTF-8")));
+    }
+
+    /**
+     * Returns a BufferedWriter for the file f, with encoding assumed to be UTF-8.
+     * @throws FileNotFoundException
+     */
+    static public BufferedWriter utf8BufferedFileWriter(File f) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
     }
 
     static public boolean olderThanOrMissing(String resultFile, String inputFile) {

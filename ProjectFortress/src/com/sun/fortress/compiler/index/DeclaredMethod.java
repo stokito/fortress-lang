@@ -20,12 +20,12 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 
 public class DeclaredMethod extends Method {
-  
-  private final FnAbsDeclOrDecl _ast;
-  private final String _declaringTrait;
-  
-  public DeclaredMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
-    _ast = ast;
-    _declaringTrait = declaringTrait;
-  }
+    
+    private final FnAbsDeclOrDecl _ast;
+    private final String _declaringTrait;
+    
+    public DeclaredMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
+        _ast = ast;
+        _declaringTrait = declaringTrait;
+    }
 }

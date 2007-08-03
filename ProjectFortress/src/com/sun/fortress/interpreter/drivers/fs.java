@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.drivers;
 
 import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.useful.Option;
+import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Useful;
 
 public class fs {
@@ -138,8 +140,13 @@ public class fs {
         try {
             if (verbose)  { System.err.println("Parsing " + s); }
             long begin = System.currentTimeMillis();
-            Option<CompilationUnit> p = Driver.parseToJavaAst(s, Useful.utf8BufferedFileReader(s));
-            reportCompletion("Parsing " + s, begin);
+            BufferedReader in = Useful.utf8BufferedFileReader(s);
+            Option<CompilationUnit> p = new None<CompilationUnit>();
+            try {
+                p = Driver.parseToJavaAst(s, in);
+                reportCompletion("Parsing " + s, begin);
+            }
+            finally { in.close(); }
             
             if (doAst && p.isPresent()) {
                 String astFile = basename(s) + JAVA_AST_SUFFIX;

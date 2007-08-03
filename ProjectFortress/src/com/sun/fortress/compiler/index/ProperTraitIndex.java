@@ -27,23 +27,23 @@ import com.sun.fortress.useful.NI;
 
 /** Wraps a (non-object) trait declaration. */
 public class ProperTraitIndex extends TraitIndex {
-
-  public ProperTraitIndex(TraitAbsDeclOrDecl ast,
-                          Map<String, Method> getters,
-                          Map<String, Method> setters,
-                          Set<Function> coercions,
-                          Relation<String, Method> dottedMethods,
-                          Relation<String, FunctionalMethod> functionalMethods) {
-    super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
-  }
-  
-  
-  public Set<TypeRef> excludesTypes() {
-    return NI.nyi();
-  }
-  
-  public Set<TypeRef> comprisesTypes() {
-    return NI.nyi();
-  }
-  
+    
+    public ProperTraitIndex(TraitAbsDeclOrDecl ast,
+                            Map<String, Method> getters,
+                            Map<String, Method> setters,
+                            Set<Function> coercions,
+                            Relation<String, Method> dottedMethods,
+                            Relation<String, FunctionalMethod> functionalMethods) {
+        super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
+    }
+    
+    
+    public Set<TypeRef> excludesTypes() {
+        return NI.nyi();
+    }
+    
+    public Set<TypeRef> comprisesTypes() {
+        return NI.nyi();
+    }
+    
 }

@@ -28,54 +28,61 @@ import edu.rice.cs.plt.iter.IterUtil;
  * of entity a name refers to.  This class specifically handles the following:
  * <ul>
  * <li>All names referring to APIs are made fully qualified.
- * <li>VarRefs referring to functions become FnRefs with (possibly unknown) static arguments
- *     filled in.</li>
+ * <li>VarRefs referring to functions become FnRefs with (possibly unknown) static
+ *     arguments filled in.</li>
  * <li>Assignments to VarRefs referring to setters become SetterInvocations.</li>
  * <li>VarRefs referring to getters become GetterInvocations.</li>
- * <li>VarRefs referring to methods juxtaposed with Exprs become MethodInvocations.</li>
- * <li>GetterInvocations referring to methods juxtaposed with Exprs become MethodInvocations.</li>
+ * <li>VarRefs referring to methods juxtaposed with Exprs become
+ *     MethodInvocations.</li>
+ * <li>GetterInvocations referring to methods juxtaposed with Exprs become
+ *     MethodInvocations.</li>
  * <li>FunctionRefs juxtaposed with Exprs become MethodInvocations.</li>
  * </ul>
  * 
- * Additionally, all name references that are undefined or used incorrectly are treated
- * as static errors.
+ * Additionally, all name references that are undefined or used incorrectly are
+ * treated as static errors.
  */
 public class Disambiguator {
-  
-  public static class ApiResult extends StaticPhaseResult {
-    private final Map<String, ApiIndex> _apis;
-    public ApiResult(Map<String, ApiIndex> apis, Iterable<? extends StaticError> errors) {
-      super(errors);
-      _apis = apis;
+    
+    public static class ApiResult extends StaticPhaseResult {
+        private final Map<String, ApiIndex> _apis;
+            
+        public ApiResult(Map<String, ApiIndex> apis,
+                         Iterable<? extends StaticError> errors) {
+            super(errors);
+            _apis = apis;
+        }
+        
+        public Map<String, ApiIndex> apis() { return _apis; }
     }
-    public Map<String, ApiIndex> apis() { return _apis; }
-  }
-  
-  /**
-   * Disambiguate the given apis. To support circular references, the apis should appear in
-   * the given environment.
-   */
-  public static ApiResult disambiguateApis(Map<String, ApiIndex> apis, GlobalEnvironment env) {
-    // TODO: implement
-    return new ApiResult(apis, IterUtil.<StaticError>empty());
-  }
-
-  
-  public static class ComponentResult extends StaticPhaseResult {
-    private final Map<String, ComponentIndex> _components;
-    public ComponentResult(Map<String, ComponentIndex> components,
-                           Iterable<? extends StaticError> errors) {
-      super(errors);
-      _components = components;
+    
+    /**
+     * Disambiguate the given apis. To support circular references, the apis should
+     * appear in the given environment.
+     */
+    public static ApiResult disambiguateApis(Map<String, ApiIndex> apis,
+                                             GlobalEnvironment env) {
+        // TODO: implement
+        return new ApiResult(apis, IterUtil.<StaticError>empty());
     }
-    public Map<String, ComponentIndex> components() { return _components; }
-  }
-
-  /** Disambiguate the given components. */
-  public static ComponentResult disambiguateComponents(Map<String, ComponentIndex> components,
-                                                       GlobalEnvironment env) {
-    // TODO: implement
-    return new ComponentResult(components, IterUtil.<StaticError>empty());
-  }
-  
+    
+    
+    public static class ComponentResult extends StaticPhaseResult {
+        private final Map<String, ComponentIndex> _components;
+        public ComponentResult(Map<String, ComponentIndex> components,
+                               Iterable<? extends StaticError> errors) {
+            super(errors);
+            _components = components;
+        }
+        public Map<String, ComponentIndex> components() { return _components; }
+    }
+    
+    /** Disambiguate the given components. */
+    public static ComponentResult
+        disambiguateComponents(Map<String, ComponentIndex> components,
+                               GlobalEnvironment env) {
+        // TODO: implement
+        return new ComponentResult(components, IterUtil.<StaticError>empty());
+    }
+    
 }

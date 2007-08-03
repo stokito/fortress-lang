@@ -28,25 +28,25 @@ import com.sun.fortress.useful.NI;
 
 /** Comprises {@link Function} and {@link Method}. */
 public abstract class Functional {
-  
-  public TypeRef instantiatedType(TypeRef... staticArgs) {
-    return NI.nyi();
-  }
-  
-  public Map<String, StaticParam> staticParameters() {
-    return NI.nyi();
-  }
-  
-  public Map<String, Param> parameters() {
-    return NI.nyi();
-  }
-  
-  public Iterable<TypeRef> thrownTypes() {
-    return NI.nyi();
-  }
-  
-  public Option<Expr> body() {
-    return NI.nyi();
-  }
-  
+    
+    public TypeRef instantiatedType(TypeRef... staticArgs) {
+        return NI.nyi();
+    }
+    
+    public Map<String, StaticParam> staticParameters() {
+        return NI.nyi();
+    }
+    
+    public Map<String, Param> parameters() {
+        return NI.nyi();
+    }
+    
+    public Iterable<TypeRef> thrownTypes() {
+        return NI.nyi();
+    }
+    
+    public Option<Expr> body() {
+        return NI.nyi();
+    }
+    
 }

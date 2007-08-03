@@ -19,12 +19,36 @@ package com.sun.fortress.compiler;
 
 import com.sun.fortress.useful.HasAt;
 
-public class StaticError extends RuntimeException {
-  private final HasAt _location;
-  
-  public StaticError(String message, HasAt location) {
-    super(location.at() + ": " + message);
-    _location = location;
-  }
-  
+public abstract class StaticError extends RuntimeException implements HasAt {
+    
+    public abstract String typeDescription();
+    
+    public abstract String description();
+    
+    public abstract String at();
+    
+    public String toString() {
+        return typeDescription() + ": " + description() + " [" + at() + "]";
+    }
+    
+    /**
+     * Make a simple static error with type description "Error" and the given
+     * location.
+     */
+    public static StaticError make(String description, HasAt location) {
+        return make(description, location.at());
+    }
+    
+    /**
+     * Make a simple static error with type description "Error" and the given
+     * location.
+     */
+    public static StaticError make(final String description, final String location) {
+        return new StaticError() {
+            public String typeDescription() { return "Error"; }
+            public String description() { return description; }
+            public String at() { return location; }
+        };
+    }
+    
 }

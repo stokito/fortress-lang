@@ -330,7 +330,7 @@ testNotPassing, testOnly"/>
 
 
     <target name="testOnly" depends="compile"
-            description="Run a single test case.">
+            description="Run specific tests (use -DtestPattern=...).">
         <mkdir dir="${test.results}"/>
         <junit printsummary="off"
                haltonerror="off"
