@@ -71,7 +71,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
     static ObjectDecl bogusObjectDecl() {
         List<Decl> defs = Collections.emptyList();
         List<Modifier> mods = Collections.emptyList();
-        List<TraitType> throws_ = Collections.emptyList();
+        Option<List<TraitType>> throws_ = None.<List<TraitType>>make();
         List<WhereClause> where = Collections.emptyList();
         Contract contract = NodeFactory.makeContract();
 

@@ -70,8 +70,11 @@ constant transient TypeRef TypeRef =
 private TypeRef TypeRefFront =
      openparen w TypeRef w closeparen
    / a1:TypeRefFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
-       yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),a1,a2,a3);
+     { Option<List<TraitType>> throws_;
+       if (a3 == null) throws_ = None.<List<TraitType>>make();
+       else            throws_ = Some.<List<TraitType>>make(a3);
+       yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount), a1, a2,
+                                           throws_);
      }
    / TypeRefFrontNonArrow ;
 
@@ -132,16 +135,20 @@ private constant transient Action<TypeRef> TypeRefTail =
 
 private ArrowTypeTail ArrowTypeTail =
      w rightarrow w a1:NonArrowType a2:(w Throws)?
-     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new ArrowTypeTail(a1, a2);
+     { Option<List<TraitType>> throws_;
+       if (a2 == null) throws_ = None.<List<TraitType>>make();
+       else            throws_ = Some.<List<TraitType>>make(a2);
+       yyValue = new ArrowTypeTail(a1, throws_);
      };
 
 /* ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)? */
 ArrowType ArrowType =
      a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
+     { Option<List<TraitType>> throws_;
+       if (a3 == null) throws_ = None.<List<TraitType>>make();
+       else            throws_ = Some.<List<TraitType>>make(a3);
        yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
-                                           a1, a2, a3);
+                                           a1, a2, throws_);
      };
 
 private NonArrowType NonArrowType =

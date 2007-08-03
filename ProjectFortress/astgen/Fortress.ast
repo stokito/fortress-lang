@@ -222,8 +222,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
                                          = None.<List<Param>>make(),
-                                     List<TraitType> throwsClause
-                                         = Collections.<TraitType>emptyList(),
+                                     Option<List<TraitType>> throwsClause
+                                         = None.<List<TraitType>>make(),
                                      Contract contract = new Contract(),
                                      List<? extends AbsDeclOrDecl> decls)
                                     implements GenericAbsDeclOrDeclWithParams;
@@ -310,8 +310,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              List<Param> params,
                              Option<TypeRef> returnType
                                  = None.<TypeRef>make(),
-                             List<TraitType> throwsClause
-                                 = Collections.<TraitType>emptyList(),
+                             Option<List<TraitType>> throwsClause
+                                 = None.<List<TraitType>>make(),
                              List<WhereClause> where
                                  = Collections.<WhereClause>emptyList(),
                              Contract contract = new Contract(),
@@ -630,7 +630,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                List<Param> params,
                Option<TypeRef> returnType = None.<TypeRef>make(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),
-               List<TraitType> throwsClause = Collections.<TraitType>emptyList(),
+               Option<List<TraitType>> throwsClause = None.<List<TraitType>>make(),
                Expr body)
               implements Applicable;
         /**
@@ -864,7 +864,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
         ArrowType(List<TypeRef> domain, NonArrowType range,
-                  List<TraitType> throwsClause);
+                  Option<List<TraitType>> throwsClause);
         /**
          * nonarrow type
          */

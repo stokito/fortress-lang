@@ -59,11 +59,11 @@ Expr ExprFront =
    / <Flow> FlowExpr
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Option<TypeRef> ty_opt;
-       List<TraitType> tys;
+       Option<List<TraitType>> tys;
        if (a2 == null) ty_opt = None.<TypeRef>make();
        else            ty_opt = Some.<TypeRef>make(a2);
-       if (a3 == null) tys = FortressUtil.emptyTraitTypes();
-       else            tys = a3;
+       if (a3 == null) tys = None.<List<TraitType>>make();
+       else            tys = Some.<List<TraitType>>make(a3);
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
                                         tys, a4);
      };

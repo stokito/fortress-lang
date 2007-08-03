@@ -127,7 +127,7 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
             a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()), a2.getParams(),
-            FortressUtil.getListVal(fhc.getThrowsClause()), contract, a3);
+            fhc.getThrowsClause(), contract, a3);
      };
 
 /* ObjectHeader ::=
@@ -303,8 +303,7 @@ AbsObjectDecl AbsObjectDecl =
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
             a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()),
-            a2.getParams(), FortressUtil.getListVal(fhc.getThrowsClause()),
-            contract, a3);
+            a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };
 
 /* AbsGoInAnObject ::=

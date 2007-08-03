@@ -239,8 +239,12 @@ public class NodeComparator {
         if (x != 0) return x;
         x = typeRefListComparer.compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        x = traitTypeListComparer.compare(left.getThrowsClause(), right.getThrowsClause());
-        return x;
+        if (left.getThrowsClause().isPresent() != right.getThrowsClause().isPresent())
+            return left.getThrowsClause().isPresent() ? 1 : -1;
+        if (left.getThrowsClause().isPresent())
+            return traitTypeListComparer.compare(left.getThrowsClause().getVal(),
+                                                 right.getThrowsClause().getVal());
+        return 0;
     }
 
     static int subtypeCompareTo(BaseNatRef left, BaseNatRef right) {

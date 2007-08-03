@@ -24,17 +24,19 @@ package com.sun.fortress.parser_util;
 import java.util.List;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NonArrowType;
+import com.sun.fortress.useful.Option;
 
 public class ArrowTypeTail {
 
     NonArrowType range;
-    List<TraitType> throwsClause;
+    Option<List<TraitType>> throwsClause;
 
-    public ArrowTypeTail(NonArrowType in_range, List<TraitType> in_throws) {
+    public ArrowTypeTail(NonArrowType in_range,
+                         Option<List<TraitType>> in_throws) {
         this.range = in_range;
         this.throwsClause = in_throws;
     }
 
     public NonArrowType getRange() { return range; }
-    public List<TraitType> getThrows() { return throwsClause; }
+    public Option<List<TraitType>> getThrows() { return throwsClause; }
 }

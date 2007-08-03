@@ -48,8 +48,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return Useful.listInParens(mapSelf(node.getDomain()))
                 + "->"
                 + node.getRange().accept(this)
-                + (node.getThrowsClause().size() > 0 ? (" throws " +
-                        Useful.listInCurlies(mapSelf(node.getThrowsClause()))) : "");
+                + (node.getThrowsClause().isPresent() ? (" throws " +
+                        Useful.listInCurlies(mapSelf(node.getThrowsClause().getVal()))) : "");
     }
 
     public String forBaseNatRef(BaseNatRef node) {
