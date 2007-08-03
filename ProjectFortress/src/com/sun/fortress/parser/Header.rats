@@ -224,11 +224,18 @@ private List<TraitType> MayTraitTypes =
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
      a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
-     { if (a1 == null) a1 = FortressUtil.emptyExprs();
-       if (a2 == null) a2 = FortressUtil.emptyEnsuresClauses();
-       if (a3 == null) a3 = FortressUtil.emptyExprs();
+     { Option<List<Expr>> requires;
+       Option<List<EnsuresClause>> ensures;
+       Option<List<Expr>> invariant;
+       if (a1 == null) requires = None.<List<Expr>>make();
+       else            requires = Some.<List<Expr>>make(a1);
+       if (a2 == null) ensures = None.<List<EnsuresClause>>make();
+       else            ensures = Some.<List<EnsuresClause>>make(a2);
+       if (a3 == null) invariant = None.<List<Expr>>make();
+       else            invariant = Some.<List<Expr>>make(a3);
        if (a1 == null && a2 == null && a3 == null) yyValue = null;
-       else yyValue = new Contract(createSpan(yyStart,yyCount), a1, a2, a3);
+       else yyValue = new Contract(createSpan(yyStart,yyCount), requires,
+                                   ensures, invariant);
      };
 
 /* Requires ::= requires w { (w ExprList)? w } */
@@ -297,11 +304,15 @@ private WhereClause CoercionWhereClause =
 
 /* CoercionContract ::= (w Ensures)? (w Invariant)? */
 Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
-     { if (a1 == null) a1 = FortressUtil.emptyEnsuresClauses();
-       if (a2 == null) a2 = FortressUtil.emptyExprs();
+     { Option<List<EnsuresClause>> ensures;
+       Option<List<Expr>> invariant;
+       if (a1 == null) ensures = None.<List<EnsuresClause>>make();
+       else            ensures = Some.<List<EnsuresClause>>make(a1);
+       if (a2 == null) invariant = None.<List<Expr>>make();
+       else            invariant = Some.<List<Expr>>make(a2);
        if (a1 == null && a2 == null) yyValue = null;
        else yyValue = new Contract(createSpan(yyStart,yyCount),
-                                   FortressUtil.emptyExprs(), a1, a2);
+                                   None.<List<Expr>>make(), ensures, invariant);
      };
 
 /* Each modifier cannot appear more than once. */

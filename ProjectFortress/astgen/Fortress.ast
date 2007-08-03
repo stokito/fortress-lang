@@ -1127,9 +1127,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * Invariant ::= invariant { ExprList? }
      * e.g.) requires { n GE 0 } ensures { result GE 0 }
      */
-    Contract(List<Expr> requires = Collections.<Expr>emptyList(),
-             List<EnsuresClause> ensures = Collections.<EnsuresClause>emptyList(),
-             List<Expr> invariants = Collections.<Expr>emptyList());
+    Contract(Option<List<Expr>> requires = None.<List<Expr>>make(),
+             Option<List<EnsuresClause>> ensures = None.<List<EnsuresClause>>make(),
+             Option<List<Expr>> invariants = None.<List<Expr>>make());
     /**
      * ensures clause used in contracts
      * EnsuresClause ::= Expr (provided Expr)?

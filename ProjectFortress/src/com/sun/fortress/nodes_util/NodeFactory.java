@@ -101,9 +101,9 @@ public class NodeFactory {
 
   /** Alternatively, you can invoke the Contract constructor without any parameters */
     public static Contract makeContract() {
-        return new Contract(new Span(), Collections.<Expr> emptyList(),
-                            Collections.<EnsuresClause> emptyList(),
-                            Collections.<Expr> emptyList());
+        return new Contract(new Span(), None.<List<Expr>> make(),
+                            None.<List<EnsuresClause>> make(),
+                            None.<List<Expr>> make());
     }
 
     public static DottedId makeDottedId(Span span, String s) {

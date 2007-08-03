@@ -82,8 +82,9 @@ public final class FortressUtil {
     }
 
     public static Contract emptyContract() {
-        return new Contract(new Span(), emptyExprs(), emptyEnsuresClauses(),
-                            emptyExprs());
+        return new Contract(new Span(), None.<List<Expr>>make(),
+                            None.<List<EnsuresClause>>make(),
+                            None.<List<Expr>>make());
     }
 
     public static List<Decl> emptyDecls() {
