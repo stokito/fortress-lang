@@ -291,7 +291,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * UnpastingDim ::= ExtentRange (BY ExtentRange)+
              * e.g.) squareShape[m BY m]
              */
-            UnpastingBind(Id id, Option<List<ExtentRange>> dim);
+            UnpastingBind(Id id, List<ExtentRange> dim);
             /**
              * complex unpasting
              * UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
@@ -1128,7 +1128,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) requires { n GE 0 } ensures { result GE 0 }
      */
     Contract(Option<List<Expr>> requires = None.<List<Expr>>make(),
-             Option<List<EnsuresClause>> ensures = None.<List<EnsuresClause>>make(),
+             Option<List<EnsuresClause>> ensures =
+                 None.<List<EnsuresClause>>make(),
              Option<List<Expr>> invariants = None.<List<Expr>>make());
     /**
      * ensures clause used in contracts

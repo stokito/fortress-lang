@@ -195,10 +195,9 @@ private Unpasting UnpastingElem =
      a1:Id a2:(opensquare w UnpastingDim w closesquare)?
      { if (a2 == null)
            yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1,
-                                       None.<List<ExtentRange>>make());
+                                       Collections.<ExtentRange>emptyList());
        else
-           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1,
-                                       Some.<List<ExtentRange>>make(a2));
+           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1, a2);
      }
    / Unpasting ;
 

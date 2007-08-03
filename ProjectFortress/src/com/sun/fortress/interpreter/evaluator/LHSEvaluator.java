@@ -132,7 +132,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
         Id id = x.getId();
-        Option<List<ExtentRange>> dim = x.getDim();
+        List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
     }
 
