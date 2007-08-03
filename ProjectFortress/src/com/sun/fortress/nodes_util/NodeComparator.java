@@ -20,11 +20,7 @@ package com.sun.fortress.nodes_util;
 import java.util.Comparator;
 import java.util.List;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.interpreter.glue.NativeApplicable;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Voidoid;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.ListComparer;
 
@@ -50,7 +46,6 @@ public class NodeComparator {
     final static ExtentRangeComparer extentRangeComparer = new ExtentRangeComparer();
     public final static AnyListComparer<ExtentRange> extentRangeListComparer =
         new AnyListComparer(extentRangeComparer);
-
 
     static class KeywordTypeComparer implements Comparator<KeywordType> {
         public int compare(KeywordType left, KeywordType right) {
@@ -118,30 +113,6 @@ public class NodeComparator {
     }
 
     /* compare methods ***************************************************/
-    public static int compare(Applicable left, Applicable right) {
-        if (left instanceof FnExpr) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            return NodeUtil.getName(((FnExpr)left).getFnName()).compareTo(NodeUtil.getName(((FnExpr)right).getFnName()));
-        } else if (left instanceof FnAbsDeclOrDecl) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            return compare(left, (FnAbsDeclOrDecl)right);
-        } else if (left instanceof NativeApp) {
-            return Useful.compareClasses(left, right);
-        } else if (left instanceof NativeApplicable) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            NativeApplicable na = (NativeApplicable)right;
-            x = ((NativeApplicable)left).stringName().compareTo(na.stringName());
-            if (x != 0) return x;
-            return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
-        } else {
-            throw new Error("NodeComparator.compare(" + left.getClass() + ", "
-                            + right.getClass());
-        }
-    }
-
     public static int compare(DottedId left, DottedId right) {
         return ListComparer.stringListComparer.compare(left.getNames(),
                                                        right.getNames());
@@ -308,7 +279,7 @@ public class NodeComparator {
         return compare(left.getFnName(), right.getFnName());
     }
 
-    static int subtypeCompareTo(ParamType left, ParamType right) {
+    static int subtypeCompareTo(InstantiatedType left, InstantiatedType right) {
         int c = compare(left.getGeneric(), right.getGeneric());
         if (c != 0) return c;
         return staticArgListComparer.compare(left.getArgs(),

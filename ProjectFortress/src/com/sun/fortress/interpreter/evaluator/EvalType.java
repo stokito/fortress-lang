@@ -126,7 +126,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     public  FType getFType(TypeRef t) {
         return t.accept(this);
     }
-    
+
     public FType getFType(VarargsType t) {
         return t.accept(this);
     }
@@ -151,7 +151,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         for (Param in_p : params) {
             Id id = in_p.getId();
             String pname = id.getName();
-            FType ptype; 
+            FType ptype;
             if (in_p instanceof NormalParam) {
                 Option<TypeRef> type = ((NormalParam)in_p).getType();
                 ptype = e.getFTypeFromOption(type);
@@ -410,7 +410,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
     }
 
-    public FType forParamType(ParamType x) {
+    public FType forInstantiatedType(InstantiatedType x) {
         TypeRef t = x.getGeneric();
         FType ft1 = t.accept(this);
         if (ft1 instanceof  FTypeGeneric) {

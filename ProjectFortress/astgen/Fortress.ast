@@ -349,8 +349,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) self
      * e.g.) transient x: String
      */
-    abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(), Id id);
-        NormalParam(Option<TypeRef> type = None.<TypeRef>make(), Option<Expr> defaultExpr = None.<Expr>make());
+    abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                   Id id);
+        NormalParam(Option<TypeRef> type = None.<TypeRef>make(),
+                    Option<Expr> defaultExpr = None.<Expr>make());
         VarargsParam(VarargsType varargsType);
     /**
      * dimension declaration (Not Yet Implemented in the Parser!)
@@ -894,7 +896,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * TraitType ::= DottedId ([\StaticArgList\])?
                  * e.g.) List[\ZZ32\]
                  */
-                ParamType(TypeRef generic, List<StaticArg> args);
+                InstantiatedType(TypeRef generic, List<StaticArg> args);
             /**
              * tuple type (Mismatch with the Spec!)
              * TupleType ::= ( (TypeRef, )* (TypeRef ... ,)? KeywordType(, KeywordType)* )

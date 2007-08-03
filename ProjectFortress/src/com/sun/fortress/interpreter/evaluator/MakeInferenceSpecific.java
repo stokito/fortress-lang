@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NonArrowType;
-import com.sun.fortress.nodes.ParamType;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
@@ -94,10 +94,10 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forParamType(com.sun.fortress.nodes.ParamType)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forInstantiatedType(com.sun.fortress.nodes.InstantiatedType)
      */
     @Override
-    public void forParamType(ParamType that) {
+    public void forInstantiatedType(InstantiatedType that) {
         // TODO For now, do nothing....
         // I think this will require an environment, so "that" can be looked up,
         // and its where clauses interpreted for constraints on specificity.

@@ -131,17 +131,17 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         }
         return sb.toString();
     }
-    
+
     public String forVarargsParam(VarargsParam node) {
         StringBuffer sb = new StringBuffer();
         sb.append(String.valueOf(node.getId().accept(this)));
         sb.append(":");
         sb.append(node.getVarargsType().accept(this));
-        
+
         return sb.toString();
     }
 
-    public String forParamType(ParamType node) {
+    public String forInstantiatedType(InstantiatedType node) {
         return node.getGeneric().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
     }
 

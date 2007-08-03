@@ -70,7 +70,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.ParamType;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -771,8 +771,8 @@ public class Disambiguate extends Rewrite {
 
             for (TypeRef t : xtends) {
                 // First de-parameterize the type
-                while (t instanceof ParamType) {
-                    t = ((ParamType) t).getGeneric();
+                while (t instanceof InstantiatedType) {
+                    t = ((InstantiatedType) t).getGeneric();
                 }
                 if (t instanceof IdType) {
                     IdType it = (IdType) t;

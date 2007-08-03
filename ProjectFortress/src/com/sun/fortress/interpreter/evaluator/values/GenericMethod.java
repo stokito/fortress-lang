@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.sun.fortress.interpreter.glue.NativeApp;
+import com.sun.fortress.interpreter.glue.NativeApplicable;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
@@ -31,6 +34,7 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.useful.Option;
@@ -40,6 +44,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
@@ -191,8 +196,33 @@ public class GenericMethod extends MethodClosure implements
     static class GenericFullComparer implements Comparator<GenericMethod> {
 
         public int compare(GenericMethod arg0, GenericMethod arg1) {
-            return NodeComparator.compare(arg0.getDef(), arg1.getDef());
+            return compare(arg0.getDef(), arg1.getDef());
         }
+
+        int compare(Applicable left, Applicable right) {
+        if (left instanceof FnExpr) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            return NodeUtil.getName(((FnExpr)left).getFnName()).compareTo(NodeUtil.getName(((FnExpr)right).getFnName()));
+        } else if (left instanceof FnAbsDeclOrDecl) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            return compare(left, (FnAbsDeclOrDecl)right);
+        } else if (left instanceof NativeApp) {
+            return Useful.compareClasses(left, right);
+        } else if (left instanceof NativeApplicable) {
+            int x = Useful.compareClasses(left, right);
+            if (x != 0) return x;
+            NativeApplicable na = (NativeApplicable)right;
+            x = ((NativeApplicable)left).stringName().compareTo(na.stringName());
+            if (x != 0) return x;
+            return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
+        } else {
+            throw new Error("NodeComparator.compare(" + left.getClass() + ", "
+                            + right.getClass());
+        }
+    }
+
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
 

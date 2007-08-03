@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.ParamType;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
@@ -217,10 +217,10 @@ abstract public class FTraitOrObject extends FType {
     protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify GT/O  "+this+" and "+val + " abm= " + abm);
-        if (!(val instanceof ParamType)) {
+        if (!(val instanceof InstantiatedType)) {
             return false;
         }
-        ParamType pt = (ParamType) val;
+        InstantiatedType pt = (InstantiatedType) val;
         EvalType eval_type = new EvalType(env);
         FType eval_val_generic = eval_type.evalType(pt.getGeneric());
         if (getGeneric() != eval_val_generic) {

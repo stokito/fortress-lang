@@ -78,8 +78,8 @@ private TypeRef TypeRefFront =
 private NonArrowType TypeRefFrontNonArrow =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new ParamType(createSpan(yyStart,yyCount),
-                                    new IdType(a1.getSpan(), a1), a2);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),
+                                           new IdType(a1.getSpan(), a1), a2);
      }
    / TupleType
    / openparen w closeparen
@@ -164,8 +164,8 @@ private NonArrowType NonArrowType =
 TraitType TraitType =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new ParamType(createSpan(yyStart,yyCount),
-                                    new IdType(a1.getSpan(), a1), a2);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),
+                                           new IdType(a1.getSpan(), a1), a2);
      }
    / a1:TypeRef w opensquare a2:(w ArraySize)? w closesquare
      { Option<FixedDim> indices;
@@ -270,16 +270,16 @@ TypeRef TupleType =
      openparen w a1s:(TypeRef w comma w)* a2:(TypeRef w ellipses w comma w)?
        a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<TypeRef>   ts1 = a1s.list();
-       Option<VarargsType> ts2 = ((a2 != null)? 
-                                   new Some<VarargsType>(new VarargsType(createSpan(yyStart,yyCount), a2)) :
-                                   new None<VarargsType>());
+       Option<VarargsType> ts2 = ((a2 != null)?
+                                   Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount), a2)) :
+                                   None.<VarargsType>make());
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2, ts3);
      }
    / openparen w a1s:(TypeRef w comma w)* a2:TypeRef w ellipses w closeparen
      { List<TypeRef> ts1 = FortressUtil.mkList(a1s.list());
-       Option<VarargsType> ts2 = new Some<VarargsType>(new VarargsType(createSpan(yyStart,yyCount), a2));
+       Option<VarargsType> ts2 = Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount), a2));
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts1, ts2);
      }
    / SimpleTupleType ;
@@ -292,7 +292,8 @@ private KeywordType KeywordType = a1:Id w equals w a2:TypeRef
 TupleType SimpleTupleType =
      openparen w a1:TypeRef w comma w a2:TypeRefList w closeparen
      { List<TypeRef> ts = FortressUtil.mkList(a1, a2);
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts, new None<VarargsType>());
+       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts,
+                                           None.<VarargsType>make());
      };
 
 /* TypeRefList ::= TypeRef (w , w TypeRef)* */
