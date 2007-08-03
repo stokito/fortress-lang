@@ -248,7 +248,7 @@ public class NodeFactory {
                                             Id name,
                                             Option<List<StaticParam>> stParams,
                                             Option<List<Param>> params,
-                                            Option<List<TraitType>> traits,
+                                            List<TraitType> traits,
                                             List<TraitType> throws_,
                                             List<WhereClause> where,
                                             Contract contract) {
@@ -259,12 +259,12 @@ public class NodeFactory {
     public static Op makeOp(Span span, String name) {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
-    
-    
+
+
     public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
     }
-    
+
     public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
         return new VarargsParam(param.getSpan(), mods, param.getId(),
                          param.getVarargsType());
@@ -274,7 +274,7 @@ public class NodeFactory {
                                         VarargsType type) {
         return new VarargsParam(span, mods, name, type);
     }
-        
+
     public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
                                   TypeRef type) {
         return new NormalParam(span, mods, name, Some.<TypeRef>make(type),
@@ -285,7 +285,7 @@ public class NodeFactory {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
                          Some.<TypeRef>make(type), None.<Expr>make());
     }
-        
+
     public static NormalParam makeParam(Id name) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
                          None.<TypeRef>make(), None.<Expr>make());
@@ -303,7 +303,7 @@ public class NodeFactory {
 
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         return new SimpleTypeParam(new Span(), new Id(new Span(), name),
-                                   None.<List<TraitType>>make(), false);
+                                   Collections.<TraitType>emptyList(), false);
     }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */

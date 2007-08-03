@@ -467,7 +467,7 @@ public class Disambiguate extends Rewrite {
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
                     List<? extends AbsDeclOrDecl> defs = oe.getDecls();
-                    Option<List<TraitType>> xtends = oe.getExtendsClause();
+                    List<TraitType> xtends = oe.getExtendsClause();
                     // TODO wip
 
                     objectNestingDepth++;
@@ -516,7 +516,7 @@ public class Disambiguate extends Rewrite {
                     List<? extends AbsDeclOrDecl> defs = od.getDecls();
                     Option<List<Param>> params = od.getParams();
                     Option<List<StaticParam>> tparams = od.getStaticParams();
-                    Option<List<TraitType>> xtends = od.getExtendsClause();
+                    List<TraitType> xtends = od.getExtendsClause();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -629,7 +629,7 @@ public class Disambiguate extends Rewrite {
         accumulateMembersFromExtends(td.getExtendsClause(), traitDisEnvMap.get(td) );
     }
 
-    private void accumulateMembersFromExtends(Option<List<TraitType>> xtends, Map<String, Thing> disEnv) {
+    private void accumulateMembersFromExtends(List<TraitType> xtends, Map<String, Thing> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
         Set<AbstractNode> visited = new HashSet<AbstractNode>();
@@ -763,11 +763,9 @@ public class Disambiguate extends Rewrite {
      *            (bookkeeping) to prevent revisiting, and possible looping on
      *            bad inputs
      */
-    private void accumulateTraitsAndMethods(Option<List<TraitType>> oxtends,
+    private void accumulateTraitsAndMethods(List<TraitType> xtends,
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
             Set<AbstractNode> visited) {
-        if (oxtends.isPresent()) {
-            List<? extends TypeRef> xtends = oxtends.getVal();
 
             for (TypeRef t : xtends) {
                 // First de-parameterize the type
@@ -825,7 +823,5 @@ public class Disambiguate extends Rewrite {
                     NI.nyi("Object extends something exciting: " + t);
                 }
             }
-
-        }
     }
 }

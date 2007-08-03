@@ -206,11 +206,11 @@ public abstract class SingleFcn extends Fcn {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name);
-                Option<List<TraitType>> oext = stp.getExtendsClause();
+                List<TraitType> oext = stp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
-                st.setExtendsAndExcludes(eval_type.getFTypeListFromOptionList(oext), null);
+                st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
             } else {
                 throw new InterpreterError("Unexpected StaticParam " + tp);
             }

@@ -52,8 +52,7 @@ Expr DelimitedExpr =
    / object a1:(w Extends)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyTraitTypes();
        if (a2 == null) a2 = Collections.<Decl>emptyList();
-       yyValue = new ObjectExpr(createSpan(yyStart,yyCount), false,
-                                Some.<TraitType>makeSomeListOrNone(a1), a2);
+       yyValue = new ObjectExpr(createSpan(yyStart,yyCount), false, a1, a2);
      }
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id

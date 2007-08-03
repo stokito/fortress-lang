@@ -175,8 +175,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                       Id id,
                                       Option<List<StaticParam>> staticParams
                                           = None.<List<StaticParam>>make(),
-                                      Option<List<TraitType>> extendsClause
-                                          = None.<List<TraitType>>make(),
+                                      List<TraitType> extendsClause
+                                          = Collections.<TraitType>emptyList(),
                                       List<WhereClause> where
                                           = Collections.<WhereClause>emptyList(),
                                       List<? extends AbsDeclOrDecl> decls)
@@ -508,8 +508,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * object expression
              */
-            abstract AbstractObjectExpr(Option<List<TraitType>> extendsClause
-                                            = None.<List<TraitType>>make(),
+            abstract AbstractObjectExpr(List<TraitType> extendsClause
+                                            = Collections.<TraitType>emptyList(),
                                         List<Decl> decls);
                 /**
                  * object expression
@@ -1253,8 +1253,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) EltType extends Number absorbs unit
          */
         SimpleTypeParam(Id id,
-                        Option<List<TraitType>> extendsClause =
-                            None.<List<TraitType>>make(),
+                        List<TraitType> extendsClause =
+                            Collections.<TraitType>emptyList(),
                         boolean absorbs = false);
        /**
          * unit parameter

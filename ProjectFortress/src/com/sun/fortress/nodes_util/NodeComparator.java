@@ -317,14 +317,8 @@ public class NodeComparator {
         if (left.isAbsorbs() != right.isAbsorbs()) {
             return left.isAbsorbs() ? 1 : -1;
         }
-        if (left.getExtendsClause().isPresent() != right.getExtendsClause().isPresent()) {
-            return left.getExtendsClause().isPresent() ? 1 : -1;
-        }
-        if (!left.getExtendsClause().isPresent()) {
-            return 0;
-        }
-        List<TraitType> l = left.getExtendsClause().getVal();
-        List<TraitType> ol = right.getExtendsClause().getVal();
+        List<TraitType> l = left.getExtendsClause();
+        List<TraitType> ol = right.getExtendsClause();
         return traitTypeListComparer.compare(l, ol);
     }
 

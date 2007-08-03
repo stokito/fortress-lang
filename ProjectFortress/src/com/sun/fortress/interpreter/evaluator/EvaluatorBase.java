@@ -119,14 +119,11 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (StaticParam sp : tparams) {
             if (sp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) sp;
-                Option<List<TraitType>> ec = stp.getExtendsClause();
-                if (ec.isPresent()) {
                     String stp_name = stp.getId().getName();
-                    for (TypeRef tr : ec.getVal()) {
+                    for (TypeRef tr : stp.getExtendsClause()) {
                         // Preinstall bounds in the boundingmap
                         abm.meetPut(stp_name, et.evalType(tr));
                     }
-                }
             }
         }
         for (FValue a : args) {
@@ -153,7 +150,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 ex.setWithin(e);
                 ex.setWhere(loc);
                 throw ex;
-            }   
+            }
         }
 
         if (DUMP_INFERENCE)

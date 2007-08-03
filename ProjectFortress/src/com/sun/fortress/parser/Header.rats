@@ -468,14 +468,11 @@ private List<StaticParam> StaticParamList =
 */
 private StaticParam StaticParam =
      a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
-     { Option<List<TraitType>> extends_;
-       if (a2 == null) extends_ = None.<List<TraitType>>make();
-       else            extends_ = Some.<TraitType>makeSomeListOrNone(a2);
+     { if (a2 == null) a2 = Collections.<TraitType>emptyList();
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount), a1, extends_,
-                                     absorbs);
+       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),a1,a2,absorbs);
      }
    / nat  w a1:Id { yyValue = new NatParam(createSpan(yyStart,yyCount), a1); }
    / int  w a1:Id { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }

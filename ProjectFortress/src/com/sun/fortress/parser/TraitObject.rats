@@ -39,7 +39,7 @@ TraitDecl TraitDecl =
        yyValue =
         new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
                       Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-                      Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
+                      a2.getExtendsClause(),
                       FortressUtil.getListVal(a3.getWhere()),
                       a3.getExcludes(), a3.getComprises(), a4);
      };
@@ -125,7 +125,7 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
        yyValue = new ObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
+            a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()), a2.getParams(),
             FortressUtil.getListVal(fhc.getThrowsClause()), contract, a3);
      };
@@ -218,7 +218,7 @@ AbsTraitDecl AbsTraitDecl =
        yyValue = new AbsTraitDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
+            a2.getExtendsClause(),
             FortressUtil.getListVal(a3.getWhere()),
             a3.getExcludes(), a3.getComprises(), a4);
      };
@@ -301,7 +301,7 @@ AbsObjectDecl AbsObjectDecl =
        yyValue = new AbsObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
             Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            Some.<TraitType>makeSomeListOrNone(a2.getExtendsClause()),
+            a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()),
             a2.getParams(), FortressUtil.getListVal(fhc.getThrowsClause()),
             contract, a3);

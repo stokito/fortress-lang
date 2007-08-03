@@ -1198,12 +1198,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @param interior
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, BetterEnv interior) {
-        Option<List<TraitType>> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = x.getExtendsClause();
         interior = new BetterEnv(interior, x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
 
-        List<FType> extl = et.getFTypeListFromOptionList(extends_);
+        List<FType> extl = et.getFTypeListFromList(extends_);
         List<FType> excl = et.getFTypeListFromList(x.getExcludes());
         ftt.setExtendsAndExcludes(extl, excl, interior);
         List<? extends AbsDeclOrDecl> fns = x.getDecls();
@@ -1296,22 +1296,22 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public void finishObjectTrait(ObjectAbsDeclOrDecl x, FTypeObject ftt) {
-        Option<List<TraitType>> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = x.getExtendsClause();
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
-        Option<List<TraitType>> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = x.getExtendsClause();
         // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }
 
-    static public void finishObjectTrait(Option<List<TraitType>> extends_,
+    static public void finishObjectTrait(List<TraitType> extends_,
             List<? extends TypeRef> excludes, List<WhereClause> wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);
         EvalType et = processWhereClauses(wheres, interior);
-        ftt.setExtendsAndExcludes(et.getFTypeListFromOptionList(extends_), et
+        ftt.setExtendsAndExcludes(et.getFTypeListFromList(extends_), et
                 .getFTypeListFromList(excludes), interior);
 
     }
