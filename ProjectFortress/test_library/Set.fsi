@@ -17,7 +17,7 @@
 
 api Set
 
-trait TreeSet[\E\] (*extends Generator[\E\]*) comprises {NodeSet[\E\], EmptySet[\E\]}
+trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    getter isEmpty(): Boolean
    getter size(): ZZ32
    generate[\R\](r: Reduction[\R\], body: E->R): R

@@ -42,6 +42,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -354,6 +355,16 @@ public class Disambiguate extends Rewrite {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Component com = (Component) node;
+            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            defsToLocals(defs);
+            return visitNode(node);
+
+        } else if (node instanceof Api) {
+            // Iterate over definitions, collecting mapping from name
+            // to node.
+            // TODO - we may need to separate this out some more because of
+            // circular dependences between type names. See above.
+            Api com = (Api) node;
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
             return visitNode(node);

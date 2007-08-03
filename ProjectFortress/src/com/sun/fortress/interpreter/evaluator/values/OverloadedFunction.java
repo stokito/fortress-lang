@@ -269,11 +269,15 @@ public class  OverloadedFunction extends Fcn
                 }
             }
         }
-        this.setFtypeUnconditionally(FTypeOverloadedArrow.make(ftalist));
+        FType ftoa = FTypeOverloadedArrow.make(ftalist);
+        this.setFtypeUnconditionally(ftoa);
+        //String ftoas = ftoa.toString();
+        //System.err.println(ftoas);
         finishedSecond = true;
     }
 
-    private String formatParameterComparison(int i, Overload o1, Overload o2, String how) {
+    private String formatParameterComparison(int i, Overload o1, Overload o2,
+            String how) {
         String s1 = parameterName(i, o1);
         String s2 = parameterName(i, o2);
         return "(first) " + s1 + " is " + how + " specific than (second) " + s2;
