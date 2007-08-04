@@ -82,7 +82,7 @@ public abstract class NativeApp implements Applicable {
     public Expr getBody() { return null; }
     public List<Param> getParams() { return a.getParams(); }
     public Option<TypeRef> getReturnType() { return a.getReturnType(); }
-    public Option<List<StaticParam>> getStaticParams() {
+    public List<StaticParam> getStaticParams() {
         return a.getStaticParams();
     }
     public FnName getFnName() { return a.getFnName(); }

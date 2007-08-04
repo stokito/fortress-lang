@@ -509,7 +509,7 @@ public class  OverloadedFunction extends Fcn
                     // Check that args matches the static parameters of the generic function
                     // TODO -- can a generic instantiation result in an unfulfillable overloading?
 
-                    if (compatible(args, gf.getFnDefOrDecl().getStaticParams().getVal())) {
+                    if (compatible(args, gf.getFnDefOrDecl().getStaticParams())) {
 
                         SingleFcn tf = gf.typeApply(location, args);
                         if (f == null) {

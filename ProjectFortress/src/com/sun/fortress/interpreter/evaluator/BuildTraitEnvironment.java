@@ -95,10 +95,10 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     }
 
     protected void forFnDef3(FnDef x) {
-        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
-        if (optStaticParams.isPresent()) {
+        if (!staticParams.isEmpty()) {
             // GENERIC
             // This blows up because the type is not instantiated.
 //            {

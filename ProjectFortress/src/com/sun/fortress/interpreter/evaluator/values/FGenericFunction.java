@@ -105,7 +105,7 @@ public class FGenericFunction extends SingleFcn
 
         public Simple_fcn make(List<FType> args, HasAt location) {
             BetterEnv clenv = new BetterEnv(getEnv(), location);
-            List<StaticParam> params = fndef.getStaticParams().getVal();
+            List<StaticParam> params = fndef.getStaticParams();
             EvalType.bindGenericParameters(params, args, clenv, location, fndef);
 
             return newClosure(clenv, args);
@@ -155,11 +155,11 @@ public class FGenericFunction extends SingleFcn
      * @throws ProgramError
      */
     Simple_fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
-        List<StaticParam> params = fndef.getStaticParams().getVal();
+        List<StaticParam> params = fndef.getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.
         if (argValues.size() != params.size() ) {
-            throw new ProgramError(location, e,  
+            throw new ProgramError(location, e,
                     errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", argValues));
         }
         return make(argValues, location);
@@ -197,8 +197,8 @@ public class FGenericFunction extends SingleFcn
             if (x != 0)
                 return x;
 
-            List<StaticParam> oltp0 = a0.getStaticParams().getVal();
-            List<StaticParam> oltp1 = a1.getStaticParams().getVal();
+            List<StaticParam> oltp0 = a0.getStaticParams();
+            List<StaticParam> oltp1 = a1.getStaticParams();
 
             return NodeComparator.compare(oltp0, oltp1);
 

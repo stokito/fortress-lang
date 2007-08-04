@@ -250,12 +250,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
          */
         @Override
         public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
-            Option<List<StaticParam>> staticParams = x.getStaticParams();
+            List<StaticParam> staticParams = x.getStaticParams();
             Id name = x.getId();
 
-            if (staticParams.isPresent()) {
-
-            } else {
+            if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing
                             .getType(name.getName());
                     BetterEnv interior = ftt.getEnv();
@@ -269,12 +267,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
          */
         @Override
         public Voidoid forTraitDecl(TraitDecl x) {
-            Option<List<StaticParam>> staticParams = x.getStaticParams();
+            List<StaticParam> staticParams = x.getStaticParams();
             Id name = x.getId();
 
-            if (staticParams.isPresent()) {
-
-            } else {
+            if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing
                             .getType(name.getName());
                     BetterEnv interior = ftt.getEnv();
@@ -434,12 +430,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
 
     private void forFnDef1(FnDef x) {
-        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
         FValue cl;
 
-        if (optStaticParams.isPresent()) {
+        if (!optStaticParams.isEmpty()) {
              cl = newGenericClosure(containing, x);
         } else {
             // NOT GENERIC
@@ -469,10 +465,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
    }
    // Overridden in BuildTraitEnvironment
    protected void forFnDef3(FnDef x) {
-       Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+       List<StaticParam> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
 
-       if (optStaticParams.isPresent()) {
+       if (!optStaticParams.isEmpty()) {
            // GENERIC
            {
                // Why isn't this the right thing to do?
@@ -663,7 +659,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         BetterEnv e = containing;
         Id name = x.getId();
 
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
         // List<TypeRef> throws_;
@@ -672,15 +668,15 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Decl> defs = x.getDecls();
         String fname = name.getName();
         FType ft;
-        ft = staticParams.isPresent() ? new FTypeGeneric(e, x, x.getDecls())
-                : new FTypeObject(fname, e, x, x.getDecls());
+        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls())
+                : new FTypeGeneric(e, x, x.getDecls());
 
         // Need to check for overloaded constructor.
 
         guardedPutType(fname, ft, x);
 
         if (params.isPresent()) {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
                 GenericConstructor gen = new GenericConstructor(e, x);
                 guardedPutValue(containing, fname, gen, x);
@@ -696,7 +692,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             }
 
         } else {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
                 NI.nyi("Generic singleton objects");
                 GenericConstructor gen = new GenericConstructor(e, x);
@@ -793,14 +789,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         BetterEnv e = containing;
         Id name = x.getId();
 
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
         String fname = name.getName();
         FType ft;
 
         if (params.isPresent()) {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) containing.getType(fname);
@@ -823,7 +819,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         BetterEnv e = containing;
         Id name = x.getId();
 
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
         String fname = name.getName();
@@ -831,7 +827,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         if (params.isPresent()) {
 
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) ft;
@@ -1058,7 +1054,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
     private void forAbsTraitDecl1(AbsTraitDecl x) {
         // TODO Auto-generated method stub
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
         // List<TypeRef> excludes;
@@ -1068,7 +1064,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         String fname = name.getName();
 
-        if (staticParams.isPresent()) {
+        if (!staticParams.isEmpty()) {
 
                 FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
                 guardedPutType(name.getName(), ftg, x);
@@ -1087,14 +1083,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
     private void forAbsTraitDecl2(AbsTraitDecl x) {
         // TODO Auto-generated method stub
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
         // List<TypeRef> excludes;
         // Option<List<TypeRef>> bounds;
         // List<WhereClause> where;
 
-        if (staticParams.isPresent()) {
+        if (!staticParams.isEmpty()) {
 
         } else {
            {
@@ -1134,7 +1130,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
     private void forTraitDecl1(TraitDecl x) {
         // TODO Auto-generated method stub
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
         // List<TypeRef> excludes;
@@ -1144,7 +1140,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         String fname = name.getName();
 
-        if (staticParams.isPresent()) {
+        if (!staticParams.isEmpty()) {
 
                 FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
                 guardedPutType(name.getName(), ftg, x);
@@ -1163,14 +1159,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
     private void forTraitDecl2(TraitDecl x) {
         // TODO Auto-generated method stub
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
         // List<TypeRef> excludes;
         // Option<List<TypeRef>> bounds;
         // List<WhereClause> where;
 
-        if (staticParams.isPresent()) {
+        if (!staticParams.isEmpty()) {
 
         } else {
            {
@@ -1464,10 +1460,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forAbsFnDecl1(AbsFnDecl x) {
 
 
-        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
-        if (optStaticParams.isPresent()) {
+        if (!optStaticParams.isEmpty()) {
             // GENERIC
 
                 // TODO same treatment as regular functions.
@@ -1491,10 +1487,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forAbsFnDecl3(AbsFnDecl x) {
 
 
-        Option<List<StaticParam>> optStaticParams = x.getStaticParams();
+        List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
-        if (optStaticParams.isPresent()) {
+        if (!optStaticParams.isEmpty()) {
             // GENERIC
 
 
@@ -1546,7 +1542,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         BetterEnv e = containing;
         Id name = x.getId();
 
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
         // List<TypeRef> throws_;
@@ -1555,15 +1551,15 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Decl> defs = x.getDecls();
         String fname = name.getName();
         FType ft;
-        ft = staticParams.isPresent() ? new FTypeGeneric(e, x, x.getDecls())
-                : new FTypeObject(fname, e, x, x.getDecls());
+        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls())
+                : new FTypeGeneric(e, x, x.getDecls());
 
         // Need to check for overloaded constructor.
 
         guardedPutType(fname, ft, x);
 
         if (params.isPresent()) {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
                 GenericConstructor gen = new GenericConstructor(e, x);
                 guardedPutValue(containing, fname, gen, x);
@@ -1579,7 +1575,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             }
 
         } else {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
                 NI.nyi("Generic singleton objects");
                 GenericConstructor gen = new GenericConstructor(e, x);
@@ -1610,14 +1606,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         BetterEnv e = containing;
         Id name = x.getId();
 
-        Option<List<StaticParam>> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
         String fname = name.getName();
         FType ft;
 
         if (params.isPresent()) {
-            if (staticParams.isPresent()) {
+            if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) containing.getType(fname);

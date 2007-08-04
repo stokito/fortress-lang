@@ -30,7 +30,7 @@ public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
                                           Option<Id> optSelfName, FnName name,
-                                          Option<List<StaticParam>> staticParams,
+                                          List<StaticParam> staticParams,
                                           List<Param> params,
                                           Option<TypeRef> returnType,
                                           Option<List<TraitType>> throwss,
@@ -140,7 +140,7 @@ public class NodeFactory {
      */
     public static FnDef makeFnDecl(Span s, List<Modifier> mods,
                                    Option<Id> optSelfName, FnName name,
-                                   Option<List<StaticParam>> staticParams,
+                                   List<StaticParam> staticParams,
                                    List<Param> params,
                                    Option<TypeRef> returnType,
                                    Option<List<TraitType>> throwss,
@@ -246,7 +246,7 @@ public class NodeFactory {
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
                                             Id name,
-                                            Option<List<StaticParam>> stParams,
+                                            List<StaticParam> stParams,
                                             Option<List<Param>> params,
                                             List<TraitType> traits,
                                             Option<List<TraitType>> throws_,

@@ -76,8 +76,8 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         Contract contract = NodeFactory.makeContract();
 
         Id name = NodeFactory.makeId("FlatStorageMaker");
-        Option<List<StaticParam>> staticParams =  // [T, m]
-            Some.<StaticParam>makeSomeList(Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m")));
+        List<StaticParam> staticParams =  // [T, m]
+            Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m"));
         Option<List<Param>> params = Some.makeSomeList(Collections.<Param>emptyList()); // ()
         List<TraitType> traits =  // Array1[\T, 0, m\]
             Collections.emptyList();

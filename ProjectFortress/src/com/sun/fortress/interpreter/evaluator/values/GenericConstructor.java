@@ -94,7 +94,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
   }
 
   public FValue typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
-    List<StaticParam> params = odefOrDecl.getStaticParams().getVal();
+    List<StaticParam> params = odefOrDecl.getStaticParams();
 
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {

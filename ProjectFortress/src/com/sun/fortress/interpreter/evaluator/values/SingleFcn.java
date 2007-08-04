@@ -113,7 +113,7 @@ public abstract class SingleFcn extends Fcn {
      * @throws Error
      */
     static public List<FType> createSymbolicInstantiation(BetterEnv bte, Applicable ap, HasAt location) throws Error {
-        List<StaticParam> tpl = ap.getStaticParams().getVal();
+        List<StaticParam> tpl = ap.getStaticParams();
         List<WhereClause> wcl = ap.getWhere();
 
         // The (possibly multiple and interrelated) symbolic

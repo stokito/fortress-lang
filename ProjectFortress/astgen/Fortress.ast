@@ -63,7 +63,7 @@ interface Node() extends HasAt;
      * with static parameters
      * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl, and FnAbsDeclOrDecl
      */
-    interface Generic(Option<List<StaticParam>> staticParams);
+    interface Generic(List<StaticParam> staticParams);
     /**
      * with value parameters
      */
@@ -78,7 +78,7 @@ interface Node() extends HasAt;
 /**
  * functional declaration or function expression
  */
-interface Applicable(FnName fnName, Option<List<StaticParam>> staticParams,
+interface Applicable(FnName fnName, List<StaticParam> staticParams,
                      List<Param> params, Option<TypeRef> returnType,
                      List<WhereClause> where) extends HasAt;
 
@@ -173,8 +173,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
                                           = Collections.<Modifier>emptyList(),
                                       Id id,
-                                      Option<List<StaticParam>> staticParams
-                                          = None.<List<StaticParam>>make(),
+                                      List<StaticParam> staticParams
+                                          = Collections.<StaticParam>emptyList(),
                                       List<TraitType> extendsClause
                                           = Collections.<TraitType>emptyList(),
                                       List<WhereClause> where
@@ -305,8 +305,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract FnAbsDeclOrDecl(List<Modifier> mods
                                  = Collections.<Modifier>emptyList(),
                              FnName fnName,
-                             Option<List<StaticParam>> staticParams
-                                 = None.<List<StaticParam>>make(),
+                             List<StaticParam> staticParams
+                                 = Collections.<StaticParam>emptyList(),
                              List<Param> params,
                              Option<TypeRef> returnType
                                  = None.<TypeRef>make(),
@@ -525,7 +525,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 _RewriteObjectExpr(BATree<String, StaticParam> implicitTypeParameters,
                                    String genSymName,
-                                   Option<List<StaticParam>> staticParams,
+                                   List<StaticParam> staticParams,
                                    List<StaticArg> staticArgs,
                                    Option<List<Param>> params)
                                   implements GenericWithParams;
@@ -626,7 +626,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
                FnName fnName = new AnonymousFnName(in_span),
-               Option<List<StaticParam>> staticParams = None.<List<StaticParam>>make(),
+               List<StaticParam> staticParams = Collections.<StaticParam>emptyList(),
                List<Param> params,
                Option<TypeRef> returnType = None.<TypeRef>make(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),

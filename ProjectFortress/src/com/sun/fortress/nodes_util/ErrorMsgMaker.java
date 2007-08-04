@@ -66,8 +66,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
         return NodeUtil.getName(node.getFnName())
-                + (node.getStaticParams().isPresent() ?
-                        Useful.listInOxfords(mapSelf(node.getStaticParams().getVal())) : "")
+                + Useful.listInOxfords(mapSelf(node.getStaticParams()))
                 + Useful.listInParens(mapSelf(node.getParams()))
                 + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());

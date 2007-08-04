@@ -270,8 +270,8 @@ public class Disambiguate extends Rewrite {
     public void registerObjectExprs(BetterEnv env) {
         for (_RewriteObjectExpr oe : objectExprs) {
             String name = oe.getGenSymName();
-            Option<List<StaticParam>> params = oe.getStaticParams();
-            if (! params.isPresent()) {
+            List<StaticParam> params = oe.getStaticParams();
+            if (params.isEmpty()) {
                 // Regular constructor
                 FTypeObject fto = new FTypeObject(name, env, oe, oe.getDecls());
                 env.putType(name, fto);
@@ -464,7 +464,7 @@ public class Disambiguate extends Rewrite {
 
                     List<Param> params = fndef.getParams();
                     // fndef.getFnName(); handled at top level.
-                    Option<List<StaticParam>> tparams = fndef.getStaticParams();
+                    List<StaticParam> tparams = fndef.getStaticParams();
 
                     paramsToLocals(params);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
@@ -526,7 +526,7 @@ public class Disambiguate extends Rewrite {
                     ObjectDecl od = (ObjectDecl) node;
                     List<? extends AbsDeclOrDecl> defs = od.getDecls();
                     Option<List<Param>> params = od.getParams();
-                    Option<List<StaticParam>> tparams = od.getStaticParams();
+                    List<StaticParam> tparams = od.getStaticParams();
                     List<TraitType> xtends = od.getExtendsClause();
                     // TODO wip
                     objectNestingDepth++;
@@ -543,7 +543,7 @@ public class Disambiguate extends Rewrite {
                 } else if (node instanceof AbsTraitDecl) {
                     AbsTraitDecl td = (AbsTraitDecl) node;
                     List<? extends AbsDecl> defs = td.getDecls();
-                    Option<List<StaticParam>> tparams = td.getStaticParams();
+                    List<StaticParam> tparams = td.getStaticParams();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -559,7 +559,7 @@ public class Disambiguate extends Rewrite {
                 } else if (node instanceof TraitDecl) {
                     TraitDecl td = (TraitDecl) node;
                     List<? extends Decl> defs = td.getDecls();
-                    Option<List<StaticParam>> tparams = td.getStaticParams();
+                    List<StaticParam> tparams = td.getStaticParams();
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -698,9 +698,9 @@ public class Disambiguate extends Rewrite {
     /**
      * @param params
      */
-    private BATree<String, Boolean> tparamsToLocals(Option<List<StaticParam>> params, BATree<String, Boolean> immediateDef) {
-        if (params.isPresent())
-            for (StaticParam d : params.getVal()) {
+    private BATree<String, Boolean> tparamsToLocals(List<StaticParam> params, BATree<String, Boolean> immediateDef) {
+        if (!params.isEmpty())
+            for (StaticParam d : params) {
                 String s = NodeUtil.getName(d);
                 e.put(s, new Local());
                 visibleGenericParameters.put(s, d);

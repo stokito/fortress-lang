@@ -74,9 +74,9 @@ public class NativeApplicable implements Applicable {
         return name;
     }
 
-    public Option<List<StaticParam>> getStaticParams() {
+    public List<StaticParam> getStaticParams() {
         // TODO Auto-generated method stub
-        return new None<List<StaticParam>>();
+        return Collections.<StaticParam>emptyList();
     }
 
     public List<WhereClause> getWhere() {

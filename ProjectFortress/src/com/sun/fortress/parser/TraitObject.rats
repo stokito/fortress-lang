@@ -38,8 +38,7 @@ TraitDecl TraitDecl =
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue =
         new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
-                      Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-                      a2.getExtendsClause(),
+                      a2.getStaticParams(), a2.getExtendsClause(),
                       FortressUtil.getListVal(a3.getWhere()),
                       a3.getExcludes(), a3.getComprises(), a4);
      };
@@ -124,8 +123,7 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
        else               contract = FortressUtil.emptyContract();
        yyValue = new ObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            a2.getExtendsClause(),
+            a2.getStaticParams(), a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()), a2.getParams(),
             fhc.getThrowsClause(), contract, a3);
      };
@@ -217,8 +215,7 @@ AbsTraitDecl AbsTraitDecl =
        if (a4 == null) a4 = Collections.<AbsDecl>emptyList();
        yyValue = new AbsTraitDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            a2.getExtendsClause(),
+            a2.getStaticParams(), a2.getExtendsClause(),
             FortressUtil.getListVal(a3.getWhere()),
             a3.getExcludes(), a3.getComprises(), a4);
      };
@@ -300,8 +297,7 @@ AbsObjectDecl AbsObjectDecl =
        else               contract = FortressUtil.emptyContract();
        yyValue = new AbsObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            Some.<StaticParam>makeSomeListOrNone(a2.getStaticParams()),
-            a2.getExtendsClause(),
+            a2.getStaticParams(), a2.getExtendsClause(),
             FortressUtil.getListVal(fhc.getWhereClause()),
             a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };

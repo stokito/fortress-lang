@@ -133,9 +133,7 @@ public class NodeComparator {
         FnName fn1 = right.getFnName();
         int x = NodeComparator.compare(fn0, fn1);
         if (x != 0)  return x;
-        x = Option.<List<StaticParam>>compare(left.getStaticParams(),
-                                              right.getStaticParams(),
-                                              NodeComparator.staticParamListComparer);
+        x = compare(left.getStaticParams(), right.getStaticParams());
         if (x != 0)  return x;
         x = paramListComparer.compare(left.getParams(), right.getParams());
         return x;

@@ -102,8 +102,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
         FGenericFunction bar = (FGenericFunction) appliedThing;
         FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
-        Option<List<StaticParam>> otparams = fndod.getStaticParams();
-        List<StaticParam> tparams = otparams.getVal();
+        List<StaticParam> tparams = fndod.getStaticParams();
         List<Param> params = bar.getFnDefOrDecl().getParams();
         EvalType et = new EvalType(e);
         // The types of the actual parameters ought to unify with the

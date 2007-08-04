@@ -43,8 +43,8 @@ public interface  GenericFunctionOrMethod {
                 return x;
 
 
-            List<StaticParam>  oltp0 = a0.getStaticParams().getVal();
-            List<StaticParam>  oltp1 = a1.getStaticParams().getVal();
+            List<StaticParam>  oltp0 = a0.getStaticParams();
+            List<StaticParam>  oltp1 = a1.getStaticParams();
 
             return NodeComparator.compare(oltp0, oltp1);
 

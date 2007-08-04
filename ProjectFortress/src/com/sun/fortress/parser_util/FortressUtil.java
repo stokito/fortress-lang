@@ -456,9 +456,9 @@ public final class FortressUtil {
              contract = (Contract)fhc.getContractClause().getVal();
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeAbsFnDecl(span, mods, receiver, fhf.getName(),
-                     Some.<StaticParam>makeSomeListOrNone(fhf.getStaticParams()),
-                     fhf.getParams(), fhc.getReturnType(), throws_,
-                     where_, contract);
+                                         fhf.getStaticParams(), fhf.getParams(),
+                                         fhc.getReturnType(), throws_, where_,
+                                         contract);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
@@ -477,21 +477,20 @@ public final class FortressUtil {
              contract = (Contract)fhc.getContractClause().getVal();
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
-                             Some.<StaticParam>makeSomeListOrNone(sparams),
-                             params, None.<TypeRef>make(), throws_,
-                             where_, contract);
+                                         sparams, params,
+                                         None.<TypeRef>make(), throws_,
+                                         where_, contract);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         FnName name, List<Param> params,
                                         TypeRef ty) {
         return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
-                             Some.<StaticParam>makeSomeListOrNone(
-                                               FortressUtil.emptyStaticParams()),
-                             params, Some.<TypeRef>make(ty),
-                             None.<List<TraitType>>make(),
-                             FortressUtil.emptyWhereClauses(),
-                             FortressUtil.emptyContract());
+                                         FortressUtil.emptyStaticParams(),
+                                         params, Some.<TypeRef>make(ty),
+                                         None.<List<TraitType>>make(),
+                                         FortressUtil.emptyWhereClauses(),
+                                         FortressUtil.emptyContract());
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods,
@@ -504,9 +503,9 @@ public final class FortressUtil {
              contract = (Contract)fhc.getContractClause().getVal();
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeFnDecl(span, mods, receiver, fhf.getName(),
-                    Some.<StaticParam>makeSomeListOrNone(fhf.getStaticParams()),
-                    fhf.getParams(), fhc.getReturnType(), throws_, where_,
-                    contract, expr);
+                                      fhf.getStaticParams(), fhf.getParams(),
+                                      fhc.getReturnType(), throws_, where_,
+                                      contract, expr);
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods, FnName name,
@@ -519,9 +518,8 @@ public final class FortressUtil {
              contract = (Contract)fhc.getContractClause().getVal();
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeFnDecl(span, mods, None.<Id>make(), name,
-                          Some.<StaticParam>makeSomeListOrNone(sparams),
-                          params, None.<TypeRef>make(), throws_, where_,
-                          contract, expr);
+                                      sparams, params, None.<TypeRef>make(),
+                                      throws_, where_, contract, expr);
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods,

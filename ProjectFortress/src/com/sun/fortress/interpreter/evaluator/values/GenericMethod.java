@@ -94,7 +94,7 @@ public class GenericMethod extends MethodClosure implements
             // It looks like it might be, or else good enough.  The disambiguating
             // pass effectively hides all the names defined in the interior
             // of the trait.
-            List<StaticParam> params = getDef().getStaticParams().getVal();
+            List<StaticParam> params = getDef().getStaticParams();
             EvalType.bindGenericParameters(params, args, clenv, location,
                     getDef());
             clenv.bless();
@@ -124,7 +124,7 @@ public class GenericMethod extends MethodClosure implements
     //    }
 
     public MethodClosure typeApply(List<StaticArg> args, BetterEnv e, HasAt location) {
-        List<StaticParam> params = getDef().getStaticParams().getVal();
+        List<StaticParam> params = getDef().getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != params.size()) {
@@ -148,7 +148,7 @@ public class GenericMethod extends MethodClosure implements
         // below.
         // TODO work in progress
         // Inject type parameters into environment as symbolics
-        List<StaticParam> tparams = getDef().getStaticParams().getVal();
+        List<StaticParam> tparams = getDef().getStaticParams();
         for (StaticParam tp : tparams) {
             if (tp instanceof DimensionParam) {
                 DimensionParam dp = (DimensionParam) tp;
@@ -182,8 +182,8 @@ public class GenericMethod extends MethodClosure implements
             if (x != 0)
                 return x;
 
-            List<StaticParam> oltp0 = a0.getStaticParams().getVal();
-            List<StaticParam> oltp1 = a1.getStaticParams().getVal();
+            List<StaticParam> oltp0 = a0.getStaticParams();
+            List<StaticParam> oltp1 = a1.getStaticParams();
 
             return NodeComparator.compare(oltp0, oltp1);
 

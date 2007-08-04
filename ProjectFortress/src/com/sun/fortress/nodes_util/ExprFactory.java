@@ -138,9 +138,9 @@ public class ExprFactory {
                                     Option<List<TraitType>> throwsClause,
                                     Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
-                          None.<List<StaticParam>>make(), params, returnType,
-                          Collections.<WhereClause>emptyList(), throwsClause,
-                          body);
+                          Collections.<StaticParam>emptyList(), params,
+                          returnType, Collections.<WhereClause>emptyList(),
+                          throwsClause, body);
     }
 
     /** Alternatively, you can invoke the IntLiteral constructor without parenthesized or text */
@@ -240,14 +240,13 @@ public class ExprFactory {
                          BATree<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =
             new ArrayList<StaticArg>(implicit_type_parameters.size());
-        Option<List<StaticParam>> stParams;
+        List<StaticParam> stParams;
         if (implicit_type_parameters.size() == 0) {
-            stParams = None.<List<StaticParam>>make();
+            stParams = Collections.<StaticParam>emptyList();
         }
         else {
-            List<StaticParam> tparams =
+            stParams =
                 new ArrayList<StaticParam>(implicit_type_parameters.values());
-            stParams = Some.makeSomeList(tparams);
             for (String s : implicit_type_parameters.keySet()) {
                 staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
             }

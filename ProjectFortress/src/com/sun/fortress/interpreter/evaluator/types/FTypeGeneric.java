@@ -47,7 +47,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         super(NodeUtil.stringName(d));
         env = e;
         def = d;
-        params = d.getStaticParams().getVal();
+        params = d.getStaticParams();
         genericAt = d;
         this.members = members;
     }
@@ -154,7 +154,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     }
 
     public FType typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
-        List<StaticParam> static_params = def.getStaticParams().getVal();
+        List<StaticParam> static_params = def.getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != static_params.size()) {
