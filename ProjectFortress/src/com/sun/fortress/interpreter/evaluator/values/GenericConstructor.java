@@ -44,7 +44,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
 
         public Constructor make(List<FType> args, HasAt within) {
             // Use the generic type to make the specific type
-            FTypeGeneric gt = (FTypeGeneric) env.getType(NodeUtil.stringName(odefOrDecl));
+            FTypeGeneric gt = (FTypeGeneric) env.getType(odefOrDecl.stringName());
             FTypeObject ft = (FTypeObject) gt.make(args, within);
 
             // Use the augmented environment from the specific type.

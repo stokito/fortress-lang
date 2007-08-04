@@ -672,7 +672,7 @@ public class Disambiguate extends Rewrite {
      */
     private void defsToLocals(List<? extends AbsDeclOrDecl> defs) {
         for (AbsDeclOrDecl d : defs) {
-            String s = NodeUtil.stringName(d);
+            String s = d.stringName();
             if (d instanceof TraitAbsDeclOrDecl) {
                 TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
                 traitDisEnvMap.put(dod, e); // dod.setDisEnv(e);
@@ -806,7 +806,7 @@ public class Disambiguate extends Rewrite {
                                 // types.add(s); // The trait is known by this
                                                 // name.
                                 for (AbsDeclOrDecl dd : tdod.getDecls()) {
-                                    members.add(NodeUtil.stringName(dd));
+                                    members.add(dd.stringName());
                                 }
                                 accumulateTraitsAndMethods(tdod.getExtendsClause(),
                                         traitDisEnvMap.get(tdod), members, types,

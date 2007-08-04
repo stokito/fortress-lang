@@ -147,7 +147,7 @@ public class NodeComparator {
             return leftClass.getName().compareTo(rightClass.getName());
         }
         else {
-            return NodeUtil.stringName(left).compareTo(NodeUtil.stringName(right));
+            return left.stringName().compareTo(right.stringName());
         }
     }
 

@@ -120,6 +120,17 @@ LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
 
 * Frequently Asked Questions and Answers for Fortress.ast
  1) Why does it distinguish between List<TypeRef> and Option<List<TypeRef>>?
+   - Each of extends and excludes clauses and static parameter lists has type
+     List<...> because an empty clause or an empty list is a parse error.
+   - A parameter list of a functional has type List<Param> because a functional
+     always has a possibly empty parameter list.
+   - Each of comprises, throws, require, ensures, and invariants clauses has
+     type Option<List<...>> because we want to distinguish between:
+trait T end
+     and
+trait T comprises {...} end
+     for IDE supports.
+   - A parameter list of
 
  2) What are the purposes of the interfaces?
 
@@ -151,23 +162,17 @@ LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
 
 
 * TODO
- 1. clean up Fortress.ast
-
-1) Option<List<TypeRef>> vs List<TypeRef>
-
-2) rename TypeRef to something else
+1) rename TypeRef to something else
  It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.
 
-3) StaticArg
+2) StaticArg
  I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
 
 
+0. Eric -- ArrowType
 
+1. clean up Fortress.ast
 
- 2. Dan -- interfaces
- 3. Eric -- TupleExpr/TupleType/ArrowType
- 6. clean up FortressUtil.java
- 7. clean up NodeUtil.java
- 8. clean up NodeComparator.java
- 9. clean up error messages
-10. Implement not-yet-implemented features in the parser.
+2. clean up error messages
+
+3. Implement not-yet-implemented features in the parser.

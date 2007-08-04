@@ -51,7 +51,7 @@ public class FGenericFunction extends SingleFcn
      */
     @Override
     String at() {
-        return NodeUtil.getAt(fndef);
+        return fndef.at();
     }
 
     /* (non-Javadoc)

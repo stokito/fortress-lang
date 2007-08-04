@@ -48,7 +48,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     @Override
     String at() {
-        return NodeUtil.getAt(getAt());
+        return getAt().at();
     }
 
     protected abstract HasAt getAt();
@@ -66,7 +66,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     protected boolean hasRest() {
         return lastParamIsRest;
     }
-    
+
     /**
      * @param params
      *            The params to set.
@@ -134,7 +134,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     if (!restType.typeMatch(arg)) {
                         throw new ProgramError(loc, within,
                                 errorMsg("Closure/Constructor for ",
-                                          NodeUtil.stringName(getAt()),
+                                          getAt().stringName(),
                                           " rest parameter ", i, " (",
                                           param.getName(),
                                           ":", restType,
@@ -147,7 +147,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, within,
                             errorMsg("Closure/Constructor for ",
-                                     NodeUtil.stringName(getAt()),
+                                     getAt().stringName(),
                                      " parameter ", i, " (",
                                      param.getName(), ":",
                                      param.getType(), ") got type ",
@@ -215,7 +215,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 if (!paramType.typeMatch(arg)) {
                     throw new ProgramError(loc, env,
                             errorMsg("Closure/Constructor for ",
-                                     NodeUtil.stringName(getAt()),
+                                     getAt().stringName(),
                                      " parameter ", i, " (",
                                      param.getName(), ":",
                                      paramType, ") got type ",
@@ -259,7 +259,7 @@ public abstract class NonPrimitive extends Simple_fcn {
         if (this.params==null) {
             throw new InterpreterError(this.getAt(),
                                       "Calling fixupArgCount on "+
-                                       NodeUtil.stringName(getAt())+
+                                       getAt().stringName()+
                                        " with null params");
         }
         if (args.size() == params.size()) return args;

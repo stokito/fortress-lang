@@ -96,7 +96,7 @@ public class NodeFactory {
     }
 
     public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
-        return new ConstructorFnName(NodeUtil.getSpan(def), def);
+        return new ConstructorFnName(def.getSpan(), def);
     }
 
   /** Alternatively, you can invoke the Contract constructor without any parameters */

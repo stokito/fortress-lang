@@ -952,7 +952,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         if (!(fvalue instanceof Fcn)) {
             throw new ProgramError(x, e,
-                    errorMsg("Operator ", NodeUtil.stringName(op),
+                    errorMsg("Operator ", op.stringName(),
                              " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;

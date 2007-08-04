@@ -37,7 +37,7 @@ public class ProgramError extends Error {
     HasAt where;
     HasAt where2;
     Environment within;
-    
+
     public static String errorMsg(Object... messages) {
         StringBuffer fullMessage = new StringBuffer();
         for (Object message : messages) {
@@ -119,7 +119,7 @@ public class ProgramError extends Error {
      */
     @Override
     public String getMessage() {
-        return (where == null ? "" : ("\n"+NodeUtil.getAt(where) + (where2 == null ? "" : (": and\n" + NodeUtil.getAt(where2)) ) + ": ")) +
+        return (where == null ? "" : ("\n"+where.at() + (where2 == null ? "" : (": and\n" + where2.at()) ) + ": ")) +
         super.getMessage();
     }
 

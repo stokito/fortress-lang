@@ -31,42 +31,11 @@ public class NodeUtil {
 
     public static final String defaultSelfName = WellKnownNames.defaultSelfName;
 
-    /* for AbstractNode ****************************************************/
+    /* for HasAt ***********************************************************/
     /**
-     *
-     * @return String representation of the location, suitable for error
-     *         messages.
-     */
-    public static String getAt(HasAt thing) {
-        if (thing instanceof AbstractNode) {
-            return ((AbstractNode)thing).getSpan().begin.at();
-            // + ":(" + getClass().getSimpleName() + ")";
-        } else if (thing instanceof Overload) {
-            return ((Overload)thing).at();
-        } else if (thing instanceof NativeApp) {
-            return ((NativeApp)thing).at();
-        } else if (thing instanceof NativeApplicable) {
-            return "Native stub for " + ((NativeApplicable)thing).stringName();
-        } else if (thing instanceof HasAt.FromString) {
-            return ((HasAt.FromString)thing).at();
-        } else {
-            throw new Error("NodeUtil.getAt() is not defined for "
-                            + thing.getClass());
-        }
-    }
-
-    public static Span getSpan(HasAt thing) {
-        if (thing instanceof AbstractNode) {
-            return ((AbstractNode)thing).getSpan();
-        } else {
-            throw new Error("NodeUtil.getSpan() is not defined for "
-                            + thing.getClass());
-        }
-    }
-
-    /**
-     * Returns the index of the 'self' parameter in the list,
+     * Returns the index of the 'self' parameter in the parameter list,
      * or -1 if it does not appear.
+     * Only meaningful for method declarations.
      */
     public static int selfParameterIndex(HasAt d) {
         if (d instanceof FnAbsDeclOrDecl) {
@@ -84,21 +53,25 @@ public class NodeUtil {
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
-        if (app instanceof FnExpr) {
-            return getName(((FnExpr)app).getFnName());
-        } else if (app instanceof FnAbsDeclOrDecl) {
+        String name = getName(app.getFnName());
+        if (app instanceof FnAbsDeclOrDecl) {
             int spi = selfParameterIndex((FnAbsDeclOrDecl)app);
             if (spi >= 0)
-                return "rm$" + spi + "$" + getName(((FnAbsDeclOrDecl)app).getFnName());
+                return "rm$" + spi + "$" + name;
             else
-                return getName(((FnAbsDeclOrDecl)app).getFnName());
-        } else if (app instanceof NativeApp) {
-            return getName(((NativeApp)app).getFnName());
-        } else if (app instanceof NativeApplicable) {
-            return getName(((NativeApplicable)app).getFnName());
+                return name;
         } else {
-            throw new Error("NodeUtil.nameAsMethod(" + app.getClass());
+            return name;
         }
+    }
+
+    public static Option<Expr> getBody(Applicable def) {
+        if (def instanceof FnDef)
+            return new Some<Expr>(((FnDef)def).getBody());
+        else if (def instanceof FnExpr)
+            return new Some<Expr>(((FnExpr)def).getBody());
+        else
+            return new None<Expr>();
     }
 
     /* for Param ***********************************************************/
@@ -118,16 +91,6 @@ public class NodeUtil {
             }
         }
         return false;
-    }
-
-    /* getBody *************************************************************/
-    public static Option<Expr> getBody(Applicable def) {
-        if (def instanceof FnDef)
-            return new Some<Expr>(((FnDef)def).getBody());
-        else if (def instanceof FnExpr)
-            return new Some<Expr>(((FnExpr)def).getBody());
-        else
-            return new None<Expr>();
     }
 
     /* getName *************************************************************/
@@ -198,30 +161,36 @@ public class NodeUtil {
     }
 
     /* stringName **********************************************************/
-    public static String stringName(HasAt node) {
-        if (node instanceof DimDecl) {
-            return ((DimDecl)node).getId().getName();
-        } else if (node instanceof FnAbsDeclOrDecl) {
-            return NodeUtil.getName(((FnAbsDeclOrDecl)node).getFnName());
-        } else if (node instanceof FnName) {
-            return NodeUtil.getName((FnName)node);
-        } else if (node instanceof ObjectAbsDeclOrDecl) {
-            return ((ObjectAbsDeclOrDecl)node).getId().getName();
-        } else if (node instanceof _RewriteObjectExpr) {
-            return ((_RewriteObjectExpr)node).getGenSymName();
-        } else if (node instanceof TraitAbsDeclOrDecl) {
-            return ((TraitAbsDeclOrDecl)node).getId().getName();
-        } else if (node instanceof TypeAlias) {
-            return ((TypeAlias)node).getId().getName();
-        } else if (node instanceof UnitDecl) {
-            return ((UnitDecl)node).getNames().toString();
-        } else {
-            return node.getClass().getSimpleName();
-        }
-    }
-
-    public static String stringName(_RewriteObjectExpr expr) {
-        return expr.getGenSymName();
+    public static String stringName(Node node) {
+        return node.accept(new NodeAbstractVisitor<String>() {
+            public String forDimDecl(DimDecl node) {
+                return node.getId().getName();
+            }
+            public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
+                return getName(node.getFnName());
+            }
+            public String forFnName(FnName node) {
+                return getName(node);
+            }
+            public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
+                return node.getId().getName();
+            }
+            public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
+                return node.getGenSymName();
+            }
+            public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
+                return node.getId().getName();
+            }
+            public String forTypeAlias(TypeAlias node) {
+                return node.getId().getName();
+            }
+            public String forUnitDecl(UnitDecl node) {
+                return node.getNames().toString();
+            }
+            public String defaultCase(Node node) {
+                return node.getClass().getSimpleName();
+            }
+        });
     }
 
     /* stringNames *********************************************************/
@@ -297,8 +266,6 @@ public class NodeUtil {
             }
         });
     }
-
-
 
     /* dump ****************************************************************/
     public static String dump(AbstractNode n) {

@@ -19,6 +19,7 @@ package com.sun.fortress.nodes_util;
 
 import java.io.IOException;
 
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.useful.HasAt;
 
@@ -34,7 +35,7 @@ public class UIDObject implements HasAt {
     public int hashCode() {
         return (int) uid ^ (int) (uid >>> 32);
     }
-     
+
     /**
      * If none of the nodes override, this provides a somewhat terser toString
      * than the generated formatting.
@@ -45,13 +46,17 @@ public class UIDObject implements HasAt {
             return ErrorMsgMaker.makeErrorMsg((AbstractNode) this);
         return super.toString();
     }
-    
+
     public String at() {
         if (this instanceof AbstractNode)
             return ((AbstractNode) this).getSpan().toString();
         throw new Error("Class " + this.getClass().toString() + " needs to a case in UIDObject.at()");
     }
-    
+
+    public String stringName() {
+        return NodeUtil.stringName((Node)this);
+    }
+
     public String toStringVerbose() {
         Printer p = new Printer();
         StringBuffer sb = new StringBuffer();
@@ -89,5 +94,4 @@ public class UIDObject implements HasAt {
         return x;
         }
     }
-
 }

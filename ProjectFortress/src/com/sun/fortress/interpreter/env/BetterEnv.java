@@ -455,7 +455,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public Appendable dump(Appendable a) throws IOException {
         if (within!=null) {
-            a.append(NodeUtil.getAt(within));
+            a.append(within.at());
             a.append("\n");
         } else {
             a.append("Not within anything.\n");

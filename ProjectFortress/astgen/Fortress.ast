@@ -41,7 +41,7 @@ begin ast;
 /**
  * top-level node interface
  */
-interface Node() extends HasAt;
+interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * declaration in components or APIs
      */
@@ -61,7 +61,7 @@ interface Node() extends HasAt;
     interface LHS();
     /**
      * with static parameters
-     * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl, and FnAbsDeclOrDecl
+     * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl and FnAbsDeclOrDecl
      */
     interface Generic(List<StaticParam> staticParams);
     /**
@@ -74,9 +74,11 @@ interface Node() extends HasAt;
      */
     interface HasWhere(List<WhereClause> where);
 
-
 /**
  * functional declaration or function expression
+ * nodes_util.NodeUtil declares the following static methods:
+ *  - String nameAsMethod(Applicable)
+ *  - Option<Expr> getBody(Applicable)
  */
 interface Applicable(FnName fnName, List<StaticParam> staticParams,
                      List<Param> params, Option<TypeRef> returnType,
@@ -91,7 +93,6 @@ interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
 interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
                                                    GenericAbsDeclOrDecl;
     interface GenericDeclWithParams() extends GenericDecl;
-
 
 /**
  * top-level node abstract class
@@ -383,7 +384,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * property declaration
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
-     * e.g.) property fIsMonotonic = FORALL (x: ZZ, y: ZZ) (x < y) -> (f(x) < f(y))
+     * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
      */
     PropertyDecl(Option<Id> id = None.<Id>make(), List<Param> params, Expr expr)
                 implements Decl, AbsDecl;
@@ -543,7 +544,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 List<TraitType> forbid = Collections.<TraitType>emptyList(),
                 Option<Block> finallyClause = None.<Block>make());
             /**
-             * tuple expression (Mismatch with the Spec!)
+             * tuple expression
              * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
              *             | NoKeyTuple
              * NoKeyTuple ::= ( (Expr,)* Expr... )
@@ -626,11 +627,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
                FnName fnName = new AnonymousFnName(in_span),
-               List<StaticParam> staticParams = Collections.<StaticParam>emptyList(),
+               List<StaticParam> staticParams
+                   = Collections.<StaticParam>emptyList(),
                List<Param> params,
                Option<TypeRef> returnType = None.<TypeRef>make(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),
-               Option<List<TraitType>> throwsClause = None.<List<TraitType>>make(),
+               Option<List<TraitType>> throwsClause
+                   = None.<List<TraitType>>make(),
                Expr body)
               implements Applicable;
         /**
@@ -898,7 +901,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 InstantiatedType(TypeRef generic, List<StaticArg> args);
             /**
-             * tuple type (Mismatch with the Spec!)
+             * tuple type
              * TupleType ::= ( (TypeRef, )* (TypeRef ... ,)? KeywordType(, KeywordType)* )
              *             | ( (TypeRef, )*  TypeRef ... )
              *             | SimpleTupleType
@@ -906,7 +909,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             TupleType(List<TypeRef> elements,
                       Option<VarargsType> varargs = new None<VarargsType>(),
-                      List<KeywordType> keywords = Collections.<KeywordType>emptyList());
+                      List<KeywordType> keywords
+                          = Collections.<KeywordType>emptyList());
             /**
              * void type
              * e.g.) ()
@@ -1079,7 +1083,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                       = Collections.<StaticParam>emptyList(),
                   TypeRef type)
                  implements Decl, AbsDecl;
-        /* bool parameter declared in where clauses (Mismatch with the Spec!)
+        /* bool parameter declared in where clauses
          * WhereClause ::= bool Id
          * e.g.) bool ninf
          */
@@ -1089,12 +1093,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) T extends Object
          */
         WhereExtends(Id id, List<TraitType> supers);
-        /* nat parameter declared in where clauses (Mismatch with the Spec!)
+        /* nat parameter declared in where clauses
          * WhereClause ::= nat Id
          * e.g.) nat length
          */
         WhereNat(Id id);
-        /* unit parameter declared in where clauses (Mismatch with the Spec!)
+        /* unit parameter declared in where clauses
          * WhereClause ::= unit Id
          * e.g.) unit U
          */
@@ -1424,17 +1428,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     Op(String name);
     /**
-     * array indices (Mismatch with the Spec!)
+     * array indices
      */
     abstract Indices();
         /**
-         * array dimensionality (Mismatch with the Spec!)
+         * array dimensionality
          * ArraySize ::= ExtentRange(, ExtentRange)*
          * e.g.) 3, 2#1, 3:5
          */
         FixedDim(List<ExtentRange> extents);
     /**
-     * keyword type used in tuple types (Mismatch with the Spec!)
+     * keyword type used in tuple types
      * KeywordType ::= Id = TypeRef
      * e.g.) x = String
      */
@@ -1459,13 +1463,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         InverseDimUnit();
     /**
-     * varargs expression used in tuple expressions (Mismatch with the Spec!)
+     * varargs expression used in tuple expressions
      * VarargsExpr ::= Expr...
      * e.g.) [3 4 5]...
      */
     VarargsExpr(Expr varargs);
     /**
-     * varargs type used in tuple types (Mismatch with the Spec!)
+     * varargs type used in tuple types
      * TypeRef ...
      * e.g.) ZZ32...
      */

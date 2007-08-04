@@ -215,7 +215,7 @@ public class Constructor extends AnonymousConstructor {
                 objectDefinesAny = true;
             if (isNotADef(sf, too))
                 throw new ProgramError(cfn,
-                        "Object " + NodeUtil.stringName(cfn) +
+                        "Object " + cfn.stringName() +
                         " does not define method " + sf.getString() +
                         " declared in " + too.getName());
         }
@@ -423,12 +423,12 @@ public class Constructor extends AnonymousConstructor {
     }
 
     public String getString() {
-        return NodeUtil.stringName(cfn);
+        return cfn.stringName();
     }
-    
+
     public String toString() {
         String name = getFnName().toString();
-        
+
         return (s(selfType)) + Useful.listInParens(getDomain()) + cfn.at();
     }
 

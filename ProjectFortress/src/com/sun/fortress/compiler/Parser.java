@@ -57,66 +57,66 @@ import com.sun.fortress.useful.NI;
  * locates and parses any additional API definitions that are needed.
  */
 public class Parser {
-    
+
     public static class Result extends StaticPhaseResult {
         private final Iterable<Api> _apis;
         private final Iterable<Component> _components;
-        
+
         public Result() {
             _apis = IterUtil.empty();
             _components = IterUtil.empty();
         }
-        
+
         public Result(Api api) {
             _apis = IterUtil.singleton(api);
             _components = IterUtil.empty();
         }
-        
+
         public Result(Component component) {
             _components = IterUtil.singleton(component);
             _apis = IterUtil.empty();
         }
-        
+
         public Result(StaticError error) {
             super(IterUtil.singleton(error));
             _apis = IterUtil.empty();
             _components = IterUtil.empty();
         }
-        
+
         public Result(Result r1, Result r2) {
             super(r1, r2);
             _apis = IterUtil.compose(r1._apis, r2._apis);
             _components = IterUtil.compose(r1._components, r2._components);
         }
-        
+
         public Iterable<Api> apis() { return _apis; }
         public Iterable<Component> components() { return _components; }
     }
-    
+
     public static class Error extends StaticError {
         private final ParseError _parseError;
         private final com.sun.fortress.parser.Fortress _parser;
-        
+
         public Error(ParseError parseError, com.sun.fortress.parser.Fortress parser) {
             _parseError = parseError;
             _parser = parser;
         }
-        
+
         public String typeDescription() { return "Parse Error"; }
-        
+
         public String description() {
             String result = _parseError.msg;
             // TODO: I don't know for sure whether this is allowed to be null
             if (result == null || result.equals("")) { result = "Unspecified cause"; }
             return result;
         }
-        
+
         public String at() {
             if (_parseError.index == -1) { return "Unspecified location"; }
             else { return _parser.location(_parseError.index).toString(); }
         }
     }
-    
+
     /**
      * Parse the given files and any additional files that are expected to contain
      * referenced APIs.
@@ -125,10 +125,10 @@ public class Parser {
                                final GlobalEnvironment env) {
         // box allows mutation of a final var
         final Box<Result> result = new SimpleBox<Result>(new Result());
-        
+
         Set<File> fileSet = new HashSet<File>();
         for (File f : files) { fileSet.add(canonicalRepresentation(f)); }
-        
+
         Lambda<File, Set<File>> parseAndGetDepends = new Lambda<File, Set<File>>() {
             public Set<File> value(File f) {
                 Result r = parse(f);
@@ -144,12 +144,12 @@ public class Parser {
                 else { return Collections.emptySet(); }
             }
         };
-        
+
         // parses all dependency files
         CollectUtil.graphClosure(fileSet, parseAndGetDepends);
         return result.value();
     }
-    
+
     /** Parses a single file. */
     private static Result parse(File f) {
         try {
@@ -186,7 +186,7 @@ public class Parser {
             return new Result(StaticError.make(desc, f.toString()));
         }
     }
-    
+
     /**
      * Get all files potentially containing APIs imported by cu that aren't
      * currently in fortress.
@@ -204,7 +204,7 @@ public class Parser {
                 importedApiNames.add(NodeUtil.getName(((ImportFrom) i).getSource()));
             }
         }
-        
+
         Set<File> result = new HashSet<File>();
         for (String s : importedApiNames) {
             if (!env.definesApi(s)) {
@@ -214,12 +214,12 @@ public class Parser {
         }
         return result;
     }
-    
+
     /** Get the filename in which the given API should be defined. */
     private static File fileForApiName(String apiName) {
         return new File(apiName + ".fsi");
     }
-    
+
     /**
      * Convert to a filename that is canonical for each (logical) file, preventing
      * reparsing the same file.
@@ -231,5 +231,5 @@ public class Parser {
         // distinct.
         return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
     }
-    
+
 }
