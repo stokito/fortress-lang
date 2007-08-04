@@ -20,46 +20,7 @@
  */
 
 package com.sun.fortress.parser_util;
-import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.ArrayElement;
-import com.sun.fortress.nodes.ArrayElements;
-import com.sun.fortress.nodes.ArrayExpr;
-import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.Contract;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.EnsuresClause;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.LetExpr;
-import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierAtomic;
-import com.sun.fortress.nodes.ModifierGetter;
-import com.sun.fortress.nodes.ModifierHidden;
-import com.sun.fortress.nodes.ModifierIO;
-import com.sun.fortress.nodes.ModifierPrivate;
-import com.sun.fortress.nodes.ModifierSettable;
-import com.sun.fortress.nodes.ModifierSetter;
-import com.sun.fortress.nodes.ModifierTest;
-import com.sun.fortress.nodes.ModifierValue;
-import com.sun.fortress.nodes.ModifierVar;
-import com.sun.fortress.nodes.ModifierWidens;
-import com.sun.fortress.nodes.ModifierWrapped;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
-import com.sun.fortress.nodes.Unpasting;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -72,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
@@ -193,58 +155,86 @@ public final class FortressUtil {
     private static void multiple(Modifier m) {
         throw new ProgramError(m, "A modifier must not occur multiple times");
     }
+    static boolean m_atomic   = false;
+    static boolean m_getter   = false;
+    static boolean m_hidden   = false;
+    static boolean m_io       = false;
+    static boolean m_private  = false;
+    static boolean m_settable = false;
+    static boolean m_setter   = false;
+    static boolean m_test     = false;
+    static boolean m_value    = false;
+    static boolean m_var      = false;
+    static boolean m_widens   = false;
+    static boolean m_wrapped  = false;
+    private static void resetMods() {
+        m_atomic   = false;
+        m_getter   = false;
+        m_hidden   = false;
+        m_io       = false;
+        m_private  = false;
+        m_settable = false;
+        m_setter   = false;
+        m_test     = false;
+        m_value    = false;
+        m_var      = false;
+        m_widens   = false;
+        m_wrapped  = false;
+    }
     public static void noDuplicate(List<Modifier> mods) {
-        boolean m_atomic   = false;
-        boolean m_getter   = false;
-        boolean m_hidden   = false;
-        boolean m_io       = false;
-        boolean m_private  = false;
-        boolean m_settable = false;
-        boolean m_setter   = false;
-        boolean m_test     = false;
-        boolean m_value    = false;
-        boolean m_var      = false;
-        boolean m_widens   = false;
-        boolean m_wrapped  = false;
         for (Modifier m : mods) {
-     if (m instanceof ModifierAtomic) {
-                if (m_atomic) multiple(m);
-                else m_atomic = true;
-         } else if (m instanceof ModifierGetter) {
-                if (m_getter) multiple(m);
-                else m_getter = true;
-         } else if (m instanceof ModifierHidden) {
-                if (m_hidden) multiple(m);
-                else m_hidden = true;
-            } else if (m instanceof ModifierIO) {
-                if (m_io) multiple(m);
-                else m_io = true;
-            } else if (m instanceof ModifierPrivate) {
-                if (m_private) multiple(m);
-                else m_private = true;
-            } else if (m instanceof ModifierSettable) {
-                if (m_settable) multiple(m);
-                else m_settable = true;
-         } else if (m instanceof ModifierSetter) {
-                if (m_setter) multiple(m);
-                else m_setter = true;
-            } else if (m instanceof ModifierTest) {
-                if (m_test) multiple(m);
-                else m_test = true;
-            } else if (m instanceof ModifierValue) {
-                if (m_value) multiple(m);
-                else m_value = true;
-            } else if (m instanceof ModifierVar) {
-                if (m_var) multiple(m);
-                else m_var = true;
-            } else if (m instanceof ModifierWidens) {
-                if (m_widens) multiple(m);
-                else m_widens = true;
-            } else if (m instanceof ModifierWrapped) {
-                if (m_wrapped) multiple(m);
-                else m_wrapped = true;
-            }
+            m.accept(new NodeDepthFirstVisitor_void() {
+                    public void forModifierAtomic(ModifierAtomic m) {
+                        if (m_atomic) multiple(m);
+                        else m_atomic = true;
+                    }
+                    public void forModifierGetter(ModifierGetter m) {
+                        if (m_getter) multiple(m);
+                        else m_getter = true;
+                    }
+                    public void forModifierHidden(ModifierHidden m) {
+                        if (m_hidden) multiple(m);
+                        else m_hidden = true;
+                    }
+                    public void forModifierIO(ModifierIO m) {
+                        if (m_io) multiple(m);
+                        else m_io = true;
+                    }
+                    public void forModifierPrivate(ModifierPrivate m) {
+                        if (m_private) multiple(m);
+                        else m_private = true;
+                    }
+                    public void forModifierSettable(ModifierSettable m) {
+                        if (m_settable) multiple(m);
+                        else m_settable = true;
+                    }
+                    public void forModifierSetter(ModifierSetter m) {
+                        if (m_setter) multiple(m);
+                        else m_setter = true;
+                    }
+                    public void forModifierTest(ModifierTest m) {
+                        if (m_test) multiple(m);
+                        else m_test = true;
+                    }
+                    public void forModifierValue(ModifierValue m) {
+                        if (m_value) multiple(m);
+                        else m_value = true;
+                    }
+                    public void forModifierVar(ModifierVar m) {
+                        if (m_var) multiple(m);
+                        else m_var = true;
+                    }
+                    public void forModifierWidens(ModifierWidens m) {
+                        if (m_widens) multiple(m);
+                        else m_widens = true;
+                    }
+                    public void forModifierWrapped(ModifierWrapped m) {
+                        if (m_wrapped) multiple(m);
+                        else m_wrapped = true;
+                    }
+                });
         }
+        resetMods();
     }
 
     private static boolean compoundOp(String s) {
