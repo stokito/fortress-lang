@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler;
 
 import java.util.Map;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 
@@ -44,42 +46,43 @@ import edu.rice.cs.plt.iter.IterUtil;
  */
 public class Disambiguator {
     
+    /** Result of {@link #disambiguateApis}. */
     public static class ApiResult extends StaticPhaseResult {
-        private final Map<String, ApiIndex> _apis;
+        private final Iterable<Api> _apis;
             
-        public ApiResult(Map<String, ApiIndex> apis,
-                         Iterable<? extends StaticError> errors) {
+        public ApiResult(Iterable<Api> apis, Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
         
-        public Map<String, ApiIndex> apis() { return _apis; }
+        public Iterable<Api> apis() { return _apis; }
     }
     
     /**
      * Disambiguate the given apis. To support circular references, the apis should
      * appear in the given environment.
      */
-    public static ApiResult disambiguateApis(Map<String, ApiIndex> apis,
+    public static ApiResult disambiguateApis(Iterable<Api> apis,
                                              GlobalEnvironment env) {
         // TODO: implement
         return new ApiResult(apis, IterUtil.<StaticError>empty());
     }
     
     
+    /** Result of {@link #disambiguateComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
-        private final Map<String, ComponentIndex> _components;
-        public ComponentResult(Map<String, ComponentIndex> components,
+        private final Iterable<Component> _components;
+        public ComponentResult(Iterable<Component> components,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
-        public Map<String, ComponentIndex> components() { return _components; }
+        public Iterable<Component> components() { return _components; }
     }
     
     /** Disambiguate the given components. */
     public static ComponentResult
-        disambiguateComponents(Map<String, ComponentIndex> components,
+        disambiguateComponents(Iterable<Component> components,
                                GlobalEnvironment env) {
         // TODO: implement
         return new ComponentResult(components, IterUtil.<StaticError>empty());

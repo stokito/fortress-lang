@@ -51,42 +51,51 @@ public class Fortress {
         Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
         
-        IndexBuilder.Result ir = IndexBuilder.build(pr.asts());
-        if (!ir.isSuccessful()) { return ir.errors(); }
-        
         // Handle APIs first
         
-        GlobalEnvironment envWithApis1 =
-            new GlobalEnvironment(CollectUtil.compose(_repository.apis(), ir.apis()));
-        Disambiguator.ApiResult drForApis =
-            Disambiguator.disambiguateApis(ir.apis(), envWithApis1);
-        if (!drForApis.isSuccessful()) { return drForApis.errors(); }
+        // Build APIs before disambiguating to allow circular references.
+        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(pr.apis());
+        if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
         
-        GlobalEnvironment envWithApis2 =
+        GlobalEnvironment rawApiEnv =
             new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
-                                                      drForApis.apis()));
-        StaticChecker.ApiResult crForApis =
-            StaticChecker.checkApis(drForApis.apis(), envWithApis2);
-        if (!crForApis.isSuccessful()) { return crForApis.errors(); }
+                                                      rawApiIR.apis()));
+        Disambiguator.ApiResult apiDR =
+            Disambiguator.disambiguateApis(pr.apis(), rawApiEnv);
+        if (!apiDR.isSuccessful()) { return apiDR.errors(); }
         
-        for (Map.Entry<String, ApiIndex> newApi : drForApis.apis().entrySet()) {
+        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis());
+        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+        
+        GlobalEnvironment apiEnv =
+            new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
+                                                      apiIR.apis()));
+        StaticChecker.ApiResult apiSR =
+            StaticChecker.checkApis(apiIR.apis(), apiEnv);
+        if (!apiSR.isSuccessful()) { return apiSR.errors(); }
+        
+        for (Map.Entry<String, ApiIndex> newApi : apiIR.apis().entrySet()) {
             _repository.addApi(newApi.getKey(), newApi.getValue());
         }
         
         // Handle components
         
-        Disambiguator.ComponentResult dr =
-            Disambiguator.disambiguateComponents(ir.components(), env);
-        if (!dr.isSuccessful()) { return dr.errors(); }
+        Disambiguator.ComponentResult componentDR =
+            Disambiguator.disambiguateComponents(pr.components(), env);
+        if (!componentDR.isSuccessful()) { return componentDR.errors(); }
         
-        StaticChecker.ComponentResult cr =
-            StaticChecker.checkComponents(dr.components(), env);
-        if (!cr.isSuccessful()) { return cr.errors(); }
+        IndexBuilder.ComponentResult componentIR =
+            IndexBuilder.buildComponents(componentDR.components());
+        if (!componentIR.isSuccessful()) { return componentIR.errors(); }
+        
+        StaticChecker.ComponentResult componentSR =
+            StaticChecker.checkComponents(componentIR.components(), env);
+        if (!componentSR.isSuccessful()) { return componentSR.errors(); }
         
         // Additional optimization phases can be inserted here
         
         for (Map.Entry<String, ComponentIndex> newComponent :
-                 cr.components().entrySet()) {
+                 componentSR.components().entrySet()) {
             _repository.addComponent(newComponent.getKey(), newComponent.getValue());
         }
         

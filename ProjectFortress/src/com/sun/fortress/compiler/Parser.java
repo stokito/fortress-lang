@@ -42,6 +42,8 @@ import xtc.parser.ParseError;
 
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.AliasedDottedId;
@@ -57,23 +59,38 @@ import com.sun.fortress.useful.NI;
 public class Parser {
     
     public static class Result extends StaticPhaseResult {
-        private final Iterable<CompilationUnit> _asts;
+        private final Iterable<Api> _apis;
+        private final Iterable<Component> _components;
         
-        public Result() { _asts = IterUtil.empty(); }
+        public Result() {
+            _apis = IterUtil.empty();
+            _components = IterUtil.empty();
+        }
         
-        public Result(CompilationUnit ast) { _asts = IterUtil.singleton(ast); }
+        public Result(Api api) {
+            _apis = IterUtil.singleton(api);
+            _components = IterUtil.empty();
+        }
+        
+        public Result(Component component) {
+            _components = IterUtil.singleton(component);
+            _apis = IterUtil.empty();
+        }
         
         public Result(StaticError error) {
             super(IterUtil.singleton(error));
-            _asts = IterUtil.empty();
+            _apis = IterUtil.empty();
+            _components = IterUtil.empty();
         }
         
         public Result(Result r1, Result r2) {
             super(r1, r2);
-            _asts = IterUtil.compose(r1._asts, r2._asts);
+            _apis = IterUtil.compose(r1._apis, r2._apis);
+            _components = IterUtil.compose(r1._components, r2._components);
         }
         
-        public Iterable<CompilationUnit> asts() { return _asts; }
+        public Iterable<Api> apis() { return _apis; }
+        public Iterable<Component> components() { return _components; }
     }
     
     public static class Error extends StaticError {
@@ -118,7 +135,8 @@ public class Parser {
                 result.set(new Result(result.value(), r));
                 if (r.isSuccessful()) {
                     Set<File> newFiles = new HashSet<File>();
-                    for (CompilationUnit cu : r.asts()) {
+                    for (CompilationUnit cu :
+                             IterUtil.compose(r.apis(), r.components())) {
                         newFiles.addAll(extractNewDependencies(cu, env));
                     }
                     return newFiles;
@@ -142,7 +160,15 @@ public class Parser {
                 xtc.parser.Result parseResult = p.pFile(0);
                 if (parseResult.hasValue()) {
                     Object cu = ((SemanticValue) parseResult).value;
-                    return new Result((CompilationUnit) cu);
+                    if (cu instanceof Api) {
+                        return new Result((Api) cu);
+                    }
+                    else if (cu instanceof Component) {
+                        return new Result((Component) cu);
+                    }
+                    else {
+                        throw new RuntimeException("Unexpected parse result: " + cu);
+                    }
                 }
                 else {
                     return new Result(new Parser.Error((ParseError) parseResult, p));

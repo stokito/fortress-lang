@@ -35,37 +35,47 @@ import com.sun.fortress.useful.NI;
 
 public class IndexBuilder {
     
-    public static class Result extends StaticPhaseResult {
+    /** Result of {@link #buildApis}. */
+    public static class ApiResult extends StaticPhaseResult {
         private final Map<String, ApiIndex> _apis;
-        private final Map<String, ComponentIndex> _components;
         
-        public Result(Map<String, ApiIndex> apis,
-                      Map<String, ComponentIndex> components,
-                      Iterable<? extends StaticError> errors) {
+        public ApiResult(Map<String, ApiIndex> apis,
+                         Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
-            _components = components;
         }
         
         public Map<String, ApiIndex> apis() { return _apis; }
-        public Map<String, ComponentIndex> components() { return _components; }
+    }
+    
+    /** Convert the given ASTs to ApiIndices. */
+    public static ApiResult buildApis(Iterable<Api> asts) {
+        IndexBuilder builder = new IndexBuilder();
+        Map<String, ApiIndex> apis = new HashMap<String, ApiIndex>();
+        for (Api ast : asts) { builder.buildApi(ast, apis); }
+        return new ApiResult(apis, builder.errors());
     }
     
     
-    /** Convert the given ASTs to ApiIndices and ComponentIndices. */
-    public static Result build(Iterable<? extends CompilationUnit> asts) {
-        IndexBuilder builder = new IndexBuilder();
-        Map<String, ApiIndex> apis = new HashMap<String, ApiIndex>();
-        Map<String, ComponentIndex> components = new HashMap<String, ComponentIndex>();
-        for (CompilationUnit cu : asts) {
-            if (cu instanceof Api) {
-                builder.buildApi((Api) cu, apis);
-            }
-            else { /* cu instanceof Component */
-                builder.buildComponent((Component) cu, components);
-            }
+    /** Result of {@link #buildComponents}. */
+    public static class ComponentResult extends StaticPhaseResult {
+        private final Map<String, ComponentIndex> _components;
+        
+        public ComponentResult(Map<String, ComponentIndex> components,
+                               Iterable<? extends StaticError> errors) {
+            super(errors);
+            _components = components;
         }
-        return new Result(apis, components, builder.errors());
+        
+        public Map<String, ComponentIndex> components() { return _components; }
+    }
+
+    /** Convert the given ASTs to ComponentIndices. */
+    public static ComponentResult buildComponents(Iterable<Component> asts) {
+        IndexBuilder builder = new IndexBuilder();
+        Map<String, ComponentIndex> components = new HashMap<String, ComponentIndex>();
+        for (Component ast : asts) { builder.buildComponent(ast, components); }
+        return new ComponentResult(components, builder.errors());
     }
     
     

@@ -42,6 +42,8 @@ public class CompilationUnitIndex {
         _traits = traits;
     }
     
+    public CompilationUnit ast() { return _ast; }
+    
     public Set<String> exports() {
         return NI.nyi();
     }
