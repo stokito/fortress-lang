@@ -107,22 +107,15 @@ public class NodeFactory {
     }
 
     public static DottedId makeDottedId(Span span, String s) {
-        return new DottedId(span, Useful.list(s));
+        return new DottedId(span, Useful.list(makeId(s)));
     }
 
     public static DottedId makeDottedId(Span span, Id s) {
-        return new DottedId(span, Useful.list(s.getName()));
+        return new DottedId(span, Useful.list(s));
     }
 
     public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
-        return new DottedId(span, Useful.prependMapped(s, ls,
-                                                // fn(x) => x.getName()
-                                                new Fn<Id, String>() {
-                                                    @Override
-                                                    public String apply(Id x) {
-                                                        return x.getName();
-                                                    }
-        }));
+        return new DottedId(span, Useful.prepend(s, ls));
     }
 
     /**

@@ -19,6 +19,7 @@ package com.sun.fortress.nodes_util;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -98,7 +99,7 @@ public class NodeUtil {
         return n.accept(new NodeAbstractVisitor<String>() {
             public String forDottedId(DottedId n) {
                 String name;
-                List<String> names = n.getNames();
+                List<String> names = toStrings(n);
                 int size = names.size();
                 if (size == 0) {
                     throw new Error("Non-empty string is expected.");
@@ -297,4 +298,14 @@ public class NodeUtil {
                 return x.getName();
             }
         };
+
+    /* for DottedId ********************************************************/
+    public static List<String> toStrings(DottedId n) {
+        List<String> s = new ArrayList();
+        for (Id id : n.getNames()) {
+            s.add(id.getName());
+        }
+        return s;
+    }
+
 }

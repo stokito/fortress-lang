@@ -124,7 +124,7 @@ Expr DelimitedExpr =
      };
 
 /* Do ::= (DoFront w also w)* DoFront w end */
-Expr Do = a1s:(DoFront w also w)* a2:DoFront w end
+Do Do = a1s:(DoFront w also w)* a2:DoFront w end
      { yyValue = new Do(createSpan(yyStart, yyCount), false,
                         FortressUtil.mkList(a1s.list(), a2));
      };

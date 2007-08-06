@@ -107,8 +107,8 @@ private constant transient Action<TypeRef> TypeRefTail =
    / caret a1:StaticArgFront a2:ArrowTypeTail?
      { yyValue = new Action<TypeRef>() {
            public TypeRef run(TypeRef base) {
-               ExtentRange er = new ExtentRange(None.<TypeRef>make(),
-                                                Some.<TypeRef>make(a1));
+               ExtentRange er = new ExtentRange(None.<StaticArg>make(),
+                                                Some.<StaticArg>make(a1));
                NonArrowType ty =
                    NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                               (TypeRef)base, er);
@@ -182,8 +182,8 @@ TraitType TraitType =
                                            indices);
      }
    / a1:TypeRef caret a2:StaticArgFront
-     { ExtentRange er = new ExtentRange(None.<TypeRef>make(),
-                                        Some.<TypeRef>make(a2));
+     { ExtentRange er = new ExtentRange(None.<StaticArg>make(),
+                                        Some.<StaticArg>make(a2));
        yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),a1,er);
      }
    / a1:TypeRef caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
@@ -497,26 +497,27 @@ private FixedDim ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
  */
 ExtentRange ExtentRange =
      a1:(StaticArg w)? pound a2:(w StaticArg)?
-     { Option<TypeRef> base;
-       Option<TypeRef> size;
-       if (a1 == null) base = None.<TypeRef>make();
-       else            base = Some.<TypeRef>make(a1);
-       if (a2 == null) size = None.<TypeRef>make();
-       else            size = Some.<TypeRef>make(a2);
+     { Option<StaticArg> base;
+       Option<StaticArg> size;
+       if (a1 == null) base = None.<StaticArg>make();
+       else            base = Some.<StaticArg>make(a1);
+       if (a2 == null) size = None.<StaticArg>make();
+       else            size = Some.<StaticArg>make(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
-     { Option<TypeRef> base;
-       Option<TypeRef> size;
-       if (a1 == null) base = None.<TypeRef>make();
-       else            base = Some.<TypeRef>make(a1);
-       if (a2 == null) size = None.<TypeRef>make();
-       else            size = Some.<TypeRef>make(a2);
+     { Option<StaticArg> base;
+       Option<StaticArg> size;
+       if (a1 == null) base = None.<StaticArg>make();
+       else            base = Some.<StaticArg>make(a1);
+       if (a2 == null) size = None.<StaticArg>make();
+       else            size = Some.<StaticArg>make(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
    / a1:StaticArg
      { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
-                                 None.<TypeRef>make(), Some.<TypeRef>make(a1));
+                                 None.<StaticArg>make(),
+                                 Some.<StaticArg>make(a1));
      };
 
 /* Number */

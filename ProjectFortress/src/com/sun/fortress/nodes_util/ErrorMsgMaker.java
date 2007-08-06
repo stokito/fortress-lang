@@ -61,7 +61,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forDottedId(DottedId node) {
-        return Useful.dottedList(node.getNames());
+        return Useful.dottedList(NodeUtil.toStrings(node));
     }
 
     public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {

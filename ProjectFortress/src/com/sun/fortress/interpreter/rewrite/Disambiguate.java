@@ -786,10 +786,10 @@ public class Disambiguate extends Rewrite {
                 if (t instanceof IdType) {
                     IdType it = (IdType) t;
                     DottedId d = it.getDottedId();
-                    List<String> names = d.getNames();
+                    List<Id> names = d.getNames();
                     if (names.size() == 1) {
                         // TODO we've got to generalize this to DottedId names.
-                        String s = names.get(0);
+                        String s = names.get(0).getName();
                         Thing th;
                         try {
                             th = typeEnv.get(s);

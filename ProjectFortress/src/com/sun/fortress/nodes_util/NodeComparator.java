@@ -37,6 +37,16 @@ public class NodeComparator {
         return 0;
     }
 
+    public static int compareOptionalStaticArg(Option<StaticArg> a,
+                                               Option<StaticArg> b) {
+        if (a.isPresent() != b.isPresent()) {
+            return a.isPresent() ? 1 : -1;
+        }
+        if (a.isPresent()) {
+            return compare(a.getVal(), b.getVal());
+        }
+        return 0;
+    }
     /* list comparers ****************************************************/
     static class ExtentRangeComparer implements Comparator<ExtentRange> {
         public int compare(ExtentRange left, ExtentRange right) {
@@ -114,16 +124,16 @@ public class NodeComparator {
 
     /* compare methods ***************************************************/
     public static int compare(DottedId left, DottedId right) {
-        return ListComparer.stringListComparer.compare(left.getNames(),
-                                                       right.getNames());
+        return ListComparer.stringListComparer.compare(NodeUtil.toStrings(left),
+                                                       NodeUtil.toStrings(right));
     }
 
     public static int compare(ExtentRange left, ExtentRange right) {
         // TODO Optional parameters on extent ranges are tricky things; perhaps
         // they need not both be present.
-        int x = compareOptionalTypeRef(left.getBase(), right.getBase());
+        int x = compareOptionalStaticArg(left.getBase(), right.getBase());
         if (x != 0) return x;
-        x = compareOptionalTypeRef(left.getSize(), right.getSize());
+        x = compareOptionalStaticArg(left.getSize(), right.getSize());
         if (x != 0) return x;
         return 0;
     }

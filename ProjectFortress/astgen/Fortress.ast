@@ -66,11 +66,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     interface Generic(List<StaticParam> staticParams);
     /**
      * with value parameters
+     * implemented by object declarations and object expressions
      */
     interface HasParams(Option<List<Param>> params,
                         List<? extends AbsDeclOrDecl> decls);
     /**
      * with a where clause
+     * implemented by trait and object declarations in components or APIs
      */
     interface HasWhere(List<WhereClause> where);
 
@@ -202,6 +204,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * ComprisingTypes ::= TraitType | { ComprisingTypeList }
              * ComprisingTypeList ::= ...
              *                      | TraitType(, TraitType)*(, ...)?
+             * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
+             *                 | AbsCoercions? AbsGoBackInATrait
+             * AbsGoesFrontInATrait ::= ApiFldDecl
+             *                        | AbsGetterSetterDecl
+             *                        | PropertyDecl
+             * AbsGoesBackInATrait  ::= AbsMdDecl
+             *                        | PropertyDecl
              * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
              *         cons(x: alph): List[\alpha\]
              *       end
@@ -213,6 +222,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                 end
              * TraitClause ::= Excludes | Comprises | Where
              * Comprises ::= comprises TraitTypes
+             * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
+             *              | Coercions? GoBackInATrait
+             * GoesFrontInATrait ::= AbsFldDecl
+             *                     | GetterSetterDecl
+             *                     | PropertyDecl
+             * GoesBackInATrait  ::= MdDecl
+             *                     | PropertyDecl
              * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
              *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
              *       end
@@ -235,12 +251,34 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                  FnClauses
              * FnClauses ::= Throws? Where? Contract
              * Throws ::= throws MayTraitTypes
+             * ObjectValParam ::= ( ObjectParams? )
+             * ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
+             *                | (ObjectParam ,)* ObjectVarargs
+             *                | ObjectParam (, ObjectParam)*
+             * ObjectVarargs ::= transient Varargs
+             * ObjectKeyword ::= ObjectParam = Expr
+             * ObjectParam ::= ParamFldMods? Param
+             *               | transient Param
+             * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
+             *                   | AbsCoercions? AbsGoBackInAnObject
+             * AbsGoesFrontInAnObject ::= ApiFldDecl
+             *                          | AbsGetterSetterDecl
+             *                          | PropertyDecl
+             * AbsGoesBackInAnObject ::= AbsMdDecl
+             *                         | PropertyDecl
              * e.g.) object Empty[\alph\]() extends List[\alpha\] end
              */
             AbsObjectDecl(List<AbsDecl> decls) implements AbsDecl;
             /**
              * object declaration in components
              * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
+             * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
+             *                | Coercions? GoBackInAnObject
+             * GoesFrontInAnObject ::= FldDecl
+             *                       | GetterSetterDecl
+             *                       | PropertyDecl
+             * GoesBackInAnObject ::= MdDecl
+             *                      | PropertyDecl
              * e.g.) object Empty[\alph\]() extends List[\alpha\]
              *         length() = 0
              *       end
@@ -267,6 +305,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *           | VarMods? IdOrIdTuple = Expr
          *           | VarMods? IdOrIdTuple : TypeRef ... InitVal
          *           | VarMods? IdOrIdTuple : SimpleTupleType InitVal
+         * InitVal ::= (= | :=) Expr
          * e.g.) var (x, y): ZZ64... = (5, 6)
          */
         VarDecl(Expr init) implements Decl;
@@ -352,8 +391,23 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
                    Id id);
+        /**
+         * ValParam := Id
+         *           | (Params?)
+         * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
+         *          | (Param, )* Varargs
+         *          | Param(, Param)*
+         *
+         * Keyword ::= Param = Expr
+         * PlainParam ::= Id IsType?
+         *              | TypeRef
+         */
         NormalParam(Option<TypeRef> type = None.<TypeRef>make(),
                     Option<Expr> defaultExpr = None.<Expr>make());
+        /**
+         * varargs parameter
+         * VarargsParam ::= Id : TypeRef ...
+         */
         VarargsParam(VarargsType varargsType);
     /**
      * dimension declaration (Not Yet Implemented in the Parser!)
@@ -435,11 +489,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * AssignLeft ::= SubscriptExpr
          *              | MemberSelection
          *              | Id
+         * AssignOp ::= := | Op=
          * e.g.) x += 1
          */
         Assignment(List<LHS> lhs, Option<Op> op, Expr rhs);
         /**
-         * expressions begging and ending with reserved words
+         * expressions beginning and ending with reserved words
+         * Expr ::= DelimitedExpr
          */
         abstract DelimitedExpr();
             /**
@@ -487,6 +543,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * if expression
              * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
+             *                 | ( if Expr then blockElems Elifs? Else end? )
              * Elif ::= elif Expr then BlockElems
              * Else ::= else BlockElems
              * e.g.) if x IN {0, 1, 2} then 0
@@ -574,14 +631,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * DelimitedExpr ::= while Expr Do
              * e.g.) while x < 10 do print x; x += 1 end
              */
-            While(Expr test, Expr body);
+            While(Expr test, Do body);
         /**
          * control flow expression
+         * Expr ::= FlowExpr
          */
         abstract FlowExpr();
             /**
              * summation and other reduction expression
              * FlowExpr ::= Accumulator ([ GeneratorList ])? Expr
+             * Accumulator ::= SUM | PRODUCT | Big Op
              * e.g.) PRODUCT[i <- 1:n] i
              */
             Accumulator(Op op, List<Generator> gens, Expr body);
@@ -1153,6 +1212,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * AbsFnMod      ::= LocalFnMod | test
      * LocalFnMod    ::= atomic | io
      * ParamFldMod   ::= var | hidden | settable | wrapped
+     * VarMod        ::= AbsVarMod | private
+     * AbsVarMod     ::= var | test
      * FldMod        ::= var | AbsFldMod
      * AbsFldMod     ::= ApiFldMod | wrapped | private
      * ApiFldMod     ::= hidden | settable | test
@@ -1277,7 +1338,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * DottedId ::= Id(.Id)*
          * e.g.) com.sun.fortress.nodes_util.getName
          */
-        DottedId(List<String> names);
+        DottedId(List<Id> names);
         /**
          * internal name for anonymous function expressions
          * not created during parsing but during evaluation
@@ -1407,7 +1468,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      *               | StaticArg
      * e.g.) 3#5
      */
-    ExtentRange(Option<TypeRef> base, Option<TypeRef> size);
+    ExtentRange(Option<StaticArg> base, Option<StaticArg> size);
     /**
      * generator
      * Generator ::= IdOrIdTuple <- Expr

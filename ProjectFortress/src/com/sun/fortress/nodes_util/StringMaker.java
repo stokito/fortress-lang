@@ -21,7 +21,6 @@ import com.sun.fortress.useful.Useful;
 
 public final class StringMaker {
     public static final String fromDottedId(DottedId id) {
-        return Useful.dottedList(id.getNames());
+        return Useful.dottedList(NodeUtil.toStrings(id));
     }
 }
-        

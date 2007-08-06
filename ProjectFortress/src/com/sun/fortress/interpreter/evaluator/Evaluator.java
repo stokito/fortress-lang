@@ -645,8 +645,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forDottedId(DottedId x) {
         // debugPrint("forDotted " + x);
         String result = "";
-        for (Iterator<String> i = x.getNames().iterator(); i.hasNext();) {
-            result = result.concat(i.next());
+        for (Iterator<Id> i = x.getNames().iterator(); i.hasNext();) {
+            result = result.concat(i.next().getName());
             if (i.hasNext())
                 result = result.concat(".");
         }

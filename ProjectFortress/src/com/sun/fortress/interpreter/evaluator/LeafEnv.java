@@ -33,6 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.useful.NI;
 
@@ -298,13 +299,13 @@ class LeafEnv extends CommonEnv {
      */
 
     protected Environment deDot(DottedId d) {
-        List<String> names = d.getNames();
+        List<Id> names = d.getNames();
         return deDot(names.subList(0, names.size()-1));
     }
 
     protected String last(DottedId d) {
-        List<String> names = d.getNames();
-        return names.get(names.size()-1);
+        List<Id> names = d.getNames();
+        return names.get(names.size()-1).getName();
     }
 
     /**
@@ -317,14 +318,14 @@ class LeafEnv extends CommonEnv {
      * @return
      */
 
-    protected LeafEnv deDot(List<String> names) {
+    protected LeafEnv deDot(List<Id> names) {
         LeafEnv e = this;
         if (names.size() > 0) {
             int l = names.size();
             for (int i = 0; i < l - 1; i++) {
                 if (e.pfx_env == null)
                     break;
-                e = e.pfx_env.get(names.get(i));
+                e = e.pfx_env.get(names.get(i).getName());
                 if (e == null)
                     break;
             }
