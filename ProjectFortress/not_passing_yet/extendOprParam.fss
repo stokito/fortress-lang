@@ -16,6 +16,15 @@
  ******************************************************************************)
 
 component ExtendReduction
+export Executable
+
+run(args:String...):() = ()
+
+trait Monoid[\ T, opr OPLUS \]
+  where { T extends Monoid[\ T, OPLUS \] }
+    zero() : T
+    opr OPLUS(self, other:T):T
+end
 
 value object NoReduction extends Monoid[\ NoReduction, OPLUS \]
   opr OPLUS(self, other) = NoReduction

@@ -428,8 +428,13 @@ public class Constructor extends AnonymousConstructor {
 
     public String toString() {
         String name = getFnName().toString();
-
-        return (s(selfType)) + Useful.listInParens(getDomain()) + cfn.at();
+        List<FType> l = null;
+        try {
+            l = getDomain();
+        } catch (Throwable th) {
+            ; /* do nothing */
+        }
+        return (s(selfType)) + (l == null ? "(DOMAIN_ERROR null)" : Useful.listInParens(l)) + cfn.at();
     }
 
     boolean finished = false;

@@ -298,6 +298,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         env = _env;
     }
 
+    public FType forBaseOprRef(BaseOprRef b) {
+        System.err.println(env);
+        throw new Error();
+    }
+    
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
     public FType forVarargsType(VarargsType rt) {
