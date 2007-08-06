@@ -18,7 +18,7 @@
 package com.sun.fortress.parser_util.precedence_opexpr;
 
 
-public interface OpExpr {
+public interface PrecedenceOpExpr {
 
    public <RetType> RetType accept(OpExprVisitor<RetType> visitor);
    public void accept(OpExprVisitor_void visitor);

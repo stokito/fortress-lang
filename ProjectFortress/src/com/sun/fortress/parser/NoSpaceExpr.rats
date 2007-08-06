@@ -46,7 +46,7 @@ Expr NoSpaceExpr = ExprFront ;
    | Encloser OpExprPrefix
    | Encloser
  */
-PureList<OpExpr> TightInfixRight -= <Primary>, <Loose>, <LeftLoose> ;
+PureList<PrecedenceOpExpr> TightInfixRight -= <Primary>, <Loose>, <LeftLoose> ;
 
 /* NoSpaceOpExprLeftEncloser ::= Encloser NoSpaceOpExprNoEnc
    NoSpaceOpExprPrimary ::=
@@ -54,14 +54,14 @@ PureList<OpExpr> TightInfixRight -= <Primary>, <Loose>, <LeftLoose> ;
    | Primary NoSpaceTightInfixRight
    | Primary
  */
-PureList<OpExpr> OpExprPrimary -= <Primary>, <Loose>, <LeftLoose> ;
+PureList<PrecedenceOpExpr> OpExprPrimary -= <Primary>, <Loose>, <LeftLoose> ;
 
 /* NoSpaceOpExprPrefix ::=
      Op NoSpaceOpExprPrimary
    | Op NoSpaceOpExprPrefix
    | Op NoSpaceOpExprLeftEncloser
  */
-PureList<OpExpr> OpExprPrefix -= <Primary>, <Prefix>, <Left> ;
+PureList<PrecedenceOpExpr> OpExprPrefix -= <Primary>, <Prefix>, <Left> ;
 
 /* NoSpaceTightInfixPostfix ::=
      Op NoSpaceOpExprPrimary
@@ -69,4 +69,4 @@ PureList<OpExpr> OpExprPrefix -= <Primary>, <Prefix>, <Left> ;
    | Op NoSpaceOpExprLeftEncloser
    | Op
  */
-PureList<OpExpr> TightInfixPostfix -= <Primary>, <Prefix>, <Left> ;
+PureList<PrecedenceOpExpr> TightInfixPostfix -= <Primary>, <Prefix>, <Left> ;

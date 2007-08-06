@@ -105,13 +105,13 @@ inline Action<Expr> NoNewlineAsIf =
    | Encloser sr NoNewlineLeftLooseInfix
    | Encloser
  */
-PureList<OpExpr> TightInfixRight := ...
+PureList<PrecedenceOpExpr> TightInfixRight := ...
    / <Primary>   a1:Encloser sr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
    / <Loose>     a1:Encloser sr a2:LooseInfix
-     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
    / <LeftLoose> a1:Encloser sr a2:LeftLooseInfix
-     { yyValue = a2.cons((OpExpr)new Right(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); };
 
 /* NoNewlineLeftLooseInfix ::=
      NoNewlineOpExprLeftEncloser
@@ -119,13 +119,13 @@ PureList<OpExpr> TightInfixRight := ...
    | Encloser sr NoNewlineOpExprPrefix
    | Encloser sr NoNewlineOpExprLeftEncloser
  */
-PureList<OpExpr> LeftLooseInfix := ...
+PureList<PrecedenceOpExpr> LeftLooseInfix := ...
    / <Primary> a1:Encloser sr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / <Prefix>  a1:Encloser sr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / <Left>    a1:Encloser sr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
 /* NoNewlineOpExprLeftEncloser ::= Encloser NoNewlineOpExprNoEnc */
 /* NoNewlineOpExprPrimary ::=
@@ -136,7 +136,7 @@ PureList<OpExpr> LeftLooseInfix := ...
    | Primary sr NoNewlineLeftLooseInfix
    | Primary
  */
-PureList<OpExpr> OpExprPrimary := ...
+PureList<PrecedenceOpExpr> OpExprPrimary := ...
    / <Primary>   a1:Primary sr a2:OpExprPrimary
      { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
    / <Loose>     a1:Primary sr a2:LooseInfix
@@ -152,13 +152,13 @@ PureList<OpExpr> OpExprPrimary := ...
    | Op sr NoNewlineOpExprPrefix
    | Op sr NoNewlineOpExprLeftEncloser
  */
-PureList<OpExpr> OpExprPrefix := ...
+PureList<PrecedenceOpExpr> OpExprPrefix := ...
    / <Primary> a1:Op sr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / <Prefix>  a1:Op sr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / <Left>    a1:Op sr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); };
 
 /* NoNewlineTightInfixPostfix ::=
      Op NoNewlineOpExprPrimary
@@ -169,22 +169,22 @@ PureList<OpExpr> OpExprPrefix := ...
    | Op sr NoNewlineOpExprLeftEncloser
    | Op
  */
-PureList<OpExpr> TightInfixPostfix := ...
+PureList<PrecedenceOpExpr> TightInfixPostfix := ...
    / <Primary> a1:Op sr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / <Prefix>  a1:Op sr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / <Left>    a1:Op sr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); };
 
 /* NoNewlineLooseInfix ::=
      Op wr NoNewlineOpExprPrimary
    | Op wr NoNewlineOpExprPrefix
    | Op sr NoNewlineOpExprLeftEncloser
  */
-PureList<OpExpr> LooseInfix := ...
+PureList<PrecedenceOpExpr> LooseInfix := ...
    / <Left> a1:Op sr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
 /* NoNewlineGeneratorList ::= NoNewlineGenerator (s , w NoNewlineGenerator)*
    NoNewlineGenerator ::=

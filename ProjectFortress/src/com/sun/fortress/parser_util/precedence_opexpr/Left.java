@@ -20,10 +20,10 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 import com.sun.fortress.nodes.Op;
 
 /**
- * Class Left, a component of the OpExpr composite hierarchy.
+ * Class Left, a component of the PrecedenceOpExpr composite hierarchy.
  * Note: null is not allowed as a value for any field.
  */
-public class Left extends Object implements OpExpr {
+public class Left extends Object implements PrecedenceOpExpr {
    private final Op _op;
    private int _hashCode;
    private boolean _hasHashCode = false;

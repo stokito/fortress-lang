@@ -17,11 +17,12 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-/** A parametric abstract implementation of a visitor over OpExpr that return a value.
- ** This visitor implements the visitor interface with methods that
- ** first visit children, and then call visitCASEOnly(), passing in
- ** the values of the visits of the children. (CASE is replaced by the case name.)
- **/
+/**
+ * A parametric abstract implementation of a visitor over PrecedenceOpExpr that return a value.
+ * This visitor implements the visitor interface with methods that
+ * first visit children, and then call visitCASEOnly(), passing in
+ * the values of the visits of the children. (CASE is replaced by the case name.)
+ */
 public abstract class OpExprDepthFirstVisitor<RetType> implements OpExprVisitor<RetType> {
    protected abstract RetType[] makeArrayOfRetType(int len);
 
@@ -29,7 +30,7 @@ public abstract class OpExprDepthFirstVisitor<RetType> implements OpExprVisitor<
     * This method is called by default from cases that do not
     * override forCASEOnly.
    **/
-   protected abstract RetType defaultCase(OpExpr that);
+   protected abstract RetType defaultCase(PrecedenceOpExpr that);
 
    /* Methods to visit an item. */
    public RetType forLeftOnly(Left that) {

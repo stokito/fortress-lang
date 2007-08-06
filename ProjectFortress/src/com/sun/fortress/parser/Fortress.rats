@@ -57,7 +57,7 @@ instantiate Keyword      (Identifier);
 instantiate Unicode;
 
 header {
-import com.sun.fortress.parser_util.precedence_opexpr.OpExpr;
+import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
 import com.sun.fortress.parser_util.precedence_opexpr.Left;
 import com.sun.fortress.parser_util.precedence_opexpr.Right;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;

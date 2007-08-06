@@ -17,13 +17,14 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
-/** An abstract implementation of a visitor over OpExpr that does not return a value.
- ** This visitor implements the visitor interface with methods that
- ** first visit children, and then call visitCASEOnly().
- ** (CASE is replaced by the case name.)
- ** The default implementation of the forCASEOnly methods call
- ** protected method defaultCase(). This method defaults to no-op.
- **/
+/**
+ * An abstract implementation of a visitor over PrecedenceOpExpr that does not return a value.
+ * This visitor implements the visitor interface with methods that
+ * first visit children, and then call visitCASEOnly().
+ * (CASE is replaced by the case name.)
+ * The default implementation of the forCASEOnly methods call
+ * protected method defaultCase(). This method defaults to no-op.
+ */
 public class OpExprDepthFirstVisitor_void implements OpExprVisitor_void {
    /* Methods to visit an item. */
    public void forLeftDoFirst(Left that) {
@@ -129,9 +130,9 @@ public class OpExprDepthFirstVisitor_void implements OpExprVisitor_void {
    /** This method is called by default from cases that do not
     ** override forCASEDoFirst.
    **/
-   protected void defaultDoFirst(OpExpr that) {}
+   protected void defaultDoFirst(PrecedenceOpExpr that) {}
    /** This method is called by default from cases that do not
     ** override forCASEOnly.
    **/
-   protected void defaultCase(OpExpr that) {}
+   protected void defaultCase(PrecedenceOpExpr that) {}
 }

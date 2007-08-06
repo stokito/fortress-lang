@@ -18,6 +18,6 @@
 package com.sun.fortress.parser_util.precedence_opexpr;
 
 
-public interface PostfixOpExpr extends OpExpr {
+public interface PostfixOpExpr extends PrecedenceOpExpr {
 
 }

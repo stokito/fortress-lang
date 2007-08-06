@@ -182,7 +182,8 @@ Expr OpExpr =
    / a1:OpExprLeftEncloser
      { yyValue = Resolver.resolveOps(a1); }
    / a1:Encloser
-     { OpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
+     { PrecedenceOpExpr e =
+           new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
        yyValue = Resolver.resolveOps(PureList.make(e));
      };
 
@@ -191,11 +192,11 @@ Expr OpExpr =
    | OpExprPrefix
    | Op
  */
-PureList<OpExpr> OpExprNoEnc =
+PureList<PrecedenceOpExpr> OpExprNoEnc =
      OpExprPrimary
    / OpExprPrefix
    / a1:Op
-     { OpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
+     { PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
        yyValue = PureList.make(e);
      };
 
@@ -207,19 +208,19 @@ PureList<OpExpr> OpExprNoEnc =
    | Encloser wr LeftLooseInfix
    | Encloser
  */
-PureList<OpExpr> TightInfixRight =
+PureList<PrecedenceOpExpr> TightInfixRight =
      a1:Encloser a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
    / a1:Encloser a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
    / <Primary>   a1:Encloser wr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
    / <Loose>     a1:Encloser wr a2:LooseInfix
-     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
    / <LeftLoose> a1:Encloser wr a2:LeftLooseInfix
-     { yyValue = a2.cons((OpExpr)new Right(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
    / a1:Encloser
-     { yyValue = PureList.make((OpExpr)new Right(a1)); };
+     { yyValue = PureList.make((PrecedenceOpExpr)new Right(a1)); };
 
 /* LeftLooseInfix ::=
      OpExprLeftEncloser
@@ -227,17 +228,17 @@ PureList<OpExpr> TightInfixRight =
    | Encloser wr OpExprPrefix
    | Encloser wr OpExprLeftEncloser
  */
-PureList<OpExpr> LeftLooseInfix =
+PureList<PrecedenceOpExpr> LeftLooseInfix =
      OpExprLeftEncloser
    / <Primary> a1:Encloser wr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / <Prefix>  a1:Encloser wr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / <Left>    a1:Encloser wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
 /* OpExprLeftEncloser ::= Encloser OpExprNoEnc */
-PureList<OpExpr> OpExprLeftEncloser =
+PureList<PrecedenceOpExpr> OpExprLeftEncloser =
      a1:Encloser a2:OpExprNoEnc
      { yyValue = a2.cons(new Left(a1)); };
 
@@ -249,7 +250,7 @@ PureList<OpExpr> OpExprLeftEncloser =
    | Primary wr LeftLooseInfix
    | Primary
  */
-PureList<OpExpr> OpExprPrimary =
+PureList<PrecedenceOpExpr> OpExprPrimary =
      a1:Primary a2:TightInfixPostfix
      { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
    / a1:Primary a2:TightInfixRight
@@ -262,7 +263,7 @@ PureList<OpExpr> OpExprPrimary =
      { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
    / a1:Primary
      { yyValue =
-           PureList.make((OpExpr)new RealExpr(FortressUtil.buildPrimary(a1))); };
+           PureList.make((PrecedenceOpExpr)new RealExpr(FortressUtil.buildPrimary(a1))); };
 
 /* OpExprPrefix ::=
      Op OpExprPrimary
@@ -272,19 +273,19 @@ PureList<OpExpr> OpExprPrimary =
    | Op wr OpExprPrefix
    | Op wr OpExprLeftEncloser
  */
-PureList<OpExpr> OpExprPrefix =
+PureList<PrecedenceOpExpr> OpExprPrefix =
      a1:Op a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / a1:Op a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / a1:Op a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / <Primary> a1:Op wr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / <Prefix>  a1:Op wr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
    / <Left>    a1:Op wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new Prefix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); };
 
 /* TightInfixPostfix ::=
      Op OpExprPrimary
@@ -295,34 +296,34 @@ PureList<OpExpr> OpExprPrefix =
    | Op wr OpExprLeftEncloser
    | Op
  */
-PureList<OpExpr> TightInfixPostfix =
+PureList<PrecedenceOpExpr> TightInfixPostfix =
      a1:Op a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
    / a1:Op a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
    / a1:Op a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new TightInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
    / <Primary> a1:Op wr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / <Prefix>  a1:Op wr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / <Left>    a1:Op wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new Postfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / a1:Op
-     { yyValue = PureList.make((OpExpr)new Postfix(a1)); };
+     { yyValue = PureList.make((PrecedenceOpExpr)new Postfix(a1)); };
 
 /* LooseInfix ::=
      Op wr OpExprPrimary
    | Op wr OpExprPrefix
    | Op wr OpExprLeftEncloser
  */
-PureList<OpExpr> LooseInfix =
+PureList<PrecedenceOpExpr> LooseInfix =
      a1:Op wr a2:OpExprPrimary
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / a1:Op wr a2:OpExprPrefix
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
    / <Left> a1:Op wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((OpExpr)new LooseInfix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
 /* Primary ::=
      Comprehension

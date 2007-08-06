@@ -39,7 +39,7 @@ import com.sun.fortress.parser_util.precedence_opexpr.LooseChain;
 import com.sun.fortress.parser_util.precedence_opexpr.LooseInfix;
 import com.sun.fortress.parser_util.precedence_opexpr.Lower;
 import com.sun.fortress.parser_util.precedence_opexpr.NonChain;
-import com.sun.fortress.parser_util.precedence_opexpr.OpExpr;
+import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
 import com.sun.fortress.parser_util.precedence_opexpr.Postfix;
 import com.sun.fortress.parser_util.precedence_opexpr.PostfixOpExpr;
 import com.sun.fortress.parser_util.precedence_opexpr.Precedence;
@@ -1075,15 +1075,15 @@ public class Resolver {
   //   | (`Expr _ | `TightInfix _ | `LooseInfix _ | `Postfix _ | `Prefix _ as oe)
   //        :: rest ->
   //        push_enclosing oe rest stack
-  private static Expr resolveOpsEnclosing(PureList<OpExpr> opExprs,
+  private static Expr resolveOpsEnclosing(PureList<PrecedenceOpExpr> opExprs,
                       EnclosingStack stack)
     throws ReadError {
     if (opExprs.isEmpty()) { return finishEnclosing(stack); }
 
     else { // opExprs instanceof Cons
-      Cons<OpExpr> _opExprs = (Cons<OpExpr>) opExprs;
-      OpExpr first = _opExprs.getFirst();
-      PureList<OpExpr> rest = _opExprs.getRest();
+      Cons<PrecedenceOpExpr> _opExprs = (Cons<PrecedenceOpExpr>) opExprs;
+      PrecedenceOpExpr first = _opExprs.getFirst();
+      PureList<PrecedenceOpExpr> rest = _opExprs.getRest();
 
       if (first instanceof Left) {
         Left _first = (Left) first;
@@ -1143,7 +1143,7 @@ public class Resolver {
   //    | _ ->
   //        Errors.read_error op.node_span
   //          "Right encloser %s without left encloser." op.node_data
-  private static Expr popEnclosing(Op op, PureList<OpExpr> opExprs,
+  private static Expr popEnclosing(Op op, PureList<PrecedenceOpExpr> opExprs,
                    EnclosingStack stack) throws ReadError {
 
     if (stack instanceof Layer &&
@@ -1171,7 +1171,7 @@ public class Resolver {
   //    | `Bottom oes' -> resolve_ops_enclosing oes (`Bottom (oe::oes'))
   //    | `Layer (op',oes',stack') ->
   //        resolve_ops_enclosing oes (`Layer (op',oe::oes',stack'))
-  private static Expr pushEnclosing(PostfixOpExpr opExpr, PureList<OpExpr> opExprs,
+  private static Expr pushEnclosing(PostfixOpExpr opExpr, PureList<PrecedenceOpExpr> opExprs,
                     EnclosingStack stack) throws ReadError {
     if (stack instanceof Bottom) {
       Bottom _stack = (Bottom)stack;
@@ -1201,13 +1201,13 @@ public class Resolver {
   //            (opexprs_to_string oes);
   //          raise exn
   //        end
-  public static Expr resolveOps(PureList<OpExpr> opExprs) {
+  public static Expr resolveOps(PureList<PrecedenceOpExpr> opExprs) {
     try {
       return resolveOpsEnclosing(opExprs, new Bottom());
     }
     catch (ReadError e) {
       String msg = e.getMessage();
-      for (OpExpr expr : opExprs.toJavaList()) {
+      for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
       msg += "\n  " + expr.toString();
       }
       throw new Error("Resolution of operator property failed for:\n" + msg);

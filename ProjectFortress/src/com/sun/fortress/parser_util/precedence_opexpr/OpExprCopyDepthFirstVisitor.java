@@ -21,72 +21,72 @@ package com.sun.fortress.parser_util.precedence_opexpr;
  * An extension of DF visitors that copies as it visits (by default).
  * Override forCASE if you want to transform an AST subtree.
  */
-public abstract class OpExprCopyDepthFirstVisitor extends OpExprDepthFirstVisitor<OpExpr> {
+public abstract class OpExprCopyDepthFirstVisitor extends OpExprDepthFirstVisitor<PrecedenceOpExpr> {
 
-   protected OpExpr[] makeArrayOfRetType(int size) {
-      return new OpExpr[size];
+   protected PrecedenceOpExpr[] makeArrayOfRetType(int size) {
+      return new PrecedenceOpExpr[size];
    }
 
    /* Methods to visit an item. */
-   public OpExpr forLeftOnly(Left that) {
+   public PrecedenceOpExpr forLeftOnly(Left that) {
       return new Left(that.getOp());
    }
 
-   public OpExpr forRightOnly(Right that) {
+   public PrecedenceOpExpr forRightOnly(Right that) {
       return new Right(that.getOp());
    }
 
-   public OpExpr forRealExprOnly(RealExpr that) {
+   public PrecedenceOpExpr forRealExprOnly(RealExpr that) {
       return new RealExpr(that.getExpr());
    }
 
-   public OpExpr forJuxtInfixOnly(JuxtInfix that) {
+   public PrecedenceOpExpr forJuxtInfixOnly(JuxtInfix that) {
       return defaultCase(that);
    }
 
-   public OpExpr forTightInfixOnly(TightInfix that) {
+   public PrecedenceOpExpr forTightInfixOnly(TightInfix that) {
       return new TightInfix(that.getOp());
    }
 
-   public OpExpr forLooseInfixOnly(LooseInfix that) {
+   public PrecedenceOpExpr forLooseInfixOnly(LooseInfix that) {
       return new LooseInfix(that.getOp());
    }
 
-   public OpExpr forPrefixOnly(Prefix that) {
+   public PrecedenceOpExpr forPrefixOnly(Prefix that) {
       return new Prefix(that.getOp());
    }
 
-   public OpExpr forPostfixOnly(Postfix that) {
+   public PrecedenceOpExpr forPostfixOnly(Postfix that) {
       return new Postfix(that.getOp());
    }
 
 
    /** Implementation of OpExprDepthFirstVisitor methods to implement depth-first traversal. */
-   public OpExpr forLeft(Left that) {
+   public PrecedenceOpExpr forLeft(Left that) {
       return forLeftOnly(that);
    }
 
-   public OpExpr forRight(Right that) {
+   public PrecedenceOpExpr forRight(Right that) {
       return forRightOnly(that);
    }
 
-   public OpExpr forRealExpr(RealExpr that) {
+   public PrecedenceOpExpr forRealExpr(RealExpr that) {
       return forRealExprOnly(that);
    }
 
-   public OpExpr forTightInfix(TightInfix that) {
+   public PrecedenceOpExpr forTightInfix(TightInfix that) {
       return forTightInfixOnly(that);
    }
 
-   public OpExpr forLooseInfix(LooseInfix that) {
+   public PrecedenceOpExpr forLooseInfix(LooseInfix that) {
       return forLooseInfixOnly(that);
    }
 
-   public OpExpr forPrefix(Prefix that) {
+   public PrecedenceOpExpr forPrefix(Prefix that) {
       return forPrefixOnly(that);
    }
 
-   public OpExpr forPostfix(Postfix that) {
+   public PrecedenceOpExpr forPostfix(Postfix that) {
       return forPostfixOnly(that);
    }
 
