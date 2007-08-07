@@ -752,6 +752,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             OprExpr(OprName op,
                     List<Expr> args = Collections.<Expr>emptyList());
             /**
+             * subscripting expression
+             * SubscriptExpr ::= Primary [ ExprList? ]
+             *                 | Primary LeftEncloser ExprList? RightEncloser
+             * e.g.) a[i]
+             */
+            SubscriptExpr(Expr obj, List<Expr> subs,
+                          Option<Enclosing> op = None.<Enclosing>make())
+                         implements LHS;
+            /**
              * primary expression
              */
             abstract Primary();
@@ -767,42 +776,70 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 Apply(Expr fn, Expr arg);
                 /**
+                 * coercion invocation
+                 * internal node created by static analysis
+                 * after inferring the implicit coercion invocations
+                 */
+                CoercionInvocation(TraitType type,
+                                   List<StaticArg> staticArgs
+                                       = Collections.<StaticArg>emptyList(),
+                                   Expr arg);
+                /**
+                 * internal node created by static analysis
+                 * after disambiguating method invocations and field accesses
+                 */
+                MethodInvocation(Expr obj, Id id,
+                                 List<StaticArg> staticArgs
+                                     = Collections.<StaticArg>emptyList(),
+                                 Expr arg);
+                /**
+                 * field selection expression
+                 * Primary ::= Primary . Id
+                 * e.g.) Empty.length
+                 */
+                MemberSelection(Expr obj, Id id) implements LHS;
+                /**
+                 * juxtaposition of expressions
+                 */
+                abstract Juxt(List<Expr> exprs);
+                    /**
+                     * juxtaposition with intervening whitespace
+                     * e.g.) 3 5
+                     */
+                    LooseJuxt();
+                    /**
+                     * juxtaposition without intervening whitespace
+                     * e.g.) f(3+5)
+                     */
+                    TightJuxt();
+                /**
+                 * chain expression
+                 * Certain infix mathematical operators that are traditionally
+                 * regarded as relational operators, delivering boolean results,
+                 * may be chained.
+                 * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
+                 */
+                ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+                /**
+                 * expression with static instantiations
+                 * Primary ::= Id[\StaticArgList\]
+                 * e.g.) identity[\String\]
+                 */
+                FnRef(Expr expr,
+                      List<StaticArg> staticArgs =
+                          Collections.<StaticArg>emptyList());
+                /**
                  * simple expression
                  * Primary ::= BaseExpr
                  */
                 abstract BaseExpr();
                     /**
-                     * aggregate expression
-                     * BaseExpr ::= Aggregate
+                     * variable reference
+                     * BaseExpr ::= Id
+                     *            | self
+                     * e.g.) length
                      */
-                    abstract Aggregate();
-                        /**
-                         * map expression
-                         * Aggregate ::= { Entry (, Entry)* }
-                         * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
-                         */
-                        MapExpr(List<Entry> elements);
-                        /**
-                         * array expression
-                         * Aggregate ::= [ RectElements ]
-                         * RectElements ::= Expr MultiDimCons*
-                         * MultiDimCons ::= RectSeparator Expr
-                         * RectSeparator ::= ;+
-                         *                 | Whitespace
-                         * e.g.) [1 2 3; 4 5 6; 7 8 9]
-                         */
-                        abstract ArrayExpr();
-                            /**
-                             * array with a single element
-                             * e.g.) [3]
-                             */
-                            ArrayElement(Expr element);
-                            /**
-                             * array with multiple elements
-                             * e.g.) [3 4 5; 6 7 8]
-                             */
-                            ArrayElements(int dimension,
-                                          List<ArrayExpr> elements);
+                    VarRef(Id var) implements LHS;
                     /**
                      * literal
                      * BaseExpr ::= Literal
@@ -842,12 +879,37 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         VoidLiteral(String text = "");
                     /**
-                     * variable reference
-                     * BaseExpr ::= Id
-                     *            | self
-                     * e.g.) length
+                     * aggregate expression
+                     * BaseExpr ::= Aggregate
                      */
-                    VarRef(Id var) implements LHS;
+                    abstract Aggregate();
+                        /**
+                         * map expression
+                         * Aggregate ::= { Entry (, Entry)* }
+                         * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
+                         */
+                        MapExpr(List<Entry> elements);
+                        /**
+                         * array expression
+                         * Aggregate ::= [ RectElements ]
+                         * RectElements ::= Expr MultiDimCons*
+                         * MultiDimCons ::= RectSeparator Expr
+                         * RectSeparator ::= ;+
+                         *                 | Whitespace
+                         * e.g.) [1 2 3; 4 5 6; 7 8 9]
+                         */
+                        abstract ArrayExpr();
+                            /**
+                             * array with a single element
+                             * e.g.) [3]
+                             */
+                            ArrayElement(Expr element);
+                            /**
+                             * array with multiple elements
+                             * e.g.) [3 4 5; 6 7 8]
+                             */
+                            ArrayElements(int dimension,
+                                          List<ArrayExpr> elements);
                 /**
                  * comprehension expression
                  * Primary ::= Comprehension
@@ -881,46 +943,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          * e.g.)
                          */
                         ListComprehension(Expr element);
-                /**
-                 * chain expression
-                 * Certain infix mathematical operators that are traditionally
-                 * regarded as relational operators, delivering boolean results,
-                 * may be chained.
-                 * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
-                 */
-                ChainExpr(Expr first, List<Pair<Op, Expr>> links);
-                /**
-                 * field selection expression
-                 * Primary ::= Primary . Id
-                 * e.g.) Empty.length
-                 */
-                MemberSelection(Expr obj, Id id) implements LHS;
-                /**
-                 * juxtaposition with intervening whitespace
-                 * e.g.) 3 5
-                 */
-                LooseJuxt(List<Expr> exprs);
-                /**
-                 * juxtaposition without intervening whitespace
-                 * e.g.) f(3+5)
-                 */
-                TightJuxt(List<Expr> exprs);
-                /**
-                 * expression with static instantiations
-                 * Primary ::= Id[\StaticArgList\]
-                 * e.g.) identity[\String\]
-                 */
-                FnRef(Expr expr,
-                      List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
-            /**
-             * subscripting expression
-             * SubscriptExpr ::= Primary [ ExprList? ]
-             *                 | Primary LeftEncloser ExprList? RightEncloser
-             * e.g.) a[i]
-             */
-            SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<Enclosing> op = None.<Enclosing>make())
-                         implements LHS;
         /**
          * unit expression representing units
          */
