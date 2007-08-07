@@ -333,7 +333,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     @Override
     public FType forArrowType(ArrowType at) {
         // TODO Keywords, defaults, still TBI
-        return FTypeArrow.make(getFTypeFromList(at.getDomain(), this), at.getRange().accept(this));
+        return FTypeArrow.make(at.getDomain().accept(this), at.getRange().accept(this));
     }
 
     @Override

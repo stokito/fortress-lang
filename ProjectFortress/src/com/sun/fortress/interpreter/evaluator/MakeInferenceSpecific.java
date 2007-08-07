@@ -134,7 +134,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     @Override
     public void forArrowType(ArrowType that) {
         that.getRange().accept(this);
-        acceptList(that.getDomain(), dual);
+        that.getDomain().accept(dual);
     }
 
     /* (non-Javadoc)
@@ -150,6 +150,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forTupleType(TupleType that) {
+        // TODO: Handle TupleTypes with varargs and keywords
         acceptList(that.getElements(), this);
     }
 

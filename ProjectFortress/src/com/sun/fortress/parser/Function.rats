@@ -46,18 +46,27 @@ Decl FnDecl =
 /* FnSig ::= Name w : w ArrowType */
 AbsFnDecl FnSig =
      a1:Name w colon w a2:ArrowType
-     { List<Modifier> mods = FortressUtil.emptyModifiers();
-       List<Param>  params = FortressUtil.emptyParams();
-       for (AbstractNode i : a2.getDomain()) {
-           if (i instanceof TypeRef) {
-               params.add(NodeFactory.makeParam(i.getSpan(), mods,
-                                                new Id(i.getSpan(), "_"), (TypeRef)i));
+     { final List<Modifier> mods = FortressUtil.emptyModifiers();
+       final List<Param>  params = FortressUtil.emptyParams();
+       
+       a2.getDomain().accept(new NodeAbstractVisitor_void() {        
+           public void forTypeRef(TypeRef that) {
+               params.add(NodeFactory.makeParam(that.getSpan(), mods, 
+                                                new Id(that.getSpan(), "_"), that));
            }
-           else { // i instanceof VarargsType
-               params.add(NodeFactory.makeVarargsParam(i.getSpan(), mods,
-                                                       new Id(i.getSpan(), "_"), (VarargsType)i));
+           public void forVarargsType(VarargsType that) {
+               params.add(NodeFactory.makeVarargsParam(that.getSpan(), mods,
+                                                       new Id(that.getSpan(), "_"), that));
            }
-       }
+           public void forTupleType(TupleType that) {
+               for (AbstractNode i : that.getElements()) { i.accept(this); }
+               if (that.getVarargs().isPresent()) { that.getVarargs().getVal().accept(this); }
+               assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
+           } 
+           public void defaultCase(Node that) { 
+               throw new RuntimeException("Node expected to be a TypeRef; was: " + that); 
+           }
+       });
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
                                           a1, params, a2.getRange());
      };

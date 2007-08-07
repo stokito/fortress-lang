@@ -245,7 +245,7 @@ public class NodeComparator {
     static int subtypeCompareTo(ArrowType left, ArrowType right) {
         int x = compare(left.getRange(), right.getRange());
         if (x != 0) return x;
-        x = typeRefListComparer.compare(left.getDomain(), right.getDomain());
+        x = compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
         if (left.getThrowsClause().isPresent() != right.getThrowsClause().isPresent())
             return left.getThrowsClause().isPresent() ? 1 : -1;
@@ -339,6 +339,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(TupleType left, TupleType right) {
+        // TODO: Handle TupleTypes with varargs and keywords
         return typeRefListComparer.compare(left.getElements(), right.getElements());
     }
 

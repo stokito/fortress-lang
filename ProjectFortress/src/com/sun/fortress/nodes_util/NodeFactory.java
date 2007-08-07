@@ -77,14 +77,7 @@ public class NodeFactory {
     public static ArrowType makeArrowType(Span span, TypeRef domain,
                                           NonArrowType range,
                                           Option<List<TraitType>> throws_) {
-        List<TypeRef> domains;
-        if (domain instanceof TupleType) {
-            domains = ((TupleType)domain).getElements();
-        } else {
-            domains = new ArrayList<TypeRef>();
-            domains.add(domain);
-        }
-        return new ArrowType(span, domains, range, throws_);
+        return new ArrowType(span, domain, range, throws_);
     }
 
     public static BaseNatRef makeBaseNatRef(Span span, IntLiteral value) {

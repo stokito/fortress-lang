@@ -39,19 +39,25 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         }
         return result;
     }
+    
+    private final String acceptIfPresent(Option<? extends Node> possibleNode) {
+        if (possibleNode.isPresent()) { return possibleNode.getVal().accept(this); }
+        else { return ""; }
+    }
 
     public String forAbsVarDecl(AbsVarDecl node) {
         return "abs " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
 
     public String forArrowType(ArrowType node) {
-        return Useful.listInParens(mapSelf(node.getDomain()))
-                + "->"
-                + node.getRange().accept(this)
-                + (node.getThrowsClause().isPresent() ? (" throws " +
-                        Useful.listInCurlies(mapSelf(node.getThrowsClause().getVal()))) : "");
+        return 
+            node.getDomain().accept(this)
+            + "->"
+            + node.getRange().accept(this)
+            + (node.getThrowsClause().isPresent() ? (" throws " +
+                                                     Useful.listInCurlies(mapSelf(node.getThrowsClause().getVal()))) : "");
     }
-
+  
     public String forBaseNatRef(BaseNatRef node) {
         return ("" + node.getValue());
     }
@@ -153,7 +159,12 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTupleType(TupleType node) {
-        return Useful.listInParens(mapSelf(node.getElements()));
+        return 
+            "(" + 
+            Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
+            acceptIfPresent(node.getVarargs()) + 
+            Useful.listInDelimiters("", mapSelf(node.getKeywords()), "") +
+            ")";
     }
 
     public String forTypeArg(TypeArg node) {
