@@ -1079,7 +1079,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // being instantiated.
             FnRef tax = (FnRef) fcnExpr;
             Expr expr = tax.getExpr();
-            List<StaticArg> args = tax.getArgs();
+            List<StaticArg> args = tax.getStaticArgs();
             if (expr instanceof MemberSelection) {
 
                 MemberSelection fld_sel = (MemberSelection) expr;
@@ -1348,7 +1348,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFnRef(FnRef x) {
         Expr expr = x.getExpr();
         FValue g = expr.accept(this);
-        List<StaticArg> args = x.getArgs();
+        List<StaticArg> args = x.getStaticArgs();
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);
         } else if (g instanceof GenericConstructor) {

@@ -697,6 +697,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
               implements Applicable;
         /**
          * expression used in block expressions
+         * BlockElem ::= LocalVarFnDecl
+         *             | Expr(, GeneratorList)?
+         * LocalVarFnDecl ::= LocalFnDecl+
+         *                  | LocalVarDecl
          */
         abstract LetExpr(List<Expr> body);
             /**
@@ -730,6 +734,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = None.<Expr>make());
         /**
          * expression that is simple or using operators
+         * Expr ::= OpExpr
          */
         abstract OpExpr();
             /**
@@ -894,7 +899,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) identity[\String\]
                  */
                 FnRef(Expr expr,
-                      List<StaticArg> args = Collections.<StaticArg>emptyList());
+                      List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
             /**
              * subscripting expression
              * SubscriptExpr ::= Primary [ ExprList? ]
@@ -1356,33 +1361,43 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract OprName();
             /**
-             * pair of enclosing operators
-             * EncloserPair ::= LeftEncloser RightEncloser
-             * e.g.) </ />
+             * qualified operator name
+             * internal uses only
+             * e.g.) com.sun.fortress.nodes_util.getName
              */
-            Enclosing(Op open, Op close);
+            DottedOpr(List<Id> api, SimpleOprName opr);
             /**
-             * operator that is not an encloser, a postfix operator,
-             * a subscripted assignment, a subscripting operator
-             * e.g.) COMPOSE
-             * e.g.) +
+             * unqualified operator name
              */
-            Opr(Op op);
-            /**
-             * postfix operator
-             * e.g.) 3!
-             */
-            PostFix(Op op);
-            /**
-             * subscripted assignment operator [ ] :=
-             * e.g.) a[i] := 1
-             */
-            SubscriptAssign();
-            /**
-             * subscripting operator [ ]
-             * e.g.) a[i]
-             */
-            SubscriptOp();
+            abstract SimpleOprName();
+                /**
+                 * pair of enclosing operators
+                 * EncloserPair ::= LeftEncloser RightEncloser
+                 * e.g.) </ />
+                 */
+                Enclosing(Op open, Op close);
+                /**
+                 * operator that is not an encloser, a postfix operator,
+                 * a subscripted assignment, a subscripting operator
+                 * e.g.) COMPOSE
+                 * e.g.) +
+                 */
+                Opr(Op op);
+                /**
+                 * postfix operator
+                 * e.g.) 3!
+                 */
+                PostFix(Op op);
+                /**
+                 * subscripted assignment operator [ ] :=
+                 * e.g.) a[i] := 1
+                 */
+                SubscriptAssign();
+                /**
+                 * subscripting operator [ ]
+                 * e.g.) a[i]
+                 */
+                SubscriptOp();
     /**
      * array comprehension clause
      * ArrayComprehensionLeft ::= IdOrInt |-> Expr
