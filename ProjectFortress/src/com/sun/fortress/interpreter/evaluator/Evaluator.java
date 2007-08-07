@@ -62,7 +62,6 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.Accumulator;
-import com.sun.fortress.nodes.Apply;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
@@ -224,10 +223,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forAccumulator(Accumulator x) {
         return NI("forAccumulator");
-    }
-
-    public FValue forApply(Apply x) {
-        return NI("forApply");
     }
 
     public FValue forAsExpr(AsExpr x) {

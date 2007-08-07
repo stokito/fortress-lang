@@ -765,17 +765,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract Primary();
                 /**
-                 * functional application
-                 * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
-                 *           | Primary . Id ([\StaticArgList\])? ()
-                 *           | Primary Parenthesized
-                 *           | Primary ()
-                 *           | Primary Primary
-                 * e.g.) myString.replace("foo", "few")
-                 * e.g.) log log n
-                 */
-                Apply(Expr fn, Expr arg);
-                /**
                  * coercion invocation
                  * internal node created by static analysis
                  * after inferring the implicit coercion invocations
@@ -800,6 +789,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MemberSelection(Expr obj, Id id) implements LHS;
                 /**
                  * juxtaposition of expressions
+                 * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
+                 *           | Primary . Id ([\StaticArgList\])? ()
+                 *           | Primary Parenthesized
+                 *           | Primary ()
+                 *           | Primary Primary
+                 * e.g.) myString.replace("foo", "few")
+                 * e.g.) log log n
                  */
                 abstract Juxt(List<Expr> exprs);
                     /**
