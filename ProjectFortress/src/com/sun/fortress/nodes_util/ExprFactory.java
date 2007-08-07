@@ -402,7 +402,7 @@ public class ExprFactory {
             }
             public Expr forMapComprehension(MapComprehension e) {
                 return new MapComprehension(e.getSpan(), true, e.getGens(),
-                                            e.getKey(), e.getValue());
+                                            e.getEntry());
             }
             public Expr forListComprehension(ListComprehension e) {
                 return new ListComprehension(e.getSpan(), true, e.getGens(),

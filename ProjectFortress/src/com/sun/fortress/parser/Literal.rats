@@ -45,12 +45,9 @@ Expr Literal =
  */
 Expr Aggregate =
      opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
-     { List<com.sun.fortress.useful.Pair<Expr,Expr>> elements =
-           new ArrayList<com.sun.fortress.useful.Pair<Expr,Expr>>();
-       elements.add(new com.sun.fortress.useful.Pair<Expr,Expr>(a1.getKey(), a1.getValue()));
-       for (Entry e : (List<Entry>)a2s.list()) {
-           elements.add(new com.sun.fortress.useful.Pair<Expr,Expr>(e.getKey(), e.getValue()));
-       }
+     { List<Entry> elements = new ArrayList<Entry>();
+       elements.add(a1);
+       elements.addAll(a2s.list());
        yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
      }
    / opensquare w RectElements w closesquare ;

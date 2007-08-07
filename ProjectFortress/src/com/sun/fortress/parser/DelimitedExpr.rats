@@ -263,11 +263,9 @@ Comprehension Comprehension =
      opencurly w a1:Expr wr bar wr a2:GeneratorList w closecurly
      { yyValue = new SetComprehension(createSpan(yyStart,yyCount),false,a2,a1); }
    / opencurly w a1:Entry wr bar wr a2:GeneratorList w closecurly
-     { yyValue = new MapComprehension(createSpan(yyStart,yyCount), false, a2,
-                                      a1.getKey(), a1.getValue());
-     }
+     { yyValue = new MapComprehension(createSpan(yyStart,yyCount),false,a2,a1); }
    / openangle w a1:Expr wr bar wr a2:GeneratorList w closeangle
-     { yyValue = new ListComprehension(createSpan(yyStart,yyCount), false, a2, a1); }
+     { yyValue = new ListComprehension(createSpan(yyStart,yyCount),false,a2,a1);}
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
        w closesquare
      { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a1, a2s.list());

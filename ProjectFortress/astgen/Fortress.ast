@@ -765,36 +765,44 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Apply(Expr fn, Expr args);
                 /**
                  * simple expression
+                 * Primary ::= BaseExpr
                  */
                 abstract BaseExpr();
                     /**
-                     * map expression
-                     * Aggregate ::= { Entry (, Entry)* }
-                     * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
+                     * aggregate expression
+                     * BaseExpr ::= Aggregate
                      */
-                    MapExpr(List<Pair<Expr, Expr>> elements);
-                    /**
-                     * array expression
-                     * Aggregate ::= [ RectElements ]
-                     * RectElements ::= Expr MultiDimCons*
-                     * MultiDimCons ::= RectSeparator Expr
-                     * RectSeparator ::= ;+
-                     *                 | Whitespace
-                     * e.g.) [1 2 3; 4 5 6; 7 8 9]
-                     */
-                    abstract ArrayExpr();
+                    abstract Aggregate();
                         /**
-                         * array with a single element
-                         * e.g.) [3]
+                         * map expression
+                         * Aggregate ::= { Entry (, Entry)* }
+                         * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
                          */
-                        ArrayElement(Expr element);
+                        MapExpr(List<Entry> elements);
                         /**
-                         * array with multiple elements
-                         * e.g.) [3 4 5; 6 7 8]
+                         * array expression
+                         * Aggregate ::= [ RectElements ]
+                         * RectElements ::= Expr MultiDimCons*
+                         * MultiDimCons ::= RectSeparator Expr
+                         * RectSeparator ::= ;+
+                         *                 | Whitespace
+                         * e.g.) [1 2 3; 4 5 6; 7 8 9]
                          */
-                        ArrayElements(int dimension, List<ArrayExpr> elements);
+                        abstract ArrayExpr();
+                            /**
+                             * array with a single element
+                             * e.g.) [3]
+                             */
+                            ArrayElement(Expr element);
+                            /**
+                             * array with multiple elements
+                             * e.g.) [3 4 5; 6 7 8]
+                             */
+                            ArrayElements(int dimension,
+                                          List<ArrayExpr> elements);
                     /**
                      * literal
+                     * BaseExpr ::= Literal
                      */
                     abstract Literal(String text);
                         /**
@@ -843,7 +851,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 abstract Comprehension();
                     /**
                      * array comprehension
-                     * Comprehension ::= [ ArrayComprehensionClause + ]
+                     * Comprehension ::= [ ArrayComprehensionClause+ ]
                      * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
                      */
                     ArrayComprehension(List<ArrayComprehensionClause> clauses);
@@ -862,7 +870,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          * Comprehension ::= { Entry | GeneratorList }
                          * e.g.) { x^2 |-> x^3 | x <- {0, 1, 2, 3, 4, 5} }
                          */
-                        MapComprehension(Expr key, Expr value);
+                        MapComprehension(Entry entry);
                         /**
                          * list comprehension
                          * Comprehension ::= <| Expr | GeneratorList |>
