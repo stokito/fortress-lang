@@ -445,6 +445,10 @@ testNotPassing, testOnly"/>
             description="Run all tests, including those known not to pass yet.">
     </target>
 
+    <target name="testNightly" depends="test, testDemos"
+            description="Run tests and demos.">
+    </target>
+
     <target name="reportNotPassing" if="not.passing.yet" depends="test,testNotPassing">
         <echo message="Some tests expected to fail still aren't passing."/>
     </target>
