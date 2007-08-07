@@ -81,8 +81,7 @@ private TypeRef TypeRefFront =
 private NonArrowType TypeRefFrontNonArrow =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),
-                                           new IdType(a1.getSpan(), a1), a2);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      }
    / TupleType
    / openparen w closeparen
@@ -171,8 +170,7 @@ private NonArrowType NonArrowType =
 TraitType TraitType =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),
-                                           new IdType(a1.getSpan(), a1), a2);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      }
    / a1:TypeRef w opensquare a2:(w ArraySize)? w closesquare
      { Option<FixedDim> indices;

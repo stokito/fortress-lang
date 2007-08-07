@@ -744,6 +744,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *          | Primary
              * EncloserOp ::= Encloser
              *              | Op
+             * Primary ::= LeftEncloser ExprList? RightEncloser
+             *           | Primary ^ BaseExpr
+             *           | Primary ExponentOp
              * e.g.) 3 + 5
              */
             OprExpr(OprName op,
@@ -762,7 +765,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) myString.replace("foo", "few")
                  * e.g.) log log n
                  */
-                Apply(Expr fn, Expr args);
+                Apply(Expr fn, Expr arg);
                 /**
                  * simple expression
                  * Primary ::= BaseExpr
@@ -847,6 +850,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     VarRef(Id var) implements LHS;
                 /**
                  * comprehension expression
+                 * Primary ::= Comprehension
                  */
                 abstract Comprehension();
                     /**
@@ -956,6 +960,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArrayType(TypeRef element, Indices indices);
                 /**
                  * type name
+                 * TraitType ::= DottedId
                  * e.g.) T
                  */
                 IdType(DottedId dottedId);
@@ -968,10 +973,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MatrixType(TypeRef element, List<ExtentRange> dimensions);
                 /**
                  * instantiated type
-                 * TraitType ::= DottedId ([\StaticArgList\])?
+                 * TraitType ::= DottedId [\StaticArgList\]
                  * e.g.) List[\ZZ32\]
                  */
-                InstantiatedType(TypeRef generic, List<StaticArg> args);
+                InstantiatedType(DottedId dottedId, List<StaticArg> args);
             /**
              * tuple type
              * TupleType ::= ( (TypeRef, )* (TypeRef ... ,)? KeywordType(, KeywordType)* )

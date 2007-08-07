@@ -292,7 +292,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(InstantiatedType left, InstantiatedType right) {
-        int c = compare(left.getGeneric(), right.getGeneric());
+        int c = compare(left.getDottedId(), right.getDottedId());
         if (c != 0) return c;
         return staticArgListComparer.compare(left.getArgs(),
                                              right.getArgs());

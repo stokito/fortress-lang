@@ -141,7 +141,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forInstantiatedType(InstantiatedType node) {
-        return node.getGeneric().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
+        return node.getDottedId().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
     }
 
     public String forVarargsType(VarargsType node) {

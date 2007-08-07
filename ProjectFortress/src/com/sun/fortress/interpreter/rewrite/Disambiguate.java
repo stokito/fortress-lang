@@ -779,14 +779,16 @@ public class Disambiguate extends Rewrite {
             Set<AbstractNode> visited) {
 
             for (TypeRef t : xtends) {
+                List<Id> names = new ArrayList<Id>();
                 // First de-parameterize the type
-                while (t instanceof InstantiatedType) {
-                    t = ((InstantiatedType) t).getGeneric();
+                if (t instanceof InstantiatedType) {
+                    names = (((InstantiatedType) t).getDottedId()).getNames();
+                } else if (t instanceof IdType) {
+                    names = (((IdType) t).getDottedId()).getNames();;
+                } else {
+                   // TODO Way too many types; deal with them as necessary.
+                   NI.nyi("Object extends something exciting: " + t);
                 }
-                if (t instanceof IdType) {
-                    IdType it = (IdType) t;
-                    DottedId d = it.getDottedId();
-                    List<Id> names = d.getNames();
                     if (names.size() == 1) {
                         // TODO we've got to generalize this to DottedId names.
                         String s = names.get(0).getName();
@@ -829,10 +831,6 @@ public class Disambiguate extends Rewrite {
                     } else {
                         NI.nyi("General dotted name");
                     }
-                } else {
-                    // TODO Way too many types; deal with them as necessary.
-                    NI.nyi("Object extends something exciting: " + t);
-                }
             }
     }
 }

@@ -63,6 +63,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return t.accept(this);
     }
 
+    public FType evalType(DottedId t) {
+        return forDottedId(t);
+    }
+
     public static FType getFTypeFromOption(Option<TypeRef> t, BetterEnv e) {
         if (t.isPresent())
             return getFType(t.getVal(), e);
@@ -302,7 +306,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         System.err.println(env);
         throw new Error();
     }
-    
+
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
 
     public FType forVarargsType(VarargsType rt) {
@@ -415,9 +419,20 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
     }
 
+    public FType forDottedId(DottedId d) {
+        try {
+            FType result = env.getType(d);
+            return result;
+        } catch (ProgramError p) {
+            p.setWhere(d);
+            p.setWithin(env);
+            throw p;
+        }
+
+    }
+
     public FType forInstantiatedType(InstantiatedType x) {
-        TypeRef t = x.getGeneric();
-        FType ft1 = t.accept(this);
+       FType ft1 = forDottedId(x.getDottedId());
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);

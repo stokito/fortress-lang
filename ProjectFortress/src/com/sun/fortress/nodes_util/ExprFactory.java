@@ -359,7 +359,7 @@ public class ExprFactory {
                 return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
             }
             public Expr forApply(Apply e) {
-                return new Apply(e.getSpan(), true, e.getFn(), e.getArgs());
+                return new Apply(e.getSpan(), true, e.getFn(), e.getArg());
             }
             public Expr forMapExpr(MapExpr e) {
                 return new MapExpr(e.getSpan(), true, e.getElements());

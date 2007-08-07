@@ -43,14 +43,14 @@ import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
 abstract public class FTraitOrObject extends FType {
-    
-    
+
+
     List<FType> extends_;
     BetterEnv env;
     HasAt at;
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
-   
+
     List<? extends AbsDeclOrDecl> members;
 
     abstract protected void finishInitializing();
@@ -80,7 +80,7 @@ abstract public class FTraitOrObject extends FType {
         initializeExcludes(excludes);
         finishInitializing();
     }
-   
+
     private void initializeExcludes(List<FType> excludes) {
         if (excludes != null)
             for (FType t : excludes)
@@ -222,7 +222,7 @@ abstract public class FTraitOrObject extends FType {
         }
         InstantiatedType pt = (InstantiatedType) val;
         EvalType eval_type = new EvalType(env);
-        FType eval_val_generic = eval_type.evalType(pt.getGeneric());
+        FType eval_val_generic = eval_type.evalType(pt.getDottedId());
         if (getGeneric() != eval_val_generic) {
             return false;
         }
