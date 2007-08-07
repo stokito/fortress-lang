@@ -153,6 +153,7 @@ public final class FortressUtil {
     }
 
     private static void multiple(Modifier m) {
+	resetMods();
         throw new ProgramError(m, "A modifier must not occur multiple times");
     }
     static boolean m_atomic   = false;
