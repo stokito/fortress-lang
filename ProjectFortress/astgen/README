@@ -58,7 +58,7 @@ AbsTraitMod ::= value | test
     AST does not distinguish them but abstracts them as lists of Modifiers
     as follows:
 
-TraitObjectAbsDeclOrDecl(List<M<odifier> mods ...)
+TraitObjectAbsDeclOrDecl(List<Modifier> mods ...)
 
  6) CSG has productions for most of clauses.  For example:
 
@@ -71,9 +71,22 @@ TraitObjectAbsDeclOrDecl(..., Option<List<TraitType>> extendsClause ...)
  7) CSG distinguishes parameters of objects, methods, and functions.  For
     example:
 
-...
+ObjectValParam ::= ( ObjectParams? )
+ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
+               | (ObjectParam ,)* ObjectVarargs
+               | ObjectParam (, ObjectParam)*
+ObjectVarargs ::= transient Varargs
+ObjectKeyword ::= ObjectParam = Expr
+ObjectParam ::= ParamFldMods? Param
+              | transient Param
 
     AST does not distinguish them but abstracts them as follows:
+
+abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+               Id id);
+    NormalParam(Option<TypeRef> type = None.<TypeRef>make(),
+                Option<Expr> defaultExpr = None.<Expr>make());
+    VarargsParam(VarargsType varargsType);
 
  8) CSG distinguishes various forms of left-hand sides of variable and field
     declarations.  For example:
@@ -101,12 +114,171 @@ LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
     about syntactic entities and the later phases of the compiler which care
     about semantic entities.
 
+10) CSG distinguishes function, method, getter, setter, and coercion declarations
+    but AST does not distinguish them.  Similarly, CSG distinguishes top-level
+    variable and field declarations but AST does not.
 
- .) Unpasting syntax is slightly different.
+11) A parenthesized expression in CSG:
 
+Parenthesized ::= ( Expr )
 
+    is represented as an Expr whose 'parenthesized" is set.
 
+12) CSG distinguishes big operators but AST abstracts them as Op.
 
+13) CSG syntactically restricts kinds of expressions that can appear after the
+    atomic and tryatomic reserved words.  AST abstracts them as Expr.
+
+14) Even though a function expression does not have a name, static parameters,
+    nor a where clause in CSG, AST includes them in FnExpr for the interpreter's
+    benefit.
+
+15) For the interpreter to manipulate scopes within block expressions, the
+    following syntax in CSG:
+
+BlockElem ::= LocalVarFnDecl
+            | Expr(, GeneratorList)?
+LocalVarFnDecl ::= LocalFnDecl+
+                 | LocalVarDecl
+
+    is represented as follows:
+
+LetExpr(List<Expr> body);
+    GeneratedExpr(Expr expr, List<Generator> gens);
+    LetFn(List<FnDef> fns);
+    LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = None.<Expr>make());
+
+    in AST.
+
+16) Unpasting syntax is slightly different.  The following syntax in CSG:
+
+Unpasting ::= [ UnpastingElems ]
+UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
+                 | UnpastingElem
+UnpastingElem ::= Id ([ UnpastingDim ])?
+                | Unpasting
+UnpastingDim ::= ExtentRange (BY ExtentRange)+
+
+    is represented in AST as follows:
+
+abstract Unpasting();
+    UnpastingBind(Id id, List<ExtentRange> dim);
+    UnpastingSplit(List<Unpasting> elems, int dim);
+
+17) In CSG, only Id or IntLiteral can appear in left-hand sides of array
+    comprehension clauses:
+
+ArrayComprehensionLeft ::= IdOrInt |-> Expr
+                         | ( IdOrInt, IdOrIntList ) |-> Expr
+IdOrInt ::= Id
+          | IntLiteral
+ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorList
+
+    AST abstracts them as:
+
+ArrayComprehensionClause(List<Expr> bind, Expr init, List<Generator> gens);
+
+18) Array expression syntax is slightly different.  The following syntax in CSG:
+
+Aggregate ::= [ RectElements ]
+RectElements ::= Expr MultiDimCons*
+MultiDimCons ::= RectSeparator Expr
+RectSeparator ::= ;+
+                | Whitespace
+
+    is represented in AST as follows:
+
+abstract ArrayExpr();
+    ArrayElement(Expr element);
+    ArrayElements(int dimension, List<ArrayExpr> elements);
+
+19) While CSG treats parenthesized expressions and tuple expressions as
+    functional arguments differently from other expressions as follows:
+
+BaseExpr ::= NoKeyTuple
+           | Parenthesized
+
+    AST does not distinguish them.
+
+20) Some expressions using operators cannot be parsed correctly without type
+    information.  Therefore, the following syntax in CSG:
+
+OpExpr ::= EncloserOp OpExpr? EncloserOp?
+         | OpExpr EncloserOp OpExpr?
+         | Primary
+EncloserOp ::= Encloser
+             | Op
+Primary ::= LeftEncloser ExprList? RightEncloser
+          | Primary . Id ([\StaticArgList\])? Parenthesized
+          | Primary . Id ([\StaticArgList\])? ()
+          | Primary ^ BaseExpr
+          | Primary ExponentOp
+          | Primary Parenthesized
+          | Primary ()
+          | Primary Primary
+
+    is abstracted in AST as follows:
+
+abstract OpExpr();
+    OprExpr(OprName op,
+            List<Expr> args = Collections.<Expr>emptyList());
+    abstract Primary();
+        Apply(Expr fn, Expr args);
+        ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+        LooseJuxt(List<Expr> exprs);
+        TightJuxt(List<Expr> exprs);
+        FnRef(Expr expr,
+              List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
+
+21) Matrix types in CSG:
+
+TypeRef ::= TypeRef ^ StaticArg
+          | TypeRef ^ ( ExtentRange (BY ExtentRange)* )
+
+    is represented as follows in AST:
+
+MatrixType(TypeRef element, List<ExtentRange> dimensions);
+
+22) Array sizes in CSG:
+
+ArraySize ::= ExtentRange(, ExtentRange)*
+
+    is represented as follows in AST:
+
+abstract Indices();
+    FixedDim(List<ExtentRange> extents);
+
+23) CSG distinguishes prefix and postfix operators of dimensions and units:
+
+DUPreOp ::= square | cubic | inverse
+DUPostOp ::= squared | cubed
+
+    AST does not distinguish them:
+
+abstract DimUnitOp();
+    SquareDimUnit();
+    CubicDimUnit();
+    InverseDimUnit();
+
+24) AST has the following internal nodes that do not have corresponding syntax
+    in CSG:
+
+AnonymousFnName();
+ConstructorFnName(GenericWithParams def);
+
+25) CSG does not distinguish between different kinds of operators.  AST
+    classifies operators as follows:
+
+abstract OprName();
+    Enclosing(Op open, Op close);
+    Opr(Op op);
+    PostFix(Op op);
+    SubscriptAssign();
+    SubscriptOp();
+
+26) CSG distinguishes contracts used in coercion declarations and the other
+    functional declarations and object declarations.  AST abstracts them
+    as Contract.
 
 
 
@@ -176,3 +348,9 @@ trait T comprises {...} end
 2. clean up error messages
 
 3. Implement not-yet-implemented features in the parser.
+
+4. (if e then e else e) test!
+
+5. typecaseVarTest
+
+6. A -> (B -> C)
