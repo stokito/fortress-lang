@@ -43,7 +43,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.MemberSelection;
+import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
@@ -81,10 +81,10 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forMemberSelection(com.sun.fortress.interpreter.nodes.MemberSelection)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldRef(com.sun.fortress.interpreter.nodes.FieldRef)
      */
     @Override
-    public Voidoid forMemberSelection(MemberSelection x) {
+    public Voidoid forFieldRef(FieldRef x) {
         Expr from = x.getObj();
         Id what = x.getId();
         // TODO need to generalize to dotted names.

@@ -167,7 +167,7 @@ constant inline Action<Expr> MemberSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new MemberSelection(createSpan(yyStart,yyCount), false, base, a1);
+              return new FieldRef(createSpan(yyStart,yyCount), false, base, a1);
           }};
     };
 
@@ -400,7 +400,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new MemberSelection(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
+               Expr mth = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
                    mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(a3, mth);
@@ -411,8 +411,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new MemberSelection(FortressUtil.spanTwo(rcv,a1),
-                                              false,rcv,a1);
+               Expr mth = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
                if (a2 != null)
                    mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
                return PureList.make(ExprFactory.makeVoidLiteral(a1.getSpan()), mth);
@@ -425,7 +424,7 @@ constant inline Action<PureList<Expr>> MemberSelection =
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new MemberSelection(span,false,rcv,a1));
+               return PureList.make((Expr)new FieldRef(span,false,rcv,a1));
            }};
      };
 

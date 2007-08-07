@@ -48,10 +48,10 @@ AbsFnDecl FnSig =
      a1:Name w colon w a2:ArrowType
      { final List<Modifier> mods = FortressUtil.emptyModifiers();
        final List<Param>  params = FortressUtil.emptyParams();
-       
-       a2.getDomain().accept(new NodeAbstractVisitor_void() {        
+
+       a2.getDomain().accept(new NodeAbstractVisitor_void() {
            public void forTypeRef(TypeRef that) {
-               params.add(NodeFactory.makeParam(that.getSpan(), mods, 
+               params.add(NodeFactory.makeParam(that.getSpan(), mods,
                                                 new Id(that.getSpan(), "_"), that));
            }
            public void forVarargsType(VarargsType that) {
@@ -62,9 +62,10 @@ AbsFnDecl FnSig =
                for (AbstractNode i : that.getElements()) { i.accept(this); }
                if (that.getVarargs().isPresent()) { that.getVarargs().getVal().accept(this); }
                assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
-           } 
-           public void defaultCase(Node that) { 
-               throw new RuntimeException("Node expected to be a TypeRef; was: " + that); 
+           }
+           public void defaultCase(Node that) {
+               throw new RuntimeException("Node expected to be a TypeRef; was: "
+                                          + that);
            }
        });
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,

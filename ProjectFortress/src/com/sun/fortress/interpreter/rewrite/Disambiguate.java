@@ -53,7 +53,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.MemberSelection;
+import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.For;
@@ -166,7 +166,7 @@ public class Disambiguate extends Rewrite {
 
     class Member extends Thing {
         Expr replacement(VarRef original) {
-            MemberSelection fs = new MemberSelection(original.getSpan(), false,
+            FieldRef fs = new FieldRef(original.getSpan(), false,
                                                // Use this constructor
                 // here because it is a
                 // com.sun.fortress.interpreter.rewrite.
@@ -315,7 +315,7 @@ public class Disambiguate extends Rewrite {
             return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
         }
         if (i > 0) {
-            return new MemberSelection(s, false, dottedReference(s, i - 1),
+            return new FieldRef(s, false, dottedReference(s, i - 1),
                                       new Id(s, PARENT_NAME));
         } else {
             throw new Error("Confusion in member reference numbering.");
@@ -411,7 +411,7 @@ public class Disambiguate extends Rewrite {
                         usedGenericParameters.put(s, tp);
                     }
 
-                } else if (node instanceof MemberSelection) {
+                } else if (node instanceof FieldRef) {
                     atTopLevelInsideTraitOrObject = false;
                     // Believe that any field selection is already
                     // disambiguated. In an ordinary method, "self"
@@ -422,7 +422,7 @@ public class Disambiguate extends Rewrite {
 
                     // However, since the LHS of a field selection might
                     // be a method invocation, we DO need to check that.
-                    MemberSelection fs = (MemberSelection) node;
+                    FieldRef fs = (FieldRef) node;
 
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
@@ -443,7 +443,7 @@ public class Disambiguate extends Rewrite {
                         int element_index = 0;
                         for (LValueBind lv : lhs) {
                             newdecls.add(new VarDecl(at, Useful.list(lv),
-                                    new MemberSelection(at, false, init,
+                                    new FieldRef(at, false, init,
                                             new Id(at, "$" + element_index))));
                             element_index++;
                         }
@@ -621,7 +621,7 @@ public class Disambiguate extends Rewrite {
         Span span = body.getSpan();
         for (int i = gens.size()-1; i >= 0; i--) {
             Generator g = gens.get(i);
-            Expr loopSel = new MemberSelection(g.getSpan(), false, g.getInit(),
+            Expr loopSel = new FieldRef(g.getSpan(), false, g.getInit(),
                                               what);
             List<Id> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());

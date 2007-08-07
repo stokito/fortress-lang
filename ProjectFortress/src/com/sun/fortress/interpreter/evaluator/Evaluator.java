@@ -86,7 +86,7 @@ import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.MemberSelection;
+import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FloatLiteral;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
@@ -668,7 +668,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forExtentRange");
     }
 
-    public FValue forMemberSelection(MemberSelection x) {
+    public FValue forFieldRef(FieldRef x) {
         Expr obj = x.getObj();
         Id fld = x.getId();
         FValue fobj = obj.accept(this);
@@ -1059,12 +1059,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
             throw new InterpreterError(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
-        if (fcnExpr instanceof MemberSelection) {
-            // In this case, open code the MemberSelection evaluation
+        if (fcnExpr instanceof FieldRef) {
+            // In this case, open code the FieldRef evaluation
             // so that the object can be preserved. Alternate
             // strategy might be to generate a closure from
             // the field selection.
-            MemberSelection fld_sel = (MemberSelection) fcnExpr;
+            FieldRef fld_sel = (FieldRef) fcnExpr;
             Expr obj = fld_sel.getObj();
             Id fld = fld_sel.getId();
             FValue fobj = obj.accept(this);
@@ -1075,9 +1075,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FnRef tax = (FnRef) fcnExpr;
             Expr expr = tax.getExpr();
             List<StaticArg> args = tax.getStaticArgs();
-            if (expr instanceof MemberSelection) {
+            if (expr instanceof FieldRef) {
 
-                MemberSelection fld_sel = (MemberSelection) expr;
+                FieldRef fld_sel = (FieldRef) expr;
                 Expr obj = fld_sel.getObj();
                 Id fld = fld_sel.getId();
                 FValue fobj = obj.accept(this);

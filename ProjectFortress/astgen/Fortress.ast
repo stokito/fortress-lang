@@ -786,7 +786,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * Primary ::= Primary . Id
                  * e.g.) Empty.length
                  */
-                MemberSelection(Expr obj, Id id) implements LHS;
+                FieldRef(Expr obj, Id id) implements LHS;
                 /**
                  * juxtaposition of expressions
                  * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized

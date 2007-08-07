@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.MemberSelection;
+import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
@@ -100,13 +100,13 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forMemberSelection(com.sun.fortress.interpreter.nodes.MemberSelection)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldRef(com.sun.fortress.interpreter.nodes.FieldRef)
      */
     @Override
-    public LHS forMemberSelection(MemberSelection x) {
+    public LHS forFieldRef(FieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
-        return new MemberSelection(x.getSpan(), false, from, x.getId());
+        return new FieldRef(x.getSpan(), false, from, x.getId());
     }
 
     public LHS forVarRef(VarRef x) {

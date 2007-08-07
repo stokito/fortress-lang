@@ -409,8 +409,8 @@ public class ExprFactory {
                 return new ChainExpr(e.getSpan(), true, e.getFirst(),
                                      e.getLinks());
             }
-            public Expr forMemberSelection(MemberSelection e) {
-                return new MemberSelection(e.getSpan(), true, e.getObj(),
+            public Expr forFieldRef(FieldRef e) {
+                return new FieldRef(e.getSpan(), true, e.getObj(),
                                           e.getId());
             }
             public Expr forLooseJuxt(LooseJuxt e) {
