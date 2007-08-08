@@ -960,7 +960,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * ArrowType ::= NonArrowType -> NonArrowType Throws?
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
-        ArrowType(TypeRef domain, NonArrowType range,
+        ArrowType(TypeRef domain, TypeRef range,
                   Option<List<TraitType>> throwsClause);
         /**
          * nonarrow type

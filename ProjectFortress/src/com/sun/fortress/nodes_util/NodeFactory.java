@@ -75,7 +75,7 @@ public class NodeFactory {
     }
 
     public static ArrowType makeArrowType(Span span, TypeRef domain,
-                                          NonArrowType range,
+                                          TypeRef range,
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
     }
