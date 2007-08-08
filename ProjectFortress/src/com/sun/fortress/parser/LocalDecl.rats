@@ -41,11 +41,11 @@ Block BlockElems =
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1, a2)); }
    / a1:BlockElem
      &(w Elifs / w Else / br CaseClause / br TypecaseTypeRefs / br CaseElse
-     / w end / w Catch / w forbid / w finally)
+     / w end / w Catch / w forbid / w finally / w closeparen)
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); }
    / a1:BlockElem w semicolon
      &(w Elifs / w Else / w CaseClause / w TypecaseTypeRefs / w CaseElse
-     / w end / w Catch / w forbid / w finally)
+     / w end / w Catch / w forbid / w finally / w closeparen)
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); };
 
 /* BlockElem ::=
