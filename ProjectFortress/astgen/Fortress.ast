@@ -835,7 +835,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      *            | self
                      * e.g.) length
                      */
-                    VarRef(Id var) implements LHS;
+                    VarRef(DottedId var) implements LHS;
                     /**
                      * literal
                      * BaseExpr ::= Literal

@@ -58,6 +58,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
+import com.sun.fortress.nodes_util.ExprFactory;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
@@ -110,20 +111,28 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public void debugPrint(String debugString) {if (debug) System.out.println(debugString);}
 
     public Voidoid forVarRef(VarRef x) {
-        Id var = x.getVar();
-        String s = var.getName();
+        List<Id> names = x.getVar().getNames();
         Environment e = evaluator.e;
-        FType ft = e.getVarTypeNull(s);
-        if (ft != null) {
-            // Check that variable can receive type
-            if (!ft.typeMatch(value)) {
-                throw new ProgramError(x, e,
-                        errorMsg("TypeRef mismatch assigning ", value,
-                                       " (type ", value.type(), ") to ", s, " (type ", ft, ")"));
-            }
+        if (names.isEmpty()) {
+            throw new InterpreterError(x, e, "empty variable name");
         }
-        e.assignValue(x, s, value);
-        return null;
+        else if (names.size() == 1) {
+            String s = names.get(0).getName();
+            FType ft = e.getVarTypeNull(s);
+            if (ft != null) {
+                // Check that variable can receive type
+                if (!ft.typeMatch(value)) {
+                    String m = errorMsg("TypeRef mismatch assigning ", value, " (type ",
+                                        value.type(), ") to ", s, " (type ", ft, ")");
+                    throw new ProgramError(x, e, m);
+                }
+            }
+            e.assignValue(x, s, value);
+            return null;
+        }
+        else {
+            return forFieldRef(ExprFactory.makeFieldRef(x));
+        }
     }
 
     /* (non-Javadoc)

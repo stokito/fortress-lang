@@ -32,13 +32,8 @@ import edu.rice.cs.plt.iter.IterUtil;
  * <li>All names referring to APIs are made fully qualified.
  * <li>VarRefs referring to functions become FnRefs with (possibly unknown) static
  *     arguments filled in.</li>
- * <li>Assignments to VarRefs referring to setters become SetterInvocations.</li>
- * <li>VarRefs referring to getters become GetterInvocations.</li>
- * <li>VarRefs referring to methods juxtaposed with Exprs become
- *     MethodInvocations.</li>
- * <li>GetterInvocations referring to methods juxtaposed with Exprs become
- *     MethodInvocations.</li>
- * <li>FunctionRefs juxtaposed with Exprs become MethodInvocations.</li>
+ * <li>VarRefs referring to getters, setters, or methods become GetterInvocations.</li>
+ * <li>FnRefs juxtaposed with Exprs become MethodInvocations.</li>
  * </ul>
  * 
  * Additionally, all name references that are undefined or used incorrectly are

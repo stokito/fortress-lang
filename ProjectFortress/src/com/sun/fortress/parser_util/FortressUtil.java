@@ -20,6 +20,7 @@
  */
 
 package com.sun.fortress.parser_util;
+
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -37,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
+import edu.rice.cs.plt.iter.IterUtil;
 
 public final class FortressUtil {
     public static void println(String arg) {
@@ -153,7 +155,7 @@ public final class FortressUtil {
     }
 
     private static void multiple(Modifier m) {
-	resetMods();
+ resetMods();
         throw new ProgramError(m, "A modifier must not occur multiple times");
     }
     static boolean m_atomic   = false;
@@ -691,7 +693,7 @@ public final class FortressUtil {
 // let span_two (one : 'a node) (two : 'b node) : span =
 //   join one.node_span two.node_span
 
-    public static Span spanTwo(AbstractNode s1, AbstractNode s2) {
+    public static Span spanTwo(Node s1, Node s2) {
         return new Span(s1.getSpan().getBegin(), s2.getSpan().getEnd());
     }
 
@@ -702,8 +704,16 @@ public final class FortressUtil {
     public static Span spanAll(Object[] nodes, int size) {
         if (size == 0) return new Span();
         else { // size != 0
-            return new Span(((AbstractNode)Array.get(nodes,0)).getSpan().getBegin(),
-                            ((AbstractNode)Array.get(nodes,size-1)).getSpan().getEnd());
+            return new Span(((Node)Array.get(nodes,0)).getSpan().getBegin(),
+                            ((Node)Array.get(nodes,size-1)).getSpan().getEnd());
+        }
+    }
+    
+    public static Span spanAll(Iterable<? extends Node> nodes) {
+        if (IterUtil.isEmpty(nodes)) { return new Span(); }
+        else {
+            return new Span(IterUtil.first(nodes).getSpan().getBegin(),
+                            IterUtil.last(nodes).getSpan().getEnd());
         }
     }
 

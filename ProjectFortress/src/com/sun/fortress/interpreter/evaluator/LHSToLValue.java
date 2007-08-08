@@ -110,7 +110,16 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     }
 
     public LHS forVarRef(VarRef x) {
-        return x;
+        List<Id> names = x.getVar().getNames();
+        if (names.isEmpty()) {
+            throw new InterpreterError(x, "empty variable name");
+        }
+        else if (names.size() == 1) {
+            return x;
+        }
+        else {
+            return forFieldRef(ExprFactory.makeFieldRef(x));
+        }
     }
 
     /* (non-Javadoc)

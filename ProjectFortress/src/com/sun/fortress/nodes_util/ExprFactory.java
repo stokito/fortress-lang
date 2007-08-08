@@ -26,6 +26,8 @@ import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.parser_util.FortressUtil;
+import edu.rice.cs.plt.iter.IterUtil;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
@@ -228,14 +230,30 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(Span span, String s) {
-        return new VarRef(span, false, new Id(span, s));
+        return new VarRef(span, false, NodeFactory.makeDottedId(span, s));
+    }
+    
+    public static VarRef makeVarRef(Span span, Id id) {
+        return new VarRef(span, false, NodeFactory.makeDottedId(span, id));
+    }
+    
+    /**
+     * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
+     * as the name of a field.  Assumes {@code v} wraps a list of at least 2 ids.
+     */
+    public static FieldRef makeFieldRef(VarRef v) {
+        List<Id> allIds = v.getVar().getNames();
+        List<Id> objIds = IterUtil.asList(IterUtil.skipLast(allIds));
+        DottedId objId = new DottedId(FortressUtil.spanAll(objIds), objIds);
+        VarRef obj = new VarRef(objId.getSpan(), false, objId);
+        return new FieldRef(v.getSpan(), v.isParenthesized(), obj, IterUtil.last(allIds));
     }
 
     /** Alternatively, you can invoke the VoidLiteral constructor without parenthesized or text */
     public static VoidLiteral makeVoidLiteral(Span span) {
         return new VoidLiteral(span, false, "");
     }
-
+    
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
                          BATree<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =

@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.useful.Useful;
 
 
@@ -127,10 +128,11 @@ public abstract class NativeApp implements Applicable {
         if (juxts.size()!=2) return defn;
         Expr fn = juxts.get(0);
         Expr arg = juxts.get(1);
-        if (!(fn instanceof VarRef &&
-              arg instanceof StringLiteral)) return defn;
-        VarRef func = (VarRef)fn;
-        if (!func.getVar().getName().equals("builtinPrimitive")) return defn;
+        if (!(fn instanceof VarRef)) return defn;
+        if (!(arg instanceof StringLiteral)) return defn;
+        DottedId id = ((VarRef)fn).getVar();
+        if (id.getNames().size() != 1) return defn;
+        if (!id.getNames().get(0).getName().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteral)arg).getText();
         try {
             // System.err.println("Loading primitive class "+str);

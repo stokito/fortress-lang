@@ -144,7 +144,7 @@ LHS AssignLeft =
       else yyValue = null;
     }
   / a1:Id
-    { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
+    { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 constant transient Action<Expr> AssignLeftTail =
       SubscriptAssign
@@ -351,7 +351,7 @@ Expr PrimaryFront =
      Comprehension
    / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = new FnRef(createSpan(yyStart,yyCount), false,
-                           new VarRef(a1.getSpan(), false, a1), a2);
+                           ExprFactory.makeVarRef(a1.getSpan(), a1), a2);
      }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser

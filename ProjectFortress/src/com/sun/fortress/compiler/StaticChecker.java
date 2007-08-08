@@ -30,6 +30,11 @@ import edu.rice.cs.plt.iter.IterUtil;
  * been performed.  In addition to checking the program, transforms components so 
  * that all unknown types are provided explicit values, introduces
  * explicit coercions, and restructures juxtapositions into a binary form.
+ * <li>Assignments to GetterInvocations referring to setters become
+ *     SetterInvocations.</li>
+ * <li>GetterInvocations referring to methods juxtaposed with Exprs become
+ *     MethodInvocations.</li>
+ * <li>FunctionRefs juxtaposed with Exprs become MethodInvocations.</li>
  */
 public class StaticChecker {
     

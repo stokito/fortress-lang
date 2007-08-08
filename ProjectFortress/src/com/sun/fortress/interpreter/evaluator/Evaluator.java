@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
@@ -583,7 +584,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Expr init = bind.getInit();
             FValue val = init.accept(ev);
             if (init instanceof VarRef
-                    && ((VarRef) init).getVar().getName().equals(name)) {
+                    && NodeUtil.getName(((VarRef) init).getVar()).equals(name)) {
                 /* Avoid shadow error when we bind the same var name */
                 ev.e.putValueUnconditionally(name, val);
             } else {
@@ -1290,14 +1291,35 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forVarRef(VarRef x) {
         // debugPrint("forVarRef " + x);
-        Id var = x.getVar();
-        String s = var.getName();
-        // debugPrint("forVarRef " + s);
-
-        FValue res = e.getValueNull(s);
-
+        List<Id> names = x.getVar().getNames();
+        if (names.isEmpty())
+            throw new InterpreterError(x, e, "empty variable name");
+            
+        FValue res = e.getValueNull(names.get(0).getName());
         if (res == null)
-            throw new ProgramError(x, e, errorMsg("undefined variable ", s));
+            throw new ProgramError(x, e, errorMsg("undefined variable ",
+                                                  names.get(0).getName()));
+        
+        for (Id fld : IterUtil.skipFirst(names)) {
+            if (res instanceof Selectable) {
+                /*
+                 * Selectable was introduced to make it not necessary
+                 * to know whether a.b was field b of object a, or member
+                 * b of api a (or api name prefix, extended).
+                 */
+                // TODO Need to distinguish between public/private methods/fields
+                try {
+                    res = ((Selectable) res).select(fld.getName());
+                } catch (ProgramError ex) {
+                    ex.setWithin(e);
+                    ex.setWhere(x);
+                    throw ex;
+                }
+            } else {
+                throw new ProgramError(x, e, errorMsg("Non-object cannot have field ",
+                                                      fld.getName()));
+            }
+        }
         return res;
     }
 

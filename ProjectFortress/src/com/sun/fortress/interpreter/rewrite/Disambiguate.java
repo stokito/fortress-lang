@@ -140,6 +140,7 @@ public class Disambiguate extends Rewrite {
         Thing() {
             nestedness = objectNestingDepth;
         }
+        /** May assume that {@code original} wraps a DottedId of length 1. */
         Expr replacement(VarRef original) {
             return original;
         }
@@ -166,12 +167,13 @@ public class Disambiguate extends Rewrite {
 
     class Member extends Thing {
         Expr replacement(VarRef original) {
+            Id id = original.getVar().getNames().get(0);
             FieldRef fs = new FieldRef(original.getSpan(), false,
                                                // Use this constructor
                 // here because it is a
                 // com.sun.fortress.interpreter.rewrite.
                 dottedReference(original.getSpan(),
-                                objectNestingDepth - nestedness), original.getVar());
+                                objectNestingDepth - nestedness), id);
         return fs;
         }
         public String toString() { return "Member@"+nestedness; }
@@ -292,6 +294,7 @@ public class Disambiguate extends Rewrite {
         }
     }
 
+    /** Assumes {@code vre} wraps a DottedId of length 1. */
     Expr newName(VarRef vre, String s) {
         Thing t = e.get(s);
         if (t == null) {
@@ -389,13 +392,19 @@ public class Disambiguate extends Rewrite {
 
                 if (node instanceof VarRef) {
                     VarRef vre = (VarRef) node;
-                    Id id = vre.getVar();
-                    String s = id.getName();
-                    StaticParam tp = visibleGenericParameters.get(s);
-                    if (tp != null) {
-                        usedGenericParameters.put(s, tp);
+                    List<Id> ids = vre.getVar().getNames();
+                    if (ids.size() == 1) {
+                        String s = ids.get(0).getName();
+                        StaticParam tp = visibleGenericParameters.get(s);
+                        if (tp != null) {
+                            usedGenericParameters.put(s, tp);
+                        }
+                        return newName(vre, s);
                     }
-                    return newName(vre, s);
+                    else {
+                        // treat it like a FieldRef
+                        atTopLevelInsideTraitOrObject = false;
+                    }
                 } else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
                     Id id = lvb.getId();
