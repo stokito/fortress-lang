@@ -370,14 +370,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
+    public FValue evalExprList(List<Expr> exprs, AbstractNode tag) {
+        return evalExprList(exprs, tag, this);
+    }
+
     /**
      * Returns the evaluation of a list of (general) exprs, returning the
      * result of evaluating the last expr in the list.
      * Does the "right thing" with LetExprs.
      */
-    public FValue evalExprList(List<Expr> exprs, AbstractNode tag) {
+    public FValue evalExprList(List<Expr> exprs, AbstractNode tag,
+                               Evaluator eval) {
         FValue res = evVoid;
-        Evaluator eval = this;
         for (Expr exp : exprs) {
             // TODO This will get turned into forLet methods
             if (exp instanceof LetExpr) {
@@ -1241,7 +1245,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
             if (resTuple.subtypeOf(matchTuple)) {
                 Block body = c.getBody();
-                result = forBlock(body);
+                result = evalExprList(body.getExprs(), body, ev);
                 return result;
             }
         }
@@ -1294,12 +1298,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<Id> names = x.getVar().getNames();
         if (names.isEmpty())
             throw new InterpreterError(x, e, "empty variable name");
-            
+
         FValue res = e.getValueNull(names.get(0).getName());
         if (res == null)
             throw new ProgramError(x, e, errorMsg("undefined variable ",
                                                   names.get(0).getName()));
-        
+
         for (Id fld : IterUtil.skipFirst(names)) {
             if (res instanceof Selectable) {
                 /*

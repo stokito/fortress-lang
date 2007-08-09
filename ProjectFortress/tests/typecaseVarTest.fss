@@ -20,9 +20,9 @@ export Executable
 
 run(args:String...):()=do
    typecase x = "One Two Three " of
-      String => print("pass: " x)
-      ZZ32 => print("FAIL ")
-      else => print("FAIL ")
+      String => println "pass: " x
+      ZZ32 => println "FAIL "
+      else => println "FAIL "
    end
 end
 end
