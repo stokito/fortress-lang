@@ -954,9 +954,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * TypeRef ::= ArrowType
      *           | NonArrowType
      */
-    abstract TypeRef();
+    abstract TypeRef(boolean parenthesized = false);
         /**
-         * arrow type (Mismatch with the Spec!)
+         * arrow type
          * ArrowType ::= NonArrowType -> NonArrowType Throws?
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */

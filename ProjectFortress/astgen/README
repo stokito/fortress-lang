@@ -280,6 +280,15 @@ abstract OprName();
     functional declarations and object declarations.  AST abstracts them
     as Contract.
 
+27) While CSG treats parenthesized types differently from other types as follows:
+
+NonArrowType ::= ( TypeRef? )
+
+    AST does not have a separate node for parenthesized types but maintains
+    a field describing parenthesizedness.
+
+28) While CSG has NonArrowType for the types of domain and range of an arrow
+    type, AST abstracts them as TypeRef.
 
 
 * Criteria for the Differences in CSG and AST
@@ -341,16 +350,16 @@ trait T comprises {...} end
  I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
 
 
-0. Eric -- ArrowType
-
-1. clean up Fortress.ast
-
 2. clean up error messages
 
 3. Implement not-yet-implemented features in the parser.
 
-4. (if e then e else e) test!
+4. typecaseVarTest
 
-5. typecaseVarTest
+5. A -> (B -> C)
+   isParenthesized TypeRef
 
-6. A -> (B -> C)
+6. mark explicitly any places in the grammar where we depend
+critically on the ordering of alternatives.
+
+7. collect all the examples in the spec to parse.

@@ -23,6 +23,7 @@ import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.interpreter.evaluator.InterpreterError;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
@@ -310,5 +311,114 @@ public class NodeFactory {
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);
+    }
+
+    public static TypeRef makeInParentheses(TypeRef ty) {
+        return ty.accept(new NodeAbstractVisitor<TypeRef>() {
+            public TypeRef forArrowType(ArrowType t) {
+                return new ArrowType(t.getSpan(), true, t.getDomain(),
+                                     t.getRange(), t.getThrowsClause());
+            }
+            public TypeRef forArrayType(ArrayType t) {
+                return new ArrayType(t.getSpan(), true, t.getElement(),
+                                     t.getIndices());
+            }
+            public TypeRef forIdType(IdType t) {
+                return new IdType(t.getSpan(), true, t.getDottedId());
+            }
+            public TypeRef forMatrixType(MatrixType t) {
+                return new MatrixType(t.getSpan(), true, t.getElement(),
+                                      t.getDimensions());
+            }
+            public TypeRef forInstantiatedType(InstantiatedType t) {
+                return new InstantiatedType(t.getSpan(), true, t.getDottedId(),
+                                            t.getArgs());
+            }
+            public TypeRef forTupleType(TupleType t) {
+                return new TupleType(t.getSpan(), true, t.getElements(),
+                                     t.getVarargs(), t.getKeywords());
+            }
+            public TypeRef forVoidType(VoidType t) {
+                return new VoidType(t.getSpan(), true);
+            }
+            public TypeRef forDimRef(DimRef t) {
+                return new DimRef(t.getSpan(), true, t.getVal());
+            }
+            public TypeRef forProductDimType(ProductDimType t) {
+                return new ProductDimType(t.getSpan(), true, t.getMultiplier(),
+                                          t.getMultiplicand());
+            }
+            public TypeRef forQuotientDimType(QuotientDimType t) {
+                return new QuotientDimType(t.getSpan(), true, t.getNumerator(),
+                                           t.getDenominator());
+            }
+            public TypeRef forProductUnitType(ProductUnitType t) {
+                return new ProductUnitType(t.getSpan(), true, t.getMultiplier(),
+                                           t.getMultiplicand());
+            }
+            public TypeRef forQuotientUnitType(QuotientUnitType t) {
+                return new QuotientUnitType(t.getSpan(), true, t.getNumerator(),
+                                            t.getDenominator());
+            }
+            public TypeRef forDimTypeConversion(DimTypeConversion t) {
+                return new DimTypeConversion(t.getSpan(), true, t.getType(),
+                                             t.getDim());
+            }
+            public TypeRef forBaseNatRef(BaseNatRef t) {
+                return new BaseNatRef(t.getSpan(), true, t.getValue());
+            }
+            public TypeRef forBaseOprRef(BaseOprRef t) {
+                return new BaseOprRef(t.getSpan(), true, t.getFnName());
+            }
+            public TypeRef forBaseDimRef(BaseDimRef t) {
+                return new BaseDimRef(t.getSpan(), true);
+            }
+            public TypeRef forBaseUnitRef(BaseUnitRef t) {
+                return new BaseUnitRef(t.getSpan(), true);
+            }
+            public TypeRef forBaseBoolRef(BaseBoolRef t) {
+                return new BaseBoolRef(t.getSpan(), true, t.isBool());
+            }
+            public TypeRef forNotBoolRef(NotBoolRef t) {
+                return new NotBoolRef(t.getSpan(), true, t.getVal());
+            }
+            public TypeRef forOrBoolRef(OrBoolRef t) {
+                return new OrBoolRef(t.getSpan(), true, t.getLeft(),
+                                     t.getRight());
+            }
+            public TypeRef forAndBoolRef(AndBoolRef t) {
+                return new AndBoolRef(t.getSpan(), true, t.getLeft(),
+                                      t.getRight());
+            }
+            public TypeRef forImpliesBoolRef(ImpliesBoolRef t) {
+                return new ImpliesBoolRef(t.getSpan(), true, t.getLeft(),
+                                          t.getRight());
+            }
+            public TypeRef forSumStaticArg(SumStaticArg t) {
+                return new SumStaticArg(t.getSpan(), true, t.getValues());
+            }
+            public TypeRef forProductStaticArg(ProductStaticArg t) {
+                return new ProductStaticArg(t.getSpan(), true, t.getValues());
+            }
+            public TypeRef forQuotientStaticArg(QuotientStaticArg t) {
+                return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
+                                             t.getDenominator());
+            }
+            public TypeRef forExponentStaticArg(ExponentStaticArg t) {
+                return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
+                                             t.getPower());
+            }
+            public TypeRef forDimensionStaticArg(DimensionStaticArg t) {
+                return new DimensionStaticArg(t.getSpan(), true, t.getVal(),
+                                              t.getOp());
+            }
+            public TypeRef forTypeArg(TypeArg t) {
+                return new TypeArg(t.getSpan(), true, t.getType());
+            }
+            public TypeRef defaultCase(Node x) {
+                throw new InterpreterError("makeInParentheses: " + x.getClass() +
+                                           " is not a subtype of TypeRef.");
+            }
+        });
     }
 }

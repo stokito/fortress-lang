@@ -68,7 +68,8 @@ constant transient TypeRef TypeRef =
      { yyValue = (TypeRef)apply(list, seed); };
 
 private TypeRef TypeRefFront =
-     openparen w TypeRef w closeparen
+     openparen w a1:TypeRef w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
    / a1:TypeRefFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
      { Option<List<TraitType>> throws_;
        if (a3 == null) throws_ = None.<List<TraitType>>make();
