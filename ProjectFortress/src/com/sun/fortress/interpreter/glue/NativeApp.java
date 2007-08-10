@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.glue;
 import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
@@ -66,7 +66,7 @@ public abstract class NativeApp implements Applicable {
      */
     protected void init(Applicable a) {
         if (this.a!=null) {
-            throw new InterpreterError("Duplicate NativeApp.init call.");
+            throw new InterpreterBug("Duplicate NativeApp.init call.");
         }
         this.a = a;
         int aty = a.getParams().size();

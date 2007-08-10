@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
@@ -73,7 +73,7 @@ public class TypeRange {
         if (x instanceof IntNat) {
             return ((IntNat) x).getValue();
         }
-        throw new InterpreterError("Expected fully evaluated nat parameter, found " + x);
+        throw new InterpreterBug("Expected fully evaluated nat parameter, found " + x);
     }
 
     public boolean compatible(TypeRange j) {

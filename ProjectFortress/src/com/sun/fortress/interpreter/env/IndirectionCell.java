@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FConstructedValue;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -36,7 +36,7 @@ public class IndirectionCell extends FConstructedValue {
 
     public void storeValue(FValue f2) {
         if (theValue != null)
-            throw new InterpreterError("Internal error, second store of indirection cell");
+            throw new InterpreterBug("Internal error, second store of indirection cell");
         theValue = f2;
     }
 

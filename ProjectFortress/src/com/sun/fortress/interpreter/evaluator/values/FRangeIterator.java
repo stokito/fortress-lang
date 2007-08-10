@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.Iterator;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 
 public class FRangeIterator implements Iterator {
     FRange range;
@@ -38,7 +38,7 @@ public class FRangeIterator implements Iterator {
     }
 
     public void remove() {
-	throw new InterpreterError("FRangeIterator remove operation not implemented");
+	throw new InterpreterBug("FRangeIterator remove operation not implemented");
     }
 
     public FRangeIterator(FRange r) {

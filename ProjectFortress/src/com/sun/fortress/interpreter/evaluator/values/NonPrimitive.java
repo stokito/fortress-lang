@@ -22,8 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
@@ -73,7 +74,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public final void setParams(List<Parameter> params) {
         if (this.params != null) {
-            throw new InterpreterError(this.getAt(),
+            throw new InterpreterBug(this.getAt(),
                     "Attempted second set of constructor/function/method params of "+this+" to "+params);
         }
 
@@ -228,7 +229,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     } else {
                         env.putValueUnconditionally(param.getName(), arg);
                     }
-                } catch (ProgramError ex) {
+                } catch (FortressError ex) {
                     throw ex.setWhere(loc).setWithin(env);
                 }
             }
@@ -257,7 +258,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public List<FValue> fixupArgCount(List<FValue> args) {
         if (this.params==null) {
-            throw new InterpreterError(this.getAt(),
+            throw new InterpreterBug(this.getAt(),
                                       "Calling fixupArgCount on "+
                                        getAt().stringName()+
                                        " with null params");

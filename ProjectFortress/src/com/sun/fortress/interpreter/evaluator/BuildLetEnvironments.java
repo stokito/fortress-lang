@@ -73,7 +73,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             Closure cl = new Closure(containing, fn);
             try {
                 containing.putValue(fname, cl);
-            } catch (ProgramError pe) {
+            } catch (FortressError pe) {
                 pe.setWithin(containing);
                 pe.setWhere(x);
             }

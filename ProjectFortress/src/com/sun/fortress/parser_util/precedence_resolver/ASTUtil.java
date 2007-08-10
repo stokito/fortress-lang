@@ -84,8 +84,9 @@ public class ASTUtil {
                                              left, right),
                                args);
         else
-            throw new ProgramError(right, "Mismatched Enclosers.");
-
+            throw new ProgramError(right, "Mismatched Enclosers: " +
+                                          left.getName() + " and " +
+                                          right.getName());
     }
 
     // let chain (span : span) (first : expr) (links : (op * expr) list) : expr =

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.useful.HasAt;
 
@@ -101,6 +101,6 @@ public class Overload implements Comparable, HasAt {
             if (this_size > that_size) return 1;
             return 0;
         }
-        throw new InterpreterError("Overload cannot be compared to " + arg0.getClass());
+        throw new InterpreterBug("Overload cannot be compared to " + arg0.getClass());
     }
 }

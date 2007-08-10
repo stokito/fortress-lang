@@ -151,7 +151,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     public void assertPass(int p) {
         if (pass != p)
-            throw new InterpreterError("Expected pass " + p + " got pass "
+            throw new InterpreterBug("Expected pass " + p + " got pass "
                     + pass);
     }
 
@@ -412,7 +412,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             } else {
                 putValue(e, name, value);
             }
-        } catch (ProgramError pe) {
+        } catch (FortressError pe) {
             pe.setWithin(e);
             pe.setWhere(where);
             throw pe;
@@ -927,7 +927,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                   FValue init_val = new LazilyEvaluatedCell(init, containing);
                   putValue(bindInto, sname, init_val);
               }
-           } catch (ProgramError pe) {
+           } catch (FortressError pe) {
               pe.setWithin(bindInto);
               pe.setWhere(x);
               throw pe;
@@ -957,14 +957,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //                        }
 //                        putValue(bindInto, sname, init_val);
 //                    }
-//                 } catch (ProgramError pe) {
+//                 } catch (FortressError pe) {
 //                    pe.setWithin(bindInto);
 //                    pe.setWhere(x);
 //                    throw pe;
 //                }
 //
 //            } else {
-//                throw new InterpreterError(x,
+//                throw new InterpreterBug(x,
 //                        "Don't support arbitary LHS in Var decl yet");
 //            }
 //        }
@@ -1435,7 +1435,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                  * is a placeholder. */
                 FValue init_val = new LazilyEvaluatedCell(null, null);
                 putValue(bindInto, sname, init_val);
-            } catch (ProgramError pe) {
+            } catch (FortressError pe) {
                 pe.setWithin(bindInto);
                 pe.setWhere(x);
                 throw pe;

@@ -1,17 +1,17 @@
 /********************************************************************************
-    Copyright 2007 Sun Microsystems, Inc., 
-    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software. 
-    Government users are subject to the Sun Microsystems, Inc. standard 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************/
 
@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 
 public class FortressTaskRunner extends FJTaskRunner {
  /**
@@ -73,7 +74,7 @@ public class FortressTaskRunner extends FJTaskRunner {
     public void setCurrentTask(BaseTask task) {currentTask = task;}
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
-	super(group); 
+	super(group);
         try {
             Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.BackoffManager");
             setContentionManagerClass(managerClass);
@@ -156,7 +157,7 @@ public class FortressTaskRunner extends FJTaskRunner {
 		} catch (AbortedException e) {
 		} catch (SnapshotException e) {
 		    threadState.abortTransaction();
-		} catch (ProgramError e) {
+		} catch (FortressError e) {
  		    e.printStackTrace(System.out);
 		    throw new PanicException("Unhandled exception " + e);
 		} catch (Exception e) {
@@ -290,14 +291,3 @@ public class FortressTaskRunner extends FJTaskRunner {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-    

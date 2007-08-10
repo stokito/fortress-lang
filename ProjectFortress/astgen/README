@@ -337,25 +337,3 @@ trait T comprises {...} end
 * Nodes That May Be Added Later
  1) Separate nodes for top-level functions, local functions, dotted methods,
     functional methods, operators, coercions, getters, and setters.
- 2) MethodInvocation and FieldSelection instead of MemberSelection
-
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-
-* TODO
-1. Implement not-yet-implemented features in the parser.
-
-1) rename TypeRef to something else
- It would be nice to separate *values* from *expressions* in the language of types.  Perhaps by making TypeRef a subtype of a new TypeExpr class, and making some of the current TypeRefs TypeExprs?  (Could the name TypeRef be improved on?  Maybe TypeValue/TypeVal or just Type?)  I'm not completely sure where TypeExprs can appear vs. where TypeRefs can appear, but we might be able to make some distinction in the appropriate places.
-
-2) StaticArg
- I think it would make sense to have a BinaryStaticArg that the appropriate static args would fall under.  Is it more important generally to distinguish the type (bool/nat) of the static arg or the fact that it's binary?  I'm thinking the latter, since we don't enforce that the arguments of a boolean binary type expression actually be BoolRefs.  It's also strange that sums are lists, while ors are binary.
-
-3) DimUnitDecl
-
-2. clean up error messages
-
-3. mark explicitly any places in the grammar where we depend
-critically on the ordering of alternatives.
-
-4. collect all the examples in the spec to parse.

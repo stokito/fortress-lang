@@ -114,7 +114,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         List<Id> names = x.getVar().getNames();
         Environment e = evaluator.e;
         if (names.isEmpty()) {
-            throw new InterpreterError(x, e, "empty variable name");
+            throw new InterpreterBug(x, e, "empty variable name");
         }
         else if (names.size() == 1) {
             String s = names.get(0).getName();
@@ -235,7 +235,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
 
 
-            } catch (ProgramError ex) {
+            } catch (FortressError ex) {
                 throw ex.setWhere(x).setWithin(evaluator.e);
             }
 
@@ -260,7 +260,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     else
                         evaluator.e.putValue(s, value);
                 }
-            } catch (ProgramError ex) {
+            } catch (FortressError ex) {
                 throw ex.setWhere(x).setWithin(evaluator.e);
             }
         }

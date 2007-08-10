@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.CommonEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.Primitives;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.RedefinitionError;
@@ -154,7 +154,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     private BetterEnv(BetterEnv existing) {
         if (! existing.blessed)
-            throw new InterpreterError(within,existing,"Internal error, attempt to copy environment still under construction");
+            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = existing.type_env;
         nat_env = existing.nat_env;
         int_env = existing.int_env;
@@ -168,9 +168,9 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public BetterEnv(BetterEnv existing, BetterEnv additions) {
         if ( ! existing.blessed)
-            throw new InterpreterError(within,existing,"Internal error, attempt to copy environment still under construction");
+            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
         if ( ! additions.blessed)
-            throw new InterpreterError(within,existing,"Internal error, attempt to copy environment still under construction");
+            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
         int_env = augment(existing.int_env, additions.int_env);
@@ -260,7 +260,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             if (new_table.getWeight() == table.getWeight()) {
                 BATreeNode<String, Result> original = table.getObject(index, comparator);
                 if (original == null) {
-                    throw new InterpreterError("Duplicate entry in table, but not in table.");
+                    throw new InterpreterBug("Duplicate entry in table, but not in table.");
                 }
                 Result fvo = original.getValue();
                 if (fvo instanceof IndirectionCell) {
@@ -293,7 +293,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             if (new_table.getWeight() == table.getWeight()) {
                 BATreeNode<String, FValue> original = table.getObject(index, comparator);
                 if (original == null) {
-                    throw new InterpreterError("Duplicate entry in table, but not in table.");
+                    throw new InterpreterBug("Duplicate entry in table, but not in table.");
                 }
                 FValue fvo = original.getValue();
 
@@ -433,7 +433,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //    }
 
     public boolean casValue(String str, FValue old_value, FValue new_value) {
-       throw new InterpreterError("Cas on envs no longer supported");
+       throw new InterpreterBug("Cas on envs no longer supported");
     }
 
 
@@ -724,7 +724,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
 
         public void remove() {
-            throw new InterpreterError("Applicative data structures cannot be changed!");
+            throw new InterpreterBug("Applicative data structures cannot be changed!");
         }
 
     }

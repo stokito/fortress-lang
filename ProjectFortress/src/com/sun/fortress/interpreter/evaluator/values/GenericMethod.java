@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
@@ -159,7 +159,7 @@ public class GenericMethod extends MethodClosure implements
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
             } else {
-                throw new InterpreterError("Unexpected StaticParam " + tp);
+                throw new InterpreterBug("Unexpected StaticParam " + tp);
             }
         }
 

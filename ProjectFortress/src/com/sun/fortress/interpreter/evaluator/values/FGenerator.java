@@ -21,6 +21,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGenerator;
 import com.sun.fortress.nodes.Expr;
@@ -78,7 +79,7 @@ public class FGenerator extends FValue {
 	    FValue val = (FValue) iterator.next();
             try {
                 ev.e.putValue(id.getName(), val);
-            } catch (ProgramError pe) {
+            } catch (FortressError pe) {
                 pe.setWithin(ev.e);
                 throw pe;
             }

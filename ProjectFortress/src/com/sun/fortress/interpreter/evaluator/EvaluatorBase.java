@@ -82,7 +82,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 //            foo = sfcn;
             try {
                 foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
-            } catch (ProgramError ex) {
+            } catch (FortressError ex) {
                 throw ex;
             }
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
@@ -144,7 +144,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                     at.unify(e, tp_set, abm, ((VarargsParam)p).getVarargsType());
                 }
             }
-            catch (ProgramError ex) {
+            catch (FortressError ex) {
                 /* Give decent feedback when unification fails. */
                 ex.setWithin(e);
                 ex.setWhere(loc);

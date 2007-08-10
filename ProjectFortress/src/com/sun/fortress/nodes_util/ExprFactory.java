@@ -23,7 +23,7 @@ import java.util.List;
 import java.math.BigInteger;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -448,7 +448,7 @@ public class ExprFactory {
                 return new UnitRef(e.getSpan(), true, e.getVal());
             }
             public Expr defaultCase(Node x) {
-                throw new InterpreterError("makeInParentheses: " + x.getClass() +
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
                                            " is not a subtype of Expr.");
             }
         });

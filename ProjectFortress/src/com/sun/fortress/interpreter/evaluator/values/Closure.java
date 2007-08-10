@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.scopes.Scope;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -76,7 +77,7 @@ public class Closure extends NonPrimitive implements Scope {
 
     public String toString() {
         String name = getFnName().toString();
-        
+
         return ((instArgs == null ? s(def) :
             (s(def) + Useful.listInOxfords(instArgs))) + " " +
             (type() != null ? type() : "NULL")) + def.at();
@@ -145,7 +146,7 @@ public class Closure extends NonPrimitive implements Scope {
             typecheckParams(args,loc);
             try {
                 return ((NativeApp)def).applyToArgs(args);
-            } catch (ProgramError ex) {
+            } catch (FortressError ex) {
                 /* Wrap all other errors, but not these. */
                 throw ex.setWhere(loc);
             } catch (RuntimeException ex) {
@@ -197,7 +198,7 @@ public class Closure extends NonPrimitive implements Scope {
         FType ft = EvalType.getFTypeFromOption(rt, env);
         if (ft instanceof FTypeDynamic)
             ft = BottomType.ONLY;
-        
+
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);

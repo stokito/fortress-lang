@@ -24,7 +24,7 @@ import java.util.Map;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
@@ -126,7 +126,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
                     rval = fto;
                 } else {
-                    throw new InterpreterError(within,
+                    throw new InterpreterBug(within,
                             "Generic def-or-declaration surprise " + dod);
                 }
 
@@ -135,7 +135,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 return rval;
 
             } else {
-                throw new InterpreterError(within, "Generic surprise " + def);
+                throw new InterpreterBug(within, "Generic surprise " + def);
             }
         }
     }

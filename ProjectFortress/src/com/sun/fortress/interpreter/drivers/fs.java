@@ -27,6 +27,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.useful.Option;
@@ -89,7 +90,7 @@ public class fs {
                     usage();
                     System.exit(1);
                 }
-            } 
+            }
             else {
                 // Got what seems to be a file name...
                 i++;
@@ -123,7 +124,7 @@ public class fs {
             }
         }
     }
-    
+
     private static void reportCompletion(String task, long beginTime) {
         long time = System.currentTimeMillis() - beginTime;
         System.err.println(task + ": " + time + " milliseconds");
@@ -131,12 +132,12 @@ public class fs {
 
     private static void parseAndRun(String s) throws Throwable {
 //        String timeStamp = Useful.timeStamp();
-        
+
 //        String tmpFile = System.getProperty("java.io.tmpdir") + "/"
 //                + basename(s) + "." + timeStamp + SXP_SUFFIX;
 //        tmpFile = ProjectProperties.backslashToSlash(tmpFile);
 //        boolean keepTemp = keep;
-        
+
         try {
             if (verbose)  { System.err.println("Parsing " + s); }
             long begin = System.currentTimeMillis();
@@ -147,7 +148,7 @@ public class fs {
                 reportCompletion("Parsing " + s, begin);
             }
             finally { in.close(); }
-            
+
             if (doAst && p.isPresent()) {
                 String astFile = basename(s) + JAVA_AST_SUFFIX;
                 if (verbose) { System.err.println("Writing ast to " + astFile); }
@@ -155,11 +156,11 @@ public class fs {
                 try { new Printer(true, true, true).dump(p.getVal(), fout, 0); }
                 finally { fout.close(); }
             }
-            
+
             if (! p.isPresent()) { System.err.println("FAIL: Syntax error(s)."); }
             else if (!parseOnly) {
                 CompilationUnit _p = p.getVal();
-                
+
                 if (verbose) {
                   if (test) { System.err.println("Running Tests"); }
                   System.err.println("Interpreting");
@@ -168,9 +169,9 @@ public class fs {
                 Driver.runProgram(_p, test, libraryTest, listArgs);
                 reportCompletion("Program execution", begin);
             }
-            
+
         }
-        catch (ProgramError e) {
+        catch (FortressError e) {
 //            keepTemp = true;
             System.out.println("\n--------Fortress error appears below--------\n");
             e.printInterpreterStackTrace(System.out);

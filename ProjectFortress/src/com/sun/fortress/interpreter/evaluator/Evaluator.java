@@ -26,6 +26,7 @@ import java.util.Stack;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
@@ -213,12 +214,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue NI(String s) {
-        throw new InterpreterError(this.getClass().getName() + "." + s
+        throw new InterpreterBug(this.getClass().getName() + "." + s
                 + " not implemented");
     }
 
     public FValue NI(String s, AbstractNode n) {
-        throw new InterpreterError(this.getClass().getName() + "." + s
+        throw new InterpreterBug(this.getClass().getName() + "." + s
                 + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
@@ -389,7 +390,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
                 try {
                     res = be.doLets((LetExpr) exp);
-                } catch (ProgramError ex) {
+                } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
                     throw ex; // new ProgramError(exp, inner, "Wrapped
@@ -398,7 +399,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else {
                 try {
                     res = exp.accept(eval);
-                } catch (ProgramError ex) {
+                } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
                     throw ex; // new ProgramError(exp, eval.e, "Wrapped
@@ -687,7 +688,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //          TODO Need to distinguish between public/private methods/fields
             try {
                 return selectable.select(fld.getName());
-            } catch (ProgramError ex) {
+            } catch (FortressError ex) {
                 ex.setWithin(e);
                 ex.setWhere(x);
                 throw ex;
@@ -697,7 +698,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //            // TODO Need to distinguish between public/private methods/fields
 //            try {
 //                return fobject.getSelfEnv().getValue(fld.getName());
-//            } catch (ProgramError ex) {
+//            } catch (FortressError ex) {
 //                ex.setWithin(e);
 //                ex.setWhere(x);
 //                throw ex;
@@ -763,15 +764,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forLabel(Label x) {
         /* Don't forget to use a new evaluator/environment for the inner block. */
-        throw new InterpreterError(x,"label construct not yet implemented.");
+        throw new InterpreterBug(x,"label construct not yet implemented.");
     }
 
     public FValue forLetFn(LetFn x) {
-        throw new InterpreterError(x,"forLetFn not implemented.");
+        throw new InterpreterBug(x,"forLetFn not implemented.");
     }
 
     public FValue forListComprehension(ListComprehension x) {
-        throw new InterpreterError(x,"list comprehensions not yet implemented.");
+        throw new InterpreterBug(x,"list comprehensions not yet implemented.");
     }
 
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
@@ -797,7 +798,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<Expr> exprs = x.getExprs();
         FValue times = e.getValue("juxtaposition");
         if (exprs.size() == 0)
-            throw new InterpreterError(x,"empty juxtaposition");
+            throw new InterpreterBug(x,"empty juxtaposition");
         List<FValue> evaled = evalExprListParallel(exprs);
         Boolean inFunction = true;
         Stack<FValue> stack = new Stack<FValue>();
@@ -832,7 +833,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-        throw new InterpreterError(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+        throw new InterpreterBug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
         // return x.getElement().accept(notInPaste);
     }
@@ -875,7 +876,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return cl.applyConstructor(java.util.Collections
                     .<FValue> emptyList(), x, e);
         } else {
-            throw new InterpreterError(x,e,"_RewriteObjectExpr " + s + " has 'constructor' " + v);
+            throw new InterpreterBug(x,e,"_RewriteObjectExpr " + s + " has 'constructor' " + v);
         }
 
         // Option<List<TypeRef>> traits = x.getTraits();
@@ -893,7 +894,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private FValue getOpr(OprName op) {
         try {
             return e.getValue(NodeUtil.getName(op));
-        } catch (ProgramError ex) {
+        } catch (FortressError ex) {
             ex.setWhere(op);
             ex.setWithin(e);
             throw ex;
@@ -911,7 +912,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forOp(Op op) {
         try {
             return e.getValue(op.getName());
-        } catch (ProgramError ex) {
+        } catch (FortressError ex) {
             ex.setWhere(op);
             ex.setWithin(e);
             throw ex;
@@ -1061,7 +1062,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // chf
         List<Expr> exprs = x.getExprs();
         if (exprs.size() == 0)
-            throw new InterpreterError(x,e,"empty juxtaposition");
+            throw new InterpreterBug(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
         if (fcnExpr instanceof FieldRef) {
@@ -1105,7 +1106,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                          fld.getName()));
                     } else if (cl instanceof OverloadedMethod) {
 
-                        throw new InterpreterError(x, fobject.getSelfEnv(),
+                        throw new InterpreterBug(x, fobject.getSelfEnv(),
                                 "Don't actually resolve overloading of generic methods yet.");
 
                     } else if (cl instanceof MethodInstance) {
@@ -1297,7 +1298,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forVarRef " + x);
         List<Id> names = x.getVar().getNames();
         if (names.isEmpty())
-            throw new InterpreterError(x, e, "empty variable name");
+            throw new InterpreterBug(x, e, "empty variable name");
 
         FValue res = e.getValueNull(names.get(0).getName());
         if (res == null)
@@ -1314,7 +1315,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO Need to distinguish between public/private methods/fields
                 try {
                     res = ((Selectable) res).select(fld.getName());
-                } catch (ProgramError ex) {
+                } catch (FortressError ex) {
                     ex.setWithin(e);
                     ex.setWhere(x);
                     throw ex;

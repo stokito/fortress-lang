@@ -29,7 +29,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -805,7 +805,7 @@ public class Disambiguate extends Rewrite {
                         try {
                             th = typeEnv.get(s);
                         } catch (NullPointerException x) {
-                            throw new InterpreterError("Entity "+s+" not found in typeEnv "+typeEnv);
+                            throw new InterpreterBug("Entity "+s+" not found in typeEnv "+typeEnv);
                         }
                         if (th instanceof Trait) {
                             Trait tr = (Trait) th;

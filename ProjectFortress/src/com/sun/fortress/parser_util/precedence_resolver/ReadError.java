@@ -20,7 +20,10 @@ package com.sun.fortress.parser_util.precedence_resolver;
 import com.sun.fortress.nodes_util.Span;
 
 public class ReadError extends Exception {
-   public ReadError(Span span, String message) {
-      super(span.getBegin().at() + ": " + message);
+    Span span;
+   public ReadError(Span in_span, String message) {
+      super(in_span.getBegin().at() + ": " + message);
+      span = in_span;
    }
+    public Span getSpan() { return span; }
 }

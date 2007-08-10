@@ -25,7 +25,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
@@ -163,7 +163,7 @@ public abstract class SingleFcn extends Fcn {
                 ge.putType(stp_name, st);
                 a.add(st);
             } else {
-                throw new InterpreterError("Unimplemented symbolic StaticParam " + tp);
+                throw new InterpreterBug("Unimplemented symbolic StaticParam " + tp);
             }
         }
 
@@ -212,7 +212,7 @@ public abstract class SingleFcn extends Fcn {
                 // are precreated in a fresh environment.
                 st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
             } else {
-                throw new InterpreterError("Unexpected StaticParam " + tp);
+                throw new InterpreterBug("Unexpected StaticParam " + tp);
             }
         }
 

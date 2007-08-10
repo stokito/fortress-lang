@@ -112,7 +112,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     public LHS forVarRef(VarRef x) {
         List<Id> names = x.getVar().getNames();
         if (names.isEmpty()) {
-            throw new InterpreterError(x, "empty variable name");
+            throw new InterpreterBug(x, "empty variable name");
         }
         else if (names.size() == 1) {
             return x;

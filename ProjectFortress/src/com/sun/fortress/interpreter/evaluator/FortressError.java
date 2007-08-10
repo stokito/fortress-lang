@@ -27,12 +27,12 @@ import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.nodes_util.ErrorMsgMaker.makeErrorMsg;
 
-public class ProgramError extends FortressError {
+public abstract class FortressError extends Error {
 
     /**
      * Make Eclipse happy
      */
-    private static final long serialVersionUID = 6117319678737763138L;
+    private static final long serialVersionUID = 6117319678737763137L;
 
     HasAt where;
     HasAt where2;
@@ -51,66 +51,66 @@ public class ProgramError extends FortressError {
         return fullMessage.toString();
     }
 
-    public ProgramError setWhere(HasAt where) {
+    public FortressError setWhere(HasAt where) {
         this.where = where;
         return this;
     }
 
-    public ProgramError setWhere2(HasAt where2) {
+    public FortressError setWhere2(HasAt where2) {
         this.where2 = where2;
         return this;
         }
 
-    public ProgramError setWithin(Environment within) {
+    public FortressError setWithin(Environment within) {
         this.within = within;
         return this;
         }
 
-    public ProgramError() {
+    public FortressError() {
         super();
 
     }
 
-    public ProgramError(HasAt loc, Environment env, String arg0) {
+    public FortressError(HasAt loc, Environment env, String arg0) {
         super(arg0);
         where = loc; within = env;
 
     }
 
-    public ProgramError(HasAt loc, String arg0) {
+    public FortressError(HasAt loc, String arg0) {
         super(arg0);
         where = loc;
 
     }
 
-    public ProgramError(HasAt loc1, HasAt loc2, Environment env, String arg0) {
+    public FortressError(HasAt loc1, HasAt loc2, Environment env, String arg0) {
         super(arg0);
         where = loc1; where2 = loc2; within = env;
 
     }
 
-    public ProgramError(String arg0) {
+    public FortressError(String arg0) {
         super(arg0);
 
     }
 
-    public ProgramError(String arg0, Throwable arg1) {
+    public FortressError(String arg0, Throwable arg1) {
         super(arg0, arg1);
 
     }
 
-    public ProgramError(HasAt loc, Environment env, String arg0, Throwable arg1) {
+    public FortressError(HasAt loc, Environment env, String arg0, Throwable arg1) {
         super(arg0, arg1);
         where = loc; within = env;
 
     }
 
-    public ProgramError(Throwable arg0) {
+    public FortressError(Throwable arg0) {
         super(arg0);
 
     }
 
-    public ProgramError(HasAt loc, String string, Throwable ex) {
+    public FortressError(HasAt loc, String string, Throwable ex) {
         this(loc, null, string, ex);
     }
 

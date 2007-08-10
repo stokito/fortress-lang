@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.useful.NI;
@@ -45,7 +45,7 @@ abstract public class SymbolicType extends FTypeTrait {
 
     public void addExtend(FType t) {
         if (transitiveExtends != null)
-            throw new InterpreterError("Extending type added after transitive extends probed.");
+            throw new InterpreterBug("Extending type added after transitive extends probed.");
 
         if (extends_ == null)
             extends_ = new ArrayList<FType>();
@@ -55,7 +55,7 @@ abstract public class SymbolicType extends FTypeTrait {
 
     public void addExtends(List<FType> t) {
         if (transitiveExtends != null)
-            throw new InterpreterError("Extending type added after transitive extends probed.");
+            throw new InterpreterBug("Extending type added after transitive extends probed.");
         extends_.addAll(t);
     }
 

@@ -26,8 +26,9 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.StaticArg;
@@ -89,7 +90,7 @@ abstract public class FTraitOrObject extends FType {
 
     public List<FType> getExtends() {
         if (extends_ == null)
-            throw new InterpreterError(at,
+            throw new InterpreterBug(at,
                                        this+": Get of unset extends");
         // throw new IllegalStateException("Get of unset extends");
         return extends_;
@@ -100,7 +101,7 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected FTypeGeneric getGeneric() {
-        throw new InterpreterError("getGeneric() of non-Generic "+this);
+        throw new InterpreterBug("getGeneric() of non-Generic "+this);
     }
 
     /** Only implemented by subtypes which extend GenericTypeInstance.
@@ -108,7 +109,7 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected List<FType> getTypeParams() {
-        throw new InterpreterError("getTypeParams() of non-Generic "+this);
+        throw new InterpreterBug("getTypeParams() of non-Generic "+this);
     }
 
     protected List<FType> computeTransitiveExtends() {
@@ -241,10 +242,10 @@ abstract public class FTraitOrObject extends FType {
                     a = targ;
                     param_ftype.unify(env, tp_set, abm, targ);
                 } else {
-                    throw new InterpreterError(val,e,"Can't handle unification of parameters "+this+" and "+val);
+                    throw new InterpreterBug(val,e,"Can't handle unification of parameters "+this+" and "+val);
                 }
             }
-        } catch (ProgramError p) {
+        } catch (FortressError p) {
             return false;
         } catch (EmptyLatticeIntervalError p) {
             if (DUMP_UNIFY)

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
@@ -45,11 +45,11 @@ public abstract class FValue {
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
-    public BufferedReader getBufferedReader() { throw new InterpreterError("getBufferedReader not implemented for " + getClass().getSimpleName()); }
-    public BufferedWriter getBufferedWriter() { throw new InterpreterError("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
-    public int getInt() { throw new InterpreterError("getInt not implemented for "  + getClass().getSimpleName());}
-    public long getLong() { throw new InterpreterError("getLong not implemented for "  + getClass().getSimpleName());}
-    public double getFloat() { throw new InterpreterError("getFloat not implemented for "  + getClass().getSimpleName());}
+    public BufferedReader getBufferedReader() { throw new InterpreterBug("getBufferedReader not implemented for " + getClass().getSimpleName()); }
+    public BufferedWriter getBufferedWriter() { throw new InterpreterBug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
+    public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
+    public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
+    public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
     /**
      * @param ftype The ftype to set.
      */

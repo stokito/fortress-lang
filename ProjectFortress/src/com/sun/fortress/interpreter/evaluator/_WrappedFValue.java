@@ -65,11 +65,11 @@ public class _WrappedFValue extends DelimitedExpr {
         if (visitor instanceof Evaluator) {
             return (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
         } else {
-            throw new InterpreterError("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+            throw new InterpreterBug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
         }
     }
     public void accept(NodeVisitor_void visitor) {
-        throw new InterpreterError("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+        throw new InterpreterBug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
     }
 
     /**

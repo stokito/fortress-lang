@@ -23,6 +23,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
@@ -174,7 +175,7 @@ public class FTypeArrow extends FType {
             } else {
                 return false;
             }
-        } catch (ProgramError p) {
+        } catch (FortressError p) {
             return false;
         } catch (EmptyLatticeIntervalError p) {
             return false;

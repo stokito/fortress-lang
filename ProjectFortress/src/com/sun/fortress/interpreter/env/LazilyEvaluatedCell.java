@@ -23,7 +23,7 @@ package com.sun.fortress.interpreter.env;
 
 import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
@@ -38,7 +38,7 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     }
 
     public void storeValue(FValue f2) {
-        throw new InterpreterError("Cannot store into lazy cell");
+        throw new InterpreterBug("Cannot store into lazy cell");
     }
 
     public FValue getValue() {

@@ -176,7 +176,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putType(name, type);
-        } catch (ProgramError pe) {
+        } catch (FortressError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -187,7 +187,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putNat(name, nat);
-        } catch (ProgramError pe) {
+        } catch (FortressError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -198,7 +198,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putBool(name, b);
-        } catch (ProgramError pe) {
+        } catch (FortressError pe) {
             pe.setWithin(containing);
             pe.setWhere(where);
             throw pe;
@@ -322,7 +322,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(i.getDottedId());
             return result;
-        } catch (ProgramError p) {
+        } catch (FortressError p) {
             p.setWhere(i);
             p.setWithin(env);
             throw p;
@@ -413,7 +413,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             return x.getType().accept(this);
         }
-        catch (ProgramError pe) {
+        catch (FortressError pe) {
             pe.setWhere(x);
             throw pe;
         }
@@ -423,7 +423,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(d);
             return result;
-        } catch (ProgramError p) {
+        } catch (FortressError p) {
             p.setWhere(d);
             p.setWithin(env);
             throw p;

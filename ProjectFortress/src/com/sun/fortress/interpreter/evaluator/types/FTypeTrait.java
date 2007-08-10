@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
@@ -55,7 +55,7 @@ public class FTypeTrait extends FTraitOrObject {
 
     public BetterEnv getMethodExecutionEnv() {
         if (methodEnv == null) {
-            throw new InterpreterError("Internal error, get of unset methodEnv");
+            throw new InterpreterBug("Internal error, get of unset methodEnv");
         }
         return methodEnv;
     }

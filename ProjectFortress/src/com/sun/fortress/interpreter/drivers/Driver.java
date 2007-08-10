@@ -42,7 +42,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -587,7 +587,7 @@ public class Driver {
                 ensureApiImplemented(linker, pile, source);
             }
             else {
-                throw new InterpreterError(i,"Unrecognized import");
+                throw new InterpreterBug(i,"Unrecognized import");
             }
         }
     }

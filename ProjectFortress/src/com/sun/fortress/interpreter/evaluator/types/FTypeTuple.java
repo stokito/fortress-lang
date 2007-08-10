@@ -25,8 +25,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
@@ -47,7 +48,7 @@ public class FTypeTuple extends FType {
 
     static ListComparer<FType> listComparer = new ListComparer<FType>();
     List<FType> l;
-    
+
     private static class Factory implements Factory1<List<FType>, FType> {
 
         public FType make(List<FType> part1) {
@@ -298,11 +299,11 @@ public class FTypeTuple extends FType {
 
             if (r1 && !r2) {
                 if (s1 != 1)
-                    throw new InterpreterError("Rest parameter not last parameter");
+                    throw new InterpreterBug("Rest parameter not last parameter");
                 sl2 = sl2.subList(1, s2);
             } else if (r2 && !r1) {
                 if (s2 != 1)
-                    throw new InterpreterError("Rest parameter not last parameter");
+                    throw new InterpreterBug("Rest parameter not last parameter");
                 sl1 = sl1.subList(1, s1);
             } else {
                 // If tails have equal rest-ness, shorten them both.
@@ -338,7 +339,7 @@ public class FTypeTuple extends FType {
                 tr = trIterator.next();
                 ft.unify(env,tp_set,abm,tr);
             }
-        } catch (ProgramError p) {
+        } catch (FortressError p) {
             return false;
         }
         return true;

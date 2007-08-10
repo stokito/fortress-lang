@@ -50,6 +50,7 @@ import com.sun.fortress.parser_util.precedence_opexpr.Right;
 import com.sun.fortress.parser_util.precedence_opexpr.Tight;
 import com.sun.fortress.parser_util.precedence_opexpr.TightChain;
 import com.sun.fortress.parser_util.precedence_opexpr.TightInfix;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
@@ -478,7 +479,8 @@ public class Resolver {
       else { // first instanceof RealExpr
         PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>)opExprs).getRest();
         if (rest.isEmpty()) {
-          throw new Error("Nonexhaustive pattern matching.");
+            throw new ReadError(((RealExpr)first).getExpr().getSpan(),
+                                "Nonexhaustive pattern matching.");
         }
         else { // !rest.isEmpty()
           Cons<InfixOpExpr> _rest = (Cons<InfixOpExpr>)rest;
@@ -694,7 +696,7 @@ public class Resolver {
         Op _op;
 
         if (links.isEmpty()) {
-          throw new Error("Empty chain expression.");
+          throw new ReadError(op.getSpan(), "Empty chain expression.");
         }
         else {
           _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -721,7 +723,7 @@ public class Resolver {
       else { // frame instanceof TightChain
         PureList<ExprOpPair> links = ((TightChain)frame).getLinks();
         if (links.isEmpty()) {
-          throw new Error("Empty chain expression.");
+          throw new ReadError(op.getSpan(), "Empty chain expression.");
         }
         else {
           Op _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -841,7 +843,7 @@ public class Resolver {
         Op _op;
 
         if (links.isEmpty()) {
-          throw new Error("Empty chain expression.");
+          throw new ReadError(op.getSpan(), "Empty chain expression.");
         }
         else {
           _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -869,7 +871,7 @@ public class Resolver {
       else { // frame instanceof LooseChain
         PureList<ExprOpPair> links = ((LooseChain)frame).getLinks();
         if (links.isEmpty()) {
-          throw new Error("Empty chain expression.");
+          throw new ReadError(op.getSpan(), "Empty chain expression.");
         }
         else {
           Op _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -1127,8 +1129,8 @@ public class Resolver {
 
     else { // stack instanceof Layer
       Op op = ((Layer) stack).getOp();
-      throw new ReadError(op.getSpan(),
-                          "Left encloser "+op+" without right encloser.");
+      throw new ReadError(op.getSpan(), "Left encloser " + op.getName() +
+                                        " without right encloser.");
     }
   }
 
@@ -1210,7 +1212,7 @@ public class Resolver {
       for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
       msg += "\n  " + expr.toString();
       }
-      throw new Error("Resolution of operator property failed for:\n" + msg);
+      throw new ProgramError("Resolution of operator property failed for:\n" + msg);
     }
   }
 }

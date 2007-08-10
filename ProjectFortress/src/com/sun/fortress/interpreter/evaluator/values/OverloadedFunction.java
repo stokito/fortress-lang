@@ -24,8 +24,9 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.InterpreterError;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
@@ -107,7 +108,7 @@ public class  OverloadedFunction extends Fcn
                 // no finishInitializing for these guys, yet
 
             } else {
-                throw new InterpreterError(
+                throw new InterpreterBug(
                             "Expected a closure or primitive, instead got "
                                     + sfcn);
              }
@@ -404,14 +405,14 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond) throw new InterpreterError(loc,"Cannot call before 'setFinished()'");
+        if (!finishedSecond) throw new InterpreterBug(loc,"Cannot call before 'setFinished()'");
         int best = -1;
         SingleFcn best_sfn = null;
 
         for (int i = 0; i < overloads.size(); i++) {
             Overload o = overloads.get(i);
             if (o.getParams() == null) {
-                throw new InterpreterError("Unfinished overloaded function " + this);
+                throw new InterpreterBug("Unfinished overloaded function " + this);
             }
             SingleFcn sfn = o.getFn();
 
@@ -421,7 +422,7 @@ public class  OverloadedFunction extends Fcn
                 FGenericFunction gsfn = (FGenericFunction) sfn;
                 try {
                     sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
-                } catch (ProgramError pe) {
+                } catch (FortressError pe) {
                     continue; // No match, means no dice.
                 }
 

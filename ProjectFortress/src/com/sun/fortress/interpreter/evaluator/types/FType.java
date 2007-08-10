@@ -436,7 +436,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     /**
-     * Convenience method for unifying with a VarargsType (e.g., "T..."). 
+     * Convenience method for unifying with a VarargsType (e.g., "T...").
      * VarargsTypes are special forms that appear only in TupleTypes. They are not TypeRefs.
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
