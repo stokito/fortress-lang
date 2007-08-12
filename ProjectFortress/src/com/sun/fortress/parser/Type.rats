@@ -332,6 +332,78 @@ private TypeRef DimTypeFront =
 DimRef DimRef = a1:StaticArg
      { yyValue = new DimRef(createSpan(yyStart,yyCount), a1); };
 
+/* DimExpr ::=
+     Unity
+   | DottedId
+   | DimExpr sr DimExpr
+   | DimExpr w DOT w DimExpr
+   | DimExpr w / w DimExpr
+   | DimExpr w per w DimExpr
+   | 1 w / w DimExpr
+   | DimExpr ^ Number
+   | ( w DimExpr w )
+   | DUPreOp sr DimExpr
+   | DimExpr w DUPostOp
+ */
+DimExpr DimExpr =
+     seed:DimExprFront list:DimExprTail*
+     { yyValue = (DimExpr)apply(list, seed); };
+
+private DimExpr DimExprFront =
+     "Unity"
+     { yyValue = new BaseDim(createSpan(yyStart,yyCount)); }
+   / a1:DottedId
+     { yyValue = new DimId(createSpan(yyStart,yyCount), a1); }
+   / one w slash w a2:DimExpr
+     { yyValue = new QuotientDim(createSpan(yyStart,yyCount),
+                                 new BaseDim(createSpan(yyStart,1)), a2); }
+   / openparen w a1:DimExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
+   / a1:DUPreOp sr a2:DimExpr
+     { yyValue = new OpDim(createSpan(yyStart,yyCount), a2, a1); };
+
+private constant transient Action<DimExpr> DimExprTail =
+     ProductDim
+   / QuotientDim
+   / ExponentDim
+   / OpDim
+   ;
+
+private constant inline Action<DimExpr> ProductDim =
+     (w DOT w / sr) a1:DimExpr
+     { yyValue = new Action<DimExpr>() {
+           public DimExpr run(DimExpr base) {
+               return new ProductDim(createSpan(yyStart,yyCount), (DimExpr)base,
+                                     a1);
+           }};
+     };
+
+private constant inline Action<DimExpr> QuotientDim =
+     w (slash / per) w a1:DimExpr
+     { yyValue = new Action<DimExpr>() {
+           public DimExpr run(DimExpr base) {
+               return new QuotientDim(createSpan(yyStart,yyCount), (DimExpr)base,
+                                      a1);
+           }};
+     };
+
+private constant inline Action<DimExpr> ExponentDim =
+     caret a1:Number
+     { yyValue = new Action<DimExpr>() {
+           public DimExpr run(DimExpr base) {
+               return new ExponentDim(createSpan(yyStart,yyCount), (DimExpr)base,
+                                      a1);
+           }};
+     };
+
+private constant inline Action<DimExpr> OpDim =
+     w a1:DUPostOp
+     { yyValue = new Action<DimExpr>() {
+           public DimExpr run(DimExpr base) {
+               return new OpDim(createSpan(yyStart,yyCount), (DimExpr)base, a1);
+           }};
+     };
+
 /* StaticArgList ::= StaticArg (w , w StaticArg)*  */
 List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
@@ -344,11 +416,12 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | Unity
    | dimensionless
    | StaticArg w + w StaticArg
+   | StaticArg w - w StaticArg
    | StaticArg sr StaticArg
-   | StaticArg w . w StaticArg
+   | StaticArg w DOT w StaticArg
    | StaticArg w / w StaticArg
    | 1 w / w StaticArg
-   | StaticArg ^ StaticArg
+   | StaticArg ^ IntVal
    | StaticArg w per w StaticArg
    | DUPreOp sr StaticArg
    | StaticArg w DUPostOp
@@ -356,6 +429,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | StaticArg w OR w StaticArg
    | StaticArg w AND w StaticArg
    | StaticArg w IMPLIES w StaticArg
+   | StaticArg w = w StaticArg
    | TypeRef
    | ( StaticArg )
  */

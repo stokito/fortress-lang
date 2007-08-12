@@ -78,116 +78,281 @@ private List<WhereClause> WhereClauseList =
 /* WhereClause ::=
      Id w Extends
    | TypeAlias
-   | NatConstraint
-   | IntConstraint
-   | BoolConstraint
-   | UnitConstraint
+   | nat w Id
+   | int w Id
+   | bool w Id
+   | unit w Id
    | TypeRef w coerces w TypeRef
    | TypeRef w widens w TypeRef
+   | dimensionless w = w Id
+   | Id w = w dimensionless
+   | DottedId w = w DottedId
+   | IntConstraint
+   | BoolConstraint
  */
 private WhereClause WhereClause =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / TypeAlias
-   / NatConstraint
-   / IntConstraint
-   / BoolConstraint
-   / UnitConstraint ;
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:TypeRef w coerces w a2:TypeRef
-   / a1:TypeRef w widens w a2:TypeRef
-************************************************ */
-
-/* NatConstraint ::=
-     nat w Id
-   | NatRef w <  w NatRef
-   | NatRef w <= w NatRef
-   | NatRef w >  w NatRef
-   | NatRef w >= w NatRef
-   | NatRef w =  w NatRef
-   | ( w NatConstraint w )
- */
-private WhereNat NatConstraint =
-     nat w a1:Id
+   / nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:NatRef w "<":op  w a2:NatRef
-   / a1:NatRef w "<=":op w a2:NatRef
-   / a1:NatRef w ">":op  w a2:NatRef
-   / a1:NatRef w ">=":op w a2:NatRef
-   / a1:NatRef w equals  w a2:NatRef
-************************************************ */
-   / openparen w NatConstraint w closeparen ;
-
-/* NatRef ::= StaticArg */
-/* ************************************************
- * Not Yet Implemented ***************************
-private StaticArg NatRef = StaticArg;
-************************************************ */
+   / int w a1:Id
+     { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
+   / bool w a1:Id
+     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
+   / unit w a1:Id
+     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
+   / a1:TypeRef w coerces w a2:TypeRef
+     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:TypeRef w widens w a2:TypeRef
+     { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
+   / "dimensionless" w equals w a1:Id
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+   / a1:Id w equals w "dimensionless"
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+   / a1:DottedId w equals w a2:DottedId
+     { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
+   / IntConstraint
+   / BoolConstraint ;
 
 /* IntConstraint ::=
-     int w Id
-   | NatRef w <  w NatRef
-   | NatRef w <= w NatRef
-   | NatRef w >  w NatRef
-   | NatRef w >= w NatRef
-   | NatRef w =  w NatRef
-   | ( w IntConstraint w )
+     IntExpr w <= w IntExpr
+   | IntExpr w <  w IntExpr
+   | IntExpr w >= w IntExpr
+   | IntExpr w >  w IntExpr
+   | IntExpr w =  w IntExpr
  */
-private WhereNat IntConstraint =
-     int w a1:Id
-     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:NatRef w "<":op  w a2:NatRef
-   / a1:NatRef w "<=":op w a2:NatRef
-   / a1:NatRef w ">":op  w a2:NatRef
-   / a1:NatRef w ">=":op w a2:NatRef
-   / a1:NatRef w equals  w a2:NatRef
-************************************************ */
-   / openparen w IntConstraint w closeparen ;
+private IntConstraint IntConstraint =
+     a1:IntExpr w "<=":op w a2:IntExpr
+     { yyValue = new LEConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:IntExpr w "<":op  w a2:IntExpr
+     { yyValue = new LTConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:IntExpr w ">=":op w a2:IntExpr
+     { yyValue = new GEConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:IntExpr w ">":op  w a2:IntExpr
+     { yyValue = new GTConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:IntExpr w equals w a2:IntExpr
+     { yyValue = new IEConstraint(createSpan(yyStart,yyCount), a1, a2); };
+
+/* IntVal ::=
+     Number
+   | DottedId
+ */
+private IntVal IntVal =
+     a1:Number
+     { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
+   / a1:DottedId
+     { yyValue = new IntIdConstraint(createSpan(yyStart,yyCount), a1); };
+
+/* IntExpr ::=
+     IntVal
+   | IntExpr w + w IntExpr
+   | IntExpr w - w IntExpr
+   | IntExpr sr IntExpr
+   | IntExpr w DOT w IntExpr
+   | IntExpr ^ IntVal
+   | ( w IntExpr w )
+ */
+private IntExpr IntExpr =
+     seed:IntExprFront list:IntExprTail*
+     { yyValue = (IntExpr)apply(list, seed); };
+
+private IntExpr IntExprFront =
+     IntVal
+   / openparen w a1:IntExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
+
+private constant transient Action<IntExpr> IntExprTail =
+     SumIntExpr
+   / MinusIntExpr
+   / ProductIntExpr
+   / ExponentIntExpr
+   ;
+
+private constant inline Action<IntExpr> SumIntExpr =
+     w plus w a1:IntExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               return new SumConstraint(createSpan(yyStart,yyCount),
+                                        (IntExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<IntExpr> MinusIntExpr =
+     w minus w a1:IntExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               return new MinusConstraint(createSpan(yyStart,yyCount),
+                                          (IntExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<IntExpr> ProductIntExpr =
+     (w DOT w / sr) a1:IntExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               return new ProductConstraint(createSpan(yyStart,yyCount),
+                                            (IntExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<IntExpr> ExponentIntExpr =
+     caret a1:IntVal
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               return new ExponentConstraint(createSpan(yyStart,yyCount),
+                                             (IntExpr)base, a1);
+           }};
+     };
 
 /* BoolConstraint ::=
-     bool w Id
-   | NOT w BoolRef
-   | BoolRef w OR w BoolRef
-   | BoolRef w AND w BoolRef
-   | BoolRef w IMPLIES w BoolRef
-   | BoolRef w = w BoolRef
-   | ( w BoolConstraint w )
+     NOT w BoolExpr
+   | BoolExpr w OR w BoolExpr
+   | BoolExpr w AND w BoolExpr
+   | BoolExpr w IMPLIES w BoolExpr
+   | BoolExpr w = w BoolExpr
  */
-private WhereBool BoolConstraint =
-     bool w a1:Id
-     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
-/* ************************************************
- * Not Yet Implemented ***************************
-   / "NOT":op w a1:BoolRef
-   / a1:BoolRef w "OR":op w a2:BoolRef
-   / a1:BoolRef w "AND":op w a2:BoolRef
-   / a1:BoolRef w "IMPLIES":op w a2:BoolRef
-   / a1:BoolRef w equals w a2:BoolRef
-************************************************ */
-   / openparen w BoolConstraint w closeparen ;
+private BoolConstraint BoolConstraint =
+     seed:BoolConstraintFront list:BoolConstraintTail*
+     { yyValue = (BoolConstraint)apply(list, seed); };
 
-/* BoolRef ::= StaticArg */
-/* ************************************************
- * Not Yet Implemented ***************************
-private StaticArg BoolRef = StaticArg;
-************************************************ */
+private BoolConstraint BoolConstraintFront =
+     "NOT":op w a1:BoolExpr
+     { yyValue = new NOTConstraint(createSpan(yyStart,yyCount), a1); }
+   / a1:BoolConstraintHead w "OR":op  w a2:BoolExpr
+     { yyValue = new ORConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:BoolConstraintHead w "AND":op w a2:BoolExpr
+     { yyValue = new ANDConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:BoolConstraintHead w "IMPLIES":op  w a2:BoolExpr
+     { yyValue = new IMPLIESConstraint(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:BoolConstraintHead w equals w a2:BoolExpr
+     { yyValue = new BEConstraint(createSpan(yyStart,yyCount), a1, a2); };
 
-/* UnitConstraint ::=
-     unit w Id
-   | UnitRef w = w UnitRef
+private BoolExpr BoolConstraintHead =
+     BoolVal
+   / openparen w a1:BoolExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
+
+private constant transient Action<BoolConstraint> BoolConstraintTail =
+     ORBoolConstraint
+   / ANDBoolConstraint
+   / IMPLIESBoolConstraint
+   / EqualsBoolConstraint
+   ;
+
+private constant inline Action<BoolConstraint> ORBoolConstraint =
+     w "OR":op  w a1:BoolExpr
+     { yyValue = new Action<BoolConstraint>() {
+           public BoolConstraint run(BoolConstraint base) {
+               return new ORConstraint(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+           }};
+     };
+
+private constant inline Action<BoolConstraint> ANDBoolConstraint =
+     w "AND":op w a1:BoolExpr
+     { yyValue = new Action<BoolConstraint>() {
+           public BoolConstraint run(BoolConstraint base) {
+               return new ANDConstraint(createSpan(yyStart,yyCount),
+                                        NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+           }};
+     };
+
+private constant inline Action<BoolConstraint> IMPLIESBoolConstraint =
+     w "IMPLIES":op  w a1:BoolExpr
+     { yyValue = new Action<BoolConstraint>() {
+           public BoolConstraint run(BoolConstraint base) {
+               return new IMPLIESConstraint(createSpan(yyStart,yyCount),
+                                            NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+           }};
+     };
+
+private constant inline Action<BoolConstraint> EqualsBoolConstraint =
+     w equals w a1:BoolExpr
+     { yyValue = new Action<BoolConstraint>() {
+           public BoolConstraint run(BoolConstraint base) {
+               return new BEConstraint(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+           }};
+     };
+
+/* BoolVal ::=
+     true
+   | false
+   | DottedId
  */
-private WhereUnit UnitConstraint =
-     unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); } ;
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:UnitRef w equals w a2:UnitRef
-************************************************ */
+private BoolVal BoolVal =
+     a1:"true"
+     { yyValue = new TrueConstraint(createSpan(yyStart,yyCount)); }
+   / a1:"false"
+     { yyValue = new FalseConstraint(createSpan(yyStart,yyCount)); }
+   / a1:DottedId
+     { yyValue = new BoolIdConstraint(createSpan(yyStart,yyCount), a1); };
+
+/* BoolExpr ::=
+     BoolVal
+   | BoolConstraint
+   | ( w BoolExpr w )
+ */
+private BoolExpr BoolExpr =
+     seed:BoolExprFront list:BoolExprTail*
+     { yyValue = (BoolExpr)apply(list, seed); };
+
+private BoolExpr BoolExprFront =
+     BoolVal
+   / openparen w a1:BoolExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
+   / "NOT":op w a1:BoolExpr
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new BoolConstraintExpr(span, new NOTConstraint(span, a1));
+     };
+
+private constant transient Action<BoolExpr> BoolExprTail =
+     ORBoolExpr
+   / ANDBoolExpr
+   / IMPLIESBoolExpr
+   / EqualsBoolExpr
+   ;
+
+private constant inline Action<BoolExpr> ORBoolExpr =
+     w "OR":op  w a1:BoolExpr
+     { yyValue = new Action<BoolExpr>() {
+           public BoolExpr run(BoolExpr base) {
+               Span span = createSpan(yyStart,yyCount);
+               return new BoolConstraintExpr(span, new ORConstraint(span,
+                                                       (BoolExpr)base, a1));
+           }};
+     };
+
+private constant inline Action<BoolExpr> ANDBoolExpr =
+     w "AND":op w a1:BoolExpr
+     { yyValue = new Action<BoolExpr>() {
+           public BoolExpr run(BoolExpr base) {
+               Span span = createSpan(yyStart,yyCount);
+               return new BoolConstraintExpr(span, new ANDConstraint(span,
+                                                   (BoolExpr)base, a1));
+           }};
+     };
+
+private constant inline Action<BoolExpr> IMPLIESBoolExpr =
+     w "IMPLIES":op  w a1:BoolExpr
+     { yyValue = new Action<BoolExpr>() {
+           public BoolExpr run(BoolExpr base) {
+               Span span = createSpan(yyStart,yyCount);
+               return new BoolConstraintExpr(span, new IMPLIESConstraint(span,
+                                                   (BoolExpr)base, a1));
+           }};
+     };
+
+private constant inline Action<BoolExpr> EqualsBoolExpr =
+     w equals w a1:BoolExpr
+     { yyValue = new Action<BoolExpr>() {
+           public BoolExpr run(BoolExpr base) {
+               Span span = createSpan(yyStart,yyCount);
+               return new BoolConstraintExpr(span, new BEConstraint(span,
+                                                   (BoolExpr)base, a1));
+           }};
+     };
 
 /* FnHeaderClause ::= (w IsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
@@ -474,7 +639,7 @@ private List<StaticParam> StaticParamList =
    | int w Id
    | bool w Id
    | dim w Id
-   | unit w Id (w : w DimRef)? (w absorbs w unit)?
+   | unit w Id (w : w DimExpr)? (w absorbs w unit)?
    | opr w Op
 */
 private StaticParam StaticParam =
@@ -489,8 +654,13 @@ private StaticParam StaticParam =
    / int  w a1:Id { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
    / bool w a1:Id { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
    / dim  w a1:Id {yyValue = new DimensionParam(createSpan(yyStart,yyCount),a1);}
-/* ************************************************
- * Not Yet Implemented ***************************
-   / unit w a1:Id a2:(w colon w DimRef)? a3:(w absorbs w unit)?
-************************************************ */
+   / unit w a1:Id a2:(w colon w DimExpr)? a3:(w absorbs w unit)?
+     { Option<DimExpr> derived;
+       boolean absorbs;
+       if (a2 == null) derived = None.<DimExpr>make();
+       else            derived = Some.<DimExpr>make(a2);
+       if (a3 == null) absorbs = false;
+       else            absorbs = true;
+       yyValue = new UnitParam(createSpan(yyStart,yyCount),a1,derived,absorbs);
+     }
    / opr  w a1:Op {yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);};

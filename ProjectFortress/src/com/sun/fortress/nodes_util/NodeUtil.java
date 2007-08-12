@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
@@ -158,14 +159,24 @@ public class NodeUtil {
             public String forSimpleTypeParam(SimpleTypeParam p) {
                 return p.getId().getName();
             }
+            public String forUnitParam(UnitParam p) {
+                return p.getId().getName();
+            }
         });
     }
 
     /* stringName **********************************************************/
     public static String stringName(Node node) {
         return node.accept(new NodeAbstractVisitor<String>() {
-            public String forDimDecl(DimDecl node) {
-                return node.getId().getName();
+            public String forDimUnitDecl(DimUnitDecl node) {
+                if (node.getDim().isPresent()) {
+                    if (node.getUnits().isEmpty())
+                        return ((Id)node.getDim().getVal()).getName();
+                    else
+                        return ((Id)node.getDim().getVal()).getName() + " and " +
+                               Useful.listInDelimiters("", node.getUnits(), "");
+                } else
+                    return Useful.listInDelimiters("", node.getUnits(), "");
             }
             public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
                 return getName(node.getFnName());
@@ -184,9 +195,6 @@ public class NodeUtil {
             }
             public String forTypeAlias(TypeAlias node) {
                 return node.getId().getName();
-            }
-            public String forUnitDecl(UnitDecl node) {
-                return node.getNames().toString();
             }
             public String defaultCase(Node node) {
                 return node.getClass().getSimpleName();
@@ -214,8 +222,16 @@ public class NodeUtil {
             public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
                 return new UnitIterable<String>(d.getId().getName());
             }
-            public IterableOnce<String> forDimDecl(DimDecl d) {
-                return new UnitIterable<String>(d.getId().getName());
+            public IterableOnce<String> forDimUnitDecl(DimUnitDecl d) {
+                if (d.getDim().isPresent()) {
+                    if (d.getUnits().isEmpty())
+                        return new UnitIterable<String>(
+                           ((Id)d.getDim().getVal()).getName());
+                    else
+                        throw new InterpreterBug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
+                } else
+                    return new IterableOnceTranslatingList<Id, String>(
+                           d.getUnits(), IdtoStringFn);
             }
             public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
                 return new UnitIterable<String>(d.getId().getName());
@@ -258,9 +274,6 @@ public class NodeUtil {
             }
             public IterableOnce<String> forTypeAlias(TypeAlias d) {
                 return new UnitIterable<String>(d.getId().getName());
-            }
-            public IterableOnce<String> forUnitDecl(UnitDecl d) {
-                return new IterableOnceTranslatingList<Id, String>(d.getNames(), IdtoStringFn);
             }
             public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());

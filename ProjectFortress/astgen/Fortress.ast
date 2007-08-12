@@ -410,25 +410,60 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         VarargsParam(VarargsType varargsType);
     /**
-     * dimension declaration (Not Yet Implemented in the Parser!)
-     * DimUnitDecl ::= dim Id (= DimRef)? (default Id)?
-     *               | (unit | SI_unit) Id+ (: DimRef)? (= Expr)?
-     *               | dim Id (= DimRef)? (unit | SI_unit) Id+ (= Expr)?
+     * dimension declaration
+     * DimUnitDecl may represent a single dimension declaration, a single
+     * unit declaration, or both dimension and unit declarations.
+     * DimUnitDecl ::= dim Id (= DimExpr)? (default Id)?
+     *               | (unit | SI_unit) Id+ (: DimExpr)? (= Expr)?
+     *               | dim Id (= DimExpr)? (unit | SI_unit) Id+ (= Expr)?
+     * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
-    DimDecl(Id id, Option<TypeRef> derived = None.<TypeRef>make(),
-            Option<TypeRef> default = None.<TypeRef>make())
-           implements Decl, AbsDecl;
+    DimUnitDecl(Option<Id> dim = None.<Id>make(),
+                Option<DimExpr> derived = None.<DimExpr>make(),
+                Option<Id> default = None.<Id>make(),
+                boolean si_unit = false,
+                List<Id> units = Collections.<Id>emptyList(),
+                Option<Expr> def = None.<Expr>make())
+               implements Decl, AbsDecl;
     /**
-     * unit declaration (Not Yet Implemented in the Parser!)
-     * DimUnitDecl ::= dim Id ( = DimRef )? ( default Id)?
-     *               | ( unit | SI_unit ) Id+ ( : DimRef )? ( = Expr)?
-     *               | dim Id ( = DimRef )? ( unit | SI_unit ) Id+ ( = Expr)?
-     * e.g.) unit inch inches: Length
+     * dimension expression
      */
-    UnitDecl(List<Id> names, Option<TypeRef> type = None.<TypeRef>make(),
-             Option<Expr> def = None.<Expr>make(), boolean si)
-            implements Decl, AbsDecl;
+    abstract DimExpr(boolean parenthesized = false);
+        /* base dimension
+         * DimExpr ::= Unity
+         * e.g.) Unity
+         */
+        BaseDim();
+        /* dimension identifier
+         * DimExpr ::= DottedId
+         * e.g.) com.sun.fortress.dim.Length
+         */
+        DimId(DottedId dottedId);
+        /* dimension multiplication
+         * DimExpr ::= DimExpr DimExpr
+         *           | DimExpr DOT DimExpr
+         * e.g.) Length Mass
+         */
+        ProductDim(DimExpr left, DimExpr right);
+        /* dimension division
+         * DimExpr ::= DimExpr / DimExpr
+         *           | DimExpr per DimExpr
+         *           | 1 / DimExpr
+         * e.g.) Length / Time
+         */
+        QuotientDim(DimExpr numerator, DimExpr denominator);
+        /* dimension exponentiation
+         * DimExpr ::= DimExpr ^ IntLiteral
+         * e.g.) Time^2
+         */
+        ExponentDim(DimExpr base, IntLiteral power);
+        /* dimension with operator
+         * DimExpr ::= DUPreOp DimExpr
+         *           | DimExpr DUPostOp
+         * e.g.) Time squared
+         */
+        OpDim(DimExpr val, DimUnitOp op);
     /**
      * test declaration
      * TestDecl ::= test Id [GeneratorList] = Expr
@@ -1171,6 +1206,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract WhereClause();
         /**
+         * hidden type variable declared in where clauses
+         * WhereClause ::= Id Extends
+         * e.g.) T extends Object
+         */
+        WhereExtends(Id id, List<TraitType> supers);
+        /**
          * type alias declaration
          * TypeAlias ::= type Id StaticParams? = TypeRef
          * e.g.) type IntList = List[\ZZ64\]
@@ -1180,46 +1221,210 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                       = Collections.<StaticParam>emptyList(),
                   TypeRef type)
                  implements Decl, AbsDecl;
-        /* bool parameter declared in where clauses
-         * WhereClause ::= bool Id
-         * e.g.) bool ninf
-         */
-        WhereBool(Id id);
-        /* hidden type variable declared in where clauses
-         * WhereClause ::= Id Extends
-         * e.g.) T extends Object
-         */
-        WhereExtends(Id id, List<TraitType> supers);
-        /* nat parameter declared in where clauses
+        /**
+         * nat parameter declared in where clauses
          * WhereClause ::= nat Id
          * e.g.) nat length
          */
         WhereNat(Id id);
-        /* unit parameter declared in where clauses
+        /**
+         * int parameter declared in where clauses
+         * WhereClause ::= int Id
+         * e.g.) int length
+         */
+        WhereInt(Id id);
+        /**
+         * bool parameter declared in where clauses
+         * WhereClause ::= bool Id
+         * e.g.) bool ninf
+         */
+        WhereBool(Id id);
+        /**
+         * unit parameter declared in where clauses
          * WhereClause ::= unit Id
          * e.g.) unit U
          */
         WhereUnit(Id id);
-        /* coercion constraint declared in where clauses
+        /**
+         * coercion constraint declared in where clauses
          * WhereClause ::= TypeRef coerces TypeRef
          * e.g.) T coerces Identity[\ODOT\]
          */
-        WhereCoerces(TypeRef first, TypeRef second);
-        /* widening constraint declared in where clauses
+        WhereCoerces(TypeRef left, TypeRef right);
+        /**
+         * widening constraint declared in where clauses
          * WhereClause ::= TypeRef widens TypeRef
          * e.g.) T widens S
          */
-        WhereWidens(TypeRef first, TypeRef second);
-        /* widening coercion constraint declared in where clauses
+        WhereWidens(TypeRef left, TypeRef right);
+        /**
+         * widening coercion constraint declared in where clauses
          * WhereClause ::= TypeRef widens or coerces TypeRef
          * e.g.) T widens or coerces S
          */
-        WhereWidensCoerces(TypeRef first, TypeRef second);
-        /* compound constraint declared in where clauses
-         * WhereClause ::= StaticArg
-         * e.g.) where {lt AND eq AND gt, U = dimensionless}
+        WhereWidensCoerces(TypeRef left, TypeRef right);
+        /**
+         * DootedId equality constraint declared in where clauses
+         * WhereClause ::= DottedId = DottedId
+         * e.g.) m = n
          */
-        WhereConstraint(StaticArg constraint);
+        WhereEquals(DottedId left, DottedId right);
+        /**
+         * unit constraint used in where clauses
+         * WhereClause ::= dimensionless w = w Id
+         *               | Id w = w dimensionless
+         * e.g.) U = dimensionless
+         */
+        UnitConstraint(Id id);
+        /**
+         * integer constraint used in where clauses
+         * WhereClause ::= IntConstraint
+         */
+        abstract IntConstraint();
+            /**
+             * less than equal constraint declared in where clauses
+             * IntConstraint ::= IntExpr <= IntExpr
+             * e.g.) b <= c
+             */
+            LEConstraint(IntExpr left, IntExpr right);
+            /**
+             * less than constraint declared in where clauses
+             * IntConstraint ::= IntExpr < IntExpr
+             * e.g.) 0 < a
+             */
+            LTConstraint(IntExpr left, IntExpr right);
+            /**
+             * greater than equal constraint declared in where clauses
+             * IntConstraint ::= IntExpr <= IntExpr
+             * e.g.) b >= c
+             */
+            GEConstraint(IntExpr left, IntExpr right);
+            /**
+             * greater than constraint declared in where clauses
+             * IntConstraint ::= IntExpr < IntExpr
+             * e.g.) a > 0
+             */
+            GTConstraint(IntExpr left, IntExpr right);
+            /**
+             * integer equality constraint declared in where clauses
+             * IntConstraint ::= IntExpr = IntExpr
+             * e.g.) 8 = 2^3
+             */
+            IEConstraint(IntExpr left, IntExpr right);
+        /**
+         * boolean constraint used in where clauses
+         * WhereClause ::= BoolConstraint
+         */
+        abstract BoolConstraint();
+            /**
+             * boolean NOT constraint declared in where clauses
+             * BoolConstraint ::= NOT BoolExpr
+             * e.g.) NOT ninf
+             */
+            NOTConstraint(BoolExpr bool);
+            /**
+             * boolean OR constraint declared in where clauses
+             * BoolConstraint ::= BoolExpr OR BoolExpr
+             * e.g.) ninf OR pinf
+             */
+            ORConstraint(BoolExpr left, BoolExpr right);
+            /**
+             * boolean AND constraint declared in where clauses
+             * BoolConstraint ::= BoolExpr AND BoolExpr
+             * e.g.) ninf AND pinf
+             */
+            ANDConstraint(BoolExpr left, BoolExpr right);
+            /**
+             * boolean IMPLIES constraint declared in where clauses
+             * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
+             * e.g.) ninf IMPLIES pinf
+             */
+            IMPLIESConstraint(BoolExpr left, BoolExpr right);
+            /**
+             * boolean equality constraint declared in where clauses
+             * BoolConstraint ::= BoolExpr = BoolExpr
+             * e.g.) ninf AND pinf = true
+             */
+            BEConstraint(BoolExpr left, BoolExpr right);
+    /**
+     * integer expression used in where clauses
+     */
+    abstract IntExpr(boolean parenthesized = false);
+        /**
+         * integer value used in where clauses
+         * IntExpr ::= IntVal
+         */
+        abstract IntVal();
+            /**
+             * integer number used in where clauses
+             * IntVal ::= Number
+             * e.g.) 8
+             */
+            NumberConstraint(IntLiteral val);
+            /**
+             * integer identiier used in where clauses
+             * IntVal ::= DottedId
+             * e.g.) m
+             */
+            IntIdConstraint(DottedId dottedId);
+        /**
+         * integer addition used in where clauses
+         * IntExpr ::= IntExpr + IntExpr
+         * e.g.) m + 2
+         */
+        SumConstraint(IntExpr left, IntExpr right);
+        /**
+         * integer subtraction used in where clauses
+         * IntExpr ::= IntExpr - IntExpr
+         * e.g.) m - 2
+         */
+        MinusConstraint(IntExpr left, IntExpr right);
+        /**
+         * integer multiplication used in where clauses
+         * IntExpr ::= IntExpr IntExpr
+         *           | IntExpr DOT IntExpr
+         * e.g.) m DOT n
+         */
+        ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
+        /**
+         * integer exponentiation used in where clauses
+         * IntExpr ::= IntExpr caret IntVal
+         * e.g.) 2^b
+         */
+        ExponentConstraint(IntExpr base, IntVal power);
+    /**
+     * boolean expression used in where clauses
+     */
+    abstract BoolExpr(boolean parenthesized = false);
+        /**
+         * boolean value used in where clauses
+         * BoolExpr ::= BoolVal
+         */
+        abstract BoolVal();
+            /**
+             * true used in where clauses
+             * BoolVal ::= true
+             * e.g.) true
+             */
+            TrueConstraint();
+            /**
+             * false used in where clauses
+             * BoolVal ::= false
+             * e.g.) false
+             */
+            FalseConstraint();
+            /**
+             * boolean identiier used in where clauses
+             * BoolVal ::= DottedId
+             * e.g.) ninf
+             */
+            BoolIdConstraint(DottedId dottedId);
+        /**
+         * boolean constraint used in boolean expression in where clausess
+         * BoolExpr ::= BoolConstraint
+         * e.g.)
+         */
+        BoolConstraintExpr(BoolConstraint constraint);
     /**
      * contracts used in functional declarations and object declarations
      * Contract ::= Requires? Ensures? Invariant?
@@ -1363,10 +1568,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         boolean absorbs = false);
        /**
          * unit parameter
-         * StaticParam ::= unit Id ( : DimRef )? ( absorbs unit )?
+         * StaticParam ::= unit Id ( : DimExpr )? ( absorbs unit )?
          * e.g.) unit U absrbs unit
          */
-        UnitParam(Id id, Option<DimRef> dim = None.<DimRef>make(),
+        UnitParam(Id id, Option<DimExpr> dim = None.<DimExpr>make(),
                   boolean absorbs = false);
     /**
      * name representing functionals

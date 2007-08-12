@@ -153,6 +153,7 @@ String colonequals = ":=";
 String equals = "=" (!op);
 String equalsOp = "=":singleOp;
 String semicolon = ";";
+String one = "1";
 
 transient void closecurly = "}";
 transient void closeangle = "|>";
@@ -169,7 +170,6 @@ transient void leftarrow  = !(multiOp) "<-";
 transient void mapsto =  "|->";
 transient void match = "=>";
 transient void minus = "-":singleOp;
-transient void one = "1";
 transient void opencurly = "{":leftEncloser;
 transient void openangle = "<|":leftEncloser;
 transient void opendoublesquare = "[\\";

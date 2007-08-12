@@ -32,33 +32,49 @@ import Symbol;
 import Spacing;
 
 /* DimUnitDecl ::=
-     dim w Id (w = w DimRef)? (w default w Id)?
-   | (unit | SI_unit) w Id (wr Id)* (w : w DimRef)? (w = w NoNewlineExpr)?
-   | dim w Id (w = w DimRef)? s (unit | SI_unit) w Id (wr Id)* (w = w NoNewlineExpr)?
+     dim w Id (w = w DimExpr)? s (unit | SI_unit) w Id (wr Id)* (w = w NoNewlineExpr)?
+   | dim w Id (w = w DimExpr)? (w default w Id)?
+   | (unit | SI_unit) w Id (wr Id)* (w : w DimExpr)? (w = w NoNewlineExpr)?
  */
-/* ************************************************
- * Not Yet Implemented ***************************
-DimDecl DimUnitDecl =
-     dim w a1:Id a2:(w void:equals w DimRef)? a3:(w default w Id)?
-     { Option<TypeRef> derived;
-       Option<TypeRef> default;
-       if (a2 == null) derived = None.<TypeRef>make();
-       else            derived = Some.<TypeRef>make(a2);
-       if (a3 == null) default = None.<TypeRef>make();
-       else            default = Some.<TypeRef>make(NodeFactory.makeIdType(a3.getSpan(),a3));
-       yyValue = new DimDecl(createSpan(yyStart,yyCount),a1,derived,default);
+DimUnitDecl DimUnitDecl =
+     dim w a1:Id a2:(w void:equals w DimExpr)? s a3:(unit / SI_unit) w a4:Id
+     a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
+     { Option<DimExpr> derived;
+       List<Id> ids = new ArrayList<Id>();
+       Option<Expr> def;
+       if (a2 == null) derived = None.<DimExpr>make();
+       else            derived = Some.<DimExpr>make(a2);
+       ids.add(a4);
+       ids.addAll(a5s.list());
+       if (a6 == null) def = None.<Expr>make();
+       else            def = Some.<Expr>make(a6);
+       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
+                                             derived, a3, ids, def);
      }
-   / (unit / SI_unit) w a1:Id a2s:(wr Id)* a3:(w colon w DimRef)?
-       a4:(w void:equals w NoNewlineExpr)?
-     { yyValue = new DimUnitDecl(createSpan(yyStart,yyCount), a1, a2s.list(),
-                                 a3, a4);
+   / dim w a1:Id a2:(w void:equals w DimExpr)? a3:(w default w Id)?
+     { Option<DimExpr> derived;
+       Option<Id> defaultId;
+       if (a2 == null) derived = None.<DimExpr>make();
+       else            derived = Some.<DimExpr>make(a2);
+       if (a3 == null) defaultId = None.<Id>make();
+       else            defaultId = Some.<Id>make(a3);
+       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
+                                             derived, defaultId);
      }
-   / dim w a1:Id a2:(w void:equals w DimRef)? s (unit / SI_unit) w a3:Id
-       a4s:(wr Id)* a5:(w void:equals w NoNewlineExpr)?
-     { yyValue = new DimUnitDecl(createSpan(yyStart,yyCount), a1, a2, a3,
-                                 a4s.list(), a5);
+   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w colon w DimExpr)?
+     a5:(w void:equals w NoNewlineExpr)?
+     { Option<DimExpr> derived;
+       List<Id> ids = new ArrayList<Id>();
+       Option<Expr> def;
+       if (a4 == null) derived = None.<DimExpr>make();
+       else            derived = Some.<DimExpr>make(a4);
+       ids.add(a2);
+       ids.addAll(a3s.list());
+       if (a5 == null) def = None.<Expr>make();
+       else            def = Some.<Expr>make(a5);
+       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount),
+                                             derived, a1, ids, def);
      };
-************************************************ */
 
 /* TypeAlias ::= type w Id (w StaticParams)? w = w TypeRef */
 TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:TypeRef

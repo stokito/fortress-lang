@@ -34,20 +34,20 @@ import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.useful.NI;
 
 public class IndexBuilder {
-    
+
     /** Result of {@link #buildApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Map<String, ApiIndex> _apis;
-        
+
         public ApiResult(Map<String, ApiIndex> apis,
                          Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
-        
+
         public Map<String, ApiIndex> apis() { return _apis; }
     }
-    
+
     /** Convert the given ASTs to ApiIndices. */
     public static ApiResult buildApis(Iterable<Api> asts) {
         IndexBuilder builder = new IndexBuilder();
@@ -55,18 +55,18 @@ public class IndexBuilder {
         for (Api ast : asts) { builder.buildApi(ast, apis); }
         return new ApiResult(apis, builder.errors());
     }
-    
-    
+
+
     /** Result of {@link #buildComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<String, ComponentIndex> _components;
-        
+
         public ComponentResult(Map<String, ComponentIndex> components,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
-        
+
         public Map<String, ComponentIndex> components() { return _components; }
     }
 
@@ -77,18 +77,18 @@ public class IndexBuilder {
         for (Component ast : asts) { builder.buildComponent(ast, components); }
         return new ComponentResult(components, builder.errors());
     }
-    
-    
+
+
     private List<StaticError> _errors;
-    
+
     private IndexBuilder() { _errors = new LinkedList<StaticError>(); }
-    
+
     private List<StaticError> errors() { return _errors; }
-    
+
     private void error(String message, HasAt loc) {
         _errors.add(StaticError.make(message, loc));
     }
-    
+
     /** Create an ApiIndex and add it to the given map. */
     private void buildApi(Api ast, Map<String, ApiIndex> apis) {
         final Map<String, Variable> variables = new HashMap<String, Variable>();
@@ -108,10 +108,7 @@ public class IndexBuilder {
             @Override public void forAbsFnDecl(AbsFnDecl d) {
                 buildFunction(d, functions);
             }
-            @Override public void forDimDecl(DimDecl d) {
-                NI.nyi();
-            }
-            @Override public void forUnitDecl(UnitDecl d) {
+            @Override public void forDimUnitDecl(DimUnitDecl d) {
                 NI.nyi();
             }
             @Override public void forTypeAlias(TypeAlias d) {
@@ -133,7 +130,7 @@ public class IndexBuilder {
         ApiIndex api = new ApiIndex(ast, variables, functions, traits);
         apis.put(NodeUtil.getName(ast.getDottedId()), api);
     }
-    
+
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
                                 Map<String, ComponentIndex> components) {
@@ -158,10 +155,7 @@ public class IndexBuilder {
             @Override public void forFnDecl(FnDecl d) {
                 buildFunction(d, functions);
             }
-            @Override public void forDimDecl(DimDecl d) {
-                NI.nyi();
-            }
-            @Override public void forUnitDecl(UnitDecl d) {
+            @Override public void forDimUnitDecl(DimUnitDecl d) {
                 NI.nyi();
             }
             @Override public void forTypeAlias(TypeAlias d) {
@@ -184,8 +178,8 @@ public class IndexBuilder {
                                                  functions, traits);
         components.put(NodeUtil.getName(ast.getDottedId()), comp);
     }
-    
-    
+
+
     /**
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
@@ -219,7 +213,7 @@ public class IndexBuilder {
                                                 dottedMethods, functionalMethods);
         traits.put(name, trait);
     }
-    
+
     /**
      * Create an ObjectTraitIndex and put it in the given map; add functional methods
      * to the given relation; create a constructor function or singleton variable and
@@ -239,7 +233,7 @@ public class IndexBuilder {
             new HashRelation<String, Method>(true, false);
         final Relation<String, FunctionalMethod> functionalMethods =
             new HashRelation<String, FunctionalMethod>(true, false);
-        
+
         Option<Constructor> constructor;
         if (ast.getParams().isPresent()) {
             for (Param p : ast.getParams().getVal()) {
@@ -253,7 +247,7 @@ public class IndexBuilder {
             constructor = Option.none();
             variables.put(name, new SingletonVariable(name));
         }
-        
+
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsVarDecl(AbsVarDecl d) {
                 buildFields(d, name, fields, getters, setters);
@@ -278,8 +272,8 @@ public class IndexBuilder {
                                                 dottedMethods, functionalMethods);
         traits.put(name, trait);
     }
-    
-    
+
+
     /**
      * Create a variable wrapper for each declared variable and add it to the given
      * map.
@@ -290,7 +284,7 @@ public class IndexBuilder {
             variables.put(b.getId().getName(), new DeclaredVariable(b));
         }
     }
-    
+
     /**
      * Create and add to the given maps implicit getters and setters for a trait's
      * abstract fields.
@@ -311,7 +305,7 @@ public class IndexBuilder {
             }
         }
     }
-    
+
     /**
      * Create field variables and add them to the given map; also create implicit
      * getters and setters.
@@ -334,8 +328,8 @@ public class IndexBuilder {
             }
         }
     }
-    
-    
+
+
     /**
      * Create a function wrapper for the declaration and put it in the given
      * relation.
@@ -344,7 +338,7 @@ public class IndexBuilder {
                                Relation<String, Function> functions) {
         functions.add(NodeUtil.getName(ast.getFnName()), new DeclaredFunction(ast));
     }
-    
+
     /**
      * Determine whether the given declaration is a getter, setter, coercion, dotted
      * method, or functional method, and add it to the appropriate map; also store
@@ -390,8 +384,8 @@ public class IndexBuilder {
             else { dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); }
         }
     }
-    
-    
+
+
     private ModifierSet extractModifiers(List<Modifier> mods) {
         final ModifierSet result = new ModifierSet();
         NodeAbstractVisitor_void handleMod = new NodeAbstractVisitor_void() {
@@ -442,8 +436,8 @@ public class IndexBuilder {
         for (Modifier m : mods) { m.accept(handleMod); }
         return result;
     }
-    
-    
+
+
     private static class ModifierSet {
         public boolean isVar = false;
         public boolean isHidden = false;
@@ -460,5 +454,5 @@ public class IndexBuilder {
         public boolean isTest = false;
         public boolean isValue = false;
     }
-    
+
 }

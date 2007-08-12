@@ -62,7 +62,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DimDecl;
+import com.sun.fortress.nodes.DimUnitDecl;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
@@ -89,7 +89,6 @@ import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TypeRef;
 import com.sun.fortress.nodes.BaseDimRef;
-import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
@@ -1329,14 +1328,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimDecl(com.sun.fortress.interpreter.nodes.DimDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimUnitDecl(com.sun.fortress.interpreter.nodes.DimUnitDecl)
      */
     @Override
-    public Voidoid forDimDecl(DimDecl x) {
+    public Voidoid forDimUnitDecl(DimUnitDecl x) {
         // TODO Auto-generated method stub
-        // Id id = x.getId();
-        // Option<TypeRef> derived;
-        // Option<TypeRef> default_;
 
         return null;
     }
@@ -1348,22 +1344,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      */
     @Override
     public Voidoid forBaseDimRef(BaseDimRef x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnitDecl(com.sun.fortress.interpreter.nodes.UnitDecl)
-     */
-    @Override
-    public Voidoid forUnitDecl(UnitDecl x) {
-        // List<Id> names;
-        // Option<TypeRef> type;
-        // Option<Expr> def;
-        // boolean si;
-
         // TODO Auto-generated method stub
         return null;
     }

@@ -89,6 +89,10 @@ public class NodeFactory {
         return new BaseOprRef(span, new Opr(span, op));
     }
 
+    public static BoolConstraintExpr makeBoolConstraintExpr(BoolConstraint bc) {
+        return new BoolConstraintExpr(bc.getSpan(), bc);
+    }
+
     public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
         return new ConstructorFnName(def.getSpan(), def);
     }
@@ -98,6 +102,35 @@ public class NodeFactory {
         return new Contract(new Span(), None.<List<Expr>> make(),
                             None.<List<EnsuresClause>> make(),
                             None.<List<Expr>> make());
+    }
+
+    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
+                                              Option<DimExpr> derived,
+                                              Option<Id> defaultId) {
+        return new DimUnitDecl(span, Some.<Id>make(dim), derived, defaultId,
+                               false, Collections.<Id>emptyList(),
+                               None.<Expr>make());
+    }
+
+    public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
+                                              String unit, List<Id> ids,
+                                              Option<Expr> def) {
+        boolean si_unit;
+        if (unit.equals("SI_unit")) si_unit = true;
+        else                        si_unit = false;
+        return new DimUnitDecl(span, None.<Id>make(), derived, None.<Id>make(),
+                               si_unit, ids, def);
+    }
+
+    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
+                                              Option<DimExpr> derived,
+                                              String unit, List<Id> ids,
+                                              Option<Expr> def) {
+        boolean si_unit;
+        if (unit.equals("SI_unit")) si_unit = true;
+        else                        si_unit = false;
+        return new DimUnitDecl(span, Some.<Id>make(dim), derived,
+                               None.<Id>make(), si_unit, ids, def);
     }
 
     public static DottedId makeDottedId(Span span, String s) {
@@ -311,6 +344,90 @@ public class NodeFactory {
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);
+    }
+
+    public static DimExpr makeInParentheses(DimExpr dim) {
+        return dim.accept(new NodeAbstractVisitor<DimExpr>() {
+            public DimExpr forBaseDim(BaseDim t) {
+                return new BaseDim(t.getSpan(), true);
+            }
+            public DimExpr forDimId(DimId t) {
+                return new DimId(t.getSpan(), true, t.getDottedId());
+            }
+            public DimExpr forProductDim(ProductDim t) {
+                return new ProductDim(t.getSpan(), true, t.getLeft(),
+                                      t.getRight());
+            }
+            public DimExpr forQuotientDim(QuotientDim t) {
+                return new QuotientDim(t.getSpan(), true, t.getNumerator(),
+                                       t.getDenominator());
+            }
+            public DimExpr forExponentDim(ExponentDim t) {
+                return new ExponentDim(t.getSpan(), true, t.getBase(),
+                                       t.getPower());
+            }
+            public DimExpr forOpDim(OpDim t) {
+                return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
+            }
+            public DimExpr defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of DimExpr.");
+            }
+        });
+    }
+
+    public static BoolExpr makeInParentheses(BoolExpr be) {
+        return be.accept(new NodeAbstractVisitor<BoolExpr>() {
+            public BoolExpr forTrueConstraint(TrueConstraint b) {
+                return new TrueConstraint(b.getSpan(), true);
+            }
+            public BoolExpr forFalseConstraint(FalseConstraint b) {
+                return new FalseConstraint(b.getSpan(), true);
+            }
+            public BoolExpr forBoolIdConstraint(BoolIdConstraint b) {
+                return new BoolIdConstraint(b.getSpan(), true, b.getDottedId());
+            }
+            public BoolExpr forBoolConstraintExpr(BoolConstraintExpr b) {
+                return new BoolConstraintExpr(b.getSpan(), true,
+                                              b.getConstraint());
+            }
+            public BoolExpr defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of BoolExpr.");
+            }
+        });
+    }
+
+    public static IntExpr makeInParentheses(IntExpr ie) {
+        return ie.accept(new NodeAbstractVisitor<IntExpr>() {
+            public IntExpr forNumberConstraint(NumberConstraint i) {
+                return new NumberConstraint(i.getSpan(), true, i.getVal());
+            }
+            public IntExpr forIntIdConstraint(IntIdConstraint i) {
+                return new IntIdConstraint(i.getSpan(), true, i.getDottedId());
+            }
+            public IntExpr forSumConstraint(SumConstraint i) {
+                return new SumConstraint(i.getSpan(), true, i.getLeft(),
+                                         i.getRight());
+            }
+            public IntExpr forMinusConstraint(MinusConstraint i) {
+                return new MinusConstraint(i.getSpan(), true, i.getLeft(),
+                                           i.getRight());
+            }
+            public IntExpr forProductConstraint(ProductConstraint i) {
+                return new ProductConstraint(i.getSpan(), true,
+                                             i.getMultiplier(),
+                                             i.getMultiplicand());
+            }
+            public IntExpr forExponentConstraint(ExponentConstraint i) {
+                return new ExponentConstraint(i.getSpan(), true, i.getBase(),
+                                              i.getPower());
+            }
+            public IntExpr defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                           " is not a subtype of IntExpr.");
+            }
+        });
     }
 
     public static TypeRef makeInParentheses(TypeRef ty) {

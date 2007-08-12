@@ -46,10 +46,7 @@ private Decl Decl =
    / ObjectDecl
    / VarDecl
    / FnDecl
-/* ************************************************
- * Not Yet Implemented ***************************
    / DimUnitDecl
-************************************************ */
    / TypeAlias
    / TestDecl
    / PropertyDecl
@@ -75,10 +72,7 @@ private AbsDecl AbsDecl =
    / AbsObjectDecl
    / AbsVarDecl
    / AbsFnDecl
-/* ************************************************
- * Not Yet Implemented ***************************
    / DimUnitDecl
-************************************************ */
    / TypeAlias
    / TestDecl
    / PropertyDecl

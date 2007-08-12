@@ -23,7 +23,7 @@ import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DimDecl;
+import com.sun.fortress.nodes.DimUnitDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
@@ -32,7 +32,6 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.BaseDimRef;
-import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.useful.Voidoid;
 
 
@@ -62,10 +61,10 @@ public class EvalVarsEnvironment extends BuildEnvironments {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forDimDecl(com.sun.fortress.interpreter.nodes.DimDecl)
+     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forDimUnitDecl(com.sun.fortress.interpreter.nodes.DimUnitDecl)
      */
     @Override
-    public Voidoid forDimDecl(DimDecl x) {
+    public Voidoid forDimUnitDecl(DimUnitDecl x) {
         return null;
 
     }
@@ -165,15 +164,6 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Voidoid forBaseDimRef(BaseDimRef x) {
-        return null;
-
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forUnitDecl(com.sun.fortress.interpreter.nodes.UnitDecl)
-     */
-    @Override
-    public Voidoid forUnitDecl(UnitDecl x) {
         return null;
 
     }
