@@ -42,7 +42,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
@@ -143,7 +143,7 @@ public class GenericMethod extends MethodClosure implements
     public Closure finishInitializing() {
         Applicable x = getDef();
         List<Param> params = x.getParams();
-        Option<TypeRef> rt = x.getReturnType();
+        Option<Type> rt = x.getReturnType();
         BetterEnv env = getEnv(); // should need this for types,
         // below.
         // TODO work in progress

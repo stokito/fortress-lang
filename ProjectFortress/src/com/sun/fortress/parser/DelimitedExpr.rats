@@ -226,18 +226,18 @@ private List<TypecaseClause> TypecaseClauses =
      a1:TypecaseClause a2s:(br TypecaseClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* TypecaseClause ::= TypecaseTypeRefs w => w BlockElems */
+/* TypecaseClause ::= TypecaseTypes w => w BlockElems */
 TypecaseClause TypecaseClause =
-     a1:TypecaseTypeRefs w match w a2:BlockElems
+     a1:TypecaseTypes w match w a2:BlockElems
      { yyValue = new TypecaseClause(createSpan(yyStart,yyCount), a1, a2); };
 
-/* TypecaseTypeRefs ::=
-     ( w TypeRefList w )
-   | TypeRef
+/* TypecaseTypes ::=
+     ( w TypeList w )
+   | Type
  */
-List<TypeRef> TypecaseTypeRefs =
-     openparen w TypeRefList w closeparen
-   / a1:TypeRef
+List<Type> TypecaseTypes =
+     openparen w TypeList w closeparen
+   / a1:Type
      { yyValue = FortressUtil.mkList(a1); };
 
 /* Catch ::= catch w Id w CatchClauses */

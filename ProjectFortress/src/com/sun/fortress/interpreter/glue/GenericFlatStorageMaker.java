@@ -52,7 +52,7 @@ import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.useful.Some;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;

@@ -83,7 +83,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
  *  - Option<Expr> getBody(Applicable)
  */
 interface Applicable(FnName fnName, List<StaticParam> staticParams,
-                     List<Param> params, Option<TypeRef> returnType,
+                     List<Param> params, Option<Type> returnType,
                      List<WhereClause> where) extends HasAt;
 
 /**
@@ -292,7 +292,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * variable declaration in APIs
          * AbsVarDecl ::= AbsVarMods? VarWTypes
-         *              | AbsVarMods? IdOrIdTuple : TypeRef ...
+         *              | AbsVarMods? IdOrIdTuple : Type ...
          *              | AbsVarMods? IdOrIdTuple : SimpleTupleType
          * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
          * VarWType ::= Id IsType
@@ -303,7 +303,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * variable declaration in components
          * VarDecl ::= VarMods? VarWTypes InitVal
          *           | VarMods? IdOrIdTuple = Expr
-         *           | VarMods? IdOrIdTuple : TypeRef ... InitVal
+         *           | VarMods? IdOrIdTuple : Type ... InitVal
          *           | VarMods? IdOrIdTuple : SimpleTupleType InitVal
          * InitVal ::= (= | :=) Expr
          * e.g.) var (x, y): ZZ64... = (5, 6)
@@ -316,7 +316,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * e.g.) var x: ZZ32
          */
-        LValueBind(Id id, Option<TypeRef> type = None.<TypeRef>make(),
+        LValueBind(Id id, Option<Type> type = None.<Type>make(),
                    List<Modifier> mods = Collections.<Modifier>emptyList(),
                    boolean mutable) implements LHS;
         /**
@@ -348,8 +348,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              List<StaticParam> staticParams
                                  = Collections.<StaticParam>emptyList(),
                              List<Param> params,
-                             Option<TypeRef> returnType
-                                 = None.<TypeRef>make(),
+                             Option<Type> returnType
+                                 = None.<Type>make(),
                              Option<List<TraitType>> throwsClause
                                  = None.<List<TraitType>>make(),
                              List<WhereClause> where
@@ -400,13 +400,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          *
          * Keyword ::= Param = Expr
          * PlainParam ::= Id IsType?
-         *              | TypeRef
+         *              | Type
          */
-        NormalParam(Option<TypeRef> type = None.<TypeRef>make(),
+        NormalParam(Option<Type> type = None.<Type>make(),
                     Option<Expr> defaultExpr = None.<Expr>make());
         /**
          * varargs parameter
-         * VarargsParam ::= Id : TypeRef ...
+         * VarargsParam ::= Id : Type ...
          */
         VarargsParam(VarargsType varargsType);
     /**
@@ -506,16 +506,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract Expr(boolean parenthesized = false);
         /**
          * type ascription expression
-         * Expr ::= Expr as TypeRef
+         * Expr ::= Expr as Type
          * e.g.) 3 as Number
          */
-        AsExpr(Expr expr, TypeRef type);
+        AsExpr(Expr expr, Type type);
         /**
          * type assumption expression
-         * Expr ::= Expr asif TypeRef
+         * Expr ::= Expr asif Type
          * e.g.) Empty asif List[\String\]
          */
-        AsIfExpr(Expr expr, TypeRef type);
+        AsIfExpr(Expr expr, Type type);
         /**
          * assignment expression
          * Expr ::= AssignLefts AssignOp Expr
@@ -724,7 +724,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                List<StaticParam> staticParams
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
-               Option<TypeRef> returnType = None.<TypeRef>make(),
+               Option<Type> returnType = None.<Type>make(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),
                Option<List<TraitType>> throwsClause
                    = None.<List<TraitType>>make(),
@@ -755,7 +755,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * LocalVarDecl ::= var? LocalVarWTypes InitVal
              *                | var? LocalVarWTypes
              *                | var? LocalVarWoTypes = Expr
-             *                | var? LocalVarWoTypes : TypeRef ... InitVal?
+             *                | var? LocalVarWoTypes : Type ... InitVal?
              *                | var? LocalVarWoTypes : SimpleTupleType InitVal?
              * LocalVarWTypes ::= LocalVarWType
              *                  | ( LocalVarWType(, LocalVarWType)+ )
@@ -986,16 +986,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             UnitRef(StaticArg val);
     /**
      * type
-     * TypeRef ::= ArrowType
+     * Type ::= ArrowType
      *           | NonArrowType
      */
-    abstract TypeRef(boolean parenthesized = false);
+    abstract Type(boolean parenthesized = false);
         /**
          * arrow type
          * ArrowType ::= NonArrowType -> NonArrowType Throws?
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
-        ArrowType(TypeRef domain, TypeRef range,
+        ArrowType(Type domain, Type range,
                   Option<List<TraitType>> throwsClause);
         /**
          * nonarrow type
@@ -1007,10 +1007,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             abstract TraitType();
                 /**
                  * array type
-                 * TraitType ::= TypeRef [ ArraySize? ]
+                 * TraitType ::= Type [ ArraySize? ]
                  * e.g.) ZZ64[3, 2]
                  */
-                ArrayType(TypeRef element, Indices indices);
+                ArrayType(Type element, Indices indices);
                 /**
                  * type name
                  * TraitType ::= DottedId
@@ -1019,11 +1019,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 IdType(DottedId dottedId);
                 /**
                  * matrix type
-                 * TraitType ::= TypeRef ^ StaticArg
-                 *             | TypeRef ^ ( ExtentRange (BY ExtentRange)* )
+                 * TraitType ::= Type ^ StaticArg
+                 *             | Type ^ ( ExtentRange (BY ExtentRange)* )
                  * e.g.)
                  */
-                MatrixType(TypeRef element, List<ExtentRange> dimensions);
+                MatrixType(Type element, List<ExtentRange> dimensions);
                 /**
                  * instantiated type
                  * TraitType ::= DottedId [\StaticArgList\]
@@ -1032,13 +1032,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 InstantiatedType(DottedId dottedId, List<StaticArg> args);
             /**
              * tuple type
-             * TupleType ::= ( (TypeRef, )* (TypeRef ... ,)? KeywordType(, KeywordType)* )
-             *             | ( (TypeRef, )*  TypeRef ... )
+             * TupleType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
+             *             | ( (Type, )*  Type ... )
              *             | SimpleTupleType
-             * SimpleTupleType ::= ( TypeRef, TypeRefList )
+             * SimpleTupleType ::= ( Type, TypeList )
              * e.g.)
              */
-            TupleType(List<TypeRef> elements,
+            TupleType(List<Type> elements,
                       Option<VarargsType> varargs = new None<VarargsType>(),
                       List<KeywordType> keywords
                           = Collections.<KeywordType>emptyList());
@@ -1060,39 +1060,39 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 DimRef(StaticArg val);
                 /**
                  * dimension multiplication
-                 * DimType ::= TypeRef DimRef
+                 * DimType ::= Type DimRef
                  * e.g.) Velocity Time
                  */
-                ProductDimType(TypeRef multiplier, DimRef multiplicand);
+                ProductDimType(Type multiplier, DimRef multiplicand);
                 /**
                  * dimension division
-                 * DimType ::= TypeRef / DimRef
-                 *           | TypeRef per DimRef
+                 * DimType ::= Type / DimRef
+                 *           | Type per DimRef
                  * e.g.) Velocity / Time
                  */
-                QuotientDimType(TypeRef numerator, DimRef denominator);
+                QuotientDimType(Type numerator, DimRef denominator);
                 /**
                  * unit multiplication
-                 * DimType ::= TypeRef UnitRef
+                 * DimType ::= Type UnitRef
                  * e.g.) m v^2
                  */
-                ProductUnitType(TypeRef multiplier, UnitRef multiplicand);
+                ProductUnitType(Type multiplier, UnitRef multiplicand);
                 /**
                  * unit division
-                 * DimType ::= TypeRef / UnitRef
-                 *           | TypeRef per UnitRef
+                 * DimType ::= Type / UnitRef
+                 *           | Type per UnitRef
                  * e.g.) meters/seconds
                  */
-                QuotientUnitType(TypeRef numerator, UnitRef denominator);
+                QuotientUnitType(Type numerator, UnitRef denominator);
                 /**
                  * dimension type conversion
-                 * DimType ::= TypeRef in DimRef
+                 * DimType ::= Type in DimRef
                  * e.g.) f/s in m/s
                  */
-                DimTypeConversion(TypeRef type, DimRef dim);
+                DimTypeConversion(Type type, DimRef dim);
         /**
          * static argument
-         * NOTE: StaticArg extends TypeRef because there seems to be an
+         * NOTE: StaticArg extends Type because there seems to be an
          * ambiguity here, since syntactically there is not a good way to tell
          * the products of typeargs for DimType and natargs for StaticArg
          */
@@ -1179,13 +1179,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  *             | StaticArg per StaticArg
                  * e.g.) kilograms per cubic meter
                  */
-                QuotientStaticArg(TypeRef numerator, TypeRef denominator);
+                QuotientStaticArg(Type numerator, Type denominator);
                 /**
                  * exponentiation of static arguments
                  * StaticArg ::= StaticArg ^ StaticArg
                  * e.g.) Length ^ 3
                  */
-                ExponentStaticArg(TypeRef base, TypeRef power);
+                ExponentStaticArg(Type base, Type power);
                 /**
                  * static argument with dimension operation
                  * StaticArg ::= DUPreOp StaticArg
@@ -1195,13 +1195,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 DimensionStaticArg(StaticArg val, DimUnitOp op);
             /**
              * type as static argument
-             * StaticArg ::= TypeRef
+             * StaticArg ::= Type
              * e.g.) List[\ZZ64\]
              */
-            TypeArg(TypeRef type);
+            TypeArg(Type type);
     /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where { WhereClauseList }
+     * CoercionWhere ::= where { CoercionWhereClauseList }
      * e.g.) where { ninf AND NOT nan }
      */
     abstract WhereClause();
@@ -1213,13 +1214,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereExtends(Id id, List<TraitType> supers);
         /**
          * type alias declaration
-         * TypeAlias ::= type Id StaticParams? = TypeRef
+         * TypeAlias ::= type Id StaticParams? = Type
          * e.g.) type IntList = List[\ZZ64\]
          */
         TypeAlias(Id id,
                   List<StaticParam> staticParams
                       = Collections.<StaticParam>emptyList(),
-                  TypeRef type)
+                  Type type)
                  implements Decl, AbsDecl;
         /**
          * nat parameter declared in where clauses
@@ -1247,22 +1248,22 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereUnit(Id id);
         /**
          * coercion constraint declared in where clauses
-         * WhereClause ::= TypeRef coerces TypeRef
+         * WhereClause ::= Type coerces Type
          * e.g.) T coerces Identity[\ODOT\]
          */
-        WhereCoerces(TypeRef left, TypeRef right);
+        WhereCoerces(Type left, Type right);
         /**
          * widening constraint declared in where clauses
-         * WhereClause ::= TypeRef widens TypeRef
+         * WhereClause ::= Type widens Type
          * e.g.) T widens S
          */
-        WhereWidens(TypeRef left, TypeRef right);
+        WhereWidens(Type left, Type right);
         /**
          * widening coercion constraint declared in where clauses
-         * WhereClause ::= TypeRef widens or coerces TypeRef
+         * CoercionWhereClause ::= Type widens or coerces Type
          * e.g.) T widens or coerces S
          */
-        WhereWidensCoerces(TypeRef left, TypeRef right);
+        WhereWidensCoerces(Type left, Type right);
         /**
          * DootedId equality constraint declared in where clauses
          * WhereClause ::= DottedId = DottedId
@@ -1703,12 +1704,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     IfClause(Expr test, Block body);
     /**
      * typecase clause used in typecase expressions
-     * TypecaseClause ::= TypecaseTypeRefs => BlockElems
-     * TypecaseTypeRefs ::= ( TypeRefList )
-     *                    | TypeRef
+     * TypecaseClause ::= TypecaseTypes => BlockElems
+     * TypecaseTypes ::= ( TypeList )
+     *                    | Type
      * e.g.) String => x.append("foo")
      */
-    TypecaseClause(List<TypeRef> match, Block body);
+    TypecaseClause(List<Type> match, Block body);
     /**
      * key/value pair used in map expressions and map comprehensions
      * Entry ::= Expr |-> Expr
@@ -1754,10 +1755,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         FixedDim(List<ExtentRange> extents);
     /**
      * keyword type used in tuple types
-     * KeywordType ::= Id = TypeRef
+     * KeywordType ::= Id = Type
      * e.g.) x = String
      */
-    KeywordType(Id id, TypeRef type);
+    KeywordType(Id id, Type type);
     /**
      * operator on dimensions and units
      * DUPreOp ::= square | cubic | inverse
@@ -1785,8 +1786,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     VarargsExpr(Expr varargs);
     /**
      * varargs type used in tuple types and varargs parameters
-     * TypeRef ...
+     * Type ...
      * e.g.) ZZ32...
      */
-    VarargsType(TypeRef type);
+    VarargsType(Type type);
 end;

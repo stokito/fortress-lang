@@ -131,12 +131,12 @@ public class ExprFactory {
 
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
-        return makeFnExpr(span, params, None.<TypeRef>make(),
+        return makeFnExpr(span, params, None.<Type>make(),
                           None.<List<TraitType>>make(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
-                                    Option<TypeRef> returnType,
+                                    Option<Type> returnType,
                                     Option<List<TraitType>> throwsClause,
                                     Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
@@ -232,11 +232,11 @@ public class ExprFactory {
     public static VarRef makeVarRef(Span span, String s) {
         return new VarRef(span, false, NodeFactory.makeDottedId(span, s));
     }
-    
+
     public static VarRef makeVarRef(Span span, Id id) {
         return new VarRef(span, false, NodeFactory.makeDottedId(span, id));
     }
-    
+
     /**
      * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
      * as the name of a field.  Assumes {@code v} wraps a list of at least 2 ids.
@@ -253,7 +253,7 @@ public class ExprFactory {
     public static VoidLiteral makeVoidLiteral(Span span) {
         return new VoidLiteral(span, false, "");
     }
-    
+
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
                          BATree<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =

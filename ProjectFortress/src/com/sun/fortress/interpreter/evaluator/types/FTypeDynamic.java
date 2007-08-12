@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Useful;
 
@@ -50,11 +50,11 @@ public class FTypeDynamic extends FType {
 
     /*
      * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
-     *      com.sun.fortress.interpreter.nodes.TypeRef)
+     *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         return true;
     }
 

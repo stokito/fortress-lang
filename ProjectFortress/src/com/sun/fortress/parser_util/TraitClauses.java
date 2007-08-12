@@ -24,7 +24,7 @@ import java.util.List;
 
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.None;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.interpreter.evaluator.ProgramError;

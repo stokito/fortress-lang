@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
 
@@ -38,11 +38,11 @@ public class ProperTraitIndex extends TraitIndex {
     }
     
     
-    public Set<TypeRef> excludesTypes() {
+    public Set<Type> excludesTypes() {
         return NI.nyi();
     }
     
-    public Set<TypeRef> comprisesTypes() {
+    public Set<Type> comprisesTypes() {
         return NI.nyi();
     }
     

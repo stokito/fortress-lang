@@ -637,7 +637,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public void putType(String str, FType f2) {
-        type_env = put(type_env, str, f2, "TypeRef");
+        type_env = put(type_env, str, f2, "Type");
     }
 
     public void putType(DottedId d, FType x) {

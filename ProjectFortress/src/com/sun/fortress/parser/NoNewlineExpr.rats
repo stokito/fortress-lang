@@ -31,8 +31,8 @@ import Spacing;
    | DelimitedExpr
    | NoNewlineFlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
-   | NoNewlineExpr s as w TypeRef
-   | NoNewlineExpr s asif w TypeRef
+   | NoNewlineExpr s as w Type
+   | NoNewlineExpr s asif w Type
    | NoNewlineUnitExpr
    NoNewlineUnitExpr ::=
      UnitRef
@@ -74,7 +74,7 @@ Action<Expr> ExprTail :=
    ;
 
 inline Action<Expr> NoNewlineAs =
-     s as w a1:TypeRef
+     s as w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
@@ -82,7 +82,7 @@ inline Action<Expr> NoNewlineAs =
      };
 
 inline Action<Expr> NoNewlineAsIf =
-     s asif w a1:TypeRef
+     s asif w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);

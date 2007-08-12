@@ -35,7 +35,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;
@@ -215,7 +215,7 @@ abstract public class FTraitOrObject extends FType {
      * implement GenericTypeInstance.  They should override
      * unifyNonVar with a call to this method.
      */
-    protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+    protected final boolean unifyNonVarGeneric(BetterEnv e, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify GT/O  "+this+" and "+val + " abm= " + abm);
         if (!(val instanceof InstantiatedType)) {
@@ -228,7 +228,7 @@ abstract public class FTraitOrObject extends FType {
             return false;
         }
         Iterator<StaticArg> val_args_iterator = pt.getArgs().iterator();
-        TypeRef a = null;
+        Type a = null;
         FType t = null;
         try {
             for (FType param_ftype: getTypeParams()) {

@@ -348,7 +348,7 @@ class LeafEnv extends CommonEnv {
         deDot(d).putApi(last(d), x);
      }
 
-    /* TypeRef names take the form ID or Api.ID */
+    /* Type names take the form ID or Api.ID */
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.Environment#getType(com.sun.fortress.interpreter.nodes.DottedId)
      */

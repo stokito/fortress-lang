@@ -50,7 +50,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
@@ -122,7 +122,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             if (ft != null) {
                 // Check that variable can receive type
                 if (!ft.typeMatch(value)) {
-                    String m = errorMsg("TypeRef mismatch assigning ", value, " (type ",
+                    String m = errorMsg("Type mismatch assigning ", value, " (type ",
                                         value.type(), ") to ", s, " (type ", ft, ")");
                     throw new ProgramError(x, e, m);
                 }
@@ -157,7 +157,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
     public Voidoid forLValueBind(LValueBind x) {
         Id name = x.getId();
-        Option<TypeRef> type = x.getType();
+        Option<Type> type = x.getType();
         String s = name.getName();
         boolean mutable = x.isMutable();
 
@@ -168,7 +168,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             FType outerType = null;
             // Perhaps the LHS has a type?
             if (type.isPresent()) {
-                TypeRef t = type.getVal();
+                Type t = type.getVal();
                 outerType = EvalType.getFType(t, evaluator.e);
 
 //                if (outerType instanceof FAggregateType) {
@@ -245,7 +245,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             // Perhaps the LHS has a type?
             try {
                 if (type.isPresent()) {
-                    TypeRef t = type.getVal();
+                    Type t = type.getVal();
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);

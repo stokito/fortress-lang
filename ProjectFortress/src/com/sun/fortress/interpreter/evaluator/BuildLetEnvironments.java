@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
@@ -68,7 +68,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             //Expr expr = fn.getBody();
             String fname = NodeUtil.getName(name);
             List<Param> params = fn.getParams();
-            Option<TypeRef> retType = fn.getReturnType();
+            Option<Type> retType = fn.getReturnType();
 
             Closure cl = new Closure(containing, fn);
             try {

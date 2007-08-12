@@ -79,7 +79,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.useful.BATree;
@@ -787,7 +787,7 @@ public class Disambiguate extends Rewrite {
             Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
             Set<AbstractNode> visited) {
 
-            for (TypeRef t : xtends) {
+            for (Type t : xtends) {
                 List<Id> names = new ArrayList<Id>();
                 // First de-parameterize the type
                 if (t instanceof InstantiatedType) {
@@ -833,9 +833,9 @@ public class Disambiguate extends Rewrite {
                              * Consequently we leave it commented out
                              * for the moment.
                              */
-                            // throw new ProgramError(t,"TypeRef extends non-visible entity " + s);
+                            // throw new ProgramError(t,"Type extends non-visible entity " + s);
                         } else {
-                            NI.nyi("TypeRef extends something unknown " + s + " = " + th);
+                            NI.nyi("Type extends something unknown " + s + " = " + th);
                         }
                     } else {
                         NI.nyi("General dotted name");

@@ -27,13 +27,13 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* IsType ::= : w TypeRef */
-TypeRef IsType = colon w TypeRef ;
+/* IsType ::= : w Type */
+Type IsType = colon w Type ;
 
 /* NonArrowType, TraitType, and DimType are mutually left recursive.
    We've inlined them into each other and removed the left recursion. */
-/* TypeRef ::=
-     ( w TypeRef w )
+/* Type ::=
+     ( w Type w )
    | ArrowType
    | NonArrowType
 
@@ -47,39 +47,39 @@ TypeRef IsType = colon w TypeRef ;
 
    TraitType ::=
      DottedId (w [\ w StaticArgList w \])?
-   | TypeRef w [ (w ArraySize)? w ]
-   | TypeRef ^ StaticArgFront
-   | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
+   | Type w [ (w ArraySize)? w ]
+   | Type ^ StaticArgFront
+   | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
 
    DimType ::=
      DimRef
-   | TypeRef sr DimRef
-   | TypeRef w . w DimRef
-   | TypeRef w / w DimRef
-   | TypeRef w per w DimRef
-   | TypeRef sr UnitRef
-   | TypeRef w . w UnitRef
-   | TypeRef w / w UnitRef
-   | TypeRef w per w UnitRef
-   | TypeRef w in w DimRef
+   | Type sr DimRef
+   | Type w . w DimRef
+   | Type w / w DimRef
+   | Type w per w DimRef
+   | Type sr UnitRef
+   | Type w . w UnitRef
+   | Type w / w UnitRef
+   | Type w per w UnitRef
+   | Type w in w DimRef
  */
-constant transient TypeRef TypeRef =
-     seed:TypeRefFront list:TypeRefTail*
-     { yyValue = (TypeRef)apply(list, seed); };
+constant transient Type Type =
+     seed:TypeFront list:TypeTail*
+     { yyValue = (Type)apply(list, seed); };
 
-private TypeRef TypeRefFront =
-     openparen w a1:TypeRef w closeparen
+private Type TypeFront =
+     openparen w a1:Type w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); }
-   / a1:TypeRefFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
+   / a1:TypeFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
      { Option<List<TraitType>> throws_;
        if (a3 == null) throws_ = None.<List<TraitType>>make();
        else            throws_ = Some.<List<TraitType>>make(a3);
        yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount), a1, a2,
                                            throws_);
      }
-   / TypeRefFrontNonArrow ;
+   / TypeFrontNonArrow ;
 
-private NonArrowType TypeRefFrontNonArrow =
+private NonArrowType TypeFrontNonArrow =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
@@ -88,16 +88,16 @@ private NonArrowType TypeRefFrontNonArrow =
    / openparen w closeparen
      { yyValue = new VoidType(createSpan(yyStart,yyCount)); };
 
-private constant transient Action<TypeRef> TypeRefTail =
+private constant transient Action<Type> TypeTail =
      w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                Option<FixedDim> indices;
                if (a1 == null) indices = None.<FixedDim>make();
                else            indices = Some.<FixedDim>make(a1);
                NonArrowType ty =
                    NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                             (TypeRef)base, indices);
+                                             (Type)base, indices);
                if (a2 == null) return ty;
                else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
                                                      ty, a2.getRange(),
@@ -105,13 +105,13 @@ private constant transient Action<TypeRef> TypeRefTail =
            }};
      }
    / caret a1:StaticArgFront a2:ArrowTypeTail?
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                ExtentRange er = new ExtentRange(None.<StaticArg>make(),
                                                 Some.<StaticArg>make(a1));
                NonArrowType ty =
                    NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                              (TypeRef)base, er);
+                                              (Type)base, er);
                if (a2 == null) return ty;
                else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
                                                      ty, a2.getRange(),
@@ -120,11 +120,11 @@ private constant transient Action<TypeRef> TypeRefTail =
      }
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      a3:ArrowTypeTail?
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                NonArrowType ty =
                    NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                              (TypeRef)base,a1,a2s.list());
+                                              (Type)base,a1,a2s.list());
 
                if (a3 == null) return ty;
                else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
@@ -164,28 +164,28 @@ private NonArrowType NonArrowType =
 
 /* TraitType ::=
      DottedId (w [\ w StaticArgList w \])?
-   | TypeRef [ (w ArraySize)? w ]
-   | TypeRef ^ StaticArgFront
-   | TypeRef ^ ( w ExtentRange (w x w ExtentRange)* w )
+   | Type [ (w ArraySize)? w ]
+   | Type ^ StaticArgFront
+   | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 TraitType TraitType =
      a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      }
-   / a1:TypeRef w opensquare a2:(w ArraySize)? w closesquare
+   / a1:Type w opensquare a2:(w ArraySize)? w closesquare
      { Option<FixedDim> indices;
        if (a2 == null) indices = None.<FixedDim>make();
        else            indices = Some.<FixedDim>make(a2);
        yyValue = NodeFactory.makeArrayType(createSpan(yyStart,yyCount), a1,
                                            indices);
      }
-   / a1:TypeRef caret a2:StaticArgFront
+   / a1:Type caret a2:StaticArgFront
      { ExtentRange er = new ExtentRange(None.<StaticArg>make(),
                                         Some.<StaticArg>make(a2));
        yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),a1,er);
      }
-   / a1:TypeRef caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
+   / a1:Type caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
      closeparen
      { yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount), a1, a2,
                                             a3s.list());
@@ -193,89 +193,89 @@ TraitType TraitType =
 
 /* ************************************************
  * Not Yet Implemented ***************************
-private constant inline Action<TypeRef> ProductDimType =
+private constant inline Action<Type> ProductDimType =
      sr a1:DimRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new ProductDimType(createSpan(yyStart,yyCount),
-                                         (TypeRef)base, a1);
+                                         (Type)base, a1);
            }};
      }
    / w "DOT":op w a1:DimRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new ProductDimType(createSpan(yyStart,yyCount),
-                                         (TypeRef)base, a1);
+                                         (Type)base, a1);
            }};
      };
 
-private constant inline Action<TypeRef> QuotientDimType =
+private constant inline Action<Type> QuotientDimType =
      w "slash":op w a1:DimRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new QuotientDimType(createSpan(yyStart,yyCount),
-                                          (TypeRef)base, a1);
+                                          (Type)base, a1);
            }};
      }
    / w "per":op w a1:DimRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new QuotientDimType(createSpan(yyStart,yyCount),
-                                          (TypeRef)base, a1);
+                                          (Type)base, a1);
            }};
      };
 
-private constant inline Action<TypeRef> ProductUnitType =
+private constant inline Action<Type> ProductUnitType =
      sr a1:UnitRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new ProductUnitType(createSpan(yyStart,yyCount),
-                                          (TypeRef)base, a1);
+                                          (Type)base, a1);
            }};
      }
    / w "DOT":op w a1:UnitRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new ProductUnitType(createSpan(yyStart,yyCount),
-                                          (TypeRef)base, a1);
+                                          (Type)base, a1);
            }};
      };
 
-private constant inline Action<TypeRef> QuotientUnitType =
+private constant inline Action<Type> QuotientUnitType =
      w "slash":op w a1:UnitRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new QuotientUnitType(createSpan(yyStart,yyCount),
-                                           (TypeRef)base, a1);
+                                           (Type)base, a1);
            }};
      }
    / w "per":op w a1:UnitRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new QuotientUnitType(createSpan(yyStart,yyCount),
-                                           (TypeRef)base, a1);
+                                           (Type)base, a1);
            }};
      };
 ************************************************ */
 
-private constant inline Action<TypeRef> DimTypeConversion =
+private constant inline Action<Type> DimTypeConversion =
      w "in":op w a1:DimRef
-     { yyValue = new Action<TypeRef>() {
-           public TypeRef run(TypeRef base) {
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
                return new DimTypeConversion(createSpan(yyStart,yyCount),
-                                            (TypeRef)base, a1);
+                                            (Type)base, a1);
            }};
      };
 
 /* TupleType ::=
-     ( w (TypeRef w , w)* (TypeRef w ... w , w)? KeywordType (w , w KeywordType)* w )
-   | ( w (TypeRef w , w)* TypeRef w ... w )
+     ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
+   | ( w (Type w , w)* Type w ... w )
    | SimpleTupleType
  */
-TypeRef TupleType =
-     openparen w a1s:(TypeRef w comma w)* a2:(TypeRef w ellipses w comma w)?
+Type TupleType =
+     openparen w a1s:(Type w comma w)* a2:(Type w ellipses w comma w)?
        a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
-     { List<TypeRef>   ts1 = a1s.list();
+     { List<Type>   ts1 = a1s.list();
        Option<VarargsType> ts2 = ((a2 != null)?
                                    Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount), a2)) :
                                    None.<VarargsType>make());
@@ -283,48 +283,48 @@ TypeRef TupleType =
        ts3.add(0, a3);
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2, ts3);
      }
-   / openparen w a1s:(TypeRef w comma w)* a2:TypeRef w ellipses w closeparen
-     { List<TypeRef> ts1 = FortressUtil.mkList(a1s.list());
+   / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
+     { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Option<VarargsType> ts2 = Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount), a2));
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts1, ts2);
      }
    / SimpleTupleType ;
 
-/* KeywordType ::= Id w = w TypeRef */
-private KeywordType KeywordType = a1:Id w equals w a2:TypeRef
+/* KeywordType ::= Id w = w Type */
+private KeywordType KeywordType = a1:Id w equals w a2:Type
      { yyValue = new KeywordType(createSpan(yyStart,yyCount), a1, a2); };
 
-/* SimpleTupleType ::= ( w TypeRef w , w TypeRefList w ) */
+/* SimpleTupleType ::= ( w Type w , w TypeList w ) */
 TupleType SimpleTupleType =
-     openparen w a1:TypeRef w comma w a2:TypeRefList w closeparen
-     { List<TypeRef> ts = FortressUtil.mkList(a1, a2);
+     openparen w a1:Type w comma w a2:TypeList w closeparen
+     { List<Type> ts = FortressUtil.mkList(a1, a2);
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts,
                                            None.<VarargsType>make());
      };
 
-/* TypeRefList ::= TypeRef (w , w TypeRef)* */
-List<TypeRef> TypeRefList = a1:TypeRef a2s:(w comma w TypeRef)*
+/* TypeList ::= Type (w , w Type)* */
+List<Type> TypeList = a1:Type a2s:(w comma w Type)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* DimType ::=
      DimRef
-   | TypeRef sr DimRef
-   | TypeRef w . w DimRef
-   | TypeRef w / w DimRef
-   | TypeRef w per w DimRef
-   | TypeRef sr UnitRef
-   | TypeRef w . w UnitRef
-   | TypeRef w / w UnitRef
-   | TypeRef w per w UnitRef
-   | TypeRef w in w DimRef
+   | Type sr DimRef
+   | Type w . w DimRef
+   | Type w / w DimRef
+   | Type w per w DimRef
+   | Type sr UnitRef
+   | Type w . w UnitRef
+   | Type w / w UnitRef
+   | Type w per w UnitRef
+   | Type w in w DimRef
  */
 /* ************************************************
  * Not Yet Implemented ***************************
 private DimType DimType =
-     seed:DimTypeFront list:TypeRefTail*
+     seed:DimTypeFront list:TypeTail*
      { yyValue = (DimType)apply(list, seed); };
 
-private TypeRef DimTypeFront =
+private Type DimTypeFront =
      a1:DimRef
 ************************************************ */
 
@@ -430,7 +430,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | StaticArg w AND w StaticArg
    | StaticArg w IMPLIES w StaticArg
    | StaticArg w = w StaticArg
-   | TypeRef
+   | Type
    | ( StaticArg )
  */
 private StaticArg StaticArg =
@@ -459,7 +459,7 @@ private StaticArg StaticArgFront =
      { yyValue = new DimensionStaticArg(createSpan(yyStart,yyCount), a2, a1); }
    / "NOT":op w a1:StaticArg
      { yyValue = new NotBoolRef(createSpan(yyStart,yyCount), a1); }
-   / a1:TypeRef
+   / a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
    / openparen StaticArg closeparen;
 
@@ -497,7 +497,7 @@ private constant inline Action<StaticArg> QuotientStaticArg =
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
                return new QuotientStaticArg(createSpan(yyStart,yyCount),
-                                            (TypeRef)base, a1);
+                                            (Type)base, a1);
            }};
      };
 
@@ -506,7 +506,7 @@ private constant inline Action<StaticArg> ExponentStaticArg =
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
                return new ExponentStaticArg(createSpan(yyStart,yyCount),
-                                            (TypeRef)base, a1);
+                                            (Type)base, a1);
            }};
      };
 

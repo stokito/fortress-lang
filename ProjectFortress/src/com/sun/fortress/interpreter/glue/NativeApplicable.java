@@ -28,7 +28,7 @@ import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
@@ -57,7 +57,7 @@ public class NativeApplicable implements Applicable {
         return NI.ni();
     }
 
-    public Option<TypeRef> getReturnType() {
+    public Option<Type> getReturnType() {
         // TODO Auto-generated method stub
         return NI.ni();
     }

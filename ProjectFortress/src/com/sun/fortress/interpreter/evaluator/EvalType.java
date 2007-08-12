@@ -59,7 +59,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return ___evalIndices;
     }
 
-    public FType evalType(TypeRef t) {
+    public FType evalType(Type t) {
         return t.accept(this);
     }
 
@@ -67,32 +67,32 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return forDottedId(t);
     }
 
-    public static FType getFTypeFromOption(Option<TypeRef> t, BetterEnv e) {
+    public static FType getFTypeFromOption(Option<Type> t, BetterEnv e) {
         if (t.isPresent())
             return getFType(t.getVal(), e);
         else
             return FTypeDynamic.ONLY;
     }
 
-    public  FType getFTypeFromOption(Option<TypeRef> t) {
+    public  FType getFTypeFromOption(Option<Type> t) {
         if (t.isPresent())
             return getFType(t.getVal());
         else
             return FTypeDynamic.ONLY;
     }
 
-    public static FType getFTypeFromList(List<TypeRef> l, BetterEnv e) {
+    public static FType getFTypeFromList(List<Type> l, BetterEnv e) {
         return getFTypeFromList(l, new EvalType(e));
     }
 
-    public static FType getFTypeFromList(List<TypeRef> l,  EvalType et) {
+    public static FType getFTypeFromList(List<Type> l,  EvalType et) {
         if (l.size() == 1) {
             return l.get(0).accept(et);
         }
         return FTypeTuple.make(getFTypeListFromNonEmptyList(l, et));
     }
 
-    public static List<FType> getFTypeListFromList(List<? extends TypeRef> l, BetterEnv e) {
+    public static List<FType> getFTypeListFromList(List<? extends Type> l, BetterEnv e) {
         EvalType et = new EvalType(e);
         return et.getFTypeListFromList(l);
     }
@@ -107,7 +107,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
 
-    public List<FType> getFTypeListFromList(List<? extends TypeRef> l) {
+    public List<FType> getFTypeListFromList(List<? extends Type> l) {
         if (l == null || l.size() == 1 && (l.get(0) instanceof VoidType)) {
             // Flatten out voids.
             // Should this be mutable?
@@ -117,17 +117,17 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return getFTypeListFromNonEmptyList(l, this);
     }
 
-    private static List<FType> getFTypeListFromNonEmptyList(List<? extends TypeRef> l, EvalType et) {
+    private static List<FType> getFTypeListFromNonEmptyList(List<? extends Type> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
-        for (TypeRef t : l) a.add(t.accept(et));
+        for (Type t : l) a.add(t.accept(et));
         return a;
     }
 
-    public static FType getFType(TypeRef t, BetterEnv e) {
+    public static FType getFType(Type t, BetterEnv e) {
         return t.accept(new EvalType(e));
     }
 
-    public  FType getFType(TypeRef t) {
+    public  FType getFType(Type t) {
         return t.accept(this);
     }
 
@@ -157,7 +157,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             String pname = id.getName();
             FType ptype;
             if (in_p instanceof NormalParam) {
-                Option<TypeRef> type = ((NormalParam)in_p).getType();
+                Option<Type> type = ((NormalParam)in_p).getType();
                 ptype = e.getFTypeFromOption(type);
             }
             else { // in_p instanceof VarargsParam
@@ -287,11 +287,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
          }
     }
 
-    public ArrayList<FType> forStaticArgList(List<? extends TypeRef> args) {
+    public ArrayList<FType> forStaticArgList(List<? extends Type> args) {
         ArrayList<FType> argValues = new ArrayList<FType>(args.size());
 
         for (int i = 0; i < args.size(); i++) {
-            TypeRef a = args.get(i);
+            Type a = args.get(i);
             FType t = a.accept(this);
             argValues.add(t);
         }
@@ -364,7 +364,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forProductStaticArg(ProductStaticArg x) {
-        List<? extends TypeRef> value = x.getValues();
+        List<? extends Type> value = x.getValues();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
             a *= longify(value.get(i));
@@ -372,13 +372,13 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return IntNat.make(a);
     }
 
-    private long nonEmpty(List<? extends TypeRef> value) {
+    private long nonEmpty(List<? extends Type> value) {
         if (value.size() == 0)
             throw new ProgramError(errorMsg("Empty operands to nat arithmetic"));
         return longify(value.get(0));
     }
 
-    private long longify(TypeRef type) {
+    private long longify(Type type) {
         FType t = type.accept(this);
         if (!(t instanceof IntNat)) {
             throw new ProgramError(type,
@@ -392,7 +392,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forSumStaticArg(SumStaticArg x) {
-        List<? extends TypeRef> value = x.getValues();
+        List<? extends Type> value = x.getValues();
         long a = nonEmpty(value);
         for (int i = 1; i < value.size(); i++) {
             a += longify(value.get(i));
@@ -468,8 +468,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     TypeRange extentRangeToTypeRange(ExtentRange extent) {
 
-        Option<? extends TypeRef> b = extent.getBase();
-        Option<? extends TypeRef> s = extent.getSize();
+        Option<? extends Type> b = extent.getBase();
+        Option<? extends Type> s = extent.getSize();
         FTypeNat natB, natS;
         if (b.isPresent()) {
             FType bt = b.getVal().accept(this);

@@ -40,11 +40,11 @@ Block BlockElems =
      a1:BlockElem br a2:BlockElems
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1, a2)); }
    / a1:BlockElem
-     &(w Elifs / w Else / br CaseClause / br TypecaseTypeRefs / br CaseElse
+     &(w Elifs / w Else / br CaseClause / br TypecaseTypes / br CaseElse
      / w end / w Catch / w forbid / w finally / w closeparen)
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); }
    / a1:BlockElem w semicolon
-     &(w Elifs / w Else / w CaseClause / w TypecaseTypeRefs / w CaseElse
+     &(w Elifs / w Else / w CaseClause / w TypecaseTypes / w CaseElse
      / w end / w Catch / w forbid / w finally / w closeparen)
      { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); };
 
@@ -83,12 +83,12 @@ private FnDef LocalFnDecl =
      (var w)? LocalVarWTypes s InitVal
    | (var w)? LocalVarWTypes
    | (var w)? LocalVarWoTypes s = s NoNewlineExpr
-   | (var w)? LocalVarWoTypes s : s TypeRef s ... (s InitVal)?
+   | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
    | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
    LocalVarWTypes ::=
      LocalVarWType
    | ( w LocalVarWType (w , w LocalVarWType)+ w )
-   LocalVarWType ::= Id s : s TypeRef
+   LocalVarWType ::= Id s : s Type
    LocalVarWoTypes ::=
      LocalVarWoType
    | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
@@ -114,7 +114,7 @@ LocalVarDecl LocalVarDecl =
                                                           createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
      }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:TypeRef s ellipses a4:(s InitVal)?
+   / a1:(var w)? a2:VarWoTypes s colon s a3:Type s ellipses a4:(s InitVal)?
      { Option<Expr> init;
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
@@ -135,7 +135,7 @@ LocalVarDecl LocalVarDecl =
      }
    / a1:(var w)? a2:VarWoTypes s colon s a3:SimpleTupleType a4:(s InitVal)?
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a3.getElements();
+       List<Type> tys = a3.getElements();
        Option<Expr> init;
        if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
@@ -157,7 +157,7 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      };
 
-LValueBind VarWType := a1:Id s colon s a2:TypeRef
+LValueBind VarWType := a1:Id s colon s a2:Type
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* VarWoTypes ::=

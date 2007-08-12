@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.StringMaker;

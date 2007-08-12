@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -175,7 +175,7 @@ public abstract class SingleFcn extends Fcn {
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
                 String we_name = we.getId().getName();
-                // List<TypeRef> we_supers = we.getSupers();
+                // List<Type> we_supers = we.getSupers();
                 if (ge.getTypeNull(we_name) == null) {
                     // Add name
                     SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge);

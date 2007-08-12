@@ -50,7 +50,7 @@ AbsFnDecl FnSig =
        final List<Param>  params = FortressUtil.emptyParams();
 
        a2.getDomain().accept(new NodeAbstractVisitor_void() {
-           public void forTypeRef(TypeRef that) {
+           public void forType(Type that) {
                params.add(NodeFactory.makeParam(that.getSpan(), mods,
                                                 new Id(that.getSpan(), "_"), that));
            }
@@ -64,7 +64,7 @@ AbsFnDecl FnSig =
                assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
            }
            public void defaultCase(Node that) {
-               throw new RuntimeException("Node expected to be a TypeRef; was: "
+               throw new RuntimeException("Node expected to be a Type; was: "
                                           + that);
            }
        });

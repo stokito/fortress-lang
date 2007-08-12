@@ -76,8 +76,8 @@ DimUnitDecl DimUnitDecl =
                                              derived, a1, ids, def);
      };
 
-/* TypeAlias ::= type w Id (w StaticParams)? w = w TypeRef */
-TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:TypeRef
+/* TypeAlias ::= type w Id (w StaticParams)? w = w Type */
+TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:Type
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
      };

@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
@@ -104,7 +104,7 @@ public class Closure extends NonPrimitive implements Scope {
         setParamsAndReturnType(method.getParams(), method.returnType);
     }
 
-//    public Closure(BetterEnv e, FnExpr x, Option<TypeRef> return_type,
+//    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,
 //            List<Param> params) {
 //        super(e);
 //        def = NativeApp.checkAndLoadNative(x);
@@ -192,7 +192,7 @@ public class Closure extends NonPrimitive implements Scope {
         // This needs to be done right with a generic.
         Applicable x = getDef();
         List<Param> params = x.getParams();
-        Option<TypeRef> rt = x.getReturnType();
+        Option<Type> rt = x.getReturnType();
         BetterEnv env = getEvalEnv(); // should need this for types,
                                     // below.
         FType ft = EvalType.getFTypeFromOption(rt, env);

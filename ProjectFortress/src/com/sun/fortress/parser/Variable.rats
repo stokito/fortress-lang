@@ -32,7 +32,7 @@ import Spacing;
 /* VarDecl ::=
      VarMods? VarWTypes w InitVal
    | VarMods? IdOrIdTuple w = w NoNewlineExpr
-   | VarMods? IdOrIdTuple w : w TypeRef w ... w InitVal
+   | VarMods? IdOrIdTuple w : w Type w ... w InitVal
    | VarMods? IdOrIdTuple w : w SimpleTupleType w InitVal
  */
 VarDecl VarDecl =
@@ -51,7 +51,7 @@ VarDecl VarDecl =
        else lvs = FortressUtil.ids2Lvs(a2);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a3);
      }
-   / a1:VarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses w a4:InitVal
+   / a1:VarMods? a2:IdOrIdTuple w colon w a3:Type w ellipses w a4:InitVal
      { List<LValueBind> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
@@ -64,7 +64,7 @@ VarDecl VarDecl =
      }
    / a1:VarMods? a2:IdOrIdTuple w colon w a3:SimpleTupleType w a4:InitVal
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a3.getElements();
+       List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");
@@ -111,7 +111,7 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal = a1:(equals / colonequals) w
 
 /* AbsVarDecl ::=
      AbsVarMods? VarWTypes
-   | AbsVarMods? IdOrIdTuple w : w TypeRef w ...
+   | AbsVarMods? IdOrIdTuple w : w Type w ...
    | AbsVarMods? IdOrIdTuple w : w SimpleTupleType
  */
 AbsVarDecl AbsVarDecl =
@@ -119,7 +119,7 @@ AbsVarDecl AbsVarDecl =
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
-   / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:TypeRef w ellipses
+   / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:Type w ellipses
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
@@ -127,7 +127,7 @@ AbsVarDecl AbsVarDecl =
      }
    / a1:AbsVarMods? a2:IdOrIdTuple w colon w a3:SimpleTupleType
      { Span span = createSpan(yyStart,yyCount);
-       List<TypeRef> tys = a3.getElements();
+       List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            throw new ProgramError(new Id(span, "_"),
                                   "Mismatched numbers of variables and types.");

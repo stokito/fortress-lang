@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.ListComparer;
@@ -315,16 +315,17 @@ public class FTypeTuple extends FType {
         }
     }
 
-    /** Unify a tuple type with a list of TypeRef.
+    /**
+     * Unify a tuple type with a list of Type.
      *  This gets used here and in FTypeArrow.
      */
     public boolean unifyTuple(BetterEnv env, Set<StaticParam> tp_set,
                               BoundingMap<String, FType, TypeLatticeOps> abm,
-                              List<TypeRef> vals, Option<VarargsType> varargs) {
+                              List<Type> vals, Option<VarargsType> varargs) {
         Iterator<FType> ftIterator = l.iterator();
-        Iterator<TypeRef> trIterator = vals.iterator();
+        Iterator<Type> trIterator = vals.iterator();
         FType ft = null;
-        TypeRef tr = null;
+        Type tr = null;
         try {
             while (ftIterator.hasNext() && trIterator.hasNext()) {
                 ft = ftIterator.next();
@@ -347,11 +348,11 @@ public class FTypeTuple extends FType {
 
     /*
      * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
-     *      com.sun.fortress.interpreter.nodes.TypeRef)
+     *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
         if (!(val instanceof TupleType)) return false;

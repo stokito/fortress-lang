@@ -26,8 +26,8 @@ import com.sun.fortress.useful.ListComparer;
 
 public class NodeComparator {
     /* option comparers **************************************************/
-    public static int compareOptionalTypeRef(Option<TypeRef> a,
-                                             Option<TypeRef> b) {
+    public static int compareOptionalType(Option<Type> a,
+                                             Option<Type> b) {
         if (a.isPresent() != b.isPresent()) {
             return a.isPresent() ? 1 : -1;
         }
@@ -108,14 +108,14 @@ public class NodeComparator {
     public final static AnyListComparer<TraitType> traitTypeListComparer =
         new AnyListComparer(traitTypeComparer);
 
-    static class TypeRefComparer implements Comparator<TypeRef> {
-        public int compare(TypeRef left, TypeRef right) {
+    static class TypeComparer implements Comparator<Type> {
+        public int compare(Type left, Type right) {
             return compare(left, right);
         }
     }
-    final static TypeRefComparer typeRefComparer = new TypeRefComparer();
-    public final static AnyListComparer<TypeRef> typeRefListComparer =
-        new AnyListComparer(typeRefComparer);
+    final static TypeComparer typeComparer = new TypeComparer();
+    public final static AnyListComparer<Type> typeListComparer =
+        new AnyListComparer(typeComparer);
 
     /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
@@ -183,7 +183,7 @@ public class NodeComparator {
         int x = left.getId().getName().compareTo(right.getId().getName());
         if (x != 0) return x;
         if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
-            x = compareOptionalTypeRef(((NormalParam)left).getType(), ((NormalParam)right).getType());
+            x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
         }
         if ((left instanceof VarargsParam) && (right instanceof VarargsParam)) {
             x = compare(((VarargsParam)left).getVarargsType().getType(), ((VarargsParam)right).getVarargsType().getType());
@@ -194,10 +194,10 @@ public class NodeComparator {
     }
 
     public static int compare(StaticArg left, StaticArg right) {
-        return compare((TypeRef) left, right);
+        return compare((Type) left, right);
     }
 
-    public static int compare(TypeRef left, TypeRef right) {
+    public static int compare(Type left, Type right) {
         Class leftClass = left.getClass();
         Class rightClass = right.getClass();
 
@@ -210,27 +210,27 @@ public class NodeComparator {
     }
 
     /* comparing tuples **************************************************/
-    public static int compare(Id a, Id b, TypeRef c, TypeRef d) {
+    public static int compare(Id a, Id b, Type c, Type d) {
         int x = compare(a, b);
         if (x != 0) return x;
         return compare(c, d);
     }
 
-    public static int compare(TypeRef a, TypeRef b, ExtentRange c, ExtentRange d) {
-        int x = compare(a, b);
-        if (x != 0) return x;
-        //        return compare(c, d);
-        return compare(c, d);
-    }
-
-    public static int compare(TypeRef a, TypeRef b, Indices c, Indices d) {
+    public static int compare(Type a, Type b, ExtentRange c, ExtentRange d) {
         int x = compare(a, b);
         if (x != 0) return x;
         //        return compare(c, d);
         return compare(c, d);
     }
 
-    public static int compare(TypeRef a, TypeRef b, TypeRef c, TypeRef d) {
+    public static int compare(Type a, Type b, Indices c, Indices d) {
+        int x = compare(a, b);
+        if (x != 0) return x;
+        //        return compare(c, d);
+        return compare(c, d);
+    }
+
+    public static int compare(Type a, Type b, Type c, Type d) {
         int x = compare(a, b);
         if (x != 0) return x;
         return compare(c, d);
@@ -261,7 +261,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
-        return compare((TypeRef)left.getPower(), right.getPower(),
+        return compare((Type)left.getPower(), right.getPower(),
                        left.getBase(), right.getBase());
         // casts for generics
     }
@@ -299,15 +299,15 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(ProductDimType left, ProductDimType right) {
-        return compare((TypeRef)left.getMultiplier(), right.getMultiplier(),
-                       (TypeRef)left.getMultiplicand(), right.getMultiplicand());
+        return compare((Type)left.getMultiplier(), right.getMultiplier(),
+                       (Type)left.getMultiplicand(), right.getMultiplicand());
         // cast for generics
     }
 
     static int subtypeCompareTo(QuotientDimType left, QuotientDimType right) {
         // TODO Don't I need to worry about reducing the fraction?
-        return compare((TypeRef)left.getNumerator(), right.getNumerator(),
-                       (TypeRef)left.getDenominator(), right.getDenominator());
+        return compare((Type)left.getNumerator(), right.getNumerator(),
+                       (Type)left.getDenominator(), right.getDenominator());
         // cast for generics
     }
 
@@ -340,13 +340,13 @@ public class NodeComparator {
 
     static int subtypeCompareTo(TupleType left, TupleType right) {
         // TODO: Handle TupleTypes with varargs and keywords
-        return typeRefListComparer.compare(left.getElements(), right.getElements());
+        return typeListComparer.compare(left.getElements(), right.getElements());
     }
 
     static int subtypeCompareTo(TypeArg left, TypeArg right) {
         return compare(left.getType(), right.getType());
     }
-    static int subtypeCompareTo(TypeRef left, TypeRef right) {
+    static int subtypeCompareTo(Type left, Type right) {
         throw new Error("subtypeCompareTo(" + left.getClass() + " " +
                         right.getClass() + ") is not implemented!");
     }

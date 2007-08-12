@@ -17,14 +17,14 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
 
 /** Comprises DeclaredVariable, ParamVariable, and SingletonVariable. */
 public abstract class Variable {
     
-    public TypeRef type() {
+    public Type type() {
         return NI.nyi();
     }
     

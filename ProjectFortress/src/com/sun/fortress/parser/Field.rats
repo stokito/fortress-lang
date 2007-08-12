@@ -29,7 +29,7 @@ import Spacing;
 /* FldDecl ::=
      FldMods? FldWTypes w InitVal
    | FldMods? IdOrIdTuple w = w NoNewlineExpr
-   | FldMods? IdOrIdTuple w : w TypeRef w ... w InitVal
+   | FldMods? IdOrIdTuple w : w Type w ... w InitVal
    | FldMods? IdOrIdTuple w : w SimpleTupleType w InitVal
    FldWTypes ::=
      FldWType

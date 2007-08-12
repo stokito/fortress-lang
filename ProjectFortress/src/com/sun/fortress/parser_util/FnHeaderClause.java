@@ -24,7 +24,7 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.useful.Option;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
@@ -34,12 +34,12 @@ public class FnHeaderClause {
     private Option<List<TraitType>> throwsClause;
     private Option<List<WhereClause>> whereClause;
     private Option<Contract> contractClause;
-    private Option<TypeRef> returnType;
+    private Option<Type> returnType;
 
     public FnHeaderClause(Option<List<TraitType>> throwsClause,
                           Option<List<WhereClause>> whereClause,
                           Option<Contract> contractClause,
-                          Option<TypeRef> returnType) {
+                          Option<Type> returnType) {
         this.throwsClause = throwsClause;
         this.whereClause = whereClause;
         this.contractClause = contractClause;
@@ -58,7 +58,7 @@ public class FnHeaderClause {
         return contractClause;
     }
 
-    public Option<TypeRef> getReturnType() {
+    public Option<Type> getReturnType() {
         return returnType;
     }
 

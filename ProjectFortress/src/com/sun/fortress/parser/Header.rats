@@ -82,8 +82,8 @@ private List<WhereClause> WhereClauseList =
    | int w Id
    | bool w Id
    | unit w Id
-   | TypeRef w coerces w TypeRef
-   | TypeRef w widens w TypeRef
+   | Type w coerces w Type
+   | Type w widens w Type
    | dimensionless w = w Id
    | Id w = w dimensionless
    | DottedId w = w DottedId
@@ -102,9 +102,9 @@ private WhereClause WhereClause =
      { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
    / unit w a1:Id
      { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
-   / a1:TypeRef w coerces w a2:TypeRef
+   / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:TypeRef w widens w a2:TypeRef
+   / a1:Type w widens w a2:Type
      { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
    / "dimensionless" w equals w a1:Id
      { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
@@ -356,9 +356,9 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
 
 /* FnHeaderClause ::= (w IsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
-     { Option<TypeRef> returnType;
-       if (a1 == null) returnType = None.<TypeRef>make();
-       else            returnType = Some.<TypeRef>make(a1);
+     { Option<Type> returnType;
+       if (a1 == null) returnType = None.<Type>make();
+       else            returnType = Some.<Type>make(a1);
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), returnType);
      };
@@ -375,7 +375,7 @@ FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
        if (a3 == null) contractClause = None.<Contract>make();
        else            contractClause = Some.<Contract>make(a3);
        yyValue = new FnHeaderClause(throwsClause, whereClause, contractClause,
-                                    None.<TypeRef>make());
+                                    None.<Type>make());
      };
 
 /* Throws ::= throws w MayTraitTypes */
@@ -445,7 +445,7 @@ FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
        if (a2 == null) contractClause = None.<Contract>make();
        else            contractClause = Some.<Contract>make(a2);
        yyValue = new FnHeaderClause(None.<List<TraitType>>make(), whereClause,
-                                    contractClause, None.<TypeRef>make());
+                                    contractClause, None.<Type>make());
      };
 
 /* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
@@ -460,11 +460,11 @@ private List<WhereClause> CoercionWhereClauseList =
 
 /* CoercionWhereClause ::=
      WhereClause
-   | TypeRef w widens w or w coerces w TypeRef
+   | Type w widens w or w coerces w Type
 */
 private WhereClause CoercionWhereClause =
      WhereClause
-   / a1:TypeRef w widens w or w coerces w a2:TypeRef
+   / a1:Type w widens w or w coerces w a2:Type
      { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
 
 /* CoercionContract ::= (w Ensures)? (w Invariant)? */

@@ -55,8 +55,8 @@ List<Param> Params =
    /  a1:Param a2s:(w comma w Param)*
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
 
-/* Varargs ::= Id w : w TypeRef w ... */
-VarargsParam VarargsParam = a1:Id w colon w a2:TypeRef w ellipses
+/* Varargs ::= Id w : w Type w ... */
+VarargsParam VarargsParam = a1:Id w colon w a2:Type w ellipses
      { VarargsType ty = new VarargsType(a2.getSpan(), a2);
        yyValue = NodeFactory.makeVarargsParam(a1, ty);
      };
@@ -66,13 +66,13 @@ VarargsParam Varargs = VarargsParam ;
 Param Keyword = a1:Param w equals w a2:Expr
      { yyValue = NodeFactory.makeParam(a1, a2); };
 
-/* Param ::= Id (w IsType)? | TypeRef */
+/* Param ::= Id (w IsType)? | Type */
 NormalParam PlainParam =
      a1:Id a2:(w IsType)?
      { if (a2 == null) yyValue = NodeFactory.makeParam(a1);
        else            yyValue = NodeFactory.makeParam(a1, a2);
      }
-   / a1:TypeRef
+   / a1:Type
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount), "_"),
                                        a1); };
 NormalParam Param = PlainParam ;

@@ -38,8 +38,8 @@ import Spacing;
    | DelimitedExpr
    | FlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w Expr
-   | Expr w as w TypeRef
-   | Expr w asif w TypeRef
+   | Expr w as w Type
+   | Expr w asif w Type
    | UnitExpr
    UnitExpr ::=
      UnitRef
@@ -58,10 +58,10 @@ Expr ExprFront =
    / DelimitedExpr
    / <Flow> FlowExpr
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
-     { Option<TypeRef> ty_opt;
+     { Option<Type> ty_opt;
        Option<List<TraitType>> tys;
-       if (a2 == null) ty_opt = None.<TypeRef>make();
-       else            ty_opt = Some.<TypeRef>make(a2);
+       if (a2 == null) ty_opt = None.<Type>make();
+       else            ty_opt = Some.<Type>make(a2);
        if (a3 == null) tys = None.<List<TraitType>>make();
        else            tys = Some.<List<TraitType>>make(a3);
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
@@ -86,7 +86,7 @@ constant transient Action<Expr> ExprTail =
    ;
 
 constant inline Action<Expr> As =
-     w as w a1:TypeRef
+     w as w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
@@ -94,7 +94,7 @@ constant inline Action<Expr> As =
      };
 
 constant inline Action<Expr> AsIf =
-     w asif w a1:TypeRef
+     w asif w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);

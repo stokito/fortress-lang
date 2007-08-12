@@ -22,7 +22,7 @@ import java.util.Set;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
 
@@ -58,7 +58,7 @@ public abstract class TraitIndex {
         return NI.nyi();
     }
     
-    public Set<TypeRef> extendsTypes() {
+    public Set<Type> extendsTypes() {
         return NI.nyi();
     }
     

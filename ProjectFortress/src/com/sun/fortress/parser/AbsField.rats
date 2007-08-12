@@ -28,7 +28,7 @@ import Spacing;
 
 /* AbsFldDecl ::=
      AbsFldMods? AbsFldWTypes
-   | AbsFldMods? IdOrIdTuple w : w TypeRef...
+   | AbsFldMods? IdOrIdTuple w : w Type...
    | AbsFldMods? IdOrIdTuple w : w SimpleTupleType
    AbsFldWTypes ::=
      AbsFldWType

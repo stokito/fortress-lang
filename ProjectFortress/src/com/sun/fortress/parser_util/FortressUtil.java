@@ -79,8 +79,8 @@ public final class FortressUtil {
         return Collections.<TraitType>emptyList();
     }
 
-    public static List<TypeRef> emptyTypeRefs() {
-        return Collections.<TypeRef>emptyList();
+    public static List<Type> emptyTypes() {
+        return Collections.<Type>emptyList();
     }
 
     public static List<WhereClause> emptyWhereClauses() {
@@ -133,24 +133,24 @@ public final class FortressUtil {
         return result;
     }
 
-    public static List<TypeRef> toTypeRefList(List<TraitType> tys) {
-        List<TypeRef> result = new ArrayList<TypeRef>();
+    public static List<Type> toTypeList(List<TraitType> tys) {
+        List<Type> result = new ArrayList<Type>();
         for (TraitType ty : tys) {
-            result.add((TypeRef)ty);
+            result.add((Type)ty);
         }
         return result;
     }
 
-    public static Option<List<TypeRef>> toTypeRefList(Option<List<TraitType>> tys) {
-        List<TypeRef> result = new ArrayList<TypeRef>();
+    public static Option<List<Type>> toTypeList(Option<List<TraitType>> tys) {
+        List<Type> result = new ArrayList<Type>();
         if (tys.isPresent()) {
             List<TraitType> _tys = ((Some<List<TraitType>>)tys).getVal();
             for (TraitType ty : _tys) {
-                result.add((TypeRef)ty);
+                result.add((Type)ty);
             }
-            return Some.<List<TypeRef>>make(result);
+            return Some.<List<Type>>make(result);
         } else {
-            return None.<List<TypeRef>>make();
+            return None.<List<Type>>make();
         }
     }
 
@@ -317,7 +317,7 @@ public final class FortressUtil {
         return result;
     }
 
-    public static List<LValue> setType(List<LValue> vars, TypeRef ty) {
+    public static List<LValue> setType(List<LValue> vars, Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             if (l instanceof LValueBind)
@@ -327,7 +327,7 @@ public final class FortressUtil {
         return result;
     }
 
-    public static List<LValue> setType(List<LValue> vars, List<TypeRef> tys) {
+    public static List<LValue> setType(List<LValue> vars, List<Type> tys) {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
@@ -339,7 +339,7 @@ public final class FortressUtil {
         return result;
     }
 
-    public static List<LValue> setMutableAndType(List<LValue> vars, TypeRef ty) {
+    public static List<LValue> setMutableAndType(List<LValue> vars, Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
@@ -350,7 +350,7 @@ public final class FortressUtil {
     }
 
     public static List<LValue> setMutableAndType(List<LValue> vars, Span span,
-                                                 TypeRef ty) {
+                                                 Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
            if (l instanceof LValueBind) {
@@ -363,7 +363,7 @@ public final class FortressUtil {
     }
 
     public static List<LValue> setMutableAndType(List<LValue> vars,
-                                                 List<TypeRef> tys) {
+                                                 List<Type> tys) {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
@@ -377,7 +377,7 @@ public final class FortressUtil {
     }
 
     public static List<LValue> setMutableAndType(List<LValue> vars, Span span,
-                                                 List<TypeRef> tys) {
+                                                 List<Type> tys) {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
@@ -393,7 +393,7 @@ public final class FortressUtil {
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
-                                           Option<TypeRef> ty, boolean mutable) {
+                                           Option<Type> ty, boolean mutable) {
         List<LValueBind> lvs = new ArrayList<LValueBind>();
         for (Id id : ids) {
             lvs.add(new LValueBind(id.getSpan(), id, ty, mods, mutable));
@@ -402,39 +402,39 @@ public final class FortressUtil {
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
-                                           TypeRef ty, boolean mutable) {
-        return ids2Lvs(ids, mods, Some.<TypeRef>make(ty), mutable);
+                                           Type ty, boolean mutable) {
+        return ids2Lvs(ids, mods, Some.<Type>make(ty), mutable);
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, TypeRef ty,
+    public static List<LValueBind> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
         return ids2Lvs(ids, FortressUtil.emptyModifiers(),
-                       Some.<TypeRef>make(ty), mutable);
+                       Some.<Type>make(ty), mutable);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods) {
-        return ids2Lvs(ids, mods, None.<TypeRef>make(), false);
+        return ids2Lvs(ids, mods, None.<Type>make(), false);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids) {
-        return ids2Lvs(ids, FortressUtil.emptyModifiers(), None.<TypeRef>make(),
+        return ids2Lvs(ids, FortressUtil.emptyModifiers(), None.<Type>make(),
                        false);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
-                                           List<TypeRef> tys, boolean mutable) {
+                                           List<Type> tys, boolean mutable) {
         List<LValueBind> lvs = new ArrayList<LValueBind>();
         int ind = 0;
         for (Id id : ids) {
             lvs.add(new LValueBind(id.getSpan(), id,
-                                   Some.<TypeRef>make(tys.get(ind)),
+                                   Some.<Type>make(tys.get(ind)),
                                    mods, mutable));
             ind += 1;
         }
         return lvs;
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<TypeRef> tys,
+    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Type> tys,
                                            boolean mutable) {
         return ids2Lvs(ids, FortressUtil.emptyModifiers(), tys, mutable);
     }
@@ -471,16 +471,16 @@ public final class FortressUtil {
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
                                          sparams, params,
-                                         None.<TypeRef>make(), throws_,
+                                         None.<Type>make(), throws_,
                                          where_, contract);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         FnName name, List<Param> params,
-                                        TypeRef ty) {
+                                        Type ty) {
         return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
                                          FortressUtil.emptyStaticParams(),
-                                         params, Some.<TypeRef>make(ty),
+                                         params, Some.<Type>make(ty),
                                          None.<List<TraitType>>make(),
                                          FortressUtil.emptyWhereClauses(),
                                          FortressUtil.emptyContract());
@@ -511,7 +511,7 @@ public final class FortressUtil {
              contract = (Contract)fhc.getContractClause().getVal();
         else contract = FortressUtil.emptyContract();
         return NodeFactory.makeFnDecl(span, mods, None.<Id>make(), name,
-                                      sparams, params, None.<TypeRef>make(),
+                                      sparams, params, None.<Type>make(),
                                       throws_, where_, contract, expr);
     }
 
@@ -535,20 +535,20 @@ public final class FortressUtil {
                                 None.<Expr>make());
     }
 
-    public static LValueBind mkLValueBind(Span span, Id id, TypeRef ty) {
-        return new LValueBind(span, id, Some.<TypeRef>make(ty), emptyModifiers(),
+    public static LValueBind mkLValueBind(Span span, Id id, Type ty) {
+        return new LValueBind(span, id, Some.<Type>make(ty), emptyModifiers(),
                               false);
     }
     public static LValueBind mkLValueBind(Span span, Id id) {
-        return new LValueBind(span, id, None.<TypeRef>make(), emptyModifiers(),
+        return new LValueBind(span, id, None.<Type>make(), emptyModifiers(),
                               false);
     }
-    public static LValueBind mkLValueBind(Id id, TypeRef ty,
+    public static LValueBind mkLValueBind(Id id, Type ty,
                                           List<Modifier> mods) {
-        return new LValueBind(id.getSpan(), id, Some.<TypeRef>make(ty), mods,
+        return new LValueBind(id.getSpan(), id, Some.<Type>make(ty), mods,
                               getMutable(mods));
     }
-    public static LValueBind mkLValueBind(Id id, TypeRef ty) {
+    public static LValueBind mkLValueBind(Id id, Type ty) {
         return mkLValueBind(id, ty, emptyModifiers());
     }
 
@@ -708,7 +708,7 @@ public final class FortressUtil {
                             ((Node)Array.get(nodes,size-1)).getSpan().getEnd());
         }
     }
-    
+
     public static Span spanAll(Iterable<? extends Node> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(); }
         else {

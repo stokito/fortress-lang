@@ -138,7 +138,7 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.DimUnitDecl;
 import com.sun.fortress.nodes.BaseDimRef;
 import com.sun.fortress.nodes.UnpastingBind;
@@ -603,8 +603,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean moreSpecificHelper(TypecaseClause candidate,
             TypecaseClause current, Evaluator ev) {
-        List<TypeRef> candType = candidate.getMatch();
-        List<TypeRef> curType = current.getMatch();
+        List<Type> candType = candidate.getMatch();
+        List<Type> curType = current.getMatch();
         List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
         List<FType> curMatch = EvalType.getFTypeListFromList(curType, ev.e);
         boolean res = FTypeTuple.moreSpecificThan(candMatch, curMatch);
@@ -711,7 +711,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFnExpr(FnExpr x) {
-        Option<TypeRef> return_type = x.getReturnType();
+        Option<Type> return_type = x.getReturnType();
         List<Param> params = x.getParams();
         Closure cl = new Closure(e, x); // , return_type, params);
         cl.finishInitializing();
@@ -879,7 +879,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             throw new InterpreterBug(x,e,"_RewriteObjectExpr " + s + " has 'constructor' " + v);
         }
 
-        // Option<List<TypeRef>> traits = x.getTraits();
+        // Option<List<Type>> traits = x.getTraits();
         // List<Decl> defs = x.getDefs();
         // FTypeObject fto = new FTypeObject(genSym(x), e);
         // return BuildEnvironments.anObject(fto, e, traits, defs, x);
@@ -1238,7 +1238,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<TypecaseClause> clauses = x.getClauses();
 
         for (TypecaseClause c : clauses) {
-            List<TypeRef> match = c.getMatch();
+            List<Type> match = c.getMatch();
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
             FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
@@ -1267,7 +1267,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTypeArg(TypeArg x) {
-        return NI("forTypeRefArg");
+        return NI("forTypeArg");
     }
 
     public FValue forBaseDimRef(BaseDimRef x) {

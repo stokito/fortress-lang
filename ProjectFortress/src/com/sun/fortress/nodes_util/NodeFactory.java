@@ -33,7 +33,7 @@ public class NodeFactory {
                                           Option<Id> optSelfName, FnName name,
                                           List<StaticParam> staticParams,
                                           List<Param> params,
-                                          Option<TypeRef> returnType,
+                                          Option<Type> returnType,
                                           Option<List<TraitType>> throwss,
                                           List<WhereClause> where,
                                           Contract contract) {
@@ -67,7 +67,7 @@ public class NodeFactory {
         return new AliasedName(span, op, Some.<FnName>make(alias));
     }
 
-    public static ArrayType makeArrayType(Span span, TypeRef element,
+    public static ArrayType makeArrayType(Span span, Type element,
                                           Option<FixedDim> ind) {
         FixedDim indices;
         if (ind.isPresent()) indices = (FixedDim)((Some)ind).getVal();
@@ -75,8 +75,8 @@ public class NodeFactory {
         return new ArrayType(span, element, indices);
     }
 
-    public static ArrowType makeArrowType(Span span, TypeRef domain,
-                                          TypeRef range,
+    public static ArrowType makeArrowType(Span span, Type domain,
+                                          Type range,
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
     }
@@ -162,7 +162,7 @@ public class NodeFactory {
                                    Option<Id> optSelfName, FnName name,
                                    List<StaticParam> staticParams,
                                    List<Param> params,
-                                   Option<TypeRef> returnType,
+                                   Option<Type> returnType,
                                    Option<List<TraitType>> throwss,
                                    List<WhereClause> where, Contract contract,
                                    Expr body) {
@@ -211,19 +211,19 @@ public class NodeFactory {
                               mods, mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty) {
+    public static LValueBind makeLValue(LValueBind lvb, Type ty) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<TypeRef>make(ty), lvb.getMods(),
+                              Some.<Type>make(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
+    public static LValueBind makeLValue(LValueBind lvb, Type ty,
                                         boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<TypeRef>make(ty), lvb.getMods(), mutable);
+                              Some.<Type>make(ty), lvb.getMods(), mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, TypeRef ty,
+    public static LValueBind makeLValue(LValueBind lvb, Type ty,
                                         List<Modifier> mods) {
         boolean mutable = lvb.isMutable();
         for (Modifier m : mods) {
@@ -231,17 +231,17 @@ public class NodeFactory {
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<TypeRef>make(ty), mods, mutable);
+                              Some.<Type>make(ty), mods, mutable);
     }
 
-    public static MatrixType makeMatrixType(Span span, TypeRef element,
+    public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
         return new MatrixType(span, element, dims);
     }
 
-    public static MatrixType makeMatrixType(Span span, TypeRef element,
+    public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
@@ -296,19 +296,19 @@ public class NodeFactory {
     }
 
     public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
-                                  TypeRef type) {
-        return new NormalParam(span, mods, name, Some.<TypeRef>make(type),
+                                  Type type) {
+        return new NormalParam(span, mods, name, Some.<Type>make(type),
                          None.<Expr>make());
     }
 
-    public static NormalParam makeParam(Id name, TypeRef type) {
+    public static NormalParam makeParam(Id name, Type type) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         Some.<TypeRef>make(type), None.<Expr>make());
+                         Some.<Type>make(type), None.<Expr>make());
     }
 
     public static NormalParam makeParam(Id name) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         None.<TypeRef>make(), None.<Expr>make());
+                         None.<Type>make(), None.<Expr>make());
     }
 
     public static NormalParam makeParam(NormalParam param, Expr expr) {
@@ -327,7 +327,7 @@ public class NodeFactory {
     }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
-    public static TupleType makeTupleType(Span span, List<TypeRef> elements, Option<VarargsType> varargs) {
+    public static TupleType makeTupleType(Span span, List<Type> elements, Option<VarargsType> varargs) {
         return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
     }
@@ -340,7 +340,7 @@ public class NodeFactory {
     public static VarDecl makeVarDecl(Span span, Id id, Expr init) {
         return new VarDecl(span, Useful.<LValueBind>list(
                                 new LValueBind(span, id,
-                                               None.<TypeRef>make(),
+                                               None.<Type>make(),
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);
@@ -430,111 +430,111 @@ public class NodeFactory {
         });
     }
 
-    public static TypeRef makeInParentheses(TypeRef ty) {
-        return ty.accept(new NodeAbstractVisitor<TypeRef>() {
-            public TypeRef forArrowType(ArrowType t) {
+    public static Type makeInParentheses(Type ty) {
+        return ty.accept(new NodeAbstractVisitor<Type>() {
+            public Type forArrowType(ArrowType t) {
                 return new ArrowType(t.getSpan(), true, t.getDomain(),
                                      t.getRange(), t.getThrowsClause());
             }
-            public TypeRef forArrayType(ArrayType t) {
+            public Type forArrayType(ArrayType t) {
                 return new ArrayType(t.getSpan(), true, t.getElement(),
                                      t.getIndices());
             }
-            public TypeRef forIdType(IdType t) {
+            public Type forIdType(IdType t) {
                 return new IdType(t.getSpan(), true, t.getDottedId());
             }
-            public TypeRef forMatrixType(MatrixType t) {
+            public Type forMatrixType(MatrixType t) {
                 return new MatrixType(t.getSpan(), true, t.getElement(),
                                       t.getDimensions());
             }
-            public TypeRef forInstantiatedType(InstantiatedType t) {
+            public Type forInstantiatedType(InstantiatedType t) {
                 return new InstantiatedType(t.getSpan(), true, t.getDottedId(),
                                             t.getArgs());
             }
-            public TypeRef forTupleType(TupleType t) {
+            public Type forTupleType(TupleType t) {
                 return new TupleType(t.getSpan(), true, t.getElements(),
                                      t.getVarargs(), t.getKeywords());
             }
-            public TypeRef forVoidType(VoidType t) {
+            public Type forVoidType(VoidType t) {
                 return new VoidType(t.getSpan(), true);
             }
-            public TypeRef forDimRef(DimRef t) {
+            public Type forDimRef(DimRef t) {
                 return new DimRef(t.getSpan(), true, t.getVal());
             }
-            public TypeRef forProductDimType(ProductDimType t) {
+            public Type forProductDimType(ProductDimType t) {
                 return new ProductDimType(t.getSpan(), true, t.getMultiplier(),
                                           t.getMultiplicand());
             }
-            public TypeRef forQuotientDimType(QuotientDimType t) {
+            public Type forQuotientDimType(QuotientDimType t) {
                 return new QuotientDimType(t.getSpan(), true, t.getNumerator(),
                                            t.getDenominator());
             }
-            public TypeRef forProductUnitType(ProductUnitType t) {
+            public Type forProductUnitType(ProductUnitType t) {
                 return new ProductUnitType(t.getSpan(), true, t.getMultiplier(),
                                            t.getMultiplicand());
             }
-            public TypeRef forQuotientUnitType(QuotientUnitType t) {
+            public Type forQuotientUnitType(QuotientUnitType t) {
                 return new QuotientUnitType(t.getSpan(), true, t.getNumerator(),
                                             t.getDenominator());
             }
-            public TypeRef forDimTypeConversion(DimTypeConversion t) {
+            public Type forDimTypeConversion(DimTypeConversion t) {
                 return new DimTypeConversion(t.getSpan(), true, t.getType(),
                                              t.getDim());
             }
-            public TypeRef forBaseNatRef(BaseNatRef t) {
+            public Type forBaseNatRef(BaseNatRef t) {
                 return new BaseNatRef(t.getSpan(), true, t.getValue());
             }
-            public TypeRef forBaseOprRef(BaseOprRef t) {
+            public Type forBaseOprRef(BaseOprRef t) {
                 return new BaseOprRef(t.getSpan(), true, t.getFnName());
             }
-            public TypeRef forBaseDimRef(BaseDimRef t) {
+            public Type forBaseDimRef(BaseDimRef t) {
                 return new BaseDimRef(t.getSpan(), true);
             }
-            public TypeRef forBaseUnitRef(BaseUnitRef t) {
+            public Type forBaseUnitRef(BaseUnitRef t) {
                 return new BaseUnitRef(t.getSpan(), true);
             }
-            public TypeRef forBaseBoolRef(BaseBoolRef t) {
+            public Type forBaseBoolRef(BaseBoolRef t) {
                 return new BaseBoolRef(t.getSpan(), true, t.isBool());
             }
-            public TypeRef forNotBoolRef(NotBoolRef t) {
+            public Type forNotBoolRef(NotBoolRef t) {
                 return new NotBoolRef(t.getSpan(), true, t.getVal());
             }
-            public TypeRef forOrBoolRef(OrBoolRef t) {
+            public Type forOrBoolRef(OrBoolRef t) {
                 return new OrBoolRef(t.getSpan(), true, t.getLeft(),
                                      t.getRight());
             }
-            public TypeRef forAndBoolRef(AndBoolRef t) {
+            public Type forAndBoolRef(AndBoolRef t) {
                 return new AndBoolRef(t.getSpan(), true, t.getLeft(),
                                       t.getRight());
             }
-            public TypeRef forImpliesBoolRef(ImpliesBoolRef t) {
+            public Type forImpliesBoolRef(ImpliesBoolRef t) {
                 return new ImpliesBoolRef(t.getSpan(), true, t.getLeft(),
                                           t.getRight());
             }
-            public TypeRef forSumStaticArg(SumStaticArg t) {
+            public Type forSumStaticArg(SumStaticArg t) {
                 return new SumStaticArg(t.getSpan(), true, t.getValues());
             }
-            public TypeRef forProductStaticArg(ProductStaticArg t) {
+            public Type forProductStaticArg(ProductStaticArg t) {
                 return new ProductStaticArg(t.getSpan(), true, t.getValues());
             }
-            public TypeRef forQuotientStaticArg(QuotientStaticArg t) {
+            public Type forQuotientStaticArg(QuotientStaticArg t) {
                 return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
                                              t.getDenominator());
             }
-            public TypeRef forExponentStaticArg(ExponentStaticArg t) {
+            public Type forExponentStaticArg(ExponentStaticArg t) {
                 return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
                                              t.getPower());
             }
-            public TypeRef forDimensionStaticArg(DimensionStaticArg t) {
+            public Type forDimensionStaticArg(DimensionStaticArg t) {
                 return new DimensionStaticArg(t.getSpan(), true, t.getVal(),
                                               t.getOp());
             }
-            public TypeRef forTypeArg(TypeArg t) {
+            public Type forTypeArg(TypeArg t) {
                 return new TypeArg(t.getSpan(), true, t.getType());
             }
-            public TypeRef defaultCase(Node x) {
+            public Type defaultCase(Node x) {
                 throw new InterpreterBug("makeInParentheses: " + x.getClass() +
-                                           " is not a subtype of TypeRef.");
+                                           " is not a subtype of Type.");
             }
         });
     }

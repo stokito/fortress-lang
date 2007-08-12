@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.BaseNatRef;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.ABoundingMap;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
@@ -123,11 +123,11 @@ public class IntNat extends FTypeNat {
 
     /*
      * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
-     *      com.sun.fortress.interpreter.nodes.TypeRef)
+     *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);
         if (val instanceof BaseNatRef) {

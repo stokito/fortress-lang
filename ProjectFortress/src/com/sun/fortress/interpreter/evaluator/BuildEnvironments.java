@@ -87,7 +87,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.BaseDimRef;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
@@ -403,7 +403,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (ft != null) {
                 if (!ft.typeMatch(value)) {
                     throw new ProgramError(where, e,
-                            errorMsg("TypeRef mismatch binding ", value, " (type ",
+                            errorMsg("Type mismatch binding ", value, " (type ",
                                      value.type(), ") to ", name, " (type ",
                                      ft, ")"));
                 }
@@ -661,7 +661,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
-        // List<TypeRef> throws_;
+        // List<Type> throws_;
         // List<WhereClause> where;
         // Contract contract;
         // List<Decl> defs = x.getDecls();
@@ -910,11 +910,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         // List<Modifier> mods;
         // Id name = x.getName();
-        // Option<TypeRef> type = x.getType();
+        // Option<Type> type = x.getType();
         Expr init = x.getInit();
         LValueBind lvb = lhs.get(0);
 
-          Option<TypeRef> type = lvb.getType();
+          Option<Type> type = lvb.getType();
           Id name = lvb.getId();
           String sname = name.getName();
 
@@ -937,7 +937,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //        for (LValue lv : lhs) {
 //            if (lv instanceof LValueBind) {
 //                LValueBind lvb = (LValueBind) lv;
-//                Option<TypeRef> type = lvb.getType();
+//                Option<Type> type = lvb.getType();
 //                Id name = lvb.getName();
 //                String sname = name.getName();
 //
@@ -984,14 +984,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         // List<Modifier> mods;
         // Id name = x.getName();
-        // Option<TypeRef> type = x.getType();
+        // Option<Type> type = x.getType();
         Expr init = x.getInit();
         // int index = 0;
         LValueBind lvb = lhs.get(0);
 
 
          {
-                Option<TypeRef> type = lvb.getType();
+                Option<Type> type = lvb.getType();
                 Id name = lvb.getId();
                 String sname = name.getName();
 
@@ -1010,7 +1010,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
-                                    errorMsg("TypeRef mismatch binding ", value, " (type ",
+                                    errorMsg("Type mismatch binding ", value, " (type ",
                                              value.type(), ") to ", name, " (type ",
                                              ft, ")"));
                         }
@@ -1026,7 +1026,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             throw new ProgramError(x, bindInto,
-                                  errorMsg("TypeRef mismatch binding ", value, " (type ",
+                                  errorMsg("Type mismatch binding ", value, " (type ",
                                   value.type(), ") to ", name, " (type ",
                                   ft, ")"));
                         }
@@ -1056,8 +1056,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
-        // List<TypeRef> excludes;
-        // Option<List<TypeRef>> bounds;
+        // List<Type> excludes;
+        // Option<List<Type>> bounds;
         // List<WhereClause> where;
         FType ft;
 
@@ -1085,8 +1085,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
-        // List<TypeRef> excludes;
-        // Option<List<TypeRef>> bounds;
+        // List<Type> excludes;
+        // Option<List<Type>> bounds;
         // List<WhereClause> where;
 
         if (!staticParams.isEmpty()) {
@@ -1132,8 +1132,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
-        // List<TypeRef> excludes;
-        // Option<List<TypeRef>> bounds;
+        // List<Type> excludes;
+        // Option<List<Type>> bounds;
         // List<WhereClause> where;
         FType ft;
 
@@ -1161,8 +1161,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
         Id name = x.getId();
-        // List<TypeRef> excludes;
-        // Option<List<TypeRef>> bounds;
+        // List<Type> excludes;
+        // Option<List<Type>> bounds;
         // List<WhereClause> where;
 
         if (!staticParams.isEmpty()) {
@@ -1226,7 +1226,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     WhereExtends we = (WhereExtends) w;
                     Id name = we.getId();
                     String string_name = name.getName();
-                    // List<TypeRef> types = we.getSupers();
+                    // List<Type> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     if (ft == null) {
                         ft = new SymbolicWhereType(string_name, interior);
@@ -1255,7 +1255,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     String string_name = name.getName();
                     List<TraitType> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
-                    for (TypeRef t : types) {
+                    for (Type t : types) {
                         FType st = et.evalType(t); // t.visit(et);
                         if (ft instanceof SymbolicType) {
                             // Treat as "extends".
@@ -1280,7 +1280,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     // topological.
                     TypeAlias ta = (TypeAlias) w;
                     Id name = ta.getId();
-                    TypeRef type = ta.getType();
+                    Type type = ta.getType();
                     interior.putType(name.getName(), et.evalType(type));
                 } else {
                     NI.nyi("Where clause " + w);
@@ -1302,7 +1302,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     static public void finishObjectTrait(List<TraitType> extends_,
-            List<? extends TypeRef> excludes, List<WhereClause> wheres, FTypeObject ftt,
+            List<? extends Type> excludes, List<WhereClause> wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);
         EvalType et = processWhereClauses(wheres, interior);
@@ -1320,7 +1320,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     public Voidoid forTypeAlias(TypeAlias x) {
         // Id name;
         // List<Id> params;
-        // TypeRef type;
+        // Type type;
         // TODO Auto-generated method stub
         return null;
     }
@@ -1404,7 +1404,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         // List<Modifier> mods;
         // Id name = x.getName();
-        // Option<TypeRef> type = x.getType();
+        // Option<Type> type = x.getType();
         LValueBind lvb = lhs.get(0);
 
             Id name = lvb.getId();
@@ -1525,7 +1525,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
 
-        // List<TypeRef> throws_;
+        // List<Type> throws_;
         // List<WhereClause> where;
         // Contract contract;
         // List<Decl> defs = x.getDecls();

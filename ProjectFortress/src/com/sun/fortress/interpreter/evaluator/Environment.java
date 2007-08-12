@@ -131,7 +131,7 @@ public interface Environment  {
 
     public abstract void putApi(DottedId d, SApi x);
 
-    /* TypeRef names take the form ID or Api.ID */
+    /* Type names take the form ID or Api.ID */
     public abstract FType getType(DottedId d);
 
     public abstract void putType(DottedId d, FType x);

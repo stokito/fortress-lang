@@ -19,7 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.Map;
 import edu.rice.cs.plt.tuple.Option;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Expr;
@@ -29,7 +29,7 @@ import com.sun.fortress.useful.NI;
 /** Comprises {@link Function} and {@link Method}. */
 public abstract class Functional {
     
-    public TypeRef instantiatedType(TypeRef... staticArgs) {
+    public Type instantiatedType(Type... staticArgs) {
         return NI.nyi();
     }
     
@@ -41,7 +41,7 @@ public abstract class Functional {
         return NI.nyi();
     }
     
-    public Iterable<TypeRef> thrownTypes() {
+    public Iterable<Type> thrownTypes() {
         return NI.nyi();
     }
     

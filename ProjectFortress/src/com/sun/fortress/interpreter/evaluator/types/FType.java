@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.MagicNumbers;
@@ -153,7 +153,7 @@ abstract public class FType implements Comparable<FType> {
 
     private void addExcludesInner(FType t) {
         if (t == this)
-            throw new ProgramError(errorMsg("TypeRef cannot exclude itself: ", t));
+            throw new ProgramError(errorMsg("Type cannot exclude itself: ", t));
         excludes.syncPut(t);
     }
 
@@ -355,7 +355,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc;
 //        return (val instanceof IdType &&
 //                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
@@ -392,7 +392,7 @@ abstract public class FType implements Comparable<FType> {
      * unifyNonVar; this is why that method is overridable while this
      * one is final.
      */
-    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+    public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
@@ -437,7 +437,7 @@ abstract public class FType implements Comparable<FType> {
 
     /**
      * Convenience method for unifying with a VarargsType (e.g., "T...").
-     * VarargsTypes are special forms that appear only in TupleTypes. They are not TypeRefs.
+     * VarargsTypes are special forms that appear only in TupleTypes. They are not Types.
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
         unify(env, tp_set, abm, val.getType());

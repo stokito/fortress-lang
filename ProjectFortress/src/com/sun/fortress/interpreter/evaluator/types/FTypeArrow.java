@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
@@ -150,7 +150,7 @@ public class FTypeArrow extends FType {
 
     @Override
     protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, TypeRef val) {
+            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify arrow "+this+" and "+val+", abm="+abm);
         if (!(val instanceof ArrowType)) {
@@ -163,7 +163,7 @@ public class FTypeArrow extends FType {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
             // TODO: Handle domains that are TupleTypes containing varargs and keywords
-            TypeRef valdom = arr.getDomain();
+            Type valdom = arr.getDomain();
 
             // Problems with tuples of 1 vs multiple args.
             // Must spot the single-parameter binding to tuple case first.

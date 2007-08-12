@@ -31,7 +31,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteral;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.DottedId;
@@ -82,7 +82,7 @@ public abstract class NativeApp implements Applicable {
     /* Except for getBody() these just delegate to a. */
     public Expr getBody() { return null; }
     public List<Param> getParams() { return a.getParams(); }
-    public Option<TypeRef> getReturnType() { return a.getReturnType(); }
+    public Option<Type> getReturnType() { return a.getReturnType(); }
     public List<StaticParam> getStaticParams() {
         return a.getStaticParams();
     }

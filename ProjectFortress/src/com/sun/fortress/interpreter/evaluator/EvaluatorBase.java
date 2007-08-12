@@ -37,7 +37,7 @@ import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TypeRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.ABoundingMap;
 import com.sun.fortress.useful.BoundingMap;
@@ -119,7 +119,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             if (sp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) sp;
                     String stp_name = stp.getId().getName();
-                    for (TypeRef tr : stp.getExtendsClause()) {
+                    for (Type tr : stp.getExtendsClause()) {
                         // Preinstall bounds in the boundingmap
                         abm.meetPut(stp_name, et.evalType(tr));
                     }
@@ -133,7 +133,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             p = pit.hasNext() ? pit.next() : p;
             try {
                 if (p instanceof NormalParam) {
-                    Option<TypeRef> t = ((NormalParam)p).getType();
+                    Option<Type> t = ((NormalParam)p).getType();
                     // why can't we just skip if missing?
                     if (!t.isPresent())
                         throw new ProgramError(loc,
@@ -165,13 +165,13 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         // TODO: There is still a lurking error in inference, probably in arrow types.
 
 //        for (Param param : params) {
-//            Option<TypeRef> t = param.getType();
+//            Option<Type> t = param.getType();
 //            t.getVal().accept(mis);
 //        }
 //        if (DUMP_INFERENCE)
 //            System.err.println("ABM 1={" + abm + "}");
 
-        Option<TypeRef> opt_rt = fndod.getReturnType();
+        Option<Type> opt_rt = fndod.getReturnType();
 
         if (opt_rt.isPresent())
            opt_rt.getVal().accept(mis);
