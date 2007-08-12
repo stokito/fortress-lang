@@ -1,0 +1,7 @@
+component UnitExpr
+
+export Executable
+
+run(args:String...) = (1.3 m in nm) per second squared
+
+end

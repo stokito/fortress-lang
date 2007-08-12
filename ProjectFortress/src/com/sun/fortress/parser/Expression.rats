@@ -40,14 +40,10 @@ import Spacing;
    | fn w ValParam (w IsType)? (w Throws)? w => w Expr
    | Expr w as w Type
    | Expr w asif w Type
-   | UnitExpr
-   UnitExpr ::=
-     UnitRef
-   | Expr w UnitRef
-   | Expr w DOT w UnitRef
-   | Expr w / w UnitRef
-   | Expr w per w UnitRef
-   | Expr w in w UnitRef
+   | Expr w per w Expr
+   | Expr w in w Expr
+   | DUPreOp sr Expr
+   | Expr w DUPostOp
  */
 Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
@@ -66,23 +62,16 @@ Expr ExprFront =
        else            tys = Some.<List<TraitType>>make(a3);
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
                                         tys, a4);
-     };
-/* ************************************************
- * Not Yet Implemented ***************************
-   / a1:UnitRef
-************************************************ */
+     }
+   / a1:DUPreOp sr a2:Expr
+     { yyValue = new OpUnit(createSpan(yyStart,yyCount), a2, a1); };
 
 constant transient Action<Expr> ExprTail =
      <As> As
    / <Asif> AsIf
-/* ************************************************
- * Not Yet Implemented ***************************
-   / w            a1:UnitRef
-   / w "DOT":op w a1:UnitRef
-   / w slash    w a1:UnitRef
-   / w per      w a1:UnitRef
-   / w in       w a1:UnitRef
-************************************************ */
+   / <Per> Per
+   / <In> In
+   / <UnitOp> UnitOp
    ;
 
 constant inline Action<Expr> As =
@@ -101,24 +90,31 @@ constant inline Action<Expr> AsIf =
            }};
      };
 
-/* UnitExpr ::=
-     UnitRef
-   | Expr w UnitRef
-   | Expr w DOT w UnitRef
-   | Expr w / w UnitRef
-   | Expr w per w UnitRef
-   | Expr w in w UnitRef
- */
-/* ************************************************
- * Not Yet Implemented ***************************
-Tree UnitExpr =
-     a1:UnitRef
-   / a1:Expr w            a2:UnitRef
-   / a1:Expr w "DOT":op w a2:UnitRef
-   / a1:Expr w slash    w a2:UnitRef
-   / a1:Expr w per      w a2:UnitRef
-   / a1:Expr w in       w a2:UnitRef
-************************************************ */
+constant inline Action<Expr> Per =
+     w per w a1:Expr
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new QuotientUnitExpr(createSpan(yyStart,yyCount), false,
+                                          (Expr)base, a1);
+          }};
+    };
+
+constant inline Action<Expr> In =
+     w in w a1:Expr
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new ChangeUnitExpr(createSpan(yyStart,yyCount), false,
+                                        (Expr)base, a1);
+          }};
+    };
+
+constant inline Action<Expr> UnitOp =
+     w a1:DUPostOp
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new OpUnit(createSpan(yyStart,yyCount),false,(Expr)base,a1);
+          }};
+    };
 
 /* AssignLefts ::=
      ( w AssignLeft (w , w AssignLeft)* w )

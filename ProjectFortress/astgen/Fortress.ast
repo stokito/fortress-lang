@@ -517,6 +517,24 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         AsIfExpr(Expr expr, Type type);
         /**
+         * unit division
+         * Expr ::= Expr per Expr
+         * e.g.) meter per second
+         */
+        QuotientUnitExpr(Expr numerator, Expr denominator);
+        /**
+         * unit change
+         * Expr ::= Expr in Expr
+         * e.g.) 1.3 m in nm
+         */
+        ChangeUnitExpr(Expr val, Expr unit);
+        /* dimension with operator
+         * Expr ::= DUPreOp Expr
+         *        | Expr DUPostOp
+         * e.g.) second squared
+         */
+        OpUnit(Expr val, DimUnitOp op);
+        /**
          * assignment expression
          * Expr ::= AssignLefts AssignOp Expr
          * AssignLefts ::= ( AssignLeft(, AssignLeft)* )
@@ -974,16 +992,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          * e.g.)
                          */
                         ListComprehension(Expr element);
-        /**
-         * unit expression representing units
-         */
-        abstract UnitExpr();
-            /**
-             * unit quantity
-             * UnitRef ::= StaticArg
-             * e.g.) grams per cubic centimeter
-             */
-            UnitRef(StaticArg val);
     /**
      * type
      * Type ::= ArrowType
@@ -1073,17 +1081,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 QuotientDimType(Type numerator, DimRef denominator);
                 /**
                  * unit multiplication
-                 * DimType ::= Type UnitRef
+                 * DimType ::= Type Expr
                  * e.g.) m v^2
                  */
-                ProductUnitType(Type multiplier, UnitRef multiplicand);
+                ProductUnitType(Type multiplier, Expr multiplicand);
                 /**
                  * unit division
-                 * DimType ::= Type / UnitRef
-                 *           | Type per UnitRef
+                 * DimType ::= Type / Expr
+                 *           | Type per Expr
                  * e.g.) meters/seconds
                  */
-                QuotientUnitType(Type numerator, UnitRef denominator);
+                QuotientUnitType(Type numerator, Expr denominator);
                 /**
                  * dimension type conversion
                  * DimType ::= Type in DimRef

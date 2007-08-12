@@ -33,14 +33,10 @@ import Spacing;
    | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
    | NoNewlineExpr s as w Type
    | NoNewlineExpr s asif w Type
-   | NoNewlineUnitExpr
-   NoNewlineUnitExpr ::=
-     UnitRef
-   | NoNewlineExpr s UnitRef
-   | NoNewlineExpr s . w UnitRef
-   | NoNewlineExpr s / w UnitRef
    | NoNewlineExpr s per w UnitRef
    | NoNewlineExpr s in w UnitRef
+   | DUPreOp sr NoNewlineExpr
+   | NoNewlineExpr s DUPostOp
    NoNewlineFlowExpr ::=
      exit (w Id)? (w with w NoNewlineExpr)?
    | Accumulator (w [ w GeneratorList w ] w)? w NoNewlineExpr
@@ -63,14 +59,9 @@ Expr ExprFront :=
 Action<Expr> ExprTail :=
      <As> NoNewlineAs
    / <AsIf> NoNewlineAsIf
-/* ************************************************
- * Not Yet Implemented ***************************
-   / s            a1:UnitRef
-   / s "DOT":op w a1:UnitRef
-   / s slash    w a1:UnitRef
-   / s per      w a1:UnitRef
-   / s in       w a1:UnitRef
-************************************************ */
+   / <Per> NoNewlinePer
+   / <In> NoNewlineIn
+   / <UnitOp> NoNewlineUnitOp
    ;
 
 inline Action<Expr> NoNewlineAs =
@@ -88,6 +79,32 @@ inline Action<Expr> NoNewlineAsIf =
                return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
+
+constant inline Action<Expr> NoNewlinePer =
+     s per w a1:NoNewlineExpr
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new QuotientUnitExpr(createSpan(yyStart,yyCount), false,
+                                          (Expr)base, a1);
+          }};
+    };
+
+constant inline Action<Expr> NoNewlineIn =
+     s in w a1:NoNewlineExpr
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new ChangeUnitExpr(createSpan(yyStart,yyCount), false,
+                                        (Expr)base, a1);
+          }};
+    };
+
+constant inline Action<Expr> NoNewlineUnitOp =
+     s a1:DUPostOp
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return new OpUnit(createSpan(yyStart,yyCount),false,(Expr)base,a1);
+          }};
+    };
 
 /* NoNewlineOpExpr ::=
      NoNewlineOpExprNoEnc

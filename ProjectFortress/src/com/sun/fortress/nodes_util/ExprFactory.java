@@ -284,6 +284,18 @@ public class ExprFactory {
             public Expr forAsIfExpr(AsIfExpr e) {
                 return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
             }
+            public Expr forQuotientUnitExpr(QuotientUnitExpr e) {
+                return new QuotientUnitExpr(e.getSpan(), true, e.getNumerator(),
+                                            e.getDenominator());
+            }
+            public Expr forChangeUnitExpr(ChangeUnitExpr e) {
+                return new ChangeUnitExpr(e.getSpan(), true, e.getVal(),
+                                          e.getUnit());
+            }
+            public Expr forOpUnit(OpUnit e) {
+                return new OpUnit(e.getSpan(), true, e.getVal(), e.getOp());
+            }
+
             public Expr forAssignment(Assignment e) {
                 return new Assignment(e.getSpan(), true, e.getLhs(), e.getOp(),
                                       e.getRhs());
@@ -443,9 +455,6 @@ public class ExprFactory {
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),
                                          e.getSubs(), e.getOp());
-            }
-            public Expr forUnitRef(UnitRef e) {
-                return new UnitRef(e.getSpan(), true, e.getVal());
             }
             public Expr defaultCase(Node x) {
                 throw new InterpreterBug("makeInParentheses: " + x.getClass() +
