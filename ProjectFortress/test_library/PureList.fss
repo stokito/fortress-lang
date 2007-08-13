@@ -38,23 +38,105 @@ export PureList
    demos/PureListLong.fss
 *)
 
+(** Generic list trait.
+    We return a Generator for non-List-specific operations for which
+    reuse of the Generator won't increase asymptotic complexity, but
+    return a List in cases (such as map and filter) where it will.
+*)
+trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
+  getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
+  getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
+  getter extractLeft(): Maybe[\(E,List[\E\])\]
+  getter extractRight(): Maybe[\(List[\E\],E)\]
+  getter indices(): ParRange[\ZZ32\] =
+      indexValuePairs().map[\ZZ32\](fn (i:ZZ32, _:E): ZZ32 => i)
+  getter indexValuePairs(): Generator[\(ZZ32,E)\]
+  generate[\R\](r: Reduction[\R\], body: E->R): R
+  map[\G\](f: E->G): List[\G\] =
+      self.concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
+  append(f:List[\E\]): List[\E\]
+  addLeft(e:E):List[\E\]
+  addRight(e:E):List[\E\]
+  take(n:ZZ32): List[\E\]
+  drop(n:ZZ32): List[\E\]
+  opr [n:ZZ32]: E
+  opr [n:Range[\ZZ32\]]: List[\E\] =
+      drop(n.base()).take(n.size())
+  split(n:ZZ32): (List[\E\], List[\E\])
+  split(): (List[\E\], List[\E\])
+  reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
+  zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
+      ZipGenerator[\E,F\](self,other)
+  filter(p: E -> Boolean): List[\E\] =
+      concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
+                                      else emptyList[\E\]() end)
+  opr =(self, other: List[\E\]): Boolean = do
+      println("In List =")
+      if self.size() = other.size() then
+          println("Sizes match")
+          self.zip[\E\](other).generate[\Boolean\](AndReduction,
+                                                   fn(a,b) => a=b)
+      else println("Sizes don't match"); false end
+    end
+  toString():String =
+    "<|" extractLeft().maybe[\String\](
+             fn () => " ",
+             fn (h,t) => h t.generate[\String\](StringReduction,
+                                                   fn (e:E) => ", " e)) "|>"
+  concatMap[\G\](f: E->List[\G\]): List[\G\] =
+    generate[\List[\G\]\](Concat[\G\](),f)
+end
+
+(** Vararg factory for lists; provides aggregate list constants *)
+opr [\E\]<| xs: E... |>: List[\E\] =
+    (0#xs.size()).generate[\List[\E\]\](
+                         Concat[\E\](),
+                         fn (i:ZZ32):List[\E\] => singleton[\E\](xs.get(i)))
+
+(** Convert generator into list; can be used to desugar list
+    comprehensions *)
+list[\E\](g:Generator[\E\]):List[\E\] =
+    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+
+(** Flatten a list of lists *)
+concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.reduce(Concat[\E\]())
+
+(** A reduction object for concatenating lists. *)
+object Concat[\E\]() extends Reduction[\ List[\E\] \]
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
+end
+
+(** The same for reverse concatenation *)
+object RevConcat[\E\]() extends Reduction[\ List[\E\] \]
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
+end
+
+(** A reduction object for concatenating specifically PureLists. *)
+object PLConcat[\E\]() extends Reduction[\ PureList[\E\] \]
+  empty(): PureList[\E\] = D0[\E\]()
+  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
+end
+
 (* We must wrap the FingerTree, since we need also wrap the elements
    in order compute the nested monoidal computation (here the size of
    each sublist) systematically. *)
 value object PureList[\E\]( it: FingerTree[\E\] )
-      extends { Generator[\E\] }
+      extends { List[\E\] }
   getter size(): ZZ32 = leafSize(it)
   getter isEmpty(): Boolean = it.isEmpty()
   getter left():Maybe[\E\] = left1(it)
   getter right():Maybe[\E\] = right1(it)
   getter extractLeft(): Maybe[\(E,PureList[\E\])\] = extractLeft1(it)
   getter extractRight(): Maybe[\(PureList[\E\],E)\] = extractRight1(it)
-  getter indices(): ParRange[\ZZ32\] = 0#size()
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
       IndexValuePairs(it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
   seq(): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
+  append(f:List[\E\]): PureList[\E\] =
+      append(f.generate[\PureList[\E\]\](PLConcat[\E\](),singleton[\E\]))
   append(f:PureList[\E\]): PureList[\E\] =
       PureList[\E\](it.append(f.contents()))
   addLeft(e:E):PureList[\E\] =
@@ -97,26 +179,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       (l,r) = it.split()
       (PureList[\E\](l),PureList[\E\](r))
     end
-  reverse(): PureList[\E\] =  PureList[\E\](it.revMap(identity[\E\]))
-  zip[\F\](other: PureList[\F\]): Generator[\(E,F)\] =
-      ZipGenerator[\E,F\](self,other)
-  filter(p: E -> Boolean): PureList[\E\] =
-      generate[\PureList[\E\]\](Concat[\E\](),
-                                fn (x)=> if p(x) then singleton[\E\](x)
-                                         else emptyList[\E\]() end)
-  opr =(self, other: PureList[\E\]): Boolean = do
-      println("In PureList =")
-      if self.size() = other.size() then
-          println("Sizes match")
-          self.zip[\E\](other).generate[\Boolean\](AndReduction,
-                                                   fn(a,b) => a=b)
-      else println("Sizes don't match"); false end
-    end
-  toString():String =
-    "<|" caseLeft[\E,String\](
-             it,fn ( )=> " ",
-                fn (h,t) => h t.generate[\String\](StringReduction,
-                                                   fn (e:E) => ", " e)) "|>"
+  reverse(): PureList[\E\] = PureList[\E\](it.revMap(identity[\E\]))
   contents():FingerTree[\E\] = it
   left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]()
   left1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
@@ -139,16 +202,6 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       Just[\(PureList[\E\],E)\](PureList[\E\](i),l)
     end
 end
-
-caseEmpty[\E,R\](_: D0[\E\], e: ()->R,
-                 _: NonEmptyFingerTree[\E\]->R): R = e()
-caseEmpty[\E,R\](l: NonEmptyFingerTree[\E\], _: ()->R,
-                 t: NonEmptyFingerTree[\E\]->R): R = t(l)
-
-caseLeft[\E,R\](_: D0[\E\], e: ()->R,
-                _:(E,FingerTree[\E\])->R): R = e()
-caseLeft[\E,R\](l: NonEmptyFingerTree[\E\], _: ()->R,
-                t:(E,FingerTree[\E\])->R): R = t(l.extractLeft())
 
 value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
         extends { SequentialGenerator[\E\] }
@@ -204,17 +257,9 @@ value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:PureList[\A\], ys:PureList[\B\])
       end
 end
 
-emptyList[\E\](): PureList[\E\] = PureList[\E\](D0[\E\]())
-singleton[\E\](e:E): PureList[\E\] =
+emptyList[\E\](): List[\E\] = PureList[\E\](D0[\E\]())
+singleton[\E\](e:E): List[\E\] =
     PureList[\E\](D1[\E\](e))
-
-opr [\E\]<| xs: E... |>: PureList[\E\] =
-  (0#xs.size()).generate[\PureList[\E\]\](
-                         Concat[\E\](),
-                         fn (i:ZZ32):PureList[\E\] => singleton[\E\](xs.get(i)))
-
-list[\E\](g:Generator[\E\]):PureList[\E\] =
-    g.generate[\PureList[\E\]\](Concat[\E\](), singleton[\E\])
 
 (* Everything except tree innards must be a datum, and thus has size
    1.  This works because the tree innards can never be part of a
@@ -234,12 +279,6 @@ trait FTStructure[\E\] extends Sized
   sivgen[\R\](leftIndex: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
   split():(FTStructure[\E\],FTStructure[\E\])
   revMap(f:E -> E):FTStructure[\E\]
-end
-
-(* A reduction object for concatenating lists. *)
-object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
-  empty(): PureList[\E\] = PureList[\E\](D0[\E\]())
-  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
 
 object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]

@@ -17,26 +17,38 @@
 
 api Map
 
-trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
-  size():ZZ32
-  isEmpty():Boolean
-  getPair():(Key, Val)
-  getKey():Key
-  getVal():Val
-  getLeftChild():TreeMap[\Key,Val\]
-  getRightChild():TreeMap[\Key,Val\]
+trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
+    comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
+  getPair():(Key, Val)  (* DEPRACATED *)
+  getKey():Key          (* DEPRACATED *)
+  getVal():Val          (* DEPRACATED *)
+  getLeftChild():TreeMap[\Key,Val\]     (* DEPRACATED *)
+  getRightChild():TreeMap[\Key,Val\]    (* DEPRACATED *)
   printTree():()
   toString():String
   member(x:Key): Maybe[\Val\]
+  deleteMinimum():TreeMap[\Key,Val\]
+  removeMinimum():((Key,Val), TreeMap[\Key,Val\])
   add(k:Key, v:Val):TreeMap[\Key,Val\]
   update(k:Key, v:Val):TreeMap[\Key,Val\]
   delete(k:Key):TreeMap[\Key,Val\]
+  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\]
+(*
+  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
+  union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
+*)
+  balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\]
+  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
 end
+
+singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\]
+
+mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\]
+
+(*
+object MapUnion[\Key,Val\]() extends Reduction[\TreeMap[\Key,Val\]\] end
+*)
 
 object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\] end
-
-object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
-                          right:TreeMap[\Key,Val\]) extends TreeMap[\Key,Val\]
-end
 
 end

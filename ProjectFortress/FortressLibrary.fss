@@ -184,6 +184,7 @@ value trait Maybe[\T\]
     extends { MaybeType, SequentialGenerator[\T\]}
     comprises { Nothing[\T\], Just[\T\] }
   getter unJust() : T throws UnJustNothing
+  maybe[\R\](nothingAction: ()->R, justAction: T->R): R
 end
 
 value object Just[\T\](x:T) extends {Maybe[\T\]}
@@ -202,6 +203,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     reduce(_:(T,T)->T, _:T):T = x
     reduce(_: Reduction[\T\]):T = x
     loop(f:T->()): () = f(x)
+    maybe[\R\](_: ()->R, justAction: T->R): R = justAction(x)
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
@@ -221,6 +223,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     reduce(_:(T,T)->T, z:T):T = z
     reduce(r: Reduction[\T\]):T = r.empty()
     loop(f:T->()): () = ()
+    maybe[\R\](nothingAction: ()->R, _: T->R): R = nothingAction()
 end
 
 opr IN[\E\](x: E, g: Nothing[\E\]): Boolean = false

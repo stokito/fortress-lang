@@ -18,11 +18,12 @@
 component Map
 export Map
 
-weight:ZZ32 = 3
+weight:ZZ32 = 4
 
-trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
-  size():ZZ32
-  isEmpty():Boolean
+trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
+    comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
+  seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
+  seq(): SequentialGenerator[\(Key,Val)\] = SeqMapGenerator[\Key,Val\](self)
   getPair():(Key, Val)
   getKey():Key
   getVal():Val
@@ -39,13 +40,48 @@ trait TreeMap[\Key,Val\] comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   add(k:Key, v:Val):TreeMap[\Key,Val\]
   update(k:Key, v:Val):TreeMap[\Key,Val\]
   delete(k:Key):TreeMap[\Key,Val\]
+  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\]
+(*
+  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
+  union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
+*)
   balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\]
   balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
 end
 
+singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\] = do
+    kv = (k,v)
+    e = EmptyMap[\Key,Val\]()
+    NodeMap[\Key,Val\](kv,e,e)
+  end
+
+mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\] = do
+    res : TreeMap[\Key,Val\] := EmptyMap[\Key,Val\]()
+    for (k,v) <- seq(g) do
+       res := res.add(k,v)
+    end
+    res
+  end
+
+object SeqMapGenerator[\Key,Val\](o:TreeMap[\Key,Val\])
+    extends SequentialGenerator[\(Key,Val)\]
+  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = o.seqgen[\R\](r,body)
+end
+
+(*
+object MapUnion[\Key,Val\]() extends Reduction[\TreeMap[\Key,Val\]\]
+    e = EmptyMap[\Key,Val\]()
+    empty():TreeMap[\Key,Val\] = e
+    join(a:TreeMap[\Key,Val\], b:TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
+        a.union(b)
+end
+*)
+
 object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
-  size():ZZ32 = 0
-  isEmpty():Boolean = true
+  getter size():ZZ32 = 0
+  getter isEmpty():Boolean = true
+  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
+  seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
   getPair():(Key, Val) = getPair()
   getKey():Key = getKey()
   getVal():Val = getVal()
@@ -58,19 +94,37 @@ object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   add(k:Key, v:Val):TreeMap[\Key,Val\] = NodeMap[\Key,Val\]((k,v), self, self)
   update(k:Key, v:Val):TreeMap[\Key,Val\] = add(k, v)
   delete(k:Key):TreeMap[\Key,Val\] = self
+  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\] =
+      f(Nothing[\Val\]()).maybe[\TreeMap[\Key,Val\]\](
+        fn (): EmptyMap[\Key,Val\] => self,
+        fn (v:Val): TreeMap[\Key,Val\] => add(k,v))
+  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = other
+  union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
+      other
+
   balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\] = r
-  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\] =
-    NodeMap[\Key,Val\](x,self,self)
+  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):
+      NodeMap[\Key,Val\] = NodeMap[\Key,Val\](x,self,self)
 end
 
 object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
                           right:TreeMap[\Key,Val\]) extends TreeMap[\Key,Val\]
   sz:ZZ32 = 1 + left.size() + right.size()
-  (key, val) = tuple(pair)
+  (key, val) = pair
+  getter size():ZZ32 = sz
+  getter isEmpty():Boolean = false
 
-  tuple(k:Key,v:Val):(Key,Val) = (k,v)
-  size():ZZ32 = sz
-  isEmpty():Boolean = false
+  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R =
+    r.join(r.join(left.generate[\R\](r,body),body(key,val)),
+           right.generate[\R\](r,body))
+  seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = do
+      ll = left.generate[\R\](r,body)
+      mm = body(key,val)
+      lm = r.join(ll,mm)
+      rr = right.generate[\R\](r,body)
+      r.join(lm,rr)
+    end
+
   getPair():(Key, Val) = pair
   getKey():Key = key
   getVal():Val = val
@@ -133,6 +187,27 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
     if   k < key then balancedAdd(pair,left.delete(k),right)
     elif key < k then balancedAdd(pair,left,right.delete(k))
     else              left.balancedDelete(right)
+    end
+
+  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\] =
+    if   k < key then balancedAdd(pair, left.updateWith(f,k), right)
+    elif key < k then balancedAdd(pair, left, right.updateWith(f,k))
+    else f(val).maybe[\TreeMap[\Key,Val\]\](
+                fn (): TreeMap[\Key,Val\] => left.balancedDelete(right),
+                fn (v': Val): TreeMap[\Key,Val\] =>
+                    NodeMap[\Key,Val\]((k,v'), left, right))
+    end
+
+  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
+      union(fn (k:Key, v1:Val, v2:Val) => v1, other)
+  union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = do
+      res : TreeMap[\Key,Val\] := other
+      for (k,v) <- seq(self) do
+        upd(_: Nothing[\Val\]): Just[\Val\] = Just[\Val\](v)
+        upd(j: Just[\Val\]): Just[\Val\] = Just[\Val\](f(k,v,j.unJust()))
+        res := res.updateWith(upd,k)
+      end
+      res
     end
 
   balancedDelete(r:NodeMap[\Key,Val\]):TreeMap[\Key,Val\] = do

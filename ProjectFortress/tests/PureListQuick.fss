@@ -19,22 +19,22 @@ component PureListQuick
 import * from PureList
 export Executable
 
-assertStr(a:ZZ32, b:ZZ32, s:String, l: PureList[\ZZ32\]) =
+assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =
   if a=/=b then
     fail(a "=/=" b ": " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: PureList[\ZZ32\]) =
+assertStr(a:Boolean, s:String, l: List[\ZZ32\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: PureList[\ZZ32\], r: PureList[\ZZ32\]) =
+assertStr(a:Boolean, s:String, l: List[\ZZ32\], r: List[\ZZ32\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
-chkPop(l:PureList[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
+chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(sz,l.size()," .size() mismatch in ",l)
   n : ZZ32 := fro
   for e <- seq(l) do
@@ -44,12 +44,12 @@ chkPop(l:PureList[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(n, fro + sz by," size mismatch in ",l)
 end
 
-chkPop(l:PureList[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPop(l,fro,sz,1)
+chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPop(l,fro,sz,1)
 
-chkPop(l:PureList[\ZZ32\],sz:ZZ32): () = chkPop(l,0,sz,1)
+chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPop(l,0,sz,1)
 
-chkExtract(l:PureList[\ZZ32\],sz:ZZ32): () = do
-  ll : PureList[\ZZ32\] := l
+chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
+  ll : List[\ZZ32\] := l
   for i <- seq(0#sz) do
       (e,ll0) = ll.extractLeft().unJust()
       assertStr(e,i,"extractLeft wrong in ",ll)
@@ -70,16 +70,18 @@ end
 run(args:String...):() = do
   print("The adventure begins")
   (* The sizes which turned up bugs *)
-  testLens : PureList[\ZZ32\] = <|0,1,2,7,10|>
+  testLens : List[\ZZ32\] = <|0,1,2,7,10|>
   (* Causes null pointer exception
      println(testLens.generate[\ZZ32\](SumReduction,identity[\ZZ32\])) *)
   for i <- seq(testLens) do
       print("\n" i ":")
       li = list(0#i)
+      print(li)
       chkPop(li,i)
       chkExtract(li,i)
       (ll,lr) = li.split()
       lii = ll.append(lr)
+      (* assert(li,lii,"re-appended split wrong.") *)
       chkPop(lii,i)
       fli = li.filter(fn x => x REM 2 = 0)
       chkPop(fli,0,(i+1) DIV 2,2)

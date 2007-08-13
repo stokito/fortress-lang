@@ -32,38 +32,53 @@ api PureList
 
   *)
 
-(* Warning: bogus parameters mentioning *two* undefined types!
-   What we want are real constructorless object imports. *)
-value object PureList[\E\]( it: FingerTree[\SizedBase[\E\]\] )
-      extends { Generator[\E\] }
+(** Generic list trait.
+    We return a Generator for non-List-specific operations for which
+    reuse of the Generator won't increase asymptotic complexity, but
+    return a List in cases (such as map and filter) where it will.
+*)
+trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]
-  getter extractLeft(): Maybe[\(E,PureList[\E\])\]
-  getter extractRight(): Maybe[\(PureList[\E\],E)\]
-  append(f:PureList[\E\]): PureList[\E\]
-  addLeft(e:E):PureList[\E\]
-  addRight(e:E):PureList[\E\]
-  take(n:ZZ32): PureList[\E\]
-  drop(n:ZZ32): PureList[\E\]
+  getter extractLeft(): Maybe[\(E,List[\E\])\]
+  getter extractRight(): Maybe[\(List[\E\],E)\]
+  getter indices(): ParRange[\ZZ32\]
+  getter indexValuePairs(): Generator[\(ZZ32,E)\]
+  map[\G\](f: E->G): List[\G\]
+  append(f:List[\E\]): List[\E\]
+  addLeft(e:E):List[\E\]
+  addRight(e:E):List[\E\]
+  take(n:ZZ32): List[\E\]
+  drop(n:ZZ32): List[\E\]
   opr [n:ZZ32]: E
-  opr [n:Range[\ZZ32\]]: PureList[\E\]
-  split(n:ZZ32): (PureList[\E\], PureList[\E\])
-  split(): (PureList[\E\], PureList[\E\])
-  reverse(): PureList[\E\]
-  zip[\F\](other: PureList[\F\]): Generator[\(E,F)\]
-  filter(p: E -> Boolean): PureList[\E\]
-  opr =(self, other: PureList[\E\]): Boolean
+  opr [n:Range[\ZZ32\]]: List[\E\]
+  split(n:ZZ32): (List[\E\], List[\E\])
+  split(): (List[\E\], List[\E\])
+  reverse(): List[\E\]
+  zip[\F\](other: List[\F\]): Generator[\(E,F)\]
+  filter(p: E -> Boolean): List[\E\]
+  (** NOTE: this overloading doesn't seem to be getting used. *)
+  opr =(self, other: List[\E\]): Boolean
   toString():String
+  concatMap[\G\](f: E->List[\G\]): List[\G\]
 end
 
-emptyList[\E\](): PureList[\E\]
-singleton[\E\](e:E): PureList[\E\]
-opr [\E\]<| xs: E... |>: PureList[\E\]
-list[\E\](g:Generator[\E\]):PureList[\E\]
+(** Vararg factory for lists; provides aggregate list constants *)
+opr [\E\]<| xs: E... |>: List[\E\]
 
-object Concat[\E\]() extends Reduction[\ PureList[\E\] \]
-  empty(): PureList[\E\]
-  join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\]
+(** Convert generator into list; can be used to desugar list
+    comprehensions *)
+list[\E\](g:Generator[\E\]):List[\E\]
+
+(** Flatten a list of lists *)
+concat[\E\](x:List[\List[\E\]\]):List[\E\]
+
+emptyList[\E\](): List[\E\]
+singleton[\E\](e:E): List[\E\]
+
+object Concat[\E\]() extends Reduction[\ List[\E\] \]
+  empty(): List[\E\]
+  join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
 end
