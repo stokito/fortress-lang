@@ -115,7 +115,7 @@ import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.Opr;
-import com.sun.fortress.nodes.BaseOprRef;
+import com.sun.fortress.nodes.BaseOprStaticArg;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OprName;
 import com.sun.fortress.useful.Option;
@@ -140,7 +140,7 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.DimUnitDecl;
-import com.sun.fortress.nodes.BaseDimRef;
+import com.sun.fortress.nodes.BaseDimStaticArg;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
@@ -1270,8 +1270,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forTypeArg");
     }
 
-    public FValue forBaseDimRef(BaseDimRef x) {
-        return NI("forBaseDimRef");
+    public FValue forBaseDimStaticArg(BaseDimStaticArg x) {
+        return NI("forBaseDimStaticArg");
     }
 
     public FValue forDimUnitDecl(DimUnitDecl x) {

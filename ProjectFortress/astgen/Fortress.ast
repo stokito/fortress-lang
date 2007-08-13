@@ -995,7 +995,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * type
      * Type ::= ArrowType
-     *           | NonArrowType
+     *        | NonArrowType
      */
     abstract Type(boolean parenthesized = false);
         /**
@@ -1111,59 +1111,59 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * Number ::= IntLiteral
              * e.g.) 5
              */
-            BaseNatRef(int value);
+            BaseNatStaticArg(int value);
             /**
              * operator used as static argument
              * StaticArg ::= Op
              * e.g.) +
              */
-            BaseOprRef(FnName fnName);
+            BaseOprStaticArg(FnName fnName);
             /**
              * dimension representing dimensionless
              * StaticArg ::= Unity
              * e.g.) Unity
              */
-            BaseDimRef();
+            BaseDimStaticArg();
             /**
              * dimensionless unit
              * StaticArg ::= dimensionless
              * e.g.) dimensionless
              */
-            BaseUnitRef();
+            BaseUnitStaticArg();
             /**
              * boolean used as static argument
              */
-            abstract BoolRef();
+            abstract BoolStaticArg();
                 /**
                  * boolean constant
                  * StaticArg ::= true | false
                  * e.g.) true
                  */
-                BaseBoolRef(boolean bool);
+                BaseBoolStaticArg(boolean bool);
                 /**
                  * boolean negation
                  * StaticArg ::= NOT StaticArg
                  * e.g.) NOT ninf
                  */
-                NotBoolRef(StaticArg val);
+                NotStaticArg(StaticArg val);
                 /**
                  * boolean disjunction
                  * StaticArg ::= StaticArg OR StaticArg
                  * e.g.) ninf OR pinf
                  */
-                OrBoolRef(StaticArg left, StaticArg right);
+                OrStaticArg(StaticArg left, StaticArg right);
                 /**
                  * boolean conjunction
                  * StaticArg ::= StaticArg AND StaticArg
                  * e.g.) ninf AND pinf
                  */
-                AndBoolRef(StaticArg left, StaticArg right);
+                AndStaticArg(StaticArg left, StaticArg right);
                 /**
                  * boolean implication
                  * StaticArg ::= StaticArg IMPLIES StaticArg
                  * e.g.) gt AND eq IMPLIES ge
                  */
-                ImpliesBoolRef(StaticArg left, StaticArg right);
+                ImpliesStaticArg(StaticArg left, StaticArg right);
             /**
              * static argument with operation
              */
@@ -1173,13 +1173,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * StaticArg ::= StaticArg + StaticArg
                  * e.g.) len + 2
                  */
-                SumStaticArg(List<StaticArg> values);
+                SumStaticArg(StaticArg left, StaticArg right);
+                /**
+                 * subtraction of static arguments
+                 * StaticArg ::= StaticArg - StaticArg
+                 * e.g.) len - 2
+                 */
+                MinusStaticArg(StaticArg left, StaticArg right);
                 /**
                  * multiplication of static arguments
                  * StaticArg ::= StaticArg StaticArg
                  * e.g.) a + m c < n
                  */
-                ProductStaticArg(List<StaticArg> values);
+                ProductStaticArg(StaticArg multiplier, StaticArg multiplicand);
                 /**
                  * division of static arguments
                  * StaticArg ::= StaticArg / StaticArg
@@ -1190,10 +1196,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 QuotientStaticArg(Type numerator, Type denominator);
                 /**
                  * exponentiation of static arguments
-                 * StaticArg ::= StaticArg ^ StaticArg
+                 * StaticArg ::= StaticArg ^ IntVal
                  * e.g.) Length ^ 3
                  */
-                ExponentStaticArg(Type base, Type power);
+                ExponentStaticArg(Type base, IntVal power);
                 /**
                  * static argument with dimension operation
                  * StaticArg ::= DUPreOp StaticArg
@@ -1201,6 +1207,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) meters per second squared
                  */
                 DimensionStaticArg(StaticArg val, DimUnitOp op);
+                /**
+                 * static argument equality
+                 * StaticArg ::= StaticArg = StaticArg
+                 * e.g.) a = b
+                 */
+                EqualsStaticArg(StaticArg left, StaticArg right);
             /**
              * type as static argument
              * StaticArg ::= Type
@@ -1330,25 +1342,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * BoolConstraint ::= NOT BoolExpr
              * e.g.) NOT ninf
              */
-            NOTConstraint(BoolExpr bool);
+            NotConstraint(BoolExpr bool);
             /**
              * boolean OR constraint declared in where clauses
              * BoolConstraint ::= BoolExpr OR BoolExpr
              * e.g.) ninf OR pinf
              */
-            ORConstraint(BoolExpr left, BoolExpr right);
+            OrConstraint(BoolExpr left, BoolExpr right);
             /**
              * boolean AND constraint declared in where clauses
              * BoolConstraint ::= BoolExpr AND BoolExpr
              * e.g.) ninf AND pinf
              */
-            ANDConstraint(BoolExpr left, BoolExpr right);
+            AndConstraint(BoolExpr left, BoolExpr right);
             /**
              * boolean IMPLIES constraint declared in where clauses
              * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
              * e.g.) ninf IMPLIES pinf
              */
-            IMPLIESConstraint(BoolExpr left, BoolExpr right);
+            ImpliesConstraint(BoolExpr left, BoolExpr right);
             /**
              * boolean equality constraint declared in where clauses
              * BoolConstraint ::= BoolExpr = BoolExpr

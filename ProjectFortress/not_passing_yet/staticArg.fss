@@ -15,16 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Where
+component StaticArg
 
 export Executable
 
-trait T[\S, int i, unit U, bool b\]
-  where { S extends Number, type IntList = List[\ZZ64\],
-          S widens String, bool b', NOT b, b IMPLIES b',
-          nat n, n = i, U = dimensionless, 2 n + i < 2^8 }
-end
+object O[\S, int i, unit U, bool b\]() end
 
-run(args:String...) = println "Where clasues test."
+run(args:String...) = do
+  O[\O, 2 - 0, dimensionless, true AND false\]()
+  println "Static arguments test."
+end
 
 end

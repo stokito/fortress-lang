@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.nodes.BaseNatRef;
+import com.sun.fortress.nodes.BaseNatStaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.ABoundingMap;
@@ -130,8 +130,8 @@ public class IntNat extends FTypeNat {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);
-        if (val instanceof BaseNatRef) {
-            BaseNatRef n = (BaseNatRef) val;
+        if (val instanceof BaseNatStaticArg) {
+            BaseNatStaticArg n = (BaseNatStaticArg) val;
             return (n.getValue() == this.getValue());
         } else {
             return false;

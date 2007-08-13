@@ -104,7 +104,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
                 //    args=[
                 //     (TypeArg
                 //      type=(IdType name=(DottedId names=["T"])))
-                //     (BaseNatRef)
+                //     (BaseNatStaticArg)
                 //     (TypeArg
                 //      type=(IdType name=(DottedId names=["m"])))])])
                 staticParams=(Some val=[

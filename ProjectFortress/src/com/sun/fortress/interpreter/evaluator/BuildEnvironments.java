@@ -88,7 +88,7 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.BaseDimRef;
+import com.sun.fortress.nodes.BaseDimStaticArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
@@ -1340,10 +1340,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseDimRef(com.sun.fortress.interpreter.nodes.BaseDimRef)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseDimStaticArg(com.sun.fortress.interpreter.nodes.BaseDimStaticArg)
      */
     @Override
-    public Voidoid forBaseDimRef(BaseDimRef x) {
+    public Voidoid forBaseDimStaticArg(BaseDimStaticArg x) {
         // TODO Auto-generated method stub
         return null;
     }

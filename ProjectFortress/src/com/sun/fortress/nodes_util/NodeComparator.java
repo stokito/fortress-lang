@@ -23,6 +23,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.ListComparer;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 
 public class NodeComparator {
     /* option comparers **************************************************/
@@ -255,16 +256,15 @@ public class NodeComparator {
         return 0;
     }
 
-    static int subtypeCompareTo(BaseNatRef left, BaseNatRef right) {
+    static int subtypeCompareTo(BaseNatStaticArg left, BaseNatStaticArg right) {
         return left.getValue() - right.getValue();
         /* nat types -- difference will not overflow */
     }
 
     static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
-        return compare((Type)left.getPower(), right.getPower(),
-                       left.getBase(), right.getBase());
-        // casts for generics
-    }
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
+   }
 
     static int subtypeCompareTo(FixedDim left, FixedDim right) {
         return extentRangeListComparer
@@ -276,8 +276,8 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(Indices left, Indices right) {
-        throw new Error("subtypeCompareTo(" + left.getClass() + " " +
-                        right.getClass() + ") is not implemented!");
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(MatrixType left, MatrixType right) {
@@ -287,7 +287,7 @@ public class NodeComparator {
                                                right.getDimensions());
     }
 
-    static int subtypeCompareTo(BaseOprRef left, BaseOprRef right) {
+    static int subtypeCompareTo(BaseOprStaticArg left, BaseOprStaticArg right) {
         return compare(left.getFnName(), right.getFnName());
     }
 
@@ -347,8 +347,8 @@ public class NodeComparator {
         return compare(left.getType(), right.getType());
     }
     static int subtypeCompareTo(Type left, Type right) {
-        throw new Error("subtypeCompareTo(" + left.getClass() + " " +
-                        right.getClass() + ") is not implemented!");
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(VoidType left, VoidType right) {

@@ -138,7 +138,7 @@ private IntConstraint IntConstraint =
      Number
    | DottedId
  */
-private IntVal IntVal =
+IntVal IntVal =
      a1:Number
      { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:DottedId
@@ -218,13 +218,13 @@ private BoolConstraint BoolConstraint =
 
 private BoolConstraint BoolConstraintFront =
      "NOT":op w a1:BoolExpr
-     { yyValue = new NOTConstraint(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new NotConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:BoolConstraintHead w "OR":op  w a2:BoolExpr
-     { yyValue = new ORConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new OrConstraint(createSpan(yyStart,yyCount), a1, a2); }
    / a1:BoolConstraintHead w "AND":op w a2:BoolExpr
-     { yyValue = new ANDConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new AndConstraint(createSpan(yyStart,yyCount), a1, a2); }
    / a1:BoolConstraintHead w "IMPLIES":op  w a2:BoolExpr
-     { yyValue = new IMPLIESConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new ImpliesConstraint(createSpan(yyStart,yyCount), a1, a2); }
    / a1:BoolConstraintHead w equals w a2:BoolExpr
      { yyValue = new BEConstraint(createSpan(yyStart,yyCount), a1, a2); };
 
@@ -234,35 +234,35 @@ private BoolExpr BoolConstraintHead =
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
 private constant transient Action<BoolConstraint> BoolConstraintTail =
-     ORBoolConstraint
-   / ANDBoolConstraint
-   / IMPLIESBoolConstraint
+     OrBoolConstraint
+   / AndBoolConstraint
+   / ImpliesBoolConstraint
    / EqualsBoolConstraint
    ;
 
-private constant inline Action<BoolConstraint> ORBoolConstraint =
+private constant inline Action<BoolConstraint> OrBoolConstraint =
      w "OR":op  w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
-               return new ORConstraint(createSpan(yyStart,yyCount),
+               return new OrConstraint(createSpan(yyStart,yyCount),
                                        NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
            }};
      };
 
-private constant inline Action<BoolConstraint> ANDBoolConstraint =
+private constant inline Action<BoolConstraint> AndBoolConstraint =
      w "AND":op w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
-               return new ANDConstraint(createSpan(yyStart,yyCount),
+               return new AndConstraint(createSpan(yyStart,yyCount),
                                         NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
            }};
      };
 
-private constant inline Action<BoolConstraint> IMPLIESBoolConstraint =
+private constant inline Action<BoolConstraint> ImpliesBoolConstraint =
      w "IMPLIES":op  w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
-               return new IMPLIESConstraint(createSpan(yyStart,yyCount),
+               return new ImpliesConstraint(createSpan(yyStart,yyCount),
                                             NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
            }};
      };
@@ -304,42 +304,42 @@ private BoolExpr BoolExprFront =
      { yyValue = NodeFactory.makeInParentheses(a1); }
    / "NOT":op w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolConstraintExpr(span, new NOTConstraint(span, a1));
+       yyValue = new BoolConstraintExpr(span, new NotConstraint(span, a1));
      };
 
 private constant transient Action<BoolExpr> BoolExprTail =
-     ORBoolExpr
-   / ANDBoolExpr
-   / IMPLIESBoolExpr
+     OrBoolExpr
+   / AndBoolExpr
+   / ImpliesBoolExpr
    / EqualsBoolExpr
    ;
 
-private constant inline Action<BoolExpr> ORBoolExpr =
+private constant inline Action<BoolExpr> OrBoolExpr =
      w "OR":op  w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new ORConstraint(span,
+               return new BoolConstraintExpr(span, new OrConstraint(span,
                                                        (BoolExpr)base, a1));
            }};
      };
 
-private constant inline Action<BoolExpr> ANDBoolExpr =
+private constant inline Action<BoolExpr> AndBoolExpr =
      w "AND":op w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new ANDConstraint(span,
+               return new BoolConstraintExpr(span, new AndConstraint(span,
                                                    (BoolExpr)base, a1));
            }};
      };
 
-private constant inline Action<BoolExpr> IMPLIESBoolExpr =
+private constant inline Action<BoolExpr> ImpliesBoolExpr =
      w "IMPLIES":op  w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new IMPLIESConstraint(span,
+               return new BoolConstraintExpr(span, new ImpliesConstraint(span,
                                                    (BoolExpr)base, a1));
            }};
      };

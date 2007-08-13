@@ -302,7 +302,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         env = _env;
     }
 
-    public FType forBaseOprRef(BaseOprRef b) {
+    public FType forBaseOprStaticArg(BaseOprStaticArg b) {
         System.err.println(env);
         throw new Error();
     }
@@ -313,7 +313,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeRest.make(rt.getType().accept(this));
     }
 
-    public FType forBaseBoolRef(BaseBoolRef b) {
+    public FType forBaseBoolStaticArg(BaseBoolStaticArg b) {
         if (b.isBool()) return new Bool("true", FBool.TRUE);
         else return new Bool("false", FBool.FALSE);
     }
@@ -343,10 +343,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatRef(com.sun.fortress.interpreter.nodes.BaseNatRef)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatStaticArg(com.sun.fortress.interpreter.nodes.BaseNatStaticArg)
      */
     @Override
-    public FType forBaseNatRef(BaseNatRef x) {
+    public FType forBaseNatStaticArg(BaseNatStaticArg x) {
         return IntNat.make(x.getValue());
     }
 
@@ -364,12 +364,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forProductStaticArg(ProductStaticArg x) {
-        List<? extends Type> value = x.getValues();
-        long a = nonEmpty(value);
-        for (int i = 1; i < value.size(); i++) {
-            a *= longify(value.get(i));
-        }
-        return IntNat.make(a);
+        return IntNat.make(longify(x.getMultiplier()) *
+                           longify(x.getMultiplicand()));
     }
 
     private long nonEmpty(List<? extends Type> value) {
@@ -392,12 +388,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forSumStaticArg(SumStaticArg x) {
-        List<? extends Type> value = x.getValues();
-        long a = nonEmpty(value);
-        for (int i = 1; i < value.size(); i++) {
-            a += longify(value.get(i));
-        }
-        return IntNat.make(a);
+        return IntNat.make(longify(x.getLeft()) + longify(x.getRight()));
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forMinusStaticArg(com.sun.fortress.interpreter.nodes.MinusStaticArg)
+     */
+    @Override
+    public FType forMinusStaticArg(MinusStaticArg x) {
+        return IntNat.make(longify(x.getLeft()) - longify(x.getRight()));
     }
 
     /* (non-Javadoc)

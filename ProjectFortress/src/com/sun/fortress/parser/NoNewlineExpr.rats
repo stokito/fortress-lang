@@ -33,8 +33,8 @@ import Spacing;
    | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
    | NoNewlineExpr s as w Type
    | NoNewlineExpr s asif w Type
-   | NoNewlineExpr s per w UnitRef
-   | NoNewlineExpr s in w UnitRef
+   | NoNewlineExpr s per w NoNewlineExpr
+   | NoNewlineExpr s in w NoNewlineExpr
    | DUPreOp sr NoNewlineExpr
    | NoNewlineExpr s DUPostOp
    NoNewlineFlowExpr ::=

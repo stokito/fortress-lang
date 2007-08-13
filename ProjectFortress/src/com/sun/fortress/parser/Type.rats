@@ -417,8 +417,6 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | dimensionless
    | StaticArg w + w StaticArg
    | StaticArg w - w StaticArg
-   | StaticArg sr StaticArg
-   | StaticArg w DOT w StaticArg
    | StaticArg w / w StaticArg
    | 1 w / w StaticArg
    | StaticArg ^ IntVal
@@ -430,6 +428,8 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | StaticArg w AND w StaticArg
    | StaticArg w IMPLIES w StaticArg
    | StaticArg w = w StaticArg
+   | StaticArg w DOT w StaticArg
+   | StaticArg sr StaticArg
    | Type
    | ( StaticArg )
  */
@@ -439,56 +439,59 @@ private StaticArg StaticArg =
 
 private StaticArg StaticArgFront =
      a1:Number
-     { yyValue = NodeFactory.makeBaseNatRef(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeBaseNatStaticArg(createSpan(yyStart,yyCount), a1); }
    / a1:Op
-     { yyValue = NodeFactory.makeBaseOprRef(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeBaseOprStaticArg(createSpan(yyStart,yyCount), a1); }
    / "true"
-     { yyValue = new BaseBoolRef(createSpan(yyStart,yyCount), true); }
+     { yyValue = new BaseBoolStaticArg(createSpan(yyStart,yyCount), true); }
    / "false"
-     { yyValue = new BaseBoolRef(createSpan(yyStart,yyCount), false); }
+     { yyValue = new BaseBoolStaticArg(createSpan(yyStart,yyCount), false); }
    / "Unity"
-     { yyValue = new BaseDimRef(createSpan(yyStart,yyCount)); }
+     { yyValue = new BaseDimStaticArg(createSpan(yyStart,yyCount)); }
    / "dimensionless"
-     { yyValue = new BaseUnitRef(createSpan(yyStart,yyCount)); }
+     { yyValue = new BaseUnitStaticArg(createSpan(yyStart,yyCount)); }
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
-       StaticArg one = NodeFactory.makeBaseNatRef(span, ExprFactory.makeIntLiteral(span, "1"));
+       StaticArg one = NodeFactory.makeBaseNatStaticArg(span, ExprFactory.makeIntLiteral(span, "1"));
        yyValue = new QuotientStaticArg(createSpan(yyStart,yyCount), one, a1);
      }
    / a1:DUPreOp sr a2:StaticArg
      { yyValue = new DimensionStaticArg(createSpan(yyStart,yyCount), a2, a1); }
    / "NOT":op w a1:StaticArg
-     { yyValue = new NotBoolRef(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new NotStaticArg(createSpan(yyStart,yyCount), a1); }
    / a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
-   / openparen StaticArg closeparen;
+   / openparen a1:StaticArg closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
 
 private constant transient Action<StaticArg> StaticArgTail =
      SumStaticArg
-   / ProductStaticArg
+   / MinusStaticArg
    / QuotientStaticArg
    / ExponentStaticArg
    / DimensionStaticArg
+   / EqualsStaticArg
    / OrStaticArg
    / AndStaticArg
    / ImpliesStaticArg
+   / ProductStaticArg
    ;
 
 private constant inline Action<StaticArg> SumStaticArg =
      w plus w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               List<StaticArg> vs = FortressUtil.mkList((StaticArg)base, a1);
-               return new SumStaticArg(createSpan(yyStart,yyCount), vs);
+               return new SumStaticArg(createSpan(yyStart,yyCount),
+                                       (StaticArg)base, a1);
            }};
      };
 
-private constant inline Action<StaticArg> ProductStaticArg =
-     (w DOT w / sr) a1:StaticArg
+private constant inline Action<StaticArg> MinusStaticArg =
+     w minus w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               List<StaticArg> vs = FortressUtil.mkList((StaticArg)base, a1);
-               return new ProductStaticArg(createSpan(yyStart,yyCount), vs);
+               return new MinusStaticArg(createSpan(yyStart,yyCount),
+                                         (StaticArg)base, a1);
            }};
      };
 
@@ -497,16 +500,16 @@ private constant inline Action<StaticArg> QuotientStaticArg =
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
                return new QuotientStaticArg(createSpan(yyStart,yyCount),
-                                            (Type)base, a1);
+                                            (StaticArg)base, a1);
            }};
      };
 
 private constant inline Action<StaticArg> ExponentStaticArg =
-     caret a1:StaticArg
+     caret a1:IntVal
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
                return new ExponentStaticArg(createSpan(yyStart,yyCount),
-                                            (Type)base, a1);
+                                            (StaticArg)base, a1);
            }};
      };
 
@@ -519,12 +522,21 @@ private constant inline Action<StaticArg> DimensionStaticArg =
            }};
      };
 
+private constant inline Action<StaticArg> EqualsStaticArg =
+     w equals w a1:StaticArg
+     { yyValue = new Action<StaticArg>() {
+           public StaticArg run(StaticArg base) {
+               return new EqualsStaticArg(createSpan(yyStart,yyCount),
+                                          (StaticArg)base, a1);
+           }};
+     };
+
 private constant inline Action<StaticArg> OrStaticArg =
      w "OR":op w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               return new OrBoolRef(createSpan(yyStart,yyCount),
-                                    (StaticArg)base, a1);
+               return new OrStaticArg(createSpan(yyStart,yyCount),
+                                      (StaticArg)base, a1);
            }};
      };
 
@@ -532,8 +544,8 @@ private constant inline Action<StaticArg> AndStaticArg =
      w "AND":op w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               return new AndBoolRef(createSpan(yyStart,yyCount),
-                                     (StaticArg)base, a1);
+               return new AndStaticArg(createSpan(yyStart,yyCount),
+                                           (StaticArg)base, a1);
            }};
      };
 
@@ -541,8 +553,17 @@ private constant inline Action<StaticArg> ImpliesStaticArg =
      w "IMPLIES":op w a1:StaticArg
      { yyValue = new Action<StaticArg>() {
            public StaticArg run(StaticArg base) {
-               return new ImpliesBoolRef(createSpan(yyStart,yyCount),
-                                         (StaticArg)base, a1);
+               return new ImpliesStaticArg(createSpan(yyStart,yyCount),
+                                               (StaticArg)base, a1);
+           }};
+     };
+
+private constant inline Action<StaticArg> ProductStaticArg =
+     (w DOT w / sr) a1:StaticArg
+     { yyValue = new Action<StaticArg>() {
+           public StaticArg run(StaticArg base) {
+               return new ProductStaticArg(createSpan(yyStart,yyCount),
+                                           (StaticArg)base, a1);
            }};
      };
 

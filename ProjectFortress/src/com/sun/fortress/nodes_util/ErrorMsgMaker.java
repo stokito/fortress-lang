@@ -39,7 +39,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         }
         return result;
     }
-    
+
     private final String acceptIfPresent(Option<? extends Node> possibleNode) {
         if (possibleNode.isPresent()) { return possibleNode.getVal().accept(this); }
         else { return ""; }
@@ -50,15 +50,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forArrowType(ArrowType node) {
-        return 
+        return
             node.getDomain().accept(this)
             + "->"
             + node.getRange().accept(this)
             + (node.getThrowsClause().isPresent() ? (" throws " +
                                                      Useful.listInCurlies(mapSelf(node.getThrowsClause().getVal()))) : "");
     }
-  
-    public String forBaseNatRef(BaseNatRef node) {
+
+    public String forBaseNatStaticArg(BaseNatStaticArg node) {
         return ("" + node.getValue());
     }
 
@@ -159,10 +159,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTupleType(TupleType node) {
-        return 
-            "(" + 
+        return
+            "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            acceptIfPresent(node.getVarargs()) + 
+            acceptIfPresent(node.getVarargs()) +
             Useful.listInDelimiters("", mapSelf(node.getKeywords()), "") +
             ")";
     }
