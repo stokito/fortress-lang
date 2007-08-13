@@ -827,8 +827,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                        = Collections.<StaticArg>emptyList(),
                                    Expr arg);
                 /**
-                 * internal node created by static analysis
-                 * after disambiguating method invocations and field accesses
+                 * a method invocation
+                 * some are created by parsing, while others require later
+                 * static analysis to disambiguate from function applications
                  */
                 MethodInvocation(Expr obj, Id id,
                                  List<StaticArg> staticArgs
@@ -874,9 +875,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * Primary ::= Id[\StaticArgList\]
                  * e.g.) identity[\String\]
                  */
-                FnRef(Expr expr,
-                      List<StaticArg> staticArgs =
-                          Collections.<StaticArg>emptyList());
+                FnRef(DottedId id,
+                      List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
                 /**
                  * simple expression
                  * Primary ::= BaseExpr

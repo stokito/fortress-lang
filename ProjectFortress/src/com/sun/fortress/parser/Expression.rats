@@ -347,7 +347,7 @@ Expr PrimaryFront =
      Comprehension
    / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = new FnRef(createSpan(yyStart,yyCount), false,
-                           ExprFactory.makeVarRef(a1.getSpan(), a1), a2);
+                           NodeFactory.makeDottedId(a1.getSpan(), a1), a2);
      }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -396,21 +396,48 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
-               if (a2 != null)
-                   mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
-               return PureList.make(a3, mth);
+               FieldRef fr = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
+               Option<DottedId> frIdOpt = NodeFactory.makeDottedId(fr);
+               if (frIdOpt.isPresent()) {
+                   DottedId frId = frIdOpt.getVal();
+                   Expr e;
+                   if (a2 == null) { e = new VarRef(frId.getSpan(), frId); }
+                   else { e = new FnRef(createSpan(yyStart,yyCount),false,frId,a2); }
+                   return PureList.make(a3, e);
+               }
+               else {
+                   List<StaticArg> sargs;
+                   if (a2 == null) { sargs = Collections.<StaticArg>emptyList(); }
+                   else { sargs = a2; }
+                   Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
+                                                   false, rcv, a1, sargs, a3);
+                   return PureList.make(inv);
+               }
            }};
      }
    / dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
      openparen w closeparen
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
+               Expr arg = ExprFactory.makeVoidLiteral(a1.getSpan());
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               Expr mth = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
-               if (a2 != null)
-                   mth = new FnRef(createSpan(yyStart,yyCount),false,mth,a2);
-               return PureList.make(ExprFactory.makeVoidLiteral(a1.getSpan()), mth);
+               FieldRef fr = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
+               Option<DottedId> frIdOpt = NodeFactory.makeDottedId(fr);
+               if (frIdOpt.isPresent()) {
+                   DottedId frId = frIdOpt.getVal();
+                   Expr e;
+                   if (a2 == null) { e = new VarRef(frId.getSpan(), frId); }
+                   else { e = new FnRef(createSpan(yyStart,yyCount),false,frId,a2); }
+                   return PureList.make(arg, e);
+               }
+               else {
+                   List<StaticArg> sargs;
+                   if (a2 == null) { sargs = Collections.<StaticArg>emptyList(); }
+                   else { sargs = a2; }
+                   Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
+                                                   false, rcv, a1, sargs, arg);
+                   return PureList.make(inv);
+               }
            }};
      };
 

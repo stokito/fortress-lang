@@ -237,15 +237,18 @@ public class ExprFactory {
         return new VarRef(span, false, NodeFactory.makeDottedId(span, id));
     }
 
+    public static VarRef makeVarRef(Iterable<Id> ids) {
+        Span s = FortressUtil.spanAll(ids);
+        return new VarRef(s, false, new DottedId(s, IterUtil.asList(ids)));
+    }
+    
     /**
      * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
      * as the name of a field.  Assumes {@code v} wraps a list of at least 2 ids.
      */
     public static FieldRef makeFieldRef(VarRef v) {
         List<Id> allIds = v.getVar().getNames();
-        List<Id> objIds = IterUtil.asList(IterUtil.skipLast(allIds));
-        DottedId objId = new DottedId(FortressUtil.spanAll(objIds), objIds);
-        VarRef obj = new VarRef(objId.getSpan(), false, objId);
+        VarRef obj = makeVarRef(IterUtil.skipLast(allIds));
         return new FieldRef(v.getSpan(), v.isParenthesized(), obj, IterUtil.last(allIds));
     }
 
@@ -443,6 +446,10 @@ public class ExprFactory {
                 return new FieldRef(e.getSpan(), true, e.getObj(),
                                           e.getId());
             }
+            public Expr forMethodInvocation(MethodInvocation e) {
+                return new MethodInvocation(e.getSpan(), true, e.getObj(), e.getId(),
+                                            e.getStaticArgs(), e.getArg());
+            }
             public Expr forLooseJuxt(LooseJuxt e) {
                 return new LooseJuxt(e.getSpan(), true, e.getExprs());
             }
@@ -450,7 +457,7 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getExpr(), e.getStaticArgs());
+                return new FnRef(e.getSpan(), true, e.getId(), e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),

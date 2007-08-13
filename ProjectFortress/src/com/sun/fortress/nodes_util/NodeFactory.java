@@ -19,13 +19,16 @@ package com.sun.fortress.nodes_util;
 
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.math.BigInteger;
+import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.parser_util.FortressUtil;
 
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
@@ -135,7 +138,7 @@ public class NodeFactory {
     }
 
     public static DottedId makeDottedId(Span span, String s) {
-        return new DottedId(span, Useful.list(makeId(s)));
+        return new DottedId(span, Useful.list(new Id(span, s)));
     }
 
     public static DottedId makeDottedId(Span span, Id s) {
@@ -144,6 +147,30 @@ public class NodeFactory {
 
     public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
         return new DottedId(span, Useful.prepend(s, ls));
+    }
+    
+    /** A hack to allow conversion from a FieldRef to a DottedId.  Instead of using
+      * this, the parser should parse the thing as a DottedId in the first place, if
+      * that is possible.  If the VarRef contains something besides Ids, the result
+      * is None.
+      */
+    public static Option<DottedId> makeDottedId(FieldRef ref) {
+        LinkedList<Id> ids = new LinkedList<Id>();
+        VarRef head = null;
+        do {
+            ids.addFirst(ref.getId());
+            Expr receiver = ref.getObj();
+            if (receiver instanceof FieldRef) { ref = (FieldRef) receiver; }
+            else if (receiver instanceof VarRef) { head = (VarRef) receiver; ref = null; }
+            else { ref = null; }
+        } while (ref != null);
+        
+        if (head != null) {
+            List<Id> res = IterUtil.asList(IterUtil.compose(head.getVar().getNames(),
+                                                            ids));
+            return new Some<DottedId>(new DottedId(FortressUtil.spanAll(res), res));
+        }
+        else { return new None<DottedId>(); }
     }
 
     /**

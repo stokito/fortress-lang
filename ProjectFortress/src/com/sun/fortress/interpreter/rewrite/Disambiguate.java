@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
@@ -82,6 +83,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
@@ -130,24 +132,17 @@ import com.sun.fortress.useful.Useful;
  */
 public class Disambiguate extends Rewrite {
 
-    public final static String PARENT_NAME = WellKnownNames.secretParentName;
-
     public final static Id LOOP_ID = NodeFactory.makeId(WellKnownNames.loopMethod);
 
-    public class Thing {
+    private class Thing {
         int nestedness;
-
-        Thing() {
-            nestedness = objectNestingDepth;
-        }
-        /** May assume that {@code original} wraps a DottedId of length 1. */
-        Expr replacement(VarRef original) {
-            return original;
-        }
+        Thing() { nestedness = objectNestingDepth; }
+        /** May assume {@code original} has a non-zero length. */
+        DottedId replacement(DottedId original) { return original; }
         public String toString() { return "Thing@"+nestedness; }
     }
 
-    class Local extends Thing {
+    private class Local extends Thing {
         public String toString() { return "Local@"+nestedness; }
     }
 
@@ -155,42 +150,28 @@ public class Disambiguate extends Rewrite {
      * Traits need to identify their declaration, for purposes of figuring out
      * what names are in scope, though not necessarily what they mean.
      */
-    class Trait extends Local {
+    private class Trait extends Local {
         TraitAbsDeclOrDecl defOrDecl;
-
-        Trait(TraitAbsDeclOrDecl dod) {
-            defOrDecl = dod;
-        }
+        Trait(TraitAbsDeclOrDecl dod) { defOrDecl = dod; }
         public String toString() { return "Trait="+defOrDecl; }
-
     }
 
-    class Member extends Thing {
-        Expr replacement(VarRef original) {
-            Id id = original.getVar().getNames().get(0);
-            FieldRef fs = new FieldRef(original.getSpan(), false,
-                                               // Use this constructor
-                // here because it is a
-                // com.sun.fortress.interpreter.rewrite.
-                dottedReference(original.getSpan(),
-                                objectNestingDepth - nestedness), id);
-        return fs;
+    private class Member extends Thing {
+        @Override DottedId replacement(DottedId original) {
+            return prependSelf(original, objectNestingDepth - nestedness);
         }
         public String toString() { return "Member@"+nestedness; }
-        }
+    }
 
-    class SelfRewrite extends Thing {
-        SelfRewrite(String s) {
-            this.s = s;
-        }
+    private class SelfRewrite extends Thing {
         String s;
-        Expr replacement(VarRef original) {
-            Expr expr = dottedReference(original.getSpan(),
-                    objectNestingDepth - nestedness);
-            return expr;
+        SelfRewrite(String s) { this.s = s; }
+        @Override DottedId replacement(DottedId original) {
+            Iterable<Id> restIds = IterUtil.skipFirst(original.getNames());
+            DottedId rest = new DottedId(original.getSpan(), IterUtil.asList(restIds));
+            return prependSelf(rest, objectNestingDepth - nestedness);
         }
         public String toString() { return "Self("+s+")@"+nestedness; }
-
     }
 
     /**
@@ -294,36 +275,29 @@ public class Disambiguate extends Rewrite {
         }
     }
 
-    /** Assumes {@code vre} wraps a DottedId of length 1. */
-    Expr newName(VarRef vre, String s) {
+    DottedId newName(DottedId id, String s) {
         Thing t = e.get(s);
         if (t == null) {
-            return vre;
+            return id;
         } else {
-            return t.replacement(vre);
+            return t.replacement(id);
         }
-
     }
 
     /**
      * Returns the proper name for the object enclosing a method/field; either
      * "self/notself", or "*parent."^N "self", where N is nesting depth.
-     *
-     * @param s
-     * @param i
-     * @return
      */
-    Expr dottedReference(Span s, int i) {
-        if (i == 0) {
-            return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
+    private static DottedId prependSelf(DottedId id, int i) {
+        List<Id> ids = new ArrayList<Id>();
+        if (i < 0) { throw new Error("Confusion in member reference numbering."); }
+        ids.add(new Id(id.getSpan(), WellKnownNames.secretSelfName));
+        for (int index = 0; index < i; index++) {
+            // i copies of "parent"
+            ids.add(new Id(id.getSpan(), WellKnownNames.secretParentName));
         }
-        if (i > 0) {
-            return new FieldRef(s, false, dottedReference(s, i - 1),
-                                      new Id(s, PARENT_NAME));
-        } else {
-            throw new Error("Confusion in member reference numbering.");
-        }
-
+        ids.addAll(id.getNames());
+        return new DottedId(id.getSpan(), ids);
     }
 
     public void registerComponent(Component c) {
@@ -392,20 +366,40 @@ public class Disambiguate extends Rewrite {
 
                 if (node instanceof VarRef) {
                     VarRef vre = (VarRef) node;
-                    List<Id> ids = vre.getVar().getNames();
-                    if (ids.size() == 1) {
-                        String s = ids.get(0).getName();
+                    DottedId id = vre.getVar();
+                    if (!id.getNames().isEmpty()) {
+                        String s = id.getNames().get(0).getName();
                         StaticParam tp = visibleGenericParameters.get(s);
                         if (tp != null) {
                             usedGenericParameters.put(s, tp);
                         }
-                        return newName(vre, s);
+                        DottedId update = newName(id, s);
+                        if (update == id) { return vre; }
+                        else {
+                            return new VarRef(vre.getSpan(), vre.isParenthesized(),
+                                              update);
+                        }
                     }
-                    else {
-                        // treat it like a FieldRef
-                        atTopLevelInsideTraitOrObject = false;
+                    else { return node; }
+                } else if (node instanceof FnRef) {
+                    FnRef fr = (FnRef) node;
+                    DottedId id = fr.getId();
+                    if (!id.getNames().isEmpty()) {
+                        String s = id.getNames().get(0).getName();
+                        StaticParam tp = visibleGenericParameters.get(s);
+                        if (tp != null) {
+                            usedGenericParameters.put(s, tp);
+                        }
+                        DottedId update = newName(id, s);
+                        if (update == id) { return fr; }
+                        else {
+                            return new FnRef(fr.getSpan(), fr.isParenthesized(),
+                                             update, fr.getStaticArgs());
+                        }
                     }
-                } else if (node instanceof LValueBind) {
+                    else { return node; }
+                }
+                else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
                     Id id = lvb.getId();
                     if ("_".equals(id.getName())) {
@@ -468,7 +462,7 @@ public class Disambiguate extends Rewrite {
                     if (atTopLevelInsideTraitOrObject) {
                         currentSelfName = fndef.getSelfName();
                         e.put(currentSelfName, new SelfRewrite(currentSelfName));
-                        }
+                    }
                     atTopLevelInsideTraitOrObject = false;
 
                     List<Param> params = fndef.getParams();

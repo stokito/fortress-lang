@@ -118,7 +118,10 @@ public class Span {
                 || left_col != right_col) {
             w.append(Printer.tilde);
             if (file_names_differ) {
+                w.append("\"");
+                // Need to add escapes to the file name
                 w.append(end.getFileName());
+                w.append("\"");
                 w.append(",");
             }
             if (begin.getLine() != end.getLine()) {

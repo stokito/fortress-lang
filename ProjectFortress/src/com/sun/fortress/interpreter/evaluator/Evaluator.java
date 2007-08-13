@@ -89,6 +89,7 @@ import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
+import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteral;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
@@ -149,6 +150,7 @@ import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MatchFailure;
 import com.sun.fortress.useful.NI;
@@ -710,6 +712,52 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
+    public FValue forMethodInvocation(MethodInvocation x) {
+        Expr obj = x.getObj();
+        Id method = x.getId();
+        List<StaticArg> sargs = x.getStaticArgs();
+        Expr arg = x.getArg();
+        
+        FValue fobj = obj.accept(this);
+        if (fobj instanceof FObject) {
+            FObject fobject = (FObject) fobj;
+            // TODO Need to distinguish between public/private
+            // methods/fields
+            FValue cl = fobject.getSelfEnv().getValueNull(method.getName());
+            if (cl == null) {
+                // TODO Environment is split, might not be best choice
+                // for error printing.
+                throw new ProgramError(x, fobject.getSelfEnv(),
+                                       errorMsg("undefined method ", method.getName()));
+            } else if (sargs.isEmpty() && cl instanceof Method) {
+                List<FValue> args = argList(arg.accept(this));
+                    //evalInvocationArgs(java.util.Arrays.asList(null, arg));
+                return ((Method) cl).applyMethod(args, fobject, x, e);
+            } else if (cl instanceof OverloadedMethod) {
+                throw new InterpreterBug(x, fobject.getSelfEnv(),
+                                         "Don't actually resolve overloading of " +
+                                         "generic methods yet.");
+            } else if (cl instanceof MethodInstance) {
+                // What gets retrieved is the symbolic instantiation of
+                // the generic method.
+                // This is ever-so-slightly wrong -- we need to not
+                // create an "instance"
+                // if the parameters are non-symbolic.
+                GenericMethod gm = ((MethodInstance) cl).getGenerator();
+                List<FValue> args = argList(arg.accept(this));
+                    //evalInvocationArgs(java.util.Arrays.asList(null, arg));
+                return (gm.typeApply(sargs, e, x)).applyMethod(args, fobject, x, e);
+            } else {
+                throw new ProgramError(x, fobject.getSelfEnv(),
+                                       errorMsg("Unexpected method value in method ",
+                                                "invocation, ", cl));
+            }
+        } else {
+            throw new ProgramError(x, errorMsg("Unexpected receiver in method ",
+                                               "invocation, ", fobj));
+        }
+    }
+
     public FValue forFnExpr(FnExpr x) {
         Option<Type> return_type = x.getReturnType();
         List<Param> params = x.getParams();
@@ -1064,7 +1112,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (exprs.size() == 0)
             throw new InterpreterBug(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
-
+        
+        // Translate compound VarRefs to FieldRefs
+        if (fcnExpr instanceof VarRef &&
+            ((VarRef)fcnExpr).getVar().getNames().size() > 1) {
+            fcnExpr = ExprFactory.makeFieldRef((VarRef)fcnExpr);
+        }
+        
         if (fcnExpr instanceof FieldRef) {
             // In this case, open code the FieldRef evaluation
             // so that the object can be preserved. Alternate
@@ -1075,40 +1129,34 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Id fld = fld_sel.getId();
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
+            
         } else if (fcnExpr instanceof FnRef) {
-            // Peek into the type-apply, see if it actually a generic method
-            // being instantiated.
+            // We must evaluate the receiver separately so we can get a handle on it
             FnRef tax = (FnRef) fcnExpr;
-            Expr expr = tax.getExpr();
-            List<StaticArg> args = tax.getStaticArgs();
-            if (expr instanceof FieldRef) {
-
-                FieldRef fld_sel = (FieldRef) expr;
-                Expr obj = fld_sel.getObj();
-                Id fld = fld_sel.getId();
-                FValue fobj = obj.accept(this);
-
-                // "Function" is type-apply of field-selection;
-                // currently that can only be instantiation of
-                // a generic method.
-
+            List<Id> names = tax.getId().getNames();
+            if (names.size() > 1) {
+                VarRef receiverVar = ExprFactory.makeVarRef(IterUtil.skipLast(names));
+                Id fld = IterUtil.last(names);
+                List<StaticArg> args = tax.getStaticArgs();
+                FValue fobj = forVarRef(receiverVar);
+                
                 if (fobj instanceof FObject) {
                     FObject fobject = (FObject) fobj;
                     // TODO Need to distinguish between public/private
                     // methods/fields
                     FValue cl = fobject.getSelfEnv()
-                            .getValueNull(fld.getName());
+                        .getValueNull(fld.getName());
                     if (cl == null) {
                         // TODO Environment is split, might not be best choice
                         // for error printing.
                         throw new ProgramError(x, fobject.getSelfEnv(),
-                                errorMsg("undefined method/field ",
-                                         fld.getName()));
+                                               errorMsg("undefined method/field ",
+                                                        fld.getName()));
                     } else if (cl instanceof OverloadedMethod) {
-
+                        
                         throw new InterpreterBug(x, fobject.getSelfEnv(),
-                                "Don't actually resolve overloading of generic methods yet.");
-
+                                                   "Don't actually resolve overloading of generic methods yet.");
+                        
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
                         // the generic method.
@@ -1117,25 +1165,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         // if the parameters are non-symbolic.
                         GenericMethod gm = ((MethodInstance) cl).getGenerator();
                         return (gm.typeApply(args, e, x)).applyMethod(
-                                evalInvocationArgs(exprs), fobject, x, e);
-
+                                    evalInvocationArgs(exprs), fobject, x, e);
+                        
                     } else {
                         throw new ProgramError(x, fobject.getSelfEnv(),
-                                errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                        cl));
+                                               errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+                                                        cl));
                     }
                 } else {
                     throw new ProgramError(x,
-                            errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
-                                     fobj));
-
+                                           errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
+                                                    fobj));
+                    
                 }
-            } else {
-                // Fall out into normal case.
             }
-
+            // else fall through
         }
-
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
             return NI.nyi("Functional method application");
@@ -1368,8 +1413,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     @Override
     public FValue forFnRef(FnRef x) {
-        Expr expr = x.getExpr();
-        FValue g = expr.accept(this);
+        DottedId id = x.getId();
+        FValue g = forVarRef(new VarRef(id.getSpan(), id));
         List<StaticArg> args = x.getStaticArgs();
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);
@@ -1377,8 +1422,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return ((GenericConstructor) g).typeApply(args, e, x);
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
+        } else {
+            throw new ProgramError(x, e, errorMsg("Unexpected FnRef value, ", g));
         }
-        return super.forFnRef(x);
     }
 
     public FValue for_WrappedFValue(_WrappedFValue w) {
