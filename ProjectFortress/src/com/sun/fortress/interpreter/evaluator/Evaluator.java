@@ -976,9 +976,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return getOpr(x);
     }
 
+    /** Assumes {@code x.getOps()} is a list of length 1. */
     public FValue forOprExpr(OprExpr x) {
         // debugPrint("forOprExpr " + x);
-        OprName op = x.getOp();
+        OprName op = x.getOps().get(0);
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         // Evaluate actual parameters.
@@ -1104,6 +1105,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forSubscriptOp");
     }
 
+    /** Assumes wrapped FnRefs have ids fields of length 1. */
     public FValue forTightJuxt(TightJuxt x) {
         // debugPrint("forTightJuxt " + x);
         // Assume for now that tight juxtaposition is function application fixme
@@ -1133,7 +1135,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (fcnExpr instanceof FnRef) {
             // We must evaluate the receiver separately so we can get a handle on it
             FnRef tax = (FnRef) fcnExpr;
-            List<Id> names = tax.getId().getNames();
+            List<Id> names = tax.getIds().get(0).getNames();
             if (names.size() > 1) {
                 VarRef receiverVar = ExprFactory.makeVarRef(IterUtil.skipLast(names));
                 Id fld = IterUtil.last(names);
@@ -1411,9 +1413,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
      *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnRef(com.sun.fortress.interpreter.nodes.FnRef)
      */
+    /** Assumes {@code x.getIds()} is a list of length 1. */
     @Override
     public FValue forFnRef(FnRef x) {
-        DottedId id = x.getId();
+        DottedId id = x.getIds().get(0);
         FValue g = forVarRef(new VarRef(id.getSpan(), id));
         List<StaticArg> args = x.getStaticArgs();
         if (g instanceof FGenericFunction) {

@@ -18,6 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.math.BigInteger;
@@ -200,23 +201,30 @@ public class ExprFactory {
     }
 
 
-    /** Alternatively, you can invoke the OprExpr constructor without parenthesized or args */
     public static OprExpr makeOprExpr(Span span, OprName op) {
-        return new OprExpr(span, false, op, new ArrayList<Expr>());
+        return new OprExpr(span, false, Collections.singletonList(op),
+                           Collections.<Expr>emptyList());
     }
 
     public static OprExpr makeOprExpr(Span span, OprName op, Expr arg) {
-        List<Expr> es = new ArrayList<Expr>();
-        es.add(arg);
-        return new OprExpr(span, false, op, es);
+        return new OprExpr(span, false, Collections.singletonList(op),
+                           Collections.singletonList(arg));
     }
 
     public static OprExpr makeOprExpr(Span span, OprName op, Expr first,
                                       Expr second) {
-        List<Expr> es = new ArrayList<Expr>();
-        es.add(first);
-        es.add(second);
-        return new OprExpr(span, false, op, es);
+        return new OprExpr(span, false, Collections.singletonList(op),
+                           Arrays.asList(first, second));
+    }
+    
+    public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
+        List<DottedId> names = Collections.singletonList(NodeFactory.makeDottedId(name));
+        return new FnRef(span, false, names, sargs);
+    }
+
+    public static FnRef makeFnRef(Span span, DottedId name, List<StaticArg> sargs) {
+        List<DottedId> names = Collections.singletonList(name);
+        return new FnRef(span, false, names, sargs);
     }
 
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
@@ -389,7 +397,7 @@ public class ExprFactory {
                                         e.getLhs(), e.getRhs());
             }
             public Expr forOprExpr(OprExpr e) {
-                return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
+                return new OprExpr(e.getSpan(), true, e.getOps(), e.getArgs());
             }
             public Expr forMapExpr(MapExpr e) {
                 return new MapExpr(e.getSpan(), true, e.getElements());
@@ -457,7 +465,7 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getId(), e.getStaticArgs());
+                return new FnRef(e.getSpan(), true, e.getIds(), e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),

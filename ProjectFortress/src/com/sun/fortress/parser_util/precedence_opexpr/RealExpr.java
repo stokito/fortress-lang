@@ -67,6 +67,7 @@ public class RealExpr extends Object implements InfixOpExpr {
       outputHelp(new TabPrintWriter(writer, 2));
    }
 
+   /** Assumes OprExprs wrap id lists of length 1. */
    public void outputHelp(TabPrintWriter writer) {
       writer.print("RealExpr" + ":");
       writer.indent();
@@ -82,7 +83,7 @@ public class RealExpr extends Object implements InfixOpExpr {
    } else if (temp_expr instanceof VarRef) {
       writer.print(NodeUtil.getName(((VarRef)temp_expr).getVar()));
    } else if (temp_expr instanceof OprExpr) {
-      writer.print(NodeUtil.getName(((OprExpr)temp_expr).getOp()));
+      writer.print(NodeUtil.getName(((OprExpr)temp_expr).getOps().get(0)));
    } else {
       writer.print(temp_expr);
    }

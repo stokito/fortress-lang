@@ -791,7 +791,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract OpExpr();
             /**
-             * expression using operators
+             * expression using operators (list of ops allows cross-API overloading)
              * OpExpr ::= EncloserOp OpExpr? EncloserOp?
              *          | OpExpr EncloserOp OpExpr?
              *          | Primary
@@ -802,7 +802,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *           | Primary ExponentOp
              * e.g.) 3 + 5
              */
-            OprExpr(OprName op,
+            OprExpr(List<OprName> ops,
                     List<Expr> args = Collections.<Expr>emptyList());
             /**
              * subscripting expression
@@ -872,10 +872,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ChainExpr(Expr first, List<Pair<Op, Expr>> links);
                 /**
                  * expression with static instantiations
+                 * list of ids allows cross-API overloading
                  * Primary ::= Id[\StaticArgList\]
                  * e.g.) identity[\String\]
                  */
-                FnRef(DottedId id,
+                FnRef(List<DottedId> ids,
                       List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
                 /**
                  * simple expression

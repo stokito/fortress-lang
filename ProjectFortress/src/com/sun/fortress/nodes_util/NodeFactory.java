@@ -141,10 +141,14 @@ public class NodeFactory {
         return new DottedId(span, Useful.list(new Id(span, s)));
     }
 
+    public static DottedId makeDottedId(Id s) {
+        return new DottedId(s.getSpan(), Useful.list(s));
+    }
+    
     public static DottedId makeDottedId(Span span, Id s) {
         return new DottedId(span, Useful.list(s));
     }
-
+    
     public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
         return new DottedId(span, Useful.prepend(s, ls));
     }
@@ -210,7 +214,7 @@ public class NodeFactory {
     }
 
     public static IdType makeIdType(Span span, Id id) {
-        return new IdType(span, makeDottedId(span, id));
+        return new IdType(span, makeDottedId(id));
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Id id) {

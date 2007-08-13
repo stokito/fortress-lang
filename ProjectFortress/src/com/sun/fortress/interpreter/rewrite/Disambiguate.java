@@ -383,7 +383,7 @@ public class Disambiguate extends Rewrite {
                     else { return node; }
                 } else if (node instanceof FnRef) {
                     FnRef fr = (FnRef) node;
-                    DottedId id = fr.getId();
+                    DottedId id = fr.getIds().get(0);
                     if (!id.getNames().isEmpty()) {
                         String s = id.getNames().get(0).getName();
                         StaticParam tp = visibleGenericParameters.get(s);
@@ -394,7 +394,8 @@ public class Disambiguate extends Rewrite {
                         if (update == id) { return fr; }
                         else {
                             return new FnRef(fr.getSpan(), fr.isParenthesized(),
-                                             update, fr.getStaticArgs());
+                                             Collections.singletonList(update),
+                                             fr.getStaticArgs());
                         }
                     }
                     else { return node; }
