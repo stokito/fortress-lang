@@ -183,8 +183,8 @@ public class ExprFactory {
    }
 
 
-    public static LetExpr makeLetExpr(final LetExpr expr, final List<Expr> body) {
-        return expr.accept(new NodeAbstractVisitor<LetExpr>() {
+    public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
+        return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
             public LetExpr forGeneratedExpr(GeneratedExpr expr) {
                 return new GeneratedExpr(expr.getSpan(), false, body,
                                          expr.getExpr(), expr.getGens());

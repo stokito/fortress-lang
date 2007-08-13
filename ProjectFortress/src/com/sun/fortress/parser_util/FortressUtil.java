@@ -185,8 +185,8 @@ public final class FortressUtil {
         m_wrapped  = false;
     }
     public static void noDuplicate(List<Modifier> mods) {
-        for (Modifier m : mods) {
-            m.accept(new NodeDepthFirstVisitor_void() {
+        for (Modifier mod : mods) {
+            mod.accept(new NodeDepthFirstVisitor_void() {
                     public void forModifierAtomic(ModifierAtomic m) {
                         if (m_atomic) multiple(m);
                         else m_atomic = true;

@@ -95,52 +95,55 @@ public class NodeUtil {
         return false;
     }
 
+    private final static NodeAbstractVisitor<String> nameGetter =
+        new NodeAbstractVisitor<String>() {
+        public String forDottedId(DottedId n) {
+            String name;
+            List<String> names = toStrings(n);
+            int size = names.size();
+            if (size == 0) {
+                throw new Error("Non-empty string is expected.");
+            } else if (size == 1) {
+                return names.get(0);
+            } else {
+                name = names.get(0);
+            }
+            for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
+                name += "." + ns.next();
+            }
+            return name;
+        }
+        public String forOpr(Opr n) {
+            return n.getOp().getName();
+        }
+        public String forPostFix(PostFix n) {
+            return n.getOp().getName();
+        }
+        public String forEnclosing(Enclosing n) {
+            return n.getOpen().getName();
+        }
+        public String forSubscriptOp(SubscriptOp n) {
+            return "[]";
+        }
+        public String forSubscriptAssign(SubscriptAssign n) {
+            return "[]=";
+        }
+        public String forAnonymousFnName(AnonymousFnName n) {
+            return n.getSpan().toString();
+        }
+        public String forConstructorFnName(ConstructorFnName n) {
+        // TODO Auto-generated method stub
+        return stringName(n.getDef());
+        }
+    };
+    
     /* getName *************************************************************/
     public static String getName(FnName n) {
-        return n.accept(new NodeAbstractVisitor<String>() {
-            public String forDottedId(DottedId n) {
-                String name;
-                List<String> names = toStrings(n);
-                int size = names.size();
-                if (size == 0) {
-                    throw new Error("Non-empty string is expected.");
-                } else if (size == 1) {
-                    return names.get(0);
-                } else {
-                    name = names.get(0);
-                }
-                for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
-                    name += "." + ns.next();
-                }
-                return name;
-            }
-            public String forOpr(Opr n) {
-                return n.getOp().getName();
-            }
-            public String forPostFix(PostFix n) {
-                return n.getOp().getName();
-            }
-            public String forEnclosing(Enclosing n) {
-                return n.getOpen().getName();
-            }
-            public String forSubscriptOp(SubscriptOp n) {
-                return "[]";
-            }
-            public String forSubscriptAssign(SubscriptAssign n) {
-                return "[]=";
-            }
-            public String forAnonymousFnName(AnonymousFnName n) {
-                return n.getSpan().toString();
-            }
-            public String forConstructorFnName(ConstructorFnName n) {
-            // TODO Auto-generated method stub
-            return stringName(n.getDef());
-            }
-        });
+        return n.accept(nameGetter);
     }
 
-    public static String getName(StaticParam p) {
-        return p.accept(new NodeAbstractVisitor<String>() {
+    public static String getName(StaticParam param) {
+        return param.accept(new NodeAbstractVisitor<String>() {
             public String forBoolParam(BoolParam p) {
                 return p.getId().getName();
             }
@@ -166,8 +169,8 @@ public class NodeUtil {
     }
 
     /* stringName **********************************************************/
-    public static String stringName(Node node) {
-        return node.accept(new NodeAbstractVisitor<String>() {
+    public static String stringName(Node the_node) {
+        return the_node.accept(new NodeAbstractVisitor<String>() {
             public String forDimUnitDecl(DimUnitDecl node) {
                 if (node.getDim().isPresent()) {
                     if (node.getUnits().isEmpty())
@@ -203,8 +206,8 @@ public class NodeUtil {
     }
 
     /* stringNames *********************************************************/
-    public static IterableOnce<String> stringNames(LValue d) {
-        return d.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
+    public static IterableOnce<String> stringNames(LValue lv) {
+        return lv.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forLValueBind(LValueBind d) {
                 return new UnitIterable<String>(d.getId().getName());
             }
@@ -217,8 +220,8 @@ public class NodeUtil {
         });
     }
 
-    public static IterableOnce<String> stringNames(AbsDeclOrDecl d) {
-        return d.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
+    public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {
+        return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
                 return new UnitIterable<String>(d.getId().getName());
             }

@@ -115,8 +115,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         Environment e = evaluator.e;
         if (names.isEmpty()) {
             throw new InterpreterBug(x, e, "empty variable name");
-        }
-        else if (names.size() == 1) {
+        } else if (names.size() == 1) {
             String s = names.get(0).getName();
             FType ft = e.getVarTypeNull(s);
             if (ft != null) {
@@ -129,8 +128,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             }
             e.assignValue(x, s, value);
             return null;
-        }
-        else {
+        } else {
             return forFieldRef(ExprFactory.makeFieldRef(x));
         }
     }

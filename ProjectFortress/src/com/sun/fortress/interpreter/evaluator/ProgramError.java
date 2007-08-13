@@ -34,10 +34,6 @@ public class ProgramError extends FortressError {
      */
     private static final long serialVersionUID = 6117319678737763138L;
 
-    HasAt where;
-    HasAt where2;
-    Environment within;
-
     public static String errorMsg(Object... messages) {
         StringBuffer fullMessage = new StringBuffer();
         for (Object message : messages) {

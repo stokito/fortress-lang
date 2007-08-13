@@ -64,18 +64,18 @@ public abstract class NativeApp implements Applicable {
      * perform additional sanity checks on the Fortress-side function
      * definition.
      */
-    protected void init(Applicable a) {
+    protected void init(Applicable app) {
         if (this.a!=null) {
             throw new InterpreterBug("Duplicate NativeApp.init call.");
         }
-        this.a = a;
-        int aty = a.getParams().size();
+        this.a = app;
+        int aty = app.getParams().size();
         if (aty != getArity()) {
-            throw new ProgramError(a,"Arity of type "+aty
+            throw new ProgramError(app,"Arity of type "+aty
                                    +" does not match native arity "+getArity());
         }
-        if (a.getReturnType()==null || !a.getReturnType().isPresent()) {
-            throw new ProgramError(a,"Please specify a Fortress return type.");
+        if (app.getReturnType()==null || !app.getReturnType().isPresent()) {
+            throw new ProgramError(app,"Please specify a Fortress return type.");
         }
     }
 

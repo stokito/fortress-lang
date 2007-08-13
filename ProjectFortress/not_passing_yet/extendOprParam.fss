@@ -26,9 +26,9 @@ trait Monoid[\ T, opr OPLUS \]
     opr OPLUS(self, other:T):T
 end
 
-value object NoReduction extends Monoid[\ NoReduction, OPLUS \]
-  opr OPLUS(self, other) = NoReduction
-  zero() = NoReduction
+value object Chicken extends Monoid[\ Chicken, EGG \]
+  opr EGG(self, other) = Chicken
+  zero() = Chicken
 end
 
 end

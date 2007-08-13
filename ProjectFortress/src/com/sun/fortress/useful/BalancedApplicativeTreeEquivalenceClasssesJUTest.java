@@ -142,9 +142,9 @@ public class BalancedApplicativeTreeEquivalenceClasssesJUTest extends com.sun.fo
 
         } else {
             for (int j = i; j < a.length; j++) {
-                String t = a[i];
+                String str = a[i];
                 a[i] = a[j];
-                a[j] = t;
+                a[j] = str;
                 foreachPermutation(a, i + 1);
             }
         }

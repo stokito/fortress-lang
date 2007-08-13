@@ -183,12 +183,12 @@ public final class MagicNumbers {
         G, n, X, D, V, M, h, j, C, g, A, U, N
     };
 
-    public final static int a(int i) {
-        i = i & 0x7fffffff; // i is now positive
-        if (i < array.length) {
+    public final static int a(int ii) {
+        ii = ii & 0x7fffffff; // i is now positive
+        if (ii < array.length) {
             // Tossing a bone to the compiler...
-            return array[i];
-        } else return array[ i % array.length ];
+            return array[ii];
+        } else return array[ ii % array.length ];
     }
 
     public static int uniformHash(int serial, int f2, int t2) {
@@ -197,10 +197,10 @@ public final class MagicNumbers {
         t0 = (0x7fffffffL & t0) + t1; /* perhaps 34 bits */
         t1 = t0 >>> 31;
         t0 = (0x7fffffffL & t0) + t1; /* perhaps 32 bits */
-        int t = (int) t0;
-        t = t - ((t >> 31) & 0x7fffffff); /* fixes all but 0xffffffff */
-        t = t - ((t >> 31) & 0x7fffffff); /* fixes 0x80000000 */
-        return t; /* Can also return 0x7fffffff -- not an actual problem */
+        int tt = (int) t0;
+        tt = tt - ((tt >> 31) & 0x7fffffff); /* fixes all but 0xffffffff */
+        tt = tt - ((tt >> 31) & 0x7fffffff); /* fixes 0x80000000 */
+        return tt; /* Can also return 0x7fffffff -- not an actual problem */
     }
 
     /**
@@ -209,14 +209,14 @@ public final class MagicNumbers {
      */
 
     public static int hashList(List list, int seed) {
-        int l = list.size();
-        int a = seed | 1;
-        int f = array[l & 1023]; // Depends on array being large enough
-        for (Object o : list) {
-            int h = o.hashCode();
-            int ah = a >>> 29;
-            a = a * f ^ h + ah;
+        int ls = list.size();
+        int xx = seed | 1;
+        int ff = array[ls & 1023]; // Depends on array being large enough
+        for (Object oo : list) {
+            int hh = oo.hashCode();
+            int ah = xx >>> 29;
+            xx = xx * ff ^ hh + ah;
         }
-        return a;
+        return xx;
     }
 }

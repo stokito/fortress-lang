@@ -46,10 +46,10 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
         PrecedenceMap.reset();
     }
 
-    Equal e = new Equal();
-    Higher h = new Higher();
-    Lower l = new Lower();
-    None n = new None();
+    Equal equal_precedence = new Equal();
+    Higher higher_precedence = new Higher();
+    Lower lower_precedence = new Lower();
+    None no_precedence = new None();
 
     /* Unit test for missed operator. */
     public void testImplies() {
@@ -71,21 +71,21 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
          * operators that halving the execution time of this O(n^2)
          * test by avoiding redundancy is worthwhile. */
         String ops[] = Operators.ops.toArray(new String[0]);
-        assertEquals(e,pm.precedence("BOGUS","BOGUS"));
-        assertEquals(n,pm.precedence("BOGUS","BOGUS2"));
+        assertEquals(equal_precedence,pm.precedence("BOGUS","BOGUS"));
+        assertEquals(no_precedence,pm.precedence("BOGUS","BOGUS2"));
         for (int i=0; i < ops.length; i++) {
             String preOp = ops[i];
-            assertEquals(n,pm.precedence("BOGUS",preOp));
-            assertEquals(n,pm.precedence(preOp,"BOGUS"));
-            assertEquals(e,pm.precedence(preOp,preOp));
+            assertEquals(no_precedence,pm.precedence("BOGUS",preOp));
+            assertEquals(no_precedence,pm.precedence(preOp,"BOGUS"));
+            assertEquals(equal_precedence,pm.precedence(preOp,preOp));
             for (int j=i; j < ops.length; j++) {
                 String preOp1 = ops[j];
                 Precedence f = pm.precedence(preOp, preOp1);
                 Precedence r = pm.precedence(preOp1, preOp);
-                if (f==e) assertEquals(e,r);
-                if (f==h) assertEquals(l,r);
-                if (f==l) assertEquals(h,r);
-                if (f==n) assertEquals(n,r);
+                if (f==equal_precedence) assertEquals(equal_precedence,r);
+                if (f==higher_precedence) assertEquals(lower_precedence,r);
+                if (f==lower_precedence) assertEquals(higher_precedence,r);
+                if (f==no_precedence) assertEquals(no_precedence,r);
             }
         }
     }
@@ -99,7 +99,7 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
                 for (String op : Operators.ops) {
                     Precedence p = pm.precedence(i,op);
                     assertEquals(i+" and "+op+" is "+p, s.contains(op),
-                                 e.equals(p));
+                                 equal_precedence.equals(p));
                 }
             }
         }
@@ -117,11 +117,11 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
             String cl0 = (String)s[0].iterator().next();
             String cl1 = (String)s[1].iterator().next();
             for (String op0 : Operators.ops) {
-                if (!e.equals(pm.precedence(cl0,op0))) continue;
+                if (!equal_precedence.equals(pm.precedence(cl0,op0))) continue;
                 for (String op1 : Operators.ops) {
                     Precedence ee = pm.precedence(cl1,op1);
                     Precedence hh = pm.precedence(op0,op1);
-                    if (e.equals(ee)) assertEquals(true, h.equals(hh));
+                    if (equal_precedence.equals(ee)) assertEquals(true, higher_precedence.equals(hh));
                 }
             }
         }

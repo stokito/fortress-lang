@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
+import com.sun.fortress.interpreter.evaluator.types.FTypeOpr;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
@@ -243,7 +244,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     throw new ProgramError(within, clenv,
-                            errorMsg("Expected IntNat, got ", a, " for param ", p, " instantiating ", what));
+                            errorMsg("Expected Nat, got ", a, " for param ", p, " instantiating ", what));
                 }
             } else if (p instanceof IntParam) {
                 if (a instanceof IntNat) {
@@ -254,7 +255,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     throw new ProgramError(within, clenv,
-                            errorMsg("Expected IntNat, got ", a, " for param ", p, " instantiating ", what));
+                            errorMsg("Expected Int, got ", a, " for param ", p, " instantiating ", what));
                 }
             } else if (p instanceof BoolParam) {
                 if (a instanceof Bool) {
@@ -266,18 +267,27 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 }
             } else if (p instanceof SimpleTypeParam) {
                 // There's probably some inappropriate ones.
-                if (a instanceof IntNat) {
+                if (a instanceof FTypeNat) {
                     throw new ProgramError(within, clenv,
                                            errorMsg("When instantiating ", what,
                                                     "Got nat ", a,
-                                                    " instead of type for param ", p,
-                                                    " (should be a nat param)."));
+                                                    " instead of type for param ", p));
+                } else if (a instanceof FTypeOpr) {
+                    throw new ProgramError(within, clenv,
+                            errorMsg("When instantiating ", what,
+                                     "Got opr ", a,
+                                     " instead of type for param ", p));
                 } else {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 }
 
             } else if (p instanceof OperatorParam) {
-                NI.nyi("Generic, generic in operator"); // TODO operator params
+                if (a instanceof FTypeOpr) {
+                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
+                } else {
+                    throw new ProgramError(within, clenv,
+                            errorMsg("Expected Opr, got ", a, " for param ", p, " instantiating ", what));
+                }
             } else if (p instanceof DimensionParam) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
@@ -303,8 +313,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forBaseOprStaticArg(BaseOprStaticArg b) {
-        System.err.println(env);
-        throw new Error();
+        return new FTypeOpr(NodeUtil.getName(b.getFnName()));
     }
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
@@ -366,7 +375,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     public FType forProductStaticArg(ProductStaticArg x) {
         return IntNat.make(longify(x.getMultiplier()) *
                            longify(x.getMultiplicand()));
-    }
+        }
 
     private long nonEmpty(List<? extends Type> value) {
         if (value.size() == 0)
@@ -389,7 +398,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     @Override
     public FType forSumStaticArg(SumStaticArg x) {
         return IntNat.make(longify(x.getLeft()) + longify(x.getRight()));
-    }
+        }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forMinusStaticArg(com.sun.fortress.interpreter.nodes.MinusStaticArg)
