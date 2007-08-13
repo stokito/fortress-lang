@@ -53,27 +53,45 @@ public class Fortress {
         
         // Handle APIs first
         
-        // Build APIs before disambiguating to allow circular references.
+        // Build ApiIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ApiResult contains a map of strings (names) to
+        // ApiIndices.
         IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(pr.apis());
         if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
         
+        // Build a new GlobalEnvironment consisting of all APIs in a global
+        // repository combined with all APIs that have been processed in the previous
+        // step. For now, we are implementing pure static linking, so there is
+        // no global repository.
         GlobalEnvironment rawApiEnv =
             new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
                                                       rawApiIR.apis()));
+        
+        // Rewrite all API ASTs so they include only fully qualified names, relying
+        // on the rawApiEnv constructed in the previous step. Note that, after this
+        // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(pr.apis(), rawApiEnv);
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
         
+        // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis());
         if (!apiIR.isSuccessful()) { return apiIR.errors(); }
         
+        // Rebuild GlobalEnvironment.
         GlobalEnvironment apiEnv =
             new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
                                                       apiIR.apis()));
+        
+        // Do all type checking and other static checks on APIs.
         StaticChecker.ApiResult apiSR =
             StaticChecker.checkApis(apiIR.apis(), apiEnv);
         if (!apiSR.isSuccessful()) { return apiSR.errors(); }
         
+        // Generate code. Code is stored in the _repository object. In an implementation
+        // with pure static linking, we would have to write this code back out to a file.
+        // In an implementation with fortresses, we would write this code into the resident
+        // fortress.
         for (Map.Entry<String, ApiIndex> newApi : apiIR.apis().entrySet()) {
             _repository.addApi(newApi.getKey(), newApi.getValue());
         }

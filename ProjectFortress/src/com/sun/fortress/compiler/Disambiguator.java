@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.util.Map;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 
@@ -29,11 +30,14 @@ import edu.rice.cs.plt.iter.IterUtil;
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what kind
  * of entity a name refers to.  This class specifically handles the following:
  * <ul>
- * <li>All names referring to APIs are made fully qualified.
- * <li>VarRefs referring to functions become FnRefs with (possibly unknown) static
- *     arguments filled in.</li>
- * <li>VarRefs referring to getters, setters, or methods become GetterInvocations.</li>
- * <li>FnRefs juxtaposed with Exprs become MethodInvocations.</li>
+ * <li>All names referring to APIs are made fully qualified (FnRefs and OprExprs may then
+ *     contain lists of qualified names referring to multiple APIs).
+ * <li>VarRefs referring to functions become FnRefs with placeholders for implicit static
+ *     arguments filled in (to be replaced later during type inference).</li>
+ * <li>VarRefs referring to getters, setters, or methods become FieldRefs.</li>
+ * <li>VarRefs referring to methods, and that are juxtaposed with Exprs, become MethodInvocations.</li>
+ * <li>FieldRefs referring to methods, and that are juxtaposed with Exprs, become MethodInvocations.</li>
+ * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become MethodInvocations.</li>
  * </ul>
  * 
  * Additionally, all name references that are undefined or used incorrectly are
