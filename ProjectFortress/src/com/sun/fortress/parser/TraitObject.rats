@@ -43,11 +43,11 @@ TraitDecl TraitDecl =
                       a3.getExcludes(), a3.getComprises(), a4);
      };
 
-/* TraitHeaderFront ::= trait w Id (w StaticParams)? (w Extends)? */
+/* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
 private TraitHeader TraitHeaderFront =
-     trait w a1:Id a2:(w StaticParams)? a3:(w Extends)?
+     trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
+       if (a3 == null) a3 = FortressUtil.emptyTraitTypeWheres();
        yyValue = new TraitHeader(a1, a2, a3);
      };
 
@@ -73,6 +73,7 @@ private TraitClause TraitClause =
 /* GoInATrait ::=
      (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
    | (Coercions br)? GoBackInATrait
+   | Coercions
  */
 private List<Decl> GoInATrait =
      a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
@@ -85,6 +86,10 @@ private List<Decl> GoInATrait =
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
+     }
+   / a1:Coercions
+     { yyValue = new ArrayList<Decl>();
+       yyValue.addAll(a1);
      };
 
 /* Coercions ::= Coercion (br Coercion)* */
@@ -129,16 +134,16 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
      };
 
 /* ObjectHeader ::=
-     object w Id (w StaticParams)? (w ObjectValParam)? (w Extends)? FnClauses
+   object w Id (w StaticParams)? (w ObjectValParam)? (w ExtendsWhere)? FnClauses
  */
 private ObjectHeader ObjectHeader =
      object w a1:Id a2:(w StaticParams)?
-     a3:(w ObjectValParam)? a4:(w Extends)? a5:FnClauses
+     a3:(w ObjectValParam)? a4:(w ExtendsWhere)? a5:FnClauses
      { Option<List<Param>> params;
        if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        if (a3 == null) params = None.<List<Param>>make();
        else            params = Some.<List<Param>>make(a3);
-       if (a4 == null) a4 = FortressUtil.emptyTraitTypes();
+       if (a4 == null) a4 = FortressUtil.emptyTraitTypeWheres();
        yyValue = new ObjectHeader(a1, a2, params, a4, a5);
      };
 
@@ -173,6 +178,7 @@ NormalParam Param :=
 /* GoInAnObject ::=
      (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
    | (Coercions br)? GoBackInAnObject
+   | Coercions
  */
 List<Decl> GoInAnObject =
      a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
@@ -185,6 +191,10 @@ List<Decl> GoInAnObject =
      { yyValue = new ArrayList<Decl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
+     }
+   / a1:Coercions
+     { yyValue = new ArrayList<Decl>();
+       yyValue.addAll(a1);
      };
 
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
@@ -246,6 +256,7 @@ private TraitClause AbsTraitClause =
 /* AbsGoInATrait ::=
      (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
    | (AbsCoercions br)? AbsGoBackInATrait
+   | AbsCoercions
  */
 private List<AbsDecl> AbsGoInATrait =
      a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
@@ -258,6 +269,10 @@ private List<AbsDecl> AbsGoInATrait =
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
+     }
+   / a1:AbsCoercions
+     { yyValue = new ArrayList<AbsDecl>();
+       yyValue.addAll(a1);
      };
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
@@ -305,6 +320,7 @@ AbsObjectDecl AbsObjectDecl =
 /* AbsGoInAnObject ::=
      (AbsCoercions br)? AbsGoFrontInAnObject (br AbsGoBackInAnObject)?
    | (AbsCoercions br)? AbsGoBackInAnObject
+   | AbsCoercions
  */
 List<AbsDecl> AbsGoInAnObject =
      a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
@@ -317,6 +333,10 @@ List<AbsDecl> AbsGoInAnObject =
      { yyValue = new ArrayList<AbsDecl>();
        if (a1 != null) yyValue.addAll(a1);
        yyValue.addAll(a2);
+     }
+   / a1:AbsCoercions
+     { yyValue = new ArrayList<AbsDecl>();
+       yyValue.addAll(a1);
      };
 
 /* AbsGoFrontInAnObject ::= AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)* */

@@ -49,8 +49,8 @@ import Spacing;
 Expr DelimitedExpr =
      TupleExpr
    / Parenthesized
-   / object a1:(w Extends)? a2:(w GoInAnObject)? w end
-     { if (a1 == null) a1 = FortressUtil.emptyTraitTypes();
+   / object a1:(w ExtendsWhere)? a2:(w GoInAnObject)? w end
+     { if (a1 == null) a1 = FortressUtil.emptyTraitTypeWheres();
        if (a2 == null) a2 = Collections.<Decl>emptyList();
        yyValue = new ObjectExpr(createSpan(yyStart,yyCount), false, a1, a2);
      }

@@ -24,17 +24,17 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.useful.MagicNumbers;
 
 public class TraitHeader {
 
     private Id name;
     private List<StaticParam> staticParams;
-    private List<TraitType> extendsClause;
+    private List<TraitTypeWhere> extendsClause;
 
     public TraitHeader(Id name, List<StaticParam> staticParams,
-                       List<TraitType> extendsClause) {
+                       List<TraitTypeWhere> extendsClause) {
         this.name = name;
         this.staticParams = staticParams;
         this.extendsClause = extendsClause;
@@ -48,7 +48,7 @@ public class TraitHeader {
         return staticParams;
     }
 
-    public List<TraitType> getExtendsClause() {
+    public List<TraitTypeWhere> getExtendsClause() {
         return extendsClause;
     }
 

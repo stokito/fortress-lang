@@ -30,6 +30,26 @@ import Keyword;
 import Symbol;
 import Spacing;
 
+/* ExtendsWhere ::= extends w TraitTypeWheres */
+List<TraitTypeWhere> ExtendsWhere = extends w TraitTypeWheres ;
+
+/* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
+private List<TraitTypeWhere> TraitTypeWheres =
+     a1:TraitTypeWhere { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w TraitTypeWhereList w closecurly ;
+
+/* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
+private List<TraitTypeWhere> TraitTypeWhereList =
+     a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* TraitTypeWhere ::= TraitType (w Where)? */
+private TraitTypeWhere TraitTypeWhere =
+     a1:TraitType a2:(w Where)?
+     { if (a2 == null) a2 = Collections.<WhereClause>emptyList();
+       yyValue = new TraitTypeWhere(a1, a2);
+     };
+
 /* Extends ::= extends w TraitTypes */
 List<TraitType> Extends = extends w TraitTypes ;
 

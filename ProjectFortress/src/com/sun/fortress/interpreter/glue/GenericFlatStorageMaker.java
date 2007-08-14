@@ -52,6 +52,7 @@ import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.useful.Some;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.HasAt;
@@ -79,7 +80,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         List<StaticParam> staticParams =  // [T, m]
             Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m"));
         Option<List<Param>> params = Some.makeSomeList(Collections.<Param>emptyList()); // ()
-        List<TraitType> traits =  // Array1[\T, 0, m\]
+        List<TraitTypeWhere> traits =  // Array1[\T, 0, m\]
             Collections.emptyList();
         ObjectDecl od =  NodeFactory.makeObjectDecl(defs, mods, name, staticParams, params, traits, throws_, where, contract);
 

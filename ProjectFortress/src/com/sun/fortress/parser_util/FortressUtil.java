@@ -79,6 +79,10 @@ public final class FortressUtil {
         return Collections.<TraitType>emptyList();
     }
 
+    public static List<TraitTypeWhere> emptyTraitTypeWheres() {
+        return Collections.<TraitTypeWhere>emptyList();
+    }
+
     public static List<Type> emptyTypes() {
         return Collections.<Type>emptyList();
     }

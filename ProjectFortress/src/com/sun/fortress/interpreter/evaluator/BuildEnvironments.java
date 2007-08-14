@@ -1193,7 +1193,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @param interior
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, BetterEnv interior) {
-        List<TraitType> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         interior = new BetterEnv(interior, x);
 
         EvalType et = processWhereClauses(x.getWhere(), interior);
@@ -1292,12 +1292,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public void finishObjectTrait(ObjectAbsDeclOrDecl x, FTypeObject ftt) {
-        List<TraitType> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
-        List<TraitType> extends_ = x.getExtendsClause();
+        List<TraitType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }

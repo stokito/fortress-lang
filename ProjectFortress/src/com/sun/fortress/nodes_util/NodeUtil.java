@@ -136,7 +136,7 @@ public class NodeUtil {
         return stringName(n.getDef());
         }
     };
-    
+
     /* getName *************************************************************/
     public static String getName(FnName n) {
         return n.accept(nameGetter);
@@ -324,4 +324,12 @@ public class NodeUtil {
         return s;
     }
 
+    /* for TraitTypeWhere **************************************************/
+    public static List<TraitType> getTypes(List<TraitTypeWhere> l) {
+        List<TraitType> t = new ArrayList();
+        for (TraitTypeWhere tw : l) {
+            t.add(tw.getType());
+        }
+        return t;
+    }
 }

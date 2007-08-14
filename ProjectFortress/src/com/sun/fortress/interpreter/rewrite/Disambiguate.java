@@ -259,7 +259,8 @@ public class Disambiguate extends Rewrite {
                 // Regular constructor
                 FTypeObject fto = new FTypeObject(name, env, oe, oe.getDecls());
                 env.putType(name, fto);
-                BuildEnvironments.finishObjectTrait(oe.getExtendsClause(), null, null, fto, env, oe);
+                BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
+                                                    null, null, fto, env, oe);
                 Constructor con = new Constructor(env, fto, oe,
                                                   NodeFactory.makeDottedId(name),
                                                   oe.getDecls());
@@ -484,7 +485,7 @@ public class Disambiguate extends Rewrite {
                     // eligible for com.sun.fortress.interpreter.rewrite.
                     AbstractObjectExpr oe = (AbstractObjectExpr) node;
                     List<? extends AbsDeclOrDecl> defs = oe.getDecls();
-                    List<TraitType> xtends = oe.getExtendsClause();
+                    List<TraitType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
                     // TODO wip
 
                     objectNestingDepth++;
@@ -533,7 +534,7 @@ public class Disambiguate extends Rewrite {
                     List<? extends AbsDeclOrDecl> defs = od.getDecls();
                     Option<List<Param>> params = od.getParams();
                     List<StaticParam> tparams = od.getStaticParams();
-                    List<TraitType> xtends = od.getExtendsClause();
+                    List<TraitType> xtends = NodeUtil.getTypes(od.getExtendsClause());
                     // TODO wip
                     objectNestingDepth++;
                     atTopLevelInsideTraitOrObject = true;
@@ -643,7 +644,8 @@ public class Disambiguate extends Rewrite {
      * @param td
      */
     private void accumulateMembersFromExtends(TraitAbsDeclOrDecl td) {
-        accumulateMembersFromExtends(td.getExtendsClause(), traitDisEnvMap.get(td) );
+        accumulateMembersFromExtends(NodeUtil.getTypes(td.getExtendsClause()),
+                                     traitDisEnvMap.get(td) );
     }
 
     private void accumulateMembersFromExtends(List<TraitType> xtends, Map<String, Thing> disEnv) {
@@ -816,7 +818,7 @@ public class Disambiguate extends Rewrite {
                                 for (AbsDeclOrDecl dd : tdod.getDecls()) {
                                     members.add(dd.stringName());
                                 }
-                                accumulateTraitsAndMethods(tdod.getExtendsClause(),
+                                accumulateTraitsAndMethods(NodeUtil.getTypes(tdod.getExtendsClause()),
                                         traitDisEnvMap.get(tdod), members, types,
                                         visited);
                             }

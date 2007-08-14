@@ -300,7 +300,7 @@ public class NodeFactory {
                                             Id name,
                                             List<StaticParam> stParams,
                                             Option<List<Param>> params,
-                                            List<TraitType> traits,
+                                            List<TraitTypeWhere> traits,
                                             Option<List<TraitType>> throws_,
                                             List<WhereClause> where,
                                             Contract contract) {
