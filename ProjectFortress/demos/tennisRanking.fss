@@ -103,8 +103,12 @@ readWord(line: String) =
 
 twoToStr(rank) = if rank < 10 then " " rank else rank end
 
+(*
+Doesn't work due to not_passing_yet/TypeImportBug.fss
+digits: TreeSet[\String\] = {"0","1","2","3","4","5","6","7","8","9"}
+*)
 digits = EmptySet[\String\]().add("0").add("1").add("2").add("3").add("4").add("5").add("6").add("7").add("8").add("9")
-opr EXISTS[\T\](x:T, set:NodeSet[\T\]) = set.member(x)
+opr EXISTS[\T\](x:T, set:TreeSet[\T\]) = set.member(x)
 
 isDigit(s: String) =
   case s EXISTS of
@@ -637,6 +641,7 @@ printUsage() =
     println "   inFile:  input file to read  the ranking result of the previous term"
     println "  outFile: output file to print the ranking result of this term"
     println " gameFile:  input file to read  the games   played in this term"
+    println "Example: ./fortress demos/tennisRanking.fss demos/tennis050307 demos/tennis051707 demos/tennisGames"
   end
 
 run(args:String...) = do

@@ -32,6 +32,7 @@ trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
   printTree():()
   toString():String
   member(x:Key): Maybe[\Val\]
+  minimum():(Key,Val)
   deleteMinimum():TreeMap[\Key,Val\] = do
     (_, res) = self.removeMinimum()
     res
@@ -41,12 +42,13 @@ trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
   update(k:Key, v:Val):TreeMap[\Key,Val\]
   delete(k:Key):TreeMap[\Key,Val\]
   updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\]
-(*
   union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
   union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
-*)
+  splitAt(k:Key):(TreeMap[\Key,Val\],Maybe[\Val\],TreeMap[\Key,Val\])
+
   balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\]
   balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
+  concat3(k:Key, v:Val, t2:TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
 end
 
 singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\] = do
@@ -55,27 +57,24 @@ singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\] = do
     NodeMap[\Key,Val\](kv,e,e)
   end
 
-mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\] = do
-    res : TreeMap[\Key,Val\] := EmptyMap[\Key,Val\]()
-    for (k,v) <- seq(g) do
-       res := res.add(k,v)
-    end
-    res
-  end
+mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\] =
+    g.generate[\TreeMap[\Key,Val\]\](MapUnion[\Key,Val\](), singleton[\Key,Val\])
+
+opr [\Key,Val\]{ pairs:(Key,Val)... }: TreeMap[\Key,Val\] =
+  (0#pairs.size()).generate[\TreeMap[\Key,Val\]\](MapUnion[\Key,Val\](),
+         fn (i:ZZ32):TreeMap[\Key,Val\] => singleton[\Key,Val\](pairs.get(i)))
 
 object SeqMapGenerator[\Key,Val\](o:TreeMap[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]
   generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = o.seqgen[\R\](r,body)
 end
 
-(*
 object MapUnion[\Key,Val\]() extends Reduction[\TreeMap[\Key,Val\]\]
     e = EmptyMap[\Key,Val\]()
     empty():TreeMap[\Key,Val\] = e
     join(a:TreeMap[\Key,Val\], b:TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
         a.union(b)
 end
-*)
 
 object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   getter size():ZZ32 = 0
@@ -90,7 +89,12 @@ object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   printTree():() = print "EmptyMap"
   toString():String = "{}"
   member(x:Key): Maybe[\Val\] = Nothing[\Val\]()
-  removeMinimum():((Key,Val), TreeMap[\Key,Val\]) = removeMinimum()
+  minimum(): (Key,Val) = fail("Empty map: no minimum key.")
+  removeMinimum():((Key,Val), TreeMap[\Key,Val\]) =
+    fail("Empty map: cannot remove minimum")
+  maximum(): (Key,Val) = fail("Empty map: no maximum key.")
+  removeMaximum():((Key,Val), TreeMap[\Key,Val\]) =
+    fail("Empty map: cannot remove maximum")
   add(k:Key, v:Val):TreeMap[\Key,Val\] = NodeMap[\Key,Val\]((k,v), self, self)
   update(k:Key, v:Val):TreeMap[\Key,Val\] = add(k, v)
   delete(k:Key):TreeMap[\Key,Val\] = self
@@ -101,10 +105,13 @@ object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\]
   union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = other
   union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
       other
+  splitAt(k:Key):(TreeMap[\Key,Val\],Maybe[\Val\],TreeMap[\Key,Val\]) =
+      (self,Nothing[\Val\](),self)
 
   balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\] = r
   balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):
       NodeMap[\Key,Val\] = NodeMap[\Key,Val\](x,self,self)
+  concat3(k:Key, v:Val, t2:TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = t2.add(k,v)
 end
 
 object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
@@ -143,19 +150,11 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
   end
 
   toString():String = do
-    temp:TreeMap[\Key,Val\] := self
-    res:String := "{"
-    (two, delmin) = temp.removeMinimum()
-    (k, v) = two
-    res DOT= k "|->" v
-    temp := delmin
-    while (NOT temp.isEmpty()) do
-      (twoo, delminn) = temp.removeMinimum()
-      (kk,vv) = twoo
-      res DOT= ", " kk "|->" vv
-      temp := delminn
-    end
-    res "}"
+    (two, delmin) = removeMinimum()
+    (km, vm) = two
+    ("{" km "|->" vm
+         delmin.generate[\String\](StringReduction,
+                            fn (k:Key, v:Val):String=> ", " k "|->" v) "}")
   end
 
   member(x:Key): Maybe[\Val\] =
@@ -164,11 +163,25 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
     else right.member(x)
     end
 
+  minimum() =
+    if left.isEmpty() then (key,val)
+    else left.minimum()
+    end
   removeMinimum() =
     if left.isEmpty() then (pair,right)
     else
       (min, delmin) = left.removeMinimum()
       (min, balancedAdd(pair,delmin,right))
+    end
+  maximum() =
+    if right.isEmpty() then (key,val)
+    else right.maximum()
+    end
+  removeMaximum() =
+    if right.isEmpty() then (pair,left)
+    else
+      (min, delmin) = right.removeMaximum()
+      (min, balancedAdd(pair,delmin,left))
     end
 
   add(k:Key, v:Val):TreeMap[\Key,Val\] =
@@ -198,16 +211,34 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
                     NodeMap[\Key,Val\]((k,v'), left, right))
     end
 
-  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] =
-      union(fn (k:Key, v1:Val, v2:Val) => v1, other)
+  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = do
+      (new, _, newr) = t2.splitAt(val)
+      left.union(f,newl).concat3(key,val,right.union(newr))
+    end
   union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = do
-      res : TreeMap[\Key,Val\] := other
-      for (k,v) <- seq(self) do
-        upd(_: Nothing[\Val\]): Just[\Val\] = Just[\Val\](v)
-        upd(j: Just[\Val\]): Just[\Val\] = Just[\Val\](f(k,v,j.unJust()))
-        res := res.updateWith(upd,k)
+      (new, mv, newr) = t2.splitAt(val)
+      val' = mv.maybe[\Val\](fn ():Val => val, fn (v:Val):Val => f(key,val,v))
+      left.union(f,newl).concat3(key,val',right.union(newr))
+    end
+  splitAt(k:Key):(TreeMap[\Key,Val\],Maybe[\Val\],TreeMap[\Key,Val\]) =
+    if   k < key then
+         (ll, v, rl) = left.splitAt(k)
+         (ll, v, rl.concat3(key,val,right))
+    elif k > key then
+         (lr, v, rr) = right.splitAt(k)
+         (left.concat3(key,val,lr), v, rr)
+    else (left, Just[\Val\](val), right)
+    end
+
+  concat3(k:Key, v:Val, t2:TreeMap[\Key,Val\]): TreeMap[\Key,Val\] = add(k,v)
+  concat3(k:Key, v:Val, t2:NodeMap[\Key,Val\]): TreeMap[\Key,Val\] = do
+      sz2 = t2.size()
+      if   weight sz < sz2 then
+           balancedAdd((t2.key,t2.val),concat3(k,v,t2.left),t2.right)
+      elif weight sz2 < sz then
+           balancedAdd((key,val),left,right.concat3(k,v,t2))
+      else NodeMap[\Key,Val\](k,v,self,t2)
       end
-      res
     end
 
   balancedDelete(r:NodeMap[\Key,Val\]):TreeMap[\Key,Val\] = do

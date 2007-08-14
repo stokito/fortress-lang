@@ -21,9 +21,6 @@ export Set
 weight:ZZ32 = 4
 
 trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
-   getter isEmpty(): Boolean
-   getter size(): ZZ32
-   generate[\R\](r: Reduction[\R\], body: E->R): R
    seqgen[\R\](r: Reduction[\R\], body: E->R): R
    seq(): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
    getVal():E
@@ -65,7 +62,7 @@ set[\E\](g: Generator[\E\]): TreeSet[\E\] =
    g.generate[\TreeSet[\E\]\](Union[\E\](), singleton[\E\])
 
 opr [\E\]{ es: E... }: TreeSet[\E\] =
-   (0#es.size()).generate[\TreeSet[\E\]\](Union[\E\](),
+    (0#es.size()).generate[\TreeSet[\E\]\](Union[\E\](),
                           fn (i:ZZ32): TreeSet[\E\] => singleton[\E\](es.get(i)))
 
 object Union[\E\]() extends Reduction[\TreeSet[\E\]\]
