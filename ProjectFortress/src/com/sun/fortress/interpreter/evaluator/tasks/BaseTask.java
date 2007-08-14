@@ -38,12 +38,6 @@ public abstract class BaseTask extends RecursiveAction {
         transactionCount = 0;
     }
 
-    public static <T> T doIt(Callable<T> xaction) {
-        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
-        T res = taskrunner.doIt(xaction);
-        return res;
-    }
-
     public void finalizeTask() {
         setCurrentTask(parent);
         if (parent != null) {

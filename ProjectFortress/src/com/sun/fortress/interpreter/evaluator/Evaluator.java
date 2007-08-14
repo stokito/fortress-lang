@@ -28,6 +28,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.TaskError;
 import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -303,7 +304,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Evaluator current = new Evaluator(this);
         transactionNestingCount += 1;
 
-        FValue res = BaseTask.doIt (
+        FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
                 public FValue call() {
                     Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
