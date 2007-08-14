@@ -306,14 +306,23 @@ Expr IdOrInt =
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* BaseExpr ::= NoKeyTuple | Parenthesized | Literal | Aggregate | Id | self */
+/* BaseExpr ::=
+     NoKeyTuple
+   | Parenthesized
+   | Literal
+   | Aggregate
+   | DottedId
+   | self
+ */
 Expr BaseExpr =
      NoKeyTuple
    / Parenthesized
    / Literal
    / Aggregate
-   / a1:Id   { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
-   / a1:self { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
+   / a1:DottedId
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*

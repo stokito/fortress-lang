@@ -93,10 +93,10 @@ List<LHS> AssignLefts =
 
 /* AssignLeft ::=
      SubscriptExpr
-   | MemberSelection
+   | FieldSelection
    | Id
    SubscriptExpr ::= Primay [ (w ExprList)? w ]
-   MemberSelection ::= Primary . Id
+   FieldSelection ::= Primary . Id
  */
 LHS AssignLeft =
     seed:PrimaryFront list:AssignLeftTail+
@@ -109,7 +109,7 @@ LHS AssignLeft =
 
 constant transient Action<Expr> AssignLeftTail =
       SubscriptAssign
-    / MemberSelectionAssign
+    / FieldSelectionAssign
     ;
 
 constant inline Action<Expr> SubscriptAssign =
@@ -124,7 +124,7 @@ constant inline Action<Expr> SubscriptAssign =
           }};
     };
 
-constant inline Action<Expr> MemberSelectionAssign =
+constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
@@ -288,7 +288,7 @@ PureList<PrecedenceOpExpr> LooseInfix =
 
 /* Primary ::=
      Comprehension
-   | Id [\ w StaticArgList w \]
+   | DottedId [\ w StaticArgList w \]
    | BaseExpr
    | LeftEncloser (w ExprList)? w RightEncloser
    | Primary [ (w ExprList)? w ]
@@ -314,7 +314,7 @@ constant PureList<Expr> Primary =
 
 Expr PrimaryFront =
      Comprehension
-   / a1:Id opendoublesquare w a2:StaticArgList w closedoublesquare
+   / a1:DottedId opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -329,7 +329,7 @@ Expr PrimaryFront =
 constant transient Action<PureList<Expr>> PrimaryTail =
      SubscriptExpr
    / MethodInvocation
-   / MemberSelection
+   / FieldSelection
    / ExponentExpr
    / UnitExpr
    / TightJuxtaposition
@@ -367,23 +367,12 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               FieldRef fr = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
-               Option<DottedId> frIdOpt = NodeFactory.makeDottedId(fr);
-               if (frIdOpt.isPresent()) {
-                   DottedId frId = frIdOpt.getVal();
-                   Expr e;
-                   if (a2 == null) { e = new VarRef(frId.getSpan(), frId); }
-                   else { e = ExprFactory.makeFnRef(createSpan(yyStart,yyCount),frId,a2); }
-                   return PureList.make(a3, e);
-               }
-               else {
-                   List<StaticArg> sargs;
-                   if (a2 == null) { sargs = Collections.<StaticArg>emptyList(); }
-                   else { sargs = a2; }
-                   Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
-                                                   false, rcv, a1, sargs, a3);
-                   return PureList.make(inv);
-               }
+               List<StaticArg> sargs;
+               if (a2 == null) sargs = Collections.<StaticArg>emptyList();
+               else            sargs = a2;
+               Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
+                                               false, rcv, a1, sargs, a3);
+               return PureList.make(inv);
            }};
      }
    / dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
@@ -392,27 +381,16 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
            public PureList<Expr> run(PureList<Expr> base) {
                Expr arg = ExprFactory.makeVoidLiteral(a1.getSpan());
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               FieldRef fr = new FieldRef(FortressUtil.spanTwo(rcv,a1),false,rcv,a1);
-               Option<DottedId> frIdOpt = NodeFactory.makeDottedId(fr);
-               if (frIdOpt.isPresent()) {
-                   DottedId frId = frIdOpt.getVal();
-                   Expr e;
-                   if (a2 == null) { e = new VarRef(frId.getSpan(), frId); }
-                   else { e = ExprFactory.makeFnRef(createSpan(yyStart,yyCount),frId,a2); }
-                   return PureList.make(arg, e);
-               }
-               else {
-                   List<StaticArg> sargs;
-                   if (a2 == null) { sargs = Collections.<StaticArg>emptyList(); }
-                   else { sargs = a2; }
-                   Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
-                                                   false, rcv, a1, sargs, arg);
-                   return PureList.make(inv);
-               }
+               List<StaticArg> sargs;
+               if (a2 == null) sargs = Collections.<StaticArg>emptyList();
+               else            sargs = a2;
+               Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
+                                               false, rcv, a1, sargs, arg);
+               return PureList.make(inv);
            }};
      };
 
-constant inline Action<PureList<Expr>> MemberSelection =
+constant inline Action<PureList<Expr>> FieldSelection =
      dot a1:Id
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {

@@ -883,7 +883,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) identity[\String\]
                  */
                 FnRef(List<DottedId> ids,
-                      List<StaticArg> staticArgs = Collections.<StaticArg>emptyList());
+                      List<StaticArg> staticArgs
+                          = Collections.<StaticArg>emptyList());
                 /**
                  * simple expression
                  * Primary ::= BaseExpr

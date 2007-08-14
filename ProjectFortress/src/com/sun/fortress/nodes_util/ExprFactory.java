@@ -216,11 +216,6 @@ public class ExprFactory {
         return new OprExpr(span, false, Collections.singletonList(op),
                            Arrays.asList(first, second));
     }
-    
-    public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
-        List<DottedId> names = Collections.singletonList(NodeFactory.makeDottedId(name));
-        return new FnRef(span, false, names, sargs);
-    }
 
     public static FnRef makeFnRef(Span span, DottedId name, List<StaticArg> sargs) {
         List<DottedId> names = Collections.singletonList(name);
@@ -249,7 +244,7 @@ public class ExprFactory {
         Span s = FortressUtil.spanAll(ids);
         return new VarRef(s, false, new DottedId(s, IterUtil.asList(ids)));
     }
-    
+
     /**
      * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
      * as the name of a field.  Assumes {@code v} wraps a list of at least 2 ids.
