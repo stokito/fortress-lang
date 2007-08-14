@@ -17,8 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTask;
-import EDU.oswego.cs.dl.util.concurrent.FJTaskRunner;
+import jsr166y.forkjoin.*;
+
 
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 
-public class FortressTaskRunner extends FJTaskRunner {
+public class FortressTaskRunner extends ForkJoinWorkerThread {
  /**
  * Contention manager class.
  */

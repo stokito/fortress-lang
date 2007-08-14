@@ -17,11 +17,23 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTaskRunnerGroup;
+import jsr166y.forkjoin.*;
 
-public class FortressTaskRunnerGroup extends FJTaskRunnerGroup {
-    public FortressTaskRunnerGroup(int groupSize) { super(groupSize);}
-    protected void initializeThreads() {
-       for (int i = 0; i < threads.length; ++i) threads[i] = new FortressTaskRunner(this);
+public class FortressTaskRunnerGroup extends ForkJoinPool {
+    public static class FortressForkJoinWorkerThreadFactory
+	implements ForkJoinWorkerThreadFactory {
+	public FortressTaskRunner newThread(FortressTaskRunnerGroup group) {
+	    return new FortressTaskRunner(group);
+	}
+	public FortressTaskRunner newThread(ForkJoinPool pool) {
+	    return new FortressTaskRunner((FortressTaskRunnerGroup) pool);
+	}
+    }
+
+    static final FortressForkJoinWorkerThreadFactory factory = 
+	    new FortressForkJoinWorkerThreadFactory();
+
+    public FortressTaskRunnerGroup(int groupSize) { 
+	super(groupSize, factory);
     }
 }

@@ -33,7 +33,7 @@ public class SpawnTask extends BaseTask {
     
     FValue val;
     
-    public void run() {
+    public void compute() {
         initTask();
         try {
             val = new Evaluator(eval, expr).eval(expr);
@@ -49,7 +49,6 @@ public class SpawnTask extends BaseTask {
         super(task);
         expr = b;
         eval = e;
-        start();
     }
     
     public FValue val() {
@@ -63,8 +62,8 @@ public class SpawnTask extends BaseTask {
                            " val = " + val);
     }
     
-    public void st_wait() { while (!isDone()) yield(); }
-    public Boolean ready() { return isDone(); }
-    public void stop() { cancel();}
+    public void st_wait() {}
+    public Boolean ready() { return false;}
+    public void stop() { }
     
 }

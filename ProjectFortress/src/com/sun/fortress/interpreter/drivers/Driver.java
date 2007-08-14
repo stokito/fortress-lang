@@ -179,58 +179,63 @@ public class Driver {
      * @return true iff any errors were written.
      * @throws IOException
      */
-    public static boolean runCommand(String command, final PrintStream output,
-            final IOException[] exceptions, PrintStream errors)
-            throws IOException {
-        Runtime runtime = Runtime.getRuntime();
-        Process p = runtime.exec(command);
-        final BufferedReader input_from_process = new BufferedReader(
-                new InputStreamReader(p.getInputStream()));
-        final BufferedReader errors_from_process = new BufferedReader(
-                new InputStreamReader(p.getErrorStream()));
 
-        boolean errors_encountered = false;
-        Thread th = new Thread() {
-            public void run() {
-                try {
-                    try {
-                        String line = input_from_process.readLine();
-                        while (line != null) {
-                            output.println(line);
-                            line = input_from_process.readLine();
-                        }
-                    } finally {
-                        output.close();
-                        input_from_process.close();
-                    }
-                } catch (IOException ex) {
-                    exceptions[0] = ex;
-                }
-            }
-        };
+    /* This function has no callers.  I'd rather not create new threads unless we
+       have a good reason.  I'm commenting this out until someone squeals.
+       Christine
+    */
+//     public static boolean runCommand(String command, final PrintStream output,
+//             final IOException[] exceptions, PrintStream errors)
+//             throws IOException {
+//         Runtime runtime = Runtime.getRuntime();
+//         Process p = runtime.exec(command);
+//         final BufferedReader input_from_process = new BufferedReader(
+//                 new InputStreamReader(p.getInputStream()));
+//         final BufferedReader errors_from_process = new BufferedReader(
+//                 new InputStreamReader(p.getErrorStream()));
 
-        th.start();
+//         boolean errors_encountered = false;
+//         Thread th = new Thread() {
+//             public void run() {
+//                 try {
+//                     try {
+//                         String line = input_from_process.readLine();
+//                         while (line != null) {
+//                             output.println(line);
+//                             line = input_from_process.readLine();
+//                         }
+//                     } finally {
+//                         output.close();
+//                         input_from_process.close();
+//                     }
+//                 } catch (IOException ex) {
+//                     exceptions[0] = ex;
+//                 }
+//             }
+//         };
 
-        // Print errors, discarding any leading blank lines.
-        String line = errors_from_process.readLine();
-        boolean first = true;
+//         th.start();
 
-        while (line != null) {
-            if (!first || line.trim().length() > 0) {
-                errors.println(line);
-                first = false;
-                errors_encountered = true;
-            }
-            line = errors_from_process.readLine();
-        }
+//         // Print errors, discarding any leading blank lines.
+//         String line = errors_from_process.readLine();
+//         boolean first = true;
 
-        try {
-            th.join();
-        } catch (InterruptedException ex) {
+//         while (line != null) {
+//             if (!first || line.trim().length() > 0) {
+//                 errors.println(line);
+//                 first = false;
+//                 errors_encountered = true;
+//             }
+//             line = errors_from_process.readLine();
+//         }
 
-        }
-        return errors_encountered;
-    }
+//         try {
+//             th.join();
+//         } catch (InterruptedException ex) {
+
+//         }
+//         return errors_encountered;
+//     }
 
     public static void writeJavaAst(CompilationUnit p, String s)
             throws IOException {
@@ -681,13 +686,11 @@ public class Driver {
         try {
             group.invoke(evTask);
         }
-        catch (InterruptedException ex) {
-        }
         finally {
             // group.interruptAll();
         }
         if (evTask.causedException()) {
-            throw evTask.getException();
+            throw evTask.getTaskException();
         }
     }
 

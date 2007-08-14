@@ -34,7 +34,7 @@
  <property name="src" location="src"/>
  <!-- Third party jar files -->
  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
- <property name="fj" location="${basedir}/third_party/FJ"/>
+ <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
  <property name="junit" location="${basedir}/third_party/junit"/>
  <property name="plt" location="${basedir}/third_party/plt"/>
  <property name="unicode.third" location="${basedir}/third_party/unicode"/>
@@ -67,7 +67,7 @@
  <property name="test.results" location="${basedir}/TEST-RESULTS"/>
 <!-- other setting -->
  <property name="junitMem" value="512m"/>
- <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${fj}/concurrent.jar:${plt}/plt.jar:${junit}/junit.jar"/>
+ <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property environment="env"/>
 
     <target name="help">
@@ -343,7 +343,7 @@ testNotPassing, testOnly"/>
             <classpath>
                 <pathelement location="${build}"/>
                 <pathelement location="${xtc}/xtc.jar"/>
-                <pathelement location="${fj}/concurrent.jar"/>
+                <pathelement location="${jsr166y}/jsr166y.jar"/>
                 <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
@@ -374,7 +374,7 @@ testNotPassing, testOnly"/>
             <classpath>
              <pathelement location="${build}"/>
              <pathelement location="${xtc}/xtc.jar"/>
-             <pathelement location="${fj}/concurrent.jar"/>
+             <pathelement location="${jsr166y}/jsr166y.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
@@ -402,7 +402,7 @@ testNotPassing, testOnly"/>
                failureProperty="not.passing.yet">
             <classpath>
              <pathelement location="${build}"/>
-             <pathelement location="${fj}/concurrent.jar"/>
+             <pathelement location="${jsr166y}/jsr166y.jar"/>
              <pathelement location="${xtc}/xtc.jar"/>
              <pathelement location="${plt}/plt.jar"/>
             </classpath>
@@ -428,7 +428,7 @@ testNotPassing, testOnly"/>
                 failureProperty="demos">
              <classpath>
               <pathelement location="${build}"/>
-              <pathelement location="${fj}/concurrent.jar"/>
+              <pathelement location="${jsr166y}/jsr166y.jar"/>
               <pathelement location="${xtc}/xtc.jar"/>
               <pathelement location="${plt}/plt.jar"/>
              </classpath>

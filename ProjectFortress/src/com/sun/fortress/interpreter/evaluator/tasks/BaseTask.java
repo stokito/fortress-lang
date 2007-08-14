@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 
 import java.io.IOException;
 
-import EDU.oswego.cs.dl.util.concurrent.FJTask;
+import jsr166y.forkjoin.*;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotEx
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 
-public abstract class BaseTask extends FJTask {
+public abstract class BaseTask extends RecursiveAction {
     public boolean causedException;
     public Throwable err;
     public BaseTask currentTask;
@@ -60,15 +60,15 @@ public abstract class BaseTask extends FJTask {
     }
 
     public boolean causedException() {return causedException;}
-    public Throwable getException() {return err;}
+    public Throwable getTaskException() {return err;}
 
     public static BaseTask getCurrentTask() {
-        FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
         return (BaseTask) taskrunner.getCurrentTask();
     }
 
     public static void setCurrentTask(BaseTask task) {
-        FortressTaskRunner taskrunner = (FortressTaskRunner) FJTask.getFJTaskRunner();
+        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
         taskrunner.setCurrentTask(task);
     }
 
@@ -102,7 +102,6 @@ public abstract class BaseTask extends FJTask {
     
     public void setTag(Object obj) { tag = obj;}
     public Object getTag() { return tag;}
-    
 }
 
 

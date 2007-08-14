@@ -44,7 +44,7 @@ public class EvaluatorTask extends BaseTask {
         System.out.println("EvaluatorTask: Compilation Unit = " + p);
     }
     
-    public void run() {
+    public void compute() {
         initTask();
         try {
             Driver.runProgramTask(p, runTests, args);
