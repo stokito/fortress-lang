@@ -24,6 +24,11 @@ public class ListComparer<T extends Comparable<T>> extends AnyListComparer<T> {
     public ListComparer() {
         super(new Comparator<T>() {
             public int compare(T o1, T o2) {
+                /* Deal appropriately with null, which for convenience
+                 * we consider to be less than everything else. */
+                if (o1==null && o2==null) return 0;
+                if (o1==null) return -1;
+                if (o2==null) return 1;
                 return o1.compareTo(o2);
             }
         });

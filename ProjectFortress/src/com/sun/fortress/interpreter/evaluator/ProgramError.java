@@ -37,7 +37,9 @@ public class ProgramError extends FortressError {
     public static String errorMsg(Object... messages) {
         StringBuffer fullMessage = new StringBuffer();
         for (Object message : messages) {
-            if (message instanceof AbstractNode) {
+            if (message == null) {
+                fullMessage.append("null");
+            } else if (message instanceof AbstractNode) {
                 fullMessage.append(makeErrorMsg((AbstractNode)message));
             }
             else {
