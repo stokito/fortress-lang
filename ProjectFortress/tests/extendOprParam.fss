@@ -25,7 +25,7 @@ trait Monoidish[\ T, opr OPLUS \]
 end
 
 value object Chicken extends Monoidish[\ Chicken, EGG \]
-  opr EGG(self, other:Chicken) = Chicken
+  opr EGG(self, other:Chicken):Chicken = Chicken
   zero() = Chicken
   isChicken() = true
 end
