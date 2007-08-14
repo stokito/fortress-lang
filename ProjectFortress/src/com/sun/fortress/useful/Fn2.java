@@ -19,9 +19,12 @@ package com.sun.fortress.useful;
 
 import java.util.ArrayList;
 import java.util.List;
+import edu.rice.cs.plt.lambda.Lambda2;
 
-public abstract class Fn2<T, U, V> {
+public abstract class Fn2<T, U, V> implements Lambda2<T, U, V> {
     public abstract V apply(T t, U u);
+    public V value(T t, U u) { return apply(t, u); }
+    
     public final static Fn2<String, String, String> stringAppender = new Fn2<String, String, String> () {
         @Override
         public String apply(String t, String u) {

@@ -234,7 +234,7 @@ public class NodeUtil {
                         throw new InterpreterBug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
                 } else
                     return new IterableOnceTranslatingList<Id, String>(
-                           d.getUnits(), IdtoStringFn);
+                           d.getUnits(), IdToStringFn);
             }
             public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
                 return new UnitIterable<String>(d.getId().getName());
@@ -308,7 +308,7 @@ public class NodeUtil {
     }
 
     /* function ************************************************************/
-    public static final com.sun.fortress.useful.Fn<Id, String> IdtoStringFn =
+    public static final com.sun.fortress.useful.Fn<Id, String> IdToStringFn =
         new com.sun.fortress.useful.Fn<Id, String>() {
             public String apply(Id x) {
                 return x.getName();

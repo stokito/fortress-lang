@@ -44,8 +44,11 @@ public class TopLevelEnvironment extends Environment {
         return false;
     }
     
-    public boolean hasType(String name) {
-        // TODO: implement
+    public boolean hasTrait(String name) {
+        return _current.traits().containsKey(name);
+    }
+    
+    public boolean hasTypeVar(String name) {
         return false;
     }
     
@@ -59,5 +62,9 @@ public class TopLevelEnvironment extends Environment {
         return Collections.emptySet();
     }
     
-}
+    public Option<String> apiForTrait(String name) {
+        // TODO: implement
+        return Option.none();
+    }
     
+}

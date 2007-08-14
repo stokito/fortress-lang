@@ -98,8 +98,16 @@ public class Fortress {
         
         // Handle components
         
+        // Build ApiIndices before disambiguating to allow circular references.
+        // An IndexBuilder.ApiResult contains a map of strings (names) to
+        // ApiIndices.
+        IndexBuilder.ComponentResult rawComponentIR =
+            IndexBuilder.buildComponents(pr.components());
+        if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
+        
         Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(pr.components(), env);
+            Disambiguator.disambiguateComponents(pr.components(), env,
+                                                 rawComponentIR.components());
         if (!componentDR.isSuccessful()) { return componentDR.errors(); }
         
         IndexBuilder.ComponentResult componentIR =

@@ -221,6 +221,18 @@ public class ExprFactory {
         List<DottedId> names = Collections.singletonList(name);
         return new FnRef(span, false, names, sargs);
     }
+    
+    public static FnRef makeFnRef(Id name) {
+        List<DottedId> names = Collections.singletonList(NodeFactory.makeDottedId(name));
+        return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
+    }
+    
+    public static FnRef makeFnRef(Iterable<Id> ids) {
+        Span s = FortressUtil.spanAll(ids);
+        List<DottedId> names =
+            Collections.singletonList(new DottedId(s, IterUtil.asList(ids)));
+        return new FnRef(s, false, names, Collections.<StaticArg>emptyList());
+    }
 
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
@@ -239,6 +251,10 @@ public class ExprFactory {
     public static VarRef makeVarRef(Span span, Id id) {
         return new VarRef(span, false, NodeFactory.makeDottedId(span, id));
     }
+    
+    public static VarRef makeVarRef(Id id) {
+        return new VarRef(id.getSpan(), false, NodeFactory.makeDottedId(id));
+    }
 
     public static VarRef makeVarRef(Iterable<Id> ids) {
         Span s = FortressUtil.spanAll(ids);
@@ -253,6 +269,10 @@ public class ExprFactory {
         List<Id> allIds = v.getVar().getNames();
         VarRef obj = makeVarRef(IterUtil.skipLast(allIds));
         return new FieldRef(v.getSpan(), v.isParenthesized(), obj, IterUtil.last(allIds));
+    }
+    
+    public static FieldRef makeFieldRef(Expr receiver, Id field) {
+        return new FieldRef(FortressUtil.spanTwo(receiver, field), false, receiver, field);
     }
 
     /** Alternatively, you can invoke the VoidLiteral constructor without parenthesized or text */

@@ -19,6 +19,8 @@ package com.sun.fortress.compiler.index;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.CompilationUnit;
 
@@ -37,9 +39,9 @@ public class CompilationUnitIndex {
                                 Relation<String, Function> functions,
                                 Map<String, TraitIndex> traits) {
         _ast = ast;
-        _variables = variables;
-        _functions = functions;
-        _traits = traits;
+        _variables = Collections.unmodifiableMap(variables);
+        _functions = CollectUtil.unmodifiableRelation(functions);
+        _traits = Collections.unmodifiableMap(traits);
     }
     
     public CompilationUnit ast() { return _ast; }
@@ -52,16 +54,10 @@ public class CompilationUnitIndex {
         return NI.nyi();
     }
     
-    public Map<String, Variable> variables() {
-        return NI.nyi();
-    }
+    public Map<String, Variable> variables() { return _variables; }
     
-    public Relation<String, Function> functions() {
-        return NI.nyi();
-    }
+    public Relation<String, Function> functions() { return _functions; }
     
-    public Map<String, TraitIndex> traits() {
-        return NI.nyi();
-    }
+    public Map<String, TraitIndex> traits() { return _traits; }
     
 }

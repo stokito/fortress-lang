@@ -27,6 +27,12 @@ public class GlobalEnvironment {
     
     public boolean definesApi(String name) { return _apis.containsKey(name); }
     
-    public ApiIndex api(String name) { return _apis.get(name); }
+    public ApiIndex api(String name) {
+        ApiIndex result = _apis.get(name);
+        if (result == null) {
+            throw new IllegalArgumentException("Undefined API: " + name);
+        }
+        else { return result; }
+    }
     
 }

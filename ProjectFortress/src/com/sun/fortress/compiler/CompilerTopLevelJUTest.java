@@ -35,12 +35,10 @@ public class CompilerTopLevelJUTest extends TestCase {
     private static final boolean VERBOSE = false;
     private static final boolean SKIP_NOT_PASSING = true;
     
+    // relative to the top ProjectFortress directory
     private static final List<String> NOT_PASSING = Arrays.asList(
-        "static_tests/XXXMultipleRefErrors.fss",
-        "static_tests/XXXUndefinedArrayRef.fss",
-        "static_tests/XXXUndefinedNestedRef.fss",
-        "static_tests/XXXUndefinedRefInLoop.fss",
-        "static_tests/XXXUndefinedVar.fss"
+        "static_tests/SimpleProgram.fss",
+        "static_tests/XXXUndefinedInitializer.fss"
     );
     
     public void testStaticTests() {

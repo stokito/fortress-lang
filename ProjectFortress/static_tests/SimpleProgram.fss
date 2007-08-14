@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component UndefinedVar
+component SimpleProgram
 export Executable
   
 x:ZZ = 23

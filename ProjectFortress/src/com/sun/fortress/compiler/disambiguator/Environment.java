@@ -24,8 +24,10 @@ public abstract class Environment {
     public abstract boolean hasVar(String name);
     public abstract boolean hasFn(String name);
     public abstract boolean hasMethod(String name);
-    public abstract boolean hasType(String name);
+    public abstract boolean hasTrait(String name);
+    public abstract boolean hasTypeVar(String name);
     
     public abstract Option<String> apiForVar(String name);
     public abstract Set<String> apisForFn(String name);
+    public abstract Option<String> apiForTrait(String name);
 }

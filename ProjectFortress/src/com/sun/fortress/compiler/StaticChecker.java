@@ -27,14 +27,15 @@ import edu.rice.cs.plt.iter.IterUtil;
  * Verifies all static properties of a valid Fortress program that require
  * interpreting types.  Assumes all names referring to APIs are fully-qualified,
  * and that the other transformations handled by the {@link Disambiguator} have
- * been performed.  In addition to checking the program, transforms components so 
- * that all unknown types are provided explicit values, introduces
- * explicit coercions, and restructures juxtapositions into a binary form.
- * <li>Assignments to GetterInvocations referring to setters become
- *     SetterInvocations.</li>
- * <li>GetterInvocations referring to methods juxtaposed with Exprs become
- *     MethodInvocations.</li>
- * <li>FunctionRefs juxtaposed with Exprs become MethodInvocations.</li>
+ * been performed.  In addition to checking the program, performs the following
+ * transformations:
+ * <ul>
+ * <li>All unknown placeholder types are provided explicit (inferred) values.</li>
+ * <li>Explicit coercions are added where needed.</li>
+ * <li>Juxtapositions are given a binary structure.</li>
+ * <li>FieldRefs that refer to methods and that are followed by an argument expression
+ *     become MethodInvocations.</li>
+ * </li>
  */
 public class StaticChecker {
     

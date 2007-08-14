@@ -20,21 +20,22 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 
 public class StaticVarEnvironment extends DelegatingEnvironment {
-    private Set<String> _types;
-    private Set<String> _vars;
+    private Set<String> _typeParams;
+    private Set<String> _valParams;
     
-    public StaticVarEnvironment(Environment parent, Set<String> types, Set<String> vars) {
+    public StaticVarEnvironment(Environment parent, Set<String> typeParams,
+                                Set<String> valParams) {
         super(parent);
-        _types = types;
-        _vars = vars;
+        _typeParams = typeParams;
+        _valParams = valParams;
     }
     
-    public boolean hasVar(String name) {
-        return _vars.contains(name) || super.hasVar(name);
+    @Override public boolean hasVar(String name) {
+        return _valParams.contains(name) || super.hasVar(name);
     }
     
-    public boolean hasType(String name) {
-        return _types.contains(name) || super.hasType(name);
+    @Override public boolean hasTypeVar(String name) {
+        return _typeParams.contains(name) || super.hasTypeVar(name);
     }
     
 }

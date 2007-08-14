@@ -27,7 +27,7 @@ public class LocalVarEnvironment extends DelegatingEnvironment {
         _vars = vars;
     }
     
-    public boolean hasVar(String name) {
+    @Override public boolean hasVar(String name) {
         return _vars.contains(name) || super.hasVar(name);
     }
     

@@ -30,8 +30,10 @@ public abstract class DelegatingEnvironment extends Environment {
     public boolean hasVar(String name) { return _parent.hasVar(name); }
     public boolean hasFn(String name) { return _parent.hasFn(name); }
     public boolean hasMethod(String name) { return _parent.hasMethod(name); }
-    public boolean hasType(String name) { return _parent.hasType(name); }
+    public boolean hasTrait(String name) { return _parent.hasTrait(name); }
+    public boolean hasTypeVar(String name) { return _parent.hasTypeVar(name); }
     
     public Option<String> apiForVar(String name) { return _parent.apiForVar(name); }
     public Set<String> apisForFn(String name) { return _parent.apisForFn(name); }
+    public Option<String> apiForTrait(String name) { return _parent.apiForTrait(name); }
 }
