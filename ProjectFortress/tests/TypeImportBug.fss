@@ -15,21 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fmTest4
+component TypeImportBug
+import * from Set
 export Executable
 
-trait Mumble[\T\]
-  mumble(self): Mumble[\T\] = MumbleD[\T\]("mumble(" mutter() ")")
-  mutter():String = "Mumble"
-end
+(* Very odd error behavior having something to do with how imported
+   names found in an api are tied together with the entities imported. *)
 
-object MumbleD[\T\](s:String) extends Mumble[\T\]
-  mumble(self): Mumble[\T\] = MumbleD[\T\](s)
-  mutter():String = "MumbleD " s
-end
-
-run(args:String...):()=do
-  println(mumble(MumbleD[\ZZ32\]()).mutter())
+run(args:String...):() = do
+  b : TreeSet[\String\] = EmptySet[\String\]().add("A").add("B").add("C").add("D")
+  println(b)
+  (* The call to String juxtaposition below is to convince the
+     interpreter we want a set of Strings, not a set of StringLiterals. *)
+  c : TreeSet[\String\] = { "" "A", "B", "C", "D" }
+  println(c)
 end
 
 end

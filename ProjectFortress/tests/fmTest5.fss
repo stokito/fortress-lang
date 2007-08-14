@@ -15,20 +15,21 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TypeImportBug
-import * from Set
+component fmTest4
 export Executable
 
-(* Very odd error behavior having something to do with how imported
-   names found in an api are tied together with the entities imported. *)
+trait Mumble[\T\]
+  mumble(self): Mumble[\T\] = MumbleD[\T\]("mumble(" mutter() ")")
+  mutter():String = "Mumble"
+end
 
-run(args:String...):() = do
-  b : TreeSet[\String\] = EmptySet[\String\]().add("A").add("B").add("C").add("D")
-  println(b)
-  a : NodeSet[\String\] = { "A", "B", "C", "D" }
-  println(a)
-  c : TreeSet[\String\] = { "A", "B", "C", "D" }
-  println(c)
+object MumbleD[\T\](s:String) extends Mumble[\T\]
+  mumble(self): Mumble[\T\] = MumbleD[\T\](s)
+  mutter():String = "MumbleD " s
+end
+
+run(args:String...):()=do
+  println(mumble(MumbleD[\ZZ32\]("Howdy")).mutter())
 end
 
 end

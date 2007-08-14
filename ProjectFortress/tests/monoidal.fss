@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component monoidal
+export Executable
 
 object Identity[\opr OPLUS\]()
 end
@@ -31,7 +32,7 @@ trait EquivalenceRelation[\T extends EquivalenceRelation, opr ~\]
   opr ~(self, other:T):Boolean
 end
 
-trait TotalOrder[\T extends TotalOrder[\T,OPLUS\],opr <,opr <=,opr =,opr >=,opr >\]
+trait TotalOrder[\T extends TotalOrder[\T,<,<=,=,>=,>\],opr <,opr <=,opr =,opr >=,opr >\]
     extends { EquivalenceRelation[\T, =\] }
   opr <(self, other:T):Boolean = NOT (self >= other)
   opr <=(self, other:T):Boolean
@@ -39,15 +40,19 @@ trait TotalOrder[\T extends TotalOrder[\T,OPLUS\],opr <,opr <=,opr =,opr >=,opr 
   opr >=(self, other:T):Boolean = other <= self
 end
 
-object N(x:ZZ32)
-  extends { Monoid[\N, OTIMES\], Monoid[\N, OPLUS\], Monoid[\N, MAX\],
-            TotalOrder[\N, LESS, LESSEQ, EQ, GREATEQ, GREAT\] }
-    (* We don't get far enough yet to even check the body. *)
+object Nn(x:ZZ32)
+  extends { Monoid[\Nn, OTIMES\], Monoid[\Nn, OPLUS\], Monoid[\Nn, MAX\],
+            TotalOrder[\Nn, LESS, LESSEQ, EQ, GREATEQ, GREAT\] }
+    opr OPLUS(self, other:Nn):Nn = Nn(x + other.x)
+    opr OTIMES(self, other:Nn):Nn = Nn(x other.x)
+    opr MAX(self, other:Nn):Nn = Nn(x MAX other.x)
+    opr EQ(self, other:Nn):Boolean = (x = other.x)
+    opr LESSEQ(self, other:Nn):Boolean = (x <= other.x)
 end
 
 run(args:String...) = do
-  n1 = N(1)
-  n2 = N(2)
+  n1 = Nn(1)
+  n2 = Nn(2)
   println(n1.x " and " n2.x)
 end
 
