@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,9 +27,12 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -51,6 +55,21 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         genericAt = d;
         this.members = members;
     }
+    
+    public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
+        super(orig.getName());
+        env = orig.getEnv();
+        genericAt = orig.getDef();
+        def = new_def;
+        params = new_def.getStaticParams();
+        members = new_def.getDecls();
+        
+    }
+
+    FTypeGeneric substituteOprs(List<FType> args) {
+        return this;
+    }
+
 
     BetterEnv env;
 
@@ -58,6 +77,11 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
     public Generic getDef() {
         return def;
+    }
+    
+    @Override
+    public BetterEnv getEnv() {
+        return env;
     }
 
     List<StaticParam> params;
@@ -73,72 +97,111 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
         public FTraitOrObject make(List<FType> args, HasAt within,
                 Map<List<FType>, FTraitOrObject> map) {
-            BetterEnv clenv = new BetterEnv(env, within);
-            // List<StaticParam> params = def.getTypeParams().getVal();
-            EvalType.bindGenericParameters(params, args, clenv, within,
-                    genericAt);
-            BuildEnvironments be = new BuildEnvironments(clenv);
-
-            FTraitOrObject rval;
-
-            if (def instanceof AbsDeclOrDecl) {
-                AbsDeclOrDecl dod = (AbsDeclOrDecl) def;
-                if (dod instanceof TraitAbsDeclOrDecl) {
-                    TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
-                    FTypeTrait ftt = new FTypeTraitInstance(td.getId()
-                            .getName(), clenv, FTypeGeneric.this, args, members);
-                    FTraitOrObject old = map.put(args, ftt); // Must put
-                                                                // early to
-                                                                // expose for
-                                                                // second pass.
-
-                    // Perhaps make this conditional on nothing being symbolic here?
-                    be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
-                    be.secondPass();
-                    be.finishTrait(td, ftt, clenv);
-                    be.thirdPass();
-                    rval = ftt;
-                } else if (dod instanceof ObjectDecl) {
-                    ObjectDecl td = (ObjectDecl) dod;
-                    FTypeObject fto = new FTypeObjectInstance(td.getId()
-                            .getName(), clenv, FTypeGeneric.this, args, members);
-                    map.put(args, fto); // Must put early to expose for second
-                                        // pass.
-
-                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                    be.secondPass();
-                    be.finishObjectTrait(td, fto);
-                    be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                    rval = fto;
-                } else if (dod instanceof _RewriteObjectExpr) {
-                    _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
-                    FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
-                            clenv, FTypeGeneric.this, args, members);
-                    map.put(args, fto); // Must put early to expose for second
-                                        // pass.
-
-                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-                    be.secondPass();
-                    be.finishObjectTrait(td, fto);
-                    be.thirdPass();
-                    be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-
-                    rval = fto;
-                } else {
-                    throw new InterpreterBug(within,
-                            "Generic def-or-declaration surprise " + dod);
+            int oprParamCount = 0;
+            
+            for (StaticParam param : params) {
+                if (param instanceof OperatorParam) 
+                    oprParamCount++;
+            }
+            
+            if (oprParamCount > 0) {
+                HashMap<String, String> substitutions = new HashMap<String, String>();
+                List<FType> thinned_args = new ArrayList<FType>(args.size() - oprParamCount);
+                int i = 0;
+                for (StaticParam param : params) {
+                    FType arg = args.get(i);
+                    if (param instanceof OperatorParam) {
+                        FTypeOpr fto = (FTypeOpr) arg;
+                        substitutions.put( ((OperatorParam)param).getOp().getName(),
+                                fto.getName());
+                    } else {
+                        thinned_args.add(arg);
+                    }
+                    i++;
                 }
-
-
-
-                return rval;
-
-            } else {
-                throw new InterpreterBug(within, "Generic surprise " + def);
+                
+                OprInstantiater oi = new OprInstantiater(substitutions);
+                
+                TraitObjectAbsDeclOrDecl new_def = 
+                    (TraitObjectAbsDeclOrDecl)oi.visit((TraitObjectAbsDeclOrDecl)FTypeGeneric.this.getDef());
+                
+                FTypeGeneric replacement = 
+                    new FTypeGeneric(FTypeGeneric.this, new_def);
+                 
+                return FTypeGeneric.make(thinned_args, args, within, map, replacement);
+            } else {            
+                return FTypeGeneric.make(args, args, within, map, FTypeGeneric.this);
             }
         }
+        
+     }
+    
+    static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
+            Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
+        BetterEnv clenv = new BetterEnv(gen.env, within);
+        // List<StaticParam> params = def.getTypeParams().getVal();
+        EvalType.bindGenericParameters(gen.params, bind_args, clenv, within,
+                gen.genericAt);
+        BuildEnvironments be = new BuildEnvironments(clenv);
+
+        FTraitOrObject rval;
+
+        if (gen.def instanceof AbsDeclOrDecl) {
+            AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
+            if (dod instanceof TraitAbsDeclOrDecl) {
+                TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
+                FTypeTrait ftt = new FTypeTraitInstance(td.getId()
+                        .getName(), clenv, gen, bind_args, gen.members);
+                FTraitOrObject old = map.put(key_args, ftt); // Must put
+                                                            // early to
+                                                            // expose for
+                                                            // second pass.
+
+                // Perhaps make this conditional on nothing being symbolic here?
+                be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
+                be.secondPass();
+                be.finishTrait(td, ftt, clenv);
+                be.thirdPass();
+                rval = ftt;
+            } else if (dod instanceof ObjectDecl) {
+                ObjectDecl td = (ObjectDecl) dod;
+                FTypeObject fto = new FTypeObjectInstance(td.getId()
+                        .getName(), clenv, gen, bind_args, gen.members);
+                map.put(key_args, fto); // Must put early to expose for second
+                                    // pass.
+
+                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                be.secondPass();
+                be.finishObjectTrait(td, fto);
+                be.thirdPass();
+                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                rval = fto;
+            } else if (dod instanceof _RewriteObjectExpr) {
+                _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
+                FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
+                        clenv, gen, bind_args, gen.members);
+                map.put(key_args, fto); // Must put early to expose for second
+                                    // pass.
+
+                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                be.secondPass();
+                be.finishObjectTrait(td, fto);
+                be.thirdPass();
+                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+
+                rval = fto;
+            } else {
+                throw new InterpreterBug(within,
+                        "Generic def-or-declaration surprise " + dod);
+            }
+
+            return rval;
+
+        } else {
+            throw new InterpreterBug(within, "Generic surprise " + gen.def);
+        }
     }
+
 
     LazyMemo1P<List<FType>, FTraitOrObject, HasAt> memo =
         new LazyMemo1P<List<FType>, FTraitOrObject, HasAt>(

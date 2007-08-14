@@ -19,6 +19,8 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.StringMaker;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -35,7 +37,9 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
@@ -67,8 +71,12 @@ abstract public class FType implements Comparable<FType> {
     private BASet<FType> excludes = new BASet<FType>(comparator);
     private static int counter;
     protected volatile List<FType> transitiveExtends;
-    // Must be volatile due to lazy initialization / double-checked locking.
+   // Must be volatile due to lazy initialization / double-checked locking.
 
+    private List<Pair<HasAt, FType> > mustExtend;
+    // Where clauses in superclasses parameterized by Self can
+    // introduce constraints that must be satisfied.
+    
     protected boolean isSymbolic;
     protected boolean cannotBeExtended;
 
@@ -122,6 +130,10 @@ abstract public class FType implements Comparable<FType> {
         return Collections.emptyList();
     }
 
+    protected List<FType> getExtendsNull() {
+        return getExtends();
+    }
+    
     protected List<FType> computeTransitiveExtends() {
         return Useful.<FType>list(this);
     }
@@ -229,7 +241,7 @@ abstract public class FType implements Comparable<FType> {
 
     }
 
-    public Environment getEnv() {
+    public BetterEnv getEnv() {
         return BetterEnv.empty();
     }
 
@@ -441,5 +453,32 @@ abstract public class FType implements Comparable<FType> {
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
         unify(env, tp_set, abm, val.getType());
+    }
+
+    public void mustExtend(FType st, HasAt constraint_loc) {
+        List<FType> curr_extends = getExtendsNull();
+        if (curr_extends == null) {
+
+            if (mustExtend == null)
+                mustExtend = new ArrayList<Pair<HasAt, FType>>();
+            
+            mustExtend.add(new Pair<HasAt, FType>(constraint_loc, st));
+        } else {
+            if (!subtypeOf(st)) {
+                throw new ProgramError(constraint_loc, "" + this
+                        + " must subtype " + st);
+            }
+        }
+    }
+    
+    protected void checkConstraints() {
+        if (mustExtend != null) {
+            for (Pair<HasAt, FType> p : mustExtend)
+                if (!subtypeOf(p.getB())) {
+                    throw new ProgramError(p.getA(), "" + this
+                            + " must subtype " + p.getB());
+                }
+        }
+        mustExtend = null;
     }
 }

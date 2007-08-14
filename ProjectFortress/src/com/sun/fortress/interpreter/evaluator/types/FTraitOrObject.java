@@ -80,6 +80,7 @@ abstract public class FTraitOrObject extends FType {
         env.bless();
         initializeExcludes(excludes);
         finishInitializing();
+        checkConstraints();
     }
 
     private void initializeExcludes(List<FType> excludes) {
@@ -96,6 +97,20 @@ abstract public class FTraitOrObject extends FType {
         return extends_;
     }
 
+        /**
+         * Returns extends, without checking for null;
+         * if null, then extends has not yet been initialized.
+         * Used by FType to implement constraint checks from
+         * where clauses.
+         * 
+         * @return
+         */
+    @Override protected List<FType> getExtendsNull() {
+        return extends_;
+    }
+
+
+    
     /** Only implemented by subtypes which extend GenericTypeInstance.
      *  Method included here to permit sharing of the complicated code in
      *  unifyNonVarGeneric.
