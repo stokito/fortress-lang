@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ExtendOprWithParam
+export Executable
+
+trait Monoidish[\ T, opr OPLUS \]
+  where { T extends Monoidish[\ T, OPLUS \] }
+    zero() : T
+    opr OPLUS(self, other:T):T = do println("FAIL"); self end
+end
+
+object Chicken[\T\](x:T) extends Monoidish[\ Chicken[\T\], EGG \]
+  opr EGG(self, other:Chicken[\T\]):Chicken[\T\] = other
+  zero() = Chicken[\T\](0)
+  holds(y:T) = do println("OK"); (x=y) end
+end
+
+run(args:String...):() =
+  assert( (Chicken[\ZZ32\](3) EGG Chicken[\ZZ32\](7)).holds(7),"Doesn't hold 7")
+
+end
