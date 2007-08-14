@@ -27,8 +27,8 @@ run(args:String...):() = do
   println(b)
   a : NodeSet[\String\] = { "A", "B", "C", "D" }
   println(a)
-  C : TreeSet[\String\] = { "A", "B", "C", "D" }
-  println(a)
+  c : TreeSet[\String\] = { "A", "B", "C", "D" }
+  println(c)
 end
 
 end
