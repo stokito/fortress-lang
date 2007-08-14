@@ -506,7 +506,77 @@ public class NodeFactory {
     }
 
     public static StaticArg makeInParentheses(StaticArg ty) {
-        return (StaticArg)makeInParentheses((Type)ty);
+        return ty.accept(new NodeAbstractVisitor<StaticArg>() {
+            public StaticArg forBaseNatStaticArg(BaseNatStaticArg t) {
+                return new BaseNatStaticArg(t.getSpan(), true, t.getValue());
+            }
+            public StaticArg forBaseOprStaticArg(BaseOprStaticArg t) {
+                return new BaseOprStaticArg(t.getSpan(), true, t.getFnName());
+            }
+            public StaticArg forBaseDimStaticArg(BaseDimStaticArg t) {
+                return new BaseDimStaticArg(t.getSpan(), true);
+            }
+            public StaticArg forBaseUnitStaticArg(BaseUnitStaticArg t) {
+                return new BaseUnitStaticArg(t.getSpan(), true);
+            }
+            public StaticArg forBaseBoolStaticArg(BaseBoolStaticArg t) {
+                return new BaseBoolStaticArg(t.getSpan(), true, t.isBool());
+            }
+            public StaticArg forNotStaticArg(NotStaticArg t) {
+                return new NotStaticArg(t.getSpan(), true, t.getVal());
+            }
+            public StaticArg forOrStaticArg(OrStaticArg t) {
+                return new OrStaticArg(t.getSpan(), true, t.getLeft(),
+                                       t.getRight());
+            }
+            public StaticArg forAndStaticArg(AndStaticArg t) {
+                return new AndStaticArg(t.getSpan(), true, t.getLeft(),
+                                        t.getRight());
+            }
+            public StaticArg forImpliesStaticArg(ImpliesStaticArg t) {
+                return new ImpliesStaticArg(t.getSpan(), true, t.getLeft(),
+                                            t.getRight());
+            }
+            public StaticArg forSumStaticArg(SumStaticArg t) {
+                return new SumStaticArg(t.getSpan(), true, t.getLeft(),
+                                        t.getRight());
+            }
+            public StaticArg forMinusStaticArg(MinusStaticArg t) {
+                return new MinusStaticArg(t.getSpan(), true, t.getLeft(),
+                                          t.getRight());
+            }
+            public StaticArg forProductStaticArg(ProductStaticArg t) {
+                return new ProductStaticArg(t.getSpan(), true, t.getMultiplier(),
+                                            t.getMultiplicand());
+            }
+            public StaticArg forQuotientStaticArg(QuotientStaticArg t) {
+                return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
+                                             t.getDenominator());
+            }
+            public StaticArg forChangeStaticArg(ChangeStaticArg t) {
+                return new ChangeStaticArg(t.getSpan(), true, t.getVal(),
+                                           t.getUnit());
+            }
+            public StaticArg forExponentStaticArg(ExponentStaticArg t) {
+                return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
+                                             t.getPower());
+            }
+            public StaticArg forDimensionStaticArg(DimensionStaticArg t) {
+                return new DimensionStaticArg(t.getSpan(), true, t.getVal(),
+                                              t.getOp());
+            }
+            public StaticArg forEqualsStaticArg(EqualsStaticArg t) {
+                return new EqualsStaticArg(t.getSpan(), true, t.getLeft(),
+                                           t.getRight());
+            }
+            public StaticArg forTypeArg(TypeArg t) {
+                return new TypeArg(t.getSpan(), true, t.getType());
+            }
+            public StaticArg defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                           " is not a subtype of StaticArg.");
+            }
+        });
     }
 
     public static Type makeInParentheses(Type ty) {
@@ -554,71 +624,6 @@ public class NodeFactory {
             }
             public Type forOpDimType(OpDimType t) {
                 return new OpDimType(t.getSpan(), true, t.getVal(), t.getOp());
-            }
-            public Type forBaseNatStaticArg(BaseNatStaticArg t) {
-                return new BaseNatStaticArg(t.getSpan(), true, t.getValue());
-            }
-            public Type forBaseOprStaticArg(BaseOprStaticArg t) {
-                return new BaseOprStaticArg(t.getSpan(), true, t.getFnName());
-            }
-            public Type forBaseDimStaticArg(BaseDimStaticArg t) {
-                return new BaseDimStaticArg(t.getSpan(), true);
-            }
-            public Type forBaseUnitStaticArg(BaseUnitStaticArg t) {
-                return new BaseUnitStaticArg(t.getSpan(), true);
-            }
-            public Type forBaseBoolStaticArg(BaseBoolStaticArg t) {
-                return new BaseBoolStaticArg(t.getSpan(), true, t.isBool());
-            }
-            public Type forNotStaticArg(NotStaticArg t) {
-                return new NotStaticArg(t.getSpan(), true, t.getVal());
-            }
-            public Type forOrStaticArg(OrStaticArg t) {
-                return new OrStaticArg(t.getSpan(), true, t.getLeft(),
-                                       t.getRight());
-            }
-            public Type forAndStaticArg(AndStaticArg t) {
-                return new AndStaticArg(t.getSpan(), true, t.getLeft(),
-                                        t.getRight());
-            }
-            public Type forImpliesStaticArg(ImpliesStaticArg t) {
-                return new ImpliesStaticArg(t.getSpan(), true, t.getLeft(),
-                                            t.getRight());
-            }
-            public Type forSumStaticArg(SumStaticArg t) {
-                return new SumStaticArg(t.getSpan(), true, t.getLeft(),
-                                        t.getRight());
-            }
-            public Type forMinusStaticArg(MinusStaticArg t) {
-                return new MinusStaticArg(t.getSpan(), true, t.getLeft(),
-                                          t.getRight());
-            }
-            public Type forProductStaticArg(ProductStaticArg t) {
-                return new ProductStaticArg(t.getSpan(), true, t.getMultiplier(),
-                                            t.getMultiplicand());
-            }
-            public Type forQuotientStaticArg(QuotientStaticArg t) {
-                return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
-                                             t.getDenominator());
-            }
-            public Type forChangeStaticArg(ChangeStaticArg t) {
-                return new ChangeStaticArg(t.getSpan(), true, t.getVal(),
-                                           t.getUnit());
-            }
-            public Type forExponentStaticArg(ExponentStaticArg t) {
-                return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
-                                             t.getPower());
-            }
-            public Type forDimensionStaticArg(DimensionStaticArg t) {
-                return new DimensionStaticArg(t.getSpan(), true, t.getVal(),
-                                              t.getOp());
-            }
-            public Type forEqualsStaticArg(EqualsStaticArg t) {
-                return new EqualsStaticArg(t.getSpan(), true, t.getLeft(),
-                                           t.getRight());
-            }
-            public Type forTypeArg(TypeArg t) {
-                return new TypeArg(t.getSpan(), true, t.getType());
             }
             public Type defaultCase(Node x) {
                 throw new InterpreterBug("makeInParentheses: " + x.getClass() +
