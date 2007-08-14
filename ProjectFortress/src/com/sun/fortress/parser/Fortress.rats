@@ -38,7 +38,8 @@ instantiate Header       (OtherDecl, Type, Expression, DelimitedExpr, Identifier
                           Keyword, Symbol, Spacing);
 instantiate OtherDecl    (Parameter, Header, Type, NoNewlineExpr, Identifier,
                           Keyword, Symbol, Spacing);
-instantiate Type         (Header, Literal, Identifier, Keyword, Symbol, Spacing);
+instantiate Type         (Header, Expression, Literal, Identifier, Keyword,
+                          Symbol, Spacing);
 instantiate Expression   (Parameter, Header, Type, DelimitedExpr, Identifier,
                           Keyword, Symbol, Spacing);
 instantiate DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,

@@ -298,17 +298,29 @@ public class NodeComparator {
                                              right.getArgs());
     }
 
-    static int subtypeCompareTo(ProductDimType left, ProductDimType right) {
-        return compare((Type)left.getMultiplier(), right.getMultiplier(),
-                       (Type)left.getMultiplicand(), right.getMultiplicand());
-        // cast for generics
+    static int subtypeCompareTo(ProductType left, ProductType right) {
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(QuotientDimType left, QuotientDimType right) {
-        // TODO Don't I need to worry about reducing the fraction?
-        return compare((Type)left.getNumerator(), right.getNumerator(),
-                       (Type)left.getDenominator(), right.getDenominator());
-        // cast for generics
+    static int subtypeCompareTo(QuotientType left, QuotientType right) {
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
+    }
+
+    static int subtypeCompareTo(InversionType left, InversionType right) {
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
+    }
+
+    static int subtypeCompareTo(ChangeDimType left, ChangeDimType right) {
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
+    }
+
+    static int subtypeCompareTo(OpDimType left, OpDimType right) {
+        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+                                 right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(QuotientStaticArg left, QuotientStaticArg right) {

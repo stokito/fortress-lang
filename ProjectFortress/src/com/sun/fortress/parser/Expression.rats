@@ -40,10 +40,6 @@ import Spacing;
    | fn w ValParam (w IsType)? (w Throws)? w => w Expr
    | Expr w as w Type
    | Expr w asif w Type
-   | Expr w per w Expr
-   | Expr w in w Expr
-   | DUPreOp sr Expr
-   | Expr w DUPostOp
  */
 Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
@@ -62,16 +58,11 @@ Expr ExprFront =
        else            tys = Some.<List<TraitType>>make(a3);
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
                                         tys, a4);
-     }
-   / a1:DUPreOp sr a2:Expr
-     { yyValue = new OpUnit(createSpan(yyStart,yyCount), a2, a1); };
+     };
 
 constant transient Action<Expr> ExprTail =
      <As> As
    / <Asif> AsIf
-   / <Per> Per
-   / <In> In
-   / <UnitOp> UnitOp
    ;
 
 constant inline Action<Expr> As =
@@ -89,32 +80,6 @@ constant inline Action<Expr> AsIf =
                return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
            }};
      };
-
-constant inline Action<Expr> Per =
-     w per w a1:Expr
-    { yyValue = new Action<Expr>() {
-          public Expr run(Expr base) {
-              return new QuotientUnitExpr(createSpan(yyStart,yyCount), false,
-                                          (Expr)base, a1);
-          }};
-    };
-
-constant inline Action<Expr> In =
-     w in w a1:Expr
-    { yyValue = new Action<Expr>() {
-          public Expr run(Expr base) {
-              return new ChangeUnitExpr(createSpan(yyStart,yyCount), false,
-                                        (Expr)base, a1);
-          }};
-    };
-
-constant inline Action<Expr> UnitOp =
-     w a1:DUPostOp
-    { yyValue = new Action<Expr>() {
-          public Expr run(Expr base) {
-              return new OpUnit(createSpan(yyStart,yyCount),false,(Expr)base,a1);
-          }};
-    };
 
 /* AssignLefts ::=
      ( w AssignLeft (w , w AssignLeft)* w )
@@ -334,6 +299,10 @@ PureList<PrecedenceOpExpr> LooseInfix =
    | Primary . Id
    | Primary ^ BaseExpr
    | Primary ExponentOp
+   | Primary w per w Primary
+   | Primary w in w Primary
+   | DUPreOp sr Primary
+   | Primary w DUPostOp
    | Primary TupleExpr
    | Primary Parenthesized
    | Primary ( w )
@@ -352,13 +321,17 @@ Expr PrimaryFront =
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
      }
-   ;
+   / a1:DUPreOp sr a2:Primary
+     { yyValue = new OpUnit(createSpan(yyStart,yyCount), false,
+                            FortressUtil.buildPrimary((PureList<Expr>)a2), a1);
+     };
 
 constant transient Action<PureList<Expr>> PrimaryTail =
      SubscriptExpr
    / MethodInvocation
    / MemberSelection
    / ExponentExpr
+   / UnitExpr
    / TightJuxtaposition
    ;
 
@@ -481,6 +454,36 @@ constant inline Action<PureList<Expr>> ExponentExpr =
                }
            }};
      };
+
+constant inline Action<PureList<Expr>> UnitExpr =
+     w per w a1:Primary
+    { yyValue = new Action<PureList<Expr>>() {
+          public PureList<Expr> run(PureList<Expr> base) {
+              Span span = createSpan(yyStart,yyCount);
+              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
+              Expr right = FortressUtil.buildPrimary((PureList<Expr>)a1);
+              return PureList.make((Expr)new QuotientUnitExpr(span, false,
+                                                              left, right));
+          }};
+    }
+  / w in w a1:Primary
+    { yyValue = new Action<PureList<Expr>>() {
+          public PureList<Expr> run(PureList<Expr> base) {
+              Span span = createSpan(yyStart,yyCount);
+              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
+              Expr right = FortressUtil.buildPrimary((PureList<Expr>)a1);
+              return PureList.make((Expr)new ChangeUnitExpr(span, false,
+                                                            left, right));
+          }};
+    }
+  / w a1:DUPostOp
+    { yyValue = new Action<PureList<Expr>>() {
+          public PureList<Expr> run(PureList<Expr> base) {
+              Span span = createSpan(yyStart,yyCount);
+              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
+              return PureList.make((Expr)new OpUnit(span, false, left, a1));
+          }};
+    };
 
 constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
      a1:(TupleExpr / Parenthesized)

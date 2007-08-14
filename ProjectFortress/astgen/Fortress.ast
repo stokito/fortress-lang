@@ -410,7 +410,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         VarargsParam(VarargsType varargsType);
     /**
-     * dimension declaration
+     * dimension and unit declaration
      * DimUnitDecl may represent a single dimension declaration, a single
      * unit declaration, or both dimension and unit declarations.
      * DimUnitDecl ::= dim Id (= DimExpr)? (default Id)?
@@ -427,7 +427,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Option<Expr> def = None.<Expr>make())
                implements Decl, AbsDecl;
     /**
-     * dimension expression
+     * dimension expression used in dimension and unit declarations
      */
     abstract DimExpr(boolean parenthesized = false);
         /* base dimension
@@ -453,6 +453,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) Length / Time
          */
         QuotientDim(DimExpr numerator, DimExpr denominator);
+        /**
+         * dimension change
+         * DimExpr ::= DimExpr in DimUnitExpr
+         * e.g.) Velocity in nm/s
+         */
+        ChangeDim(DimExpr val, DimUnitExpr unit);
         /* dimension exponentiation
          * DimExpr ::= DimExpr ^ IntLiteral
          * e.g.) Time^2
@@ -994,6 +1000,58 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         ListComprehension(Expr element);
     /**
+     * dimension and unit expression used in dimension types
+     */
+    abstract DimUnitExpr(boolean parenthesized = false);
+        /* base dimension identifier
+         * DimUnitExpr ::= Unity
+         * e.g.) Unity
+         */
+        BaseDimId();
+        /* base unit identifier
+         * DimUnitExpr ::= dimensionless
+         * e.g.) dimensionless
+         */
+        BaseUnitId();
+        /* dimension and unit identifier
+         * DimUnitExpr ::= DottedId
+         * e.g.) com.sun.fortress.dim.Length
+         */
+        DimUnitId(DottedId dottedId);
+        /* dimension and unit multiplication
+         * DimUnitExpr ::= DimUnitExpr DOT DimUnitExpr
+         *               | DimUnitExpr DimUnitExpr
+         * e.g.) Length Mass
+         */
+        ProductDimUnit(DimUnitExpr multiplier, DimUnitExpr multiplicand);
+        /* dimension and unit division
+         * DimUnitExpr ::= DimUnitExpr / DimUnitExpr
+         *               | DimUnitExpr per DimUnitExpr
+         * e.g.) Length / Time
+         */
+        QuotientDimUnit(DimUnitExpr numerator, DimUnitExpr denominator);
+        /* dimension and unit conversion
+         * DimUnitExpr ::= DimUnitExpr in DimUnitExpr
+         * e.g.) Length in nm
+         */
+        ChangeDimUnit(DimUnitExpr val, DimUnitExpr unit);
+        /* dimension and unit inversion
+         * DimUnitExpr ::= 1 / DimUnitExpr
+         * e.g.) 1 / Time
+         */
+        InversionDimUnit(DimUnitExpr val);
+        /* dimension and unit exponentiation
+         * DimUnitExpr ::= DimUnitExpr ^ IntLiteral
+         * e.g.) Time^2
+         */
+        ExponentDimUnit(DimUnitExpr base, IntLiteral power);
+        /* dimension and unit with operator
+         * DimUnitExpr ::= DUPreOp DimUnitExpr
+         *           | DimUnitExpr DUPostOp
+         * e.g.) Time squared
+         */
+        OpDimUnit(DimUnitExpr val, DimUnitOp op);
+    /**
      * type
      * Type ::= ArrowType
      *        | NonArrowType
@@ -1062,43 +1120,38 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract DimType();
                 /**
-                 * dimension quantity
-                 * DimRef ::= StaticArg
-                 * e.g.) 3
-                 */
-                DimRef(StaticArg val);
-                /**
                  * dimension multiplication
-                 * DimType ::= Type DimRef
+                 * DimType ::= Type DOT DimUnitExpr
+                 *           | Type DimUnitExpr
                  * e.g.) Velocity Time
                  */
-                ProductDimType(Type multiplier, DimRef multiplicand);
+                ProductType(Type multiplier, DimUnitExpr multiplicand);
                 /**
                  * dimension division
-                 * DimType ::= Type / DimRef
-                 *           | Type per DimRef
+                 * DimType ::= Type / DimUnitExpr
+                 *           | Type per DimUnitExpr
                  * e.g.) Velocity / Time
                  */
-                QuotientDimType(Type numerator, DimRef denominator);
+                QuotientType(Type numerator, DimUnitExpr denominator);
                 /**
-                 * unit multiplication
-                 * DimType ::= Type Expr
-                 * e.g.) m v^2
+                 * dimension type inversion
+                 * DimType ::= 1 / DimUnitExpr
+                 * e.g.) 1 / Time
                  */
-                ProductUnitType(Type multiplier, Expr multiplicand);
-                /**
-                 * unit division
-                 * DimType ::= Type / Expr
-                 *           | Type per Expr
-                 * e.g.) meters/seconds
-                 */
-                QuotientUnitType(Type numerator, Expr denominator);
+                InversionType(DimUnitExpr val);
                 /**
                  * dimension type conversion
-                 * DimType ::= Type in DimRef
+                 * DimType ::= Type in DimUnitExpr
                  * e.g.) f/s in m/s
                  */
-                DimTypeConversion(Type type, DimRef dim);
+                ChangeDimType(Type type, DimUnitExpr unit);
+                /**
+                 * dimension type with operator
+                 * DimType ::= DUPreOp DimUnitExpr
+                 *           | DimUnitExpr DUPostOp
+                 * e.g.) second squared
+                 */
+                OpDimType(DimUnitExpr val, DimUnitOp op);
         /**
          * static argument
          * NOTE: StaticArg extends Type because there seems to be an
@@ -1194,13 +1247,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  *             | StaticArg per StaticArg
                  * e.g.) kilograms per cubic meter
                  */
-                QuotientStaticArg(Type numerator, Type denominator);
+                QuotientStaticArg(StaticArg numerator, StaticArg denominator);
+                /**
+                 * change unit of static arguments
+                 * StaticArg ::= StaticArg in StaticArg
+                 * e.g.) m in nm
+                 */
+                ChangeStaticArg(StaticArg val, StaticArg unit);
                 /**
                  * exponentiation of static arguments
                  * StaticArg ::= StaticArg ^ IntVal
                  * e.g.) Length ^ 3
                  */
-                ExponentStaticArg(Type base, IntVal power);
+                ExponentStaticArg(StaticArg base, IntVal power);
                 /**
                  * static argument with dimension operation
                  * StaticArg ::= DUPreOp StaticArg
@@ -1293,8 +1352,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereEquals(DottedId left, DottedId right);
         /**
          * unit constraint used in where clauses
-         * WhereClause ::= dimensionless w = w Id
-         *               | Id w = w dimensionless
+         * WhereClause ::= dimensionless = Id
+         *               | Id = dimensionless
          * e.g.) U = dimensionless
          */
         UnitConstraint(Id id);

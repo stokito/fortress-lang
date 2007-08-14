@@ -144,15 +144,15 @@ public class NodeFactory {
     public static DottedId makeDottedId(Id s) {
         return new DottedId(s.getSpan(), Useful.list(s));
     }
-    
+
     public static DottedId makeDottedId(Span span, Id s) {
         return new DottedId(span, Useful.list(s));
     }
-    
+
     public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
         return new DottedId(span, Useful.prepend(s, ls));
     }
-    
+
     /** A hack to allow conversion from a FieldRef to a DottedId.  Instead of using
       * this, the parser should parse the thing as a DottedId in the first place, if
       * that is possible.  If the VarRef contains something besides Ids, the result
@@ -168,7 +168,7 @@ public class NodeFactory {
             else if (receiver instanceof VarRef) { head = (VarRef) receiver; ref = null; }
             else { ref = null; }
         } while (ref != null);
-        
+
         if (head != null) {
             List<Id> res = IterUtil.asList(IterUtil.compose(head.getVar().getNames(),
                                                             ids));
@@ -378,36 +378,6 @@ public class NodeFactory {
                            init);
     }
 
-    public static DimExpr makeInParentheses(DimExpr dim) {
-        return dim.accept(new NodeAbstractVisitor<DimExpr>() {
-            public DimExpr forBaseDim(BaseDim t) {
-                return new BaseDim(t.getSpan(), true);
-            }
-            public DimExpr forDimId(DimId t) {
-                return new DimId(t.getSpan(), true, t.getDottedId());
-            }
-            public DimExpr forProductDim(ProductDim t) {
-                return new ProductDim(t.getSpan(), true, t.getLeft(),
-                                      t.getRight());
-            }
-            public DimExpr forQuotientDim(QuotientDim t) {
-                return new QuotientDim(t.getSpan(), true, t.getNumerator(),
-                                       t.getDenominator());
-            }
-            public DimExpr forExponentDim(ExponentDim t) {
-                return new ExponentDim(t.getSpan(), true, t.getBase(),
-                                       t.getPower());
-            }
-            public DimExpr forOpDim(OpDim t) {
-                return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
-            }
-            public DimExpr defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of DimExpr.");
-            }
-        });
-    }
-
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
             public BoolExpr forTrueConstraint(TrueConstraint b) {
@@ -426,6 +396,79 @@ public class NodeFactory {
             public BoolExpr defaultCase(Node x) {
                 throw new InterpreterBug("makeInParentheses: " + x.getClass() +
                                          " is not a subtype of BoolExpr.");
+            }
+        });
+    }
+
+    public static DimExpr makeInParentheses(DimExpr dim) {
+        return dim.accept(new NodeAbstractVisitor<DimExpr>() {
+            public DimExpr forBaseDim(BaseDim t) {
+                return new BaseDim(t.getSpan(), true);
+            }
+            public DimExpr forDimId(DimId t) {
+                return new DimId(t.getSpan(), true, t.getDottedId());
+            }
+            public DimExpr forProductDim(ProductDim t) {
+                return new ProductDim(t.getSpan(), true, t.getLeft(),
+                                      t.getRight());
+            }
+            public DimExpr forQuotientDim(QuotientDim t) {
+                return new QuotientDim(t.getSpan(), true, t.getNumerator(),
+                                       t.getDenominator());
+            }
+            public DimExpr forChangeDim(ChangeDim t) {
+                return new ChangeDim(t.getSpan(), true, t.getVal(), t.getUnit());
+            }
+            public DimExpr forExponentDim(ExponentDim t) {
+                return new ExponentDim(t.getSpan(), true, t.getBase(),
+                                       t.getPower());
+            }
+            public DimExpr forOpDim(OpDim t) {
+                return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
+            }
+            public DimExpr defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of DimExpr.");
+            }
+        });
+    }
+
+    public static DimUnitExpr makeInParentheses(DimUnitExpr dim) {
+        return dim.accept(new NodeAbstractVisitor<DimUnitExpr>() {
+            public DimUnitExpr forBaseDimUnit(BaseDimId t) {
+                return new BaseDimId(t.getSpan(), true);
+            }
+            public DimUnitExpr forBaseUnitUnit(BaseUnitId t) {
+                return new BaseUnitId(t.getSpan(), true);
+            }
+            public DimUnitExpr forDimUnitId(DimUnitId t) {
+                return new DimUnitId(t.getSpan(), true, t.getDottedId());
+            }
+            public DimUnitExpr forProductDimUnit(ProductDimUnit t) {
+                return new ProductDimUnit(t.getSpan(), true, t.getMultiplier(),
+                                          t.getMultiplicand());
+            }
+            public DimUnitExpr forQuotientDimUnit(QuotientDimUnit t) {
+                return new QuotientDimUnit(t.getSpan(), true, t.getNumerator(),
+                                           t.getDenominator());
+            }
+            public DimUnitExpr forChangeDimUnit(ChangeDimUnit t) {
+                return new ChangeDimUnit(t.getSpan(), true, t.getVal(),
+                                         t.getUnit());
+            }
+            public DimUnitExpr forInversionDimUnit(InversionDimUnit t) {
+                return new InversionDimUnit(t.getSpan(), true, t.getVal());
+            }
+            public DimUnitExpr forExponentDimUnit(ExponentDimUnit t) {
+                return new ExponentDimUnit(t.getSpan(), true, t.getBase(),
+                                           t.getPower());
+            }
+            public DimUnitExpr forOpDimUnit(OpDimUnit t) {
+                return new OpDimUnit(t.getSpan(), true, t.getVal(), t.getOp());
+            }
+            public DimUnitExpr defaultCase(Node x) {
+                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of DimUnitExpr.");
             }
         });
     }
@@ -494,28 +537,23 @@ public class NodeFactory {
             public Type forVoidType(VoidType t) {
                 return new VoidType(t.getSpan(), true);
             }
-            public Type forDimRef(DimRef t) {
-                return new DimRef(t.getSpan(), true, t.getVal());
+            public Type forProductType(ProductType t) {
+                return new ProductType(t.getSpan(), true, t.getMultiplier(),
+                                       t.getMultiplicand());
             }
-            public Type forProductDimType(ProductDimType t) {
-                return new ProductDimType(t.getSpan(), true, t.getMultiplier(),
-                                          t.getMultiplicand());
+            public Type forQuotientType(QuotientType t) {
+                return new QuotientType(t.getSpan(), true, t.getNumerator(),
+                                        t.getDenominator());
             }
-            public Type forQuotientDimType(QuotientDimType t) {
-                return new QuotientDimType(t.getSpan(), true, t.getNumerator(),
-                                           t.getDenominator());
+            public Type forInversionType(InversionType t) {
+                return new InversionType(t.getSpan(), true, t.getVal());
             }
-            public Type forProductUnitType(ProductUnitType t) {
-                return new ProductUnitType(t.getSpan(), true, t.getMultiplier(),
-                                           t.getMultiplicand());
+            public Type forChangeDimType(ChangeDimType t) {
+                return new ChangeDimType(t.getSpan(), true, t.getType(),
+                                         t.getUnit());
             }
-            public Type forQuotientUnitType(QuotientUnitType t) {
-                return new QuotientUnitType(t.getSpan(), true, t.getNumerator(),
-                                            t.getDenominator());
-            }
-            public Type forDimTypeConversion(DimTypeConversion t) {
-                return new DimTypeConversion(t.getSpan(), true, t.getType(),
-                                             t.getDim());
+            public Type forOpDimType(OpDimType t) {
+                return new OpDimType(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public Type forBaseNatStaticArg(BaseNatStaticArg t) {
                 return new BaseNatStaticArg(t.getSpan(), true, t.getValue());
@@ -562,6 +600,10 @@ public class NodeFactory {
             public Type forQuotientStaticArg(QuotientStaticArg t) {
                 return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
                                              t.getDenominator());
+            }
+            public Type forChangeStaticArg(ChangeStaticArg t) {
+                return new ChangeStaticArg(t.getSpan(), true, t.getVal(),
+                                           t.getUnit());
             }
             public Type forExponentStaticArg(ExponentStaticArg t) {
                 return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
