@@ -18,17 +18,19 @@
 component ExtendReduction
 export Executable
 
-run(args:String...):() = ()
-
-trait Monoid[\ T, opr OPLUS \]
-  where { T extends Monoid[\ T, OPLUS \] }
+trait Monoidish[\ T, opr OPLUS \]
+  where { T extends Monoidish[\ T, OPLUS \] }
     zero() : T
     opr OPLUS(self, other:T):T
 end
 
-value object Chicken extends Monoid[\ Chicken, EGG \]
-  opr EGG(self, other) = Chicken
+value object Chicken extends Monoidish[\ Chicken, EGG \]
+  opr EGG(self, other:Chicken) = Chicken
   zero() = Chicken
+  isChicken() = true
 end
+
+run(args:String...):() =
+  println(if (Chicken EGG Chicken).isChicken() then "PASS" else "FAIL" end)
 
 end

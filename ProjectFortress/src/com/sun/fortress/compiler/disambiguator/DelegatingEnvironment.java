@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler;
+package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;

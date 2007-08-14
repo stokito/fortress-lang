@@ -1265,8 +1265,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                             SymbolicWhereType swt = (SymbolicWhereType) st;
                             swt.addSubtype(ft);
                         } else {
+                            ft.mustExtend(st, w);
                             // Check that constraint holds.
-                            NI.nyi("need to verify constraint stated in where clause");
+                            // NI.nyi("need to verify constraint stated in where clause");
                         }
                     }
                 } else if (w instanceof TypeAlias) {

@@ -156,6 +156,7 @@ public class Disambiguate extends Rewrite {
         public String toString() { return "Trait="+defOrDecl; }
     }
 
+
     private class Member extends Thing {
         @Override DottedId replacement(DottedId original) {
             return prependSelf(original, objectNestingDepth - nestedness);
@@ -177,19 +178,19 @@ public class Disambiguate extends Rewrite {
     /**
      * Rewritings in scope.
      */
-    BATree<String, Thing> e;
+    private BATree<String, Thing> e;
 
     /**
      * Generic parameters currently in scope.
      */
-    BATree<String, StaticParam> visibleGenericParameters;
-    BATree<String, StaticParam> usedGenericParameters;
+    private BATree<String, StaticParam> visibleGenericParameters;
+    private BATree<String, StaticParam> usedGenericParameters;
 
     /**
      * Disambiguating environment map -- in what environment was each trait declared?
      */
 
-    BATree<UIDObject, Map<String, Thing> > traitDisEnvMap = UIDMapFactory.< Map<String, Thing> >make();
+    private BATree<UIDObject, Map<String, Thing> > traitDisEnvMap = UIDMapFactory.< Map<String, Thing> >make();
 
     /**
      * All the object exprs (this may generalize to nested functions as well)
@@ -296,6 +297,7 @@ public class Disambiguate extends Rewrite {
             // i copies of "parent"
             ids.add(new Id(id.getSpan(), WellKnownNames.secretParentName));
         }
+
         ids.addAll(id.getNames());
         return new DottedId(id.getSpan(), ids);
     }
@@ -349,7 +351,7 @@ public class Disambiguate extends Rewrite {
         } else
             try {
                 /*
-                 * NOTE: "default" handling for any com.sun.fortress.interpreter.nodes not mentioned explicitly is:
+                 * NOTE: "default" handling for any nodes not mentioned explicitly is:
                  * } else {
                  *   atTopLevelInsideTraitOrObject = false;
                  * }
