@@ -20,11 +20,11 @@ export Executable
 
 (* This exhibits two bugs.
    In present form, with the result type commented out, it yields a
-   "forTypeApply not implemented" during evaluation (?!!).
+Unexpected FnRef value, f[\nat n\](a:ZZ32) ZZ32->Dynamic @"not_passing_yet/localGeneric.fss",31:2~35:5
 
    If the result type signature for f is uncommented, we obtain
-   "undefined nat parameter n" for the result (implying that we fail
-   to instantiate n in the result type).
+ @"not_passing_yet/localGeneric.fss",31:32~33: 
+ @"not_passing_yet/localGeneric.fss",31:32~33: Missing type n
 *)
 
 run(args:String...):() = do
