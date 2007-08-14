@@ -47,10 +47,11 @@ object EmptySet[\E\]() extends TreeSet[\E\] end
 (*
 Placed here to see if it changes not_passing_yet/TypeImportBug.fss.
 It doesn't.
+*)
 
 object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\])
     extends TreeSet[\E\]
 end
-*)
+
 
 end

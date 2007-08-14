@@ -19,5 +19,5 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 public class FTypeStringLiteral extends FTypeString {
     public final static FTypeStringLiteral ONLY = new FTypeStringLiteral();
-    private FTypeStringLiteral() {}
+    private FTypeStringLiteral() {super("StringLiteral");}
 }
