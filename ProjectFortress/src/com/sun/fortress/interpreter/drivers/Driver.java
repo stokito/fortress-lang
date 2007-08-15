@@ -83,7 +83,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Driver {
 
-    private static int numThreads = 8;
+    private static int numThreads = Runtime.getRuntime().availableProcessors();
 
     private static boolean _libraryTest = false;
 
