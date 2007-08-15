@@ -58,6 +58,8 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 public class GenericFlatStorageMaker extends GenericConstructor {
 
     // FlatStorageMaker[\T, m\]() traits Array1[\T, m\]
@@ -173,7 +175,8 @@ public class GenericFlatStorageMaker extends GenericConstructor {
              FValue r = fs.a[i];
              if (r==null) {
                  throw new ProgramError(loc,fs.getLexicalEnv(),
-                        "Access to uninitialized element "+i+" of array "+fs);
+                               errorMsg("Access to uninitialized element ",
+                                        i, " of array ", fs));
              }
              return r;
          }

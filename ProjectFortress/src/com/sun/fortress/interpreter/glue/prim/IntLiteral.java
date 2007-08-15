@@ -29,7 +29,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
 
-
 /**
  * Functions from IntLiteral.
  */

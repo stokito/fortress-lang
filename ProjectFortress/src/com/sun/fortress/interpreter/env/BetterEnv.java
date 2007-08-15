@@ -30,7 +30,6 @@ import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.Primitives;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
 import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
@@ -49,6 +48,9 @@ import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Visitor2;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 
 public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
@@ -351,7 +353,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     } else if (value instanceof OverloadedFunction) {
                         gms.addOverloads((OverloadedFunction) value);
                     } else {
-                        throw new ProgramError("Overload of Simple_fcn " + fvo + " with inconsistent " + value);
+                        error(errorMsg("Overload of Simple_fcn ", fvo,
+                                       " with inconsistent ", value));
                     }
                      return table.add(index, gms, comparator);
                  } else if (fvo instanceof OverloadedFunction) {
@@ -360,7 +363,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     } else if (value instanceof OverloadedFunction) {
                         ((OverloadedFunction)fvo).addOverloads((OverloadedFunction) value);
                     } else {
-                        throw new ProgramError("Overload of OverloadedFunction " + fvo + " with inconsistent " + value);
+                        error(errorMsg("Overload of OverloadedFunction ", fvo,
+                                       " with inconsistent ", value));
                     }
 
 
@@ -395,9 +399,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             return;
         }
         if (v == null)
-            throw new ProgramError(loc, this, "Cannot assign to unbound variable " + str);
-        throw new ProgramError(loc, this, "Cannot assign to immutable " + str);
-
+            error(loc, this, "Cannot assign to unbound variable " + str);
+        error(loc, this, "Cannot assign to immutable " + str);
     }
 
     public void storeType(HasAt loc, String str, FType f2) {
@@ -407,8 +410,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             return;
         }
         if (v == null)
-            throw new ProgramError(loc, this, "Type stored to unbound variable " + str);
-        throw new ProgramError(loc, this, "Type stored to immutable variable " + str);
+            error(loc, this, "Type stored to unbound variable " + str);
+        error(loc, this, "Type stored to immutable variable " + str);
 
     }
 
@@ -424,8 +427,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //            return ((ReferenceCell)v).casValue(old_value, new_value);
 //        }
 //        if (v == null)
-//            throw new ProgramError("Cannot CAS to unbound variable " + str);
-//        throw new ProgramError("Cannot CAS to immutable " + str);
+//            error("Cannot CAS to unbound variable " + str);
+//        error("Cannot CAS to immutable " + str);
 //    }
 
 //    public boolean casValue(FValue f1, FValue old_value, FValue new_value) {
@@ -433,7 +436,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //    }
 
     public boolean casValue(String str, FValue old_value, FValue new_value) {
-       throw new InterpreterBug("Cas on envs no longer supported");
+        throw new InterpreterBug("Cas on envs no longer supported");
     }
 
 
@@ -561,7 +564,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             }
             // Ought to snap link if original was not ReferenceCell
             if (v == null) {
-                throw new ProgramError("Variable " + s + " has no value");
+                error("Variable " + s + " has no value");
             }
         }
         return v;

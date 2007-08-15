@@ -166,10 +166,10 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         if (lens[rank - 1] == 0) {
             lens[rank - 1] = l;
         } else if (lens[rank - 1] != l) {
-            throw new ProgramError(at, 
-                    errorMsg("At paste level ", rank,
-                        " pasting lengths ", l, " and ", lens[rank],
-                        " do not match"));
+            throw new ProgramError(at,
+                                   errorMsg("At paste level ", rank,
+                                            " pasting lengths ", l, " and ", lens[rank],
+                                            " do not match"));
         }
     }
 
@@ -201,7 +201,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 along_k[coordinate[k]] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at, 
+                                throw new ProgramError(at,
                                         errorMsg("Element at ",
                                             Useful.coordInDelimiters("[",
                                                 coordinate, k, "]"),
@@ -215,7 +215,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 extentSums[k] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at, 
+                                throw new ProgramError(at,
                                         errorMsg("Element at ",
                                             Useful.coordInDelimiters("[",
                                                 coordinate, "]"),

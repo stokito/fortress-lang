@@ -66,8 +66,7 @@ VarDecl VarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           throw new ProgramError(new Id(span, "_"),
-                                  "Mismatched numbers of variables and types.");
+           error(new Id(span,"_"), "Mismatched numbers of variables and types.");
        List<LValueBind> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
@@ -129,8 +128,7 @@ AbsVarDecl AbsVarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           throw new ProgramError(new Id(span, "_"),
-                                  "Mismatched numbers of variables and types.");
+           error(new Id(span,"_"), "Mismatched numbers of variables and types.");
        List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);

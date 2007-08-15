@@ -20,11 +20,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public abstract class FTupleLike extends FConstructedValue implements Selectable {
 
@@ -36,8 +36,7 @@ public abstract class FTupleLike extends FConstructedValue implements Selectable
     public FValue select(String s) {
         char c = s.charAt(0);
         if (c != '$')
-            throw new ProgramError
-                    (errorMsg("Tuple selectors (for internal use only) begin with '$': ", s));
+            error(errorMsg("Tuple selectors (for internal use only) begin with '$': ", s));
         return vals.get(Integer.parseInt(s.substring(1)));
     }
     public String getString() {

@@ -45,6 +45,7 @@ import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Ordinal;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class  OverloadedFunction extends Fcn
@@ -237,7 +238,7 @@ public class  OverloadedFunction extends Fcn
                     else
                         explanation = errorMsg("\nBecause ", o2, " has a parameter\n");
                     explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
-                    throw new ProgramError(o1, o2, within, explanation);
+                    error(o1, o2, within, explanation);
                 }
 
                 if (!distinct && unrelated != -1) {
@@ -245,11 +246,11 @@ public class  OverloadedFunction extends Fcn
                     String s2 = parameterName(unrelated, o2);
 
                     String explanation = errorMsg(Ordinal.ordinal(unrelated+1), " parameters ", s1, ":", pl1, " and ", s2, ":", pl2, " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
-                    throw new ProgramError(o1, o2, within, explanation);
+                    error(o1, o2, within, explanation);
                 }
 
                 if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, overloads)) {
-                    throw new ProgramError(o1, o2, within,
+                    error(o1, o2, within,
                             errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
                             formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
                             formatParameterComparison(p2better, o1, o2, "less")));
@@ -266,7 +267,7 @@ public class  OverloadedFunction extends Fcn
                     } else
                         explanation = errorMsg("Overloading of ", o1, " and ", o2,
                         " fails because of ambiguity in overlapping rest (...) parameters");
-                    throw new ProgramError(o1, o2, within, explanation);
+                    error(o1, o2, within, explanation);
                 }
             }
         }
@@ -388,7 +389,7 @@ public class  OverloadedFunction extends Fcn
 
             if (best == -1) {
                 // TODO add checks for COERCE, right here.
-                throw new ProgramError(loc,  within,
+                error(loc,  within,
                              errorMsg("Failed to find matching overload, args = ",
                              Useful.listInParens(args), ", overload = ", this));
             }
@@ -443,7 +444,7 @@ public class  OverloadedFunction extends Fcn
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
-            throw new ProgramError(loc,errorMsg("Failed to find best matching overload, args = ",
+            error(loc,errorMsg("Failed to find best matching overload, args = ",
                     Useful.listInParens(args), ", overload = ", this));
         }
         return best;
@@ -533,7 +534,7 @@ public class  OverloadedFunction extends Fcn
            }
            if (f != null) return f;
            throw new ProgramError(errorMsg("No matches for instantiation of overloaded ",
-                   OverloadedFunction.this, " with ", args));
+                   OverloadedFunction.this, " with ", Useful.listInParens(args)));
         }
     }
 

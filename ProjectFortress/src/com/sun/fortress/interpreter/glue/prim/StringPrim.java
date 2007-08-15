@@ -16,12 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
+
 import com.sun.fortress.interpreter.glue.NativeFn0;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Functions from String.
@@ -77,7 +78,7 @@ public static final class PrintThreadInfo extends Util.S2V {
 public static final class ThrowError extends Util.S2V {
     protected void f(String x) {
         String msg = " Thread " + Thread.currentThread().getName() + " got error " + x;
-        throw new ProgramError(msg);
+        error(msg);
     }
 }
 

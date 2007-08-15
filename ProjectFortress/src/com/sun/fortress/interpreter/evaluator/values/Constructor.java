@@ -28,13 +28,13 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
@@ -55,6 +55,8 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.ReversedList;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Constructor extends AnonymousConstructor {
 
@@ -214,10 +216,9 @@ public class Constructor extends AnonymousConstructor {
             if (too instanceof FTypeObject)
                 objectDefinesAny = true;
             if (isNotADef(sf, too))
-                throw new ProgramError(cfn,
-                        "Object " + cfn.stringName() +
-                        " does not define method " + sf.getString() +
-                        " declared in " + too.getName());
+                error(cfn, "Object " + cfn.stringName() +
+                           " does not define method " + sf.getString() +
+                           " declared in " + too.getName());
         }
 
         // Plan to iterate over traits at instantiation, and form closures
@@ -294,8 +295,8 @@ public class Constructor extends AnonymousConstructor {
              *
              */
             if (! (sf instanceof MethodClosure)) {
-                throw new
-                ProgramError("Internal error, non-method " +sf);
+                throw new InterpreterBug(errorMsg("Internal error, non-method ",
+                                                  sf));
 
             }
             MethodClosure mc = (MethodClosure) sf;
@@ -359,7 +360,8 @@ public class Constructor extends AnonymousConstructor {
                 return false;
             return true;
         }
-        throw new ProgramError("Unexpected symbolic method binding " + sf);
+        throw new InterpreterBug(errorMsg("Unexpected symbolic method binding ",
+                                          sf));
     }
 
     /**

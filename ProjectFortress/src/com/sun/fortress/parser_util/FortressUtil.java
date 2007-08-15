@@ -33,12 +33,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.iter.IterUtil;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public final class FortressUtil {
     public static void println(String arg) {
@@ -159,8 +161,8 @@ public final class FortressUtil {
     }
 
     private static void multiple(Modifier m) {
- resetMods();
-        throw new ProgramError(m, "A modifier must not occur multiple times");
+        resetMods();
+        error(m, "A modifier must not occur multiple times");
     }
     static boolean m_atomic   = false;
     static boolean m_getter   = false;
@@ -316,7 +318,7 @@ public final class FortressUtil {
                 List<Modifier> mods = new ArrayList<Modifier>();
                 mods.add(new ModifierVar(span));
                 result.add(NodeFactory.makeLValue((LValueBind)l, mods));
-            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+            } else error(l, "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -326,7 +328,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
             if (l instanceof LValueBind)
                 result.add(NodeFactory.makeLValue((LValueBind)l, ty));
-            else throw new ProgramError(l, "Unpasting cannot be set types.");
+            else error(l, "Unpasting cannot be set types.");
         }
         return result;
     }
@@ -338,7 +340,7 @@ public final class FortressUtil {
             if (l instanceof LValueBind) {
                 result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind)));
                 ind += 1;
-            } else throw new ProgramError(l, "Unpasting cannot be set types.");
+            } else error(l, "Unpasting cannot be set types.");
         }
         return result;
     }
@@ -348,7 +350,7 @@ public final class FortressUtil {
         for (LValue l : vars) {
             if (l instanceof LValueBind) {
                 result.add(NodeFactory.makeLValue((LValueBind)l, ty, true));
-            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+            } else error(l, "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -361,7 +363,7 @@ public final class FortressUtil {
                List<Modifier> mods = new ArrayList<Modifier>();
                mods.add(new ModifierVar(span));
                result.add(NodeFactory.makeLValue((LValueBind)l, ty, mods));
-           } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+           } else error(l, "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -375,7 +377,7 @@ public final class FortressUtil {
                 result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
                                                   true));
                 ind += 1;
-            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+            } else error(l, "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -391,7 +393,7 @@ public final class FortressUtil {
                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
                                                  mods));
                ind += 1;
-            } else throw new ProgramError(l, "Unpasting cannot be mutable.");
+            } else error(l, "Unpasting cannot be mutable.");
         }
         return result;
     }
@@ -621,7 +623,7 @@ public final class FortressUtil {
                                         List<Pair<Integer,Expr>> rest) {
         ArrayExpr _init = multiDimElement(init);
         if (rest.isEmpty()) {
-            throw new ProgramError(init, "multiDimCons: empty rest");
+            throw new InterpreterBug(init, "multiDimCons: empty rest");
         } else {
             Pair<Integer,Expr> pair = rest.get(0);
             Expr expr = pair.getB();
@@ -684,8 +686,8 @@ public final class FortressUtil {
             }
         } else { //    !(two instanceof UnpastingBind)
                  // && !(two instanceof UnpastingSplit)
-            throw new ProgramError(two,
-                                   "UnpastingBind or UnpastingSplit expected.");
+            throw new InterpreterBug(two,
+                                     "UnpastingBind or UnpastingSplit expected.");
         }
     }
 
@@ -746,7 +748,7 @@ public final class FortressUtil {
                     es = new ArrayList<Expr>();
                     es.add(_e);
                 } else {
-                    throw new ProgramError(e,"Misparsed variable introduction!");
+                    error(e, "Misparsed variable introduction!");
                 }
             } else {
                 es.add(0, e);

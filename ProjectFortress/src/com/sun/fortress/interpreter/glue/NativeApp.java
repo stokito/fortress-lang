@@ -21,7 +21,6 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
@@ -37,6 +36,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * A NativeApp indicates that an action is implemented natively; the
@@ -71,11 +71,11 @@ public abstract class NativeApp implements Applicable {
         this.a = app;
         int aty = app.getParams().size();
         if (aty != getArity()) {
-            throw new ProgramError(app,"Arity of type "+aty
-                                   +" does not match native arity "+getArity());
+            error(app, "Arity of type "+aty
+                       +" does not match native arity "+getArity());
         }
         if (app.getReturnType()==null || !app.getReturnType().isPresent()) {
-            throw new ProgramError(app,"Please specify a Fortress return type.");
+            error(app,"Please specify a Fortress return type.");
         }
     }
 
@@ -141,17 +141,17 @@ public abstract class NativeApp implements Applicable {
             res.init(defn);
             return res;
         } catch (java.lang.ClassNotFoundException x) {
-            throw new ProgramError(defn,"Native class "+str
-                                   +" not found.",x);
+            throw new InterpreterBug(defn,"Native class "+str
+                                     +" not found.",x);
         } catch (java.lang.InstantiationException x) {
-            throw new ProgramError(defn,"Native class "+str
-                                   +" has no nullary constructor.",x);
+            throw new InterpreterBug(defn,"Native class "+str
+                                     +" has no nullary constructor.",x);
         } catch (java.lang.IllegalAccessException x) {
-            throw new ProgramError(defn,"Native class "+str
-                                   +" cannot be accessed.",x);
+            throw new InterpreterBug(defn,"Native class "+str
+                                     +" cannot be accessed.",x);
         } catch (java.lang.ClassCastException x) {
-            throw new ProgramError(defn,"Native class "+str
-                                   +" is not a NativeApp.",x);
+            throw new InterpreterBug(defn,"Native class "+str
+                                     +" is not a NativeApp.",x);
         }
     }
 }

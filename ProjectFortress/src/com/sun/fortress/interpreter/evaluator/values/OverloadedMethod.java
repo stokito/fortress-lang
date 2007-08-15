@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 
 public class OverloadedMethod extends OverloadedFunction implements Method {
@@ -50,9 +50,9 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
         if (best == -1) {
             // TODO add checks for COERCE, right here.
-            throw new ProgramError(loc,  within,
-                         "Failed to find matching method overload, args = " +
-                         Useful.listInParens(args) + ", overload = " + this);
+            error(loc,  within,
+                  "Failed to find matching method overload, args = " +
+                  Useful.listInParens(args) + ", overload = " + this);
         }
 
         return ((Method)overloads.get(best).getFn()).applyMethod(args, selfValue, loc, envForInference);

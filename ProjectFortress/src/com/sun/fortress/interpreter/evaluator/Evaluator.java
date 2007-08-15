@@ -162,6 +162,7 @@ import com.sun.fortress.useful.Useful;
 import java.util.concurrent.Callable;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Evaluator extends EvaluatorBase<FValue> {
     boolean debug = false;
@@ -279,15 +280,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
             rhsIt = rhs_tuple.getVals().iterator();
             // Verify, now, that LHS and RHS sizes match.
             if (rhs_tuple.getVals().size() != lhsSize) {
-                throw new ProgramError(x,e,
-                        errorMsg("Tuple assignment size mismatch, | lhs | = ",
-                                 lhsSize, ", | rhs | = ",
-                                 rhs_tuple.getVals().size()));
+                error(x,e,
+                      errorMsg("Tuple assignment size mismatch, | lhs | = ",
+                               lhsSize, ", | rhs | = ",
+                               rhs_tuple.getVals().size()));
             }
         } else if (lhsSize != 1) {
-            throw new ProgramError(x,e,
-                    errorMsg("Tuple assignment size mismatch, | lhs | = ",
-                                   lhsSize, ", rhs is not a tuple"));
+            error(x,e,
+                  errorMsg("Tuple assignment size mismatch, | lhs | = ",
+                           lhsSize, ", rhs is not a tuple"));
         }
 
         for (LHS lhs : lhses) {
@@ -442,8 +443,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     } else if (t instanceof RuntimeException) {
                         throw (RuntimeException)t;
                     } else {
-                        throw new ProgramError(exprs.get(i),
-                                errorMsg("Wrapped Exception",t));
+                        error(exprs.get(i), errorMsg("Wrapped Exception",t));
                     }
                 }
                 resList.add(tasks[i].getRes());
@@ -1004,9 +1004,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
          */
 
         if (!(fvalue instanceof Fcn)) {
-            throw new ProgramError(x, e,
-                    errorMsg("Operator ", op.stringName(),
-                             " has a non-function value ", fvalue));
+            error(x, e,
+                  errorMsg("Operator ", op.stringName(),
+                           " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
         if (s <= 2 || (op instanceof Enclosing)) {
@@ -1089,14 +1089,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
-            throw new ProgramError(obj,
-                    errorMsg("Value should be an object; got " + arr));
+            error(obj, errorMsg("Value should be an object; got " + arr));
         }
         FObject array = (FObject) arr;
         FValue ixing = array.getSelfEnv().getValueNull("[]");
         if (ixing == null || !(ixing instanceof Method)) {
-            throw new ProgramError(x,
-                    errorMsg("Could not find appropriate definition of opr [] on ",
+            error(x,errorMsg("Could not find appropriate definition of opr [] on ",
                              array));
         }
         Method cl = (Method) ixing;
@@ -1352,8 +1350,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         FValue res = e.getValueNull(names.get(0).getName());
         if (res == null)
-            throw new ProgramError(x, e, errorMsg("undefined variable ",
-                                                  names.get(0).getName()));
+            error(x, e, errorMsg("undefined variable ",
+                                 names.get(0).getName()));
 
         for (Id fld : IterUtil.skipFirst(names)) {
             if (res instanceof Selectable) {
@@ -1371,8 +1369,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex;
                 }
             } else {
-                throw new ProgramError(x, e, errorMsg("Non-object cannot have field ",
-                                                      fld.getName()));
+                throw new ProgramError(x, e,
+                                       errorMsg("Non-object cannot have field ",
+                                                fld.getName()));
             }
         }
         return res;
@@ -1429,7 +1428,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
         } else {
-            throw new ProgramError(x, e, errorMsg("Unexpected FnRef value, ", g));
+            throw new ProgramError(x, e, errorMsg("Unexpected FnRef value, ",g));
         }
     }
 

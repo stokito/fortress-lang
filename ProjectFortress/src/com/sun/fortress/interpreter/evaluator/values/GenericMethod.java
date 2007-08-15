@@ -27,7 +27,6 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
@@ -49,6 +48,7 @@ import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class GenericMethod extends MethodClosure implements
         GenericFunctionOrMethod, Factory1P<List<FType>, MethodClosure, HasAt> {
@@ -128,9 +128,10 @@ public class GenericMethod extends MethodClosure implements
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != params.size()) {
-            throw new ProgramError(location, e,
-                    "Generic instantiation (size) mismatch, expected " + params
-                            + " got " + args);
+            error(location, e,
+                  "Generic instantiation (size) mismatch, expected "
+                  + Useful.listInParens(params)
+                  + " got " + Useful.listInParens(args));
         }
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory

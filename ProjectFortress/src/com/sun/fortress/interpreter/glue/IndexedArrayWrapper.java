@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
 
@@ -45,7 +46,8 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
         if (!(fv instanceof FObject)) {
             // This should only happen if the library is buggy.
             // But it *has* happened, and will happen again...
-            throw new ProgramError(at," expected an array object, got "+fv);
+            throw new ProgramError(at,errorMsg(" expected an array object, got ",
+                                               fv));
         }
         array = (FObject) fv;
         putter = (MethodClosure) array.getSelfEnv().getValue(WellKnownNames.arrayPutter);

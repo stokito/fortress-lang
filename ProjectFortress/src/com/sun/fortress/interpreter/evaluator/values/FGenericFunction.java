@@ -37,8 +37,10 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
@@ -159,8 +161,10 @@ public class FGenericFunction extends SingleFcn
 
         // Evaluate each of the args in e, inject into clenv.
         if (argValues.size() != params.size() ) {
-            throw new ProgramError(location, e,
-                    errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", argValues));
+            error(location, e,
+                  errorMsg("Generic instantiation (size) mismatch, expected ",
+                           Useful.listInParens(params), " got ",
+                           Useful.listInParens(argValues)));
         }
         return make(argValues, location);
     }

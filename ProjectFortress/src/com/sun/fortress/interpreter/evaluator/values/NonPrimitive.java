@@ -23,7 +23,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
@@ -37,6 +36,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public abstract class NonPrimitive extends Simple_fcn {
 
@@ -133,26 +133,26 @@ public abstract class NonPrimitive extends Simple_fcn {
                 for (; argsIter.hasNext(); i++) {
                     FValue arg = argsIter.next();
                     if (!restType.typeMatch(arg)) {
-                        throw new ProgramError(loc, within,
-                                errorMsg("Closure/Constructor for ",
-                                          getAt().stringName(),
-                                          " rest parameter ", i, " (",
-                                          param.getName(),
-                                          ":", restType,
-                                          "...) got type ", arg.type()));
+                        error(loc, within,
+                              errorMsg("Closure/Constructor for ",
+                                       getAt().stringName(),
+                                       " rest parameter ", i, " (",
+                                       param.getName(),
+                                       ":", restType,
+                                       "...) got type ", arg.type()));
                     }
                 }
             } else {
                 // Usual case for the loop.
                 FValue arg = argsIter.next();
                 if (!paramType.typeMatch(arg)) {
-                    throw new ProgramError(loc, within,
-                            errorMsg("Closure/Constructor for ",
-                                     getAt().stringName(),
-                                     " parameter ", i, " (",
-                                     param.getName(), ":",
-                                     param.getType(), ") got type ",
-                                     arg.type()));
+                    error(loc, within,
+                          errorMsg("Closure/Constructor for ",
+                                   getAt().stringName(),
+                                   " parameter ", i, " (",
+                                   param.getName(), ":",
+                                   param.getType(), ") got type ",
+                                   arg.type()));
                 }
             }
         }
@@ -214,13 +214,13 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = argsIter.next();
                 i++;
                 if (!paramType.typeMatch(arg)) {
-                    throw new ProgramError(loc, env,
-                            errorMsg("Closure/Constructor for ",
-                                     getAt().stringName(),
-                                     " parameter ", i, " (",
-                                     param.getName(), ":",
-                                     paramType, ") got type ",
-                                     arg.type(), " with arg ", arg));
+                    error(loc, env,
+                          errorMsg("Closure/Constructor for ",
+                                   getAt().stringName(),
+                                   " parameter ", i, " (",
+                                   param.getName(), ":",
+                                   paramType, ") got type ",
+                                   arg.type(), " with arg ", arg));
                 }
                 try {
                     if (param.getMutable()) {
@@ -244,10 +244,10 @@ public abstract class NonPrimitive extends Simple_fcn {
     public List<FValue> fixupArgCount(List<FValue> args0, HasAt loc) {
         List<FValue> args = fixupArgCount(args0);
         if (args==null) {
-            throw new ProgramError(loc,
-                                   errorMsg("Incorrect number of arguments, expected ",
-                                    Useful.listInParens(params), ", got ",
-                                    Useful.listInParens(args0)));
+            error(loc,
+                  errorMsg("Incorrect number of arguments, expected ",
+                           Useful.listInParens(params), ", got ",
+                           Useful.listInParens(args0)));
         }
         return args;
     }

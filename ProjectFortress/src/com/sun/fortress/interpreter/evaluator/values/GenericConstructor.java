@@ -23,7 +23,6 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -36,8 +35,10 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class GenericConstructor extends FConstructedValue implements Factory1P<List<FType>, Simple_fcn, HasAt> {
     private class Factory implements Factory1P<List<FType>, Constructor, HasAt> {
@@ -98,8 +99,10 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
 
     // Evaluate each of the args in e, inject into clenv.
     if (args.size() != params.size() ) {
-        throw new ProgramError(x, e,
-                errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", args));
+        error(x, e,
+              errorMsg("Generic instantiation (size) mismatch, expected ",
+                       Useful.listInParens(params), " got ",
+                       Useful.listInParens(args)));
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);

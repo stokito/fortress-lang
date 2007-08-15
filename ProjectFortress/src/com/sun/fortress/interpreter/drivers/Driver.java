@@ -78,6 +78,9 @@ import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+
 public class Driver {
 
     private static int numThreads = 8;
@@ -466,8 +469,8 @@ public class Driver {
                         into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
                     }
                 } catch (CheckedNullPointerException ex) {
-                    throw new ProgramError("Import of " + s + " from api " + a
-                            + " not found in implementing component " + c);
+                    error("Import of " + s + " from api " + a
+                          + " not found in implementing component " + c);
                 }
             }
         };
@@ -482,8 +485,8 @@ public class Driver {
                         into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
                     }
                 } catch (CheckedNullPointerException ex) {
-                    throw new ProgramError("Import of " + s + " from api " + a
-                            + " not found in implementing component " + c);
+                    error("Import of " + s + " from api " + a
+                          + " not found in implementing component " + c);
                 }
             }
         };
@@ -494,8 +497,8 @@ public class Driver {
                         into_e.putInt(s, NI.cnnf(from_e.getIntNull(s)));
                     }
                 } catch (CheckedNullPointerException ex) {
-                    throw new ProgramError("Import of " + s + " from api " + a
-                            + " not found in implementing component " + c);
+                    error("Import of " + s + " from api " + a
+                          + " not found in implementing component " + c);
                 }
             }
         };
@@ -506,8 +509,8 @@ public class Driver {
                         into_e.putNat(s, NI.cnnf(from_e.getNat(s)));
                     }
                 } catch (CheckedNullPointerException ex) {
-                    throw new ProgramError("Import of " + s + " from api " + a
-                            + " not found in implementing component " + c);
+                    error("Import of " + s + " from api " + a
+                          + " not found in implementing component " + c);
                 }
             }
         };
@@ -518,8 +521,8 @@ public class Driver {
                         into_e.putBool(s, NI.cnnf(from_e.getBool(s)));
                     }
                 } catch (CheckedNullPointerException ex) {
-                    throw new ProgramError("Import of " + s + " from api " + a
-                            + " not found in implementing component " + c);
+                    error("Import of " + s + " from api " + a
+                          + " not found in implementing component " + c);
                 }
             }
         };
@@ -551,8 +554,8 @@ public class Driver {
                 e.putValue(add_as, NI.cnnf(from_e.getValueRaw(s)));
             }
         } catch (CheckedNullPointerException ex) {
-            throw new ProgramError("Import of " + name + " from api " + a
-                    + " not found in implementing component " + c);
+            error(errorMsg("Import of ", name, " from api ", a,
+                           " not found in implementing component ", c));
         }
 
     }
@@ -660,7 +663,7 @@ public class Driver {
         // System.out.println("io exception" + ioe);
         // }
         if (!(ret instanceof FVoid))
-            throw new ProgramError("run method returned non-void value");
+            error("run method returned non-void value");
         System.out.println("finish runProgram");
     }
 
@@ -749,7 +752,7 @@ public class Driver {
                 writeJavaAst(c, libraryTree);
                 return c;
             }
-            finally { r.close(); }   
+            finally { r.close(); }
         }
         else {
             long begin = System.currentTimeMillis();

@@ -42,8 +42,6 @@ import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.NI;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-
 /**
  * LHSToLValue evaluates the provided LHS to the point that we can,
  * without duplication of computation, find both its current value
@@ -63,7 +61,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         if (v instanceof FObject) {
             return new _WrappedFValue(x.getSpan(), false, v);
         }
-        throw new ProgramError(x,evaluator.e, errorMsg(desc));
+        throw new ProgramError(x,evaluator.e, desc);
     }
 
     public List<Expr> wrapEvalParallel(List<Expr> es) {

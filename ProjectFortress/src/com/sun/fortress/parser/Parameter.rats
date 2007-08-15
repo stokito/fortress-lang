@@ -97,9 +97,8 @@ FnHeaderFront OpHeaderFront =
        } else if (PrecedenceMap.ONLY.matchedBrackets(left, right))
            name = new Enclosing(span, opa2, opa4);
        else
-           throw new ProgramError(opa2,
-                                  "Mismatched enclosing operator definition: "
-                                  + left + " and " + right);
+           throw new ProgramError(opa2, "Mismatched enclosing operator definition: "
+                                        + left + " and " + right);
        if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
        Option<Param> opparam;
        if (opa5 == null) opparam = None.<Param>make();

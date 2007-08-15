@@ -55,7 +55,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         genericAt = d;
         this.members = members;
     }
-    
+
     public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
         super(orig.getName());
         env = orig.getEnv();
@@ -63,7 +63,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         def = new_def;
         params = new_def.getStaticParams();
         members = new_def.getDecls();
-        
+
     }
 
     FTypeGeneric substituteOprs(List<FType> args) {
@@ -78,7 +78,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     public Generic getDef() {
         return def;
     }
-    
+
     @Override
     public BetterEnv getEnv() {
         return env;
@@ -98,12 +98,12 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         public FTraitOrObject make(List<FType> args, HasAt within,
                 Map<List<FType>, FTraitOrObject> map) {
             int oprParamCount = 0;
-            
+
             for (StaticParam param : params) {
-                if (param instanceof OperatorParam) 
+                if (param instanceof OperatorParam)
                     oprParamCount++;
             }
-            
+
             if (oprParamCount > 0) {
                 HashMap<String, String> substitutions = new HashMap<String, String>();
                 List<FType> thinned_args = new ArrayList<FType>(args.size() - oprParamCount);
@@ -119,23 +119,23 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     }
                     i++;
                 }
-                
+
                 OprInstantiater oi = new OprInstantiater(substitutions);
-                
-                TraitObjectAbsDeclOrDecl new_def = 
+
+                TraitObjectAbsDeclOrDecl new_def =
                     (TraitObjectAbsDeclOrDecl)oi.visit((TraitObjectAbsDeclOrDecl)FTypeGeneric.this.getDef());
-                
-                FTypeGeneric replacement = 
+
+                FTypeGeneric replacement =
                     new FTypeGeneric(FTypeGeneric.this, new_def);
-                 
+
                 return FTypeGeneric.make(thinned_args, args, within, map, replacement);
-            } else {            
+            } else {
                 return FTypeGeneric.make(args, args, within, map, FTypeGeneric.this);
             }
         }
-        
+
      }
-    
+
     static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
             Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
         BetterEnv clenv = new BetterEnv(gen.env, within);
@@ -222,8 +222,9 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != static_params.size()) {
             throw new ProgramError(x, e,
-                                   errorMsg("Generic instantiation (size) mismatch, expected ", Useful.listInOxfords(static_params),
-                                            " got ", Useful.listInOxfords(args)));
+                     errorMsg("Generic instantiation (size) mismatch, expected ",
+                              Useful.listInOxfords(static_params),
+                              " got ", Useful.listInOxfords(args)));
         }
         EvalType et = new EvalType(e);
         ArrayList<FType> argValues = et.forStaticArgList(args);

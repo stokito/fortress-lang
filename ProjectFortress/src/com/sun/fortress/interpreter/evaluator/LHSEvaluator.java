@@ -180,7 +180,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 // the type system?  Not sure.
 
                 throw new ProgramError(x, evaluator.e,
-                            errorMsg("Can't infer element type for array construction"));
+                            "Can't infer element type for array construction");
             }
 
             /*
@@ -249,8 +249,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                         evaluator.e.putVariable(s, value, outerType);
                     else {
                         throw new ProgramError(x, evaluator.e,
-                                errorMsg("RHS expression type ", value.type(),
-                                               " is not assignable to LHS type ", outerType));
+                         errorMsg("RHS expression type ", value.type(),
+                                  " is not assignable to LHS type ", outerType));
                     }
                 } else {
                     if (mutable)

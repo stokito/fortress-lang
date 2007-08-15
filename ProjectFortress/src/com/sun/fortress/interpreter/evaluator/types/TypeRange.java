@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
@@ -69,7 +68,7 @@ public class TypeRange {
         return evaluatedNat(size);
     }
 
-    private static long evaluatedNat(FTypeNat x) throws ProgramError {
+    private static long evaluatedNat(FTypeNat x) throws InterpreterBug {
         if (x instanceof IntNat) {
             return ((IntNat) x).getValue();
         }

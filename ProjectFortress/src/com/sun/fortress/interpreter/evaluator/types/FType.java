@@ -29,7 +29,6 @@ import java.util.TreeSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.VarargsType;
@@ -43,6 +42,7 @@ import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 abstract public class FType implements Comparable<FType> {
 
@@ -76,7 +76,7 @@ abstract public class FType implements Comparable<FType> {
     private List<Pair<HasAt, FType> > mustExtend;
     // Where clauses in superclasses parameterized by Self can
     // introduce constraints that must be satisfied.
-    
+
     protected boolean isSymbolic;
     protected boolean cannotBeExtended;
 
@@ -133,7 +133,7 @@ abstract public class FType implements Comparable<FType> {
     protected List<FType> getExtendsNull() {
         return getExtends();
     }
-    
+
     protected List<FType> computeTransitiveExtends() {
         return Useful.<FType>list(this);
     }
@@ -165,7 +165,7 @@ abstract public class FType implements Comparable<FType> {
 
     private void addExcludesInner(FType t) {
         if (t == this)
-            throw new ProgramError(errorMsg("Type cannot exclude itself: ", t));
+            error(errorMsg("Type cannot exclude itself: ", t));
         excludes.syncPut(t);
     }
 
@@ -434,17 +434,17 @@ abstract public class FType implements Comparable<FType> {
             if (DUMP_UNIFY) System.out.println("            "+t+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }
-        throw new ProgramError(val,env,
-                errorMsg("Cannot unify ",
-                          this,
-                          "(",
-                          this.getClass(),
-                          ")\n  with ",
-                          val,
-                          "(",
-                          val.getClass(),
-                          ") abm=" + abm
-                          ));
+        error(val,env,
+              errorMsg("Cannot unify ",
+                       this,
+                       "(",
+                       this.getClass(),
+                       ")\n  with ",
+                       val,
+                       "(",
+                       val.getClass(),
+                       ") abm=" + abm
+                       ));
     }
 
     /**
@@ -461,22 +461,22 @@ abstract public class FType implements Comparable<FType> {
 
             if (mustExtend == null)
                 mustExtend = new ArrayList<Pair<HasAt, FType>>();
-            
+
             mustExtend.add(new Pair<HasAt, FType>(constraint_loc, st));
         } else {
             if (!subtypeOf(st)) {
-                throw new ProgramError(constraint_loc, "" + this
-                        + " must subtype " + st);
+                error(constraint_loc,
+                      errorMsg("", this, " must subtype ", st));
             }
         }
     }
-    
+
     protected void checkConstraints() {
         if (mustExtend != null) {
             for (Pair<HasAt, FType> p : mustExtend)
                 if (!subtypeOf(p.getB())) {
-                    throw new ProgramError(p.getA(), "" + this
-                            + " must subtype " + p.getB());
+                    error(p.getA(),
+                          errorMsg("", this, " must subtype ", p.getB()));
                 }
         }
         mustExtend = null;

@@ -111,4 +111,37 @@ public class ProgramError extends FortressError {
     public ProgramError(HasAt loc, String string, Throwable ex) {
         this(loc, null, string, ex);
     }
+
+
+    public static <T> T error(String msg) {
+        throw new ProgramError(msg);
+    }
+
+    public static <T> T error(HasAt loc, Environment env, String arg0) {
+        throw new ProgramError(loc, env, arg0);
+    }
+
+    public static <T> T error(HasAt loc, String arg0) {
+        throw new ProgramError(loc, arg0);
+    }
+
+    public static <T> T error(HasAt loc1, HasAt loc2, Environment env, String arg0) {
+        throw new ProgramError(loc1, loc2, env, arg0);
+    }
+
+    public static <T> T error(String arg0, Throwable arg1) {
+        throw new ProgramError(arg0, arg1);
+    }
+
+    public static <T> T error(HasAt loc, Environment env, String arg0, Throwable arg1) {
+        throw new ProgramError(loc, env, arg0, arg1);
+    }
+
+    public static <T> T error(Throwable arg0) {
+        throw new ProgramError(arg0);
+    }
+
+    public static <T> T error(HasAt loc, String string, Throwable ex) {
+        throw new ProgramError(loc, string, ex);
+    }
 }

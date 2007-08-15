@@ -406,8 +406,7 @@ constant inline Action<PureList<Expr>> ExponentExpr =
            public PureList<Expr> run(PureList<Expr> base) {
                PureList<Expr> primary = (PureList<Expr>)base;
                if (primary.isEmpty()) {
-                   throw new ProgramError(a2,
-                                          "Exponentiation on an empty primary.");
+                   throw new ProgramError(a2, "Exponentiation on an empty primary.");
                } else { // !primary.isEmpty()
                    Expr last = ((Cons<Expr>)primary).getFirst();
                    PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
@@ -422,8 +421,7 @@ constant inline Action<PureList<Expr>> ExponentExpr =
            public PureList<Expr> run(PureList<Expr> base) {
                PureList<Expr> primary = (PureList<Expr>)base;
                if (primary.isEmpty()) {
-                   throw new ProgramError(a1,
-                                          "Exponentiation on an empty primary.");
+                   throw new ProgramError(a1, "Exponentiation on an empty primary.");
                } else { // !primary.isEmpty()
                    Expr last = ((Cons<Expr>)primary).getFirst();
                    PureList<Expr> rest = ((Cons<Expr>)primary).getRest();

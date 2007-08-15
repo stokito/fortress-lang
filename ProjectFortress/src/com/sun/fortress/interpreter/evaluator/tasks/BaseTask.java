@@ -1,17 +1,17 @@
 /********************************************************************************
-    Copyright 2007 Sun Microsystems, Inc., 
-    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software. 
-    Government users are subject to the Sun Microsystems, Inc. standard 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************/
 
@@ -25,7 +25,6 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulEx
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
 import java.util.concurrent.Callable;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 public abstract class BaseTask extends RecursiveAction {
     public boolean causedException;
@@ -69,10 +68,10 @@ public abstract class BaseTask extends RecursiveAction {
     BaseTask parent;
     public BaseTask getParentTask() { return parent;}
     public void setParentTask(BaseTask task) { parent = task;}
-    
-    
+
+
     public abstract void print();
-    
+
     public static void printTaskTrace() {
         BaseTask currentTask = getCurrentTask();
         while (currentTask != null) {
@@ -80,22 +79,20 @@ public abstract class BaseTask extends RecursiveAction {
             currentTask = currentTask.getParentTask();
         }
     }
-    
+
     Object tag;
     // Finds the current task and tags it
-    public static void tagCurrentTask(Object obj) { 
+    public static void tagCurrentTask(Object obj) {
         BaseTask currentTask = getCurrentTask();
         currentTask.setTag(obj);
     }
-    
+
     // Get the tag from the current task
-    public static Object  getCurrentTag() { 
+    public static Object  getCurrentTag() {
         BaseTask currentTask = getCurrentTask();
         return currentTask.getTag();
     }
-    
+
     public void setTag(Object obj) { tag = obj;}
     public Object getTag() { return tag;}
 }
-
-

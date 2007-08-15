@@ -16,9 +16,9 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.tasks;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 
-public class TaskError extends ProgramError {
+public class TaskError extends FortressError {
 
    public TaskError(Throwable err) {
         super(err.getMessage());

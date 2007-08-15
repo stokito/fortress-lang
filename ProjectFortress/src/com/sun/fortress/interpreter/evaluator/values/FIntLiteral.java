@@ -17,10 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 import java.math.BigInteger;
-
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
@@ -67,10 +66,12 @@ public class FIntLiteral extends FValue implements HasIntValue {
     public String getString() { return value.toString(); } // TODO Sam left this undone, not sure if intentional
 
     public int getInt() {
-        throw new ProgramError(errorMsg("Value ", value, " does not fit in ZZ32."));
+        throw new ProgramError(errorMsg("Value ", value,
+                                        " does not fit in ZZ32."));
     }
     public long getLong() {
-        throw new ProgramError(errorMsg("Value ", value, " does not fit in ZZ64."));
+        throw new ProgramError(errorMsg("Value ", value,
+                                        " does not fit in ZZ64."));
     }
     public BigInteger getLit() { return value; }
     public double getFloat() { return value.doubleValue(); }

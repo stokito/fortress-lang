@@ -18,10 +18,10 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Indexed extends FConstructedValue implements IndexedShape, IndexedTarget {
   final FType elementType;
@@ -52,9 +52,9 @@ public class Indexed extends FConstructedValue implements IndexedShape, IndexedT
       FRange extent = extents.get(indices_depth-1);
       int normalized_index = indices[indices_depth-1] - extent.getBase();
       if (normalized_index < 0 || normalized_index >= extent.getSize()) {
-          throw new ProgramError(errorMsg("Index#", (indices_depth-1),
-                  " value ", indices[indices_depth-1], " is out of bounds ",
-                  extent.getBase(), " through ", extent.getBase(), extent.getSize()-1));
+          error(errorMsg("Index#", (indices_depth-1),
+                         " value ", indices[indices_depth-1], " is out of bounds ",
+                         extent.getBase(), " through ", extent.getBase(), extent.getSize()-1));
       }
     if (indices_depth == 1) {
         return offset + normalized_index;

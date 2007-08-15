@@ -49,6 +49,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
 
@@ -233,8 +234,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     long l = ((IntNat)a).getValue();
                     if (l < 0) {
                         // Move this check into the param-specific binding code.
-                        throw new ProgramError
-                                (errorMsg("Negative nats are unNATural: " + l));
+                        error(p, errorMsg("Negative nats are unNATural: " + l));
                     }
 
                     guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
@@ -243,8 +243,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv,
-                            errorMsg("Expected Nat, got ", a, " for param ", p, " instantiating ", what));
+                    error(within, clenv,
+                          errorMsg("Expected Nat, got ", a, " for param ", p,
+                                   " instantiating ", what));
                 }
             } else if (p instanceof IntParam) {
                 if (a instanceof IntNat) {
@@ -254,29 +255,31 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv,
-                            errorMsg("Expected Int, got ", a, " for param ", p, " instantiating ", what));
+                    error(within, clenv,
+                          errorMsg("Expected Int, got ", a, " for param ", p,
+                                   " instantiating ", what));
                 }
             } else if (p instanceof BoolParam) {
                 if (a instanceof Bool) {
                     guardedPutBool(NodeUtil.getName(p), ((Bool)a).getBooleanValue(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv,
-                            errorMsg("Expected Bool, got ", a, " for param ", p, " instantiating ", what));
+                    error(within, clenv,
+                          errorMsg("Expected Bool, got ", a, " for param ", p,
+                                   " instantiating ", what));
                 }
             } else if (p instanceof SimpleTypeParam) {
                 // There's probably some inappropriate ones.
                 if (a instanceof FTypeNat) {
-                    throw new ProgramError(within, clenv,
-                                           errorMsg("When instantiating ", what,
-                                                    "Got nat ", a,
-                                                    " instead of type for param ", p));
+                    error(within, clenv,
+                          errorMsg("When instantiating ", what,
+                                   "Got nat ", a,
+                                   " instead of type for param ", p));
                 } else if (a instanceof FTypeOpr) {
-                    throw new ProgramError(within, clenv,
-                            errorMsg("When instantiating ", what,
-                                     "Got opr ", a,
-                                     " instead of type for param ", p));
+                    error(within, clenv,
+                          errorMsg("When instantiating ", what,
+                                   "Got opr ", a,
+                                   " instead of type for param ", p));
                 } else {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 }
@@ -285,14 +288,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 if (a instanceof FTypeOpr) {
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
-                    throw new ProgramError(within, clenv,
-                            errorMsg("Expected Opr, got ", a, " for param ", p, " instantiating ", what));
+                    error(within, clenv,
+                          errorMsg("Expected Opr, got ", a, " for param ", p,
+                                   " instantiating ", what));
                 }
             } else if (p instanceof DimensionParam) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
-                throw new ProgramError(within, clenv,
-                        errorMsg("Unexpected generic parameter ", p));
+                error(within, clenv,
+                      errorMsg("Unexpected generic parameter ", p));
             }
          }
     }
@@ -388,15 +392,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     private long nonEmpty(List<? extends Type> value) {
         if (value.size() == 0)
-            throw new ProgramError(errorMsg("Empty operands to nat arithmetic"));
+            error("Empty operands to nat arithmetic");
         return longify(value.get(0));
     }
 
     private long longify(Type type) {
         FType t = type.accept(this);
         if (!(t instanceof IntNat)) {
-            throw new ProgramError(type,
-                    errorMsg("StaticArg ", type, " evaluated to ", t, " (instead of IntNat)"));
+            error(type,
+                  errorMsg("StaticArg ", type, " evaluated to ", t,
+                           " (instead of IntNat)"));
         }
         return ((IntNat) t).getValue();
     }
@@ -404,20 +409,23 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     private long longify(DimUnitExpr type) {
         FType t = type.accept(this);
         if (!(t instanceof IntNat)) {
-            throw new ProgramError(type,
-                    errorMsg("StaticArg ", type, " evaluated to ", t, " (instead of IntNat)"));
+            error(type,
+                  errorMsg("StaticArg ", type, " evaluated to ", t,
+                           " (instead of IntNat)"));
         }
         return ((IntNat) t).getValue();
     }
 
     public FType forBaseDimId(BaseDimId id) {
-        throw new ProgramError(id,
-                               errorMsg("Evaluating BaseDimId ", id, " is not yet implemented."));
+        throw new InterpreterBug(id,
+                                 errorMsg("Evaluating BaseDimId ", id,
+                                          " is not yet implemented."));
     }
 
     public FType forBaseUnitId(BaseUnitId id) {
-        throw new ProgramError(id,
-                               errorMsg("Evaluating BaseUnitId ", id, " is not yet implemented."));
+        throw new InterpreterBug(id,
+                                 errorMsg("Evaluating BaseUnitId ", id,
+                                          " is not yet implemented."));
     }
 
     public FType forDimUnitId(DimUnitId i) {
@@ -515,7 +523,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
             throw new ProgramError(x, env,
-                    errorMsg("Expected generic type, got ", ft1, " instead"));
+                                   errorMsg("Expected generic type, got ", ft1,
+                                            " instead"));
         }
     }
 
@@ -553,9 +562,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
                 natB = (FTypeNat)bt;
             } else {
-                throw new ProgramError(errorMsg(extent,env,"Bad base ",
-                                       b.getVal(),"=",
-                                       bt.getClass().getName(), " ", bt));
+                throw new ProgramError(b.getVal(),
+                                       errorMsg(extent,env,"Bad base ",
+                                                b.getVal(),"=",
+                                                bt.getClass().getName(), " ",
+                                                bt));
             }
         } else {
             natB = IntNat.make(0);
@@ -566,9 +577,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             if (st instanceof IntNat || st instanceof SymbolicNat) {
                 natS = (FTypeNat)st;
             } else {
-                throw new ProgramError(errorMsg(extent,env,"Bad size ",
-                                       s.getVal(), "=",
-                                       st.getClass().getName(), " ", st));
+                throw new ProgramError(s.getVal(),
+                                       errorMsg(extent,env,"Bad size ",
+                                                s.getVal(), "=",
+                                                st.getClass().getName(), " ",
+                                                st));
             }
         } else {
             natS = IntNat.make(0);

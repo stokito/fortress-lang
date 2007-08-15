@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes_util.HasSomeExtraState;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeReflection;
@@ -34,6 +33,7 @@ import com.sun.fortress.useful.Some;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Pair;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Used to com.sun.fortress.interpreter.rewrite the internals of an object definition.
@@ -55,11 +55,11 @@ public abstract class Rewrite extends NodeReflection {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
-           
+
         }
         return null;
     }
-    
+
     /**
      * Called by VisitObject for each Node; expected to perform
      * any customized rewriting operations needed.
@@ -97,8 +97,8 @@ public abstract class Rewrite extends NodeReflection {
         // *Unless* this assumption is violated by subclasses --
         // which is quite likely.  For some T, such as a specific
         // Expr type, the translation could generate a different
-        // return Expr type.  We rely on the assumption that, where 
-        // this might happen, the calling context will never choose 
+        // return Expr type.  We rely on the assumption that, where
+        // this might happen, the calling context will never choose
         // a T that will cause problems (it will only use, say, Expr).
         return (T) result;
     }
@@ -150,7 +150,7 @@ public abstract class Rewrite extends NodeReflection {
                 // This gives some hope of tracing an exception to a
                 // point in the source code, and thus diagnosing why
                 // the AST might have gone wrong. -Jan
-                throw new ProgramError(n,"Has a null component.",x);
+                error(n, "Has a null component.", x);
             }
         }
         if (replacement != null && n instanceof HasSomeExtraState) {

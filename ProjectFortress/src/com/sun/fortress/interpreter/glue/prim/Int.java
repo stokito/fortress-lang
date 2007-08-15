@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import java.math.BigInteger;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
@@ -29,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Functions from ZZ32.
@@ -164,7 +164,7 @@ public static final class Sequential extends NativeFn1 {
 public static int rc(long i) {
     int r = (int) i;
     if ((long) r != i) {
-        throw new ProgramError("Overflow of ZZ32 "+i);
+        error("Overflow of ZZ32 "+i);
     }
     return r;
 }

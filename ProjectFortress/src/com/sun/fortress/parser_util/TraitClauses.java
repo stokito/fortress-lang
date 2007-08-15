@@ -27,8 +27,9 @@ import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.MagicNumbers;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class TraitClauses {
 
@@ -54,9 +55,8 @@ public class TraitClauses {
     }
 
     private void multiple(TraitClause t) {
-        throw new ProgramError(t.span().begin.at() +
-                               ": Trait declarations should not have " +
-                               "multiple " + t.message() + " clauses.");
+        error(t.span().begin.at() + ": Trait declarations should not have " +
+              "multiple " + t.message() + " clauses.");
     }
 
     public void set(TraitClause t) {

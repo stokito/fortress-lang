@@ -58,6 +58,7 @@ instantiate Keyword      (Identifier);
 instantiate Unicode;
 
 header {
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
 import com.sun.fortress.parser_util.precedence_opexpr.Left;
 import com.sun.fortress.parser_util.precedence_opexpr.Right;
@@ -67,7 +68,6 @@ import com.sun.fortress.parser_util.precedence_opexpr.LooseInfix;
 import com.sun.fortress.parser_util.precedence_opexpr.Prefix;
 import com.sun.fortress.parser_util.precedence_opexpr.Postfix;
 import com.sun.fortress.parser_util.precedence_resolver.*;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.*;
@@ -81,6 +81,8 @@ import xtc.util.Action;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 }
 
 body {

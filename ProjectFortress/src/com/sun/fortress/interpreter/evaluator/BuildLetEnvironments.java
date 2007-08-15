@@ -42,6 +42,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
 
@@ -101,8 +102,8 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                 FValue val = rhs.getVal().accept(new_eval);
 
                 if (!(val instanceof FTuple)) {
-                    throw new ProgramError(x, containing,
-                                           errorMsg("RHS does not yield a tuple"));
+                    error(x, containing,
+                          errorMsg("RHS does not yield a tuple"));
                 }
 
                 FTuple rTuple = (FTuple) val;
