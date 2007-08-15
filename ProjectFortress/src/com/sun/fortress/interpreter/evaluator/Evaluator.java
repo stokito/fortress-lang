@@ -394,6 +394,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 try {
                     res = be.doLets((LetExpr) exp);
                 } catch (FortressError ex) {
+                    ex.setWhere(tag);
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
                     throw ex; // new ProgramError(exp, inner, "Wrapped
@@ -403,6 +404,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 try {
                     res = exp.accept(eval);
                 } catch (FortressError ex) {
+                    ex.setWhere(tag);
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
                     throw ex; // new ProgramError(exp, eval.e, "Wrapped
@@ -718,7 +720,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Id method = x.getId();
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
-        
+
         FValue fobj = obj.accept(this);
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
@@ -1115,13 +1117,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (exprs.size() == 0)
             throw new InterpreterBug(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
-        
+
         // Translate compound VarRefs to FieldRefs
         if (fcnExpr instanceof VarRef &&
             ((VarRef)fcnExpr).getVar().getNames().size() > 1) {
             fcnExpr = ExprFactory.makeFieldRef((VarRef)fcnExpr);
         }
-        
+
         if (fcnExpr instanceof FieldRef) {
             // In this case, open code the FieldRef evaluation
             // so that the object can be preserved. Alternate
@@ -1132,7 +1134,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Id fld = fld_sel.getId();
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
-            
+
         } else if (fcnExpr instanceof FnRef) {
             // We must evaluate the receiver separately so we can get a handle on it
             FnRef tax = (FnRef) fcnExpr;
@@ -1142,7 +1144,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Id fld = IterUtil.last(names);
                 List<StaticArg> args = tax.getStaticArgs();
                 FValue fobj = forVarRef(receiverVar);
-                
+
                 if (fobj instanceof FObject) {
                     FObject fobject = (FObject) fobj;
                     // TODO Need to distinguish between public/private
@@ -1156,10 +1158,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                                errorMsg("undefined method/field ",
                                                         fld.getName()));
                     } else if (cl instanceof OverloadedMethod) {
-                        
+
                         throw new InterpreterBug(x, fobject.getSelfEnv(),
                                                    "Don't actually resolve overloading of generic methods yet.");
-                        
+
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
                         // the generic method.
@@ -1169,7 +1171,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         GenericMethod gm = ((MethodInstance) cl).getGenerator();
                         return (gm.typeApply(args, e, x)).applyMethod(
                                     evalInvocationArgs(exprs), fobject, x, e);
-                        
+
                     } else {
                         throw new ProgramError(x, fobject.getSelfEnv(),
                                                errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
@@ -1179,7 +1181,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw new ProgramError(x,
                                            errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
                                                     fobj));
-                    
+
                 }
             }
             // else fall through

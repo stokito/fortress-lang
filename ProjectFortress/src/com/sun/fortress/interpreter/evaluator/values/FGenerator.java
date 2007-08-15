@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGenerator;
@@ -81,6 +80,7 @@ public class FGenerator extends FValue {
                 ev.e.putValue(id.getName(), val);
             } catch (FortressError pe) {
                 pe.setWithin(ev.e);
+                pe.setWhere(body);
                 throw pe;
             }
             ev.eval(body);

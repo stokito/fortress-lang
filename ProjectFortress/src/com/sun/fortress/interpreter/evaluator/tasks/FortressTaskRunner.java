@@ -27,7 +27,6 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotEx
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 
 import java.util.concurrent.Callable;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {

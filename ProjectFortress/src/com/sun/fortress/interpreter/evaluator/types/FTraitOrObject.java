@@ -27,7 +27,6 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.InstantiatedType;
@@ -102,7 +101,7 @@ abstract public class FTraitOrObject extends FType {
          * if null, then extends has not yet been initialized.
          * Used by FType to implement constraint checks from
          * where clauses.
-         * 
+         *
          * @return
          */
     @Override protected List<FType> getExtendsNull() {
@@ -110,7 +109,7 @@ abstract public class FTraitOrObject extends FType {
     }
 
 
-    
+
     /** Only implemented by subtypes which extend GenericTypeInstance.
      *  Method included here to permit sharing of the complicated code in
      *  unifyNonVarGeneric.

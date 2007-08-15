@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;

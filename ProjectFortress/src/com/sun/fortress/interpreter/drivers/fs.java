@@ -26,7 +26,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
