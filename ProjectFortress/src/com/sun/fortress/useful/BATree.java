@@ -52,8 +52,8 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
             if (root == null)
                 return false;
 
-            if (o instanceof Map.Entry) {
-                Map.Entry e = (Map.Entry) o;
+            if (o instanceof Map.Entry<?, ?>) {
+                Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
                 BATreeNode<T,U> n = root;
                 // TODO Since there's no side effects, we can fake out the generic, I think.
                 n = n.getObject((T) e.getKey(), comp);

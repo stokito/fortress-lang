@@ -317,8 +317,9 @@ public class NodeUtil {
 
     /* for DottedId ********************************************************/
     public static List<String> toStrings(DottedId n) {
-        List<String> s = new ArrayList();
-        for (Id id : n.getNames()) {
+        List<Id> ids = n.getNames();
+        List<String> s = new ArrayList<String>(ids.size());
+        for (Id id : ids) {
             s.add(id.getName());
         }
         return s;
@@ -326,7 +327,7 @@ public class NodeUtil {
 
     /* for TraitTypeWhere **************************************************/
     public static List<TraitType> getTypes(List<TraitTypeWhere> l) {
-        List<TraitType> t = new ArrayList();
+        List<TraitType> t = new ArrayList<TraitType>(l.size());
         for (TraitTypeWhere tw : l) {
             t.add(tw.getType());
         }

@@ -63,7 +63,9 @@ public class _WrappedFValue extends DelimitedExpr {
 
     public <RetType> RetType accept(NodeVisitor<RetType> visitor) {
         if (visitor instanceof Evaluator) {
-            return (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
+            @SuppressWarnings("unchecked") // RetType must be FValue
+            RetType result = (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
+            return result;
         } else {
             throw new InterpreterBug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
         }

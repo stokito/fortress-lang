@@ -52,8 +52,8 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             if (root == null)
                 return false;
 
-            if (o instanceof Map.Entry) {
-                Map.Entry e = (Map.Entry) o;
+            if (o instanceof Map.Entry<?, ?>) {
+                Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 
                 BATree2Node<T, U, V> n = root;
                 // TODO Since there's no side effects, we can fake out the generic, I think.
@@ -62,8 +62,8 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
                     return false;
 
                 Object eo = e.getValue();
-                if (eo instanceof Pair) {
-                    Pair ep = (Pair) eo;
+                if (eo instanceof Pair<?, ?>) {
+                    Pair<?, ?> ep = (Pair<?, ?>) eo;
                     return n.data1.equals(ep.getA()) &&
                            n.data2.equals(ep.getB());
                 }

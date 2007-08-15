@@ -30,7 +30,9 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     HashMap<WrappedKey,V> map;
 
     public Object clone() {
-        GHashMap<K,V> copy = new GHashMap<K,V>(hasher, (HashMap<WrappedKey,V>) map.clone());
+        @SuppressWarnings("unchecked")
+        HashMap<WrappedKey,V> clonedMap = (HashMap<WrappedKey,V>) map.clone();
+        GHashMap<K,V> copy = new GHashMap<K,V>(hasher, clonedMap);
         return copy;
     }
 
@@ -200,9 +202,9 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
        // UGLY HACK: We must take an arbitrary Object in order
        // to satisfy the Map<K,V> interface.
        // But we have to perform an unchecked cast arg0 to K in order
-       // to wrap it. But, it doesn't matter; if the cast
-       // would have failed, the call to map.get will
-       // simply return null. eric.allen@sun.com 9/21/2006
+       // to wrap it. eric.allen@sun.com 9/21/2006
+       // This is a problem because the hash function is undefined
+       // for non-K objects.
        return map.get(new WrappedKey((K)arg0));
     }
 

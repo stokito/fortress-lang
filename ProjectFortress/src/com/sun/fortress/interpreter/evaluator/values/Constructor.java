@@ -238,8 +238,7 @@ public class Constructor extends AnonymousConstructor {
             new HashMap<FTraitOrObject, Integer> ();
 
         traitArray = new FTraitOrObject[traitCount];
-        // The cast is really checking the erased type.
-        traitNameReferenceArray = (Set<String>[]) new Set[traitCount];
+        traitNameReferenceArray = new Set<?>[traitCount];
 
         traitArray[0] = selfType;
         traitToIndex.put(selfType, Integer.valueOf(0));
@@ -451,7 +450,9 @@ public class Constructor extends AnonymousConstructor {
     MultiMap<FTraitOrObject, String> traitsToNamesReferenced =
         new MultiMap<FTraitOrObject, String>();
 
-    Set<String>[] traitNameReferenceArray;
+    // sets of strings (can't be explicit due to erasure)
+    Set<?>[] traitNameReferenceArray;
+    
     FTraitOrObject[] traitArray;
     MethodClosure[] methodsArray;
     MethodClosure[] closuresArray;

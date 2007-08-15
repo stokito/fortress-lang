@@ -55,7 +55,7 @@ public class ListJUTest extends com.sun.fortress.useful.TcWrapper  {
   }
 
   public void testFromJavaList() {
-    java.util.List test = Useful.list("ef","gh","ij");
+    java.util.List<String> test = Useful.list("ef","gh","ij");
 
     assertEquals(PureList.make("ef", "gh", "ij"),
                  PureList.fromJavaList(test));

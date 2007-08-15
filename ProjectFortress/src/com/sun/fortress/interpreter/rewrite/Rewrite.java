@@ -73,7 +73,7 @@ public abstract class Rewrite extends NodeReflection {
         Object result = null;
         if (o==null) {
             throw new NullPointerException();
-        } else if (o instanceof List) {
+        } else if (o instanceof List<?>) {
             result = visitList((List<?>) o);
         } else if (o instanceof Pair<?,?>) {
             result = visitPair((Pair<?,?>) o);
@@ -94,6 +94,12 @@ public abstract class Rewrite extends NodeReflection {
         // it holds because every visit method returns an object
         // with the same runtime type as its argument.
         // eric.allen@sun.com 9/21/2006
+        // *Unless* this assumption is violated by subclasses --
+        // which is quite likely.  For some T, such as a specific
+        // Expr type, the translation could generate a different
+        // return Expr type.  We rely on the assumption that, where 
+        // this might happen, the calling context will never choose 
+        // a T that will cause problems (it will only use, say, Expr).
         return (T) result;
     }
 
@@ -173,6 +179,7 @@ public abstract class Rewrite extends NodeReflection {
             if (replacement != null) {
                 if (p instanceof RewriteHackList) {
                     // Ugh.  We can only take this reflection/generics thing so far.
+                    // Assumes the elements of the RewriteHackList are instances of T.
                     replacement.addAll( (Collection<? extends T>) ((RewriteHackList)p).getNodes());
                 } else {
                     replacement.add(p);
