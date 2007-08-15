@@ -117,16 +117,16 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
      /**
       * Returns the lower (bottom) end of an interval.
       */
-      public U getLower(Object k) {
-         BATree2Node<T,U,U> old = table.getNode((T)k);
+      public U getLower(T k) {
+         BATree2Node<T,U,U> old = table.getNode(k);
          return old == null ? null : lower(old);
      }
 
       /**
        * Returns the upper (top) end of an interval.
        */
-       public U getUpper(Object k) {
-          BATree2Node<T,U,U> old = table.getNode((T)k);
+       public U getUpper(T k) {
+          BATree2Node<T,U,U> old = table.getNode(k);
           return old == null ? null : upper(old);
       }
 

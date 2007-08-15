@@ -47,8 +47,11 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
         }
 
         public boolean equals(Object o) {
-            return hasher.equiv(value,
-                    ((WrappedKey) o).value);
+            if (o instanceof GHashMap.WrappedKey) {
+                WrappedKey wk = (WrappedKey) o;
+                return h == wk.h && hasher.equiv(value, wk.value);
+            }
+            return false;
         }
 
         public String toString() {
@@ -65,12 +68,10 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
         }
 
         public V getValue() {
-            // TODO Auto-generated method stub
             return theRealOne.getValue();
         }
 
         public V setValue(V arg0) {
-            // TODO Auto-generated method stub
             return theRealOne.setValue(arg0);
         }
 

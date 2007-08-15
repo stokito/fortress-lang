@@ -142,16 +142,16 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         return f.asPair();
     }
 
-    public U getA(Object k) {
+    public U getA(T k) {
         if (root == null) return null;
-        BATree2Node<T, U, V> f = root.getObject((T)k, comp);
+        BATree2Node<T, U, V> f = root.getObject(k, comp);
         if (f == null) return null;
         return f.data1;
     }
 
-    public V getB(Object k) {
+    public V getB(T k) {
         if (root == null) return null;
-        BATree2Node<T, U, V> f = root.getObject((T)k, comp);
+        BATree2Node<T, U, V> f = root.getObject(k, comp);
         if (f == null) return null;
         return f.data2;
     }

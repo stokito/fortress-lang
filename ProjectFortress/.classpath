@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="third_party/xtc/xtc.jar"/>
-	<classpathentry kind="lib" path="third_party/jsr166y/jsr166y.jar"/>
 	<classpathentry kind="lib" path="third_party/junit/junit.jar" sourcepath="third_party/junit/junit_src.jar"/>
 	<classpathentry kind="lib" path="third_party/plt/plt.jar"/>
+	<classpathentry kind="lib" path="third_party/jsr166y/jsr166y.jar" sourcepath="third_party/jsr166y/jsr166/src/jsr166y"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

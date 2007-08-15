@@ -63,7 +63,7 @@ public static final class Println extends Util.S2V {
 
 public static final class PrintTaskTrace extends NativeFn0 {
     protected FValue act() {
-        BaseTask.getCurrentTask().printTaskTrace();
+        BaseTask.printTaskTrace();
         return FVoid.V;
     }
 }

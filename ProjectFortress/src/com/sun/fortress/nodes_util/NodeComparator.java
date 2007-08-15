@@ -56,7 +56,7 @@ public class NodeComparator {
     }
     final static ExtentRangeComparer extentRangeComparer = new ExtentRangeComparer();
     public final static AnyListComparer<ExtentRange> extentRangeListComparer =
-        new AnyListComparer(extentRangeComparer);
+        new AnyListComparer<ExtentRange>(extentRangeComparer);
 
     static class KeywordTypeComparer implements Comparator<KeywordType> {
         public int compare(KeywordType left, KeywordType right) {
@@ -65,7 +65,7 @@ public class NodeComparator {
     }
     final static KeywordTypeComparer keywordTypeComparer = new KeywordTypeComparer();
     public final static AnyListComparer<KeywordType> keywordTypeListComparer =
-        new AnyListComparer(keywordTypeComparer);
+        new AnyListComparer<KeywordType>(keywordTypeComparer);
 
     static class ParamComparer implements Comparator<Param> {
         public int compare(Param left, Param right) {
@@ -74,7 +74,7 @@ public class NodeComparator {
     }
     final static ParamComparer paramComparer = new ParamComparer();
     public final static AnyListComparer<Param> paramListComparer =
-        new AnyListComparer(paramComparer);
+        new AnyListComparer<Param>(paramComparer);
 
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
@@ -89,7 +89,7 @@ public class NodeComparator {
     public final static StaticParamComparer staticParamComparer =
         new StaticParamComparer();
     public static AnyListComparer<StaticParam> staticParamListComparer =
-        new AnyListComparer(staticParamComparer);
+        new AnyListComparer<StaticParam>(staticParamComparer);
 
     static class StaticArgComparer implements Comparator<StaticArg> {
         public int compare(StaticArg left, StaticArg right) {
@@ -98,7 +98,7 @@ public class NodeComparator {
     }
     final static StaticArgComparer staticArgComparer = new StaticArgComparer();
     public final static AnyListComparer<StaticArg> staticArgListComparer =
-        new AnyListComparer(staticArgComparer);
+        new AnyListComparer<StaticArg>(staticArgComparer);
 
     static class TraitTypeComparer implements Comparator<TraitType> {
         public int compare(TraitType left, TraitType right) {
@@ -107,7 +107,7 @@ public class NodeComparator {
     }
     final static TraitTypeComparer traitTypeComparer = new TraitTypeComparer();
     public final static AnyListComparer<TraitType> traitTypeListComparer =
-        new AnyListComparer(traitTypeComparer);
+        new AnyListComparer<TraitType>(traitTypeComparer);
 
     static class TypeComparer implements Comparator<Type> {
         public int compare(Type left, Type right) {
@@ -116,7 +116,7 @@ public class NodeComparator {
     }
     final static TypeComparer typeComparer = new TypeComparer();
     public final static AnyListComparer<Type> typeListComparer =
-        new AnyListComparer(typeComparer);
+        new AnyListComparer<Type>(typeComparer);
 
     /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
