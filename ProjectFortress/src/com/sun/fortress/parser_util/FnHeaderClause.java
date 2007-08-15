@@ -20,10 +20,11 @@
  * Fortress AST node local to the Rats! com.sun.fortress.interpreter.parser.
  */
 package com.sun.fortress.parser_util;
+
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Contract;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
@@ -81,22 +82,22 @@ public class FnHeaderClause {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        if (throwsClause.isPresent()) {
+        if (throwsClause.isSome()) {
             sb.append("throws { ");
-            sb.append(throwsClause.getVal());
+            sb.append(Option.unwrap(throwsClause));
             sb.append(" } ");
         }
-        if (whereClause.isPresent()) {
+        if (whereClause.isSome()) {
             sb.append("where { ");
-            sb.append(whereClause.getVal());
+            sb.append(Option.unwrap(whereClause));
             sb.append(" } ");
         }
-        if (contractClause.isPresent()) {
-            sb.append(contractClause.getVal());
+        if (contractClause.isSome()) {
+            sb.append(Option.unwrap(contractClause));
         }
-        if (returnType.isPresent()) {
+        if (returnType.isSome()) {
             sb.append(":");
-            sb.append(returnType.getVal());
+            sb.append(Option.unwrap(returnType));
         }
         return sb.toString();
     }

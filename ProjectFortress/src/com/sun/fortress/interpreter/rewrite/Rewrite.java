@@ -23,13 +23,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes_util.HasSomeExtraState;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeReflection;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes_util.RewriteHackList;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Pair;
 
@@ -77,10 +76,8 @@ public abstract class Rewrite extends NodeReflection {
             result = visitList((List<?>) o);
         } else if (o instanceof Pair<?,?>) {
             result = visitPair((Pair<?,?>) o);
-        } else if (o instanceof Some<?>) {
-            result = visitSome((Some<?>) o);
-        } else if (o instanceof None<?>) {
-            result = o;
+        } else if (o instanceof Option<?>) {
+            result = visitOption((Option<?>) o);
         } else if (o instanceof Number) {
             result = o;
         } else if (o instanceof Boolean) {
@@ -190,17 +187,19 @@ public abstract class Rewrite extends NodeReflection {
     }
 
     /**
-     * VisitObject the value of the Some, returning a different
-     * Some if there has been a change, otherwise returning the same
-     * Some.
+     * VisitObject the value of the Option, returning a 
+     * "some" wrapper if the value exists and VisitObject does not return null.
+     * Otherwise returns the untouched argument.
      */
-    protected <T> Some<T> visitSome(Some<T> some) {
-        T o = some.getVal();
-        T p = visitObject(o);
-        if (p != o) {
-            return new Some<T>(p);
+    protected <T> Option<T> visitOption(Option<T> opt) {
+        if (opt.isSome()) {
+            T updated = visitObject(Option.unwrap(opt));
+            if (updated != null) {
+                return Option.some(updated);
+            }
+            // else fall through
         }
-        return some;
+        return opt;
     }
 
     /**

@@ -21,24 +21,23 @@
 
 package com.sun.fortress.parser_util;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionVisitor;
 
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
-import edu.rice.cs.plt.iter.IterUtil;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
@@ -48,9 +47,9 @@ public final class FortressUtil {
     }
 
     public static Contract emptyContract() {
-        return new Contract(new Span(), None.<List<Expr>>make(),
-                            None.<List<EnsuresClause>>make(),
-                            None.<List<Expr>>make());
+        return new Contract(new Span(), Option.<List<Expr>>none(),
+                            Option.<List<EnsuresClause>>none(),
+                            Option.<List<Expr>>none());
     }
 
     public static List<Decl> emptyDecls() {
@@ -94,8 +93,7 @@ public final class FortressUtil {
     }
 
     public static <T> List<T> getListVal(Option<List<T>> o) {
-        if (o.isPresent()) return (List<T>)o.getVal();
-        else               return Collections.<T>emptyList();
+        return Option.unwrap(o, Collections.<T>emptyList());
     }
 
     public static <U, T extends U> List<U> mkList(T first) {
@@ -148,16 +146,12 @@ public final class FortressUtil {
     }
 
     public static Option<List<Type>> toTypeList(Option<List<TraitType>> tys) {
-        List<Type> result = new ArrayList<Type>();
-        if (tys.isPresent()) {
-            List<TraitType> _tys = ((Some<List<TraitType>>)tys).getVal();
-            for (TraitType ty : _tys) {
-                result.add((Type)ty);
+        return tys.apply(new OptionVisitor<List<TraitType>, Option<List<Type>>>() {
+            public Option<List<Type>> forSome(List<TraitType> l) {
+                return Option.<List<Type>>some(new ArrayList<Type>(l));
             }
-            return Some.<List<Type>>make(result);
-        } else {
-            return None.<List<Type>>make();
-        }
+            public Option<List<Type>> forNone() { return Option.none(); }
+        });
     }
 
     private static void multiple(Modifier m) {
@@ -409,21 +403,21 @@ public final class FortressUtil {
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
                                            Type ty, boolean mutable) {
-        return ids2Lvs(ids, mods, Some.<Type>make(ty), mutable);
+        return ids2Lvs(ids, mods, Option.some(ty), mutable);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
         return ids2Lvs(ids, FortressUtil.emptyModifiers(),
-                       Some.<Type>make(ty), mutable);
+                       Option.some(ty), mutable);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods) {
-        return ids2Lvs(ids, mods, None.<Type>make(), false);
+        return ids2Lvs(ids, mods, Option.<Type>none(), false);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids) {
-        return ids2Lvs(ids, FortressUtil.emptyModifiers(), None.<Type>make(),
+        return ids2Lvs(ids, FortressUtil.emptyModifiers(), Option.<Type>none(),
                        false);
     }
 
@@ -433,7 +427,7 @@ public final class FortressUtil {
         int ind = 0;
         for (Id id : ids) {
             lvs.add(new LValueBind(id.getSpan(), id,
-                                   Some.<Type>make(tys.get(ind)),
+                                   Option.some(tys.get(ind)),
                                    mods, mutable));
             ind += 1;
         }
@@ -450,10 +444,7 @@ public final class FortressUtil {
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
-        Contract contract;
-        if (fhc.getContractClause().isPresent())
-             contract = (Contract)fhc.getContractClause().getVal();
-        else contract = FortressUtil.emptyContract();
+        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeAbsFnDecl(span, mods, receiver, fhf.getName(),
                                          fhf.getStaticParams(), fhf.getParams(),
                                          fhc.getReturnType(), throws_, where_,
@@ -462,7 +453,7 @@ public final class FortressUtil {
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
-        return mkAbsFnDecl(span, mods, None.<Id>make(), fhf, fhc);
+        return mkAbsFnDecl(span, mods, Option.<Id>none(), fhf, fhc);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
@@ -471,23 +462,20 @@ public final class FortressUtil {
                                         FnHeaderClause fhc) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
-        Contract contract;
-        if (fhc.getContractClause().isPresent())
-             contract = (Contract)fhc.getContractClause().getVal();
-        else contract = FortressUtil.emptyContract();
-        return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
+        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
                                          sparams, params,
-                                         None.<Type>make(), throws_,
+                                         Option.<Type>none(), throws_,
                                          where_, contract);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         FnName name, List<Param> params,
                                         Type ty) {
-        return NodeFactory.makeAbsFnDecl(span, mods, None.<Id>make(), name,
+        return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
                                          FortressUtil.emptyStaticParams(),
-                                         params, Some.<Type>make(ty),
-                                         None.<List<TraitType>>make(),
+                                         params, Option.some(ty),
+                                         Option.<List<TraitType>>none(),
                                          FortressUtil.emptyWhereClauses(),
                                          FortressUtil.emptyContract());
     }
@@ -497,10 +485,7 @@ public final class FortressUtil {
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
-        Contract contract;
-        if (fhc.getContractClause().isPresent())
-             contract = (Contract)fhc.getContractClause().getVal();
-        else contract = FortressUtil.emptyContract();
+        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeFnDecl(span, mods, receiver, fhf.getName(),
                                       fhf.getStaticParams(), fhf.getParams(),
                                       fhc.getReturnType(), throws_, where_,
@@ -512,19 +497,16 @@ public final class FortressUtil {
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
         List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
-        Contract contract;
-        if (fhc.getContractClause().isPresent())
-             contract = (Contract)fhc.getContractClause().getVal();
-        else contract = FortressUtil.emptyContract();
-        return NodeFactory.makeFnDecl(span, mods, None.<Id>make(), name,
-                                      sparams, params, None.<Type>make(),
+        Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
+        return NodeFactory.makeFnDecl(span, mods, Option.<Id>none(), name,
+                                      sparams, params, Option.<Type>none(),
                                       throws_, where_, contract, expr);
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods,
                                  FnHeaderFront fhf, FnHeaderClause fhc,
                                  Expr expr) {
-        return mkFnDecl(span, mods, None.<Id>make(), fhf, fhc, expr);
+        return mkFnDecl(span, mods, Option.<Id>none(), fhf, fhc, expr);
     }
 
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
@@ -534,24 +516,24 @@ public final class FortressUtil {
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Expr expr) {
         return new LocalVarDecl(span, false, emptyExprs(), lvs,
-                                Some.<Expr>make(expr));
+                                Option.some(expr));
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
         return new LocalVarDecl(span, false, emptyExprs(), lvs,
-                                None.<Expr>make());
+                                Option.<Expr>none());
     }
 
     public static LValueBind mkLValueBind(Span span, Id id, Type ty) {
-        return new LValueBind(span, id, Some.<Type>make(ty), emptyModifiers(),
+        return new LValueBind(span, id, Option.some(ty), emptyModifiers(),
                               false);
     }
     public static LValueBind mkLValueBind(Span span, Id id) {
-        return new LValueBind(span, id, None.<Type>make(), emptyModifiers(),
+        return new LValueBind(span, id, Option.<Type>none(), emptyModifiers(),
                               false);
     }
     public static LValueBind mkLValueBind(Id id, Type ty,
                                           List<Modifier> mods) {
-        return new LValueBind(id.getSpan(), id, Some.<Type>make(ty), mods,
+        return new LValueBind(id.getSpan(), id, Option.some(ty), mods,
                               getMutable(mods));
     }
     public static LValueBind mkLValueBind(Id id, Type ty) {

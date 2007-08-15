@@ -16,16 +16,16 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 
 public abstract class MainBase {
@@ -150,7 +150,7 @@ public abstract class MainBase {
             }
         }
         if (interpret) {
-            Driver.runProgram(p.getVal(), false, fortressArgs);
+            Driver.runProgram(Option.unwrap(p), false, fortressArgs);
         }
     }
 

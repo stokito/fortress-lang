@@ -23,14 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Useful;
 
 public class fs {
@@ -141,24 +140,24 @@ public class fs {
             if (verbose)  { System.err.println("Parsing " + s); }
             long begin = System.currentTimeMillis();
             BufferedReader in = Useful.utf8BufferedFileReader(s);
-            Option<CompilationUnit> p = new None<CompilationUnit>();
+            Option<CompilationUnit> p = Option.none();
             try {
                 p = Driver.parseToJavaAst(s, in);
                 reportCompletion("Parsing " + s, begin);
             }
             finally { in.close(); }
 
-            if (doAst && p.isPresent()) {
+            if (doAst && p.isSome()) {
                 String astFile = basename(s) + JAVA_AST_SUFFIX;
                 if (verbose) { System.err.println("Writing ast to " + astFile); }
                 BufferedWriter fout = Useful.utf8BufferedFileWriter(astFile);
-                try { new Printer(true, true, true).dump(p.getVal(), fout, 0); }
+                try { new Printer(true, true, true).dump(Option.unwrap(p), fout, 0); }
                 finally { fout.close(); }
             }
 
-            if (! p.isPresent()) { System.err.println("FAIL: Syntax error(s)."); }
+            if (p.isNone()) { System.err.println("FAIL: Syntax error(s)."); }
             else if (!parseOnly) {
-                CompilationUnit _p = p.getVal();
+                CompilationUnit _p = Option.unwrap(p);
 
                 if (verbose) {
                   if (test) { System.err.println("Running Tests"); }

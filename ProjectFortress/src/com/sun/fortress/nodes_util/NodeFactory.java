@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
@@ -41,8 +43,8 @@ public class NodeFactory {
                                           List<WhereClause> where,
                                           Contract contract) {
         String selfName;
-        if (optSelfName.isPresent()) {
-            selfName = optSelfName.getVal().getName();
+        if (optSelfName.isSome()) {
+            selfName = Option.unwrap(optSelfName).getName();
         } else {
             selfName = WellKnownNames.defaultSelfName;
         }
@@ -52,29 +54,28 @@ public class NodeFactory {
 
     public static AliasedName makeAliasedName(Span span, Id id) {
         return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               None.<FnName>make());
+                               Option.<FnName>none());
     }
 
     public static AliasedName makeAliasedName(Span span, Id id, DottedId alias) {
         return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               Some.<FnName>make(alias));
+                               Option.<FnName>some(alias));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
     public static AliasedName makeAliasedName(Span span, OprName op) {
-        return new AliasedName(span, op, None.<FnName>make());
+        return new AliasedName(span, op, Option.<FnName>none());
     }
 
     public static AliasedName makeAliasedName(Span span, OprName op,
                                               OprName alias) {
-        return new AliasedName(span, op, Some.<FnName>make(alias));
+        return new AliasedName(span, op, Option.<FnName>some(alias));
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
                                           Option<FixedDim> ind) {
-        FixedDim indices;
-        if (ind.isPresent()) indices = (FixedDim)((Some)ind).getVal();
-        else indices = new FixedDim(span, Collections.<ExtentRange>emptyList());
+        FixedDim indices = Option.unwrap(ind, new FixedDim(span,
+                                                  Collections.<ExtentRange>emptyList()));
         return new ArrayType(span, element, indices);
     }
 
@@ -103,17 +104,17 @@ public class NodeFactory {
 
   /** Alternatively, you can invoke the Contract constructor without any parameters */
     public static Contract makeContract() {
-        return new Contract(new Span(), None.<List<Expr>> make(),
-                            None.<List<EnsuresClause>> make(),
-                            None.<List<Expr>> make());
+        return new Contract(new Span(), Option.<List<Expr>>none(),
+                            Option.<List<EnsuresClause>>none(),
+                            Option.<List<Expr>>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
                                               Option<DimExpr> derived,
                                               Option<Id> defaultId) {
-        return new DimUnitDecl(span, Some.<Id>make(dim), derived, defaultId,
+        return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
                                false, Collections.<Id>emptyList(),
-                               None.<Expr>make());
+                               Option.<Expr>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
@@ -122,7 +123,7 @@ public class NodeFactory {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
-        return new DimUnitDecl(span, None.<Id>make(), derived, None.<Id>make(),
+        return new DimUnitDecl(span, Option.<Id>none(), derived, Option.<Id>none(),
                                si_unit, ids, def);
     }
 
@@ -133,8 +134,8 @@ public class NodeFactory {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
-        return new DimUnitDecl(span, Some.<Id>make(dim), derived,
-                               None.<Id>make(), si_unit, ids, def);
+        return new DimUnitDecl(span, Option.some(dim), derived,
+                               Option.<Id>none(), si_unit, ids, def);
     }
 
     public static DottedId makeDottedId(Span span, String s) {
@@ -172,9 +173,9 @@ public class NodeFactory {
         if (head != null) {
             List<Id> res = IterUtil.asList(IterUtil.compose(head.getVar().getNames(),
                                                             ids));
-            return new Some<DottedId>(new DottedId(FortressUtil.spanAll(res), res));
+            return Option.some(new DottedId(FortressUtil.spanAll(res), res));
         }
-        else { return new None<DottedId>(); }
+        else { return Option.none(); }
     }
 
     /**
@@ -199,8 +200,8 @@ public class NodeFactory {
                                    List<WhereClause> where, Contract contract,
                                    Expr body) {
         String selfName;
-        if (optSelfName.isPresent()) {
-            selfName = optSelfName.getVal().getName();
+        if (optSelfName.isSome()) {
+            selfName = Option.unwrap(optSelfName).getName();
         } else {
             selfName = WellKnownNames.defaultSelfName;
         }
@@ -245,14 +246,14 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<Type>make(ty), lvb.getMods(),
+                              Option.some(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty,
                                         boolean mutable) {
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<Type>make(ty), lvb.getMods(), mutable);
+                              Option.some(ty), lvb.getMods(), mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty,
@@ -263,7 +264,7 @@ public class NodeFactory {
                 mutable = true;
         }
         return new LValueBind(lvb.getSpan(), lvb.getId(),
-                              Some.<Type>make(ty), mods, mutable);
+                              Option.some(ty), mods, mutable);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
@@ -329,23 +330,22 @@ public class NodeFactory {
 
     public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
                                   Type type) {
-        return new NormalParam(span, mods, name, Some.<Type>make(type),
-                         None.<Expr>make());
+        return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(Id name, Type type) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         Some.<Type>make(type), None.<Expr>make());
+                         Option.some(type), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(Id name) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         None.<Type>make(), None.<Expr>make());
+                         Option.<Type>none(), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(NormalParam param, Expr expr) {
         return new NormalParam(param.getSpan(), param.getMods(), param.getId(),
-                         param.getType(), Some.<Expr>make(expr));
+                         param.getType(), Option.some(expr));
     }
 
     public static NormalParam makeParam(NormalParam param, List<Modifier> mods) {
@@ -372,7 +372,7 @@ public class NodeFactory {
     public static VarDecl makeVarDecl(Span span, Id id, Expr init) {
         return new VarDecl(span, Useful.<LValueBind>list(
                                 new LValueBind(span, id,
-                                               None.<Type>make(),
+                                               Option.<Type>none(),
                                                Collections.<Modifier>emptyList(),
                                                true)),
                            init);

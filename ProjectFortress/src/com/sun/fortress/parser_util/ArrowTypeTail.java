@@ -22,9 +22,10 @@
 package com.sun.fortress.parser_util;
 
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NonArrowType;
-import com.sun.fortress.useful.Option;
 
 public class ArrowTypeTail {
 

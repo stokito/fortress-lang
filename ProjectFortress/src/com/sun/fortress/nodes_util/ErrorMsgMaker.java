@@ -17,11 +17,13 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.*;
-
 import java.io.IOException;
 import java.util.*;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionVisitor;
+
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.*;
 
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
@@ -41,8 +43,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     private final String acceptIfPresent(Option<? extends Node> possibleNode) {
-        if (possibleNode.isPresent()) { return possibleNode.getVal().accept(this); }
-        else { return ""; }
+        return possibleNode.apply(new OptionVisitor<Node, String>() {
+            public String forSome(Node n) { return n.accept(ErrorMsgMaker.this); }
+            public String forNone() { return ""; }
+        });
     }
 
     public String forAbsVarDecl(AbsVarDecl node) {
@@ -54,8 +58,9 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             node.getDomain().accept(this)
             + "->"
             + node.getRange().accept(this)
-            + (node.getThrowsClause().isPresent() ? (" throws " +
-                                                     Useful.listInCurlies(mapSelf(node.getThrowsClause().getVal()))) : "");
+            + (node.getThrowsClause().isSome() ?
+                   (" throws " + Useful.listInCurlies(mapSelf(Option.unwrap(node.getThrowsClause())))) :
+                   "");
     }
 
     public String forBaseNatStaticArg(BaseNatStaticArg node) {
@@ -74,7 +79,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.getName(node.getFnName())
                 + Useful.listInOxfords(mapSelf(node.getStaticParams()))
                 + Useful.listInParens(mapSelf(node.getParams()))
-                + (node.getReturnType().isPresent() ? (":" + node.getReturnType().getVal().accept(this)) : "")
+                + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(this)) : "")
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
 
@@ -101,8 +106,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forLValueBind(LValueBind node) {
         String r = "";
-        if (node.getType().isPresent()) {
-            r = ":" + node.getType().getVal().accept(this);
+        if (node.getType().isSome()) {
+            r = ":" + Option.unwrap(node.getType()).accept(this);
         }
         return node.getId().accept(this) + r;
     }
@@ -126,13 +131,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forNormalParam(NormalParam node) {
         StringBuffer sb = new StringBuffer();
         sb.append(String.valueOf(node.getId().accept(this)));
-        if (node.getType().isPresent()) {
+        if (node.getType().isSome()) {
             sb.append(":");
-            sb.append(node.getType().getVal().accept(this));
+            sb.append(Option.unwrap(node.getType()).accept(this));
         }
-        if (node.getDefaultExpr().isPresent()) {
+        if (node.getDefaultExpr().isSome()) {
             sb.append("=");
-            sb.append(node.getDefaultExpr().getVal().accept(this));
+            sb.append(Option.unwrap(node.getDefaultExpr()).accept(this));
         }
         return sb.toString();
     }

@@ -19,13 +19,13 @@ package com.sun.fortress.interpreter.glue;
 
 import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteral;
@@ -75,7 +75,7 @@ public abstract class NativeApp implements Applicable {
             error(app, "Arity of type "+aty
                        +" does not match native arity "+getArity());
         }
-        if (app.getReturnType()==null || !app.getReturnType().isPresent()) {
+        if (app.getReturnType()==null || app.getReturnType().isNone()) {
             error(app,"Please specify a Fortress return type.");
         }
     }
@@ -122,9 +122,9 @@ public abstract class NativeApp implements Applicable {
      */
     public static Applicable checkAndLoadNative(Applicable defn) {
         Option<Expr> optBody = NodeUtil.getBody(defn);
-        if (!optBody.isPresent()) return defn;
-        else if (!(optBody.getVal() instanceof TightJuxt)) return defn;
-        Expr body = optBody.getVal();
+        if (optBody.isNone()) return defn;
+        Expr body = Option.unwrap(optBody);
+        if (!(body instanceof TightJuxt)) return defn;
         List<Expr> juxts = ((TightJuxt)body).getExprs();
         if (juxts.size()!=2) return defn;
         Expr fn = juxts.get(0);

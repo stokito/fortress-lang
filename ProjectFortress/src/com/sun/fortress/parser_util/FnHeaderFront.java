@@ -20,12 +20,12 @@
  * Fortress AST node local to the Rats! com.sun.fortress.interpreter.parser.
  */
 package com.sun.fortress.parser_util;
+
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.useful.MagicNumbers;
@@ -43,28 +43,28 @@ public class FnHeaderFront {
         this.name = name;
         this.staticParams = staticParams;
         this.params = params;
-        if (param.isPresent())
-            this.params.add(0, (Param)param.getVal());
+        if (param.isSome())
+            this.params.add(0, Option.unwrap(param));
     }
 
     public FnHeaderFront(Option<Id> receiver, FnName name,
                          List<StaticParam> staticParams, List<Param> params1) {
-        this(receiver, name, staticParams, params1, None.<Param>make());
+        this(receiver, name, staticParams, params1, Option.<Param>none());
     }
 
     public FnHeaderFront(FnName name, List<StaticParam> staticParams,
                          List<Param> params1, Option<Param> param2) {
-        this(None.<Id>make(), name, staticParams, params1, param2);
+        this(Option.<Id>none(), name, staticParams, params1, param2);
     }
 
     public FnHeaderFront(FnName name, List<StaticParam> staticParams,
                          List<Param> params1) {
-        this(None.<Id>make(), name, staticParams, params1, None.<Param>make());
+        this(Option.<Id>none(), name, staticParams, params1, Option.<Param>none());
     }
 
     public FnHeaderFront(FnName name, List<Param> params1) {
-        this(None.<Id>make(), name, FortressUtil.emptyStaticParams(), params1,
-             None.<Param>make());
+        this(Option.<Id>none(), name, FortressUtil.emptyStaticParams(), params1,
+             Option.<Param>none());
     }
 
     public Option<Id> getReceiver() {
@@ -103,8 +103,8 @@ public class FnHeaderFront {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        if (receiver.isPresent()) {
-            sb.append(receiver.getVal());
+        if (receiver.isSome()) {
+            sb.append(Option.unwrap(receiver));
             sb.append(".");
         }
         sb.append(String.valueOf(name));

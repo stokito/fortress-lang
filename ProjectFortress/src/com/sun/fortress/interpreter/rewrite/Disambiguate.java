@@ -26,8 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
@@ -65,12 +66,10 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes_util.RewriteHackList;
@@ -586,7 +585,7 @@ public class Disambiguate extends Rewrite {
                     if (df.isAtomic()) {
                         return NI.nyi("forAtomicDo");
                     }
-                    if (df.getLoc().isPresent()) {
+                    if (df.getLoc().isSome()) {
                         return NI.nyi("forAtDo");
                     }
                     return visitGeneratorList(f, f.getGens(),
@@ -744,8 +743,8 @@ public class Disambiguate extends Rewrite {
      * @param params
      */
     private void paramsToMembers(Option<List<Param>> params) {
-        if (params.isPresent())
-            for (Param d : params.getVal()) {
+        if (params.isSome())
+            for (Param d : Option.unwrap(params)) {
                 String s = d.getId().getName();
                 e.put(s, new Member());
             }

@@ -20,12 +20,11 @@ package com.sun.fortress.interpreter.glue;
 import com.sun.fortress.nodes_util.NodeFactory;
 import java.util.Collections;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;

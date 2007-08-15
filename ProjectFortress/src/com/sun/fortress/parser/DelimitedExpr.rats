@@ -68,9 +68,7 @@ Expr DelimitedExpr =
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
-       Option<Block> elseC;
-       if (a4 == null) elseC = None.<Block>make();
-       else            elseC = Some.<Block>make(a4);
+       Option<Block> elseC = Option.wrap(a4);
        yyValue = new If(createSpan(yyStart,yyCount), false, clauses, elseC);
      }
    / openparen w if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? w a4:Else
@@ -79,16 +77,16 @@ Expr DelimitedExpr =
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = new If(createSpan(yyStart,yyCount),false,clauses,
-                        Some.<Block>make(a4));
+                        Option.some(a4));
      }
    / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
      { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
        Option<Op> compare;
-       if (a2 == null) compare = None.<Op>make();
-       else            compare = Some.<Op>make(a2);
+       if (a2 == null) compare = Option.none();
+       else            compare = Option.some(a2);
        if (a4 == null) a4 = FortressUtil.doBlock(FortressUtil.emptyExprs());
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, new Some<Block>(a4));
+                              a3, Option.some(a4));
      }
    / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
      { CaseParam e1;
@@ -96,28 +94,20 @@ Expr DelimitedExpr =
            e1 = new CaseParamLargest(createSpan(yyStart+5,7));
        else // a1.equals("smallest")
            e1 = new CaseParamSmallest(createSpan(yyStart+5,8));
-       Option<Op> compare;
-       if (a2 == null) compare = None.<Op>make();
-       else            compare = Some.<Op>make(a2);
+       Option<Op> compare = Option.wrap(a2);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, new Some<Block>(FortressUtil.doBlock(FortressUtil.emptyExprs())));
+                              a3, Option.some(FortressUtil.doBlock(FortressUtil.emptyExprs())));
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end
-     { Option<Block> caseElse;
-       if (a3 == null) caseElse = None.<Block>make();
-       else            caseElse = Some.<Block>make(a3);
+     { Option<Block> caseElse = Option.wrap(a3);
        yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1, a2, caseElse);
      }
    / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
-     { Option<Catch> catch_;
-       Option<Block> finally_;
-       if (a2 == null) catch_ = None.<Catch>make();
-       else            catch_ = Some.<Catch>make(a2);
+     { Option<Catch> catch_ = Option.wrap(a2);
        if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
-       if (a4 == null) finally_ = None.<Block>make();
-       else            finally_ = Some.<Block>make(a4);
+       Option<Block> finally_ = Option.wrap(a4);
        yyValue = new Try(createSpan(yyStart,yyCount), false, a1, catch_, a3,
                          finally_);
      };
@@ -131,12 +121,8 @@ Do Do = a1s:(DoFront w also w)* a2:DoFront w end
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
 private DoFront DoFront =
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
-     { Option<Expr> at;
-       if (a1 == null) at = None.<Expr>make();
-       else            at = Some.<Expr>make(a1);
-       Boolean atomic;
-       if (a2 == null) atomic = false;
-       else            atomic = true;
+     { Option<Expr> at = Option.wrap(a1);
+       boolean atomic = (a2 == null) ? false : true;
        if (a3 == null) a3 = FortressUtil.doBlock(FortressUtil.emptyExprs());
        yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic, a3);
      };
@@ -150,8 +136,8 @@ Expr TupleExpr =
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = a1s.list();
        Option<VarargsExpr> vs = ((a2 != null) ?
-                              Some.<VarargsExpr>make(new VarargsExpr(a2.getSpan(), a2)) :
-                              None.<VarargsExpr>make());
+                              Option.some(new VarargsExpr(a2.getSpan(), a2)) :
+                              Option.<VarargsExpr>none());
        List<Binding> ks = new ArrayList<Binding>();
        ks.add(new Binding(a3.getId(), a3.getInit()));
        for (Binding b : (List<Binding>)a4s.list()) {
@@ -167,7 +153,7 @@ Expr TupleExpr =
  */
 Expr NoKeyTuple =
      openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { Option<VarargsExpr> vs = Some.<VarargsExpr>make(new VarargsExpr(a2.getSpan(), a2));
+     { Option<VarargsExpr> vs = Option.some(new VarargsExpr(a2.getSpan(), a2));
        yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, a1s.list(), vs);
      }
    / openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen

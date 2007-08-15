@@ -376,26 +376,18 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
 
 /* FnHeaderClause ::= (w IsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
-     { Option<Type> returnType;
-       if (a1 == null) returnType = None.<Type>make();
-       else            returnType = Some.<Type>make(a1);
+     { Option<Type> returnType = Option.wrap(a1);
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), returnType);
      };
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
 FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
-     { Option<List<TraitType>>   throwsClause;
-       Option<List<WhereClause>> whereClause;
-       Option<Contract>          contractClause;
-       if (a1 == null) throwsClause   = None.<List<TraitType>>make();
-       else            throwsClause   = Some.<TraitType>makeSomeListOrNone(a1);
-       if (a2 == null) whereClause    = None.<List<WhereClause>>make();
-       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a2);
-       if (a3 == null) contractClause = None.<Contract>make();
-       else            contractClause = Some.<Contract>make(a3);
+     { Option<List<TraitType>>   throwsClause = Option.wrap(a1);
+       Option<List<WhereClause>> whereClause = Option.wrap(a2);
+       Option<Contract>          contractClause = Option.wrap(a3);
        yyValue = new FnHeaderClause(throwsClause, whereClause, contractClause,
-                                    None.<Type>make());
+                                    Option.<Type>none());
      };
 
 /* Throws ::= throws w MayTraitTypes */
@@ -409,15 +401,9 @@ private List<TraitType> MayTraitTypes =
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
      a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
-     { Option<List<Expr>> requires;
-       Option<List<EnsuresClause>> ensures;
-       Option<List<Expr>> invariant;
-       if (a1 == null) requires = None.<List<Expr>>make();
-       else            requires = Some.<List<Expr>>make(a1);
-       if (a2 == null) ensures = None.<List<EnsuresClause>>make();
-       else            ensures = Some.<List<EnsuresClause>>make(a2);
-       if (a3 == null) invariant = None.<List<Expr>>make();
-       else            invariant = Some.<List<Expr>>make(a3);
+     { Option<List<Expr>> requires = Option.wrap(a1);
+       Option<List<EnsuresClause>> ensures = Option.wrap(a2);
+       Option<List<Expr>> invariant = Option.wrap(a3);
        if (a1 == null && a2 == null && a3 == null) yyValue = null;
        else yyValue = new Contract(createSpan(yyStart,yyCount), requires,
                                    ensures, invariant);
@@ -443,9 +429,7 @@ private List<EnsuresClause> EnsuresClauseList =
 
 /* EnsuresClause ::= Expr (w provided w Expr)? */
 private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
-     { Option<Expr> ensures;
-       if (a2 == null) ensures = None.<Expr>make();
-       else            ensures = Some.<Expr>make(a2);
+     { Option<Expr> ensures = Option.wrap(a2);
        yyValue = new EnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
      };
 
@@ -458,14 +442,10 @@ private List<Expr> Invariant =
 
 /* CoercionClauses ::= (w CoercionWhere)? w CoercionContract */
 FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
-     { Option<List<WhereClause>> whereClause;
-       Option<Contract>          contractClause;
-       if (a1 == null) whereClause    = None.<List<WhereClause>>make();
-       else            whereClause    = Some.<WhereClause>makeSomeListOrNone(a1);
-       if (a2 == null) contractClause = None.<Contract>make();
-       else            contractClause = Some.<Contract>make(a2);
-       yyValue = new FnHeaderClause(None.<List<TraitType>>make(), whereClause,
-                                    contractClause, None.<Type>make());
+     { Option<List<WhereClause>> whereClause = Option.wrap(a1);
+       Option<Contract>          contractClause = Option.wrap(a2);
+       yyValue = new FnHeaderClause(Option.<List<TraitType>>none(), whereClause,
+                                    contractClause, Option.<Type>none());
      };
 
 /* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
@@ -489,15 +469,11 @@ private WhereClause CoercionWhereClause =
 
 /* CoercionContract ::= (w Ensures)? (w Invariant)? */
 Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
-     { Option<List<EnsuresClause>> ensures;
-       Option<List<Expr>> invariant;
-       if (a1 == null) ensures = None.<List<EnsuresClause>>make();
-       else            ensures = Some.<List<EnsuresClause>>make(a1);
-       if (a2 == null) invariant = None.<List<Expr>>make();
-       else            invariant = Some.<List<Expr>>make(a2);
+     { Option<List<EnsuresClause>> ensures = Option.wrap(a1);
+       Option<List<Expr>> invariant = Option.wrap(a2);
        if (a1 == null && a2 == null) yyValue = null;
        else yyValue = new Contract(createSpan(yyStart,yyCount),
-                                   None.<List<Expr>>make(), ensures, invariant);
+                                   Option.<List<Expr>>none(), ensures, invariant);
      };
 
 /* Each modifier cannot appear more than once. */
@@ -675,12 +651,8 @@ private StaticParam StaticParam =
    / bool w a1:Id { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
    / dim  w a1:Id {yyValue = new DimensionParam(createSpan(yyStart,yyCount),a1);}
    / unit w a1:Id a2:(w colon w DimExpr)? a3:(w absorbs w unit)?
-     { Option<DimExpr> derived;
-       boolean absorbs;
-       if (a2 == null) derived = None.<DimExpr>make();
-       else            derived = Some.<DimExpr>make(a2);
-       if (a3 == null) absorbs = false;
-       else            absorbs = true;
+     { Option<DimExpr> derived = Option.wrap(a2);
+       boolean absorbs = (a3 == null) ? false : true;
        yyValue = new UnitParam(createSpan(yyStart,yyCount),a1,derived,absorbs);
      }
    / opr  w a1:Op {yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);};

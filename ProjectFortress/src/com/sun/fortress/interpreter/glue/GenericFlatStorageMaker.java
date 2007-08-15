@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.Collections;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
@@ -44,12 +45,9 @@ import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NatParam;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleTypeParam;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -74,14 +72,14 @@ public class GenericFlatStorageMaker extends GenericConstructor {
     static ObjectDecl bogusObjectDecl() {
         List<Decl> defs = Collections.emptyList();
         List<Modifier> mods = Collections.emptyList();
-        Option<List<TraitType>> throws_ = None.<List<TraitType>>make();
+        Option<List<TraitType>> throws_ = Option.none();
         List<WhereClause> where = Collections.emptyList();
         Contract contract = NodeFactory.makeContract();
 
         Id name = NodeFactory.makeId("FlatStorageMaker");
         List<StaticParam> staticParams =  // [T, m]
             Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m"));
-        Option<List<Param>> params = Some.makeSomeList(Collections.<Param>emptyList()); // ()
+        Option<List<Param>> params = Option.some(Collections.<Param>emptyList()); // ()
         List<TraitTypeWhere> traits =  // Array1[\T, 0, m\]
             Collections.emptyList();
         ObjectDecl od =  NodeFactory.makeObjectDecl(defs, mods, name, staticParams, params, traits, throws_, where, contract);
@@ -229,15 +227,15 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         /**
          * Transactional Node factory.
          */
-	//        static Factory<ANode> factory = FortressTaskRunner.makeFactory(ANode.class);
+ //        static Factory<ANode> factory = FortressTaskRunner.makeFactory(ANode.class);
 
         public FlatStorage(FTypeObject selfType, BetterEnv lex_env, BetterEnv self_env, FType t, long n) {
             super(selfType, lex_env, self_env);
             this.t = t;
             this.a = new FValue[(int) n];
         }
-	FType t;
-	FValue[] a;
+ FType t;
+ FValue[] a;
     }
 
 }

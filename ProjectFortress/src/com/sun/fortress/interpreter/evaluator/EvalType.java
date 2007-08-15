@@ -20,6 +20,8 @@ package com.sun.fortress.interpreter.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
@@ -46,7 +48,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -69,18 +70,18 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return forDottedId(t);
     }
 
-    public static FType getFTypeFromOption(Option<Type> t, BetterEnv e) {
-        if (t.isPresent())
-            return getFType(t.getVal(), e);
-        else
-            return FTypeDynamic.ONLY;
+    public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e) {
+        return t.apply(new OptionVisitor<Type, FType>() {
+            public FType forSome(Type t) { return getFType(t, e); }
+            public FType forNone() { return FTypeDynamic.ONLY; }
+        });
     }
 
     public  FType getFTypeFromOption(Option<Type> t) {
-        if (t.isPresent())
-            return getFType(t.getVal());
-        else
-            return FTypeDynamic.ONLY;
+        return t.apply(new OptionVisitor<Type, FType>() {
+            public FType forSome(Type t) { return getFType(t); }
+            public FType forNone() { return FTypeDynamic.ONLY; }
+        });
     }
 
     public static FType getFTypeFromList(List<Type> l, BetterEnv e) {
@@ -100,12 +101,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public List<FType> getFTypeListFromOptionList(Option<List<TraitType>> ol) {
-        if (ol.isPresent()) {
-            List<TraitType> extl = ol.getVal();
-            return this.getFTypeListFromList(extl);
-        } else {
-            return Collections.<FType>emptyList();
-        }
+        return ol.apply(new OptionVisitor<List<TraitType>, List<FType>>() {
+            public List<FType> forSome(List<TraitType> l) {
+                return getFTypeListFromList(l);
+            }
+            public List<FType> forNone() { return Collections.emptyList(); }
+        });
     }
 
 
@@ -562,14 +563,14 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         Option<? extends Type> b = extent.getBase();
         Option<? extends Type> s = extent.getSize();
         FTypeNat natB, natS;
-        if (b.isPresent()) {
-            FType bt = b.getVal().accept(this);
+        if (b.isSome()) {
+            FType bt = Option.unwrap(b).accept(this);
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
                 natB = (FTypeNat)bt;
             } else {
-                throw new ProgramError(b.getVal(),
+                throw new ProgramError(Option.unwrap(b),
                                        errorMsg(extent,env,"Bad base ",
-                                                b.getVal(),"=",
+                                                Option.unwrap(b),"=",
                                                 bt.getClass().getName(), " ",
                                                 bt));
             }
@@ -577,14 +578,14 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             natB = IntNat.make(0);
         }
 
-        if (s.isPresent()) {
-            FType st = s.getVal().accept(this);
+        if (s.isSome()) {
+            FType st = Option.unwrap(s).accept(this);
             if (st instanceof IntNat || st instanceof SymbolicNat) {
                 natS = (FTypeNat)st;
             } else {
-                throw new ProgramError(s.getVal(),
+                throw new ProgramError(Option.unwrap(s),
                                        errorMsg(extent,env,"Bad size ",
-                                                s.getVal(), "=",
+                                                Option.unwrap(s), "=",
                                                 st.getClass().getName(), " ",
                                                 st));
             }

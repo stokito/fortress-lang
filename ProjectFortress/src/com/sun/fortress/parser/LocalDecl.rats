@@ -118,14 +118,14 @@ LocalVarDecl LocalVarDecl =
      { Option<Expr> init;
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
-           if (a4 == null) init = None.<Expr>make();
-           else            init = Some.<Expr>make(a4.getA());
+           if (a4 == null) init = Option.none();
+           else            init = Option.some(a4.getA());
        } else {
            if (a4 == null) {
-               init = None.<Expr>make();
+               init = Option.none();
                a2 = FortressUtil.setType(a2, a3);
            } else {
-               init = Some.<Expr>make(a4.getA());
+               init = Option.some(a4.getA());
                if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, a3);
                else a2 = FortressUtil.setType(a2, a3);
            }
@@ -141,14 +141,14 @@ LocalVarDecl LocalVarDecl =
            error(new Id(span,"_"),"Mismatched numbers of variables and types.");
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
-           if (a4 == null) init = None.<Expr>make();
-           else            init = Some.<Expr>make(a4.getA());
+           if (a4 == null) init = Option.none();
+           else            init = Option.some(a4.getA());
        } else {
            if (a4 == null) {
-               init = None.<Expr>make();
+               init = Option.none();
                a2 = FortressUtil.setType(a2, tys);
            } else {
-               init = Some.<Expr>make(a4.getA());
+               init = Option.some(a4.getA());
                if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, tys);
                else a2 = FortressUtil.setType(a2, tys);
            }

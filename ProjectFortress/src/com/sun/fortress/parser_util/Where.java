@@ -22,18 +22,18 @@
 package com.sun.fortress.parser_util;
 
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.WhereClause;
 
 public class Where extends TraitClause {
-    private Option<List<WhereClause>> where = None.<List<WhereClause>>make();
+    private Option<List<WhereClause>> where = Option.none();
 
     public Where(Span span, List<WhereClause> where) {
         super(span);
-        this.where = Some.<WhereClause>makeSomeListOrNone(where);
+        if (where.size() == 0) { this.where = Option.none(); }
+        else { this.where = Option.some(where); }
     }
 
     public Option<List<WhereClause>> getWhere() {

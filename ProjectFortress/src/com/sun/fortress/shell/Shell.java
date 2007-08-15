@@ -20,12 +20,12 @@ package com.sun.fortress.shell;
 import java.io.*;
 import java.util.regex.Pattern;
 import java.util.Arrays;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.useful.Option;
 
 public final class Shell extends ShellObject {
    /* Patterns for parsing shell messages.*/
@@ -126,7 +126,7 @@ public final class Shell extends ShellObject {
     * along with the name of the component to store the result into.
     */
    void compile(String fileName) throws UserError, InterruptedException {
-      CompilationUnit prog = makeCompilationUnit(fileName).getVal();
+      CompilationUnit prog = Option.unwrap(makeCompilationUnit(fileName));
 
       try {
          // Find the real name of the parsed component or API.
@@ -166,12 +166,12 @@ public final class Shell extends ShellObject {
    }
 
    /* Runs a fortress source file directly.*/
-   void script(String fileName) throws UserError, IOException { Driver.evalComponent(makeCompilationUnit(fileName).getVal()); }
+   void script(String fileName) throws UserError, IOException { Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName))); }
 
    void run(String componentName) throws UserError {
       try {
          if (isInstalled(componentName)) {
-            Driver.evalComponent(Driver.readJavaAst(FORTRESS + SEP + "components" + SEP + componentName + SEP + ".jst").getVal());
+            Driver.evalComponent(Option.unwrap(Driver.readJavaAst(FORTRESS + SEP + "components" + SEP + componentName + SEP + ".jst")));
          }
          else {
             throw new UserError("Error: There is no component with name " + componentName + " installed in this fortress.");

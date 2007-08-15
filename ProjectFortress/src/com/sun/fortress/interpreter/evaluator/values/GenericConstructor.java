@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.ArrayList;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -27,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -54,7 +54,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
             // Build the constructor
             Option<List<Param>> params = odefOrDecl.getParams();
             List<Parameter> fparams =
-                EvalType.paramsToParameters(clenv, params.getVal());
+                EvalType.paramsToParameters(clenv, Option.unwrap(params));
 
             Constructor cl = makeAConstructor(clenv, ft, fparams);
             return cl;

@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.Iterator;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.IndirectionCell;
@@ -37,7 +38,6 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 
@@ -93,13 +93,13 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         //FValue res = Evaluator.evVoid;
 
         Evaluator new_eval = new Evaluator(containing);
-        if (rhs.isPresent()) {
+        if (rhs.isSome()) {
             if (lhs.size() == 1) {
-                FValue val = rhs.getVal().accept(new_eval);
+                FValue val = Option.unwrap(rhs).accept(new_eval);
                 LHSEvaluator lhs_eval = new LHSEvaluator(new_eval, val);
                 lhs.get(0).accept(lhs_eval);
             } else {
-                FValue val = rhs.getVal().accept(new_eval);
+                FValue val = Option.unwrap(rhs).accept(new_eval);
 
                 if (!(val instanceof FTuple)) {
                     error(x, containing,
@@ -124,7 +124,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                     LValueBind lvb = (LValueBind) lval;
                     if (lvb.isMutable()) {
                         FValue fv = lval.accept(new_eval);
-                        FType fvt = lvb.getType().getVal().accept(eval_type);
+                        FType fvt = Option.unwrap(lvb.getType()).accept(eval_type);
                         containing.putVariable(fv.getString(),fvt);
                     } else {
                         containing.putValue(lval.accept(new_eval), new IndirectionCell());

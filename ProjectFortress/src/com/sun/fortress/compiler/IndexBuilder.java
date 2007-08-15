@@ -235,8 +235,8 @@ public class IndexBuilder {
             new HashRelation<String, FunctionalMethod>(true, false);
 
         Option<Constructor> constructor;
-        if (ast.getParams().isPresent()) {
-            for (Param p : ast.getParams().getVal()) {
+        if (ast.getParams().isSome()) {
+            for (Param p : Option.unwrap(ast.getParams())) {
                 fields.put(p.getId().getName(), new ParamVariable(p));
             }
             Constructor c = new Constructor(name);

@@ -20,10 +20,10 @@
  * Fortress AST node local to the Rats! com.sun.fortress.interpreter.parser.
  */
 package com.sun.fortress.parser_util;
-import java.util.List;
 
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.None;
+import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhereClause;
@@ -34,8 +34,8 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 public class TraitClauses {
 
     private List<TraitType>         excludes  = FortressUtil.emptyTraitTypes();
-    private Option<List<TraitType>> comprises = None.<List<TraitType>>make();
-    private Option<List<WhereClause>> where = None.<List<WhereClause>>make();
+    private Option<List<TraitType>> comprises = Option.<List<TraitType>>none();
+    private Option<List<WhereClause>> where = Option.<List<WhereClause>>none();
     private boolean setExcludes  = false;
     private boolean setComprises = false;
     private boolean setWhere     = false;

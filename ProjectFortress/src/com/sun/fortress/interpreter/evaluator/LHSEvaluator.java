@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -48,7 +49,6 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
@@ -166,8 +166,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             FType bestGuess = FTypeDynamic.ONLY;
             FType outerType = null;
             // Perhaps the LHS has a type?
-            if (type.isPresent()) {
-                Type t = type.getVal();
+            if (type.isSome()) {
+                Type t = Option.unwrap(type);
                 outerType = EvalType.getFType(t, evaluator.e);
 
 //                if (outerType instanceof FAggregateType) {
@@ -243,8 +243,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             FType outerType = null;
             // Perhaps the LHS has a type?
             try {
-                if (type.isPresent()) {
-                    Type t = type.getVal();
+                if (type.isSome()) {
+                    Type t = Option.unwrap(type);
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);

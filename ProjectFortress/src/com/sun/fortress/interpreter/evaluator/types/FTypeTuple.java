@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
@@ -35,9 +36,6 @@ import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.useful.Memo1C;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -332,9 +330,9 @@ public class FTypeTuple extends FType {
                 tr = trIterator.next();
                 ft.unify(env,tp_set,abm,tr);
             }
-            while (varargs.isPresent() && ftIterator.hasNext()) {
+            while (varargs.isSome() && ftIterator.hasNext()) {
                 ft = ftIterator.next();
-                ft.unify(env, tp_set, abm, varargs.getVal());
+                ft.unify(env, tp_set, abm, Option.unwrap(varargs));
             }
             while (ft instanceof FTypeRest && trIterator.hasNext()) {
                 tr = trIterator.next();

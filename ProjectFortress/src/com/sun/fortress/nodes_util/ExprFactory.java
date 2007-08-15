@@ -22,13 +22,15 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.math.BigInteger;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
-import edu.rice.cs.plt.iter.IterUtil;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
@@ -132,8 +134,8 @@ public class ExprFactory {
 
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
-        return makeFnExpr(span, params, None.<Type>make(),
-                          None.<List<TraitType>>make(), body);
+        return makeFnExpr(span, params, Option.<Type>none(),
+                          Option.<List<TraitType>>none(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
@@ -237,7 +239,7 @@ public class ExprFactory {
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs) {
-        return new SubscriptExpr(span, false, obj, subs, None.<Enclosing>make());
+        return new SubscriptExpr(span, false, obj, subs, Option.<Enclosing>none());
     }
 
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
@@ -299,7 +301,7 @@ public class ExprFactory {
                                       expr.getExtendsClause(), expr.getDecls(),
                                       implicit_type_parameters, expr.toString(),
                                       stParams, staticArgs,
-                    Some.<List<Param>>make(Collections.<Param>emptyList()));
+                                      Option.some(Collections.<Param>emptyList()));
     }
 
     public static Expr makeInParentheses(Expr expr) {

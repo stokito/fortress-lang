@@ -17,14 +17,14 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Some;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Null;
+import edu.rice.cs.plt.tuple.Wrapper;
 
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Pair;
 
 
@@ -164,10 +164,10 @@ public class Printer extends NodeReflection {
             }
             w.append("]");
 
-        } else if (o instanceof Some) {
+        } else if (o instanceof Wrapper) {
             w.append("(");
             w.append("Some");
-            Field[] fields = getCachedPrintableFields(Some.class);
+            Field[] fields = getCachedPrintableFields(Wrapper.class);
             dumpFields(w, indent, o, true, fields, false);
             w.append(")");
 
@@ -182,7 +182,7 @@ public class Printer extends NodeReflection {
 
             boolean oneLiner = oneLineVarRef
                     && (oneLinerNesting > 0 || o instanceof Op
-                            || o instanceof IdType || o instanceof Id || o instanceof Some);
+                            || o instanceof IdType || o instanceof Id || o instanceof Wrapper);
             Field[] fields = getCachedPrintableFields(cl, clname);
             w.append("(");
             w.append(clname);
@@ -216,7 +216,7 @@ public class Printer extends NodeReflection {
                 if (skipEmpty
                         && skipThisEmpty
                         && (p instanceof List && ((List) p).size() == 0
-                                || p instanceof None || p instanceof Integer
+                                || p instanceof Null<?> || p instanceof Integer
                                 && ((Integer) p).intValue() == 0 || p instanceof Boolean
                                 && ((Boolean) p).booleanValue() == false)) { /*
                                                                                  * do

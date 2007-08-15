@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
@@ -37,7 +38,6 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -134,10 +134,8 @@ public class Closure extends NonPrimitive implements Scope {
      */
     public Expr getBody() {
         Option<Expr> optBody = NodeUtil.getBody(def);
-        if (optBody.isPresent())
-            return optBody.getVal();
-        else
-            throw new Error(def.getClass() + " does not support getBody().");
+        String errMsg = def.getClass() + " does not support getBody().";
+        return Option.unwrap(optBody, new RuntimeException(errMsg));
     }
 
     public FValue applyInner(List<FValue> args, HasAt loc,

@@ -17,10 +17,6 @@
 
 package com.sun.fortress.interpreter.drivers;
 
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.nodes_util.StringMaker;
-import com.sun.fortress.nodes_util.Unprinter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
+import edu.rice.cs.plt.tuple.Option;
 
 import xtc.parser.ParseError;
 import xtc.parser.Result;
@@ -72,11 +69,12 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Printer;
+import com.sun.fortress.nodes_util.StringMaker;
+import com.sun.fortress.nodes_util.Unprinter;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -117,8 +115,8 @@ public class Driver {
             Unprinter up = new Unprinter(lex);
             lex.name();
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            if (p == null) { return new None<CompilationUnit>(); }
-            else { return new Some<CompilationUnit>(p); }
+            if (p == null) { return Option.none(); }
+            else { return Option.some(p); }
         }
         finally {
             if (!lex.atEOF())
@@ -142,7 +140,7 @@ public class Driver {
         if (r.hasValue()) {
             SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
-            return new Some<CompilationUnit>(n);
+            return Option.some(n);
         }
         else {
             ParseError err = (ParseError) r;
@@ -153,7 +151,7 @@ public class Driver {
                 System.err.println("  " + p.location(err.index) + ": "
                         + err.msg);
             }
-            return new None<CompilationUnit>();
+            return Option.none();
         }
     }
 
@@ -366,7 +364,7 @@ public class Driver {
                         String from_apiname = StringMaker.fromDottedId(id);
 
                         Option<DottedId> alias = adi.getAlias();
-                        String known_as = alias.getVal(id).toString();
+                        String known_as = NodeUtil.getName(Option.unwrap(alias, id));
 
                         ComponentWrapper from_cw = linker.get(from_apiname);
 
@@ -534,8 +532,8 @@ public class Driver {
             FnName name, Option<FnName> alias, String a, String c) {
         String s = NodeUtil.getName(name);
         String add_as = s;
-        if (alias.isPresent()) {
-            add_as = NodeUtil.getName(alias.getVal());
+        if (alias.isSome()) {
+            add_as = NodeUtil.getName(Option.unwrap(alias));
         }
         try {
             if (api_e.getNatNull(s) != null) {
@@ -743,7 +741,7 @@ public class Driver {
             try {
                 // Because of the check above, we can retrieve the value of
                 // the Option immediately.
-                CompilationUnit c = parseToJavaAst(librarySource, r).getVal();
+                CompilationUnit c = Option.unwrap(parseToJavaAst(librarySource, r));
 
                 System.err.println
                     ("Parsed " + librarySource + ": "
@@ -763,8 +761,8 @@ public class Driver {
                      + (System.currentTimeMillis() - begin)
                      + " milliseconds");
 
-            if (c.isPresent()) {
-                return c.getVal();
+            if (c.isSome()) {
+                return Option.unwrap(c);
             }
             else {
                 throw new ProgramError("Could not read " + librarySource + " or " + libraryTree);

@@ -70,9 +70,7 @@ private Type TypeFront =
      openparen w a1:Type w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); }
    / a1:TypeFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { Option<List<TraitType>> throws_;
-       if (a3 == null) throws_ = None.<List<TraitType>>make();
-       else            throws_ = Some.<List<TraitType>>make(a3);
+     { Option<List<TraitType>> throws_ = Option.wrap(a3);
        yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount), a1, a2,
                                            throws_);
      }
@@ -119,9 +117,7 @@ private constant transient Action<Type> TypeTail =
    / w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Option<FixedDim> indices;
-               if (a1 == null) indices = None.<FixedDim>make();
-               else            indices = Some.<FixedDim>make(a1);
+               Option<FixedDim> indices = Option.wrap(a1);
                NonArrowType ty =
                    NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                              (Type)base, indices);
@@ -134,8 +130,8 @@ private constant transient Action<Type> TypeTail =
    / caret a1:StaticArgFront a2:ArrowTypeTail?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               ExtentRange er = new ExtentRange(None.<StaticArg>make(),
-                                                Some.<StaticArg>make(a1));
+               ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
+                                                Option.some(a1));
                NonArrowType ty =
                    NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                               (Type)base, er);
@@ -162,18 +158,14 @@ private constant transient Action<Type> TypeTail =
 
 private ArrowTypeTail ArrowTypeTail =
      w rightarrow w a1:NonArrowType a2:(w Throws)?
-     { Option<List<TraitType>> throws_;
-       if (a2 == null) throws_ = None.<List<TraitType>>make();
-       else            throws_ = Some.<List<TraitType>>make(a2);
+     { Option<List<TraitType>> throws_ = Option.wrap(a2);
        yyValue = new ArrowTypeTail(a1, throws_);
      };
 
 /* ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)? */
 ArrowType ArrowType =
      a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { Option<List<TraitType>> throws_;
-       if (a3 == null) throws_ = None.<List<TraitType>>make();
-       else            throws_ = Some.<List<TraitType>>make(a3);
+     { Option<List<TraitType>> throws_ = Option.wrap(a3);
        yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
                                            a1, a2, throws_);
      };
@@ -194,15 +186,13 @@ private NonArrowType NonArrowType =
  */
 TraitType TraitType =
      a1:Type w opensquare a2:(w ArraySize)? w closesquare
-     { Option<FixedDim> indices;
-       if (a2 == null) indices = None.<FixedDim>make();
-       else            indices = Some.<FixedDim>make(a2);
+     { Option<FixedDim> indices = Option.wrap(a2);
        yyValue = NodeFactory.makeArrayType(createSpan(yyStart,yyCount), a1,
                                            indices);
      }
    / a1:Type caret a2:StaticArgFront
-     { ExtentRange er = new ExtentRange(None.<StaticArg>make(),
-                                        Some.<StaticArg>make(a2));
+     { ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
+                                        Option.some(a2));
        yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),a1,er);
      }
    / a1:Type caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
@@ -225,8 +215,8 @@ Type TupleType =
        a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
        Option<VarargsType> ts2 = ((a2 != null)?
-                                   Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount), a2)) :
-                                   None.<VarargsType>make());
+                                   Option.some(new VarargsType(createSpan(yyStart,yyCount), a2)) :
+                                   Option.<VarargsType>none());
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
        yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2, ts3);
@@ -234,7 +224,7 @@ Type TupleType =
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Option<VarargsType> ts2 =
-         Some.<VarargsType>make(new VarargsType(createSpan(yyStart,yyCount),a2));
+         Option.some(new VarargsType(createSpan(yyStart,yyCount),a2));
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount),ts1,ts2);
      }
    / SimpleTupleType ;
@@ -248,7 +238,7 @@ TupleType SimpleTupleType =
      openparen w a1:Type w comma w a2:TypeList w closeparen
      { List<Type> ts = FortressUtil.mkList(a1, a2);
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts,
-                                           None.<VarargsType>make());
+                                           Option.<VarargsType>none());
      };
 
 /* TypeList ::= Type (w , w Type)* */
@@ -648,27 +638,19 @@ private FixedDim ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
  */
 ExtentRange ExtentRange =
      a1:(StaticArg w)? pound a2:(w StaticArg)?
-     { Option<StaticArg> base;
-       Option<StaticArg> size;
-       if (a1 == null) base = None.<StaticArg>make();
-       else            base = Some.<StaticArg>make(a1);
-       if (a2 == null) size = None.<StaticArg>make();
-       else            size = Some.<StaticArg>make(a2);
+     { Option<StaticArg> base = Option.wrap(a1);
+       Option<StaticArg> size = Option.wrap(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
-     { Option<StaticArg> base;
-       Option<StaticArg> size;
-       if (a1 == null) base = None.<StaticArg>make();
-       else            base = Some.<StaticArg>make(a1);
-       if (a2 == null) size = None.<StaticArg>make();
-       else            size = Some.<StaticArg>make(a2);
+     { Option<StaticArg> base = Option.wrap(a1);
+       Option<StaticArg> size = Option.wrap(a2);
        yyValue = new ExtentRange(createSpan(yyStart,yyCount), base, size);
      }
    / a1:StaticArg
      { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
-                                 None.<StaticArg>make(),
-                                 Some.<StaticArg>make(a1));
+                                 Option.<StaticArg>none(),
+                                 Option.some(a1));
      };
 
 /* Number */

@@ -20,10 +20,11 @@
  * Fortress AST node local to the Rats! com.sun.fortress.interpreter.parser.
  */
 package com.sun.fortress.parser_util;
+
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;

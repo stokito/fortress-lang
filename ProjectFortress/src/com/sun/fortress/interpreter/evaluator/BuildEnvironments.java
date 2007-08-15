@@ -17,12 +17,11 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
@@ -78,7 +77,6 @@ import com.sun.fortress.nodes.ModifierTest;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
@@ -94,6 +92,8 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
+import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
@@ -674,7 +674,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         guardedPutType(fname, ft, x);
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
                 GenericConstructor gen = new GenericConstructor(e, x);
@@ -794,7 +794,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = name.getName();
         FType ft;
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
@@ -824,7 +824,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = name.getName();
         FType ft = containing.getType(fname);
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
 
             if (!staticParams.isEmpty()) {
                 // Do nothing.
@@ -832,7 +832,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 FTypeObject fto = (FTypeObject) ft;
                 Constructor cl = (Constructor) containing.getValue(fname);
                 List<Parameter> fparams = EvalType.paramsToParameters(
-                        containing, params.getVal());
+                        containing, Option.unwrap(params));
                 cl.setParams(fparams);
                 cl.finishInitializing();
             }
@@ -857,7 +857,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         String fname = name.getName();
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
 
         } else {
             // TODO - Blindly assuming a non-generic singleton.
@@ -995,8 +995,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 Id name = lvb.getId();
                 String sname = name.getName();
 
-                FType ft = type.isPresent() ?
-                        (new EvalType(containing)).evalType(type.getVal())
+                FType ft = type.isSome() ?
+                        (new EvalType(containing)).evalType(Option.unwrap(type))
                                 : null;
 
                 if (lvb.isMutable()) {
@@ -1539,7 +1539,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         guardedPutType(fname, ft, x);
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
                 GenericConstructor gen = new GenericConstructor(e, x);
@@ -1593,7 +1593,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = name.getName();
         FType ft;
 
-        if (params.isPresent()) {
+        if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {

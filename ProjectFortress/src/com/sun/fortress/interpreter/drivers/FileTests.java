@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import edu.rice.cs.plt.tuple.Option;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -29,7 +30,6 @@ import junit.framework.TestSuite;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
@@ -84,11 +84,11 @@ public class FileTests {
                     Annotations anns = new Annotations(fssFile);
                     Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, in);
                     
-                    if (! _p.isPresent()) { 
+                    if (_p.isNone()) { 
                         throw new Exception("Syntax error"); 
                     }
                     else {
-                        CompilationUnit p = _p.getVal();
+                        CompilationUnit p = Option.unwrap(_p);
                         
                         if (anns.compile) {
                             // oldOut.print(" COMPILING"); oldOut.flush();

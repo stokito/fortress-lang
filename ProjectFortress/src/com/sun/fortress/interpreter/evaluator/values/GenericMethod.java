@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
@@ -36,7 +37,6 @@ import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;

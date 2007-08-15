@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -44,7 +45,6 @@ import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -83,8 +83,8 @@ public class Constructor extends AnonymousConstructor {
     }
     static public void addParamsToCollection(
           Option<List<Param>> opt_params, Collection<String> parameterNames) {
-        if (opt_params.isPresent()) {
-            addParamsToCollection(opt_params.getVal(), parameterNames);
+        if (opt_params.isSome()) {
+            addParamsToCollection(Option.unwrap(opt_params), parameterNames);
         }
     }
     static public void addParamsToCollection(
@@ -101,8 +101,8 @@ public class Constructor extends AnonymousConstructor {
     }
     static public void removeParamsFromCollection(
           Option<List<Param>> opt_params, Collection<String> parameterNames) {
-        if (opt_params.isPresent()) {
-            removeParamsFromCollection(opt_params.getVal(), parameterNames);
+        if (opt_params.isSome()) {
+            removeParamsFromCollection(Option.unwrap(opt_params), parameterNames);
         }
     }
     static public void removeParamsFromCollection(

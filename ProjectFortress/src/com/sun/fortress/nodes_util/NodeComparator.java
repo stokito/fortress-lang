@@ -19,8 +19,9 @@ package com.sun.fortress.nodes_util;
 
 import java.util.Comparator;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
@@ -29,22 +30,22 @@ public class NodeComparator {
     /* option comparers **************************************************/
     public static int compareOptionalType(Option<Type> a,
                                              Option<Type> b) {
-        if (a.isPresent() != b.isPresent()) {
-            return a.isPresent() ? 1 : -1;
+        if (a.isSome() != b.isSome()) {
+            return a.isSome() ? 1 : -1;
         }
-        if (a.isPresent()) {
-            return compare(a.getVal(), b.getVal());
+        if (a.isSome()) {
+            return compare(Option.unwrap(a), Option.unwrap(b));
         }
         return 0;
     }
 
     public static int compareOptionalStaticArg(Option<StaticArg> a,
                                                Option<StaticArg> b) {
-        if (a.isPresent() != b.isPresent()) {
-            return a.isPresent() ? 1 : -1;
+        if (a.isSome() != b.isSome()) {
+            return a.isSome() ? 1 : -1;
         }
-        if (a.isPresent()) {
-            return compare(a.getVal(), b.getVal());
+        if (a.isSome()) {
+            return compare(Option.unwrap(a), Option.unwrap(b));
         }
         return 0;
     }
@@ -248,11 +249,11 @@ public class NodeComparator {
         if (x != 0) return x;
         x = compare(left.getDomain(), right.getDomain());
         if (x != 0) return x;
-        if (left.getThrowsClause().isPresent() != right.getThrowsClause().isPresent())
-            return left.getThrowsClause().isPresent() ? 1 : -1;
-        if (left.getThrowsClause().isPresent())
-            return traitTypeListComparer.compare(left.getThrowsClause().getVal(),
-                                                 right.getThrowsClause().getVal());
+        if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
+            return left.getThrowsClause().isSome() ? 1 : -1;
+        if (left.getThrowsClause().isSome())
+            return traitTypeListComparer.compare(Option.unwrap(left.getThrowsClause()),
+                                                 Option.unwrap(right.getThrowsClause()));
         return 0;
     }
 

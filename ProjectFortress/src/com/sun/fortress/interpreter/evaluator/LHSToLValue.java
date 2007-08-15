@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Unpasting;

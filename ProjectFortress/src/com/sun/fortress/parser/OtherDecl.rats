@@ -39,39 +39,27 @@ import Spacing;
 DimUnitDecl DimUnitDecl =
      dim w a1:Id a2:(w void:equals w DimExpr)? s a3:(unit / SI_unit) w a4:Id
      a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
-     { Option<DimExpr> derived;
+     { Option<DimExpr> derived = Option.wrap(a2);
        List<Id> ids = new ArrayList<Id>();
-       Option<Expr> def;
-       if (a2 == null) derived = None.<DimExpr>make();
-       else            derived = Some.<DimExpr>make(a2);
        ids.add(a4);
        ids.addAll(a5s.list());
-       if (a6 == null) def = None.<Expr>make();
-       else            def = Some.<Expr>make(a6);
+       Option<Expr> def = Option.wrap(a6);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
                                              derived, a3, ids, def);
      }
    / dim w a1:Id a2:(w void:equals w DimExpr)? a3:(w default w Id)?
-     { Option<DimExpr> derived;
-       Option<Id> defaultId;
-       if (a2 == null) derived = None.<DimExpr>make();
-       else            derived = Some.<DimExpr>make(a2);
-       if (a3 == null) defaultId = None.<Id>make();
-       else            defaultId = Some.<Id>make(a3);
+     { Option<DimExpr> derived = Option.wrap(a2);
+       Option<Id> defaultId = Option.wrap(a3);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
                                              derived, defaultId);
      }
    / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w colon w DimExpr)?
      a5:(w void:equals w NoNewlineExpr)?
-     { Option<DimExpr> derived;
+     { Option<DimExpr> derived = Option.wrap(a4);
        List<Id> ids = new ArrayList<Id>();
-       Option<Expr> def;
-       if (a4 == null) derived = None.<DimExpr>make();
-       else            derived = Some.<DimExpr>make(a4);
        ids.add(a2);
        ids.addAll(a3s.list());
-       if (a5 == null) def = None.<Expr>make();
-       else            def = Some.<Expr>make(a5);
+       Option<Expr> def = Option.wrap(a5);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount),
                                              derived, a1, ids, def);
      };
@@ -92,9 +80,7 @@ TestDecl TestDecl =
 PropertyDecl PropertyDecl =
      property a1:(w Id w void:equals)? a2:(w FORALL w ValParam)? w
      a3:NoNewlineExpr
-     { Option<Id> id;
-       if (a1 == null) id = None.<Id>make();
-       else            id = Some.<Id>make(a1);
+     { Option<Id> id = Option.wrap(a1);
        if (a2 == null) a2 = FortressUtil.emptyParams();
        yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
      };

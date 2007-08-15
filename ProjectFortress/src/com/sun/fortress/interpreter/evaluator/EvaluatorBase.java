@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
@@ -33,7 +34,6 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
@@ -138,9 +138,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 if (p instanceof NormalParam) {
                     Option<Type> t = ((NormalParam)p).getType();
                     // why can't we just skip if missing?
-                    if (!t.isPresent())
+                    if (t.isNone())
                         error(loc,"Parameter needs type for generic resolution");
-                    at.unify(e, tp_set, abm, t.getVal());
+                    at.unify(e, tp_set, abm, Option.unwrap(t));
                 }
                 else { // p instanceof VarargsParam
                     at.unify(e, tp_set, abm, ((VarargsParam)p).getVarargsType());
@@ -175,8 +175,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
         Option<Type> opt_rt = fndod.getReturnType();
 
-        if (opt_rt.isPresent())
-           opt_rt.getVal().accept(mis);
+        if (opt_rt.isSome())
+           Option.unwrap(opt_rt).accept(mis);
 
         if (DUMP_INFERENCE)
             System.err.println("ABM 2={" + abm + "}");

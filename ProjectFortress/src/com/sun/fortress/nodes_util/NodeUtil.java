@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionVisitor;
+
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
@@ -68,12 +71,9 @@ public class NodeUtil {
     }
 
     public static Option<Expr> getBody(Applicable def) {
-        if (def instanceof FnDef)
-            return new Some<Expr>(((FnDef)def).getBody());
-        else if (def instanceof FnExpr)
-            return new Some<Expr>(((FnExpr)def).getBody());
-        else
-            return new None<Expr>();
+        if (def instanceof FnDef) { return Option.some(((FnDef)def).getBody()); }
+        else if (def instanceof FnExpr) { return Option.some(((FnExpr)def).getBody()); }
+        else { return Option.none(); }
     }
 
     /* for Param ***********************************************************/
@@ -172,11 +172,11 @@ public class NodeUtil {
     public static String stringName(Node the_node) {
         return the_node.accept(new NodeAbstractVisitor<String>() {
             public String forDimUnitDecl(DimUnitDecl node) {
-                if (node.getDim().isPresent()) {
+                if (node.getDim().isSome()) {
                     if (node.getUnits().isEmpty())
-                        return ((Id)node.getDim().getVal()).getName();
+                        return Option.unwrap(node.getDim()).getName();
                     else
-                        return ((Id)node.getDim().getVal()).getName() + " and " +
+                        return Option.unwrap(node.getDim()).getName() + " and " +
                                Useful.listInDelimiters("", node.getUnits(), "");
                 } else
                     return Useful.listInDelimiters("", node.getUnits(), "");
@@ -226,10 +226,10 @@ public class NodeUtil {
                 return new UnitIterable<String>(d.getId().getName());
             }
             public IterableOnce<String> forDimUnitDecl(DimUnitDecl d) {
-                if (d.getDim().isPresent()) {
+                if (d.getDim().isSome()) {
                     if (d.getUnits().isEmpty())
                         return new UnitIterable<String>(
-                           ((Id)d.getDim().getVal()).getName());
+                           Option.unwrap(d.getDim()).getName());
                     else
                         throw new InterpreterBug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
                 } else
@@ -261,13 +261,14 @@ public class NodeUtil {
                 return new UnitIterable<String>(d.getGenSymName());
             }
             public IterableOnce<String> forPropertyDecl(PropertyDecl d) {
-                Option<Id> id = d.getId();
-                if (id.isPresent()) {
-                    Some s = (Some) id;
-                    return new UnitIterable<String>(((Id)(s.getVal())).getName());
-                } else {
-                    return new UnitIterable<String>("_");
-                }
+                return d.getId().apply(new OptionVisitor<Id, IterableOnce<String>>() {
+                    public IterableOnce<String> forSome(Id id) {
+                        return new UnitIterable<String>(id.getName());
+                    }
+                    public IterableOnce<String> forNone() {
+                        return new UnitIterable<String>("_");
+                    }
+                });
             }
             public IterableOnce<String> forTestDecl(TestDecl d) {
                 return new UnitIterable<String>(d.getId().getName());

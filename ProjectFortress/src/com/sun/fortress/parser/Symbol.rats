@@ -187,8 +187,8 @@ transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
 Option<Op> AssignOp =
-     colonequals   { yyValue = None.<Op>make(); }
-   / a1:CompoundOp { yyValue = Some.<Op>make(a1); };
+     colonequals   { yyValue = Option.none(); }
+   / a1:CompoundOp { yyValue = Option.some(a1); };
 
 transient String accumulator = "SUM" / "PROD" ;
 

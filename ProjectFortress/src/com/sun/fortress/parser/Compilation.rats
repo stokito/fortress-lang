@@ -188,10 +188,10 @@ private AliasedDottedId AliasedDottedId =
      a1:DottedId a2:(w as w DottedId)?
      { if (a2 == null)
            yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
-                                         None.<DottedId>make());
+                                         Option.<DottedId>none());
        else
            yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
-                                         Some.<DottedId>make(a2));
+                                         Option.some(a2));
      };
 
 /* AliasedDottedIdList ::= AliasedDottedId (w , w AliasedDottedId)* */

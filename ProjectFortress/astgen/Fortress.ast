@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
+import edu.rice.cs.plt.tuple.Option;
 
 begin ast;
 
@@ -162,14 +163,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) longComplexName as shortName
      */
-    AliasedName(FnName fnName, Option<FnName> alias = None.<FnName>make());
+    AliasedName(FnName fnName, Option<FnName> alias = Option.<FnName>none());
     /**
      * aliased dotted id used in import statements
      * AliasedDottedId ::= DottedId (as DottedId)?
      * e.g.) com.sun.fortress.parser.precedence.resolver as precedence.resolver
      */
     AliasedDottedId(DottedId dottedId,
-                    Option<DottedId> alias = None.<DottedId>make());
+                    Option<DottedId> alias = Option.<DottedId>none());
     /**
      * trait or object declaration in components or APIs
      */
@@ -190,7 +191,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract TraitAbsDeclOrDecl(List<TraitType> excludes
                                         = Collections.<TraitType>emptyList(),
                                     Option<List<TraitType>> comprises
-                                        = None.<List<TraitType>>make(),
+                                        = Option.<List<TraitType>>none(),
                                     List<? extends AbsDeclOrDecl> decls);
             /**
              * trait declaration in APIs
@@ -238,9 +239,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * object declaration in components or APIs
          */
         abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
-                                         = None.<List<Param>>make(),
+                                         = Option.<List<Param>>none(),
                                      Option<List<TraitType>> throwsClause
-                                         = None.<List<TraitType>>make(),
+                                         = Option.<List<TraitType>>none(),
                                      Contract contract = new Contract(),
                                      List<? extends AbsDeclOrDecl> decls)
                                     implements GenericAbsDeclOrDeclWithParams;
@@ -316,7 +317,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * e.g.) var x: ZZ32
          */
-        LValueBind(Id id, Option<Type> type = None.<Type>make(),
+        LValueBind(Id id, Option<Type> type = Option.<Type>none(),
                    List<Modifier> mods = Collections.<Modifier>emptyList(),
                    boolean mutable) implements LHS;
         /**
@@ -349,9 +350,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                  = Collections.<StaticParam>emptyList(),
                              List<Param> params,
                              Option<Type> returnType
-                                 = None.<Type>make(),
+                                 = Option.<Type>none(),
                              Option<List<TraitType>> throwsClause
-                                 = None.<List<TraitType>>make(),
+                                 = Option.<List<TraitType>>none(),
                              List<WhereClause> where
                                  = Collections.<WhereClause>emptyList(),
                              Contract contract = new Contract(),
@@ -402,8 +403,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * PlainParam ::= Id IsType?
          *              | Type
          */
-        NormalParam(Option<Type> type = None.<Type>make(),
-                    Option<Expr> defaultExpr = None.<Expr>make());
+        NormalParam(Option<Type> type = Option.<Type>none(),
+                    Option<Expr> defaultExpr = Option.<Expr>none());
         /**
          * varargs parameter
          * VarargsParam ::= Id : Type ...
@@ -419,12 +420,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
-    DimUnitDecl(Option<Id> dim = None.<Id>make(),
-                Option<DimExpr> derived = None.<DimExpr>make(),
-                Option<Id> default = None.<Id>make(),
+    DimUnitDecl(Option<Id> dim = Option.<Id>none(),
+                Option<DimExpr> derived = Option.<DimExpr>none(),
+                Option<Id> default = Option.<Id>none(),
                 boolean si_unit = false,
                 List<Id> units = Collections.<Id>emptyList(),
-                Option<Expr> def = None.<Expr>make())
+                Option<Expr> def = Option.<Expr>none())
                implements Decl, AbsDecl;
     /**
      * dimension expression used in dimension and unit declarations
@@ -481,7 +482,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
      * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
      */
-    PropertyDecl(Option<Id> id = None.<Id>make(), List<Param> params, Expr expr)
+    PropertyDecl(Option<Id> id = Option.<Id>none(), List<Param> params, Expr expr)
                 implements Decl, AbsDecl;
     /**
      * syntax expanders declaration in components or APIs
@@ -576,9 +577,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         1 kilometer => "we were wrong again"
              *       end
              */
-            CaseExpr(CaseParam param, Option<Op> compare = None.<Op>make(),
+            CaseExpr(CaseParam param, Option<Op> compare = Option.<Op>none(),
                      List<CaseClause> clauses,
-                     Option<Block> elseClause = None.<Block>make());
+                     Option<Block> elseClause = Option.<Block>none());
             /**
              * do expression
              * Do ::= (DoFront also)* DoFront end
@@ -610,7 +611,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       else 6 end
              */
             If(List<IfClause> clauses,
-               Option<Block> elseClause = None.<Block>make());
+               Option<Block> elseClause = Option.<Block>none());
             /**
              * label expression
              * DelimitedExpr ::= label Id BlockElems end Id
@@ -656,9 +657,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       forbid IOException
              *       end
              */
-            Try(Block body, Option<Catch> catchClause = None.<Catch>make(),
+            Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
                 List<TraitType> forbid = Collections.<TraitType>emptyList(),
-                Option<Block> finallyClause = None.<Block>make());
+                Option<Block> finallyClause = Option.<Block>none());
             /**
              * tuple expression
              * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
@@ -668,7 +669,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) (1, 2, [3 4]..., x = 5)
              */
             TupleExpr(List<Expr> exprs,
-                      Option<VarargsExpr> varargs = None.<VarargsExpr>make(),
+                      Option<VarargsExpr> varargs = Option.<VarargsExpr>none(),
                       List<Binding> keywords = Collections.<Binding>emptyList());
             /**
              * typecase expression
@@ -684,7 +685,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *       end
              */
             Typecase(List<Binding> bind, List<TypecaseClause> clauses,
-                     Option<Block> elseClause = None.<Block>make());
+                     Option<Block> elseClause = Option.<Block>none());
             /**
              * while expression
              * DelimitedExpr ::= while Expr Do
@@ -717,8 +718,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * FlowExpr ::= exit Id? (with Expr)?
              * e.g.) exit I_95 with x32B
              */
-            Exit(Option<Id> optId = None.<Id>make(),
-                 Option<Expr> returnExpr = None.<Expr>make());
+            Exit(Option<Id> optId = Option.<Id>none(),
+                 Option<Expr> returnExpr = Option.<Expr>none());
             /**
              * spawn expression
              * FlowExpr ::= spawn Expr
@@ -748,10 +749,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                List<StaticParam> staticParams
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
-               Option<Type> returnType = None.<Type>make(),
+               Option<Type> returnType = Option.<Type>none(),
                List<WhereClause> where = Collections.<WhereClause>emptyList(),
                Option<List<TraitType>> throwsClause
-                   = None.<List<TraitType>>make(),
+                   = Option.<List<TraitType>>none(),
                Expr body)
               implements Applicable;
         /**
@@ -790,7 +791,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                  | Unpasting
              * e.g.) localVar x = 3
              */
-            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = None.<Expr>make());
+            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = Option.<Expr>none());
         /**
          * expression that is simple or using operators
          * Expr ::= OpExpr
@@ -817,7 +818,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) a[i]
              */
             SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<Enclosing> op = None.<Enclosing>make())
+                          Option<Enclosing> op = Option.<Enclosing>none())
                          implements LHS;
             /**
              * primary expression
@@ -1107,7 +1108,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.)
              */
             TupleType(List<Type> elements,
-                      Option<VarargsType> varargs = new None<VarargsType>(),
+                      Option<VarargsType> varargs = Option.<VarargsType>none(),
                       List<KeywordType> keywords
                           = Collections.<KeywordType>emptyList());
             /**
@@ -1516,16 +1517,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * CoercionContract ::= Ensures? Invariant?
      * e.g.) requires { n GE 0 } ensures { result GE 0 }
      */
-    Contract(Option<List<Expr>> requires = None.<List<Expr>>make(),
+    Contract(Option<List<Expr>> requires = Option.<List<Expr>>none(),
              Option<List<EnsuresClause>> ensures =
-                 None.<List<EnsuresClause>>make(),
-             Option<List<Expr>> invariants = None.<List<Expr>>make());
+                 Option.<List<EnsuresClause>>none(),
+             Option<List<Expr>> invariants = Option.<List<Expr>>none());
     /**
      * ensures clause used in contracts
      * EnsuresClause ::= Expr (provided Expr)?
      * e.g.) sorted(result) provided sorted(input)
      */
-    EnsuresClause(Expr post, Option<Expr> pre = None.<Expr>make());
+    EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
     /**
      * modifier
      * TraitMod      ::= AbsTraitMod | private
@@ -1653,7 +1654,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= unit Id ( : DimExpr )? ( absorbs unit )?
          * e.g.) unit U absrbs unit
          */
-        UnitParam(Id id, Option<DimExpr> dim = None.<DimExpr>make(),
+        UnitParam(Id id, Option<DimExpr> dim = Option.<DimExpr>none(),
                   boolean absorbs = false);
     /**
      * name representing functionals
@@ -1774,7 +1775,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * DoFront ::= (at Expr)? atomic? do BlockElems?
      * e.g.) at a.region(j) do w := a_j
      */
-    DoFront(Option<Expr> loc = None.<Expr>make(),
+    DoFront(Option<Expr> loc = Option.<Expr>none(),
             boolean atomic = false, Block expr);
     /**
      * if clause used in if expressions

@@ -20,10 +20,10 @@ package com.sun.fortress.interpreter.rewrite;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeReflection;
-import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 
@@ -48,10 +48,10 @@ abstract public class Visit extends NodeReflection {
     protected void visitObject(Object o) {
         if (o instanceof List) {
              visitList((List) o);
-        } else if (o instanceof Pair) {
-             visitPair((Pair) o);
-        } else if (o instanceof Some) {
-             visitSome((Some) o);
+        } else if (o instanceof Pair<?, ?>) {
+             visitPair((Pair<?, ?>) o);
+        } else if (o instanceof Option<?>) {
+             visitOption((Option<?>) o);
         } else if (o instanceof Number) {
 
         } else if (o instanceof Boolean) {
@@ -100,11 +100,10 @@ abstract public class Visit extends NodeReflection {
     }
 
     /**
-     * VisitObject the value of the Some,
+     * VisitObject the value of the Option (if it exists).
      */
-    protected void visitSome(Some some) {
-        Object o = some.getVal();
-        visitObject(o);
+    protected void visitOption(Option<?> opt) {
+        if (opt.isSome()) { visitObject(Option.unwrap(opt)); }
     }
 
     /**

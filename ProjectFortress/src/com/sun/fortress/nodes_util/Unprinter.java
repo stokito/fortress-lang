@@ -17,11 +17,6 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.useful.None;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.LHS;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -31,7 +26,10 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 
@@ -317,7 +315,7 @@ public class Unprinter extends NodeReflection {
                         f.set(node, "");
                     } else if (fcl == Option.class) {
                         // missing option
-                        f.set(node, new None());
+                        f.set(node, Option.none());
                     } else {
                         throw new Error("Unexpected missing data, field "
                                 + f.getName() + " of class " + class_name);
@@ -583,17 +581,16 @@ public class Unprinter extends NodeReflection {
         }
     }
 
-    public Option readOption() throws IOException {
+    public Option<Object> readOption() throws IOException {
         // Reading options is slightly different because
         // there is no detailed reflection information for
         // generics in Java. This code simply chooses to
         // believes the types in the input.
         expectPrefix("(Some");
         String s = l.name();
-        if (")".equals(s)) {
-            return new None();
-        } else if (!"val".equals(s)) {
-            throw new Error("Expected 'val' saw '" + s + "'");
+        if (")".equals(s)) { return Option.none(); }
+        else if (!"_value".equals(s)) {
+            throw new Error("Expected '_value' saw '" + s + "'");
         }
         expectPrefix("=");
         Object x;
@@ -613,7 +610,7 @@ public class Unprinter extends NodeReflection {
             x = null;
         }
         expectPrefix(")");
-        return new Some<Object>(x);
+        return Option.some(x);
     }
 
 }

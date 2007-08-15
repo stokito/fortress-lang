@@ -33,7 +33,6 @@ import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TypeAlias;

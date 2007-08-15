@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
@@ -33,7 +34,6 @@ import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.Factory2;
 import com.sun.fortress.useful.Fn2;
 import com.sun.fortress.useful.Memo2;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Useful;
 
 
@@ -170,7 +170,7 @@ public class FTypeArrow extends FType {
                 domain.unify(env, tp_set, dual, valdom);
             } else if (domain instanceof FTypeTuple) {
                 ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((TupleType)valdom).getElements(),
-                                                None.<VarargsType>make());
+                                                Option.<VarargsType>none());
             } else {
                 return false;
             }

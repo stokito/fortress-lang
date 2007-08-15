@@ -22,18 +22,17 @@
 package com.sun.fortress.parser_util;
 
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.Option;
-import com.sun.fortress.useful.Some;
-import com.sun.fortress.useful.None;
 import com.sun.fortress.nodes.TraitType;
 
 public class Comprises extends TraitClause {
-    private Option<List<TraitType>> comprises = None.<List<TraitType>>make();
+    private Option<List<TraitType>> comprises = Option.none();
 
     public Comprises(Span span, List<TraitType> comprises) {
         super(span);
-        this.comprises = Some.<List<TraitType>>make(comprises);
+        this.comprises = Option.some(comprises);
     }
 
     public Option<List<TraitType>> getComprises() {

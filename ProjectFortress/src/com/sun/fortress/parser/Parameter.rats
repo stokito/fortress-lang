@@ -100,9 +100,7 @@ FnHeaderFront OpHeaderFront =
            throw new ProgramError(opa2, "Mismatched enclosing operator definition: "
                                         + left + " and " + right);
        if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
-       Option<Param> opparam;
-       if (opa5 == null) opparam = None.<Param>make();
-       else              opparam = Some.<Param>make(opa5);
+       Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa1, opa3, opparam);
      }
    / opr a1:(w StaticParams)? w a2:ValParam w a3:Op

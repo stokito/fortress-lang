@@ -23,8 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
@@ -120,7 +121,6 @@ import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes.BaseOprStaticArg;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OprName;
-import com.sun.fortress.useful.Option;
 import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
@@ -245,10 +245,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         int lhsSize = lhses.size();
         FValue rhs = x.getRhs().accept(this);
 
-        if (possOp.isPresent()) {
+        if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            Op op = possOp.getVal();
+            Op op = Option.unwrap(possOp);
             Fcn fcn = (Fcn) op.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
@@ -333,7 +333,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return NI("forParallelDo");
         else { // (x.getFronts().size() == 1)
             DoFront f = x.getFronts().get(0);
-            if (f.getLoc().isPresent()) return NI("forAtDo");
+            if (f.getLoc().isSome()) return NI("forAtDo");
             if (f.isAtomic())
                 return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
                                                     f.getExpr()));
@@ -505,9 +505,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue paramValue = param.accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
-            Option<Op> Compare = x.getCompare();
-            if (Compare.isPresent())
-                fcn = (Fcn) e.getValue(Compare.getVal().getName());
+            Option<Op> compare = x.getCompare();
+            if (compare.isSome())
+                fcn = (Fcn) e.getValue(Option.unwrap(compare).getName());
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
@@ -527,9 +527,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     return forBlock(c.getBody());
             }
             Option<Block> _else = x.getElseClause();
-            if (_else.isPresent()) {
+            if (_else.isSome()) {
                 // TODO need an Else node to hang a location on
-                return forBlock(_else.getVal());
+                return forBlock(Option.unwrap(_else));
             }
             return evVoid;
         }
@@ -796,11 +796,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
             ;
         }
         Option<Block> else_ = x.getElseClause();
-        if (else_.isPresent()) {
-            Block else_expr = else_.getVal();
-            return else_expr.accept(this);
+        if (else_.isSome()) {
+            return Option.unwrap(else_).accept(this);
         }
-        return evVoid;
+        else {
+            return evVoid;
+        }
     }
 
     public FValue forIfClause(IfClause x) {
@@ -1302,8 +1303,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
 
         Option<Block> el = x.getElseClause();
-        if (el.isPresent()) {
-            Block elseClauses = el.getVal();
+        if (el.isSome()) {
+            Block elseClauses = Option.unwrap(el);
             // TODO really ought to have a node, with a location, for this list
             result = forBlock(elseClauses);
             return result;

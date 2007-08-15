@@ -60,7 +60,7 @@ AbsFnDecl FnSig =
            }
            public void forTupleType(TupleType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
-               if (that.getVarargs().isPresent()) { that.getVarargs().getVal().accept(this); }
+               if (that.getVarargs().isSome()) { Option.unwrap(that.getVarargs()).accept(this); }
                assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
            }
            public void defaultCase(Node that) {
