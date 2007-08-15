@@ -24,7 +24,6 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -47,6 +46,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class  OverloadedFunction extends Fcn
     implements Factory1P<List<FType>, Fcn, HasAt>{
@@ -109,9 +109,8 @@ public class  OverloadedFunction extends Fcn
                 // no finishInitializing for these guys, yet
 
             } else {
-                throw new InterpreterBug(
-                            "Expected a closure or primitive, instead got "
-                                    + sfcn);
+                bug(errorMsg("Expected a closure or primitive, instead got ",
+                             sfcn));
              }
         }
         finishedFirst = true;
@@ -406,14 +405,14 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond) throw new InterpreterBug(loc,"Cannot call before 'setFinished()'");
+        if (!finishedSecond) bug(loc,"Cannot call before 'setFinished()'");
         int best = -1;
         SingleFcn best_sfn = null;
 
         for (int i = 0; i < overloads.size(); i++) {
             Overload o = overloads.get(i);
             if (o.getParams() == null) {
-                throw new InterpreterBug("Unfinished overloaded function " + this);
+                bug(loc, errorMsg("Unfinished overloaded function ", this));
             }
             SingleFcn sfn = o.getFn();
 

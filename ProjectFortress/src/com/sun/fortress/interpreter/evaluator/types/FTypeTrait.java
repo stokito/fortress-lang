@@ -20,11 +20,11 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeTrait extends FTraitOrObject {
 
@@ -55,16 +55,16 @@ public class FTypeTrait extends FTraitOrObject {
 
     public BetterEnv getMethodExecutionEnv() {
         if (methodEnv == null) {
-            throw new InterpreterBug("Internal error, get of unset methodEnv");
+            bug("Internal error, get of unset methodEnv");
         }
         return methodEnv;
     }
-    
+
     protected void initializeMembers() {
         BetterEnv into = getMembersInternal();
         BetterEnv forTraitMethods = getMethodExecutionEnv();
         List<? extends AbsDeclOrDecl> defs = getASTmembers();
-        
+
         BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
                 forTraitMethods, null);
 
@@ -82,9 +82,9 @@ public class FTypeTrait extends FTraitOrObject {
         }
         return membersOf;
     }
-    
+
     protected BetterEnv getMembersInternal() {
         return membersOf;
     }
-    
+
 }

@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
@@ -37,6 +36,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class NonPrimitive extends Simple_fcn {
 
@@ -74,8 +74,9 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public final void setParams(List<Parameter> params) {
         if (this.params != null) {
-            throw new InterpreterBug(this.getAt(),
-                    "Attempted second set of constructor/function/method params of "+this+" to "+params);
+            bug(this.getAt(),
+                errorMsg("Attempted second set of constructor/function/method params of ",
+                         this, " to ", Useful.listInParens(params)));
         }
 
         params = adjustParameterList(params);
@@ -258,10 +259,9 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public List<FValue> fixupArgCount(List<FValue> args) {
         if (this.params==null) {
-            throw new InterpreterBug(this.getAt(),
-                                      "Calling fixupArgCount on "+
-                                       getAt().stringName()+
-                                       " with null params");
+            bug(this.getAt(),
+                "Calling fixupArgCount on "+getAt().stringName()+
+                " with null params");
         }
         if (args.size() == params.size()) return args;
         if (hasRest() && args.size() + 1 >= params.size()) {

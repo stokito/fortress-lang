@@ -191,14 +191,15 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
                 rval = fto;
             } else {
-                throw new InterpreterBug(within,
-                        "Generic def-or-declaration surprise " + dod);
+                throw new InterpreterBug(within, errorMsg(
+                        "Generic def-or-declaration surprise ", dod));
             }
 
             return rval;
 
         } else {
-            throw new InterpreterBug(within, "Generic surprise " + gen.def);
+            throw new InterpreterBug(within, errorMsg("Generic surprise ",
+                                                      gen.def));
         }
     }
 

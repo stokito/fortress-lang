@@ -91,6 +91,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 /**
  * Rewrite the AST to "disambiguate" (given known interpreter
@@ -804,7 +805,8 @@ public class Disambiguate extends Rewrite {
                         try {
                             th = typeEnv.get(s);
                         } catch (NullPointerException x) {
-                            throw new InterpreterBug("Entity "+s+" not found in typeEnv "+typeEnv);
+                            throw new InterpreterBug(errorMsg("Entity ", s,
+                                                              " not found in typeEnv ", typeEnv));
                         }
                         if (th instanceof Trait) {
                             Trait tr = (Trait) th;

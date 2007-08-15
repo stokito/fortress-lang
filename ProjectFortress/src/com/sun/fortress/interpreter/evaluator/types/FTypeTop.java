@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeTop extends FTypeTrait {
     public final static FTypeTop ONLY = new FTypeTop();
@@ -61,7 +61,7 @@ public class FTypeTop extends FTypeTrait {
 
     @Override
     public void addExclude(FType t) {
-        throw new InterpreterBug("Cannot add exclusions to Top type.");
+        bug("Cannot add exclusions to Top type.");
     }
 
     @Override

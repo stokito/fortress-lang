@@ -25,8 +25,8 @@ import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
 import com.sun.fortress.nodes.Applicable;
@@ -48,7 +48,9 @@ import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class GenericMethod extends MethodClosure implements
         GenericFunctionOrMethod, Factory1P<List<FType>, MethodClosure, HasAt> {
@@ -160,7 +162,7 @@ public class GenericMethod extends MethodClosure implements
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
             } else {
-                throw new InterpreterBug("Unexpected StaticParam " + tp);
+                bug(tp, errorMsg("Unexpected StaticParam ", tp));
             }
         }
 
@@ -219,8 +221,8 @@ public class GenericMethod extends MethodClosure implements
             if (x != 0) return x;
             return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
         } else {
-            throw new Error("NodeComparator.compare(" + left.getClass() + ", "
-                            + right.getClass());
+            throw new Error("NodeComparator.compare(" +
+                            left.getClass() + ", " + right.getClass());
         }
     }
 

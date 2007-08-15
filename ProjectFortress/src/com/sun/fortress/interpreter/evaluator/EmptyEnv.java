@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.DottedId;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EmptyEnv extends CommonEnv {
 
@@ -159,7 +160,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.scopes.SApi)
      */
     public void putApi(DottedId d, SApi x) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug(d, "Empty environment does not support this operation");
 
     }
 
@@ -169,7 +170,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(java.lang.String, com.sun.fortress.interpreter.evaluator.scopes.SApi)
      */
     public void putApi(String s, SApi api) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -179,7 +180,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putBool(java.lang.String, java.lang.Boolean)
      */
     public void putBool(String str, Boolean f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -189,7 +190,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
      */
     public void putComponent(DottedId name, SComponent comp) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug(name, "Empty environment does not support this operation");
 
     }
 
@@ -199,7 +200,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putNat(java.lang.String, java.lang.Number)
      */
     public void putNat(String str, Number f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -209,7 +210,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.types.FType)
      */
     public void putType(DottedId d, FType x) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug(d, "Empty environment does not support this operation");
 
     }
 
@@ -219,7 +220,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putType(java.lang.String, com.sun.fortress.interpreter.evaluator.types.FType)
      */
     public void putType(String str, FType f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -229,7 +230,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
     public void putValue(DottedId d, FValue x) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug(d, "Empty environment does not support this operation");
 
     }
 
@@ -239,7 +240,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(java.lang.String, com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.types.FType)
      */
     public void putVariable(String str, FValue f2, FType ft) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -249,12 +250,12 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(java.lang.String, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
     public void putValue(String str, FValue f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
     public void putValueUnconditionally(String str, FValue f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 
@@ -292,7 +293,7 @@ public class EmptyEnv extends CommonEnv {
 
 
     public void putComponent(String name, SComponent comp) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
     }
 
 
@@ -304,7 +305,7 @@ public class EmptyEnv extends CommonEnv {
     }
 
     public void putDecl(String str, Declaration f2) {
-        throw new InterpreterBug("Empty environment does not support this operation");
+        bug("Empty environment does not support this operation");
 
     }
 

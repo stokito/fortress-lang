@@ -262,7 +262,8 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
    }
 
@@ -276,7 +277,8 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(Indices left, Indices right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
@@ -299,27 +301,32 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(ProductType left, ProductType right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(QuotientType left, QuotientType right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(InversionType left, InversionType right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(ChangeDimType left, ChangeDimType right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
     static int subtypeCompareTo(OpDimType left, OpDimType right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
@@ -359,7 +366,8 @@ public class NodeComparator {
         return compare(left.getType(), right.getType());
     }
     static int subtypeCompareTo(Type left, Type right) {
-        throw new InterpreterBug("subtypeCompareTo(" + left.getClass() + " " +
+        throw new InterpreterBug(left,
+                                 "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 

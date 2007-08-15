@@ -99,6 +99,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * This comment is not yet true; it is a goal.
@@ -150,8 +151,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     public void assertPass(int p) {
         if (pass != p)
-            throw new InterpreterBug("Expected pass " + p + " got pass "
-                    + pass);
+            bug("Expected pass " + p + " got pass " + pass);
     }
 
     public void secondPass() {

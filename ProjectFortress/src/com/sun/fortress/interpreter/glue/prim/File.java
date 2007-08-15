@@ -21,7 +21,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 /**
  * Functions from File.
@@ -34,7 +34,7 @@ public static final class InFileOpen extends Util.S2Fr {
             BufferedReader fin = Useful.utf8BufferedFileReader(fileName);
             return fin;
         } catch (FileNotFoundException ex) {
-            throw new InterpreterBug("FileNotFound!");
+            throw new ProgramError("FileNotFound: " + fileName);
         }
     }
 }
@@ -44,7 +44,7 @@ public static final class InFileRead extends Util.Fr2S {
         try {
             return fin.readLine();
         } catch (IOException ex) {
-            throw new InterpreterBug("FileReadException!");
+            throw new ProgramError("FileReadException!");
         }
     }
 }
@@ -54,7 +54,7 @@ public static final class InFileClose extends Util.Fr2V {
         try {
             if (fin != null) fin.close();
         } catch (IOException ex) {
-            throw new InterpreterBug("FileCloseException!");
+            throw new ProgramError("FileCloseException!");
         }
     }
 }
@@ -65,7 +65,7 @@ public static final class OutFileOpen extends Util.S2Fw {
             BufferedWriter fout = Useful.utf8BufferedFileWriter(fileName);
             return fout;
         } catch (FileNotFoundException ex) {
-            throw new InterpreterBug("FileNotFound!");
+            throw new ProgramError("FileNotFound: " + fileName);
         }
     }
 }
@@ -75,7 +75,7 @@ public static final class OutFileWrite extends Util.FwS2V {
         try {
             fout.append(str);
         } catch (IOException ex) {
-            throw new InterpreterBug("FileWriteException!");
+            throw new ProgramError("FileWriteException!");
         }
     }
 }
@@ -85,7 +85,7 @@ public static final class OutFileClose extends Util.Fw2V {
         try {
             if (fout != null) fout.close();
         } catch (IOException ex) {
-            throw new InterpreterBug("FileCloseException!");
+            throw new ProgramError("FileCloseException!");
         }
     }
 }

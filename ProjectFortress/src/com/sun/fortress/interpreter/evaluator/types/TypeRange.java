@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class TypeRange {
     FTypeNat base;
@@ -72,7 +73,7 @@ public class TypeRange {
         if (x instanceof IntNat) {
             return ((IntNat) x).getValue();
         }
-        throw new InterpreterBug("Expected fully evaluated nat parameter, found " + x);
+        throw new InterpreterBug(errorMsg("Expected fully evaluated nat parameter, found ", x));
     }
 
     public boolean compatible(TypeRange j) {

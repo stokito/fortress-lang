@@ -19,11 +19,11 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.Set;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.useful.DualLattice;
 import com.sun.fortress.useful.LatticeOps;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class TypeLatticeOps implements LatticeOps<FType> {
 
@@ -37,8 +37,7 @@ public class TypeLatticeOps implements LatticeOps<FType> {
         // if (y.subtypeOf(x)) return x;
         Set<FType> s = x.join(y);
         if (s.size() != 1)
-            throw new InterpreterBug(errorMsg("Join(", x, ", ", y,
-                                              ") not a singleton: ", s));
+            bug(errorMsg("Join(", x, ", ", y, ") not a singleton: ", s));
         return s.iterator().next();
     }
 
@@ -47,8 +46,7 @@ public class TypeLatticeOps implements LatticeOps<FType> {
         // if (y.subtypeOf(x)) return y;
         Set<FType> s = x.meet(y);
         if (s.size() != 1)
-            throw new InterpreterBug(errorMsg("Meet(", x, ", ", y,
-                                              ") not a singleton: ", s));
+            bug(errorMsg("Meet(", x, ", ", y, ") not a singleton: ", s));
         return s.iterator().next();
     }
 

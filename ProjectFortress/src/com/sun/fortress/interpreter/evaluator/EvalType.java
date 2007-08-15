@@ -446,27 +446,32 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forQuotientDimUnit(QuotientDimUnit du) {
         throw new InterpreterBug(du,
-                               errorMsg("Evaluating QuotientDimUnit ", du, " is not yet implemented."));
+                                 errorMsg("Evaluating QuotientDimUnit ",
+                                          du, " is not yet implemented."));
     }
 
     public FType forChangeDimUnit(ChangeDimUnit du) {
         throw new InterpreterBug(du,
-                               errorMsg("Evaluating OpDimUnit ", du, " is not yet implemented."));
+                                 errorMsg("Evaluating OpDimUnit ",
+                                          du, " is not yet implemented."));
     }
 
     public FType forInversionDimUnit(InversionDimUnit du) {
         throw new InterpreterBug(du,
-                               errorMsg("Evaluating InversionDimUnit ", du, " is not yet implemented."));
+                                 errorMsg("Evaluating InversionDimUnit ",
+                                          du, " is not yet implemented."));
     }
 
     public FType forExponentDimUnit(ExponentDimUnit du) {
         throw new InterpreterBug(du,
-                               errorMsg("Evaluating ExponentDimunit ", du, " is not yet implemented."));
+                                 errorMsg("Evaluating ExponentDimunit ",
+                                          du, " is not yet implemented."));
     }
 
     public FType forOpDimUnit(OpDimUnit du) {
         throw new InterpreterBug(du,
-                               errorMsg("Evaluating OpDimUnit ", du, " is not yet implemented."));
+                                 errorMsg("Evaluating OpDimUnit ",
+                                          du, " is not yet implemented."));
     }
 
     /* (non-Javadoc)

@@ -17,10 +17,11 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FConstructedValue;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class IndirectionCell extends FConstructedValue {
     protected volatile FValue theValue;
@@ -36,7 +37,7 @@ public class IndirectionCell extends FConstructedValue {
 
     public void storeValue(FValue f2) {
         if (theValue != null)
-            throw new InterpreterBug("Internal error, second store of indirection cell");
+            bug("Internal error, second store of indirection cell");
         theValue = f2;
     }
 
@@ -46,7 +47,7 @@ public class IndirectionCell extends FConstructedValue {
 
     public FValue getValue() {
         if (theValue == null) {
-            throw new ProgramError("Attempt to read uninitialized variable");
+            error("Attempt to read uninitialized variable");
         }
         return theValue;
     }

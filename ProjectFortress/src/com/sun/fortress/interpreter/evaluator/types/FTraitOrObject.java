@@ -42,6 +42,9 @@ import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 abstract public class FTraitOrObject extends FType {
 
 
@@ -90,8 +93,7 @@ abstract public class FTraitOrObject extends FType {
 
     public List<FType> getExtends() {
         if (extends_ == null)
-            throw new InterpreterBug(at,
-                                       this+": Get of unset extends");
+            bug(at, errorMsg(this, ": Get of unset extends"));
         // throw new IllegalStateException("Get of unset extends");
         return extends_;
     }
@@ -115,7 +117,7 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected FTypeGeneric getGeneric() {
-        throw new InterpreterBug("getGeneric() of non-Generic "+this);
+        throw new InterpreterBug(errorMsg("getGeneric() of non-Generic ",this));
     }
 
     /** Only implemented by subtypes which extend GenericTypeInstance.
@@ -123,7 +125,8 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected List<FType> getTypeParams() {
-        throw new InterpreterBug("getTypeParams() of non-Generic "+this);
+        throw new InterpreterBug(errorMsg("getTypeParams() of non-Generic ",
+                                          this));
     }
 
     protected List<FType> computeTransitiveExtends() {
@@ -256,7 +259,9 @@ abstract public class FTraitOrObject extends FType {
                     a = targ;
                     param_ftype.unify(env, tp_set, abm, targ);
                 } else {
-                    throw new InterpreterBug(val,e,"Can't handle unification of parameters "+this+" and "+val);
+                    bug(val,e,
+                        errorMsg("Can't handle unification of parameters ",
+                                 this, " and ", val));
                 }
             }
         } catch (FortressError p) {

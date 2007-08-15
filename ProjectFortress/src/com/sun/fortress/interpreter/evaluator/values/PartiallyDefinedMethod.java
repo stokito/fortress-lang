@@ -70,8 +70,6 @@ public class PartiallyDefinedMethod extends MethodClosure {
 
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
         return super.applyInner(args, loc, envForInference);
-        //throw new Error("Partially defined functions cannot be applied.");
-
     }
 
     @Override

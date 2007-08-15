@@ -394,7 +394,8 @@ public class NodeFactory {
                                               b.getConstraint());
             }
             public BoolExpr defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
                                          " is not a subtype of BoolExpr.");
             }
         });
@@ -427,7 +428,8 @@ public class NodeFactory {
                 return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
                                          " is not a subtype of DimExpr.");
             }
         });
@@ -467,7 +469,8 @@ public class NodeFactory {
                 return new OpDimUnit(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public DimUnitExpr defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
                                          " is not a subtype of DimUnitExpr.");
             }
         });
@@ -499,8 +502,9 @@ public class NodeFactory {
                                               i.getPower());
             }
             public IntExpr defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
-                                           " is not a subtype of IntExpr.");
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of IntExpr.");
             }
         });
     }
@@ -573,8 +577,9 @@ public class NodeFactory {
                 return new TypeArg(t.getSpan(), true, t.getType());
             }
             public StaticArg defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
-                                           " is not a subtype of StaticArg.");
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of StaticArg.");
             }
         });
     }
@@ -626,8 +631,9 @@ public class NodeFactory {
                 return new OpDimType(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public Type defaultCase(Node x) {
-                throw new InterpreterBug("makeInParentheses: " + x.getClass() +
-                                           " is not a subtype of Type.");
+                throw new InterpreterBug(x,
+                                         "makeInParentheses: " + x.getClass() +
+                                         " is not a subtype of Type.");
             }
         });
     }

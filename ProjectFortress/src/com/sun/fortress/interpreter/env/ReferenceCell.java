@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -30,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.Recoverable;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Set;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * What the interpreter stores mutable things (fields, variables)
@@ -120,13 +120,13 @@ public class ReferenceCell extends IndirectionCell {
 
     public void storeValue(FValue f2) {
         if (node.getValue() != null)
-            throw new InterpreterBug("Internal error, second store of indirection cell");
-	assignValue(f2);
+            bug("Internal error, second store of indirection cell");
+        assignValue(f2);
     }
 
     public void storeType(FType f2) {
         if (theType != null)
-            throw new InterpreterBug("Internal error, second store of type");
+            bug("Internal error, second store of type");
         theType = f2;
     }
 
@@ -192,7 +192,7 @@ public class ReferenceCell extends IndirectionCell {
     manager.openSucceeded();
     return null;
   }
-  
+
   /**
    * Tries to open object for reading.
    * Returns reference to conflicting transaction, if one exists

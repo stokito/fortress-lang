@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * A NativeApp indicates that an action is implemented natively; the
@@ -66,7 +67,7 @@ public abstract class NativeApp implements Applicable {
      */
     protected void init(Applicable app) {
         if (this.a!=null) {
-            throw new InterpreterBug("Duplicate NativeApp.init call.");
+            bug("Duplicate NativeApp.init call.");
         }
         this.a = app;
         int aty = app.getParams().size();

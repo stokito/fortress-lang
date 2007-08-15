@@ -158,11 +158,11 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
-
 import java.util.concurrent.Callable;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Evaluator extends EvaluatorBase<FValue> {
     boolean debug = false;
@@ -223,7 +223,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue NI(String s, AbstractNode n) {
-        throw new InterpreterBug(this.getClass().getName() + "." + s
+        throw new InterpreterBug(n, this.getClass().getName() + "." + s
                 + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
@@ -849,7 +849,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<Expr> exprs = x.getExprs();
         FValue times = e.getValue("juxtaposition");
         if (exprs.size() == 0)
-            throw new InterpreterBug(x,"empty juxtaposition");
+            bug(x,"empty juxtaposition");
         List<FValue> evaled = evalExprListParallel(exprs);
         Boolean inFunction = true;
         Stack<FValue> stack = new Stack<FValue>();
@@ -927,7 +927,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return cl.applyConstructor(java.util.Collections
                     .<FValue> emptyList(), x, e);
         } else {
-            throw new InterpreterBug(x,e,"_RewriteObjectExpr " + s + " has 'constructor' " + v);
+            throw new InterpreterBug(x,e,
+                                     errorMsg("_RewriteObjectExpr ", s,
+                                              " has 'constructor' ", v));
         }
 
         // Option<List<Type>> traits = x.getTraits();
@@ -1113,7 +1115,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // chf
         List<Expr> exprs = x.getExprs();
         if (exprs.size() == 0)
-            throw new InterpreterBug(x,e,"empty juxtaposition");
+            bug(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
         // Translate compound VarRefs to FieldRefs
@@ -1158,7 +1160,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     } else if (cl instanceof OverloadedMethod) {
 
                         throw new InterpreterBug(x, fobject.getSelfEnv(),
-                                                   "Don't actually resolve overloading of generic methods yet.");
+                                                 "Don't actually resolve overloading of generic methods yet.");
 
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
@@ -1346,7 +1348,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // debugPrint("forVarRef " + x);
         List<Id> names = x.getVar().getNames();
         if (names.isEmpty())
-            throw new InterpreterBug(x, e, "empty variable name");
+            bug(x, e, "empty variable name");
 
         FValue res = e.getValueNull(names.get(0).getName());
         if (res == null)

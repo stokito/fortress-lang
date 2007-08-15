@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
@@ -40,6 +39,8 @@ import com.sun.fortress.useful.None;
 import com.sun.fortress.useful.Option;
 import com.sun.fortress.useful.Some;
 import com.sun.fortress.useful.Useful;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 
 // TODO need to memoize this to preserver type EQuality
@@ -298,11 +299,11 @@ public class FTypeTuple extends FType {
 
             if (r1 && !r2) {
                 if (s1 != 1)
-                    throw new InterpreterBug("Rest parameter not last parameter");
+                    bug("Varargs parameter not last parameter");
                 sl2 = sl2.subList(1, s2);
             } else if (r2 && !r1) {
                 if (s2 != 1)
-                    throw new InterpreterBug("Rest parameter not last parameter");
+                    bug("Varargs parameter not last parameter");
                 sl1 = sl1.subList(1, s1);
             } else {
                 // If tails have equal rest-ness, shorten them both.

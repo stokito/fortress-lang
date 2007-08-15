@@ -51,6 +51,7 @@ import com.sun.fortress.useful.Visitor2;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 
 public final class BetterEnv extends CommonEnv implements Environment, Iterable<String>  {
@@ -156,7 +157,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     private BetterEnv(BetterEnv existing) {
         if (! existing.blessed)
-            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
+            bug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = existing.type_env;
         nat_env = existing.nat_env;
         int_env = existing.int_env;
@@ -170,9 +171,9 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public BetterEnv(BetterEnv existing, BetterEnv additions) {
         if ( ! existing.blessed)
-            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
+            bug(within,existing,"Internal error, attempt to copy environment still under construction");
         if ( ! additions.blessed)
-            throw new InterpreterBug(within,existing,"Internal error, attempt to copy environment still under construction");
+            bug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
         int_env = augment(existing.int_env, additions.int_env);
@@ -262,7 +263,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             if (new_table.getWeight() == table.getWeight()) {
                 BATreeNode<String, Result> original = table.getObject(index, comparator);
                 if (original == null) {
-                    throw new InterpreterBug("Duplicate entry in table, but not in table.");
+                    bug("Duplicate entry in table, but not in table.");
                 }
                 Result fvo = original.getValue();
                 if (fvo instanceof IndirectionCell) {
@@ -295,7 +296,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
             if (new_table.getWeight() == table.getWeight()) {
                 BATreeNode<String, FValue> original = table.getObject(index, comparator);
                 if (original == null) {
-                    throw new InterpreterBug("Duplicate entry in table, but not in table.");
+                    bug("Duplicate entry in table, but not in table.");
                 }
                 FValue fvo = original.getValue();
 
@@ -727,7 +728,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
 
         public void remove() {
-            throw new InterpreterBug("Applicative data structures cannot be changed!");
+            bug("Applicative data structures cannot be changed!");
         }
 
     }

@@ -57,6 +57,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Constructor extends AnonymousConstructor {
 
@@ -295,9 +296,7 @@ public class Constructor extends AnonymousConstructor {
              *
              */
             if (! (sf instanceof MethodClosure)) {
-                throw new InterpreterBug(errorMsg("Internal error, non-method ",
-                                                  sf));
-
+                bug(errorMsg("Internal error, non-method ", sf));
             }
             MethodClosure mc = (MethodClosure) sf;
             FTraitOrObject too = ent.getValue();
@@ -454,7 +453,7 @@ public class Constructor extends AnonymousConstructor {
 
     // sets of strings (can't be explicit due to erasure)
     Set<?>[] traitNameReferenceArray;
-    
+
     FTraitOrObject[] traitArray;
     MethodClosure[] methodsArray;
     MethodClosure[] closuresArray;
