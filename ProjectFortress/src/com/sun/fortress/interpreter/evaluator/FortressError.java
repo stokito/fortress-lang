@@ -27,7 +27,7 @@ import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.nodes_util.ErrorMsgMaker.makeErrorMsg;
 
-public abstract class FortressError extends Error {
+public abstract class FortressError extends RuntimeException {
 
     /**
      * Make Eclipse happy

@@ -94,13 +94,13 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
       try {
           s1.getType("y");
           fail("Expected exception was not thrown");
-      } catch (Error ex) {
+      } catch (ProgramError ex) {
           System.out.println("Saw expected exception " + ex);
       }
       try {
           s3.getValue("x");
           fail("Expected exception was not thrown");
-      } catch (Error ex) {
+      } catch (ProgramError ex) {
           System.out.println("Saw expected exception " + ex);
       }
       s3.dump(System.out);
@@ -334,6 +334,6 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
     protected void setUp() throws Exception {
         Init.initializeEverything();
         // We need to initialize the transactional memory stuff before we
-	// access any reference cells.
+ // access any reference cells.
     }
 }
