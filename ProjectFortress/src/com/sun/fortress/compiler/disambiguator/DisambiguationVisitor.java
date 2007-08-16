@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.HashSet;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.collect.ConsList;
@@ -40,18 +41,19 @@ import com.sun.fortress.compiler.index.ApiIndex;
  *     contain lists of qualified names referring to multiple APIs).
  * <li>VarRefs referring to functions become FnRefs with placeholders for implicit static
  *     arguments filled in (to be replaced later during type inference).</li>
- * <li>VarRefs referring to getters, setters, or methods become FieldRefs.</li>
- * <li>VarRefs referring to methods, and that are juxtaposed with Exprs, become 
+ * <li>VarRefs referring to trait members, and that are juxtaposed with Exprs, become 
+ *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
+ * <li>VarRefs referring to trait members become FieldRefs.</li>
+ * <li>FieldRefs referring to trait members, and that are juxtaposed with Exprs, become 
+ *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
+ * <li>FnRefs referring to trait members, and that are juxtaposed with Exprs, become 
  *     MethodInvocations.</li>
- * <li>FieldRefs referring to methods, and that are juxtaposed with Exprs, become 
- *     MethodInvocations.</li>
- * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become 
- *     MethodInvocations.</li>
- * <li>IdTypes referring to traits become InstantiatedTypes (with 0 arguments)</li>
+ * <li>IdTypes referring to traits become InstantiatedTypes (with 0 arguments).</li>
  * </ul>
  * 
  * Additionally, all name references that are undefined or used incorrectly are
- * treated as static errors.</p>
+ * treated as static errors.  (Note that names of trait members cannot be checked
+ * in this phase, because their validity depends on subtyping relationships.)</p>
  * 
  * <p>Makes the following assumptions about the input:
  * <ul>
@@ -72,6 +74,60 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
         _errors = errors;
     }
     
+    /** LocalVarDecls introduce local variables while visiting the body. */
+    @Override public Node forLocalVarDecl(LocalVarDecl that) {
+      List<LValue> lhsResult = recurOnListOfLValue(that.getLhs());
+      Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
+      Set<String> definedNames = extractDefinedVarNames(lhsResult);
+      Environment newEnv = new LocalVarEnvironment(_env, definedNames);
+      DisambiguationVisitor v = new DisambiguationVisitor(newEnv, _globalEnv, _errors);
+      List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
+      return forLocalVarDeclOnly(that, bodyResult, lhsResult, rhsResult);
+    }
+    
+    private Set<String> extractDefinedVarNames(Iterable<? extends LValue> lvalues) {
+      Set<String> result = new HashSet<String>();
+      extractDefinedVarNames(lvalues, result);
+      return result;
+    }
+    
+    private void extractDefinedVarNames(Iterable<? extends LValue> lvalues,
+                                        Set<String> result) {
+      for (LValue lv : lvalues) {
+        boolean valid = true;
+        if (lv instanceof LValueBind) {
+          valid = result.add(((LValueBind)lv).getId().getName());
+        }
+        else if (lv instanceof UnpastingBind) {
+          valid = result.add(((UnpastingBind)lv).getId().getName());
+        }
+        else { // lv instanceof UnpastingSplit
+          extractDefinedVarNames(((UnpastingSplit)lv).getElems(), result);
+        }
+        if (!valid) {
+          _errors.add(StaticError.make("Duplicate local variable name", lv));
+        }
+      }
+    }
+    
+    /** LetFns introduce local functions while visiting the body. */
+    @Override public Node forLetFn(LetFn that) {
+      List<FnDef> fnsResult = recurOnListOfFnDef(that.getFns());
+      Set<String> definedNames = extractDefinedFnNames(fnsResult);
+      Environment newEnv = new LocalFnEnvironment(_env, definedNames);
+      DisambiguationVisitor v = new DisambiguationVisitor(newEnv, _globalEnv, _errors);
+      List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
+      return forLetFnOnly(that, bodyResult, fnsResult);
+    }
+    
+    private Set<String> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
+      Set<String> result = new HashSet<String>();
+      for (FnDef fd : fnDefs) { result.add(NodeUtil.getName(fd.getFnName())); }
+      // multiple instances of the same name are allowed
+      return result;
+    }
+
+    /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
         Expr result = null;
         ConsList<? extends Id> fields = IterUtil.asConsList(that.getVar().getNames());
