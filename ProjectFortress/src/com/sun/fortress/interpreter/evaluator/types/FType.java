@@ -473,11 +473,17 @@ abstract public class FType implements Comparable<FType> {
 
     protected void checkConstraints() {
         if (mustExtend != null) {
+            String failures = "";
             for (Pair<HasAt, FType> p : mustExtend)
                 if (!subtypeOf(p.getB())) {
-                    error(p.getA(),
-                          errorMsg("", this, " must subtype ", p.getB()));
+                    String failure = errorMsg("At ", p.getA(), " ", this, " must subtype ", p.getB());
+                    if (failures.length() == 0)
+                        failures = failure;
+                    else
+                        failures = failures + "\n" + failure;
                 }
+            if (failures.length() > 0)
+                error(failures);
         }
         mustExtend = null;
     }
