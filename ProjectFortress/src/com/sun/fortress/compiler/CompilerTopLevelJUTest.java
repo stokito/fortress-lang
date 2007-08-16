@@ -38,7 +38,7 @@ public class CompilerTopLevelJUTest extends TestCase {
     // relative to the top ProjectFortress directory
     private static final List<String> NOT_PASSING = Arrays.asList(
         "static_tests/SimpleProgram.fss",
-        "static_tests/XXXUndefinedInitializer.fss"
+        "static_tests/stub to eliminate comma trouble"
     );
     
     public void testStaticTests() {
