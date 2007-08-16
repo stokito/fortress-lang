@@ -24,8 +24,8 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
@@ -532,7 +532,7 @@ public class  OverloadedFunction extends Fcn
                return of;
            }
            if (f != null) return f;
-           throw new ProgramError(errorMsg("No matches for instantiation of overloaded ",
+           return error(errorMsg("No matches for instantiation of overloaded ",
                    OverloadedFunction.this, " with ", Useful.listInParens(args)));
         }
     }

@@ -91,6 +91,7 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * Rewrite the AST to "disambiguate" (given known interpreter
@@ -292,7 +293,7 @@ public class Disambiguate extends Rewrite {
      */
     private static DottedId prependSelf(DottedId id, int i) {
         List<Id> ids = new ArrayList<Id>();
-        if (i < 0) { throw new Error("Confusion in member reference numbering."); }
+        if (i < 0) { bug(id, "Confusion in member reference numbering."); }
         ids.add(new Id(id.getSpan(), WellKnownNames.secretSelfName));
         for (int index = 0; index < i; index++) {
             // i copies of "parent"
@@ -795,7 +796,7 @@ public class Disambiguate extends Rewrite {
                     names = (((IdType) t).getDottedId()).getNames();;
                 } else {
                    // TODO Way too many types; deal with them as necessary.
-                   NI.nyi("Object extends something exciting: " + t);
+                    bug(t, errorMsg("Object extends something exciting: ", t));
                 }
                     if (names.size() == 1) {
                         // TODO we've got to generalize this to DottedId names.
@@ -835,7 +836,8 @@ public class Disambiguate extends Rewrite {
                              */
                             // throw new ProgramError(t,"Type extends non-visible entity " + s);
                         } else {
-                            NI.nyi("Type extends something unknown " + s + " = " + th);
+                            bug(errorMsg("Type extends something unknown ", s,
+                                         " = ", th));
                         }
                     } else {
                         NI.nyi("General dotted name");

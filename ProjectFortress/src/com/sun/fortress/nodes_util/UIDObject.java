@@ -22,6 +22,7 @@ import java.io.IOException;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 
 public class UIDObject implements HasAt {
 
@@ -50,7 +51,7 @@ public class UIDObject implements HasAt {
     public String at() {
         if (this instanceof AbstractNode)
             return ((AbstractNode) this).getSpan().toString();
-        throw new Error("Class " + this.getClass().toString() + " needs to a case in UIDObject.at()");
+        throw new InterpreterBug(this, "Class " + this.getClass().toString() + " needs to a case in UIDObject.at()");
     }
 
     public String stringName() {

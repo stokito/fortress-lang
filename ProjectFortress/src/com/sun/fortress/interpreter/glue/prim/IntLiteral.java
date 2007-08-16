@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import java.math.BigInteger;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
@@ -28,6 +27,8 @@ import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeFn2;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Functions from IntLiteral.
@@ -38,7 +39,7 @@ private static BigInteger toB(FValue x) {
     if (x instanceof FIntLiteral) {
         return ((FIntLiteral)x).getLit();
     } else {
-        throw new ProgramError("Non-IntLiteral for IntLiteral primitive");
+        return error("Non-IntLiteral for IntLiteral primitive");
     }
 }
 

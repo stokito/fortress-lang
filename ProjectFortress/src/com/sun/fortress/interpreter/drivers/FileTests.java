@@ -33,6 +33,8 @@ import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+
 public class FileTests {
 
 
@@ -40,13 +42,13 @@ public class FileTests {
         String f;
         String dir;
         String name;
-        
+
         /**
          * If true, only print test output for unexpected results.
          */
         boolean unexpectedOnly;
-      
-        
+
+
         boolean printSuccess;
         boolean printFailure;
 
@@ -83,13 +85,13 @@ public class FileTests {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     Annotations anns = new Annotations(fssFile);
                     Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, in);
-                    
-                    if (_p.isNone()) { 
-                        throw new Exception("Syntax error"); 
+
+                    if (_p.isNone()) {
+                        error("Syntax error");
                     }
                     else {
                         CompilationUnit p = Option.unwrap(_p);
-                        
+
                         if (anns.compile) {
                             // oldOut.print(" COMPILING"); oldOut.flush();
                             Driver.evalComponent(p);
@@ -103,7 +105,7 @@ public class FileTests {
                                 args.add(dir + "/tennis051707");
                                 args.add(dir + "/tennisGames");
                                 Driver.runProgram(p, true, args);
-                            } 
+                            }
                             else {
                                 Driver.runProgram(p, true, new ArrayList<String>());
                             }
@@ -128,7 +130,7 @@ public class FileTests {
                     exFirstLine = exFirstLine.substring(0, crLoc);
                     System.out.println(" OK Saw expected exception");
                     return;
-                } 
+                }
                 else {
                     // Failed, really
                     if (printFailure) System.out.println();

@@ -131,7 +131,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (FValue a : args) {
             FType at = a.type();
             if (at==null) {
-                throw new Error(errorMsg(loc.at()," Argument ",a," has no type information"));
+                error(loc, errorMsg(loc.at()," Argument ",a,
+                                    " has no type information"));
             }
             p = pit.hasNext() ? pit.next() : p;
             try {

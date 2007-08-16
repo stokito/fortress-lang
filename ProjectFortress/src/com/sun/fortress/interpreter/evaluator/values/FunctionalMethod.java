@@ -15,10 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-/*
- * Created on Apr 23, 2007
- *
- */
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
@@ -29,8 +25,10 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FunctionalMethod extends Closure {
 
@@ -53,8 +51,7 @@ public class FunctionalMethod extends Closure {
         if (cl instanceof Method) {
             return ((Method) cl).applyMethod(args, self, loc, envForInference);
         }
-        return NI.nyi("Functional method apply, method = " + cl);
-
+        return bug(loc, errorMsg("Functional method apply, method = ", cl));
     }
 
     public FunctionalMethod(BetterEnv e, Applicable fndef, int self_parameter_index, FType self_parameter_type) {

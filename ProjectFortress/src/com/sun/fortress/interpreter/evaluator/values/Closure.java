@@ -23,7 +23,6 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.scopes.Scope;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
@@ -46,6 +45,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * A Closure value is a function, plus some environment information.
@@ -148,9 +148,9 @@ public class Closure extends NonPrimitive implements Scope {
                 /* Wrap all other errors, but not these. */
                 throw ex.setWhere(loc);
             } catch (RuntimeException ex) {
-                throw new ProgramError(loc, errorMsg("Wrapped exception ", ex.toString()), ex);
+                return error(loc, errorMsg("Wrapped exception ", ex.toString()), ex);
             } catch (Error ex) {
-                throw new ProgramError(loc, errorMsg("Wrapped error ", ex.toString()), ex);
+                return error(loc, errorMsg("Wrapped error ", ex.toString()), ex);
             }
         } else {
             Evaluator eval = new Evaluator(buildEnvFromParams(args, loc));

@@ -34,6 +34,7 @@ import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VarArgs;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /* The following file is the automatially-generated list of operator
  * sets and equivalences.  This fils is used as the primary data
@@ -455,7 +456,7 @@ public class PrecedenceMap {
     private void makeEquiv(String op1, String op2) {
         CanonOp i = getEquiv(op1);
         if (rep.put(op2,i) != null) {
-            throw new Error("Duplicate equivalence of operator "+op2);
+            bug("Duplicate equivalence of operator "+op2);
         }
     }
 
@@ -579,7 +580,7 @@ public class PrecedenceMap {
             CanonOp e = getEquiv(op);
             if (r==null) r=e;
             if (eq.put(e,r) != null) {
-                throw new Error("Operator already in precedence table "+op);
+                bug("Operator already in precedence table "+op);
             }
         }
     }
@@ -698,11 +699,11 @@ public class PrecedenceMap {
         CanonOp le = getEquiv(l);
         CanonOp re = getEquiv(r);
         if (bracket.put(le,re) != null) {
-            throw new Error("Second matching bracket for "+l+" is "+r);
+            bug("Second matching bracket for "+l+" is "+r);
         }
         if (!rbracket.add(re)) {
-            throw new Error("Right bracket "+r+
-                            " already registered with different left bracket");
+            bug("Right bracket "+r+
+                " already registered with different left bracket");
         }
     }
 

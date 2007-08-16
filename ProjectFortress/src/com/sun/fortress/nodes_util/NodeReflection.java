@@ -29,6 +29,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 abstract public class NodeReflection {
     // For minor efficiency, cache the fields, classes, and constructors.
     // Note that reflection is filtered to exclude certain fields, and to
@@ -59,9 +61,9 @@ abstract public class NodeReflection {
             spanField = AbstractNode.class.getDeclaredField("_span");
             spanField.setAccessible(true);
         } catch (SecurityException e) {
-            throw new Error(e.getMessage());
+            bug(e.getMessage());
         } catch (NoSuchFieldException e) {
-            throw new Error(e.getMessage());
+            bug(e.getMessage());
         }
     }
 
@@ -88,7 +90,7 @@ abstract public class NodeReflection {
          * found, otherwise it use the one-span-arg constructor and assigns the
          * field.  This is intended to ease the transition to the
          * ASTgen-generated nodes.
-         * 
+         *
          * @param s
          * @param c
          * @param span
@@ -110,14 +112,6 @@ abstract public class NodeReflection {
             Object[] args = new Object[1];
             args[0] = span;
             return (AbstractNode) con.newInstance(args);
-//       } catch (IllegalAccessException ex) {
-//           throw new Error(ex.getMessage());
-//       } catch (InstantiationException ex) {
-//           throw new Error(ex.getMessage());
-//       } catch (InvocationTargetException ex) {
-//           throw new Error(ex.getMessage());
-//       }
-
         }
 
 
@@ -192,17 +186,17 @@ abstract public class NodeReflection {
                     constructorMapZero.put(class_name, c0);
                 }
                 if (c == null && c0 == null)
-                    throw new Error("Could not find an appropriate constructor for " + full_class_name);
+                    bug("Could not find an appropriate constructor for " + full_class_name);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-                throw new Error("Error reading node type " + class_name);
+                bug("Error reading node type " + class_name);
             } catch (SecurityException e) {
                 e.printStackTrace();
-                throw new Error("Error reading node type " + class_name);
+                bug("Error reading node type " + class_name);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
-                throw new Error("Error reading node type " + class_name
-                        + ", missing constructor (Span)");
+                bug("Error reading node type " + class_name
+                    + ", missing constructor (Span)");
             } catch (NoSuchFieldException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

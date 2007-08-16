@@ -15,10 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-/*
- * Created on Jul 20, 2007
- *
- */
 package com.sun.fortress.interpreter.evaluator;
 
 import java.util.List;
@@ -46,6 +42,8 @@ import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.useful.BoundingMap;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 /**
  * This visitor "refines" a bounding map by making its inferences more
  * specific where needed.  In practice, this only matters in the dual
@@ -54,8 +52,6 @@ import com.sun.fortress.useful.BoundingMap;
  *
  * Keep in mind that this is a feeble approximation of what we really
  * need from type inference.
- *
- * @author chase
  */
 public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
 
@@ -76,7 +72,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     }
 
     public void defaultCase(Node that) {
-        throw new Error("Missing visitor for " + that.getClass());
+        bug(that, "Missing visitor for " + that.getClass());
     }
 
      protected void acceptList(List<? extends AbstractNode> nodes, NodeAbstractVisitor_void visitor) {

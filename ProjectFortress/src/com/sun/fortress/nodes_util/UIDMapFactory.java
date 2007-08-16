@@ -20,6 +20,8 @@ package com.sun.fortress.nodes_util;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BATree2;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class UIDMapFactory {
     /**
      * Returns a BATree mapping UID things to T's
@@ -40,6 +42,6 @@ public class UIDMapFactory {
     }
 
     private UIDMapFactory() {
-        throw new Error("Really, don't call this");
+        bug("Really, don't call this");
     }
 }

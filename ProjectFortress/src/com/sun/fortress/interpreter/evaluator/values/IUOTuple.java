@@ -19,13 +19,14 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * Like a tuple, but not. Useful for intermediate results from array pastings
@@ -166,10 +167,9 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         if (lens[rank - 1] == 0) {
             lens[rank - 1] = l;
         } else if (lens[rank - 1] != l) {
-            throw new ProgramError(at,
-                                   errorMsg("At paste level ", rank,
-                                            " pasting lengths ", l, " and ", lens[rank],
-                                            " do not match"));
+            error(at, errorMsg("At paste level ", rank,
+                               " pasting lengths ", l, " and ", lens[rank],
+                               " do not match"));
         }
     }
 
@@ -201,7 +201,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 along_k[coordinate[k]] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at,
+                                error(at,
                                         errorMsg("Element at ",
                                             Useful.coordInDelimiters("[",
                                                 coordinate, k, "]"),
@@ -215,7 +215,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 extentSums[k] = length;
                             } else if (length != current) {
-                                throw new ProgramError(at,
+                                error(at,
                                         errorMsg("Element at ",
                                             Useful.coordInDelimiters("[",
                                                 coordinate, "]"),

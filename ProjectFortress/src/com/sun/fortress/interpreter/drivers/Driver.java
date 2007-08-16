@@ -78,6 +78,7 @@ import com.sun.fortress.nodes_util.Unprinter;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Driver {
 
@@ -378,7 +379,8 @@ public class Driver {
                         /*
                          * Not-yet-implemented because of issues with selectors.
                          */
-                        NI.nyi("Import of dotted names from API "+adi+"; try import * from insteand.");
+                        bug(adi, errorMsg("Import of dotted names from API ",
+                                          adi, "; try import * from insteand."));
                     }
 
                 } else if (i instanceof ImportFrom) {

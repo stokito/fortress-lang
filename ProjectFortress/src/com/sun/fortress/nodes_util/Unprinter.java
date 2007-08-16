@@ -31,8 +31,10 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.useful.Pair;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
  * A collection of methods for converting from a readable AST to an AST data
@@ -129,7 +131,7 @@ public class Unprinter extends NodeReflection {
             fname = deQuote(next);
             String comma = l.name(false);
             if (!",".equals(comma)) {
-                throw new Error("Expected comma, got " + comma);
+                bug("Expected comma, got " + comma);
             }
             next = l.name(false);
         }
@@ -153,7 +155,7 @@ public class Unprinter extends NodeReflection {
                 fname = deQuote(next);
                 String comma = l.name(false);
                 if (!",".equals(comma)) {
-                    throw new Error("Expected comma, got " + comma);
+                    bug("Expected comma, got " + comma);
                 }
                 next = l.name(false);
                 sawFile = true;
@@ -165,7 +167,7 @@ public class Unprinter extends NodeReflection {
                 c1 = l.name(false);
                 next = l.name();
             } else if (sawFile) {
-                throw new Error("Saw f,l:c~f,l with no following colon");
+                throw new InterpreterBug("Saw f,l:c~f,l with no following colon");
             } else {
                 c1 = l_or_c;
                 if (")".equals(colon)) {
@@ -173,7 +175,7 @@ public class Unprinter extends NodeReflection {
                 } else if (colon.length() == 0) {
                     next = l.name();
                 } else {
-                    throw new Error("Did we expect this?");
+                    throw new InterpreterBug("Did we expect this?");
                 }
 
             }
@@ -248,13 +250,13 @@ public class Unprinter extends NodeReflection {
             node = makeNodeFromSpan(class_name, null, lastSpan);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         } catch (InstantiationException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         }
         // Iteratively read field names and values, and assign them into
         // the (increasingly less-) empty node.
@@ -317,20 +319,20 @@ public class Unprinter extends NodeReflection {
                         // missing option
                         f.set(node, Option.none());
                     } else {
-                        throw new Error("Unexpected missing data, field "
+                        bug("Unexpected missing data, field "
                                 + f.getName() + " of class " + class_name);
                     }
                 }
             }
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new Error("Error reading node type " + class_name);
+            bug("Error reading node type " + class_name);
         }
         return node;
     }
@@ -353,10 +355,10 @@ public class Unprinter extends NodeReflection {
     public static String deQuote(CharSequence s) {
         int l = s.length();
         if (s.charAt(0) != '\"') {
-            throw new Error("Malformed input, missing initial \"");
+            bug("Malformed input, missing initial \"");
         }
         if (s.charAt(l - 1) != '\"') {
-            throw new Error("Malformed input, missing final \"");
+            bug("Malformed input, missing final \"");
         }
         StringBuffer sb = new StringBuffer(l - 2);
         StringBuffer escaped = null;
@@ -365,7 +367,7 @@ public class Unprinter extends NodeReflection {
             char c = s.charAt(i);
             if (state == NORMAL) {
                 if (c == '\"') {
-                    throw new Error(
+                    bug(
                             "Malformed input, unescaped \" seen at position "
                                     + i);
                 } else if (c == '\\') {
@@ -402,7 +404,7 @@ public class Unprinter extends NodeReflection {
                     sb.append('\\');
                     state = NORMAL;
                 } else {
-                    throw new Error(
+                    bug(
                             "Malformed input, unexpected backslash escape " + c
                                     + "(hex " + Integer.toHexString(c)
                                     + ") at index " + i);
@@ -418,12 +420,12 @@ public class Unprinter extends NodeReflection {
                         try {
                             fromHex = Integer.parseInt(escaped.toString(), 16);
                             if (fromHex < 0 || fromHex > 0xFFFF) {
-                                throw new Error("Unicode " + escaped
+                                bug("Unicode " + escaped
                                         + " too large for Java-hosted tool");
                             }
                             sb.append((char) fromHex);
                         } catch (NumberFormatException ex) {
-                            throw new Error("Malformed hex encoding " + escaped);
+                            bug("Malformed hex encoding " + escaped);
                         }
                     } else {
                         translateUnicode(escaped.toString(), sb);
@@ -511,7 +513,7 @@ public class Unprinter extends NodeReflection {
         case '\\':
             return '\\';
         default:
-            throw new Error("Invalid input, character value 0x"
+            throw new InterpreterBug("Invalid input, character value 0x"
                     + Integer.toHexString(c));
         }
     }
@@ -531,7 +533,7 @@ public class Unprinter extends NodeReflection {
             x = deQuote(a).intern(); // Internal form is quoted
             y = deQuote(l.name()).intern(); // Internal form is quoted
         } else {
-            throw new Error("Pair of unknown stuff beginning " + a);
+            throw new InterpreterBug("Pair of unknown stuff beginning " + a);
         }
         expectPrefix(")");
         return new Pair<Object, Object>(x, y);
@@ -574,7 +576,7 @@ public class Unprinter extends NodeReflection {
             } else if (s.startsWith("]")) {
                 return a;
             } else {
-                throw new Error("List of unknown element beginning " + s);
+                throw new InterpreterBug("List of unknown element beginning " + s);
             }
             a.add(x);
             s = l.name();
@@ -590,7 +592,7 @@ public class Unprinter extends NodeReflection {
         String s = l.name();
         if (")".equals(s)) { return Option.none(); }
         else if (!"_value".equals(s)) {
-            throw new Error("Expected '_value' saw '" + s + "'");
+            throw new InterpreterBug("Expected '_value' saw '" + s + "'");
         }
         expectPrefix("=");
         Object x;

@@ -247,7 +247,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //            if (new_table.getWeight() == table.getWeight()) {
 //                BATreeNode<String, Result> original = table.getObject(index, comparator);
 //                if (original == null) {
-//                    throw new Error("Duplicate entry in table, but not in table.");
+//                    bug("Duplicate entry in table, but not in table.");
 //                }
 //                throw new RedefinitionError(what, index, original.getValue(), value);
 //            }

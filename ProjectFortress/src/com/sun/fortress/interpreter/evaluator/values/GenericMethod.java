@@ -221,8 +221,9 @@ public class GenericMethod extends MethodClosure implements
             if (x != 0) return x;
             return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
         } else {
-            throw new Error("NodeComparator.compare(" +
-                            left.getClass() + ", " + right.getClass());
+            throw new InterpreterBug(left,
+                                     "NodeComparator.compare(" +
+                                     left.getClass() + ", " + right.getClass());
         }
     }
 

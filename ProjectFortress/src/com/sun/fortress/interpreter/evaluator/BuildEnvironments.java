@@ -1240,7 +1240,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                      * topological order.
                      */
                 } else {
-                    NI.nyi("Where clause " + w);
+                    bug(w, errorMsg("Where clause ", w));
                 }
             }
         }
@@ -1284,7 +1284,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     Type type = ta.getType();
                     interior.putType(name.getName(), et.evalType(type));
                 } else {
-                    NI.nyi("Where clause " + w);
+                    bug(w, errorMsg("Where clause ", w));
                 }
             }
         }

@@ -33,6 +33,9 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.interpreter.evaluator.FortressError;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /*
  * JUnit based test
@@ -64,10 +67,10 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
 
     abstract static class FN {
-        void run(Lex a) throws IOException { throw new Error("unimplemented"); }
-        void run(Lex a, String eq) throws IOException { throw new Error("unimplemented"); }
-        void run(Lex a, int eq) throws IOException { throw new Error("unimplemented"); }
-        void run(Lex a, String s1, String s2) throws IOException { throw new Error("unimplemented"); }
+        void run(Lex a) throws IOException { bug("unimplemented"); }
+        void run(Lex a, String eq) throws IOException { bug("unimplemented"); }
+        void run(Lex a, int eq) throws IOException { bug("unimplemented"); }
+        void run(Lex a, String s1, String s2) throws IOException { bug("unimplemented"); }
     }
 
 
@@ -86,7 +89,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
             Lex a = new Lex(bs(s));
             f.run(a);
             fail("Missing error");
-        } catch (Error ex) {
+        } catch (FortressError ex) {
              out.println("OK, "  + s + ", " + ex);
         } catch (IOException ex) {
             fail("Unexpected IO exception " + ex);

@@ -64,8 +64,7 @@ AbsFnDecl FnSig =
                assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
            }
            public void defaultCase(Node that) {
-               throw new RuntimeException("Node expected to be a Type; was: "
-                                          + that);
+               bug(errorMsg("Node expected to be a Type; was: ", that));
            }
        });
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,

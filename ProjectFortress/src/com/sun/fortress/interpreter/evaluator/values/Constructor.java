@@ -51,7 +51,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.GHashMap;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.ReversedList;
 import com.sun.fortress.useful.Useful;
 
@@ -401,7 +400,7 @@ public class Constructor extends AnonymousConstructor {
                 signaturesToTraitsContainingMethods.putIfAbsent
                     ((MethodClosure) fv, ft);
             } else {
-                NI.nyi("Don't handle " + fv + " yet");
+                bug(errorMsg("Don't handle ", fv, " yet"));
             }
             // Record the name to ensure that it is defined somewhere.
             traitsToNamesReferenced.putItem(ft, ((Fcn)fv).asMethodName());

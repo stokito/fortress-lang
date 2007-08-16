@@ -32,6 +32,8 @@ import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class NodeUtil {
 
     public static final String defaultSelfName = WellKnownNames.defaultSelfName;
@@ -102,7 +104,7 @@ public class NodeUtil {
             List<String> names = toStrings(n);
             int size = names.size();
             if (size == 0) {
-                throw new Error("Non-empty string is expected.");
+                throw new InterpreterBug(n, "Non-empty string is expected.");
             } else if (size == 1) {
                 return names.get(0);
             } else {
@@ -305,7 +307,7 @@ public class NodeUtil {
     }
 
     public static <T> T NYI(String s) {
-        throw new Error("AST." + s + " NYI");
+        throw new InterpreterBug("AST." + s + " NYI");
     }
 
     /* function ************************************************************/
