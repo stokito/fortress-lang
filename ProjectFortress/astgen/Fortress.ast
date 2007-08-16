@@ -764,13 +764,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract LetExpr(List<Expr> body);
             /**
-             * generated expression
-             * BlockElem ::= Expr(, GeneratorList)?
-             * e.g.) print (i " "), i <- sequential(1:5)
-             */
-            GeneratedExpr(Expr expr, List<Generator> gens);
-            /**
              * local function declaration
+             * LocalVarFnDecl ::= LocalFnDecl+
              * LocalFnDecl ::= LocalFnMods? FnHeaderFront FnHeaderClause = Expr
              * e.g.) localFn(x: ZZ32) = x + 2
              */
@@ -792,6 +787,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) localVar x = 3
              */
             LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = Option.<Expr>none());
+        /**
+         * generated expression
+         * BlockElem ::= Expr(, GeneratorList)?
+         * e.g.) print (i " "), i <- sequential(1:5)
+         */
+        GeneratedExpr(Expr expr, List<Generator> gens);
         /**
          * expression that is simple or using operators
          * Expr ::= OpExpr

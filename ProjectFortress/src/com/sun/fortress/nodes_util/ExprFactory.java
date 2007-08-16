@@ -188,10 +188,6 @@ public class ExprFactory {
 
     public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
         return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
-            public LetExpr forGeneratedExpr(GeneratedExpr expr) {
-                return new GeneratedExpr(expr.getSpan(), false, body,
-                                         expr.getExpr(), expr.getGens());
-            }
             public LetExpr forLetFn(LetFn expr) {
                 return new LetFn(expr.getSpan(),false, body, expr.getFns());
             }
@@ -403,7 +399,7 @@ public class ExprFactory {
                                   e.getThrowsClause(), e.getBody());
             }
             public Expr forGeneratedExpr(GeneratedExpr e) {
-                return new GeneratedExpr(e.getSpan(), true, e.getBody(),
+                return new GeneratedExpr(e.getSpan(), true,
                                          e.getExpr(), e.getGens());
             }
             public Expr forLetFn(LetFn e) {

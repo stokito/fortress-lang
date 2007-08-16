@@ -57,7 +57,7 @@ private Expr BlockElem =
    / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorList)?
      { if (a2 == null) yyValue = a1;
        else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), false,
-                                        FortressUtil.emptyExprs(), a1, a2);
+                                        a1, a2);
      };
 
 /* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
