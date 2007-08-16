@@ -69,6 +69,8 @@
  <property name="junitMem" value="512m"/>
  <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property environment="env"/>
+ 
+ <property name="blahblahblah" value="com/sun/fortress"/>
 
     <target name="help">
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
@@ -297,7 +299,6 @@ testNotPassing, testOnly"/>
              <include name="${blahblahblah}/unicode/*.java"/>
          </javac>
      </target>
-<property name="blahblahblah" value="com/sun/fortress"/>
 
     <target name="compileCommonLint" depends="init"
       description="Compile interpreter-indepedent code.">
@@ -345,6 +346,7 @@ testNotPassing, testOnly"/>
                 <pathelement location="${xtc}/xtc.jar"/>
                 <pathelement location="${jsr166y}/jsr166y.jar"/>
                 <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
             <batchtest fork="true" todir="${test.results}">
@@ -376,6 +378,7 @@ testNotPassing, testOnly"/>
              <pathelement location="${xtc}/xtc.jar"/>
              <pathelement location="${jsr166y}/jsr166y.jar"/>
              <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
@@ -405,6 +408,7 @@ testNotPassing, testOnly"/>
              <pathelement location="${jsr166y}/jsr166y.jar"/>
              <pathelement location="${xtc}/xtc.jar"/>
              <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
             </classpath>
             <formatter type="brief" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
@@ -431,6 +435,7 @@ testNotPassing, testOnly"/>
               <pathelement location="${jsr166y}/jsr166y.jar"/>
               <pathelement location="${xtc}/xtc.jar"/>
               <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
              </classpath>
              <formatter type="brief" usefile="true"/>
              <batchtest fork="true" todir="${test.results}">
