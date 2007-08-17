@@ -166,8 +166,6 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Evaluator extends EvaluatorBase<FValue> {
     boolean debug = false;
-    int transactionNestingCount = 0;
-
     final public static FVoid evVoid = FVoid.V;
 
     public FValue eval(Expr e) {
@@ -209,7 +207,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     protected Evaluator(Evaluator e2) {
         super(e2.e);
         debug = e2.debug;
-        transactionNestingCount = e2.transactionNestingCount;
     }
 
     public void debugPrint(String debugString) {
@@ -303,7 +300,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
-        transactionNestingCount += 1;
 
         FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
@@ -313,7 +309,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             }
         );
-        transactionNestingCount -= 1;
         return res;
     }
 
@@ -423,21 +418,25 @@ public class Evaluator extends EvaluatorBase<FValue> {
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
- } else if (transactionNestingCount > 0) {
-   for (Expr exp : exprs) {
-       resList.add(exp.accept(this));
-   }
+	    /* If we are already in a transaction, don't evaluate in parallel */
+	} else if (BaseTask.getThreadState().transactionNesting() > 0) {
+	    for (Expr exp : exprs) {
+		resList.add(exp.accept(this));
+	    }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
-            BaseTask currentTask = BaseTask.getCurrentTask();
             for (Expr e : exprs) {
-                tasks[count++] = new TupleTask(e, this, currentTask);
+                tasks[count++] = new TupleTask(e, this);
             }
+            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+            BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
+	    runner.setCurrentTask(currentTask);
+	    
             for (int i = 0; i < count; i++) {
-                if (tasks[i].causedException) {
-                    Throwable t = tasks[i].getTaskException();
+                if (tasks[i].causedException()) {
+                    Throwable t = tasks[i].taskException();
                     if (t instanceof Error) {
                         throw (Error)t;
                     } else if (t instanceof RuntimeException) {

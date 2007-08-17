@@ -30,10 +30,10 @@ public class ThreadState {
     int depth = 0;
     ContentionManager manager;
   
-    public long committed = 0;        // number of committed transactions
-    public long total = 0;            // total number of transactions
-    public long committedMemRefs = 0; // number of committed reads and writes
-    public long totalMemRefs = 0;     // total number of reads and writes
+    long committed = 0;        // number of committed transactions
+    long total = 0;            // total number of transactions
+    long committedMemRefs = 0; // number of committed reads and writes
+    long totalMemRefs = 0;     // total number of reads and writes
   
     Set<Callable<Boolean>> onValidate = new HashSet<Callable<Boolean>>();
     Set<Runnable>          onCommit   = new HashSet<Runnable>();
@@ -58,6 +58,9 @@ public class ThreadState {
 	    throw new PanicException(e);
 	}
     }
+
+    /* Are we in a transaction? */
+    public int transactionNesting() { return depth;}
   
     /**
      * Resets any metering information (commits/aborts, etc).
@@ -68,6 +71,11 @@ public class ThreadState {
 	committedMemRefs = 0; // number of committed reads and writes
 	totalMemRefs = 0;     // total number of reads and writes
     }
+
+    public void incCommitted(int num) { committed += num;}
+    public void incTotal(int num) {total+= num;}
+    public void incCommittedMemRefs(int num) { committedMemRefs += num;}
+    public void incTotalMemRefs(int num) {totalMemRefs += num;}
   
     /**
      * used for debugging
@@ -80,7 +88,16 @@ public class ThreadState {
 	    "aborted: " + ( total -  committed) +
 	    "]";
     }
-  
+
+    public Transaction transaction() { return transaction;}
+    public ContentionManager manager() { return manager;}
+    public void addToTotalMemRefs(long num) { totalMemRefs += num;}
+    public long memRefs() { return totalMemRefs;}
+    public void addToCommittedMemRefs(long num) { committedMemRefs += num;}
+    public long commitedMemRefs() { return committedMemRefs;}
+    public void incAttempts() { transaction.attempts++;}
+    public long attempts() { return transaction.attempts;}
+
     /**
      * Can this transaction still commit?
      * This method may be called at any time, not just at transaction end,

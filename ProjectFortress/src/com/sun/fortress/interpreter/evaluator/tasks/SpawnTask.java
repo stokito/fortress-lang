@@ -34,19 +34,12 @@ public class SpawnTask extends BaseTask {
     FValue val;
     
     public void compute() {
-        initTask();
-        try {
-            val = new Evaluator(eval, expr).eval(expr);
-        } 
-        catch (Throwable e) {
-            causedException = true;
-            err = e;
-        }
-        finalizeTask();
+	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+	runner.setCurrentTask(this);
+	val = new Evaluator(eval, expr).eval(expr);
     }
     
-    public SpawnTask(Expr b, Evaluator e, BaseTask task) {
-        super(task);
+    public SpawnTask(Expr b, Evaluator e) {
         expr = b;
         eval = e;
     }

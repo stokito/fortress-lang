@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -46,27 +47,42 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
     return new BufferedReader(new StringReader(s));
   }
 
-  FortressTaskRunnerGroup group;
+    class TestTask extends BaseTask {
+	public void print() {
+	    System.out.println("TestTask");
+	}
+    
+	public void compute() {
+	    FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+	    runner.setCurrentTask(this);
+	    
+	    try {
+		BetterEnv e = BetterEnv.primitive();
+		e.bless();
+		BetterEnv s = new BetterEnv(e, "s");
+		s.bless();
+		BetterEnv s1 = new BetterEnv(s, "s1");
+		s1.putVariable("x", FInt.make(0));
+		s1.bless();
+		BetterEnv s2 = new BetterEnv(s1, "s2");
+		s2.putValue("y", FInt.make(10));
+		s2.bless();
+		BetterEnv s3 = new BetterEnv(s2, "s3");
+		s3.bless();
+		HasAt at = new HasAt.FromString("EvaluatorJUTest assignValue");
+		s3.assignValue(at,"x", FInt.make(1));
+		assertTrue(s2.getValue("x").getInt() == 1);
+		s3.dump(System.out);
+	    } catch (IOException e) {
+		throw new RuntimeException(e);
+	    }
+	}
+    }
 
   public void testEnvironment2() throws IOException {
-      group = new FortressTaskRunnerGroup(1);
-
-      BetterEnv e = BetterEnv.primitive();
-      e.bless();
-      BetterEnv s = new BetterEnv(e, "s");
-      s.bless();
-      BetterEnv s1 = new BetterEnv(s, "s1");
-      s1.putVariable("x", FInt.make(0));
-      s1.bless();
-      BetterEnv s2 = new BetterEnv(s1, "s2");
-      s2.putValue("y", FInt.make(10));
-      s2.bless();
-      BetterEnv s3 = new BetterEnv(s2, "s3");
-      s3.bless();
-      HasAt at = new HasAt.FromString("EvaluatorJUTest assignValue");
-      s3.assignValue(at,"x", FInt.make(1));
-      assertTrue(s2.getValue("x").getInt() == 1);
-      s3.dump(System.out);
+      FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(1);
+      TestTask testTask = new TestTask();
+      group.invoke(testTask);
   }
 
   public void testEnvironment3() throws IOException {

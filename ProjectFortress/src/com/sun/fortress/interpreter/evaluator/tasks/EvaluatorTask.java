@@ -33,8 +33,7 @@ public class EvaluatorTask extends BaseTask {
     List<String> args;
     
     public EvaluatorTask(CompilationUnit prog, boolean tests, 
-                         List<String> args_, BaseTask parent) {
-        super(parent);
+                         List<String> args_) {
         p = prog;
         runTests = tests;
         args = args_;
@@ -45,18 +44,17 @@ public class EvaluatorTask extends BaseTask {
     }
     
     public void compute() {
-        initTask();
+	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+	runner.setCurrentTask(this);
         try {
             Driver.runProgramTask(p, runTests, args);
         } 
         catch (Throwable e) {
             causedException = true;
             err = e;
-            //System.err.println("\nGot exception:\n" + e);
-            e.printStackTrace();
+	    e.printStackTrace();
+	    throw new RuntimeException(e);
         }
-        finalizeTask();
     }
-
 }
 

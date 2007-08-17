@@ -25,39 +25,38 @@ import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulEx
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
 import java.util.concurrent.Callable;
+import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
 
 public abstract class BaseTask extends RecursiveAction {
-    public boolean causedException;
-    public Throwable err;
-    public BaseTask currentTask;
-    int transactionCount;
+    Throwable err;
+    boolean causedException;
+    ThreadState threadState;
+    BaseTask parent;
 
-    public void initTask() {
-        setCurrentTask(this);
-        transactionCount = 0;
-    }
-
-    public void finalizeTask() {
-        setCurrentTask(parent);
-        if (parent != null) {
-            if (causedException) {
-                parent.causedException = true;
-                parent.err = err;
-     }
-        }
-    }
-
-    public BaseTask(BaseTask parent) {
+    public BaseTask() {
         causedException = false;
-        setParentTask(parent);
+	threadState = new ThreadState();
+	parent = getCurrentTask();
+    }	
+
+    public void recordException(Throwable t) { 
+	causedException = true;
+	err = t;
     }
 
     public boolean causedException() {return causedException;}
-    public Throwable getTaskException() {return err;}
+    public Throwable taskException() {return err;}
 
     public static BaseTask getCurrentTask() {
-        FortressTaskRunner taskrunner = (FortressTaskRunner) Thread.currentThread();
-        return (BaseTask) taskrunner.getCurrentTask();
+	/* This may get called before we've started our FortressTaskGroup so in 
+	   that case we have no current task and need to return null */
+	Thread t = Thread.currentThread();
+	BaseTask result = null;
+	if (t instanceof FortressTaskRunner) {
+	    FortressTaskRunner taskrunner = (FortressTaskRunner) t;
+	    result = (BaseTask) taskrunner.getCurrentTask();
+	}
+	return result;
     }
 
     public static void setCurrentTask(BaseTask task) {
@@ -65,34 +64,22 @@ public abstract class BaseTask extends RecursiveAction {
         taskrunner.setCurrentTask(task);
     }
 
-    BaseTask parent;
-    public BaseTask getParentTask() { return parent;}
-    public void setParentTask(BaseTask task) { parent = task;}
-
-
     public abstract void print();
 
     public static void printTaskTrace() {
         BaseTask currentTask = getCurrentTask();
         while (currentTask != null) {
             currentTask.print();
-            currentTask = currentTask.getParentTask();
+            currentTask = currentTask.parent;
         }
     }
 
-    Object tag;
-    // Finds the current task and tags it
-    public static void tagCurrentTask(Object obj) {
-        BaseTask currentTask = getCurrentTask();
-        currentTask.setTag(obj);
-    }
+    public ThreadState threadState() { return threadState();}
 
-    // Get the tag from the current task
-    public static Object  getCurrentTag() {
-        BaseTask currentTask = getCurrentTask();
-        return currentTask.getTag();
+    public static ThreadState getThreadState() { 
+	BaseTask task = getCurrentTask();
+	if (task == null) 
+	    throw new RuntimeException("Not in a task!");
+	return task.threadState;
     }
-
-    public void setTag(Object obj) { tag = obj;}
-    public Object getTag() { return tag;}
 }

@@ -41,8 +41,10 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
-import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -685,7 +687,7 @@ public class Driver {
 
            group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(p, runTests, args, null);
+        EvaluatorTask evTask = new EvaluatorTask(p, runTests, args);
         try {
             group.invoke(evTask);
         }
@@ -693,7 +695,7 @@ public class Driver {
             // group.interruptAll();
         }
         if (evTask.causedException()) {
-            throw evTask.getTaskException();
+            throw evTask.taskException();
         }
     }
 

@@ -32,7 +32,7 @@ public class FThread extends FConstructedValue {
     public String getString() {return "FThread: task = " + st;}
 
     public FThread(Expr b, Evaluator e) {
-	st = new SpawnTask(b,e, BaseTask.getCurrentTask());
+	st = new SpawnTask(b,e);
     }
 
     public FValue val() { return st.val();}

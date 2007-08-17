@@ -51,18 +51,6 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
  */
     public static long totalTotalMemRefs = 0;
 
-    static ThreadLocal<ThreadState> _threadState = new ThreadLocal<ThreadState>() {
-        protected synchronized ThreadState initialValue() {
-        return new ThreadState();
-
-	}
-    };
-    static ThreadLocal<Thread> _thread = new ThreadLocal<Thread>() {
-        protected synchronized Thread initialValue() {
-        return null;
-        }
-    };
-
     private static int MAX_NESTING_DEPTH = 100;
 
     private static Object lock = new Object();
@@ -70,7 +58,10 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public volatile BaseTask currentTask;
 
     public BaseTask getCurrentTask() {return currentTask;}
-    public void setCurrentTask(BaseTask task) {currentTask = task;}
+
+    public void setCurrentTask(BaseTask task) {
+	currentTask = task;
+    }
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
 	super(group);
@@ -116,7 +107,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return whether the current transaction may commit successfully.
      */
     static public boolean validate() {
-	ThreadState threadState = _threadState.get();
+	ThreadState threadState = BaseTask.getThreadState();
 	return threadState.validate();
     }
 
@@ -127,7 +118,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      *         there is no current transaction.
      */
     static public Transaction getTransaction() {
-	return _threadState.get().transaction;
+	ThreadState threadState = BaseTask.getThreadState();	
+	return threadState.transaction();
     }
 
     /**
@@ -136,7 +128,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return the invoking thread's contention manager
      */
     static public ContentionManager getContentionManager() {
-	return _threadState.get().manager;
+	ThreadState threadState = BaseTask.getThreadState();	
+	return threadState.manager();
     }
 
     /**
@@ -145,8 +138,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return result of <CODE>call()</CODE> method
      */
     public static <T> T doIt(Callable<T> xaction) {
-	ThreadState threadState = _threadState.get();
-	ContentionManager manager = threadState.manager;
+	ThreadState threadState = BaseTask.getThreadState();
+	ContentionManager manager = threadState.manager();
 	T result = null;
 	try {
 	    while (true) {
@@ -166,12 +159,12 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 		    e.printStackTrace();
 		    throw new PanicException("Error " + e);
 		}
-                threadState.totalMemRefs += threadState.transaction.memRefs;
+		threadState.addToTotalMemRefs(threadState.memRefs());
 		if (threadState.commitTransaction()) {
-		    threadState.committedMemRefs += threadState.transaction.memRefs;
+		    threadState.addToCommittedMemRefs(threadState.memRefs());
 		    return result;
 		}
-		threadState.transaction.attempts++;
+		threadState.incAttempts();
 		// transaction aborted
 	    }
 	} finally {
@@ -220,63 +213,72 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @param c abort if this object's <CODE>call()</CODE> method returns false
      */
     public static void onValidate(Callable<Boolean> c) {
-	_threadState.get().onValidate.add(c);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onValidate.add(c);
     }
     /**
      * Register a method to be called every time the current transaction is validated.
      * @param c abort if this object's <CODE>call()</CODE> method returns false
      */
     public static void onValidateOnce(Callable<Boolean> c) {
-	_threadState.get().onValidateOnce.add(c);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onValidateOnce.add(c);
     }
     /**
      * Register a method to be called every time this thread begins a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onBegin(Runnable r) {
-	_threadState.get().onBegin.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onBegin.add(r);
     }
     /**
      * Register a method to be called the next time this thread begins a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onBeginOnce(Runnable r) {
-	_threadState.get().onBeginOnce.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onBeginOnce.add(r);
     }
     /**
      * Register a method to be called every time this thread commits a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onCommit(Runnable r) {
-	_threadState.get().onCommit.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onCommit.add(r);
     }
     /**
      * Register a method to be called once if the current transaction commits.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onCommitOnce(Runnable r) {
-	_threadState.get().onCommitOnce.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onCommitOnce.add(r);
     }
     /**
      * Register a method to be called every time this thread aborts a transaction.
      * @param r call this objec't <CODE>run()</CODE> method
      */
     public static void onAbort(Runnable r) {
-	_threadState.get().onAbort.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onAbort.add(r);
     }
     /**
      * Register a method to be called once if the current transaction aborts.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onAbortOnce(Runnable r) {
-	_threadState.get().onAbortOnce.add(r);
+	ThreadState threadState = BaseTask.getThreadState();
+	threadState.onAbortOnce.add(r);
     }
     /**
      * get thread ID for debugging
      * @return unique id
      */
     public static int getID() {
-	return _threadState.get().hashCode();
+	ThreadState threadState = BaseTask.getThreadState();
+	return threadState.hashCode();
     }
 
     /**

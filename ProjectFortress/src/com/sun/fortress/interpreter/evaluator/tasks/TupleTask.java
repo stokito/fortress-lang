@@ -30,22 +30,15 @@ public class TupleTask extends BaseTask {
     
     FValue res;
     
-    public TupleTask(Expr ex, Evaluator ev, BaseTask parent) {
-        super(parent);
+    public TupleTask(Expr ex, Evaluator ev) {
         expr = ex;
         eval = ev;
     }
     
     public void compute() {
-        initTask();
-        try {
-            res = new Evaluator(eval, expr).eval(expr);
-        } 
-        catch (Throwable e) {
-            causedException = true;
-            err = e;
-        }
-        finalizeTask();
+	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+	runner.setCurrentTask(this);
+	res = new Evaluator(eval, expr).eval(expr);
     }
     
     public void print() {
