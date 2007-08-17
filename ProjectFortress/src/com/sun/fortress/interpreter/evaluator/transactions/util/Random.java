@@ -175,10 +175,10 @@ public class Random extends java.util.Random {
         v2 = 2 * nextDouble() - 1; // between -1 and 1
         s = v1 * v1 + v2 * v2;
       } while (s >= 1 || s == 0);
-      double multiplier = Math.sqrt(-2 * Math.log(s)/s);
-      nextNextGaussian = v2 * multiplier;
+      double m = Math.sqrt(-2 * Math.log(s)/s);
+      nextNextGaussian = v2 * m;
       haveNextNextGaussian = true;
-      return v1 * multiplier;
+      return v1 * m;
     }
   }
 

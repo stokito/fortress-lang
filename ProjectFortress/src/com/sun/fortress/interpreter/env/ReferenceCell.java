@@ -55,7 +55,7 @@ public class ReferenceCell extends IndirectionCell {
 	node = new FNode(v);
 	rnode = (Recoverable)node;
 	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED;
+	writer = Transaction.COMMITTED_TRANS;
 	readers = new ReadSet();
     }
 
@@ -65,7 +65,7 @@ public class ReferenceCell extends IndirectionCell {
 	node = new FNode();
 	rnode = (Recoverable)node;
 	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED;
+	writer = Transaction.COMMITTED_TRANS;
 	readers = new ReadSet();
     }
 
@@ -74,7 +74,7 @@ public class ReferenceCell extends IndirectionCell {
 	node = new FNode();
 	rnode = (Recoverable)node;
 	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED;
+	writer = Transaction.COMMITTED_TRANS;
 	readers = new ReadSet();
     }
 
@@ -161,7 +161,7 @@ public class ReferenceCell extends IndirectionCell {
     if (me == null) {	// restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
-        writer = Transaction.COMMITTED;
+        writer = Transaction.COMMITTED_TRANS;
       }
       return null;
     }
@@ -187,7 +187,7 @@ public class ReferenceCell extends IndirectionCell {
       default:
         throw new PanicException(FORMAT, writer.getStatus());
     }
-    writer = Transaction.COMMITTED;
+    writer = Transaction.COMMITTED_TRANS;
     readers.add(me);
     manager.openSucceeded();
     return null;
@@ -203,7 +203,7 @@ public class ReferenceCell extends IndirectionCell {
     if (me == null) {	// restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
-        writer = Transaction.COMMITTED;
+        writer = Transaction.COMMITTED_TRANS;
       }
       return null;
     }

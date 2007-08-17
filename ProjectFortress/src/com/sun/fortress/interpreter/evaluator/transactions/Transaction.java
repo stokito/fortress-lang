@@ -39,11 +39,11 @@ public class Transaction {
   /**
    * Predefined committed transaction
    */
-  public static Transaction COMMITTED = new Transaction(Status.COMMITTED);
+    public static Transaction COMMITTED_TRANS = new Transaction(Status.COMMITTED);
   /**
    * Predefined orted transaction
    */
-  public static Transaction ABORTED   = new Transaction(Status.ABORTED);
+    public static Transaction ABORTED_TRANS   = new Transaction(Status.ABORTED);
 
   /**
    * Is transaction waiting for another?
@@ -139,8 +139,8 @@ public class Transaction {
    * @return whether transaction is committed or active
    */
   public boolean validate() {
-    Status status = this.getStatus();
-    switch (status) {
+    Status st = this.getStatus();
+    switch (st) {
       case COMMITTED:
         throw new PanicException("committed transaction still running");
       case ACTIVE:
