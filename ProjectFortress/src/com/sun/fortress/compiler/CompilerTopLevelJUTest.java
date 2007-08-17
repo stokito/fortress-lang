@@ -21,12 +21,15 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.Arrays;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.lambda.Predicate;
+import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 
@@ -41,12 +44,17 @@ public class CompilerTopLevelJUTest extends TestCase {
         "static_tests/stub to eliminate comma trouble"
     );
     
+    private static final Set<File> NOT_PASSING_FILES =
+      CollectUtil.asSet(IterUtil.map(NOT_PASSING, new Lambda<String, File>() {
+        public File value(String s) { return new File(s); }
+      }));
+    
     public void testStaticTests() {
         boolean foundAFile = false;
         Predicate<File> filter = IOUtil.extensionFilePredicate("fss", IOUtil.IS_FILE);
         for (File f : IOUtil.listFilesRecursively(new File("static_tests"), filter)) {
             foundAFile = true;
-            if (SKIP_NOT_PASSING && NOT_PASSING.contains(f.toString())) { continue; }
+            if (SKIP_NOT_PASSING && NOT_PASSING_FILES.contains(f)) { continue; }
             else if (f.getName().contains("XXX")) { assertMalformedProgram(f); }
             else { assertWellFormedProgram(f); }
         }
