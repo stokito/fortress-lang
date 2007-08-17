@@ -22,5 +22,6 @@ import java.util.List;
 public interface GenericTypeInstance {
     public FTypeGeneric getGeneric();
     public List<FType> getTypeParams();
+    public List<FType> getTypeParamsForName();
 
 }

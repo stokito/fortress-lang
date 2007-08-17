@@ -37,22 +37,26 @@ import com.sun.fortress.useful.BoundingMap;
  */
 public class FTypeTraitInstance extends FTypeTrait implements GenericTypeInstance {
 
-    public FTypeTraitInstance(String name, BetterEnv interior, FTypeGeneric generic, List<FType> args, List<? extends AbsDeclOrDecl> members) {
+    public FTypeTraitInstance(String name, BetterEnv interior, FTypeGeneric generic, List<FType> bind_args, List<FType> name_args, List<? extends AbsDeclOrDecl> members) {
         super(name, interior, interior.getAt(), members);
         this.generic = generic;
-        this.args = args;
+        this.bind_args = bind_args;
+        this.name_args = name_args;
    }
 
     final private FTypeGeneric generic;
-    final private List<FType> args;
+    final private List<FType> bind_args;
+    final private List<FType> name_args;
 
     @Override
     public FTypeGeneric getGeneric() { return generic; }
 
     @Override
-    public List<FType> getTypeParams() { return args; }
+    public List<FType> getTypeParams() { return bind_args; }
 
-    /*
+    @Override
+    public List<FType> getTypeParamsForName() { return name_args; }
+/*
      * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
      *      com.sun.fortress.interpreter.nodes.Type)
      */

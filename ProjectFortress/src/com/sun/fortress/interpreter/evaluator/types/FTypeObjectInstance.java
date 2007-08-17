@@ -31,15 +31,17 @@ public class FTypeObjectInstance extends FTypeObject implements
         GenericTypeInstance {
 
     public FTypeObjectInstance(String name, BetterEnv interior,
-            FTypeGeneric generic, List<FType> args, List<? extends AbsDeclOrDecl> members) {
+            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args, List<? extends AbsDeclOrDecl> members) {
         super(name, interior, interior.getAt(), members);
         this.generic = generic;
-        this.args = args;
+        this.bind_args = bind_args;
+        this.name_args = name_args;
     }
 
     final private FTypeGeneric generic;
 
-    final private List<FType> args;
+    final private List<FType> bind_args;
+    final private List<FType> name_args;
 
     @Override
     public FTypeGeneric getGeneric() {
@@ -48,7 +50,12 @@ public class FTypeObjectInstance extends FTypeObject implements
 
     @Override
     public List<FType> getTypeParams() {
-        return args;
+        return bind_args;
+    }
+
+    @Override
+    public List<FType> getTypeParamsForName() {
+        return name_args;
     }
 
     /*

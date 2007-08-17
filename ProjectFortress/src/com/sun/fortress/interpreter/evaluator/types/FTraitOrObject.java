@@ -129,6 +129,11 @@ abstract public class FTraitOrObject extends FType {
                                           this));
     }
 
+    protected List<FType> getTypeParamsForName() {
+        throw new InterpreterBug(errorMsg("getTypeParamsForName() of non-Generic ",
+                                          this));
+    }
+
     protected List<FType> computeTransitiveExtends() {
         return traitsSortedBySpecificity();
     }
@@ -151,7 +156,7 @@ abstract public class FTraitOrObject extends FType {
         // TODO need to carry generic parameters through, perhaps.
         if (this instanceof GenericTypeInstance) {
             GenericTypeInstance gti_this = (GenericTypeInstance) this;
-            return getName() + Useful.listInOxfords(gti_this.getTypeParams());
+            return getName() + Useful.listInOxfords(gti_this.getTypeParamsForName());
         } else {
             return getName();
         }

@@ -151,7 +151,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
             if (dod instanceof TraitAbsDeclOrDecl) {
                 TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
                 FTypeTrait ftt = new FTypeTraitInstance(td.getId()
-                        .getName(), clenv, gen, bind_args, gen.members);
+                        .getName(), clenv, gen, bind_args, key_args, gen.members);
                 FTraitOrObject old = map.put(key_args, ftt); // Must put
                                                             // early to
                                                             // expose for
@@ -166,7 +166,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
                 FTypeObject fto = new FTypeObjectInstance(td.getId()
-                        .getName(), clenv, gen, bind_args, gen.members);
+                        .getName(), clenv, gen, bind_args, key_args, gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
@@ -179,7 +179,7 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
             } else if (dod instanceof _RewriteObjectExpr) {
                 _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
                 FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
-                        clenv, gen, bind_args, gen.members);
+                        clenv, gen, bind_args, key_args, gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
