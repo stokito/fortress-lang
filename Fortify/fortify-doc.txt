@@ -330,5 +330,8 @@ words before point.  M-? makes it easy to switch to another buffer;
 each time it is typed in succession, a another buffer is pulled to
 the top of the buffer list and made current.
 
-I put the files in the svn repository, in  Fortress/latex-common/emacs-tools/ ;
-this documentation is  fortify-doc.txt , and the elisp code is in  fortify.el .
+You can also format an entire Fortress file at the command line by invoking the batch-fortify function:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l ABSOLUTE-PATH-TO-FORTIFY-DIRECTORY/fortify.el -f batch-fortify
+
+The result is that a formatted file is created, with the same name and at the same location as the input file, but with extension .tex.

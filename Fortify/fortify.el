@@ -1362,3 +1362,12 @@ as a comment and easily altered and reformatted as necessary."
     (let ((old-point-position (marker-position old-point)))
       (set-marker old-point nil)
       (goto-char old-point-position))))
+
+(defun batch-fortify ()
+    "Fortify the whole buffer and write to a filename in pwd, with extension .tex."
+    (mark-whole-buffer)
+    (fortify 4)
+    (write-file (concat
+		 (file-name-sans-extension 
+		  (file-name-nondirectory (buffer-file-name)))
+		 ".tex")))
