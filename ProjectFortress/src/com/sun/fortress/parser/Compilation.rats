@@ -39,7 +39,9 @@ public CompilationUnit File =
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       DottedId name = NodeFactory.makeDottedId(span, file.substring(0,file.length()-4));
+       DottedId name = NodeFactory.makeDottedId(span,
+                                                file.substring(0,file.length()-4),
+                                                "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / a1:(w Imports)? w a2:AbsDecls w
@@ -48,7 +50,9 @@ public CompilationUnit File =
        String file = span.begin.getFileName();
        DottedId name;
        if (file.length() > 4)
-           name = NodeFactory.makeDottedId(span, file.substring(0, file.length()-4));
+           name = NodeFactory.makeDottedId(span,
+                                           file.substring(0,file.length()-4),
+                                           "\\.");
        else
            throw new ProgramError(new Id(span, "_"), "Invalid file name.");
        yyValue = new Api(span, name, a1, a2);
@@ -59,7 +63,9 @@ public CompilationUnit File =
        String file = span.begin.getFileName();
        DottedId name;
        if (file.length() > 4)
-           name = NodeFactory.makeDottedId(span, file.substring(0, file.length()-4));
+           name = NodeFactory.makeDottedId(span,
+                                           file.substring(0, file.length()-4),
+                                           "\\.");
        else
            throw new ProgramError(new Id(span, "_"), "Invalid file name.");
        yyValue = new Api(span, name, a1, a2);

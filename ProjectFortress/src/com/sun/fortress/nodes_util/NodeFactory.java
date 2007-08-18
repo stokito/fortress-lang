@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -140,6 +141,16 @@ public class NodeFactory {
 
     public static DottedId makeDottedId(Span span, String s) {
         return new DottedId(span, Useful.list(new Id(span, s)));
+    }
+
+    public static DottedId makeDottedId(Span span, String s, String delimiter) {
+        List<Id> ids = new ArrayList<Id>();
+        int size = s.split(File.separator).length;
+        String file = s.split(File.separator)[size-1];
+        for (String n : file.split(delimiter)) {
+            ids.add(new Id(span, n));
+        }
+        return new DottedId(span, ids);
     }
 
     public static DottedId makeDottedId(Id s) {
