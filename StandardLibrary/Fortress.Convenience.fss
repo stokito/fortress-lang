@@ -1,0 +1,38 @@
+export Fortress.Convenience
+
+(* Casting *)
+cast[\T\](x):T =
+  typecase x of
+    T => x
+    else => throw CastException
+  end
+
+(* Instanceof Testing *)
+instanceOf[\T\](x):Boolean =
+  typecase x of
+    T => true
+    else => false
+  end
+
+(* Ignoring Values *)
+ignore(x: Any) = ()
+
+(* Enforcing Tuples *)
+tuple[\T extends Tuple\](x: T) = x
+
+(* Identity *)
+identity[\T extends Any\](x: T) = x
+
+(* Coercion *)
+coerce_[\T\](x: T): = x
+
+(* Optional Values *)
+trait Maybe[\T\] comprises { Nothing, Just[\T\] }
+  isNothing: Boolean
+end
+object Nothing extends Maybe[\T\] excludes Just[\T\] where {T extends Object}
+  isNothing = true
+end
+object Just[\T\](just: T) extends Maybe[\T\]
+  isNothing = false
+end
