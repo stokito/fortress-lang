@@ -47,7 +47,7 @@ dim AbsorbedDose = Energy / Mass  SI_unit gray grays Gy_ = joules per kilogram
 dim CatalyticActivity = AmountOfSubstance / Time  SI_unit katal katals kat_ =
  moles per second
 
-(* other derived dimensions *)
+(* Other derived dimensions *)
 
 dim Area = Length^2
 dim Volume = Length^3

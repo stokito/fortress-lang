@@ -12,40 +12,28 @@ dim LuminousIntensity  SI_unit candela candelas cd_
 
 (* SI derived units with special names and symbols *)
 
-dim Angle = Unity  SI_unit radian radians rad_ = 1 meter per meter
-dim SolidAngle = Unity  SI_unit steradian steradians sr_ = radian squared
-dim Frequency = 1 / Time  SI_unit hertz Hz_ = 1 per second
-dim Force = Mass Acceleration  SI_unit newton newtons N_ =
- kilogram meter per second squared
-dim Pressure = Force / Area  SI_unit pascal pascals Pa_ =
- newtons per meter squared
-dim Energy = Length Force  SI_unit joule joules J_ = newton meters
-dim Power = Energy / Time  SI_unit watt watts W_ = joules per second
-dim ElectricCharge = ElectricCurrent Time  SI_unit coulomb coulombs C_ =
- ampere seconds
-dim ElectricPotential = Power / Current  SI_unit volt volts V_ =
- watts per ampere
-dim Capacitance = ElectricCharge / Voltage  SI_unit farad farads F_ =
- coulombs per volt
-dim Resistance = ElectricPotential / Current  SI_unit ohm ohms OMEGA_ =
- volts per ampere
-dim Conductance = 1 / Resistance  SI_unit siemens S_ = inverse ohms
-dim MagneticFlux = Voltage Time  SI_unit weber webers Wb_ = volt seconds
-dim MagneticFluxDensity = MagneticFlux / Area  SI_unit tesla teslas T_ =
- webers per meter squared
-dim Inductance = MagneticFlux / Current  SI_unit henry henries H_ =
- webers per ampere
-dim LuminousFlux = LuminousIntensity SolidAngle  SI_unit lumen lumens lm_ =
- candela steradians
-dim Illuminance = LuminousFlux / Area  SI_unit lux lx_ =
- lumens per meter squared
-dim RadionuclideActivity = 1 / Time  SI_unit becquerel becquerels Bq_ =
- inverse seconds
-dim AbsorbedDose = Energy / Mass  SI_unit gray grays Gy_ = joules per kilogram
-dim CatalyticActivity = AmountOfSubstance / Time  SI_unit katal katals kat_ =
- moles per second
+dim Angle = Unity  SI_unit radian radians rad_
+dim SolidAngle = Unity  SI_unit steradian steradians sr_
+dim Frequency = 1 / Time  SI_unit hertz Hz_
+dim Force = Mass Acceleration  SI_unit newton newtons N_
+dim Pressure = Force / Area  SI_unit pascal pascals Pa_
+dim Energy = Length Force  SI_unit joule joules J_
+dim Power = Energy / Time  SI_unit watt watts W_
+dim ElectricCharge = ElectricCurrent Time  SI_unit coulomb coulombs C_
+dim ElectricPotential = Power / Current  SI_unit volt volts V_
+dim Capacitance = ElectricCharge / Voltage  SI_unit farad farads F_
+dim Resistance = ElectricPotential / Current  SI_unit ohm ohms OMEGA_
+dim Conductance = 1 / Resistance  SI_unit siemens S_
+dim MagneticFlux = Voltage Time  SI_unit weber webers Wb_
+dim MagneticFluxDensity = MagneticFlux / Area  SI_unit tesla teslas T_
+dim Inductance = MagneticFlux / Current  SI_unit henry henries H_
+dim LuminousFlux = LuminousIntensity SolidAngle  SI_unit lumen lumens lm_
+dim Illuminance = LuminousFlux / Area  SI_unit lux lx_
+dim RadionuclideActivity = 1 / Time  SI_unit becquerel becquerels Bq_
+dim AbsorbedDose = Energy / Mass  SI_unit gray grays Gy_
+dim CatalyticActivity = AmountOfSubstance / Time  SI_unit katal katals kat_
 
-(* other derived dimensions *)
+(* Other derived dimensions *)
 
 dim Area = Length^2
 dim Volume = Length^3
@@ -95,11 +83,11 @@ dim RadiationExposure = ElectricCharge / Mass
 
 (* Units outside the SI that are accepted for use with the SI *)
 
-unit minute minutes min_: Time = 60 seconds
-unit hour hours h_: Time = 60 minutes
-unit day days d_: Time = 24 hours
-unit degreeOfAngle degrees: Angle  = (180/pi) radian
-unit minuteOfAngle minutesOfAngle: Angle = 1/60 degree
-unit secondOfAngle secondsOfAngle: Angle = 1/60 minuteOfAngle
-SI_unit metricTon metricTons tonne tonnes t_: Mass = 1000 kilograms
-SI_unit liter liters  L_: Volume = cubic decimeter
+unit minute minutes min_: Time
+unit hour hours h_: Time
+unit day days d_: Time
+unit degreeOfAngle degrees: Angle
+unit minuteOfAngle minutesOfAngle: Angle
+unit secondOfAngle secondsOfAngle: Angle
+SI_unit metricTon metricTons tonne tonnes t_: Mass
+SI_unit liter liters  L_: Volume

@@ -1,0 +1,4 @@
+export Fortress.InformationUnits
+
+dim Information  unit bit bits
+unit byte bytes = 8 bits
