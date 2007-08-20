@@ -157,3 +157,37 @@ AbsDecl AbsCoercion =
                                           NodeFactory.makeDottedId(span, "coerce"),
                                           a1, params, a4);
     };
+
+/* CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)? */
+private FnHeaderClause CoercionClauses =
+     a1:(w CoercionWhere)? a2:(w Ensures)? a3:(w Invariant)?
+     { Option<List<WhereClause>> whereClause = Option.wrap(a1);
+       Option<Contract> contractClause;
+       if (a2 == null && a3 == null) contractClause = Option.<Contract>none();
+       else contractClause = Option.<Contract>some(
+                                    new Contract(createSpan(yyStart,yyCount),
+                                                 Option.<List<Expr>>none(),
+                                                 Option.wrap(a2),
+                                                 Option.wrap(a3)));
+       yyValue = new FnHeaderClause(Option.<List<TraitType>>none(), whereClause,
+                                    contractClause, Option.<Type>none());
+     };
+
+/* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
+private List<WhereClause> CoercionWhere =
+     where w opencurly w CoercionWhereClauseList w closecurly ;
+
+/* CoercionWhereClauseList ::= CoercionWhereClause (w , w CoercionWhereClause)*
+ */
+private List<WhereClause> CoercionWhereClauseList =
+     a1:CoercionWhereClause a2s:(w comma w CoercionWhereClause)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* CoercionWhereClause ::=
+     WhereClause
+   | Type w widens w or w coerces w Type
+*/
+private WhereClause CoercionWhereClause =
+     WhereClause
+   / a1:Type w widens w or w coerces w a2:Type
+     { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };

@@ -110,7 +110,7 @@ private List<WhereClause> WhereClauseList =
    | IntConstraint
    | BoolConstraint
  */
-private WhereClause WhereClause =
+WhereClause WhereClause =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / TypeAlias
@@ -416,7 +416,7 @@ private List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
      };
 
 /* Ensures  ::= ensures w { (w EnsuresClauseList)? w } */
-private List<EnsuresClause> Ensures =
+List<EnsuresClause> Ensures =
      ensures w opencurly a1:(w EnsuresClauseList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyEnsuresClauses();
        else            yyValue = a1;
@@ -434,46 +434,10 @@ private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
      };
 
 /* Invariant::= invariant w { (w ExprList)? w } */
-private List<Expr> Invariant =
+List<Expr> Invariant =
      invariant w opencurly a1:(w ExprList)? w closecurly
      { if (a1 == null) yyValue = FortressUtil.emptyExprs();
        else            yyValue = a1;
-     };
-
-/* CoercionClauses ::= (w CoercionWhere)? w CoercionContract */
-FnHeaderClause CoercionClauses = a1:(w CoercionWhere)? w a2:CoercionContract
-     { Option<List<WhereClause>> whereClause = Option.wrap(a1);
-       Option<Contract>          contractClause = Option.wrap(a2);
-       yyValue = new FnHeaderClause(Option.<List<TraitType>>none(), whereClause,
-                                    contractClause, Option.<Type>none());
-     };
-
-/* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
-private List<WhereClause> CoercionWhere =
-     where w opencurly w CoercionWhereClauseList w closecurly ;
-
-/* CoercionWhereClauseList ::= CoercionWhereClause (w , w CoercionWhereClause)*
- */
-private List<WhereClause> CoercionWhereClauseList =
-     a1:CoercionWhereClause a2s:(w comma w CoercionWhereClause)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* CoercionWhereClause ::=
-     WhereClause
-   | Type w widens w or w coerces w Type
-*/
-private WhereClause CoercionWhereClause =
-     WhereClause
-   / a1:Type w widens w or w coerces w a2:Type
-     { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
-
-/* CoercionContract ::= (w Ensures)? (w Invariant)? */
-Contract CoercionContract = a1:(w Ensures)? a2:(w Invariant)?
-     { Option<List<EnsuresClause>> ensures = Option.wrap(a1);
-       Option<List<Expr>> invariant = Option.wrap(a2);
-       if (a1 == null && a2 == null) yyValue = null;
-       else yyValue = new Contract(createSpan(yyStart,yyCount),
-                                   Option.<List<Expr>>none(), ensures, invariant);
      };
 
 /* Each modifier cannot appear more than once. */
