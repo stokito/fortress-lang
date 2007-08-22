@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
+import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -38,6 +39,18 @@ public class NodeUtil {
 
     public static final String defaultSelfName = WellKnownNames.defaultSelfName;
 
+    
+    public static Iterable<Id> getIds(final QualifiedIdName qName) {
+        return qName.getApi().apply(new OptionVisitor<DottedName, Iterable<Id>>() {
+            public Iterable<Id> forSome(DottedName apiName) {
+                return IterUtil.compose(apiName.getIds(), qName.getName().getId());
+            }
+            public Iterable<Id> forNone() {
+                return IterUtil.singleton(qName.getName().getId());
+            }
+        });
+    }
+
     /* for HasAt ***********************************************************/
     /**
      * Returns the index of the 'self' parameter in the parameter list,
@@ -48,8 +61,8 @@ public class NodeUtil {
         if (d instanceof FnAbsDeclOrDecl) {
             int i = 0;
             for (Param p : ((FnAbsDeclOrDecl)d).getParams()) {
-                Id id = p.getId();
-                if (WellKnownNames.defaultSelfName.equals(id.getName())) {
+                IdName name = p.getName();
+                if (WellKnownNames.defaultSelfName.equals(nameString(name))) {
                     return i;
                 }
                 i++;
@@ -60,7 +73,7 @@ public class NodeUtil {
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
-        String name = getName(app.getFnName());
+        String name = nameString(app.getName());
         if (app instanceof FnAbsDeclOrDecl) {
             int spi = selfParameterIndex((FnAbsDeclOrDecl)app);
             if (spi >= 0)
@@ -97,75 +110,82 @@ public class NodeUtil {
         return false;
     }
 
-    private final static NodeAbstractVisitor<String> nameGetter =
+    private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
-        public String forDottedId(DottedId n) {
-            String name;
-            List<String> names = toStrings(n);
-            int size = names.size();
-            if (size == 0) {
-                throw new InterpreterBug(n, "Non-empty string is expected.");
-            } else if (size == 1) {
-                return names.get(0);
-            } else {
-                name = names.get(0);
-            }
-            for (Iterator<String> ns = names.subList(1,names.size()-1).iterator(); ns.hasNext();) {
-                name += "." + ns.next();
-            }
-            return name;
+        
+        @Override public String forDottedName(DottedName n) {
+            return nameString(n);
         }
-        public String forOpr(Opr n) {
-            return n.getOp().getName();
+        @Override public String forQualifiedName(QualifiedName n) {
+            return nameString(n);
         }
-        public String forPostFix(PostFix n) {
-            return n.getOp().getName();
-        }
-        public String forEnclosing(Enclosing n) {
-            return n.getOpen().getName();
-        }
-        public String forSubscriptOp(SubscriptOp n) {
-            return "[]";
-        }
-        public String forSubscriptAssign(SubscriptAssign n) {
-            return "[]=";
-        }
+        public String forIdName(IdName n) { return n.getId().getText(); }
+        public String forOpr(Opr n) { return n.getOp().getText(); }
+        public String forPostFix(PostFix n) { return n.getOp().getText(); }
+        public String forEnclosing(Enclosing n) { return n.getOpen().getText(); }
+        public String forSubscriptOp(SubscriptOp n) { return "[]"; }
+        public String forSubscriptAssign(SubscriptAssign n) { return "[]="; }
         public String forAnonymousFnName(AnonymousFnName n) {
             return n.getSpan().toString();
         }
         public String forConstructorFnName(ConstructorFnName n) {
-        // TODO Auto-generated method stub
-        return stringName(n.getDef());
+            // TODO Auto-generated method stub
+            return stringName(n.getDef());
         }
     };
 
-    /* getName *************************************************************/
-    public static String getName(FnName n) {
+    /* nameString *************************************************************/
+    public static String nameString(Name n) {
         return n.accept(nameGetter);
     }
+    
+    public static String nameString(IdName n) {
+        return n.getId().getText();
+    }
+    
+    public static String nameString(Opr n) {
+        return n.getOp().getText();
+    }
+    
+    public static String nameString(DottedName n) {
+        Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
+        return IterUtil.toString(ns, "", ".", "");
+    }
+    
+    public static String nameString(QualifiedName n) {
+        final String last = n.getName().accept(nameGetter);
+        return n.getApi().apply(new OptionVisitor<DottedName, String>() {
+            public String forSome(DottedName api) {
+                return nameString(api) + "." + last;
+            }
+            public String forNone() { return last; }
+        });
+    }
+    
 
+    /* getName *************************************************************/
     public static String getName(StaticParam param) {
         return param.accept(new NodeAbstractVisitor<String>() {
             public String forBoolParam(BoolParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
             public String forDimensionParam(DimensionParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
             public String forIntParam(IntParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
             public String forNatParam(NatParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
             public String forOperatorParam(OperatorParam p) {
-                return p.getOp().getName();
+                return nameString(p.getName());
             }
             public String forSimpleTypeParam(SimpleTypeParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
             public String forUnitParam(UnitParam p) {
-                return p.getId().getName();
+                return p.getName().getId().getText();
             }
         });
     }
@@ -176,30 +196,30 @@ public class NodeUtil {
             public String forDimUnitDecl(DimUnitDecl node) {
                 if (node.getDim().isSome()) {
                     if (node.getUnits().isEmpty())
-                        return Option.unwrap(node.getDim()).getName();
+                        return Option.unwrap(node.getDim()).getId().getText();
                     else
-                        return Option.unwrap(node.getDim()).getName() + " and " +
+                        return Option.unwrap(node.getDim()).getId().getText() + " and " +
                                Useful.listInDelimiters("", node.getUnits(), "");
                 } else
                     return Useful.listInDelimiters("", node.getUnits(), "");
             }
             public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
-                return getName(node.getFnName());
+                return nameString(node.getName());
             }
             public String forFnName(FnName node) {
-                return getName(node);
+                return nameString(node);
             }
             public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
-                return node.getId().getName();
+                return node.getName().getId().getText();
             }
             public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
                 return node.getGenSymName();
             }
             public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
-                return node.getId().getName();
+                return node.getName().getId().getText();
             }
             public String forTypeAlias(TypeAlias node) {
-                return node.getId().getName();
+                return node.getName().getId().getText();
             }
             public String defaultCase(Node node) {
                 return node.getClass().getSimpleName();
@@ -211,10 +231,10 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(LValue lv) {
         return lv.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forLValueBind(LValueBind d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forUnpastingBind(UnpastingBind d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forUnpastingSplit(UnpastingSplit d) {
                 return new IterableOnceForLValueList(d.getElems());
@@ -225,27 +245,27 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {
         return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forDimUnitDecl(DimUnitDecl d) {
                 if (d.getDim().isSome()) {
                     if (d.getUnits().isEmpty())
                         return new UnitIterable<String>(
-                           Option.unwrap(d.getDim()).getName());
+                           Option.unwrap(d.getDim()).getId().getText());
                     else
                         throw new InterpreterBug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
                 } else
-                    return new IterableOnceTranslatingList<Id, String>(
-                           d.getUnits(), IdToStringFn);
+                    return new IterableOnceTranslatingList<Name, String>(
+                           d.getUnits(), NameToStringFn);
             }
             public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forFnExpr(FnExpr d) {
-                return new UnitIterable<String>(NodeUtil.getName(d.getFnName()));
+                return new UnitIterable<String>(nameString(d.getName()));
             }
             public IterableOnce<String> forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
-                return new UnitIterable<String>(NodeUtil.getName(d.getFnName()));
+                return new UnitIterable<String>(nameString(d.getName()));
             }
             public IterableOnce<String> forGeneratedExpr(GeneratedExpr d) {
                 return new UnitIterable<String>("GeneratedExpr");
@@ -257,15 +277,15 @@ public class NodeUtil {
                 return new IterableOnceForLValueList(d.getLhs());
             }
             public IterableOnce<String> forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> for_RewriteObjectExpr(_RewriteObjectExpr d) {
                 return new UnitIterable<String>(d.getGenSymName());
             }
             public IterableOnce<String> forPropertyDecl(PropertyDecl d) {
-                return d.getId().apply(new OptionVisitor<Id, IterableOnce<String>>() {
-                    public IterableOnce<String> forSome(Id id) {
-                        return new UnitIterable<String>(id.getName());
+                return d.getName().apply(new OptionVisitor<IdName, IterableOnce<String>>() {
+                    public IterableOnce<String> forSome(IdName name) {
+                        return new UnitIterable<String>(name.getId().getText());
                     }
                     public IterableOnce<String> forNone() {
                         return new UnitIterable<String>("_");
@@ -273,13 +293,13 @@ public class NodeUtil {
                 });
             }
             public IterableOnce<String> forTestDecl(TestDecl d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forTypeAlias(TypeAlias d) {
-                return new UnitIterable<String>(d.getId().getName());
+                return new UnitIterable<String>(d.getName().getId().getText());
             }
             public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());
@@ -311,21 +331,19 @@ public class NodeUtil {
     }
 
     /* function ************************************************************/
-    public static final com.sun.fortress.useful.Fn<Id, String> IdToStringFn =
-        new com.sun.fortress.useful.Fn<Id, String>() {
+    public static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
             public String apply(Id x) {
-                return x.getName();
+                return x.getText();
             }
         };
 
-    /* for DottedId ********************************************************/
-    public static List<String> toStrings(DottedId n) {
-        List<Id> ids = n.getNames();
-        List<String> s = new ArrayList<String>(ids.size());
-        for (Id id : ids) {
-            s.add(id.getName());
-        }
-        return s;
+    public static final Fn<Name, String> NameToStringFn = new Fn<Name, String>() {
+        public String apply(Name n) { return nameString(n); }
+    };
+
+    /* for DottedName ******************************************************/
+    public static List<String> toStrings(DottedName n) {
+        return IterUtil.asList(IterUtil.map(n.getIds(), IdToStringFn));
     }
 
     /* for TraitTypeWhere **************************************************/
@@ -336,4 +354,5 @@ public class NodeUtil {
         }
         return t;
     }
+    
 }

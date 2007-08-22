@@ -19,15 +19,17 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
 
+import com.sun.fortress.nodes.FnName;
+
 public class LocalFnEnvironment extends DelegatingEnvironment {
-    private Set<String> _fns;
+    private Set<FnName> _fns;
     
-    public LocalFnEnvironment(Environment parent, Set<String> fns) {
+    public LocalFnEnvironment(Environment parent, Set<FnName> fns) {
         super(parent);
         _fns = fns;
     }
     
-    @Override public boolean hasFn(String name) {
+    @Override public boolean hasFn(FnName name) {
         return _fns.contains(name) || super.hasFn(name);
     }
     

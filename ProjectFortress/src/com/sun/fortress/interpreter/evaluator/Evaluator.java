@@ -83,7 +83,7 @@ import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteral;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Entry;
 import com.sun.fortress.nodes.Exit;
@@ -97,6 +97,7 @@ import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteral;
@@ -120,8 +121,11 @@ import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes.BaseOprStaticArg;
 import com.sun.fortress.nodes.OprExpr;
-import com.sun.fortress.nodes.OprName;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.PostFix;
+import com.sun.fortress.nodes.QualifiedName;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
 import com.sun.fortress.nodes.SetComprehension;
@@ -236,7 +240,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
         // debugPrint("forAssignment " + x);
-        Option<Op> possOp = x.getOp();
+        Option<Opr> possOp = x.getOpr();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
@@ -245,8 +249,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            Op op = Option.unwrap(possOp);
-            Fcn fcn = (Fcn) op.accept(this);
+            Opr opr = Option.unwrap(possOp);
+            Fcn fcn = (Fcn) opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
                 // TODO:  An LHS walks, talks, and barks just like
@@ -418,11 +422,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
-	    /* If we are already in a transaction, don't evaluate in parallel */
-	} else if (BaseTask.getThreadState().transactionNesting() > 0) {
-	    for (Expr exp : exprs) {
-		resList.add(exp.accept(this));
-	    }
+     /* If we are already in a transaction, don't evaluate in parallel */
+ } else if (BaseTask.getThreadState().transactionNesting() > 0) {
+     for (Expr exp : exprs) {
+  resList.add(exp.accept(this));
+     }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
@@ -432,8 +436,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
-	    runner.setCurrentTask(currentTask);
-	    
+     runner.setCurrentTask(currentTask);
+     
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
                     Throwable t = tasks[i].taskException();
@@ -504,9 +508,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue paramValue = param.accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
-            Option<Op> compare = x.getCompare();
+            Option<Opr> compare = x.getCompare();
             if (compare.isSome())
-                fcn = (Fcn) e.getValue(Option.unwrap(compare).getName());
+                fcn = (Fcn) e.getValue(NodeUtil.nameString(Option.unwrap(compare)));
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
@@ -564,15 +568,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forChainExpr(ChainExpr x) {
         // debugPrint("forChainExpr " + x);
         Expr first = x.getFirst();
-        List<Pair<Op, Expr>> links = x.getLinks();
+        List<Pair<Opr, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
         FBool boolres = FBool.TRUE;
-        Iterator<Pair<Op, Expr>> i = links.iterator();
+        Iterator<Pair<Opr, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
         vargs.add(idVal);
         vargs.add(idVal);
         while (boolres.getBool() && i.hasNext()) {
-            Pair<Op, Expr> link = i.next();
+            Pair<Opr, Expr> link = i.next();
             Fcn fcn = (Fcn) link.getA().accept(this);
             FValue exprVal = link.getB().accept(this);
             vargs.set(0, idVal);
@@ -589,11 +593,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FType> res = new ArrayList<FType>();
         for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
             Binding bind = i.next();
-            String name = bind.getId().getName();
+            String name = bind.getName().getId().getText();
             Expr init = bind.getInit();
             FValue val = init.accept(ev);
             if (init instanceof VarRef
-                    && NodeUtil.getName(((VarRef) init).getVar()).equals(name)) {
+                    && NodeUtil.nameString(((VarRef) init).getVar()).equals(name)) {
                 /* Avoid shadow error when we bind the same var name */
                 ev.e.putValueUnconditionally(name, val);
             } else {
@@ -647,11 +651,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return result;
     }
 
-    public FValue forDottedId(DottedId x) {
+    public FValue forDottedName(DottedName x) {
         // debugPrint("forDotted " + x);
         String result = "";
-        for (Iterator<Id> i = x.getNames().iterator(); i.hasNext();) {
-            result = result.concat(i.next().getName());
+        for (Iterator<Id> i = x.getIds().iterator(); i.hasNext();) {
+            result = result.concat(i.next().getText());
             if (i.hasNext())
                 result = result.concat(".");
         }
@@ -670,7 +674,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We need to do something with it -- CHF
     public FValue forExport(Export x) {
         // debugPrint("forExport " + x);
-        List<DottedId> name = x.getDottedIds();
+        List<DottedName> name = x.getApis();
         return null;
     }
 
@@ -680,7 +684,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forFieldRef(FieldRef x) {
         Expr obj = x.getObj();
-        Id fld = x.getId();
+        IdName fld = x.getField();
         FValue fobj = obj.accept(this);
         if (fobj instanceof Selectable) {
             Selectable selectable = (Selectable) fobj;
@@ -691,7 +695,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
              */
 //          TODO Need to distinguish between public/private methods/fields
             try {
-                return selectable.select(fld.getName());
+                return selectable.select(NodeUtil.nameString(fld));
             } catch (FortressError ex) {
                 ex.setWithin(e);
                 ex.setWhere(x);
@@ -709,14 +713,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //            }
         } else {
             throw new ProgramError(x, e,
-                    errorMsg("Non-object cannot have field ", fld.getName()));
+                    errorMsg("Non-object cannot have field ", NodeUtil.nameString(fld)));
         }
 
     }
 
     public FValue forMethodInvocation(MethodInvocation x) {
         Expr obj = x.getObj();
-        Id method = x.getId();
+        IdName method = x.getMethod();
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
 
@@ -725,12 +729,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private
             // methods/fields
-            FValue cl = fobject.getSelfEnv().getValueNull(method.getName());
+            FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(method));
             if (cl == null) {
                 // TODO Environment is split, might not be best choice
                 // for error printing.
-                throw new ProgramError(x, fobject.getSelfEnv(),
-                                       errorMsg("undefined method ", method.getName()));
+                String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
+                throw new ProgramError(x, fobject.getSelfEnv(), msg);
             } else if (sargs.isEmpty() && cl instanceof Method) {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
@@ -774,15 +778,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forGenerator(Generator x) {
         // debugPrint("forGenerator " + x);
-        List<Id> ids = x.getBind();
+        List<IdName> names = x.getBind();
         Expr init = x.getInit();
         FValue rval = init.accept(this);
         FRange range = (FRange)rval;
-        return new FGenerator(ids, range);
+        return new FGenerator(names, range);
     }
 
     public FValue forId(Id x) {
-        return FString.make(x.getName());
+        return FString.make(x.getText());
     }
 
     public FValue forIf(If x) {
@@ -808,9 +812,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLValueBind(LValueBind x) {
-        Id name = x.getId();
-        String s = name.getName();
-        return FString.make(s);
+        IdName name = x.getName();
+        return FString.make(NodeUtil.nameString(name));
     }
 
     public FValue forLabel(Label x) {
@@ -939,52 +942,49 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    /*
-     * In a sane world, we would not have both OprName and Op com.sun.fortress.interpreter.nodes. My guess is
-     * that this is an ugly holdover from two distinct algebraic types in the
-     * old code.
-     */
-    private FValue getOpr(OprName op) {
+    private FValue getOp(OpName op) {
         try {
-            return e.getValue(NodeUtil.getName(op));
+            return e.getValue(NodeUtil.nameString(op));
         } catch (FortressError ex) {
             ex.setWhere(op);
             ex.setWithin(e);
             throw ex;
+        }
+    }
+    
+    public FValue forQualifiedName(QualifiedName n) {
+        if (n.getApi().isSome()) {
+            return NI.nyi("Qualified name");
+        }
+        else {
+            return n.getName().accept(this);
         }
     }
 
     public FValue forEnclosing(Enclosing x) {
-        return getOpr(x);
+        return getOp(x);
     }
 
     public FValue forPostFix(PostFix x) {
-        return getOpr(x);
+        return getOp(x);
     }
 
     public FValue forOp(Op op) {
-        try {
-            return e.getValue(op.getName());
-        } catch (FortressError ex) {
-            ex.setWhere(op);
-            ex.setWithin(e);
-            throw ex;
-        }
+        return FString.make(op.getText());
     }
 
     public FValue forOperatorParam(OperatorParam x) {
         return NI("forOperatorParam");
     }
 
-    // Why does this extra layer of indirection exist?
     public FValue forOpr(Opr x) {
-        return getOpr(x);
+        return getOp(x);
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1. */
     public FValue forOprExpr(OprExpr x) {
         // debugPrint("forOprExpr " + x);
-        OprName op = x.getOps().get(0);
+        QualifiedOpName op = x.getOps().get(0);
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         // Evaluate actual parameters.
@@ -1011,7 +1011,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                            " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
-        if (s <= 2 || (op instanceof Enclosing)) {
+        if (s <= 2 || (op.getName() instanceof Enclosing)) {
             res = functionInvocation(vargs, fcn, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);
@@ -1119,8 +1119,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr fcnExpr = exprs.get(0);
 
         // Translate compound VarRefs to FieldRefs
-        if (fcnExpr instanceof VarRef &&
-            ((VarRef)fcnExpr).getVar().getNames().size() > 1) {
+        if (fcnExpr instanceof VarRef && ((VarRef)fcnExpr).getVar().getApi().isSome()) {
             fcnExpr = ExprFactory.makeFieldRef((VarRef)fcnExpr);
         }
 
@@ -1131,17 +1130,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // the field selection.
             FieldRef fld_sel = (FieldRef) fcnExpr;
             Expr obj = fld_sel.getObj();
-            Id fld = fld_sel.getId();
+            IdName fld = fld_sel.getField();
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
 
         } else if (fcnExpr instanceof FnRef) {
             // We must evaluate the receiver separately so we can get a handle on it
             FnRef tax = (FnRef) fcnExpr;
-            List<Id> names = tax.getIds().get(0).getNames();
-            if (names.size() > 1) {
-                VarRef receiverVar = ExprFactory.makeVarRef(IterUtil.skipLast(names));
-                Id fld = IterUtil.last(names);
+            QualifiedIdName fnName = tax.getFns().get(0);
+            if (fnName.getApi().isSome()) {
+                List<Id> ids = Option.unwrap(fnName.getApi()).getIds();
+                VarRef receiverVar = ExprFactory.makeVarRef(ids);
+                IdName fld = fnName.getName();
                 List<StaticArg> args = tax.getStaticArgs();
                 FValue fobj = forVarRef(receiverVar);
 
@@ -1149,14 +1149,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     FObject fobject = (FObject) fobj;
                     // TODO Need to distinguish between public/private
                     // methods/fields
-                    FValue cl = fobject.getSelfEnv()
-                        .getValueNull(fld.getName());
+                    FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
                     if (cl == null) {
                         // TODO Environment is split, might not be best choice
                         // for error printing.
                         throw new ProgramError(x, fobject.getSelfEnv(),
                                                errorMsg("undefined method/field ",
-                                                        fld.getName()));
+                                                        NodeUtil.nameString(fld)));
                     } else if (cl instanceof OverloadedMethod) {
 
                         throw new InterpreterBug(x, fobject.getSelfEnv(),
@@ -1203,17 +1202,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      * @throws ProgramError
      */
-    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
-            List<Expr> exprs) throws ProgramError {
+    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, IdName fld,
+                                       List<Expr> exprs) throws ProgramError {
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private methods/fields
-            FValue cl = fobject.getSelfEnv().getValueNull(fld.getName());
+            FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
             if (cl == null)
                 // TODO Environment is split, might not be best choice for error
                 // printing.
                 throw new ProgramError(x, fobject.getSelfEnv(),
-                        errorMsg("undefined method/field ", fld.getName()));
+                        errorMsg("undefined method/field ", NodeUtil.nameString(fld)));
             else if (cl instanceof Method) {
                 return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
                         fobject, x, e);
@@ -1223,8 +1222,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return finishFunctionInvocation(exprs, fcl, x);
             } else {
                 // TODO seems like we could be multiplying, too.
-                throw new ProgramError(x, fobject.getSelfEnv(),
-                        errorMsg("Tight juxtaposition of non-function ", fld.getName()));
+                String msg = errorMsg("Tight juxtaposition of non-function ",
+                                      NodeUtil.nameString(fld));
+                throw new ProgramError(x, fobject.getSelfEnv(), msg);
             }
         } else {
             // TODO Could be a fragment of a component/api name, too.
@@ -1346,14 +1346,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forVarRef(VarRef x) {
         // debugPrint("forVarRef " + x);
-        List<Id> names = x.getVar().getNames();
-        if (names.isEmpty())
-            bug(x, e, "empty variable name");
-
-        FValue res = e.getValueNull(names.get(0).getName());
+        Iterable<Id> names = NodeUtil.getIds(x.getVar());
+        
+        FValue res = e.getValueNull(IterUtil.first(names).getText());
         if (res == null)
             error(x, e, errorMsg("undefined variable ",
-                                 names.get(0).getName()));
+                                 IterUtil.first(names).getText()));
 
         for (Id fld : IterUtil.skipFirst(names)) {
             if (res instanceof Selectable) {
@@ -1364,7 +1362,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                  */
                 // TODO Need to distinguish between public/private methods/fields
                 try {
-                    res = ((Selectable) res).select(fld.getName());
+                    res = ((Selectable) res).select(fld.getText());
                 } catch (FortressError ex) {
                     ex.setWithin(e);
                     ex.setWhere(x);
@@ -1373,7 +1371,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else {
                 throw new ProgramError(x, e,
                                        errorMsg("Non-object cannot have field ",
-                                                fld.getName()));
+                                                fld.getText()));
             }
         }
         return res;
@@ -1420,8 +1418,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     /** Assumes {@code x.getIds()} is a list of length 1. */
     @Override
     public FValue forFnRef(FnRef x) {
-        DottedId id = x.getIds().get(0);
-        FValue g = forVarRef(new VarRef(id.getSpan(), id));
+        QualifiedIdName name = x.getFns().get(0);
+        FValue g = forVarRef(new VarRef(name.getSpan(), name));
         List<StaticArg> args = x.getStaticArgs();
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);

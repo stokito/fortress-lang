@@ -31,13 +31,13 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 public class OverloadedMethod extends OverloadedFunction implements Method {
 
     public OverloadedMethod(String fnName, BetterEnv within) {
-        super(NodeFactory.makeDottedId(fnName), within);
+        super(NodeFactory.makeIdName(fnName), within);
         // TODO Auto-generated constructor stub
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
             BetterEnv within) {
-        super(NodeFactory.makeDottedId(fnName), ssf, within);
+        super(NodeFactory.makeIdName(fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
 

@@ -20,49 +20,50 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import java.util.Collections;
 import edu.rice.cs.plt.tuple.Option;
+
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.DottedName;
 
 public class TopLevelEnvironment extends Environment {
     private GlobalEnvironment _globalEnv;
     private CompilationUnitIndex _current;
     
-    public TopLevelEnvironment(GlobalEnvironment globalEnv, CompilationUnitIndex current) {
+    public TopLevelEnvironment(GlobalEnvironment globalEnv,
+                               CompilationUnitIndex current) {
         _globalEnv = globalEnv;
         _current = current;
     }
     
-    public boolean hasVar(String name) {
+    public boolean hasVar(IdName name) {
         return _current.variables().containsKey(name);
     }
     
-    public boolean hasFn(String name) {
+    public boolean hasFn(FnName name) {
         return _current.functions().containsFirst(name);
     }
     
-    public boolean hasMethod(String name) {
-        return false;
-    }
-    
-    public boolean hasTrait(String name) {
+    public boolean hasTrait(IdName name) {
         return _current.traits().containsKey(name);
     }
     
-    public boolean hasTypeVar(String name) {
+    public boolean hasTypeVar(IdName name) {
         return false;
     }
     
-    public Option<String> apiForVar(String name) {
+    public Option<DottedName> apiForVar(IdName name) {
         // TODO: implement
         return Option.none();
     }
     
-    public Set<String> apisForFn(String name) {
+    public Set<DottedName> apisForFn(FnName name) {
         // TODO: implement
         return Collections.emptySet();
     }
     
-    public Option<String> apiForTrait(String name) {
+    public Option<DottedName> apiForTrait(IdName name) {
         // TODO: implement
         return Option.none();
     }

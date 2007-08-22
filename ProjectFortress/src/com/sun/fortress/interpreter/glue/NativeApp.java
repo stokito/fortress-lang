@@ -27,13 +27,13 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteral;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -87,7 +87,7 @@ public abstract class NativeApp implements Applicable {
     public List<StaticParam> getStaticParams() {
         return a.getStaticParams();
     }
-    public FnName getFnName() { return a.getFnName(); }
+    public FnName getName() { return a.getName(); }
     public List<WhereClause> getWhere() { return a.getWhere(); }
     public String at() { return a.at(); }
     public String stringName() { return a.stringName(); }
@@ -131,9 +131,9 @@ public abstract class NativeApp implements Applicable {
         Expr arg = juxts.get(1);
         if (!(fn instanceof VarRef)) return defn;
         if (!(arg instanceof StringLiteral)) return defn;
-        DottedId id = ((VarRef)fn).getVar();
-        if (id.getNames().size() != 1) return defn;
-        if (!id.getNames().get(0).getName().equals("builtinPrimitive")) return defn;
+        QualifiedIdName name = ((VarRef)fn).getVar();
+        if (name.getApi().isSome()) return defn;
+        if (!name.getName().getId().getText().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteral)arg).getText();
         try {
             // System.err.println("Loading primitive class "+str);

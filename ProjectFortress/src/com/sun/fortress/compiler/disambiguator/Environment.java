@@ -20,14 +20,17 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.DottedName;
+
 public abstract class Environment {
-    public abstract boolean hasVar(String name);
-    public abstract boolean hasFn(String name);
-    public abstract boolean hasMethod(String name);
-    public abstract boolean hasTrait(String name);
-    public abstract boolean hasTypeVar(String name);
+    public abstract boolean hasVar(IdName name);
+    public abstract boolean hasFn(FnName name);
+    public abstract boolean hasTrait(IdName name);
+    public abstract boolean hasTypeVar(IdName name);
     
-    public abstract Option<String> apiForVar(String name);
-    public abstract Set<String> apisForFn(String name);
-    public abstract Option<String> apiForTrait(String name);
+    public abstract Option<DottedName> apiForVar(IdName name);
+    public abstract Set<DottedName> apisForFn(FnName name);
+    public abstract Option<DottedName> apiForTrait(IdName name);
 }

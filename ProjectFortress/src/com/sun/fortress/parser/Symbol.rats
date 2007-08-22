@@ -186,9 +186,9 @@ transient void comma = ",";
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
-Option<Op> AssignOp =
+Option<Opr> AssignOp =
      colonequals   { yyValue = Option.none(); }
-   / a1:CompoundOp { yyValue = Option.some(a1); };
+   / a1:CompoundOp { yyValue = Option.some(NodeFactory.makeOpr(a1)); };
 
 transient String accumulator = "SUM" / "PROD" ;
 

@@ -106,31 +106,45 @@ private List<WhereClause> WhereClauseList =
    | Type w widens w Type
    | dimensionless w = w Id
    | Id w = w dimensionless
-   | DottedId w = w DottedId
+   | QualifiedName w = w QualifiedName
    | IntConstraint
    | BoolConstraint
  */
 WhereClause WhereClause =
      a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount),
+                                  NodeFactory.makeIdName(a1), a2);
+     }
    / TypeAlias
    / nat w a1:Id
-     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new WhereNat(createSpan(yyStart,yyCount),
+                              NodeFactory.makeIdName(a1));
+     }
    / int w a1:Id
-     { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new WhereInt(createSpan(yyStart,yyCount),
+                              NodeFactory.makeIdName(a1));
+     }
    / bool w a1:Id
-     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new WhereBool(createSpan(yyStart,yyCount),
+                               NodeFactory.makeIdName(a1));
+     }
    / unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new WhereUnit(createSpan(yyStart,yyCount),
+                               NodeFactory.makeIdName(a1));
+     }
    / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Type w widens w a2:Type
      { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
    / "dimensionless" w equals w a1:Id
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
+                                    NodeFactory.makeIdName(a1));
+     }
    / a1:Id w equals w "dimensionless"
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
-   / a1:DottedId w equals w a2:DottedId
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
+                                    NodeFactory.makeIdName(a1));
+     }
+   / a1:QualifiedName w equals w a2:QualifiedName
      { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
    / IntConstraint
    / BoolConstraint ;
@@ -156,12 +170,12 @@ private IntConstraint IntConstraint =
 
 /* IntVal ::=
      Number
-   | DottedId
+   | QualifiedName
  */
 IntVal IntVal =
      a1:Number
      { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
-   / a1:DottedId
+   / a1:QualifiedName
      { yyValue = new IntIdConstraint(createSpan(yyStart,yyCount), a1); };
 
 /* IntExpr ::=
@@ -299,14 +313,14 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
 /* BoolVal ::=
      true
    | false
-   | DottedId
+   | QualifiedName
  */
 private BoolVal BoolVal =
      a1:"true"
      { yyValue = new TrueConstraint(createSpan(yyStart,yyCount)); }
    / a1:"false"
      { yyValue = new FalseConstraint(createSpan(yyStart,yyCount)); }
-   / a1:DottedId
+   / a1:QualifiedName
      { yyValue = new BoolIdConstraint(createSpan(yyStart,yyCount), a1); };
 
 /* BoolExpr ::=
@@ -608,15 +622,22 @@ private StaticParam StaticParam =
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),a1,a2,absorbs);
+       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
+                                     NodeFactory.makeIdName(a1),a2,absorbs);
      }
-   / nat  w a1:Id { yyValue = new NatParam(createSpan(yyStart,yyCount), a1); }
-   / int  w a1:Id { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
-   / bool w a1:Id { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
-   / dim  w a1:Id {yyValue = new DimensionParam(createSpan(yyStart,yyCount),a1);}
+   / nat  w a1:Id
+     { yyValue = new NatParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1));}
+   / int  w a1:Id
+     { yyValue = new IntParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1)); }
+   / bool w a1:Id
+     { yyValue = new BoolParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1)); }
+   / dim  w a1:Id
+     {yyValue = new DimensionParam(createSpan(yyStart,yyCount),NodeFactory.makeIdName(a1));}
    / unit w a1:Id a2:(w colon w DimExpr)? a3:(w absorbs w unit)?
      { Option<DimExpr> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
-       yyValue = new UnitParam(createSpan(yyStart,yyCount),a1,derived,absorbs);
+       yyValue = new UnitParam(createSpan(yyStart,yyCount),NodeFactory.makeIdName(a1),
+                               derived,absorbs);
      }
-   / opr  w a1:Op {yyValue = new OperatorParam(createSpan(yyStart,yyCount),a1);};
+   / opr  w a1:Op
+     {yyValue = new OperatorParam(createSpan(yyStart,yyCount),NodeFactory.makeOpr(a1));};

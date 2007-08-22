@@ -23,6 +23,8 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
 
 import com.sun.fortress.useful.NI;
 
@@ -33,18 +35,18 @@ import com.sun.fortress.useful.NI;
 public abstract class TraitIndex {
     
     private final TraitObjectAbsDeclOrDecl _ast;
-    private final Map<String, Method> _getters;
-    private final Map<String, Method> _setters;
+    private final Map<IdName, Method> _getters;
+    private final Map<IdName, Method> _setters;
     private final Set<Function> _coercions;
-    private final Relation<String, Method> _dottedMethods;
-    private final Relation<String, FunctionalMethod> _functionalMethods;
+    private final Relation<FnName, Method> _dottedMethods;
+    private final Relation<FnName, FunctionalMethod> _functionalMethods;
     
     public TraitIndex(TraitObjectAbsDeclOrDecl ast,
-                      Map<String, Method> getters,
-                      Map<String, Method> setters,
+                      Map<IdName, Method> getters,
+                      Map<IdName, Method> setters,
                       Set<Function> coercions,
-                      Relation<String, Method> dottedMethods,
-                      Relation<String, FunctionalMethod> functionalMethods) {
+                      Relation<FnName, Method> dottedMethods,
+                      Relation<FnName, FunctionalMethod> functionalMethods) {
         _ast = ast;
         _getters = getters;
         _setters = setters;
@@ -54,7 +56,7 @@ public abstract class TraitIndex {
     }
     
     
-    public Map<String, StaticParam> staticParameters() {
+    public Map<IdName, StaticParam> staticParameters() {
         return NI.nyi();
     }
     
@@ -62,11 +64,11 @@ public abstract class TraitIndex {
         return NI.nyi();
     }
     
-    public Map<String, Method> getters() {
+    public Map<IdName, Method> getters() {
         return NI.nyi();
     }
     
-    public Map<String, Method> setters() {
+    public Map<IdName, Method> setters() {
         return NI.nyi();
     }
     
@@ -74,11 +76,11 @@ public abstract class TraitIndex {
         return NI.nyi();
     }
     
-    public Relation<String, Method> dottedMethods() {
+    public Relation<FnName, Method> dottedMethods() {
         return NI.nyi();
     }
     
-    public Relation<String, FunctionalMethod> functionalMethods() {
+    public Relation<FnName, FunctionalMethod> functionalMethods() {
         return NI.nyi();
     }
     

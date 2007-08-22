@@ -64,7 +64,7 @@ public class LooseInfix extends JuxtInfix {
       if (temp_op == null) {
          writer.print("null");
       } else {
-         writer.print(temp_op.getName());
+         writer.print(temp_op.getText());
       }
       writer.unindent();
    }

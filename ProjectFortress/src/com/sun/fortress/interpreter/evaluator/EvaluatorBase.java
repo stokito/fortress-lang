@@ -121,7 +121,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (StaticParam sp : tparams) {
             if (sp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) sp;
-                    String stp_name = stp.getId().getName();
+                    String stp_name = stp.getName().getId().getText();
                     for (Type tr : stp.getExtendsClause()) {
                         // Preinstall bounds in the boundingmap
                         abm.meetPut(stp_name, et.evalType(tr));

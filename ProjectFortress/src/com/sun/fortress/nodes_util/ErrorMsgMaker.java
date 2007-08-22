@@ -49,6 +49,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         });
     }
 
+    public String forAbstractNode(AbstractNode node) {
+        return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
+    }
+
     public String forAbsVarDecl(AbsVarDecl node) {
         return "abs " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
@@ -64,19 +68,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forBaseNatStaticArg(BaseNatStaticArg node) {
-        return ("" + node.getValue());
+        return "" + node.getValue();
     }
 
     public String forBoolParam(BoolParam node) {
-        return "int " + node.getId().getName();
-    }
-
-    public String forDottedId(DottedId node) {
-        return Useful.dottedList(NodeUtil.toStrings(node));
+        return "int " + NodeUtil.nameString(node.getName());
     }
 
     public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
-        return NodeUtil.getName(node.getFnName())
+        return NodeUtil.nameString(node.getName())
                 + Useful.listInOxfords(mapSelf(node.getStaticParams()))
                 + Useful.listInParens(mapSelf(node.getParams()))
                 + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(this)) : "")
@@ -85,11 +85,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
 
     public String forId(Id node) {
-        return node.getName();
+        return node.getText();
+    }
+    
+    public String forOp(Op node) {
+        return node.getText();
     }
 
     public String forIdType(IdType node) {
-        return node.getDottedId().accept(this);
+        return node.getName().accept(this);
     }
 
     public String forIntLiteral(IntLiteral node) {
@@ -97,11 +101,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forIntParam(IntParam node) {
-        return "int " + node.getId().getName();
+        return "int " + NodeUtil.nameString(node.getName());
     }
 
     public String forKeywordType(KeywordType node) {
-        return "" + node.getId().accept(this) + ":" + node.getType().accept(this);
+        return "" + NodeUtil.nameString(node.getName()) + ":" + node.getType().accept(this);
     }
 
     public String forLValueBind(LValueBind node) {
@@ -109,28 +113,24 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         if (node.getType().isSome()) {
             r = ":" + Option.unwrap(node.getType()).accept(this);
         }
-        return node.getId().accept(this) + r;
+        return NodeUtil.nameString(node.getName()) + r;
     }
 
     public String forNatParam(NatParam node) {
-        return "nat " + node.getId().getName();
+        return "nat " + NodeUtil.nameString(node.getName());
     }
-
-    public String forOpr(Opr node) {
-        return node.getOp().getName();
-    }
-
-    public String forAbstractNode(AbstractNode node) {
-        return node.getClass().getSimpleName() + "@" + node.getSpan().begin.at();
+    
+    public String forName(Name n) {
+        return NodeUtil.nameString(n);
     }
 
     public String forOperatorParam(OperatorParam node) {
-        return "opr " + node.getOp().getName();
+        return "opr " + NodeUtil.nameString(node.getName());
     }
 
     public String forNormalParam(NormalParam node) {
         StringBuffer sb = new StringBuffer();
-        sb.append(String.valueOf(node.getId().accept(this)));
+        sb.append(NodeUtil.nameString(node.getName()));
         if (node.getType().isSome()) {
             sb.append(":");
             sb.append(Option.unwrap(node.getType()).accept(this));
@@ -144,7 +144,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forVarargsParam(VarargsParam node) {
         StringBuffer sb = new StringBuffer();
-        sb.append(String.valueOf(node.getId().accept(this)));
+        sb.append(NodeUtil.nameString(node.getName()));
         sb.append(":");
         sb.append(node.getVarargsType().accept(this));
 
@@ -152,7 +152,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forInstantiatedType(InstantiatedType node) {
-        return node.getDottedId().accept(this) + Useful.listInOxfords(mapSelf(node.getArgs()));
+        return NodeUtil.nameString(node.getName()) +
+            Useful.listInOxfords(mapSelf(node.getArgs()));
     }
 
     public String forVarargsType(VarargsType node) {
@@ -160,7 +161,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forSimpleTypeParam(SimpleTypeParam node) {
-        return node.getId().getName();
+        return NodeUtil.nameString(node.getName());
     }
 
     public String forTupleType(TupleType node) {

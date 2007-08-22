@@ -24,6 +24,7 @@ import java.util.List;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -197,39 +198,74 @@ public class ExprFactory {
             }
         });
     }
+    
+    public static Generator makeGenerator(Span span, Iterable<Id> ids, Expr expr) {
+        Iterable<IdName> names = IterUtil.map(ids, new Lambda<Id, IdName>() {
+            public IdName value(Id id) { return NodeFactory.makeIdName(id); }
+        });
+        return new Generator(span, IterUtil.asList(names), expr);
+    }
 
 
-    public static OprExpr makeOprExpr(Span span, OprName op) {
+    public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
         return new OprExpr(span, false, Collections.singletonList(op),
                            Collections.<Expr>emptyList());
     }
 
-    public static OprExpr makeOprExpr(Span span, OprName op, Expr arg) {
+    public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr arg) {
         return new OprExpr(span, false, Collections.singletonList(op),
                            Collections.singletonList(arg));
     }
 
-    public static OprExpr makeOprExpr(Span span, OprName op, Expr first,
+    public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr first,
                                       Expr second) {
         return new OprExpr(span, false, Collections.singletonList(op),
                            Arrays.asList(first, second));
     }
+    
+    public static OprExpr makeOprExpr(Span span, OpName op) {
+        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        return new OprExpr(span, false, Collections.singletonList(name),
+                           Collections.<Expr>emptyList());
+    }
 
-    public static FnRef makeFnRef(Span span, DottedId name, List<StaticArg> sargs) {
-        List<DottedId> names = Collections.singletonList(name);
+    public static OprExpr makeOprExpr(Span span, OpName op, Expr arg) {
+        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        return new OprExpr(span, false, Collections.singletonList(name),
+                           Collections.singletonList(arg));
+    }
+
+    public static OprExpr makeOprExpr(Span span, OpName op, Expr first,
+                                      Expr second) {
+        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        return new OprExpr(span, false, Collections.singletonList(name),
+                           Arrays.asList(first, second));
+    }
+    
+
+    public static FnRef makeFnRef(Span span, QualifiedIdName name, List<StaticArg> sargs) {
+        List<QualifiedIdName> names = Collections.singletonList(name);
         return new FnRef(span, false, names, sargs);
     }
 
     public static FnRef makeFnRef(Id name) {
-        List<DottedId> names = Collections.singletonList(NodeFactory.makeDottedId(name));
+        List<QualifiedIdName> names =
+            Collections.singletonList(NodeFactory.makeQualifiedIdName(name));
         return new FnRef(name.getSpan(), false, names, Collections.<StaticArg>emptyList());
     }
 
-    public static FnRef makeFnRef(Iterable<Id> ids) {
-        Span s = FortressUtil.spanAll(ids);
-        List<DottedId> names =
-            Collections.singletonList(new DottedId(s, IterUtil.asList(ids)));
-        return new FnRef(s, false, names, Collections.<StaticArg>emptyList());
+    public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiIds, name);
+        List<QualifiedIdName> qNames = Collections.singletonList(qName);
+        return new FnRef(qName.getSpan(), false, qNames,
+                         Collections.<StaticArg>emptyList());
+    }
+    
+    public static FnRef makeFnRef(DottedName api, IdName name) {
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
+        List<QualifiedIdName> qNames = Collections.singletonList(qName);
+        return new FnRef(qName.getSpan(), false, qNames,
+                         Collections.<StaticArg>emptyList());
     }
 
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
@@ -243,34 +279,50 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(Span span, String s) {
-        return new VarRef(span, false, NodeFactory.makeDottedId(span, s));
-    }
-
-    public static VarRef makeVarRef(Span span, Id id) {
-        return new VarRef(span, false, NodeFactory.makeDottedId(span, id));
+        return new VarRef(span, false, NodeFactory.makeQualifiedIdName(span, s));
     }
 
     public static VarRef makeVarRef(Id id) {
-        return new VarRef(id.getSpan(), false, NodeFactory.makeDottedId(id));
+        return new VarRef(id.getSpan(), false, NodeFactory.makeQualifiedIdName(id));
+    }
+    
+    public static VarRef makeVarRef(IdName name) {
+        return new VarRef(name.getSpan(), false, NodeFactory.makeQualifiedIdName(name));
     }
 
+    public static VarRef makeVarRef(Iterable<Id> apiIds, Id name) {
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(apiIds, name);
+        return new VarRef(qName.getSpan(), false, qName);
+    }
+
+    public static VarRef makeVarRef(Span span, Iterable<Id> apiIds, Id name) {
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(span, apiIds, name);
+        return new VarRef(span, false, qName);
+    }
+    
+    /** Assumes {@code ids} is nonempty. */
     public static VarRef makeVarRef(Iterable<Id> ids) {
-        Span s = FortressUtil.spanAll(ids);
-        return new VarRef(s, false, new DottedId(s, IterUtil.asList(ids)));
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(ids);
+        return new VarRef(qName.getSpan(), false, qName);
+    }
+    
+    public static VarRef makeVarRef(DottedName api, IdName name) {
+        QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
+        return new VarRef(qName.getSpan(), false, qName);
     }
 
     /**
      * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
-     * as the name of a field.  Assumes {@code v} wraps a list of at least 2 ids.
+     * as the name of a field.  Assumes {@code v.getName().getApi().isSome()} holds.
      */
     public static FieldRef makeFieldRef(VarRef v) {
-        List<Id> allIds = v.getVar().getNames();
-        VarRef obj = makeVarRef(IterUtil.skipLast(allIds));
-        return new FieldRef(v.getSpan(), v.isParenthesized(), obj, IterUtil.last(allIds));
+        VarRef obj = makeVarRef(Option.unwrap(v.getVar().getApi()).getIds());
+        return new FieldRef(v.getSpan(), v.isParenthesized(), obj, v.getVar().getName());
     }
 
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
-        return new FieldRef(FortressUtil.spanTwo(receiver, field), false, receiver, field);
+        return new FieldRef(FortressUtil.spanTwo(receiver, field), false, receiver,
+                            NodeFactory.makeIdName(field));
     }
 
     /** Alternatively, you can invoke the VoidLiteral constructor without parenthesized or text */
@@ -321,7 +373,7 @@ public class ExprFactory {
             }
 
             public Expr forAssignment(Assignment e) {
-                return new Assignment(e.getSpan(), true, e.getLhs(), e.getOp(),
+                return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
                                       e.getRhs());
             }
             public Expr forBlock(Block e) {
@@ -343,7 +395,7 @@ public class ExprFactory {
                               e.getElseClause());
             }
             public Expr forLabel(Label e) {
-                return new Label(e.getSpan(), true, e.getId(), e.getBody());
+                return new Label(e.getSpan(), true, e.getName(), e.getBody());
             }
             public Expr forObjectExpr(ObjectExpr e) {
                 return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
@@ -373,15 +425,14 @@ public class ExprFactory {
                 return new While(e.getSpan(), true, e.getTest(), e.getBody());
             }
             public Expr forAccumulator(Accumulator e) {
-                return new Accumulator(e.getSpan(), true, e.getOp(), e.getGens(),
+                return new Accumulator(e.getSpan(), true, e.getOpr(), e.getGens(),
                                        e.getBody());
             }
             public Expr forAtomicExpr(AtomicExpr e) {
                 return new AtomicExpr(e.getSpan(), true, e.getExpr());
             }
             public Expr forExit(Exit e) {
-                return new Exit(e.getSpan(), true, e.getOptId(),
-                                e.getReturnExpr());
+                return new Exit(e.getSpan(), true, e.getTarget(), e.getReturnExpr());
             }
             public Expr forSpawn(Spawn e) {
                 return new Spawn(e.getSpan(), true, e.getBody());
@@ -393,7 +444,7 @@ public class ExprFactory {
                 return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
             }
             public Expr forFnExpr(FnExpr e) {
-                return new FnExpr(e.getSpan(), true, e.getFnName(),
+                return new FnExpr(e.getSpan(), true, e.getName(),
                                   e.getStaticParams(), e.getParams(),
                                   e.getReturnType(), e.getWhere(),
                                   e.getThrowsClause(), e.getBody());
@@ -465,10 +516,10 @@ public class ExprFactory {
             }
             public Expr forFieldRef(FieldRef e) {
                 return new FieldRef(e.getSpan(), true, e.getObj(),
-                                          e.getId());
+                                          e.getField());
             }
             public Expr forMethodInvocation(MethodInvocation e) {
-                return new MethodInvocation(e.getSpan(), true, e.getObj(), e.getId(),
+                return new MethodInvocation(e.getSpan(), true, e.getObj(), e.getMethod(),
                                             e.getStaticArgs(), e.getArg());
             }
             public Expr forLooseJuxt(LooseJuxt e) {
@@ -478,7 +529,7 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getIds(), e.getStaticArgs());
+                return new FnRef(e.getSpan(), true, e.getFns(), e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),

@@ -245,7 +245,7 @@ abstract public class FTraitOrObject extends FType {
         }
         InstantiatedType pt = (InstantiatedType) val;
         EvalType eval_type = new EvalType(env);
-        FType eval_val_generic = eval_type.evalType(pt.getDottedId());
+        FType eval_val_generic = eval_type.evalType(pt.getName());
         if (getGeneric() != eval_val_generic) {
             return false;
         }

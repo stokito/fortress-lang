@@ -112,8 +112,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                     FType arg = args.get(i);
                     if (param instanceof OperatorParam) {
                         FTypeOpr fto = (FTypeOpr) arg;
-                        substitutions.put( ((OperatorParam)param).getOp().getName(),
-                                fto.getName());
+                        String s = NodeUtil.nameString(((OperatorParam)param).getName());
+                        substitutions.put(s, fto.getName());
                     } else {
                         thinned_args.add(arg);
                     }
@@ -150,8 +150,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
             AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
             if (dod instanceof TraitAbsDeclOrDecl) {
                 TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
-                FTypeTrait ftt = new FTypeTraitInstance(td.getId()
-                        .getName(), clenv, gen, bind_args, key_args, gen.members);
+                FTypeTrait ftt = new FTypeTraitInstance(td.getName().getId().getText(),
+                                                        clenv, gen, bind_args, key_args, gen.members);
                 FTraitOrObject old = map.put(key_args, ftt); // Must put
                                                             // early to
                                                             // expose for
@@ -165,8 +165,8 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 rval = ftt;
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
-                FTypeObject fto = new FTypeObjectInstance(td.getId()
-                        .getName(), clenv, gen, bind_args, key_args, gen.members);
+                FTypeObject fto = new FTypeObjectInstance(td.getName().getId().getText(),
+                                       clenv, gen, bind_args, key_args, gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 

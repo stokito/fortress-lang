@@ -19,15 +19,17 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
 
+import com.sun.fortress.nodes.IdName;
+
 public class LocalVarEnvironment extends DelegatingEnvironment {
-    private Set<String> _vars;
+    private Set<IdName> _vars;
     
-    public LocalVarEnvironment(Environment parent, Set<String> vars) {
+    public LocalVarEnvironment(Environment parent, Set<IdName> vars) {
         super(parent);
         _vars = vars;
     }
     
-    @Override public boolean hasVar(String name) {
+    @Override public boolean hasVar(IdName name) {
         return _vars.contains(name) || super.hasVar(name);
     }
     

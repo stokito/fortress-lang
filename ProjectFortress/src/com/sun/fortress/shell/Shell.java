@@ -132,10 +132,10 @@ public final class Shell extends ShellObject {
          // Find the real name of the parsed component or API.
          String progName = "";
          if (prog instanceof Component) {
-            progName = "components" + SEP + ((Component)prog).getDottedId();
+            progName = "components" + SEP + ((Component)prog).getName();
          }
          else { // prog instanceof Api
-            progName = "apis" + SEP + ((Api)prog).getDottedId();
+            progName = "apis" + SEP + ((Api)prog).getName();
          }
          Driver.writeJavaAst(prog, FORTRESS + SEP + progName + ".jst");
       }

@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.DottedName;
 
 /**
  * Allows the {@link Fortress} class to interface with a custom repository
@@ -31,10 +32,10 @@ public interface FortressRepository {
      * Provide an updating view of the apis present in the repository.  Need not support 
      * mutation.
      */
-    public Map<String, ApiIndex> apis();
+    public Map<DottedName, ApiIndex> apis();
     
-    public void addApi(String name, ApiIndex definition);
+    public void addApi(DottedName name, ApiIndex definition);
     
-    public void addComponent(String name, ComponentIndex definition);
+    public void addComponent(DottedName name, ComponentIndex definition);
     
 }

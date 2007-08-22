@@ -50,7 +50,7 @@ Type IsType = colon w Type ;
      Type w [ (w ArraySize)? w ]
    | Type ^ StaticArgFront
    | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
-   | DottedId (w [\ w StaticArgList w \])?
+   | QualifiedName (w [\ w StaticArgList w \])?
 
    DimType ::=
      Type w DOT w DimUnitExpr
@@ -84,7 +84,7 @@ private NonArrowType TypeFrontNonArrow =
      { yyValue = new OpDimType(createSpan(yyStart,yyCount), a2, a1); }
    / a1:DimUnitExpr w a2:DUPreOp
      { yyValue = new OpDimType(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
+   / a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      }
@@ -182,7 +182,7 @@ private NonArrowType NonArrowType =
      Type [ (w ArraySize)? w ]
    | Type ^ StaticArgFront
    | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
-   | DottedId (w [\ w StaticArgList w \])?
+   | QualifiedName (w [\ w StaticArgList w \])?
  */
 TraitType TraitType =
      a1:Type w opensquare a2:(w ArraySize)? w closesquare
@@ -200,7 +200,7 @@ TraitType TraitType =
      { yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount), a1, a2,
                                             a3s.list());
      }
-   / a1:DottedId a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
+   / a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      };
@@ -231,7 +231,9 @@ Type TupleType =
 
 /* KeywordType ::= Id w = w Type */
 private KeywordType KeywordType = a1:Id w equals w a2:Type
-     { yyValue = new KeywordType(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new KeywordType(createSpan(yyStart,yyCount),
+                                 NodeFactory.makeIdName(a1), a2);
+     };
 
 /* SimpleTupleType ::= ( w Type w , w TypeList w ) */
 TupleType SimpleTupleType =
@@ -272,7 +274,7 @@ private DimType DimType =
 /* DimUnitExpr ::=
      Unity
    | dimensionless
-   | DottedId
+   | QualifiedName
    | DimUnitExpr w DOT w DimUnitExpr
    | DimUnitExpr sr DimUnitExpr
    | DimUnitExpr w / w DimUnitExpr
@@ -293,7 +295,7 @@ private DimUnitExpr DimUnitExprFront =
      { yyValue = new BaseDimId(createSpan(yyStart,yyCount)); }
    / "dimensionless"
      { yyValue = new BaseUnitId(createSpan(yyStart,yyCount)); }
-   / a1:DottedId !(w opendoublesquare / w rightarrow / caret / w match)
+   / a1:QualifiedName !(w opendoublesquare / w rightarrow / caret / w match)
      { yyValue = new DimUnitId(createSpan(yyStart,yyCount), a1); }
    / one w slash w a1:DimUnitExpr
      { yyValue = new InversionDimUnit(createSpan(yyStart,yyCount), a1); }
@@ -357,7 +359,7 @@ private constant inline Action<DimUnitExpr> OpDimUnit =
 
 /* DimExpr ::=
      Unity
-   | DottedId
+   | QualifiedName
    | DimExpr w DOT w DimExpr
    | DimExpr sr DimExpr
    | DimExpr w / w DimExpr
@@ -376,7 +378,7 @@ DimExpr DimExpr =
 private DimExpr DimExprFront =
      "Unity"
      { yyValue = new BaseDim(createSpan(yyStart,yyCount)); }
-   / a1:DottedId
+   / a1:QualifiedName
      { yyValue = new DimId(createSpan(yyStart,yyCount), a1); }
    / one w slash w a1:DimExpr
      { yyValue = new QuotientDim(createSpan(yyStart,yyCount),
@@ -449,7 +451,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | false
    | Unity
    | dimensionless
-   | DottedId
+   | QualifiedName
    | StaticArg w + w StaticArg
    | StaticArg w - w StaticArg
    | StaticArg w / w StaticArg
@@ -487,7 +489,7 @@ private StaticArg StaticArgFront =
      { yyValue = new BaseDimStaticArg(createSpan(yyStart,yyCount)); }
    / "dimensionless"
      { yyValue = new BaseUnitStaticArg(createSpan(yyStart,yyCount)); }
-   / a1:DottedId !(w opendoublesquare / rightarrow / caret / w match)
+   / a1:QualifiedName !(w opendoublesquare / rightarrow / caret / w match)
      { yyValue = new TypeArg(a1.getSpan(), new IdType(a1.getSpan(), a1)); }
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);

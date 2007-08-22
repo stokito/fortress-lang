@@ -51,12 +51,12 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.nodes.AliasedDottedId;
+import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.AliasedName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
@@ -75,7 +75,6 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.nodes_util.Unprinter;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
@@ -361,13 +360,13 @@ public class Driver {
             for (Import i : imports) {
                 if (i instanceof ImportApi) {
                     ImportApi ix = (ImportApi) i;
-                    List<AliasedDottedId> apis = ix.getApis();
-                    for (AliasedDottedId adi : apis) {
-                        DottedId id = adi.getDottedId();
-                        String from_apiname = StringMaker.fromDottedId(id);
+                    List<AliasedDottedName> apis = ix.getApis();
+                    for (AliasedDottedName adi : apis) {
+                        DottedName id = adi.getApi();
+                        String from_apiname = NodeUtil.nameString(id);
 
-                        Option<DottedId> alias = adi.getAlias();
-                        String known_as = NodeUtil.getName(Option.unwrap(alias, id));
+                        Option<DottedName> alias = adi.getAlias();
+                        String known_as = NodeUtil.nameString(Option.unwrap(alias, id));
 
                         ComponentWrapper from_cw = linker.get(from_apiname);
 
@@ -387,8 +386,8 @@ public class Driver {
 
                 } else if (i instanceof ImportFrom) {
                     ImportFrom ix = (ImportFrom) i;
-                    DottedId source = ix.getSource();
-                    String from_apiname = StringMaker.fromDottedId(source);
+                    DottedName source = ix.getApi();
+                    String from_apiname = NodeUtil.nameString(source);
 
                     ComponentWrapper from_cw = linker.get(from_apiname);
                     BetterEnv from_e = from_cw.getEnvironment();
@@ -401,7 +400,7 @@ public class Driver {
                         /* A set of names */
                         List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
                         for (AliasedName an : names) {
-                            FnName name = an.getFnName();
+                            FnName name = an.getName();
                             Option<FnName> alias = an.getAlias();
                             /*
                              * If alias exists, associate the binding from
@@ -410,11 +409,7 @@ public class Driver {
                              */
 
                             inject(e, api_e, from_e, name, alias, from_apiname,
-                                   StringMaker.
-                                       fromDottedId(from_cw.
-                                                       getComponent().
-                                                           getDottedId()));
-
+                                   NodeUtil.nameString(from_cw.getComponent().getName()));
                         }
 
                     } else if (ix instanceof ImportStar) {
@@ -424,14 +419,13 @@ public class Driver {
                         final List<String> except_names = Useful.applyToAll(
                                 excepts, new Fn<FnName, String>() {
                                     public String apply(FnName n) {
-                                        return NodeUtil.getName(n);
+                                        return NodeUtil.nameString(n);
                                     }
                                 });
 
                         importAllExcept(e, api_e, from_e, except_names,
                                         from_apiname,
-                                        StringMaker.fromDottedId
-                                            (from_cw.getComponent().getDottedId()));
+                                        NodeUtil.nameString(from_cw.getComponent().getName()));
 
                     }
                 } else {
@@ -534,10 +528,10 @@ public class Driver {
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
             FnName name, Option<FnName> alias, String a, String c) {
-        String s = NodeUtil.getName(name);
+        String s = NodeUtil.nameString(name);
         String add_as = s;
         if (alias.isSome()) {
-            add_as = NodeUtil.getName(Option.unwrap(alias));
+            add_as = NodeUtil.nameString(Option.unwrap(alias));
         }
         try {
             if (api_e.getNatNull(s) != null) {
@@ -585,15 +579,15 @@ public class Driver {
         for (Import i : imports) {
             if (i instanceof ImportApi) {
                 ImportApi ix = (ImportApi) i;
-                List<AliasedDottedId> apis = ix.getApis();
-                for (AliasedDottedId adi : apis) {
-                    DottedId id = adi.getDottedId();
+                List<AliasedDottedName> apis = ix.getApis();
+                for (AliasedDottedName adi : apis) {
+                    DottedName id = adi.getApi();
                     ensureApiImplemented(linker, pile, id);
                 }
             }
             else if (i instanceof ImportFrom) {
                 ImportFrom ix = (ImportFrom) i;
-                DottedId source = ix.getSource();
+                DottedName source = ix.getApi();
                 ensureApiImplemented(linker, pile, source);
             }
             else {
@@ -609,8 +603,8 @@ public class Driver {
      */
     private static void ensureApiImplemented(
             HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, DottedId id) throws IOException {
-        String apiname = StringMaker.fromDottedId(id);
+            Stack<ComponentWrapper> pile, DottedName name) throws IOException {
+        String apiname = NodeUtil.nameString(name);
         if (linker.get(apiname) == null) {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming

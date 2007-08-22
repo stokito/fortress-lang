@@ -20,6 +20,10 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.DottedName;
+
 public abstract class DelegatingEnvironment extends Environment {
     private Environment _parent;
     
@@ -27,13 +31,14 @@ public abstract class DelegatingEnvironment extends Environment {
         _parent = parent;
     }
     
-    public boolean hasVar(String name) { return _parent.hasVar(name); }
-    public boolean hasFn(String name) { return _parent.hasFn(name); }
-    public boolean hasMethod(String name) { return _parent.hasMethod(name); }
-    public boolean hasTrait(String name) { return _parent.hasTrait(name); }
-    public boolean hasTypeVar(String name) { return _parent.hasTypeVar(name); }
+    public boolean hasVar(IdName name) { return _parent.hasVar(name); }
+    public boolean hasFn(FnName name) { return _parent.hasFn(name); }
+    public boolean hasTrait(IdName name) { return _parent.hasTrait(name); }
+    public boolean hasTypeVar(IdName name) { return _parent.hasTypeVar(name); }
     
-    public Option<String> apiForVar(String name) { return _parent.apiForVar(name); }
-    public Set<String> apisForFn(String name) { return _parent.apisForFn(name); }
-    public Option<String> apiForTrait(String name) { return _parent.apiForTrait(name); }
+    public Option<DottedName> apiForVar(IdName name) { return _parent.apiForVar(name); }
+    public Set<DottedName> apisForFn(FnName name) { return _parent.apisForFn(name); }
+    public Option<DottedName> apiForTrait(IdName name) {
+        return _parent.apiForTrait(name);
+    }
 }

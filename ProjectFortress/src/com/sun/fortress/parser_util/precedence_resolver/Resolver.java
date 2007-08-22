@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Chain;
@@ -74,7 +75,7 @@ public class Resolver {
   //       tri_subgroup; tri_contains;
   //       ]
   private static boolean chains(Op op) {
-      return PrecedenceMap.ONLY.isChain(op.getName());
+      return PrecedenceMap.ONLY.isChain(op.getText());
   }
 
   // let precedence (one : op) (two : op) : precedence =
@@ -85,7 +86,7 @@ public class Resolver {
   //         | Some (`Higher | `Lower | `Equal as prec) -> prec
   //         | None -> `None
   private static Precedence precedence(Op op1, Op op2) {
-      return PrecedenceMap.ONLY.get(op1.getName(), op2.getName());
+      return PrecedenceMap.ONLY.get(op1.getText(), op2.getText());
   }
 
   //(* Given a list of exprs and ops, ensure that the ops are a valid chaining *)
@@ -101,7 +102,7 @@ public class Resolver {
     private static void ensureValidChaining(PureList<ExprOpPair> links)
         throws ReadError {
         PureList<String> names = links.map(new Fn<ExprOpPair,String>() {
-            public String apply(ExprOpPair p) { return p.getB().getName(); }
+            public String apply(ExprOpPair p) { return p.getB().getText(); }
         });
 
         if (!PrecedenceMap.ONLY.isValidChaining(names.toJavaList())) {
@@ -156,7 +157,7 @@ public class Resolver {
     }
 
     // let is_div op = op.node_data = "/"
-  private static boolean isDiv(Op op) { return op.getName().equals("/"); }
+  private static boolean isDiv(Op op) { return op.getText().equals("/"); }
 
   // let rec resolve_tight_div (oes : prefix_opexpr list) : prefix_opexpr list =
   //   match oes with
@@ -473,7 +474,7 @@ public class Resolver {
       if (first instanceof JuxtInfix) {
         Op op = ((JuxtInfix)first).getOp();
         throw new ReadError(op.getSpan(),
-                            "Interpreted " + op.getName() +
+                            "Interpreted " + op.getText() +
                             " with no left operand as infix.");
       }
       else { // first instanceof RealExpr
@@ -496,7 +497,7 @@ public class Resolver {
           else { // second instanceof JuxtInfix
             Op op = ((JuxtInfix)second).getOp();
             throw new ReadError(op.getSpan(),
-                                "Interpreted " + op.getName() +
+                                "Interpreted " + op.getText() +
                                 " with no right operand as infix.");
           }
         }
@@ -579,17 +580,18 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<Pair<Op, Expr>>
-    buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
+  private static PureList<Pair<Opr, Expr>>
+      buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
+    Opr fOpr = new Opr(first.getSpan(), first);
     if (links.isEmpty()) {
-        return PureList.<Pair<Op,Expr>>make(
-                      new Pair<Op,Expr>(first,last));
+        return PureList.<Pair<Opr,Expr>>make(
+                      new Pair<Opr,Expr>(fOpr,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Pair<Op,Expr> l = new Pair<Op,Expr>(first, link.getA());
+      Pair<Opr,Expr> l = new Pair<Opr,Expr>(fOpr, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }
@@ -659,8 +661,8 @@ public class Resolver {
         }
         else {
           throw new ReadError(FortressUtil.spanTwo(_op,op),
-                              "Tight operator " + _op.getName() +
-                              " near loose operator " + op.getName()
+                              "Tight operator " + _op.getText() +
+                              " near loose operator " + op.getText()
                                 + " of incompatible precedence.");
         }
       }
@@ -668,7 +670,7 @@ public class Resolver {
         Op _op = ((Loose)frame).getOp();
         PureList<Expr> exprs = ((Loose)frame).getExprs();
 
-        if (op.getName().equals(_op.getName())) {
+        if (op.getText().equals(_op.getText())) {
           return rest.cons(new Loose(_op, exprs.cons(e)));
         }
         else {
@@ -685,8 +687,8 @@ public class Resolver {
           }
           else { // prec instanceof None
             throw new ReadError(FortressUtil.spanTwo(_op, op),
-                                "Loose operators " + _op.getName()
-                                  + " and " + op.getName() +
+                                "Loose operators " + _op.getText()
+                                  + " and " + op.getText() +
                                 " have incomparable precedence.");
           }
         }
@@ -710,13 +712,13 @@ public class Resolver {
         }
         else if (prec instanceof Equal) {
           throw new ReadError(op.getSpan(),
-                              "Chaining operator " + op.getName() +
+                              "Chaining operator " + op.getText() +
                               " not parsed as such.");
         }
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Loose operators " + _op.getName()
-                                + " and " + op.getName() +
+                              "Loose operators " + _op.getText()
+                                + " and " + op.getText() +
                               " have incomparable precedence.");
         }
       }
@@ -735,9 +737,9 @@ public class Resolver {
           }
           else {
             throw new ReadError(FortressUtil.spanTwo(_op,op),
-                                "Tight operator " + _op.getName() +
+                                "Tight operator " + _op.getText() +
                                 " near loose operator " +
-                                op.getName() +
+                                op.getText() +
                                 " of incompatible precedence.");
           }
         }
@@ -807,8 +809,8 @@ public class Resolver {
         }
         else {
           throw new ReadError(FortressUtil.spanTwo(_op,op),
-                              "Loose operator " + _op.getName() +
-                              " near tight operator " + op.getName()
+                              "Loose operator " + _op.getText() +
+                              " near tight operator " + op.getText()
                                 + " of incompatible precedence.");
         }
       }
@@ -816,7 +818,7 @@ public class Resolver {
         Op _op = ((Tight)frame).getOp();
         PureList<Expr> exprs = ((Tight)frame).getExprs();
 
-        if (op.getName().equals(_op.getName())) {
+        if (op.getText().equals(_op.getText())) {
           return rest.cons(new Tight(_op, exprs.cons(e)));
         }
         else {
@@ -832,8 +834,8 @@ public class Resolver {
           }
           else { // prec instanceof None
             throw new ReadError(FortressUtil.spanTwo(_op, op),
-                                "Tight operators " + _op.getName()
-                                  + " and " + op.getName() +
+                                "Tight operators " + _op.getText()
+                                  + " and " + op.getText() +
                                 " have incomparable precedence.");
           }
         }
@@ -858,13 +860,13 @@ public class Resolver {
         }
         else if (prec instanceof Equal) {
           throw new ReadError(op.getSpan(),
-                              "Chaining operator " + op.getName() +
+                              "Chaining operator " + op.getText() +
                               " not parsed as such.");
         }
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Tight operators " + _op.getName()
-                                + " and " + op.getName() +
+                              "Tight operators " + _op.getText()
+                                + " and " + op.getText() +
                               " have incomparable precedence.");
         }
       }
@@ -882,9 +884,9 @@ public class Resolver {
           }
           else {
             throw new ReadError(FortressUtil.spanTwo(_op,op),
-                                "Loose operator " + _op.getName() +
+                                "Loose operator " + _op.getText() +
                                 " near tight operator " +
-                                op.getName() +
+                                op.getText() +
                                 " of incompatible precedence.");
           }
         }
@@ -938,8 +940,8 @@ public class Resolver {
         }
         else {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Tight operator " + _op.getName() +
-                              " near loose operator " + op.getName()
+                              "Tight operator " + _op.getText() +
+                              " near loose operator " + op.getText()
                                 + " of incompatible precedence.");
         }
       }
@@ -956,13 +958,13 @@ public class Resolver {
         }
         else if (prec instanceof Equal) {
           throw new ReadError(_op.getSpan(),
-                              "Chaining operator " + _op.getName() +
+                              "Chaining operator " + _op.getText() +
                               " not parsed as such.");
         }
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Loose operators " + _op.getName() +
-                              " and " + op.getName()
+                              "Loose operators " + _op.getText() +
+                              " and " + op.getText()
                                 + " have incompatible precedence.");
         }
       } else if (frame instanceof TightChain) {
@@ -1024,8 +1026,8 @@ public class Resolver {
         }
         else {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Loose operator " + _op.getName() +
-                              " near tight operator " + op.getName()
+                              "Loose operator " + _op.getText() +
+                              " near tight operator " + op.getText()
                                 + " of incompatible precedence.");
         }
       }
@@ -1042,13 +1044,13 @@ public class Resolver {
         }
         else if (prec instanceof Equal) {
           throw new ReadError(_op.getSpan(),
-                              "Chaining operator " + _op.getName() +
+                              "Chaining operator " + _op.getText() +
                               " not parsed as such.");
         }
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
-                              "Tight operators " + _op.getName() +
-                              " and " + op.getName()
+                              "Tight operators " + _op.getText() +
+                              " and " + op.getText()
                                 + " have incompatible precedence.");
         }
       }
@@ -1129,7 +1131,7 @@ public class Resolver {
 
     else { // stack instanceof Layer
       Op op = ((Layer) stack).getOp();
-      throw new ReadError(op.getSpan(), "Left encloser " + op.getName() +
+      throw new ReadError(op.getSpan(), "Left encloser " + op.getText() +
                                         " without right encloser.");
     }
   }
@@ -1149,7 +1151,7 @@ public class Resolver {
                    EnclosingStack stack) throws ReadError {
 
     if (stack instanceof Layer &&
-    ((Layer) stack).getOp().getName().equals(op.getName())) {
+    ((Layer) stack).getOp().getText().equals(op.getText())) {
       Layer layer = (Layer) stack;
       Op layerOp = layer.getOp();
 

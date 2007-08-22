@@ -193,10 +193,12 @@ private Unpasting UnpastingElems =
 private Unpasting UnpastingElem =
      a1:Id a2:(opensquare w UnpastingDim w closesquare)?
      { if (a2 == null)
-           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1,
+           yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeIdName(a1),
                                        Collections.<ExtentRange>emptyList());
        else
-           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeIdName(a1), a2);
      }
    / Unpasting ;
 

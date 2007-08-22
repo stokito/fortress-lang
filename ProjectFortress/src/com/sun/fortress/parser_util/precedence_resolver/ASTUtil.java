@@ -23,6 +23,7 @@ package com.sun.fortress.parser_util.precedence_resolver;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Collections;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Enclosing;
@@ -31,7 +32,9 @@ import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes.OprExpr;
-import com.sun.fortress.nodes.OprName;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.QualifiedOpName;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -74,20 +77,27 @@ public class ASTUtil {
     // let multifix (span : span) (op : op) (args : expr list) : expr =
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
-        Opr opr = new Opr(op.getSpan(), op);
-        return new OprExpr(span, false, Collections.<OprName>singletonList(opr), args);
+        QualifiedOpName qName =
+            new QualifiedOpName(op.getSpan(), Option.<DottedName>none(),
+                                new Opr(op.getSpan(), op));
+        return new OprExpr(span, false,
+                           Collections.<QualifiedOpName>singletonList(qName), args);
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
-        if (PrecedenceMap.ONLY.matchedBrackets(left.getName(), right.getName())) {
-            Enclosing en = new Enclosing(FortressUtil.spanTwo(left, right), left, right);
-            return new OprExpr(span, false, Collections.<OprName>singletonList(en), args);
+        if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
+            Span s = FortressUtil.spanTwo(left, right);
+            Enclosing en = new Enclosing(s, left, right);
+            QualifiedOpName qName = new QualifiedOpName(s, Option.<DottedName>none(),
+                                                        new Enclosing(s, left, right));
+            return new OprExpr(span, false,
+                               Collections.<QualifiedOpName>singletonList(qName), args);
         } else {
             throw new ProgramError(right, "Mismatched Enclosers: " +
-                                          left.getName() + " and " +
-                                          right.getName());
+                                          left.getText() + " and " +
+                                          right.getText());
         }
     }
 
@@ -97,7 +107,7 @@ public class ASTUtil {
     //        (node span
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
-    static Expr chain(Span span, Expr first, List<Pair<Op, Expr>> links) {
+    static Expr chain(Span span, Expr first, List<Pair<Opr, Expr>> links) {
         return new ChainExpr(span, false, first, links);
     }
 

@@ -396,7 +396,8 @@ public final class FortressUtil {
                                            Option<Type> ty, boolean mutable) {
         List<LValueBind> lvs = new ArrayList<LValueBind>();
         for (Id id : ids) {
-            lvs.add(new LValueBind(id.getSpan(), id, ty, mods, mutable));
+            lvs.add(new LValueBind(id.getSpan(), NodeFactory.makeIdName(id), ty, mods,
+                                   mutable));
         }
         return lvs;
     }
@@ -426,7 +427,7 @@ public final class FortressUtil {
         List<LValueBind> lvs = new ArrayList<LValueBind>();
         int ind = 0;
         for (Id id : ids) {
-            lvs.add(new LValueBind(id.getSpan(), id,
+            lvs.add(new LValueBind(id.getSpan(), NodeFactory.makeIdName(id),
                                    Option.some(tys.get(ind)),
                                    mods, mutable));
             ind += 1;
@@ -524,17 +525,17 @@ public final class FortressUtil {
     }
 
     public static LValueBind mkLValueBind(Span span, Id id, Type ty) {
-        return new LValueBind(span, id, Option.some(ty), emptyModifiers(),
-                              false);
+        return new LValueBind(span, NodeFactory.makeIdName(id), Option.some(ty),
+                              emptyModifiers(), false);
     }
     public static LValueBind mkLValueBind(Span span, Id id) {
-        return new LValueBind(span, id, Option.<Type>none(), emptyModifiers(),
-                              false);
+        return new LValueBind(span, NodeFactory.makeIdName(id), Option.<Type>none(),
+                              emptyModifiers(), false);
     }
     public static LValueBind mkLValueBind(Id id, Type ty,
                                           List<Modifier> mods) {
-        return new LValueBind(id.getSpan(), id, Option.some(ty), mods,
-                              getMutable(mods));
+        return new LValueBind(id.getSpan(), NodeFactory.makeIdName(id),
+                              Option.some(ty), mods, getMutable(mods));
     }
     public static LValueBind mkLValueBind(Id id, Type ty) {
         return mkLValueBind(id, ty, emptyModifiers());

@@ -125,9 +125,30 @@ public class NodeComparator {
     }
 
     /* compare methods ***************************************************/
-    public static int compare(DottedId left, DottedId right) {
+    public static int compare(DottedName left, DottedName right) {
         return ListComparer.stringListComparer.compare(NodeUtil.toStrings(left),
                                                        NodeUtil.toStrings(right));
+    }
+
+    public static int compare(QualifiedName left, QualifiedName right) {
+        if (left.getApi().isNone()) {
+            if (right.getApi().isNone()) { // both are none
+                return compare(left.getName(), right.getName());
+            }
+            else {
+                return -1;
+            }
+        }
+        else {
+            if (right.getApi().isNone()) {
+                return 1;
+            }
+            else { // both are some
+                int result = compare(Option.unwrap(left.getApi()),
+                                     Option.unwrap(right.getApi()));
+                return (result == 0) ? compare(left.getName(), right.getName()) : result;
+            }
+        }
     }
 
     public static int compare(ExtentRange left, ExtentRange right) {
@@ -141,8 +162,8 @@ public class NodeComparator {
     }
 
     public static int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
-        FnName fn0 = left.getFnName();
-        FnName fn1 = right.getFnName();
+        FnName fn0 = left.getName();
+        FnName fn1 = right.getName();
         int x = NodeComparator.compare(fn0, fn1);
         if (x != 0)  return x;
         x = compare(left.getStaticParams(), right.getStaticParams());
@@ -164,7 +185,7 @@ public class NodeComparator {
     }
 
     public static int compare(Id left, Id right) {
-        return left.getName().compareTo(right.getName());
+        return left.getText().compareTo(right.getText());
     }
 
     public static int compare(Indices left, Indices right) {
@@ -177,12 +198,13 @@ public class NodeComparator {
     }
 
     public static int compare(KeywordType left, KeywordType right) {
-        return compare(left.getId(), right.getId(),
+        return compare(left.getName().getId(), right.getName().getId(),
                        left.getType(), right.getType());
     }
 
     public static int compare(Param left, Param right) {
-        int x = left.getId().getName().compareTo(right.getId().getName());
+        int x = left.getName().getId().getText()
+                    .compareTo(right.getName().getId().getText());
         if (x != 0) return x;
         if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
             x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
@@ -274,7 +296,7 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(IdType left, IdType right) {
-        return compare(left.getDottedId(), right.getDottedId());
+        return compare(left.getName(), right.getName());
     }
 
     static int subtypeCompareTo(Indices left, Indices right) {
@@ -291,11 +313,11 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(BaseOprStaticArg left, BaseOprStaticArg right) {
-        return compare(left.getFnName(), right.getFnName());
+        return compare(left.getName(), right.getName());
     }
 
     static int subtypeCompareTo(InstantiatedType left, InstantiatedType right) {
-        int c = compare(left.getDottedId(), right.getDottedId());
+        int c = compare(left.getName(), right.getName());
         if (c != 0) return c;
         return staticArgListComparer.compare(left.getArgs(),
                                              right.getArgs());

@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.IdName;
 
 /**
  * Note that this is a {@link Function}, not a {@link Method}, despite the name
@@ -26,9 +27,9 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 public class FunctionalMethod extends Function {
     
     private final FnAbsDeclOrDecl _ast;
-    private final String _declaringTrait;
+    private final IdName _declaringTrait;
     
-    public FunctionalMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
+    public FunctionalMethod(FnAbsDeclOrDecl ast, IdName declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }

@@ -140,17 +140,6 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
        // eric.allen@sun.com 9/21/2006
        Set<Map.Entry<WrappedKey,V>> s = map.entrySet();
        return Useful.applyToAll(s, entryUnmapper);
-//=======
-//    public Set<Map.Entry<K, V>> entrySet() {
-//        // Javac doesn't like this if it is written directly.
-//        // Eclipse whines if it is written "correctly", assuming
-//        // I can figure out what that is.  The error messages are
-//        // too long and not very informative.
-//        //Object o = (Object) map.entrySet();
-//        Set<Map.Entry<WrappedKey,V>> s = (Set<Map.Entry<WrappedKey,V>>) map.entrySet();
-//        // TODO Clean up this generic!
-//        return (Set<Map.Entry<K, V>>) (Set) Useful.<Map.Entry<WrappedKey,V>, FauxEntry>applyToAll(s, entryUnmapper);
-//>>>>>>> .r3590
     }
 
     /* (non-Javadoc)

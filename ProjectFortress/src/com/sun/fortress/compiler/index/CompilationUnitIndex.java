@@ -23,6 +23,9 @@ import java.util.Collections;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.DottedName;
 
 import com.sun.fortress.useful.NI;
 
@@ -30,14 +33,14 @@ import com.sun.fortress.useful.NI;
 public class CompilationUnitIndex {
     
     private final CompilationUnit _ast;
-    private final Map<String, Variable> _variables;
-    private final Relation<String, Function> _functions;
-    private final Map<String, TraitIndex> _traits;
+    private final Map<IdName, Variable> _variables;
+    private final Relation<FnName, Function> _functions;
+    private final Map<IdName, TraitIndex> _traits;
     
     public CompilationUnitIndex(CompilationUnit ast,
-                                Map<String, Variable> variables,
-                                Relation<String, Function> functions,
-                                Map<String, TraitIndex> traits) {
+                                Map<IdName, Variable> variables,
+                                Relation<FnName, Function> functions,
+                                Map<IdName, TraitIndex> traits) {
         _ast = ast;
         _variables = Collections.unmodifiableMap(variables);
         _functions = CollectUtil.unmodifiableRelation(functions);
@@ -46,18 +49,18 @@ public class CompilationUnitIndex {
     
     public CompilationUnit ast() { return _ast; }
     
-    public Set<String> exports() {
+    public Set<DottedName> exports() {
         return NI.nyi();
     }
     
-    public Set<String> imports() {
+    public Set<DottedName> imports() {
         return NI.nyi();
     }
     
-    public Map<String, Variable> variables() { return _variables; }
+    public Map<IdName, Variable> variables() { return _variables; }
     
-    public Relation<String, Function> functions() { return _functions; }
+    public Relation<FnName, Function> functions() { return _functions; }
     
-    public Map<String, TraitIndex> traits() { return _traits; }
+    public Map<IdName, TraitIndex> traits() { return _traits; }
     
 }

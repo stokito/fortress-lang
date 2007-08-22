@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.StringMaker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -370,13 +369,13 @@ abstract public class FType implements Comparable<FType> {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc;
 //        return (val instanceof IdType &&
-//                name.equals(StringMaker.fromDottedId(((IdType)val).getName())));
+//                name.equals(NodeUtil.nameString(((IdType)val).getName())));
         if (! (val instanceof IdType)) {
             rc = false;
-        } else if (name.equals(StringMaker.fromDottedId(((IdType)val).getDottedId()))) {
+        } else if (name.equals(NodeUtil.nameString(((IdType)val).getName()))) {
             rc = true;
         } else {
-            FType other = env.getTypeNull(((IdType)val).getDottedId());
+            FType other = env.getTypeNull(((IdType)val).getName());
 
             if (other == null) {
                 rc = false;
@@ -408,7 +407,7 @@ abstract public class FType implements Comparable<FType> {
         /* Check if val is a type variable */
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
-            String nm = StringMaker.fromDottedId(id_val.getDottedId());
+            String nm = NodeUtil.nameString(id_val.getName());
             for (StaticParam tp : tp_set) {
                 String k = NodeUtil.getName(tp);
                 if (k.equals(nm)) {

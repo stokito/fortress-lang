@@ -20,13 +20,15 @@ package com.sun.fortress.compiler.index;
 import java.util.Map;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.FnName;
 
 public class ApiIndex extends CompilationUnitIndex {
     
     public ApiIndex(Api ast,
-                    Map<String, Variable> variables,
-                    Relation<String, Function> functions,
-                    Map<String, TraitIndex> traits) {
+                    Map<IdName, Variable> variables,
+                    Relation<FnName, Function> functions,
+                    Map<IdName, TraitIndex> traits) {
         super(ast, variables, functions, traits);
     }
     

@@ -39,7 +39,7 @@ public class NativeApplicable implements Applicable {
 
     NativeApplicable(String name) {
         this.name = name;
-        this.fnName = NodeFactory.makeDottedId(name);
+        this.fnName = NodeFactory.makeIdName(name);
     }
 
     public String toString() {
@@ -61,7 +61,7 @@ public class NativeApplicable implements Applicable {
         return NI.ni();
     }
 
-    public FnName getFnName() {
+    public FnName getName() {
         return fnName;
     }
 

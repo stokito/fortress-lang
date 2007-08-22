@@ -90,7 +90,7 @@ List<LHS> AssignLefts =
 /* AssignLeft ::=
      SubscriptExpr
    | FieldSelection
-   | DottedId
+   | QualifiedName
    SubscriptExpr ::= Primay [ (w ExprList)? w ]
    FieldSelection ::= Primary . Id
  */
@@ -100,7 +100,7 @@ LHS AssignLeft =
       if (left instanceof LHS) yyValue = (LHS)left;
       else yyValue = null;
     }
-  / a1:DottedId
+  / a1:QualifiedName
     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
 
 constant transient Action<Expr> AssignLeftTail =
@@ -124,7 +124,8 @@ constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new FieldRef(createSpan(yyStart,yyCount), false, base, a1);
+              return new FieldRef(createSpan(yyStart,yyCount), false, base,
+                                  NodeFactory.makeIdName(a1));
           }};
     };
 
@@ -284,7 +285,7 @@ PureList<PrecedenceOpExpr> LooseInfix =
 
 /* Primary ::=
      Comprehension
-   | DottedId [\ w StaticArgList w \]
+   | QualifiedName [\ w StaticArgList w \]
    | BaseExpr
    | LeftEncloser (w ExprList)? w RightEncloser
    | Primary [ (w ExprList)? w ]
@@ -310,7 +311,7 @@ constant PureList<Expr> Primary =
 
 Expr PrimaryFront =
      Comprehension
-   / a1:DottedId opendoublesquare w a2:StaticArgList w closedoublesquare
+   / a1:QualifiedName opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
    / BaseExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -367,7 +368,8 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
                Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
-                                               false, rcv, a1, sargs, a3);
+                                               false, rcv, NodeFactory.makeIdName(a1),
+                                               sargs, a3);
                return PureList.make(inv);
            }};
      }
@@ -381,7 +383,8 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
                Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
-                                               false, rcv, a1, sargs, arg);
+                                               false, rcv, NodeFactory.makeIdName(a1),
+                                               sargs, arg);
                return PureList.make(inv);
            }};
      };
@@ -392,7 +395,8 @@ constant inline Action<PureList<Expr>> FieldSelection =
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldRef(span,false,rcv,a1));
+               return PureList.make((Expr)new FieldRef(span,false,rcv,
+                                                       NodeFactory.makeIdName(a1)));
            }};
      };
 
@@ -487,13 +491,15 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
  */
 Expr FlowExpr =
      exit a1:(w Id)? a2:(w with w Expr)?
-     { Option<Id> name = Option.wrap(a1);
+     { Option<IdName> name = (a1 == null) ? Option.<IdName>none() :
+                                            Option.some(NodeFactory.makeIdName(a1));
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
    / a1:Accumulator a2:(w opensquare w GeneratorList w closesquare)? w a3:Expr
      { if (a2 == null) a2 = Collections.<Generator>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), false, a1, a2, a3);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), false,
+                                 NodeFactory.makeOpr(a1), a2, a3);
      }
    / atomic w a1:AtomicBack
      { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }
@@ -525,8 +531,8 @@ List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
  */
 Generator Generator =
      a1:IdOrIdTuple w leftarrow w a2:Expr
-     { yyValue = new Generator(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = ExprFactory.makeGenerator(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Expr
      { yyValue = new Generator(createSpan(yyStart,yyCount),
-                               Collections.<Id>emptyList(), a1);
+                               Collections.<IdName>emptyList(), a1);
      };

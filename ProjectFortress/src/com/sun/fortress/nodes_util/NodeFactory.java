@@ -29,6 +29,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -45,7 +46,7 @@ public class NodeFactory {
                                           Contract contract) {
         String selfName;
         if (optSelfName.isSome()) {
-            selfName = Option.unwrap(optSelfName).getName();
+            selfName = Option.unwrap(optSelfName).getText();
         } else {
             selfName = WellKnownNames.defaultSelfName;
         }
@@ -54,22 +55,21 @@ public class NodeFactory {
     }
 
     public static AliasedName makeAliasedName(Span span, Id id) {
-        return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               Option.<FnName>none());
+        return new AliasedName(span, makeIdName(id), Option.<FnName>none());
     }
 
-    public static AliasedName makeAliasedName(Span span, Id id, DottedId alias) {
-        return new AliasedName(span, makeFnName(id.getSpan(), id),
-                               Option.<FnName>some(alias));
+    public static AliasedName makeAliasedName(Span span, Id id, Id alias) {
+        return new AliasedName(span, makeIdName(id),
+                               Option.<FnName>some(makeIdName(alias)));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
-    public static AliasedName makeAliasedName(Span span, OprName op) {
+    public static AliasedName makeAliasedName(Span span, OpName op) {
         return new AliasedName(span, op, Option.<FnName>none());
     }
 
-    public static AliasedName makeAliasedName(Span span, OprName op,
-                                              OprName alias) {
+    public static AliasedName makeAliasedName(Span span, OpName op,
+                                              OpName alias) {
         return new AliasedName(span, op, Option.<FnName>some(alias));
     }
 
@@ -110,93 +110,119 @@ public class NodeFactory {
                             Option.<List<Expr>>none());
     }
 
-    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
+    public static DimUnitDecl makeDimUnitDecl(Span span, IdName dim,
                                               Option<DimExpr> derived,
-                                              Option<Id> defaultId) {
+                                              Option<IdName> defaultId) {
         return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
-                               false, Collections.<Id>emptyList(),
+                               false, Collections.<IdName>emptyList(),
                                Option.<Expr>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
-                                              String unit, List<Id> ids,
+                                              String unit, List<IdName> ids,
                                               Option<Expr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
-        return new DimUnitDecl(span, Option.<Id>none(), derived, Option.<Id>none(),
-                               si_unit, ids, def);
+        return new DimUnitDecl(span, Option.<IdName>none(), derived,
+                               Option.<IdName>none(), si_unit, ids, def);
     }
 
-    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
+    public static DimUnitDecl makeDimUnitDecl(Span span, IdName dim,
                                               Option<DimExpr> derived,
-                                              String unit, List<Id> ids,
+                                              String unit, List<IdName> ids,
                                               Option<Expr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
         return new DimUnitDecl(span, Option.some(dim), derived,
-                               Option.<Id>none(), si_unit, ids, def);
+                               Option.<IdName>none(), si_unit, ids, def);
     }
 
-    public static DottedId makeDottedId(Span span, String s) {
-        return new DottedId(span, Useful.list(new Id(span, s)));
+    public static DottedName makeDottedName(Span span, String s) {
+        return new DottedName(span, Useful.list(new Id(span, s)));
     }
 
-    public static DottedId makeDottedId(Span span, String s, String delimiter) {
+    public static DottedName makeDottedName(Span span, Id s) {
+        return new DottedName(span, Useful.list(s));
+    }
+
+    public static DottedName makeDottedName(Id s) {
+        return new DottedName(s.getSpan(), Useful.list(s));
+    }
+
+    public static DottedName makeDottedName(Iterable<Id> ids) {
+        return new DottedName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
+    }
+    
+    public static DottedName makeDottedName(Span span, Iterable<Id> ids) {
+        return new DottedName(span, IterUtil.asList(ids));
+    }
+    
+    /** Create a DottedName from the name of the file with the given path. */
+    public static DottedName makeDottedName(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
-        int size = s.split(File.separator).length;
-        String file = s.split(File.separator)[size-1];
-        for (String n : file.split(delimiter)) {
-            ids.add(new Id(span, n));
+        String file = new File(path).getName();
+        if (file.length() <= 4) {
+            throw new ProgramError(new Id(span, "_"), "Invalid file name.");
         }
-        return new DottedId(span, ids);
-    }
-
-    public static DottedId makeDottedId(Id s) {
-        return new DottedId(s.getSpan(), Useful.list(s));
-    }
-
-    public static DottedId makeDottedId(Span span, Id s) {
-        return new DottedId(span, Useful.list(s));
-    }
-
-    public static DottedId makeDottedId(Span span, Id s, List<Id> ls) {
-        return new DottedId(span, Useful.prepend(s, ls));
-    }
-
-    /** A hack to allow conversion from a FieldRef to a DottedId.  Instead of using
-      * this, the parser should parse the thing as a DottedId in the first place, if
-      * that is possible.  If the VarRef contains something besides Ids, the result
-      * is None.
-      */
-    public static Option<DottedId> makeDottedId(FieldRef ref) {
-        LinkedList<Id> ids = new LinkedList<Id>();
-        VarRef head = null;
-        do {
-            ids.addFirst(ref.getId());
-            Expr receiver = ref.getObj();
-            if (receiver instanceof FieldRef) { ref = (FieldRef) receiver; }
-            else if (receiver instanceof VarRef) { head = (VarRef) receiver; ref = null; }
-            else { ref = null; }
-        } while (ref != null);
-
-        if (head != null) {
-            List<Id> res = IterUtil.asList(IterUtil.compose(head.getVar().getNames(),
-                                                            ids));
-            return Option.some(new DottedId(FortressUtil.spanAll(res), res));
+        else {
+            for (String n : file.substring(file.length()-4).split(delimiter)) {
+                ids.add(new Id(span, n));
+            }
+            return new DottedName(span, ids);
         }
-        else { return Option.none(); }
+    }
+    
+    public static QualifiedIdName makeQualifiedIdName(Span span, String s) {
+        return new QualifiedIdName(span, Option.<DottedName>none(),
+                                   makeIdName(span, s));
+    }
+    
+    public static QualifiedIdName makeQualifiedIdName(Span span, Id id) {
+        return new QualifiedIdName(span, Option.<DottedName>none(), makeIdName(id));
     }
 
-    /**
-     * Call this only for names that have no location. (When/if this constructor
-     * disappears, it will be because we have a better plan for those names, and
-     * its disappearance will identify all those places that need updating).
-     */
-    public static DottedId makeDottedId(String string) {
-        Span span = new Span();
-        return makeDottedId(span, string);
+    public static QualifiedIdName makeQualifiedIdName(Id id) {
+        return new QualifiedIdName(id.getSpan(), Option.<DottedName>none(),
+                                   makeIdName(id));
+    }
+    
+    public static QualifiedIdName makeQualifiedIdName(IdName name) {
+        return new QualifiedIdName(name.getSpan(), Option.<DottedName>none(), name);
+    }
+    
+    public static QualifiedIdName makeQualifiedIdName(Iterable<Id> apiIds, Id id) {
+        Span span;
+        Option<DottedName> api;
+        if (IterUtil.isEmpty(apiIds)) {
+            span = id.getSpan();
+            api = Option.none();
+        }
+        else {
+            DottedName n = makeDottedName(apiIds);
+            span = FortressUtil.spanTwo(n, id);
+            api = Option.some(n);
+        }
+        return new QualifiedIdName(span, api, makeIdName(id));
+    }
+
+    public static QualifiedIdName makeQualifiedIdName(Span span, Iterable<Id> apiIds,
+                                                      Id id) {
+        Option<DottedName> api;
+        if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
+        else { api = Option.some(makeDottedName(apiIds)); }
+        return new QualifiedIdName(span, api, makeIdName(id));
+    }
+    
+    /** Assumes {@code ids} is nonempty. */
+    public static QualifiedIdName makeQualifiedIdName(Iterable<Id> ids) {
+        return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
+    }
+    
+    public static QualifiedIdName makeQualifiedIdName(DottedName api, IdName name) {
+        return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
+                                   name);
     }
 
     /**
@@ -212,7 +238,7 @@ public class NodeFactory {
                                    Expr body) {
         String selfName;
         if (optSelfName.isSome()) {
-            selfName = Option.unwrap(optSelfName).getName();
+            selfName = Option.unwrap(optSelfName).getText();
         } else {
             selfName = WellKnownNames.defaultSelfName;
         }
@@ -226,16 +252,17 @@ public class NodeFactory {
     }
 
     public static IdType makeIdType(Span span, Id id) {
-        return new IdType(span, makeDottedId(id));
+        return new IdType(span, makeQualifiedIdName(id));
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Id id) {
-        return new LValueBind(lvb.getSpan(), id, lvb.getType(), lvb.getMods(),
+        IdName name = makeIdName(id);
+        return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
                               lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               lvb.getMods(), mutable);
     }
 
@@ -245,25 +272,25 @@ public class NodeFactory {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods,
                                             boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getId(), lvb.getType(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               mods, mutable);
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty) {
-        return new LValueBind(lvb.getSpan(), lvb.getId(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, Type ty,
                                         boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getId(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), lvb.getMods(), mutable);
     }
 
@@ -274,7 +301,7 @@ public class NodeFactory {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getId(),
+        return new LValueBind(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), mods, mutable);
     }
 
@@ -294,22 +321,40 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
-    public static FnName makeFnName(Span span, Id id) {
-        return makeDottedId(span, id);
+    public static IdName makeIdName(String text) {
+        Span span = new Span();
+        return new IdName(span, new Id(span, text));
     }
 
-    public static FnName makeFnName(Span span, Op op) {
+    public static IdName makeIdName(Span span, String text) {
+        return new IdName(span, new Id(span, text));
+    }
+
+    public static IdName makeIdName(Span span, Id id) {
+        return new IdName(span, id);
+    }
+
+    public static IdName makeIdName(Id id) {
+        return new IdName(id.getSpan(), id);
+    }
+
+    public static Opr makeOpr(Span span, Op op) {
         return new Opr(span, op);
     }
 
+    public static Opr makeOpr(Op op) {
+        return new Opr(op.getSpan(), op);
+    }
+
     public static NatParam makeNatParam(String name) {
-        return new NatParam(new Span(), new Id(new Span(), name));
+        Span s = new Span();
+        return new NatParam(s, makeIdName(s, name));
     }
 
     /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
-                                            Id name,
+                                            IdName name,
                                             List<StaticParam> stParams,
                                             Option<List<Param>> params,
                                             List<TraitTypeWhere> traits,
@@ -325,47 +370,54 @@ public class NodeFactory {
     }
 
 
-    public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
+    public static VarargsParam makeVarargsParam(IdName name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
     }
 
     public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
-        return new VarargsParam(param.getSpan(), mods, param.getId(),
+        return new VarargsParam(param.getSpan(), mods, param.getName(),
                          param.getVarargsType());
     }
 
-    public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods, Id name,
-                                        VarargsType type) {
+    public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods,
+                                                IdName name, VarargsType type) {
         return new VarargsParam(span, mods, name, type);
     }
 
-    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
-                                  Type type) {
+    public static NormalParam makeParam(Span span, List<Modifier> mods, IdName name,
+                                        Type type) {
         return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Id name, Type type) {
-        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         Option.some(type), Option.<Expr>none());
+    public static NormalParam makeParam(Id id, Type type) {
+        return new NormalParam(id.getSpan(), Collections.<Modifier>emptyList(),
+                               makeIdName(id), Option.some(type),
+                               Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Id name) {
+    public static NormalParam makeParam(Id id) {
+        return new NormalParam(id.getSpan(), Collections.<Modifier>emptyList(),
+                               makeIdName(id), Option.<Type>none(), Option.<Expr>none());
+    }
+
+    public static NormalParam makeParam(IdName name) {
         return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
                          Option.<Type>none(), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(NormalParam param, Expr expr) {
-        return new NormalParam(param.getSpan(), param.getMods(), param.getId(),
+        return new NormalParam(param.getSpan(), param.getMods(), param.getName(),
                          param.getType(), Option.some(expr));
     }
 
     public static NormalParam makeParam(NormalParam param, List<Modifier> mods) {
-        return new NormalParam(param.getSpan(), mods, param.getId(),
+        return new NormalParam(param.getSpan(), mods, param.getName(),
                          param.getType(), param.getDefaultExpr());
     }
 
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
-        return new SimpleTypeParam(new Span(), new Id(new Span(), name),
+        Span s = new Span();
+        return new SimpleTypeParam(s, makeIdName(s, name),
                                    Collections.<TraitType>emptyList(), false);
     }
 
@@ -377,16 +429,20 @@ public class NodeFactory {
 
 
     public static TypeArg makeTypeArg(Span span, String string) {
-        return new TypeArg(span, new IdType(span, makeDottedId(span, string)));
+        return new TypeArg(span, new IdType(span, makeQualifiedIdName(span, string)));
     }
 
-    public static VarDecl makeVarDecl(Span span, Id id, Expr init) {
-        return new VarDecl(span, Useful.<LValueBind>list(
-                                new LValueBind(span, id,
-                                               Option.<Type>none(),
-                                               Collections.<Modifier>emptyList(),
-                                               true)),
-                           init);
+    public static VarDecl makeVarDecl(Span span, IdName name, Expr init) {
+        LValueBind bind = new LValueBind(span, name, Option.<Type>none(),
+                                         Collections.<Modifier>emptyList(), true);
+        return new VarDecl(span, Useful.<LValueBind>list(bind), init);
+    }
+    
+    public static VarDecl makeVarDecl(Span span, String name, Expr init) {
+        LValueBind bind = new LValueBind(span, makeIdName(span, name),
+                                         Option.<Type>none(),
+                                         Collections.<Modifier>emptyList(), true);
+        return new VarDecl(span, Useful.<LValueBind>list(bind), init);
     }
 
     public static BoolExpr makeInParentheses(BoolExpr be) {
@@ -398,7 +454,7 @@ public class NodeFactory {
                 return new FalseConstraint(b.getSpan(), true);
             }
             public BoolExpr forBoolIdConstraint(BoolIdConstraint b) {
-                return new BoolIdConstraint(b.getSpan(), true, b.getDottedId());
+                return new BoolIdConstraint(b.getSpan(), true, b.getName());
             }
             public BoolExpr forBoolConstraintExpr(BoolConstraintExpr b) {
                 return new BoolConstraintExpr(b.getSpan(), true,
@@ -418,7 +474,7 @@ public class NodeFactory {
                 return new BaseDim(t.getSpan(), true);
             }
             public DimExpr forDimId(DimId t) {
-                return new DimId(t.getSpan(), true, t.getDottedId());
+                return new DimId(t.getSpan(), true, t.getName());
             }
             public DimExpr forProductDim(ProductDim t) {
                 return new ProductDim(t.getSpan(), true, t.getLeft(),
@@ -455,7 +511,7 @@ public class NodeFactory {
                 return new BaseUnitId(t.getSpan(), true);
             }
             public DimUnitExpr forDimUnitId(DimUnitId t) {
-                return new DimUnitId(t.getSpan(), true, t.getDottedId());
+                return new DimUnitId(t.getSpan(), true, t.getName());
             }
             public DimUnitExpr forProductDimUnit(ProductDimUnit t) {
                 return new ProductDimUnit(t.getSpan(), true, t.getMultiplier(),
@@ -493,7 +549,7 @@ public class NodeFactory {
                 return new NumberConstraint(i.getSpan(), true, i.getVal());
             }
             public IntExpr forIntIdConstraint(IntIdConstraint i) {
-                return new IntIdConstraint(i.getSpan(), true, i.getDottedId());
+                return new IntIdConstraint(i.getSpan(), true, i.getName());
             }
             public IntExpr forSumConstraint(SumConstraint i) {
                 return new SumConstraint(i.getSpan(), true, i.getLeft(),
@@ -526,7 +582,7 @@ public class NodeFactory {
                 return new BaseNatStaticArg(t.getSpan(), true, t.getValue());
             }
             public StaticArg forBaseOprStaticArg(BaseOprStaticArg t) {
-                return new BaseOprStaticArg(t.getSpan(), true, t.getFnName());
+                return new BaseOprStaticArg(t.getSpan(), true, t.getName());
             }
             public StaticArg forBaseDimStaticArg(BaseDimStaticArg t) {
                 return new BaseDimStaticArg(t.getSpan(), true);
@@ -606,14 +662,14 @@ public class NodeFactory {
                                      t.getIndices());
             }
             public Type forIdType(IdType t) {
-                return new IdType(t.getSpan(), true, t.getDottedId());
+                return new IdType(t.getSpan(), true, t.getName());
             }
             public Type forMatrixType(MatrixType t) {
                 return new MatrixType(t.getSpan(), true, t.getElement(),
                                       t.getDimensions());
             }
             public Type forInstantiatedType(InstantiatedType t) {
-                return new InstantiatedType(t.getSpan(), true, t.getDottedId(),
+                return new InstantiatedType(t.getSpan(), true, t.getName(),
                                             t.getArgs());
             }
             public Type forTupleType(TupleType t) {

@@ -26,7 +26,8 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.QualifiedIdName;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -43,10 +44,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getApiNull(com.sun.fortress.interpreter.nodes.DottedId)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getApiNull(com.sun.fortress.interpreter.nodes.DottedName)
      */
     @Override
-    public SApi getApiNull(DottedId d) {
+    public SApi getApiNull(DottedName d) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -97,15 +98,15 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getTypeNull(com.sun.fortress.interpreter.nodes.DottedId)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getTypeNull(com.sun.fortress.interpreter.nodes.QualifiedIdName)
      */
     @Override
-    public FType getTypeNull(DottedId d) {
+    public FType getTypeNull(QualifiedIdName q) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public Declaration getDeclNull(DottedId d) {
+    public Declaration getDeclNull(DottedName d) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -124,10 +125,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getValueNull(com.sun.fortress.interpreter.nodes.DottedId)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getValueNull(com.sun.fortress.interpreter.nodes.QualifiedIdName)
      */
     @Override
-    public FValue getValueNull(DottedId d) {
+    public FValue getValueNull(QualifiedIdName q) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -157,9 +158,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.scopes.SApi)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SApi)
      */
-    public void putApi(DottedId d, SApi x) {
+    public void putApi(DottedName d, SApi x) {
         bug(d, "Empty environment does not support this operation");
 
     }
@@ -187,9 +188,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
      */
-    public void putComponent(DottedId name, SComponent comp) {
+    public void putComponent(DottedName name, SComponent comp) {
         bug(name, "Empty environment does not support this operation");
 
     }
@@ -207,10 +208,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.types.FType)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putType(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.types.FType)
      */
-    public void putType(DottedId d, FType x) {
-        bug(d, "Empty environment does not support this operation");
+    public void putType(QualifiedIdName q, FType x) {
+        bug(q, "Empty environment does not support this operation");
 
     }
 
@@ -227,10 +228,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.DottedId, com.sun.fortress.interpreter.evaluator.values.FValue)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putValue(com.sun.fortress.interpreter.nodes.QualifiedIdName, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
-    public void putValue(DottedId d, FValue x) {
-        bug(d, "Empty environment does not support this operation");
+    public void putValue(QualifiedIdName q, FValue x) {
+        bug(q, "Empty environment does not support this operation");
 
     }
 
@@ -286,7 +287,7 @@ public class EmptyEnv extends CommonEnv {
 
 
     @Override
-    public SComponent getComponentNull(DottedId d) {
+    public SComponent getComponentNull(DottedName d) {
         return null;
     }
 

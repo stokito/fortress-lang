@@ -56,9 +56,10 @@ Expr DelimitedExpr =
      }
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
-     { if (!a1.getName().equals(a3.getName()))
+     { if (!a1.getText().equals(a3.getText()))
            error(a1, "Mismatched identifiers for label expressions.");
-       yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
+       yyValue = new Label(createSpan(yyStart,yyCount), false,
+                           NodeFactory.makeIdName(a1), a2);
      }
    / while w a1:Expr w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
@@ -81,9 +82,9 @@ Expr DelimitedExpr =
      }
    / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
      { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
-       Option<Op> compare;
+       Option<Opr> compare;
        if (a2 == null) compare = Option.none();
-       else            compare = Option.some(a2);
+       else            compare = Option.some(NodeFactory.makeOpr(a2));
        if (a4 == null) a4 = FortressUtil.doBlock(FortressUtil.emptyExprs());
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
                               a3, Option.some(a4));
@@ -94,7 +95,9 @@ Expr DelimitedExpr =
            e1 = new CaseParamLargest(createSpan(yyStart+5,7));
        else // a1.equals("smallest")
            e1 = new CaseParamSmallest(createSpan(yyStart+5,8));
-       Option<Op> compare = Option.wrap(a2);
+       Option<Opr> compare;
+       if (a2 == null) compare = Option.none();
+       else            compare = Option.some(NodeFactory.makeOpr(a2));
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
                               a3, Option.some(FortressUtil.doBlock(FortressUtil.emptyExprs())));
      }
@@ -139,7 +142,7 @@ Expr TupleExpr =
                               Option.some(new VarargsExpr(a2.getSpan(), a2)) :
                               Option.<VarargsExpr>none());
        List<Binding> ks = new ArrayList<Binding>();
-       ks.add(new Binding(a3.getId(), a3.getInit()));
+       ks.add(a3);
        for (Binding b : (List<Binding>)a4s.list()) {
            ks.add(b);
        }
@@ -194,8 +197,9 @@ private List<Binding> TypecaseBindings =
    / a1:Binding
      { yyValue = FortressUtil.mkList(a1); }
    / a1:Id
-     { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount), a1,
-                                              ExprFactory.makeVarRef(a1.getSpan(), a1)));
+     { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount),
+                                                 NodeFactory.makeIdName(a1),
+                                                 ExprFactory.makeVarRef(a1)));
      };
 
 /* BindingList ::= Binding (w , w Binding)*  */
@@ -204,7 +208,9 @@ private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
 
 /* Binding ::= Id w = w Expr */
 private Binding Binding = a1:Id w equals w a2:Expr
-     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new Binding(createSpan(yyStart,yyCount),
+                             NodeFactory.makeIdName(a1), a2);
+     };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =
@@ -227,7 +233,8 @@ List<Type> TypecaseTypes =
 
 /* Catch ::= catch w Id w CatchClauses */
 Catch Catch = catch w a1:Id w a2:CatchClauses
-     { yyValue = new Catch(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new Catch(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2);
+     };
 
 /* CatchClauses ::= CatchClause (br CatchClause)* */
 private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
@@ -284,7 +291,7 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
 
 /* IdOrInt ::= Id | IntLiteral */
 Expr IdOrInt =
-     a1:Id { yyValue = ExprFactory.makeVarRef(a1.getSpan(), a1); }
+     a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
    / IntLiteral ;
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
@@ -296,7 +303,7 @@ List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
    | Parenthesized
    | Literal
    | Aggregate
-   | DottedId
+   | QualifiedName
    | self
  */
 Expr BaseExpr =
@@ -304,7 +311,7 @@ Expr BaseExpr =
    / Parenthesized
    / Literal
    / Aggregate
-   / a1:DottedId
+   / a1:QualifiedName
      { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
    / a1:self
      { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };

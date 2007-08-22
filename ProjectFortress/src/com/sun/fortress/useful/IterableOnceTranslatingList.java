@@ -22,10 +22,11 @@ import java.util.List;
 
 public class IterableOnceTranslatingList<From, To> implements IterableOnce<To> {
     int i = -1;
-    private List<From> list;
-    private Fn<From, To> translator;
+    private List<? extends From> list;
+    private Fn<? super From, ? extends To> translator;
 
-    public IterableOnceTranslatingList(List<From> list, Fn<From, To> translator) {
+    public IterableOnceTranslatingList(List<? extends From> list,
+                                       Fn<? super From, ? extends To> translator) {
         this.list = list;
         this.translator = translator;
     }

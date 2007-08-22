@@ -44,9 +44,10 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportFrom;
-import com.sun.fortress.nodes.AliasedDottedId;
+import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -193,22 +194,22 @@ public class Parser {
      */
     private static Set<File> extractNewDependencies(CompilationUnit cu,
                                                     GlobalEnvironment env) {
-        Set<String> importedApiNames = new LinkedHashSet<String>();
+        Set<DottedName> importedApis = new LinkedHashSet<DottedName>();
         for (Import i : cu.getImports()) {
             if (i instanceof ImportApi) {
-                for (AliasedDottedId id : ((ImportApi) i).getApis()) {
-                    importedApiNames.add(NodeUtil.getName(id.getDottedId()));
+                for (AliasedDottedName apiAlias : ((ImportApi) i).getApis()) {
+                    importedApis.add(apiAlias.getApi());
                 }
             }
             else { // i instanceof ImportFrom
-                importedApiNames.add(NodeUtil.getName(((ImportFrom) i).getSource()));
+                importedApis.add(((ImportFrom) i).getApi());
             }
         }
 
         Set<File> result = new HashSet<File>();
-        for (String s : importedApiNames) {
-            if (!env.definesApi(s)) {
-                File f = canonicalRepresentation(fileForApiName(s));
+        for (DottedName n : importedApis) {
+            if (!env.definesApi(n)) {
+                File f = canonicalRepresentation(fileForApiName(n));
                 if (IOUtil.attemptExists(f)) { result.add(f); }
             }
         }
@@ -216,8 +217,8 @@ public class Parser {
     }
 
     /** Get the filename in which the given API should be defined. */
-    private static File fileForApiName(String apiName) {
-        return new File(apiName + ".fsi");
+    private static File fileForApiName(DottedName api) {
+        return new File(NodeUtil.nameString(api) + ".fsi");
     }
 
     /**

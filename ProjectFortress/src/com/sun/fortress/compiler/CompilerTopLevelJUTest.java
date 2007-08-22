@@ -30,8 +30,10 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Lambda;
+
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.DottedName;
 
 public class CompilerTopLevelJUTest extends TestCase {
     
@@ -80,15 +82,15 @@ public class CompilerTopLevelJUTest extends TestCase {
     }
     
     private Iterable<? extends StaticError> compile(File f) {
-        final Map<String, ApiIndex> apis = new HashMap<String, ApiIndex>();
+        final Map<DottedName, ApiIndex> apis = new HashMap<DottedName, ApiIndex>();
         Fortress fortress = new Fortress(new FortressRepository() {
-            public Map<String, ApiIndex> apis() {
+            public Map<DottedName, ApiIndex> apis() {
                 return Collections.unmodifiableMap(apis);
             }
-            public void addApi(String name, ApiIndex def) {
+            public void addApi(DottedName name, ApiIndex def) {
                 apis.put(name, def);
             }
-            public void addComponent(String name, ComponentIndex def) {
+            public void addComponent(DottedName name, ComponentIndex def) {
                 /* ignore */
             }
         });

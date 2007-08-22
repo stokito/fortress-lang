@@ -17,17 +17,13 @@
 
 package com.sun.fortress.interpreter.unit_tests;
 
-import com.sun.fortress.nodes_util.SourceLoc;
-import com.sun.fortress.nodes_util.SourceLocRats;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.StringMaker;
 import java.math.BigInteger;
 import java.util.Collections;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FloatLiteral;
@@ -38,10 +34,14 @@ import com.sun.fortress.nodes.StringLiteral;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteral;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.nodes_util.SourceLoc;
+import com.sun.fortress.nodes_util.SourceLocRats;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.useful.Useful;
 
 public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testSourceLoc() {
@@ -86,7 +86,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
         Assert.assertEquals(id1, id2);
         Assert.assertTrue(id1.equals(id3)); // We ignore Sourceloc for equality
         Assert.assertFalse(id1.equals(id4));
-        Assert.assertEquals(id1.getName(), "TheIdString");
+        Assert.assertEquals(id1.getText(), "TheIdString");
     }
 
     Id newId(String id, int l, int c1, int c2) {
@@ -95,24 +95,24 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     Id newId(String id) {
         return new Id(newSpan("somefile", 1, 2, 3), id);
     }
-    public void testDottedId() {
+    public void testDottedName() {
         Span span11 = newSpan("cat", 1, 2, 3);
         Span span12 = newSpan("cat", 1, 2, 3);
         Span span13 = newSpan("cat", 2, 4, 5);
-        DottedId di1 = NodeFactory.makeDottedId(span11, newId("snert"));
-        DottedId di2 = NodeFactory.makeDottedId(span11, newId("snert"));
-        DottedId di3 = NodeFactory.makeDottedId(span11, newId("snort"));
+        DottedName di1 = NodeFactory.makeDottedName(span11, newId("snert"));
+        DottedName di2 = NodeFactory.makeDottedName(span11, newId("snert"));
+        DottedName di3 = NodeFactory.makeDottedName(span11, newId("snort"));
         Assert.assertEquals(di1, di2);
         Assert.assertEquals(di1.hashCode(), di2.hashCode());
         Assert.assertFalse(di1.equals(di3));
         Assert.assertFalse(di1.hashCode() == di3.hashCode());
 
-        DottedId di4 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("baz")));
-        DottedId di5 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("bar"), newId("bar")));
-        DottedId di6 = NodeFactory.makeDottedId(span12, newId("foo"), Useful.list(newId("baz"), newId("baz")));
-        DottedId di7 = NodeFactory.makeDottedId(span12, newId("bar"), Useful.list(newId("bar"), newId("baz")));
+        DottedName di4 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("bar"), newId("baz")));
+        DottedName di5 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("bar"), newId("bar")));
+        DottedName di6 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("baz"), newId("baz")));
+        DottedName di7 = NodeFactory.makeDottedName(span12, Useful.list(newId("bar"), newId("bar"), newId("baz")));
 
-        Assert.assertEquals("foo.bar.baz", StringMaker.fromDottedId(di4));
+        Assert.assertEquals("foo.bar.baz", NodeUtil.nameString(di4));
         Assert.assertEquals(di4.hashCode(), di4.hashCode());
 
         Assert.assertFalse(di4.equals(di5));
@@ -120,19 +120,19 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
         Assert.assertFalse(di4.equals(di7));
     }
 
-    DottedId newDottedId(String a, String b, String c) {
+    DottedName newDottedName(String a, String b, String c) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return NodeFactory.makeDottedId(span1, newId(a), Useful.list(newId(b), newId(c)));
+        return NodeFactory.makeDottedName(span1, Useful.list(newId(a), newId(b), newId(c)));
     }
 
     public void testExport() {
         Span span1 = newSpan("cat", 1, 2, 3);
-        Export e1 = new Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
-        Export e2 = new Export(span1, FortressUtil.mkList(newDottedId("some", "exported", "apiname")));
-        Export e3 = new Export(span1, FortressUtil.mkList(newDottedId("an", "exported", "apiname")));
+        Export e1 = new Export(span1, FortressUtil.mkList(newDottedName("some", "exported", "apiname")));
+        Export e2 = new Export(span1, FortressUtil.mkList(newDottedName("some", "exported", "apiname")));
+        Export e3 = new Export(span1, FortressUtil.mkList(newDottedName("an", "exported", "apiname")));
 
         een(e1, e2, e3);
-         }
+    }
 
     /**
      * @param e1

@@ -41,7 +41,6 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.StringMaker;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.Api;
@@ -53,7 +52,6 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.DottedId;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnExpr;
@@ -61,6 +59,7 @@ import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
@@ -72,6 +71,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -133,13 +133,14 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  */
 public class Disambiguate extends Rewrite {
 
-    public final static Id LOOP_ID = NodeFactory.makeId(WellKnownNames.loopMethod);
+    public final static IdName LOOP_NAME =
+        NodeFactory.makeIdName(WellKnownNames.loopMethod);
 
     private class Thing {
         int nestedness;
         Thing() { nestedness = objectNestingDepth; }
         /** May assume {@code original} has a non-zero length. */
-        DottedId replacement(DottedId original) { return original; }
+        Iterable<Id> replacement(Iterable<Id> original) { return original; }
         public String toString() { return "Thing@"+nestedness; }
     }
 
@@ -159,8 +160,9 @@ public class Disambiguate extends Rewrite {
 
 
     private class Member extends Thing {
-        @Override DottedId replacement(DottedId original) {
-            return prependSelf(original, objectNestingDepth - nestedness);
+        @Override Iterable<Id> replacement(Iterable<Id> original) {
+            Span s = IterUtil.first(original).getSpan();
+            return prependSelf(original, s, objectNestingDepth - nestedness);
         }
         public String toString() { return "Member@"+nestedness; }
     }
@@ -168,10 +170,10 @@ public class Disambiguate extends Rewrite {
     private class SelfRewrite extends Thing {
         String s;
         SelfRewrite(String s) { this.s = s; }
-        @Override DottedId replacement(DottedId original) {
-            Iterable<Id> restIds = IterUtil.skipFirst(original.getNames());
-            DottedId rest = new DottedId(original.getSpan(), IterUtil.asList(restIds));
-            return prependSelf(rest, objectNestingDepth - nestedness);
+        @Override Iterable<Id> replacement(Iterable<Id> original) {
+            Span s = IterUtil.first(original).getSpan();
+            return prependSelf(IterUtil.skipFirst(original), s,
+                               objectNestingDepth - nestedness);
         }
         public String toString() { return "Self("+s+")@"+nestedness; }
     }
@@ -263,7 +265,7 @@ public class Disambiguate extends Rewrite {
                 BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
                                                     null, null, fto, env, oe);
                 Constructor con = new Constructor(env, fto, oe,
-                                                  NodeFactory.makeDottedId(name),
+                                                  NodeFactory.makeIdName(name),
                                                   oe.getDecls());
                 con.setParams(Collections.<Parameter> emptyList());
                 env.putValue(name, con);
@@ -278,12 +280,12 @@ public class Disambiguate extends Rewrite {
         }
     }
 
-    DottedId newName(DottedId id, String s) {
+    Iterable<Id> newName(Iterable<Id> ids, String s) {
         Thing t = e.get(s);
         if (t == null) {
-            return id;
+            return ids;
         } else {
-            return t.replacement(id);
+            return t.replacement(ids);
         }
     }
 
@@ -291,17 +293,20 @@ public class Disambiguate extends Rewrite {
      * Returns the proper name for the object enclosing a method/field; either
      * "self/notself", or "*parent."^N "self", where N is nesting depth.
      */
-    private static DottedId prependSelf(DottedId id, int i) {
-        List<Id> ids = new ArrayList<Id>();
-        if (i < 0) { bug(id, "Confusion in member reference numbering."); }
-        ids.add(new Id(id.getSpan(), WellKnownNames.secretSelfName));
-        for (int index = 0; index < i; index++) {
-            // i copies of "parent"
-            ids.add(new Id(id.getSpan(), WellKnownNames.secretParentName));
+    private static Iterable<Id> prependSelf(Iterable<Id> ids, Span span, int i) {
+        if (i < 0) {
+            bug(IterUtil.first(ids), "Confusion in member reference numbering.");
+            return null;
         }
-
-        ids.addAll(id.getNames());
-        return new DottedId(id.getSpan(), ids);
+        else if (i == 0) {
+            return IterUtil.compose(new Id(span, WellKnownNames.secretSelfName), ids);
+        }
+        else {
+            Id self = new Id(span, WellKnownNames.secretSelfName);
+            Id parent = new Id(span, WellKnownNames.secretParentName);
+            return IterUtil.compose(IterUtil.compose(self, IterUtil.copy(parent, i)),
+                                    ids);
+        }
     }
 
     public void registerComponent(Component c) {
@@ -370,50 +375,52 @@ public class Disambiguate extends Rewrite {
 
                 if (node instanceof VarRef) {
                     VarRef vre = (VarRef) node;
-                    DottedId id = vre.getVar();
-                    if (!id.getNames().isEmpty()) {
-                        String s = id.getNames().get(0).getName();
-                        StaticParam tp = visibleGenericParameters.get(s);
-                        if (tp != null) {
-                            usedGenericParameters.put(s, tp);
-                        }
-                        DottedId update = newName(id, s);
-                        if (update == id) { return vre; }
-                        else {
-                            return new VarRef(vre.getSpan(), vre.isParenthesized(),
-                                              update);
-                        }
+                    Iterable<Id> ids = NodeUtil.getIds(vre.getVar());
+
+                    String s = IterUtil.first(ids).getText();
+                    StaticParam tp = visibleGenericParameters.get(s);
+                    if (tp != null) {
+                        usedGenericParameters.put(s, tp);
                     }
-                    else { return node; }
+                    Iterable<Id> update = newName(ids, s);
+                    if (update == ids) { return vre; }
+                    else {
+                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
+                        Id newName = IterUtil.last(update);
+                        return new VarRef(vre.getSpan(), vre.isParenthesized(),
+                                     NodeFactory.makeQualifiedIdName(newApi, newName));
+                    }
                 } else if (node instanceof FnRef) {
                     FnRef fr = (FnRef) node;
-                    DottedId id = fr.getIds().get(0);
-                    if (!id.getNames().isEmpty()) {
-                        String s = id.getNames().get(0).getName();
-                        StaticParam tp = visibleGenericParameters.get(s);
-                        if (tp != null) {
-                            usedGenericParameters.put(s, tp);
-                        }
-                        DottedId update = newName(id, s);
-                        if (update == id) { return fr; }
-                        else {
-                            return new FnRef(fr.getSpan(), fr.isParenthesized(),
-                                             Collections.singletonList(update),
-                                             fr.getStaticArgs());
-                        }
+                    Iterable<Id> ids = NodeUtil.getIds(fr.getFns().get(0));
+
+                    String s = IterUtil.first(ids).getText();
+                    StaticParam tp = visibleGenericParameters.get(s);
+                    if (tp != null) {
+                        usedGenericParameters.put(s, tp);
                     }
-                    else { return node; }
+                    Iterable<Id> update = newName(ids, s);
+                    if (update == ids) { return fr; }
+                    else {
+                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
+                        Id newName = IterUtil.last(update);
+                        QualifiedIdName newQ =
+                            NodeFactory.makeQualifiedIdName(newApi, newName);
+                        return new FnRef(fr.getSpan(), fr.isParenthesized(),
+                                         Collections.singletonList(newQ),
+                                         fr.getStaticArgs());
+                    }
                 }
                 else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
-                    Id id = lvb.getId();
-                    if ("_".equals(id.getName())) {
-                        return NodeFactory.makeLValue(lvb, new Id(id.getSpan(), "_$" + id.getSpan() ));
+                    Id id = lvb.getName().getId();
+                    if ("_".equals(id.getText())) {
+                        Id newId = new Id(id.getSpan(), "_$" + id.getSpan());
+                        return NodeFactory.makeLValue(lvb, newId);
                     }
                 } else if (node instanceof IdType) {
                     IdType vre = (IdType) node;
-
-                    String s = StringMaker.fromDottedId(vre.getDottedId());
+                    String s = NodeUtil.nameString(vre.getName());
                     StaticParam tp = visibleGenericParameters.get(s);
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);
@@ -446,13 +453,14 @@ public class Disambiguate extends Rewrite {
                         ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
                         String temp = "t$" + (++tempCount);
                         Span at = vd.getSpan();
-                        VarDecl new_vd = NodeFactory.makeVarDecl(at, new Id(at, temp), init);
+                        VarDecl new_vd = NodeFactory.makeVarDecl(at, temp, init);
                         newdecls.add(new_vd);
                         int element_index = 0;
                         for (LValueBind lv : lhs) {
+                            IdName newName = NodeFactory.makeIdName(at,
+                                                                    "$" + element_index);
                             newdecls.add(new VarDecl(at, Useful.list(lv),
-                                    new FieldRef(at, false, init,
-                                            new Id(at, "$" + element_index))));
+                                    new FieldRef(at, false, init, newName)));
                             element_index++;
                         }
                         return new RewriteHackList(newdecls);
@@ -589,9 +597,7 @@ public class Disambiguate extends Rewrite {
                     if (df.getLoc().isSome()) {
                         return NI.nyi("forAtDo");
                     }
-                    return visitGeneratorList(f, f.getGens(),
-                                              LOOP_ID,
-                                              df.getExpr());
+                    return visitGeneratorList(f, f.getGens(), LOOP_NAME, df.getExpr());
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }
@@ -625,15 +631,14 @@ public class Disambiguate extends Rewrite {
      * @return single generator equivalent to the generator list
      */
     Expr visitGeneratorList(HasAt loc, List<Generator> gens,
-                                 Id what, Expr body) {
+                                 IdName what, Expr body) {
         Span span = body.getSpan();
         for (int i = gens.size()-1; i >= 0; i--) {
             Generator g = gens.get(i);
-            Expr loopSel = new FieldRef(g.getSpan(), false, g.getInit(),
-                                              what);
-            List<Id> binds = g.getBind();
+            Expr loopSel = new FieldRef(g.getSpan(), false, g.getInit(), what);
+            List<IdName> binds = g.getBind();
             List<Param> params = new ArrayList<Param>(binds.size());
-            for (Id b : binds) params.add(NodeFactory.makeParam(b));
+            for (IdName b : binds) params.add(NodeFactory.makeParam(b));
             Expr loopBody = ExprFactory.makeFnExpr(span,params,body);
             span = new Span(span, g.getSpan());
             body = new TightJuxt(span, false, Useful.list(loopSel,loopBody));
@@ -697,7 +702,7 @@ public class Disambiguate extends Rewrite {
      */
     private void paramsToLocals(List<? extends Param> params) {
         for (Param d : params) {
-            String s = d.getId().getName();
+            String s = d.getName().getId().getText();
             // "self" is not a local.
             if (! s.equals(currentSelfName))
                 e.put(s, new Local());
@@ -746,7 +751,7 @@ public class Disambiguate extends Rewrite {
     private void paramsToMembers(Option<List<Param>> params) {
         if (params.isSome())
             for (Param d : Option.unwrap(params)) {
-                String s = d.getId().getName();
+                String s = d.getName().getId().getText();
                 e.put(s, new Member());
             }
     }
@@ -788,60 +793,60 @@ public class Disambiguate extends Rewrite {
             Set<AbstractNode> visited) {
 
             for (Type t : xtends) {
-                List<Id> names = new ArrayList<Id>();
+                QualifiedIdName qName = null;
                 // First de-parameterize the type
                 if (t instanceof InstantiatedType) {
-                    names = (((InstantiatedType) t).getDottedId()).getNames();
+                    qName = ((InstantiatedType) t).getName();
                 } else if (t instanceof IdType) {
-                    names = (((IdType) t).getDottedId()).getNames();;
+                    qName = ((IdType) t).getName();
                 } else {
                    // TODO Way too many types; deal with them as necessary.
                     bug(t, errorMsg("Object extends something exciting: ", t));
                 }
-                    if (names.size() == 1) {
-                        // TODO we've got to generalize this to DottedId names.
-                        String s = names.get(0).getName();
-                        Thing th;
-                        try {
-                            th = typeEnv.get(s);
-                        } catch (NullPointerException x) {
-                            throw new InterpreterBug(errorMsg("Entity ", s,
-                                                              " not found in typeEnv ", typeEnv));
-                        }
-                        if (th instanceof Trait) {
-                            Trait tr = (Trait) th;
-                            TraitAbsDeclOrDecl tdod = tr.defOrDecl;
-                            if (!(visited.contains(tdod))) {
-                                visited.add(tdod);
-                                // Process this trait -- add its name, as well
-                                // as all the members
-                                // types.add(s); // The trait is known by this
-                                                // name.
-                                for (AbsDeclOrDecl dd : tdod.getDecls()) {
-                                    members.add(dd.stringName());
-                                }
-                                accumulateTraitsAndMethods(NodeUtil.getTypes(tdod.getExtendsClause()),
-                                        traitDisEnvMap.get(tdod), members, types,
-                                        visited);
-                            }
-                        } else if (th==null) {
-                            /* This was missing the "throw" for a long
-                             * time, and adding it back in actually
-                             * broke tests/extendAny.fss.  Oddly it
-                             * only seems to catch this case; if we
-                             * name an actually bogus type that causes
-                             * a more meaningful failure elsewhere.
-                             * Consequently we leave it commented out
-                             * for the moment.
-                             */
-                            // throw new ProgramError(t,"Type extends non-visible entity " + s);
-                        } else {
-                            bug(errorMsg("Type extends something unknown ", s,
-                                         " = ", th));
-                        }
-                    } else {
-                        NI.nyi("General dotted name");
+                if (qName.getApi().isNone()) {
+                    // TODO we've got to generalize this to qualified names.
+                    String s = qName.getName().getId().getText();
+                    Thing th;
+                    try {
+                        th = typeEnv.get(s);
+                    } catch (NullPointerException x) {
+                        String msg = errorMsg("Entity ", s, " not found in typeEnv ",
+                                              typeEnv);
+                        throw new InterpreterBug(msg);
                     }
+                    if (th instanceof Trait) {
+                        Trait tr = (Trait) th;
+                        TraitAbsDeclOrDecl tdod = tr.defOrDecl;
+                        if (!(visited.contains(tdod))) {
+                            visited.add(tdod);
+                            // Process this trait -- add its name, as well
+                            // as all the members
+                            // types.add(s); // The trait is known by this
+                            // name.
+                            for (AbsDeclOrDecl dd : tdod.getDecls()) {
+                                members.add(dd.stringName());
+                            }
+                            accumulateTraitsAndMethods(NodeUtil.getTypes(tdod.getExtendsClause()),
+                                                       traitDisEnvMap.get(tdod), members, types,
+                                                       visited);
+                        }
+                    } else if (th==null) {
+                        /* This was missing the "throw" for a long
+                         * time, and adding it back in actually
+                         * broke tests/extendAny.fss.  Oddly it
+                         * only seems to catch this case; if we
+                         * name an actually bogus type that causes
+                         * a more meaningful failure elsewhere.
+                         * Consequently we leave it commented out
+                         * for the moment.
+                         */
+                        // throw new ProgramError(t,"Type extends non-visible entity " + s);
+                    } else {
+                        bug(errorMsg("Type extends something unknown ", s, " = ", th));
+                    }
+                } else {
+                    NI.nyi("General qualified name");
+                }
             }
     }
 }

@@ -24,6 +24,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.DottedName;
 
 import com.sun.fortress.useful.NI;
 
@@ -92,7 +93,7 @@ public class Fortress {
         // with pure static linking, we would have to write this code back out to a file.
         // In an implementation with fortresses, we would write this code into the resident
         // fortress.
-        for (Map.Entry<String, ApiIndex> newApi : apiIR.apis().entrySet()) {
+        for (Map.Entry<DottedName, ApiIndex> newApi : apiIR.apis().entrySet()) {
             _repository.addApi(newApi.getKey(), newApi.getValue());
         }
         
@@ -120,7 +121,7 @@ public class Fortress {
         
         // Additional optimization phases can be inserted here
         
-        for (Map.Entry<String, ComponentIndex> newComponent :
+        for (Map.Entry<DottedName, ComponentIndex> newComponent :
                  componentSR.components().entrySet()) {
             _repository.addComponent(newComponent.getKey(), newComponent.getValue());
         }

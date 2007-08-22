@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.DottedName;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -47,7 +48,7 @@ public class StaticChecker {
      * Check the given apis. To support circular references, the apis should appear 
      * in the given environment.
      */
-    public static ApiResult checkApis(Map<String, ApiIndex> apis,
+    public static ApiResult checkApis(Map<DottedName, ApiIndex> apis,
                                       GlobalEnvironment env) {
         // TODO: implement
         return new ApiResult(IterUtil.<StaticError>empty());
@@ -55,18 +56,18 @@ public class StaticChecker {
     
     
     public static class ComponentResult extends StaticPhaseResult {
-        private final Map<String, ComponentIndex> _components;
-        public ComponentResult(Map<String, ComponentIndex> components,
+        private final Map<DottedName, ComponentIndex> _components;
+        public ComponentResult(Map<DottedName, ComponentIndex> components,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
-        public Map<String, ComponentIndex> components() { return _components; }
+        public Map<DottedName, ComponentIndex> components() { return _components; }
     }
     
     /** Disambiguate the given components. */
     public static ComponentResult
-        checkComponents(Map<String, ComponentIndex> components,
+        checkComponents(Map<DottedName, ComponentIndex> components,
                         GlobalEnvironment env) {
         // TODO: implement
         return new ComponentResult(components, IterUtil.<StaticError>empty());

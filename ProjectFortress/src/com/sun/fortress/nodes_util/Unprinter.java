@@ -54,12 +54,12 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  *
  * Sample input follows. The first line indicates the beginning of a component,
  * and further (after the "@") supplies location information. The fields of a
- * component include name (a DottedId) and defs (a List).
+ * component include name (a DottedName) and defs (a List).
  *
  * <pre>
  * (Component
  *
- * &#064;"../samples/let_fn.fss",7:3 name=(DottedId
+ * &#064;"../samples/let_fn.fss",7:3 name=(DottedName
  * &#064;1:24 names=["samples" "let_fn"]) defs=[ (VarDecl
  * &#064;6:11 init=(Block exprs=[ (LetFn
  * &#064;4:21 body=[ (TightJuxt
@@ -76,7 +76,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * &#064;4:12 name=(Id
  * &#064;4:11 name="y"))])])]) name=(Id
  * &#064;3:1 name="x") type=(Some val=(IdType
- * &#064;3:5 name=(DottedId names=["int"]))))])
+ * &#064;3:5 name=(DottedName names=["int"]))))])
  * </pre>
  */
 // In the above example, "&#064;" = "@".  A line starting with "@" has special meaning to javadoc.

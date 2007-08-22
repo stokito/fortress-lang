@@ -60,7 +60,7 @@ public class Closure extends NonPrimitive implements Scope {
      */
     @Override
     public FnName getFnName() {
-        return def.getFnName();
+        return def.getName();
     }
 
     protected HasAt getAt() {

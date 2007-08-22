@@ -24,6 +24,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -75,7 +76,7 @@ public class Disambiguator {
         List<Api> results = new ArrayList<Api>();
         Iterable<StaticError> errors = IterUtil.empty();
         for (Api api : apis) {
-            ApiIndex index = globalEnv.api(NodeUtil.getName(api.getDottedId()));
+            ApiIndex index = globalEnv.api(api.getName());
             Environment env = new TopLevelEnvironment(globalEnv, index);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             DisambiguationVisitor v = new DisambiguationVisitor(env, globalEnv, newErrs);
@@ -103,11 +104,11 @@ public class Disambiguator {
     public static ComponentResult
         disambiguateComponents(Iterable<Component> components,
                                GlobalEnvironment globalEnv,
-                               Map<String, ComponentIndex> indices) {
+                               Map<DottedName, ComponentIndex> indices) {
         List<Component> results = new ArrayList<Component>();
         Iterable<StaticError> errors = IterUtil.empty();
         for (Component comp : components) {
-            ComponentIndex index = indices.get(NodeUtil.getName(comp.getDottedId()));
+            ComponentIndex index = indices.get(comp.getName());
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }

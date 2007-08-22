@@ -17,9 +17,11 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.nodes.IdName;
+
 public class Constructor extends Function {
     
-    private final String _declaringTrait;
+    private final IdName _declaringTrait;
     
-    public Constructor(String declaringTrait) { _declaringTrait = declaringTrait; }
+    public Constructor(IdName declaringTrait) { _declaringTrait = declaringTrait; }
 }

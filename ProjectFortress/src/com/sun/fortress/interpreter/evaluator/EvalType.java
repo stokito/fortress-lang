@@ -66,8 +66,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return t.accept(this);
     }
 
-    public FType evalType(DottedId t) {
-        return forDottedId(t);
+    public FType evalType(QualifiedIdName t) {
+        return forQualifiedIdName(t);
     }
 
     public static FType getFTypeFromOption(Option<Type> t, final BetterEnv e) {
@@ -147,8 +147,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return paramsToParameters(new EvalType(env), params);
     }
 
-    public static List<Parameter> paramsToParameters(EvalType e,
-            List<Param> params) {
+    public static List<Parameter> paramsToParameters(EvalType e, List<Param> params) {
         if (params.size() == 0) {
             // There must be some way to get the generic parameter attached.
             return Collections.<Parameter>emptyList();
@@ -156,8 +155,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         int i = 0;
         List<Parameter> fparams = new ArrayList<Parameter>(params.size());
         for (Param in_p : params) {
-            Id id = in_p.getId();
-            String pname = id.getName();
+            IdName idName = in_p.getName();
+            String pname = NodeUtil.nameString(idName);
             FType ptype;
             if (in_p instanceof NormalParam) {
                 Option<Type> type = ((NormalParam)in_p).getType();
@@ -241,7 +240,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else if (a instanceof SymbolicNat) {
-                    // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
+                    // guardedPutNat(NodeUtil.nameString(p), ((IntNat)a).getNumber(), what, clenv);
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     error(within, clenv,
@@ -318,7 +317,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forBaseOprStaticArg(BaseOprStaticArg b) {
-        return new FTypeOpr(NodeUtil.getName(b.getFnName()));
+        return new FTypeOpr(NodeUtil.nameString(b.getName()));
     }
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
@@ -334,7 +333,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forIdType(IdType i) {
         try {
-            FType result = env.getType(i.getDottedId());
+            FType result = env.getType(i.getName());
             return result;
         } catch (FortressError p) {
             p.setWhere(i);
@@ -431,7 +430,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forDimUnitId(DimUnitId i) {
         try {
-            FType result = env.getType(i.getDottedId());
+            FType result = env.getType(i.getName());
             return result;
         } catch (FortressError p) {
             p.setWhere(i);
@@ -510,12 +509,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
     }
 
-    public FType forDottedId(DottedId d) {
+    public FType forQualifiedIdName(QualifiedIdName q) {
         try {
-            FType result = env.getType(d);
+            FType result = env.getType(q);
             return result;
         } catch (FortressError p) {
-            p.setWhere(d);
+            p.setWhere(q);
             p.setWithin(env);
             throw p;
         }
@@ -523,7 +522,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forInstantiatedType(InstantiatedType x) {
-       FType ft1 = forDottedId(x.getDottedId());
+       FType ft1 = forQualifiedIdName(x.getName());
         if (ft1 instanceof  FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);

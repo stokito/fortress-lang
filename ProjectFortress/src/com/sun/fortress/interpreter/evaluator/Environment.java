@@ -25,7 +25,8 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.HasAt;
 
 
@@ -127,14 +128,14 @@ public interface Environment  {
     public abstract void putApi(String s, SApi api);
 
     /* An Api name is unambiguous. */
-    public abstract SApi getApi(DottedId d);
+    public abstract SApi getApi(DottedName d);
 
-    public abstract void putApi(DottedId d, SApi x);
+    public abstract void putApi(DottedName d, SApi x);
 
     /* Type names take the form ID or Api.ID */
-    public abstract FType getType(DottedId d);
+    public abstract FType getType(QualifiedIdName d);
 
-    public abstract void putType(DottedId d, FType x);
+    public abstract void putType(QualifiedIdName d, FType x);
 
     /* Variables/values -- these are more complex.
      * Api.var
@@ -143,15 +144,15 @@ public interface Environment  {
      *
      * These may not ever appear in this form.
      */
-    public abstract FValue getValue(DottedId d);
+    public abstract FValue getValue(QualifiedIdName d);
 
-    public abstract void putValue(DottedId d, FValue x);
+    public abstract void putValue(QualifiedIdName d, FValue x);
 
-    public abstract void putComponent(DottedId name, SComponent comp);
+    public abstract void putComponent(DottedName name, SComponent comp);
 
     public abstract void putComponent(String name, SComponent comp);
 
-    public abstract SComponent getComponent(DottedId name);
+    public abstract SComponent getComponent(DottedName name);
 
     public abstract SComponent getComponent(String name);
 
@@ -165,7 +166,7 @@ public interface Environment  {
 
     public abstract Number getNatNull(String s);
 
-    public abstract FType getTypeNull(DottedId name);
+    public abstract FType getTypeNull(QualifiedIdName name);
 
     public abstract BetterEnv genericLeafEnvHack(BetterEnv genericEnv, HasAt within);
 

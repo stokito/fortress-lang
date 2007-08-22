@@ -71,7 +71,7 @@ abstract public class Fcn extends FConstructedValue {
      * Ought to throw an exception if it cannot be a method.
      */
     public String asMethodName() {
-        return NodeUtil.getName(getFnName());
+        return NodeUtil.nameString(getFnName());
     }
 
     static boolean anyAreSymbolic(List<FType> args) {

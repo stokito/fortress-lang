@@ -182,7 +182,7 @@ public class FGenericFunction extends SingleFcn
 
     @Override
     public FnName getFnName() {
-        return fndef.getFnName();
+        return fndef.getName();
     }
 
     public Applicable getDef() {
@@ -195,8 +195,8 @@ public class FGenericFunction extends SingleFcn
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            FnName fn0 = a0.getFnName();
-            FnName fn1 = a1.getFnName();
+            FnName fn0 = a0.getName();
+            FnName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;

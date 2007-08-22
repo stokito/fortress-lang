@@ -22,6 +22,8 @@ import java.util.Set;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.IdName;
 
 import com.sun.fortress.useful.NI;
 
@@ -30,10 +32,10 @@ public class ComponentIndex extends CompilationUnitIndex {
     private final Set<VarDecl> _initializers;
     
     public ComponentIndex(Component ast,
-                          Map<String, Variable> variables,
+                          Map<IdName, Variable> variables,
                           Set<VarDecl> initializers,
-                          Relation<String, Function> functions,
-                          Map<String, TraitIndex> traits) {
+                          Relation<FnName, Function> functions,
+                          Map<IdName, TraitIndex> traits) {
         super(ast, variables, functions, traits);
         _initializers = initializers;
     }

@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.VarDecl;
@@ -85,9 +85,9 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         if (fields != null) {
             List<LValueBind> lhs = x.getLhs();
             for (LValueBind lvb : lhs) {
-                    Id name = lvb.getId();
-                    String s = name.getName();
-                    fields.add(s);
+                IdName name = lvb.getName();
+                String s = NodeUtil.nameString(name);
+                fields.add(s);
             }
         }
         return null;

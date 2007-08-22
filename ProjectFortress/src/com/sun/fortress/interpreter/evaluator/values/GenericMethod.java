@@ -179,8 +179,8 @@ public class GenericMethod extends MethodClosure implements
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            FnName fn0 = a0.getFnName();
-            FnName fn1 = a1.getFnName();
+            FnName fn0 = a0.getName();
+            FnName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
@@ -206,7 +206,8 @@ public class GenericMethod extends MethodClosure implements
         if (left instanceof FnExpr) {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;
-            return NodeUtil.getName(((FnExpr)left).getFnName()).compareTo(NodeUtil.getName(((FnExpr)right).getFnName()));
+            return NodeUtil.nameString(((FnExpr)left).getName())
+                .compareTo(NodeUtil.nameString(((FnExpr)right).getName()));
         } else if (left instanceof FnAbsDeclOrDecl) {
             int x = Useful.compareClasses(left, right);
             if (x != 0) return x;
@@ -219,7 +220,8 @@ public class GenericMethod extends MethodClosure implements
             NativeApplicable na = (NativeApplicable)right;
             x = ((NativeApplicable)left).stringName().compareTo(na.stringName());
             if (x != 0) return x;
-            return NodeUtil.getName(left.getFnName()).compareTo(NodeUtil.getName(na.getFnName()));
+            return NodeUtil.nameString(left.getName())
+                .compareTo(NodeUtil.nameString(na.getName()));
         } else {
             throw new InterpreterBug(left,
                                      "NodeComparator.compare(" +

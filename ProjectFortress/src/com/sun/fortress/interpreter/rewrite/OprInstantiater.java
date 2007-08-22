@@ -23,6 +23,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes_util.RewriteHackList;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 public class OprInstantiater extends Rewrite {
 
@@ -38,7 +39,7 @@ public class OprInstantiater extends Rewrite {
         if (node instanceof Op) {
             // Replace instance of Op with substitution.
             Op op = (Op) node;
-            String repl = subst.get(op.getName());
+            String repl = subst.get(op.getText());
             if (repl == null)
                 return node;
             return new Op(op.getSpan(), repl);
@@ -46,7 +47,7 @@ public class OprInstantiater extends Rewrite {
             // Nested operator params with same name (e.g., ObjectExpr) -- is that legal?
             // For now, remove it, no matter what.
             OperatorParam opp = (OperatorParam) node;
-            if (subst.containsKey(opp.getOp().getName())) {
+            if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
                 return new RewriteHackList();
             }
         }

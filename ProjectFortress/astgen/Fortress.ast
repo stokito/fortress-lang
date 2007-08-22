@@ -83,7 +83,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
  *  - String nameAsMethod(Applicable)
  *  - Option<Expr> getBody(Applicable)
  */
-interface Applicable(FnName fnName, List<StaticParam> staticParams,
+interface Applicable(FnName name, List<StaticParam> staticParams,
                      List<Param> params, Option<Type> returnType,
                      List<WhereClause> where) extends HasAt;
 
@@ -106,10 +106,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * compilation unit declaration
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(DottedId dottedId, List<Import> imports);
+    abstract CompilationUnit(DottedName name, List<Import> imports);
         /**
          * component declaration
-         * Component ::= component DottedId Imports? Exports Decls? end
+         * Component ::= component DottedName Imports? Exports Decls? end
          * e.g.) component Hello
          *         export Executable
          *         run(args:String...) = print "Hello, World!\n"
@@ -118,7 +118,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         Component(List<Export> exports, List<Decl> decls);
         /**
          * API declaration
-         * Api ::= api DottedId Imports? AbsDecls? end
+         * Api ::= api DottedName Imports? AbsDecls? end
          * e.g.) api Executable
          *         run(args:String...):()
          *       end
@@ -126,17 +126,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         Api(List<AbsDecl> decls);
     /**
      * import statement
-     * Import ::= import ImportFrom | import AliasedDottedIds
+     * Import ::= import ImportFrom | import AliasedDottedNames
      */
     abstract Import();
         /**
-         * ImportFrom ::= * (except Names)? from DottedId
-         *              | AliasedNames from DottedId
+         * ImportFrom ::= * (except Names)? from DottedName
+         *              | AliasedNames from DottedName
          * Name ::= Id
          *        | opr Op
          *        | opr EncloserPair
          */
-        abstract ImportFrom(DottedId source);
+        abstract ImportFrom(DottedName api);
             /**
              * e.g.) import * except {opr UNION, union} from Set
              */
@@ -148,35 +148,35 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * e.g.) import {Set, Map, List}
          */
-        ImportApi(List<AliasedDottedId> apis);
+        ImportApi(List<AliasedDottedName> apis);
     /**
      * export statement
-     * Export ::= export DottedIds
+     * Export ::= export DottedNames
      * e.g.) export Executable
      */
-    Export(List<DottedId> dottedIds);
+    Export(List<DottedName> apis);
     /**
      * aliased name used in import statements
-     * AliasedName ::= Id (as DottedId)?
+     * AliasedName ::= Id (as Id)?
      *               | opr Op (as Op)?
      *               | opr EncloserPair (as EncloserPair)?
      * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) longComplexName as shortName
      */
-    AliasedName(FnName fnName, Option<FnName> alias = Option.<FnName>none());
+    AliasedName(FnName name, Option<FnName> alias = Option.<FnName>none());
     /**
      * aliased dotted id used in import statements
-     * AliasedDottedId ::= DottedId (as DottedId)?
+     * AliasedDottedName ::= DottedName (as DottedName)?
      * e.g.) com.sun.fortress.parser.precedence.resolver as precedence.resolver
      */
-    AliasedDottedId(DottedId dottedId,
-                    Option<DottedId> alias = Option.<DottedId>none());
+    AliasedDottedName(DottedName api,
+                      Option<DottedName> alias = Option.<DottedName>none());
     /**
      * trait or object declaration in components or APIs
      */
     abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
                                           = Collections.<Modifier>emptyList(),
-                                      Id id,
+                                      IdName name,
                                       List<StaticParam> staticParams
                                           = Collections.<StaticParam>emptyList(),
                                       List<TraitTypeWhere> extendsClause
@@ -317,7 +317,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * e.g.) var x: ZZ32
          */
-        LValueBind(Id id, Option<Type> type = Option.<Type>none(),
+        LValueBind(IdName name, Option<Type> type = Option.<Type>none(),
                    List<Modifier> mods = Collections.<Modifier>emptyList(),
                    boolean mutable) implements LHS;
         /**
@@ -332,7 +332,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * UnpastingDim ::= ExtentRange (BY ExtentRange)+
              * e.g.) squareShape[m BY m]
              */
-            UnpastingBind(Id id, List<ExtentRange> dim);
+            UnpastingBind(IdName name, List<ExtentRange> dim);
             /**
              * complex unpasting
              * UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
@@ -345,7 +345,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract FnAbsDeclOrDecl(List<Modifier> mods
                                  = Collections.<Modifier>emptyList(),
-                             FnName fnName,
+                             FnName name,
                              List<StaticParam> staticParams
                                  = Collections.<StaticParam>emptyList(),
                              List<Param> params,
@@ -391,7 +391,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) transient x: String
      */
     abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-                   Id id);
+                   IdName name);
         /**
          * ValParam := Id
          *           | (Params?)
@@ -420,11 +420,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
-    DimUnitDecl(Option<Id> dim = Option.<Id>none(),
+    DimUnitDecl(Option<IdName> dim = Option.<IdName>none(),
                 Option<DimExpr> derived = Option.<DimExpr>none(),
-                Option<Id> default = Option.<Id>none(),
+                Option<IdName> default = Option.<IdName>none(),
                 boolean si_unit = false,
-                List<Id> units = Collections.<Id>emptyList(),
+                List<IdName> units = Collections.<IdName>emptyList(),
                 Option<Expr> def = Option.<Expr>none())
                implements Decl, AbsDecl;
     /**
@@ -437,10 +437,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         BaseDim();
         /* dimension identifier
-         * DimExpr ::= DottedId
+         * DimExpr ::= QualifiedName
          * e.g.) com.sun.fortress.dim.Length
          */
-        DimId(DottedId dottedId);
+        DimId(QualifiedIdName name);
         /* dimension multiplication
          * DimExpr ::= DimExpr DimExpr
          *           | DimExpr DOT DimExpr
@@ -476,18 +476,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * TestDecl ::= test Id [GeneratorList] = Expr
      * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
      */
-    TestDecl(Id id, List<Generator> gens, Expr expr) implements Decl, AbsDecl;
+    TestDecl(IdName name, List<Generator> gens, Expr expr) implements Decl, AbsDecl;
     /**
      * property declaration
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
      * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
      */
-    PropertyDecl(Option<Id> id = Option.<Id>none(), List<Param> params, Expr expr)
-                implements Decl, AbsDecl;
+    PropertyDecl(Option<IdName> name = Option.<IdName>none(), List<Param> params,
+                 Expr expr) implements Decl, AbsDecl;
     /**
      * syntax expanders declaration in components or APIs
      */
-    abstract ExternalSyntaxAbsDeclOrDecl(FnName openExpander, Id id,
+    abstract ExternalSyntaxAbsDeclOrDecl(FnName openExpander, IdName name,
                                          FnName closeExpander)
                                         implements AbsDeclOrDecl;
         /**
@@ -552,7 +552,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * AssignOp ::= := | Op=
          * e.g.) x += 1
          */
-        Assignment(List<LHS> lhs, Option<Op> op, Expr rhs);
+        Assignment(List<LHS> lhs, Option<Opr> opr, Expr rhs);
         /**
          * expressions beginning and ending with reserved words
          * Expr ::= DelimitedExpr
@@ -577,7 +577,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         1 kilometer => "we were wrong again"
              *       end
              */
-            CaseExpr(CaseParam param, Option<Op> compare = Option.<Op>none(),
+            CaseExpr(CaseParam param, Option<Opr> compare = Option.<Opr>none(),
                      List<CaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**
@@ -622,7 +622,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         end
              *       end I_95
              */
-            Label(Id id, Block body);
+            Label(IdName name, Block body);
             /**
              * object expression
              */
@@ -703,7 +703,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * Accumulator ::= SUM | PRODUCT | Big Op
              * e.g.) PRODUCT[i <- 1:n] i
              */
-            Accumulator(Op op, List<Generator> gens, Expr body);
+            Accumulator(Opr opr, List<Generator> gens, Expr body);
             /**
              * atomic expression
              * FlowExpr ::= atomic AtomicBack
@@ -718,7 +718,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * FlowExpr ::= exit Id? (with Expr)?
              * e.g.) exit I_95 with x32B
              */
-            Exit(Option<Id> optId = Option.<Id>none(),
+            Exit(Option<IdName> target = Option.<IdName>none(),
                  Option<Expr> returnExpr = Option.<Expr>none());
             /**
              * spawn expression
@@ -745,7 +745,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
-               FnName fnName = new AnonymousFnName(in_span),
+               FnName name = new AnonymousFnName(in_span),
                List<StaticParam> staticParams
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
@@ -810,7 +810,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *           | Primary ExponentOp
              * e.g.) 3 + 5
              */
-            OprExpr(List<OprName> ops,
+            OprExpr(List<QualifiedOpName> ops,
                     List<Expr> args = Collections.<Expr>emptyList());
             /**
              * subscripting expression
@@ -839,7 +839,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * some are created by parsing, while others require later
                  * static analysis to disambiguate from function applications
                  */
-                MethodInvocation(Expr obj, Id id,
+                MethodInvocation(Expr obj, IdName method,
                                  List<StaticArg> staticArgs
                                      = Collections.<StaticArg>emptyList(),
                                  Expr arg);
@@ -848,7 +848,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * Primary ::= Primary . Id
                  * e.g.) Empty.length
                  */
-                FieldRef(Expr obj, Id id) implements LHS;
+                FieldRef(Expr obj, IdName field) implements LHS;
                 /**
                  * juxtaposition of expressions
                  * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
@@ -877,14 +877,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * may be chained.
                  * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                  */
-                ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+                ChainExpr(Expr first, List<Pair<Opr, Expr>> links);
                 /**
                  * expression with static instantiations
                  * list of ids allows cross-API overloading
                  * Primary ::= Id[\StaticArgList\]
                  * e.g.) identity[\String\]
                  */
-                FnRef(List<DottedId> ids,
+                FnRef(List<QualifiedIdName> fns,
                       List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
                 /**
@@ -898,7 +898,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      *            | self
                      * e.g.) length
                      */
-                    VarRef(DottedId var) implements LHS;
+                    VarRef(QualifiedIdName var) implements LHS;
                     /**
                      * literal
                      * BaseExpr ::= Literal
@@ -1017,10 +1017,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         BaseUnitId();
         /* dimension and unit identifier
-         * DimUnitExpr ::= DottedId
+         * DimUnitExpr ::= QualifiedName
          * e.g.) com.sun.fortress.dim.Length
          */
-        DimUnitId(DottedId dottedId);
+        DimUnitId(QualifiedIdName name);
         /* dimension and unit multiplication
          * DimUnitExpr ::= DimUnitExpr DOT DimUnitExpr
          *               | DimUnitExpr DimUnitExpr
@@ -1083,10 +1083,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArrayType(Type element, Indices indices);
                 /**
                  * type name
-                 * TraitType ::= DottedId
+                 * TraitType ::= QualifiedName
                  * e.g.) T
                  */
-                IdType(DottedId dottedId);
+                IdType(QualifiedIdName name);
                 /**
                  * matrix type
                  * TraitType ::= Type ^ StaticArg
@@ -1096,10 +1096,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MatrixType(Type element, List<ExtentRange> dimensions);
                 /**
                  * instantiated type
-                 * TraitType ::= DottedId [\StaticArgList\]
+                 * TraitType ::= QualifiedName [\StaticArgList\]
                  * e.g.) List[\ZZ32\]
                  */
-                InstantiatedType(DottedId dottedId, List<StaticArg> args);
+                InstantiatedType(QualifiedIdName name, List<StaticArg> args);
             /**
              * tuple type
              * TupleType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
@@ -1157,9 +1157,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 OpDimType(DimUnitExpr val, DimUnitOp op);
         /**
          * static argument
-         * NOTE: StaticArg extends Type because there seems to be an
-         * ambiguity here, since syntactically there is not a good way to tell
-         * the products of typeargs for DimType and natargs for StaticArg
          */
         abstract StaticArg();
             /**
@@ -1174,7 +1171,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * StaticArg ::= Op
              * e.g.) +
              */
-            BaseOprStaticArg(FnName fnName);
+            BaseOprStaticArg(FnName name);
             /**
              * dimension representing dimensionless
              * StaticArg ::= Unity
@@ -1294,13 +1291,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * WhereClause ::= Id Extends
          * e.g.) T extends Object
          */
-        WhereExtends(Id id, List<TraitType> supers);
+        WhereExtends(IdName name, List<TraitType> supers);
         /**
          * type alias declaration
          * TypeAlias ::= type Id StaticParams? = Type
          * e.g.) type IntList = List[\ZZ64\]
          */
-        TypeAlias(Id id,
+        TypeAlias(IdName name,
                   List<StaticParam> staticParams
                       = Collections.<StaticParam>emptyList(),
                   Type type)
@@ -1310,25 +1307,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * WhereClause ::= nat Id
          * e.g.) nat length
          */
-        WhereNat(Id id);
+        WhereNat(IdName name);
         /**
          * int parameter declared in where clauses
          * WhereClause ::= int Id
          * e.g.) int length
          */
-        WhereInt(Id id);
+        WhereInt(IdName name);
         /**
          * bool parameter declared in where clauses
          * WhereClause ::= bool Id
          * e.g.) bool ninf
          */
-        WhereBool(Id id);
+        WhereBool(IdName name);
         /**
          * unit parameter declared in where clauses
          * WhereClause ::= unit Id
          * e.g.) unit U
          */
-        WhereUnit(Id id);
+        WhereUnit(IdName name);
         /**
          * coercion constraint declared in where clauses
          * WhereClause ::= Type coerces Type
@@ -1349,17 +1346,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereWidensCoerces(Type left, Type right);
         /**
          * DootedId equality constraint declared in where clauses
-         * WhereClause ::= DottedId = DottedId
+         * WhereClause ::= QualifiedName = QualifiedName
          * e.g.) m = n
          */
-        WhereEquals(DottedId left, DottedId right);
+        WhereEquals(QualifiedIdName left, QualifiedIdName right);
         /**
          * unit constraint used in where clauses
          * WhereClause ::= dimensionless = Id
          *               | Id = dimensionless
          * e.g.) U = dimensionless
          */
-        UnitConstraint(Id id);
+        UnitConstraint(IdName name);
         /**
          * integer constraint used in where clauses
          * WhereClause ::= IntConstraint
@@ -1447,10 +1444,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             NumberConstraint(IntLiteral val);
             /**
              * integer identiier used in where clauses
-             * IntVal ::= DottedId
+             * IntVal ::= QualifiedName
              * e.g.) m
              */
-            IntIdConstraint(DottedId dottedId);
+            IntIdConstraint(QualifiedIdName name);
         /**
          * integer addition used in where clauses
          * IntExpr ::= IntExpr + IntExpr
@@ -1499,10 +1496,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             FalseConstraint();
             /**
              * boolean identiier used in where clauses
-             * BoolVal ::= DottedId
+             * BoolVal ::= QualifiedName
              * e.g.) ninf
              */
-            BoolIdConstraint(DottedId dottedId);
+            BoolIdConstraint(QualifiedIdName name);
         /**
          * boolean constraint used in boolean expression in where clausess
          * BoolExpr ::= BoolConstraint
@@ -1616,37 +1613,37 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= bool Id
          * e.g.) bool nan
          */
-        BoolParam(Id id);
+        BoolParam(IdName name);
        /**
          * dimension parameter
          * StaticParam ::= dim Id
          * e.g.) dim D
          */
-        DimensionParam(Id id);
+        DimensionParam(IdName name);
        /**
          * int parameter
          * StaticParam ::= int Id
          * e.g.) int i
          */
-        IntParam(Id id);
+        IntParam(IdName name);
        /**
          * nat parameter
          * StaticParam ::= nat Id
          * e.g.) nat len
          */
-        NatParam(Id id);
+        NatParam(IdName name);
        /**
          * operator parameter
          * StaticParam ::= opr Op
          * e.g.) opr ODOT
          */
-        OperatorParam(Op op);
+        OperatorParam(OpName name);
        /**
          * type parameter
          * StaticParam ::= Id Extends? ( absorbs unit )?
          * e.g.) EltType extends Number absorbs unit
          */
-        SimpleTypeParam(Id id,
+        SimpleTypeParam(IdName name,
                         List<TraitType> extendsClause =
                             Collections.<TraitType>emptyList(),
                         boolean absorbs = false);
@@ -1655,50 +1652,47 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= unit Id ( : DimExpr )? ( absorbs unit )?
          * e.g.) unit U absrbs unit
          */
-        UnitParam(Id id, Option<DimExpr> dim = Option.<DimExpr>none(),
+        UnitParam(IdName name, Option<DimExpr> dim = Option.<DimExpr>none(),
                   boolean absorbs = false);
     /**
-     * name representing functionals
+     * Names used in declarations and references.
      */
-    abstract FnName();
+    abstract Name();
         /**
-         * qualified name
-         * DottedId ::= Id(.Id)*
-         * e.g.) com.sun.fortress.nodes_util.getName
+         * An unstructured sequence of ids naming an API or component
+         * DottedName ::= Id(.Id)*
+         * e.g.) com.sun.fortress.nodes_util
          */
-        DottedId(List<Id> names);
+        DottedName(List<Id> ids);
         /**
-         * internal name for anonymous function expressions
-         * not created during parsing but during evaluation
-         * e.g.) name for "fn x => x + 1"
+         * A name prefixed by an optional API name
          */
-        AnonymousFnName();
-        /**
-         * internal name for anonymous constructor expressions
-         * not created during parsing but during evaluation
-         * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
-         */
-        ConstructorFnName(GenericWithParams def);
-        /**
-         * name representing operators
-         */
-        abstract OprName();
+        abstract QualifiedName(Option<DottedName> api = Option.<DottedName>none(),
+                               FnName name);
+            /**
+             * qualified id name
+             * QualifiedName ::= (Id.)*Id
+             * e.g.) com.sun.fortress.nodes_util.getName
+             */
+            QualifiedIdName(IdName name);
             /**
              * qualified operator name
              * internal uses only
-             * e.g.) com.sun.fortress.nodes_util.getName
+             * e.g.) com.sun.fortress.nodes_util.+
              */
-            DottedOpr(List<Id> api, SimpleOprName opr);
+            QualifiedOpName(OpName name);
+        /**
+         * The declared name of a functional
+         */
+        abstract FnName();
             /**
-             * unqualified operator name
+             * Simple id-based name of an entity
              */
-            abstract SimpleOprName();
-                /**
-                 * pair of enclosing operators
-                 * EncloserPair ::= LeftEncloser RightEncloser
-                 * e.g.) </ />
-                 */
-                Enclosing(Op open, Op close);
+            IdName(Id id);
+            /**
+             * name representing operators
+             */
+            abstract OpName();
                 /**
                  * operator that is not an encloser, a postfix operator,
                  * a subscripted assignment, a subscripting operator
@@ -1712,15 +1706,33 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 PostFix(Op op);
                 /**
-                 * subscripted assignment operator [ ] :=
-                 * e.g.) a[i] := 1
+                 * pair of enclosing operators
+                 * EncloserPair ::= LeftEncloser RightEncloser
+                 * e.g.) </ />
                  */
-                SubscriptAssign();
+                Enclosing(Op open, Op close);
                 /**
                  * subscripting operator [ ]
                  * e.g.) a[i]
                  */
                 SubscriptOp();
+                /**
+                 * subscripted assignment operator [ ] :=
+                 * e.g.) a[i] := 1
+                 */
+                SubscriptAssign();
+            /**
+             * internal name for anonymous function expressions
+             * not created during parsing but during evaluation
+             * e.g.) name for "fn x => x + 1"
+             */
+            AnonymousFnName();
+            /**
+             * internal name for anonymous constructor expressions
+             * not created during parsing but during evaluation
+             * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
+             */
+            ConstructorFnName(GenericWithParams def);
     /**
      * array comprehension clause
      * ArrayComprehensionLeft ::= IdOrInt |-> Expr
@@ -1736,7 +1748,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * Binding ::= Id = Expr
      * e.g.) x = myLoser.myField
      */
-    Binding(Id id, Expr init);
+    Binding(IdName name, Expr init);
     /**
      * case clause used in case expressions and extremum expressions
      * CaseClause ::= Expr => BlockElems
@@ -1764,7 +1776,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * Catch ::= catch Id CatchClauses
      * e.g.) catch e IOException => throw ForbiddenException(e)
      */
-    Catch(Id id, List<CatchClause> clauses);
+    Catch(IdName name, List<CatchClause> clauses);
     /**
      * each clause in a catch clause used in try expressions
      * CatchClause ::= TraitType => BlockElems
@@ -1815,17 +1827,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      *               | ( Id, IdList )
      * e.g.) (i, j) <- my2DArray.indices
      */
-    Generator(List<Id> bind, Expr init);
+    Generator(List<IdName> bind, Expr init);
     /**
      * identifier
      * e.g.) hashCode
      */
-    Id(String name);
+    Id(String text);
     /**
      * operator symbol
      * e.g.) ===
      */
-    Op(String name);
+    Op(String text);
     /**
      * varargs expression used in tuple expressions
      * Expr...
@@ -1843,7 +1855,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * KeywordType ::= Id = Type
      * e.g.) x = String
      */
-    KeywordType(Id id, Type type);
+    KeywordType(IdName name, Type type);
     /**
      * trait type with a where clause used in extends clauses
      * TraitTypeWhere ::= TraitType Where?

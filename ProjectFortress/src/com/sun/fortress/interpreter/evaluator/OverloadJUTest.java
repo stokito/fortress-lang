@@ -74,7 +74,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     private int overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {
         OverloadedFunction fcn = new OverloadedFunction(
-              NodeFactory.makeDottedId("dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
+              NodeFactory.makeIdName("dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
         for(List<FType> cl: clauses) {
             fcn.addOverload(simple_overload(cl));
         }

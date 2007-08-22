@@ -18,13 +18,14 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.IdName;
 
 public class FieldSetterMethod extends Method {
     
     private final LValueBind _ast;
-    private final String _declaringTrait;
+    private final IdName _declaringTrait;
     
-    public FieldSetterMethod(LValueBind ast, String declaringTrait) {
+    public FieldSetterMethod(LValueBind ast, IdName declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }

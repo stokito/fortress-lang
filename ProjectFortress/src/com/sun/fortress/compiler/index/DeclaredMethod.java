@@ -18,13 +18,14 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.IdName;
 
 public class DeclaredMethod extends Method {
     
     private final FnAbsDeclOrDecl _ast;
-    private final String _declaringTrait;
+    private final IdName _declaringTrait;
     
-    public DeclaredMethod(FnAbsDeclOrDecl ast, String declaringTrait) {
+    public DeclaredMethod(FnAbsDeclOrDecl ast, IdName declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }

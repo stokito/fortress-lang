@@ -35,7 +35,7 @@ import com.sun.fortress.useful.Useful;
 public class Dummy_fcn extends Simple_fcn {
     private List<FType> domain;
     private String allocationSite;
-    private FnName fnName  = NodeFactory.makeDottedId("Dummy");
+    private FnName fnName  = NodeFactory.makeIdName("Dummy");
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Fcn#getFnName()

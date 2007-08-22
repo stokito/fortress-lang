@@ -39,35 +39,21 @@ public CompilationUnit File =
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       DottedId name = NodeFactory.makeDottedId(span,
-                                                file.substring(0,file.length()-4),
-                                                "\\.");
+       DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / a1:(w Imports)? w a2:AbsDecls w
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       DottedId name;
-       if (file.length() > 4)
-           name = NodeFactory.makeDottedId(span,
-                                           file.substring(0,file.length()-4),
-                                           "\\.");
-       else
-           throw new ProgramError(new Id(span, "_"), "Invalid file name.");
+       DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      }
    / w a1:Imports a2:(w AbsDecls)? w
      { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       DottedId name;
-       if (file.length() > 4)
-           name = NodeFactory.makeDottedId(span,
-                                           file.substring(0, file.length()-4),
-                                           "\\.");
-       else
-           throw new ProgramError(new Id(span, "_"), "Invalid file name.");
+       DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      };
 
@@ -79,16 +65,16 @@ private CompilationUnit CompilationUnit =
      Component
    / Api ;
 
-/* Component ::= component w DottedId (w Imports)? w Exports (w Decls)? w end */
+/* Component ::= component w DottedName (w Imports)? w Exports (w Decls)? w end */
 private Component Component =
-     component w a1:DottedId a2:(w Imports)? w a3:Exports a4:(w Decls)? w end
+     component w a1:DottedName a2:(w Imports)? w a3:Exports a4:(w Decls)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);
      };
 
-/* Api ::= api w DottedId (w Imports)? (w AbsDecls)? w end */
-private Api Api = api w a1:DottedId a2:(w Imports)? a3:(w AbsDecls)? w end
+/* Api ::= api w DottedName (w Imports)? (w AbsDecls)? w end */
+private Api Api = api w a1:DottedName a2:(w Imports)? a3:(w AbsDecls)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);
@@ -100,23 +86,23 @@ private List<Import> Imports = a1:Import a2s:(br Import)*
 
 /* Import ::=
      import w ImportFrom
-   | import w AliasedDottedIds
+   | import w AliasedDottedNames
  */
 private Import Import =
      import w ImportFrom
-   / import w a1:AliasedDottedIds
+   / import w a1:AliasedDottedNames
      { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
 
 /* ImportFrom ::=
-     * (w except w Names)? w from w DottedId
-   | AliasedNames w from w DottedId
+     * (w except w Names)? w from w DottedName
+   | AliasedNames w from w DottedName
  */
 private ImportFrom ImportFrom =
-     star a1:(w except w Names)? w from w a2:DottedId
+     star a1:(w except w Names)? w from w a2:DottedName
      { if (a1 == null) a1 = Collections.<FnName>emptyList();
        yyValue = new ImportStar(createSpan(yyStart,yyCount), a2, a1);
      }
-   / a1:AliasedNames w from w a2:DottedId
+   / a1:AliasedNames w from w a2:DottedName
      { yyValue = new ImportNames(createSpan(yyStart,yyCount), a2, a1); };
 
 /* Names ::= Name | { w NameList w } */
@@ -139,12 +125,12 @@ private List<AliasedName> AliasedNames =
    / opencurly w AliasedNameList w closecurly ;
 
 /* AliasedName ::=
-     Id (w as w DottedId)?
+     Id (w as w Id)?
    | opr w Op (w as w Op)?
    | opr w EncloserPair (w as w EncloserPair)?
  */
 private AliasedName AliasedName =
-     a1:Id a2:(w as w DottedId)?
+     a1:Id a2:(w as w Id)?
      { if (a2 == null)
            yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1);
        else
@@ -169,7 +155,7 @@ private AliasedName AliasedName =
 
 /* EncloserPair ::= LeftEncloser w RightEncloser */
 private Enclosing EncloserPair = a1:LeftEncloser w a2:RightEncloser
-     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getName(), a2.getName()))
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
            throw new ProgramError(a2, "Mismatched Enclosers.");
@@ -180,48 +166,48 @@ private List<AliasedName> AliasedNameList =
      a1:AliasedName a2s:(w comma w AliasedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AliasedDottedIds ::=
-     AliasedDottedId
-   | { w AliasedDottedIdList w }
+/* AliasedDottedNames ::=
+     AliasedDottedName
+   | { w AliasedDottedNameList w }
  */
-private List<AliasedDottedId> AliasedDottedIds =
-     a1:AliasedDottedId
+private List<AliasedDottedName> AliasedDottedNames =
+     a1:AliasedDottedName
      { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w AliasedDottedIdList w closecurly ;
+   / opencurly w AliasedDottedNameList w closecurly ;
 
-/* AliasedDottedId ::= DottedId (w as w DottedId)? */
-private AliasedDottedId AliasedDottedId =
-     a1:DottedId a2:(w as w DottedId)?
+/* AliasedDottedName ::= DottedName (w as w DottedName)? */
+private AliasedDottedName AliasedDottedName =
+     a1:DottedName a2:(w as w DottedName)?
      { if (a2 == null)
-           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
-                                         Option.<DottedId>none());
+           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
+                                           Option.<DottedName>none());
        else
-           yyValue = new AliasedDottedId(createSpan(yyStart,yyCount), a1,
-                                         Option.some(a2));
+           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
+                                           Option.some(a2));
      };
 
-/* AliasedDottedIdList ::= AliasedDottedId (w , w AliasedDottedId)* */
-private List<AliasedDottedId> AliasedDottedIdList =
-     a1:AliasedDottedId a2s:(w comma w AliasedDottedId)*
+/* AliasedDottedNameList ::= AliasedDottedName (w , w AliasedDottedName)* */
+private List<AliasedDottedName> AliasedDottedNameList =
+     a1:AliasedDottedName a2s:(w comma w AliasedDottedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Exports ::= Export (br Export)* */
 private List<Export> Exports = a1:Export a2s:(br Export)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Export ::= export w DottedIds */
-private Export Export = export w a1:DottedIds
+/* Export ::= export w DottedNames */
+private Export Export = export w a1:DottedNames
      { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
 
-/* DottedIds ::=
-     DottedId
-   | { w DottedIdList w }
+/* DottedNames ::=
+     DottedName
+   | { w DottedNameList w }
  */
-List<DottedId> DottedIds =
-     a1:DottedId
+List<DottedName> DottedNames =
+     a1:DottedName
      { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w DottedIdList w closecurly ;
+   / opencurly w DottedNameList w closecurly ;
 
-/* DottedIdList ::= DottedId (w , w DottedId)* */
-private List<DottedId> DottedIdList = a1:DottedId a2s:(w comma w DottedId)*
+/* DottedNameList ::= DottedName (w , w DottedName)* */
+private List<DottedName> DottedNameList = a1:DottedName a2s:(w comma w DottedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };

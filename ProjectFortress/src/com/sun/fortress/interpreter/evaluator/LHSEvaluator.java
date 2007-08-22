@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -47,6 +48,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
@@ -60,6 +62,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
@@ -88,15 +91,15 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     @Override
     public Voidoid forFieldRef(FieldRef x) {
         Expr from = x.getObj();
-        Id what = x.getId();
+        IdName what = x.getField();
         // TODO need to generalize to dotted names.
         FValue val = from.accept(evaluator);
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
-            obj.getSelfEnv().assignValue(x, what.getName(), value);
+            obj.getSelfEnv().assignValue(x, what.getId().getText(), value);
             return null;
         } else {
-            return NI.nyi("DottedId expression, not object.field");
+            return NI.nyi("FieldRef expression, not object.field");
         }
 
     }
@@ -112,12 +115,10 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public void debugPrint(String debugString) {if (debug) System.out.println(debugString);}
 
     public Voidoid forVarRef(VarRef x) {
-        List<Id> names = x.getVar().getNames();
+        Iterable<Id> names = NodeUtil.getIds(x.getVar());
         Environment e = evaluator.e;
-        if (names.isEmpty()) {
-            throw new InterpreterBug(x, e, "empty variable name");
-        } else if (names.size() == 1) {
-            String s = names.get(0).getName();
+        if (IterUtil.sizeOf(names) == 1) {
+            String s = IterUtil.first(names).getText();
             FType ft = e.getVarTypeNull(s);
             if (ft != null) {
                 // Check that variable can receive type
@@ -139,7 +140,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
-        Id id = x.getId();
+        IdName name = x.getName();
         List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
     }
@@ -155,9 +156,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     }
 
     public Voidoid forLValueBind(LValueBind x) {
-        Id name = x.getId();
+        IdName name = x.getName();
         Option<Type> type = x.getType();
-        String s = name.getName();
+        String s = NodeUtil.nameString(name);
         boolean mutable = x.isMutable();
 
         // Here we have an LHS context

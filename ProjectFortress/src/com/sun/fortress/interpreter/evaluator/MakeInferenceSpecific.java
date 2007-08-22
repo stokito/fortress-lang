@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.VoidType;
-import com.sun.fortress.nodes_util.StringMaker;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BoundingMap;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -104,7 +104,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forIdType(IdType that) {
-        String s = StringMaker.fromDottedId(that.getDottedId());
+        String s = NodeUtil.nameString(that.getName());
         if (doClamp) {
             FType t = abm.get(s);
             if (t != null) {

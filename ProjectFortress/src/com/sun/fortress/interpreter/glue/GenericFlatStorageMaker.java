@@ -42,7 +42,7 @@ import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -76,13 +76,13 @@ public class GenericFlatStorageMaker extends GenericConstructor {
         List<WhereClause> where = Collections.emptyList();
         Contract contract = NodeFactory.makeContract();
 
-        Id name = NodeFactory.makeId("FlatStorageMaker");
+        IdName name = NodeFactory.makeIdName("FlatStorageMaker");
         List<StaticParam> staticParams =  // [T, m]
             Useful.list(NodeFactory.makeSimpleTypeParam("T"), NodeFactory.makeNatParam("m"));
         Option<List<Param>> params = Option.some(Collections.<Param>emptyList()); // ()
         List<TraitTypeWhere> traits =  // Array1[\T, 0, m\]
             Collections.emptyList();
-        ObjectDecl od =  NodeFactory.makeObjectDecl(defs, mods, name, staticParams, params, traits, throws_, where, contract);
+        ObjectDecl od = NodeFactory.makeObjectDecl(defs, mods, name, staticParams, params, traits, throws_, where, contract);
 
         /*
            try {

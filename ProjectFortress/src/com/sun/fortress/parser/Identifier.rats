@@ -33,9 +33,9 @@ option setOfString(FORTRESS_KEYWORDS);
         String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
 private String idstart = UnicodeIdStart / [_] ;
         String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
-private String IdName  = a1:id &{!FortressUtil.validOp(a1) } ;
+private String IdText  = a1:id &{!FortressUtil.validOp(a1) } ;
 
-Id Id = a1:IdName { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
+Id Id = a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
 /* IdList ::= Id (w , w Id)* */
 List<Id> IdList = a1:Id a2s:(w comma w Id)*
@@ -54,14 +54,26 @@ List<Id> IdOrIdTuple =
 /* Name ::= Id | opr w Op */
 FnName Name =
      a1:Id
-     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
    / opr w a1:Op
-     { yyValue = NodeFactory.makeFnName(createSpan(yyStart,yyCount), a1); };
-
-/* DottedId ::= Id(.Id)* */
+     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
+                                           
+/* DottedName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
-DottedId DottedId =
+DottedName DottedName =
      a1:Id &(w ellipses)
-     { yyValue = NodeFactory.makeDottedId(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2s:(dot Id)*
-     { yyValue = NodeFactory.makeDottedId(createSpan(yyStart,yyCount), a1, a2s.list()); };
+     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
+                                            IterUtil.compose(a1, a2s.list()));
+     };
+
+/* QualifiedName ::= (Id.)*Id */
+/* This says that if we find ellipses, the dot doesn't count */
+QualifiedIdName QualifiedName =
+     a1:Id &(w ellipses)
+     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount), a1); }
+   / a1s:(Id dot)* a2:Id
+     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
+                                                 a1s.list(), a2);
+     };

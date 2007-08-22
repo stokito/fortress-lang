@@ -26,7 +26,8 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedId;
+import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -126,8 +127,8 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  SApi getApiNull(DottedId d) ;
-    final public  SApi getApi(DottedId d)  {
+    abstract public  SApi getApiNull(DottedName d) ;
+    final public  SApi getApi(DottedName d)  {
         SApi x = getApiNull(d);
         if (x == null)
             throw new ProgramError(errorMsg("Missing api ", d));
@@ -144,8 +145,8 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  SComponent getComponentNull(DottedId d) ;
-    final public  SComponent getComponent(DottedId d)  {
+    abstract public  SComponent getComponentNull(DottedName d) ;
+    final public  SComponent getComponent(DottedName d)  {
         SComponent x = getComponentNull(d);
         if (x == null)
             throw new ProgramError(errorMsg("Missing component ", d));
@@ -153,23 +154,23 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  FType getTypeNull(DottedId d) ;
-    final public  FType getType(DottedId d)  {
-        FType x = getTypeNull(d);
+    abstract public  FType getTypeNull(QualifiedIdName q) ;
+    final public  FType getType(QualifiedIdName q)  {
+        FType x = getTypeNull(q);
         if (x == null)
             {
                 System.err.println(this.toString());
-                throw new ProgramError(errorMsg("Missing type ", d));
+                throw new ProgramError(errorMsg("Missing type ", q));
             }
         else
             return x;
     }
 
-    abstract public  FValue getValueNull(DottedId d) ;
-    final public  FValue getValue(DottedId d)  {
-        FValue x = getValueNull(d);
+    abstract public  FValue getValueNull(QualifiedIdName q) ;
+    final public  FValue getValue(QualifiedIdName q)  {
+        FValue x = getValueNull(q);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing value ", d));
+            throw new ProgramError(errorMsg("Missing value ", q));
         else
             return x;
     }
