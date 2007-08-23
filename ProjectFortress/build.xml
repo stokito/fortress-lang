@@ -454,7 +454,9 @@ testNotPassing, testOnly"/>
             description="Run tests and demos.">
     </target>
 
-    <target name="reportNotPassing" if="not.passing.yet" depends="test,testNotPassing">
+    <target name="reportNotPassing" 
+	    if="not.passing.yet" 
+	    depends="test,testNotPassing">
         <echo message="Some tests expected to fail still aren't passing."/>
     </target>
 
@@ -487,7 +489,8 @@ testNotPassing, testOnly"/>
 
  <header><![CDATA[Fortress Interpreter]]></header>
  <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
- <group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
+ <group title="Evaluator Packages" 
+	packages="com.sun.fortress.interpreter.evaluator.*"/>
 
  <link href="http://junit.org/junit/javadoc/3.8.1/"/>
  <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
@@ -495,9 +498,18 @@ testNotPassing, testOnly"/>
       </javadoc>
 
     </target>
+    
+    <target name="fortress" depends="compile">
+      <echo message="fortressArgs: ${fortressArgs}"/>
+      <java classname="com.sun.fortress.interpreter.drivers.fs"
+	    classpath="${compile.classpath}">
+	<arg line="${fortressArgs}"/>
+      </java>
+    </target>
 
 
-  <target name="jar" depends="compile"
+  <target name="jar"
+	  depends="compile"
 	  description="Package up a Fortress distribution as a self-extracting jar.">
     <tstamp>
       <format
