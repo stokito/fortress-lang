@@ -100,16 +100,18 @@ private String OpName =
      !(accumulator / cross) opn:id &{FortressUtil.validOp(opn) } ;
 
 Op Op =
-     a1:(op !(equalsOp) / compOp)
+     a1:(condOp / op !(equalsOp) / compOp)
      { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
 
-String compOp =
+private String compOp =
      "==="
    / "=/="
    / "<="
    / ">=" ;
 
-String multiOp =
+private String condOp = op colon ;
+
+private String multiOp =
      "-/->"
    / "<-/-"
    / "-->"
@@ -127,7 +129,7 @@ String multiOp =
    / "!!"
    ;
 
-String singleOp =
+private String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
      a1:_ &{ PrecedenceMap.ONLY.isOperator("" + a1) }
      { yyValue = "" + a1; } ;

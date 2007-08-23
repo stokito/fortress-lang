@@ -437,7 +437,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         BaseDim();
         /* dimension identifier
-         * DimExpr ::= QualifiedName
+         * DimExpr ::= QualifiedIdName
          * e.g.) com.sun.fortress.dim.Length
          */
         DimId(QualifiedIdName name);
@@ -1017,7 +1017,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         BaseUnitId();
         /* dimension and unit identifier
-         * DimUnitExpr ::= QualifiedName
+         * DimUnitExpr ::= QualifiedIdName
          * e.g.) com.sun.fortress.dim.Length
          */
         DimUnitId(QualifiedIdName name);
@@ -1083,7 +1083,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArrayType(Type element, Indices indices);
                 /**
                  * type name
-                 * TraitType ::= QualifiedName
+                 * TraitType ::= QualifiedIdName
                  * e.g.) T
                  */
                 IdType(QualifiedIdName name);
@@ -1096,7 +1096,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MatrixType(Type element, List<ExtentRange> dimensions);
                 /**
                  * instantiated type
-                 * TraitType ::= QualifiedName [\StaticArgList\]
+                 * TraitType ::= QualifiedIdName [\StaticArgList\]
                  * e.g.) List[\ZZ32\]
                  */
                 InstantiatedType(QualifiedIdName name, List<StaticArg> args);
@@ -1346,7 +1346,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereWidensCoerces(Type left, Type right);
         /**
          * DootedId equality constraint declared in where clauses
-         * WhereClause ::= QualifiedName = QualifiedName
+         * WhereClause ::= QualifiedIdName = QualifiedIdName
          * e.g.) m = n
          */
         WhereEquals(QualifiedIdName left, QualifiedIdName right);
@@ -1444,7 +1444,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             NumberConstraint(IntLiteral val);
             /**
              * integer identiier used in where clauses
-             * IntVal ::= QualifiedName
+             * IntVal ::= QualifiedIdName
              * e.g.) m
              */
             IntIdConstraint(QualifiedIdName name);
@@ -1496,7 +1496,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             FalseConstraint();
             /**
              * boolean identiier used in where clauses
-             * BoolVal ::= QualifiedName
+             * BoolVal ::= QualifiedIdName
              * e.g.) ninf
              */
             BoolIdConstraint(QualifiedIdName name);
@@ -1660,7 +1660,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract Name();
         /**
          * An unstructured sequence of ids naming an API or component
-         * DottedName ::= Id(.Id)*
+         * DottedName ::= (Id.)*Id
          * e.g.) com.sun.fortress.nodes_util
          */
         DottedName(List<Id> ids);
@@ -1671,7 +1671,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                FnName name);
             /**
              * qualified id name
-             * QualifiedName ::= (Id.)*Id
+             * QualifiedIdName ::= (Id.)*Id
              * e.g.) com.sun.fortress.nodes_util.getName
              */
             QualifiedIdName(IdName name);
