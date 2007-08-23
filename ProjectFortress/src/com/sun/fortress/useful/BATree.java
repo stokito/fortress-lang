@@ -128,6 +128,7 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
         else return root.weight;
     }
 
+    @SuppressWarnings("unchecked")
     public U get(Object k) {
         if (root == null) return null;
         BATreeNode<T,U> f = root.getObject((T)k, comp);

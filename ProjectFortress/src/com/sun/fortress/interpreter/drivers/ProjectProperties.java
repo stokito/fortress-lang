@@ -49,17 +49,17 @@ public class ProjectProperties {
         return s;
     }
 
-    private static String testLibDir() {
+   private static String someImplDir(String property_name, String default_name) {
         String s = null;
         
         try {
-         s = System.getProperty("TEST_LIB_DIR");
+         s = System.getProperty(property_name);
         } catch (Throwable th) {
             
         }
             
         if (s == null) {
-            s = BASEDIR + "test_library";
+            s = BASEDIR + default_name;
         }
         
         s = s + File.separator;
@@ -93,7 +93,8 @@ public class ProjectProperties {
      */
     public static final String BASEDIR = baseDir();
     
-    public static final String TEST_LIB_DIR = testLibDir();
+    public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
+    public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_native_library");
         
 
     /** Creates a new instance of ProjectProperties */

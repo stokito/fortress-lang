@@ -134,10 +134,15 @@ public class Closure extends NonPrimitive implements Scope {
      */
     public Expr getBody() {
         Option<Expr> optBody = NodeUtil.getBody(def);
-        String errMsg = def.getClass() + " does not support getBody().";
-        return Option.unwrap(optBody, new RuntimeException(errMsg));
+        return Option.unwrap(optBody);
     }
 
+    public Expr getBodyNull() {
+        Option<Expr> optBody = NodeUtil.getBody(def);
+        return Option.unwrap(optBody, (Expr) null);
+    }
+
+    
     public FValue applyInner(List<FValue> args, HasAt loc,
                              BetterEnv envForInference) {
         if (def instanceof NativeApp) {

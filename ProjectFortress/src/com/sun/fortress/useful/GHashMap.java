@@ -119,6 +119,7 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#containsKey(java.lang.Object)
      */
+    @SuppressWarnings("unchecked")
     public boolean containsKey(Object arg0) {
        return map.containsKey(new WrappedKey((K)arg0));
     }
@@ -187,6 +188,7 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#get(java.lang.Object)
      */
+    @SuppressWarnings("unchecked")
     public V get(Object arg0) {
        // UGLY HACK: We must take an arbitrary Object in order
        // to satisfy the Map<K,V> interface.
@@ -200,6 +202,7 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
      /* (non-Javadoc)
      * @see java.util.Map#remove(java.lang.Object)
      */
+    @SuppressWarnings("unchecked")
     public V remove(Object arg0) {
        return map.remove(new WrappedKey((K)arg0));
     }

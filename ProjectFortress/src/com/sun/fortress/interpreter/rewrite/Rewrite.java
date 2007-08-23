@@ -68,6 +68,7 @@ public abstract class Rewrite extends NodeReflection {
     /**
      * Based on the type of o, recursively visits its pieces.
      */
+    @SuppressWarnings("unchecked")
     protected <T> T visitObject(T o) {
         Object result = null;
         if (o==null) {

@@ -729,53 +729,65 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         scanForFunctionalMethodNames(x, defs, false);
     }
 
-    public void scanForFunctionalMethodNames(
-            FType x,
-            List<? extends AbsDeclOrDecl> defs,
-            boolean bogus) {
+    public void scanForFunctionalMethodNames(FType x,
+            List<? extends AbsDeclOrDecl> defs, boolean bogus) {
         for (AbsDeclOrDecl dod : defs) {
-            int spi = NodeUtil.selfParameterIndex(dod);
-            if (spi >= 0)  {
-                // If it is a functional method, it is definitely a FnAbsDeclOrDecl
-                FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
-                // System.err.println("Functional method " + dod + " pass "+pass);
-                String fndodname = NodeUtil.nameString(fndod.getName());
-                if (pass == 1) {
-                    Fcn cl;
-                    // If the container is generic, then we create an empty
-                    // top-level overloading, to be filled in as the container
-                    // is instantiated.
-                    // TODO this is not good enough, nesting of object expressions
-                    // may mess us up.  Actually -- it may not, it looks like
-                    // implicit type parameters are made explicit.
+            // Filter out non-functions.
+            if (dod instanceof FnAbsDeclOrDecl) {
+                int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+                if (spi >= 0) {
+                    // If it is a functional method, it is definitely a
+                    // FnAbsDeclOrDecl
+                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    // System.err.println("Functional method " + dod + " pass
+                    // "+pass);
+                    String fndodname = NodeUtil.nameString(fndod.getName());
+                    if (pass == 1) {
+                        Fcn cl;
+                        // If the container is generic, then we create an empty
+                        // top-level overloading, to be filled in as the
+                        // container
+                        // is instantiated.
+                        // TODO this is not good enough, nesting of object
+                        // expressions
+                        // may mess us up. Actually -- it may not, it looks like
+                        // implicit type parameters are made explicit.
 
-                    //if (x.getStaticParams().isPresent()) {
-                    if (x instanceof FTypeGeneric) {
-                        cl = new OverloadedFunction(fndod.getName(), containing);
-                    } else {
-                        // Note that the instantiation of a generic comes here too
-                        cl = new FunctionalMethod(containing, fndod, spi, x);
-                    }
+                        // if (x.getStaticParams().isPresent()) {
+                        if (x instanceof FTypeGeneric) {
+                            cl = new OverloadedFunction(fndod.getName(),
+                                    containing);
+                        } else {
+                            // Note that the instantiation of a generic comes
+                            // here too
+                            cl = new FunctionalMethod(containing, fndod, spi, x);
+                        }
 
-                    // TODO test and other modifiers
+                        // TODO test and other modifiers
 
-                    // Traits and objects are already defined at the top level
-                    // Instantiated generics are intended to hit the overloaded
-                    // function from the top level, and enhance it with this new
-                    // overloading.
-                    // TOTO -- is it possible that a tricky shadowing could break this?
-                    bindInto.putValueNoShadowFn(fndodname, cl);
-                } else if (pass == 3) {
-                    Fcn fcn = (Fcn) containing.getValue(fndodname);
+                        // Traits and objects are already defined at the top
+                        // level
+                        // Instantiated generics are intended to hit the
+                        // overloaded
+                        // function from the top level, and enhance it with this
+                        // new
+                        // overloading.
+                        // TOTO -- is it possible that a tricky shadowing could
+                        // break this?
+                        bindInto.putValueNoShadowFn(fndodname, cl);
+                    } else if (pass == 3) {
+                        Fcn fcn = (Fcn) containing.getValue(fndodname);
 
-                    if (fcn instanceof Closure) {
-                        Closure cl = (Closure) fcn;
-                        cl.finishInitializing();
-                    } else if (fcn instanceof OverloadedFunction) {
-                        // TODO it is correct to do this here, though it won't work yet.
-                        OverloadedFunction og = (OverloadedFunction) fcn;
-                        og.finishInitializing();
+                        if (fcn instanceof Closure) {
+                            Closure cl = (Closure) fcn;
+                            cl.finishInitializing();
+                        } else if (fcn instanceof OverloadedFunction) {
+                            // TODO it is correct to do this here, though it
+                            // won't work yet.
+                            OverloadedFunction og = (OverloadedFunction) fcn;
+                            og.finishInitializing();
 
+                        }
                     }
                 }
             }
@@ -1135,19 +1147,20 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         FType ft;
 
         String fname = NodeUtil.nameString(name);
-        
+
         if (!staticParams.isEmpty()) {
-            
-            FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
+
+                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
             guardedPutType(fname, ftg, x);
-            //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
-            ft = ftg;
+                //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
+           ft = ftg;
         } else {
-            BetterEnv interior = containing; // new BetterEnv(containing, x);
+
+                BetterEnv interior = containing; // new BetterEnv(containing, x);
             FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls());
             guardedPutType(fname, ftt, x);
-            //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
-            ft = ftt;
+                //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
+           ft = ftt;
         }
 
         scanForFunctionalMethodNames(ft, x.getDecls());

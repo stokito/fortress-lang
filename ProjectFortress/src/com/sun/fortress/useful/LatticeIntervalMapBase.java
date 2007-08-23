@@ -109,7 +109,8 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
     /**
      * Returns the lower (bottom) end of an interval.
      */
-     public U get(Object k) {
+    @SuppressWarnings("unchecked")
+    public U get(Object k) {
         BATree2Node<T,U,U> old = table.getNode((T)k);
         return old == null ? null : lower(old);
     }

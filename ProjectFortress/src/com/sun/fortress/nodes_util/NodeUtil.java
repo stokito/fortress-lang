@@ -57,16 +57,17 @@ public class NodeUtil {
      * or -1 if it does not appear.
      * Only meaningful for method declarations.
      */
-    public static int selfParameterIndex(HasAt d) {
-        if (d instanceof FnAbsDeclOrDecl) {
-            int i = 0;
-            for (Param p : ((FnAbsDeclOrDecl)d).getParams()) {
-                IdName name = p.getName();
+    public static int selfParameterIndex(Applicable d) {
+        // Bit of a hack, we want to get rid NativeApplicable if we can
+        if (d instanceof NativeApplicable)
+            return -1;
+        int i = 0;
+        for (Param p : d.getParams()) {
+            IdName name = p.getName();
                 if (WellKnownNames.defaultSelfName.equals(nameString(name))) {
-                    return i;
-                }
-                i++;
+                return i;
             }
+            i++;
         }
         return -1;
     }
@@ -74,15 +75,13 @@ public class NodeUtil {
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
         String name = nameString(app.getName());
-        if (app instanceof FnAbsDeclOrDecl) {
-            int spi = selfParameterIndex((FnAbsDeclOrDecl)app);
+        
+            int spi = selfParameterIndex(app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + name;
             else
                 return name;
-        } else {
-            return name;
-        }
+        
     }
 
     public static Option<Expr> getBody(Applicable def) {
@@ -115,10 +114,10 @@ public class NodeUtil {
         
         @Override public String forDottedName(DottedName n) {
             return nameString(n);
-        }
+            }
         @Override public String forQualifiedName(QualifiedName n) {
             return nameString(n);
-        }
+            }
         public String forIdName(IdName n) { return n.getId().getText(); }
         public String forOpr(Opr n) { return n.getOp().getText(); }
         public String forPostFix(PostFix n) { return n.getOp().getText(); }
@@ -129,8 +128,8 @@ public class NodeUtil {
             return n.getSpan().toString();
         }
         public String forConstructorFnName(ConstructorFnName n) {
-            // TODO Auto-generated method stub
-            return stringName(n.getDef());
+        // TODO Auto-generated method stub
+        return stringName(n.getDef());
         }
     };
 
@@ -138,7 +137,7 @@ public class NodeUtil {
     public static String nameString(Name n) {
         return n.accept(nameGetter);
     }
-    
+
     public static String nameString(IdName n) {
         return n.getId().getText();
     }
@@ -354,5 +353,4 @@ public class NodeUtil {
         }
         return t;
     }
-    
 }

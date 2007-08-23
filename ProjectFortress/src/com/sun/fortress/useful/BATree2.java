@@ -135,6 +135,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         else return root.weight;
     }
 
+    @SuppressWarnings("unchecked")
     public Pair<U,V> get(Object k) {
         if (root == null) return null;
         BATree2Node<T, U, V> f = root.getObject((T)k, comp);

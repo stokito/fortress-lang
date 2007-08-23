@@ -88,6 +88,7 @@ public class Driver {
     private static boolean _libraryTest = false;
 
     private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
+    private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
 
     public final static String COMP_SOURCE_SUFFIX = "fss";
     public final static String COMP_TREE_SUFFIX = "tfs";
@@ -613,7 +614,18 @@ public class Driver {
              * These two lines are what needs to be replaced by a real linker.
              */
             Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
-            Component newcomp = readTreeOrSourceComponent(LIB_DIR + apiname);
+            Component newcomp;
+            boolean is_native = false;
+            try {
+                newcomp = readTreeOrSourceComponent(LIB_DIR + apiname);
+            } catch (Exception ex) {
+                try {
+                    newcomp = readTreeOrSourceComponent(LIB_NATIVE_DIR + apiname);
+                    is_native = true;
+                } catch (Exception ex1) {
+                    throw new ProgramError("" + ex +  " AND " + ex1);
+                }
+            }
             ComponentWrapper apicw = new ComponentWrapper(newapi);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.populateEnvironment();
