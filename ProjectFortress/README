@@ -62,9 +62,13 @@ Ant starts up a JVM.
 
 RUNNING THE INTERPRETER
 
-Provided that the 'java' command is on your path, you can run the
-command "./fortress hello.fss".  Typing "./fortress --help" will give
-usage information for the driver.
+Set an environment variable FORTRESS_HOME to refer to the trunk of the
+Fortress Subversion repository (i.e., the directory containing ProjectFortress).
+Provided that the 'java' command is on your path, you can now run the
+command "./fortress hello.fss".  If you put the ./fortress script
+on your path, you should also be able to call fortress from outside the
+interpreter directory (as you will normally want to do). 
+Typing "./fortress --help" will give usage information for the driver.
 
 Or you can invoke the interpreter directly by replacing 'hello.fss'
 with the name of your program in the following command:
