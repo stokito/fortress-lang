@@ -333,7 +333,7 @@ public class PrecedenceMap {
         case '|':
             while (c=='|' && i < len) c = op.charAt(i++);
             if (c=='|' && i == len) return true; // case 1
-            break;
+            break; // case 4
         case '[':
         case '(':
         case '{':
@@ -344,7 +344,8 @@ public class PrecedenceMap {
         }
         /* Case 2/4; look for sequences of slashes. */
         if (c!='/' && c!='\\') return false;
-        while (c==op.charAt(i++)) {
+        if (i==len) return true;
+        while (i < len && c==op.charAt(i++)) {
             if (i==len) return true;
         }
         return false;
@@ -386,7 +387,8 @@ public class PrecedenceMap {
         }
         /* Case 2/4; look for sequences of slashes. */
         if (c!='/' && c!='\\') return false;
-        while (c==op.charAt(--i)) {
+        if (i==0) return true;
+        while (i > 0 && c==op.charAt(--i)) {
             if (i==0) return true;
         }
         return false;

@@ -254,7 +254,9 @@ public final class FortressUtil {
         if (length < 2 || compoundOp(s)) return false;
         char start = s.charAt(0);
         if (length == 2 && start == s.charAt(1)) return false;
-        if (start == '_' || s.endsWith("_"))     return false;
+        if (length > 2 && start == s.charAt(1) && s.charAt(2) == '_')
+            return false;
+        if (start == '_' || s.endsWith("_")) return false;
         for (int i = 0; i < length; i++) {
             if (!validOpChar(s.charAt(i))) return false;
         }
