@@ -28,10 +28,10 @@
  <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
  <!-- Directories in the ${basedir} directory -->
- <property name="astgen" location="astgen"/>
- <property name="build" location="build"/>
- <property name="docs" location="docs"/>
- <property name="src" location="src"/>
+ <property name="astgen" location="${basedir}/astgen"/>
+ <property name="build" location="${basedir}/build"/>
+ <property name="docs" location="${basedir}/docs"/>
+ <property name="src" location="${basedir}/src"/>
  <!-- Third party jar files -->
  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
  <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
@@ -72,12 +72,17 @@
  
  <property name="blahblahblah" value="com/sun/fortress"/>
 
+ <echo message="compile.classpath: ${compile.classpath}"/>
+ <taskdef name="fortress" 
+	  classname="com.sun.fortress.ant_tasks.FortressTask" 
+	  classpath="${compile.classpath}"/>
+
     <target name="help">
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
 checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
 compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
 parser, reportNotPassing, systemProperties, test, testAll, testDemos,
-testNotPassing, testOnly"/>
+testNotPassing, testOnly interpreter"/>
     </target>
 
     <condition property="correct.environment">
@@ -180,8 +185,8 @@ testNotPassing, testOnly"/>
 
     <!-- Generation of Operators.java depends only on the files listed below.
          Note that there are class files it depends on; if these class files are
-         not up to date with respect to their sources, they are themselves recompiled
-         by the compileCommon target.-->
+         not up to date with respect to their sources, they are themselves 
+	 recompiled by the compileCommon target.-->
     <target name="checkOperatorsUptodate" depends="init, compileCommon">
         <condition property="operators.uptodate">
             <and>
@@ -198,10 +203,12 @@ testNotPassing, testOnly"/>
         <echo message="Operators up to date? ${operators.uptodate}"/>
     </target>
 
-    <target name="operatorsGen"  unless="operators.uptodate" depends="init, compileCommon, checkOperatorsUptodate"
+    <target name="operatorsGen"  unless="operators.uptodate" 
+	    depends="init, compileCommon, checkOperatorsUptodate"
      description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating operators"/>
-        <java classname="${package.prefix}.unicode.OperatorStuffGenerator" fork="true">
+        <java classname="${package.prefix}.unicode.OperatorStuffGenerator" 
+	      fork="true">
             <classpath>
                 <pathelement location="${build}"/>
             </classpath>
@@ -219,7 +226,8 @@ testNotPassing, testOnly"/>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
     </target>
 
-    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar" classname="edu.rice.cs.astgen.AntTask" />
+    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar" 
+	     classname="edu.rice.cs.astgen.AntTask" />
 
     <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
      description="Automatically generate AST nodes.">
@@ -247,7 +255,7 @@ testNotPassing, testOnly"/>
             classpath="${compile.classpath}">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+            <!-- <compilerarg value="-Xlint:unchecked"/> --> 
             <include name="**/*.java"/>
             <exclude name="${usefulPackage}/*.java"/>
             <exclude name="${unicodePackage}/*.java"/>
@@ -470,7 +478,7 @@ testNotPassing, testOnly"/>
         </uptodate>
         <echo message="Parser up to date? ${parser.uptodate}"/>
     </target>
-
+    
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate"
             description="Fortress Parser">
@@ -491,7 +499,7 @@ testNotPassing, testOnly"/>
  <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
  <group title="Evaluator Packages" 
 	packages="com.sun.fortress.interpreter.evaluator.*"/>
-
+ 
  <link href="http://junit.org/junit/javadoc/3.8.1/"/>
  <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
  <link href="http://drjava.org/javadoc/plt/"/>
@@ -499,9 +507,10 @@ testNotPassing, testOnly"/>
 
     </target>
     
-    <target name="fortress" depends="compile">
+    <target name="interpreter" depends="compile">
       <echo message="fortressArgs: ${fortressArgs}"/>
-      <java classname="com.sun.fortress.interpreter.drivers.fs"
+      <java fork="yes" 
+	    classname="com.sun.fortress.interpreter.drivers.fs"
 	    classpath="${compile.classpath}">
 	<arg line="${fortressArgs}"/>
       </java>
