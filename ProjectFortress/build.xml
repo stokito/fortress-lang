@@ -72,11 +72,6 @@
  
  <property name="blahblahblah" value="com/sun/fortress"/>
 
- <echo message="compile.classpath: ${compile.classpath}"/>
- <taskdef name="fortress" 
-	  classname="com.sun.fortress.ant_tasks.FortressTask" 
-	  classpath="${compile.classpath}"/>
-
     <target name="help">
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
 checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
