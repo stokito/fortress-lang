@@ -21,6 +21,7 @@ import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -33,6 +34,15 @@ public class LazilyEvaluatedCell extends IndirectionCell {
         this.e = e;
     }
 
+    public String toString() {
+        if (theValue==null) { 
+            return "thunk " + NodeUtil.dump(exp);
+        }
+        if (theValue instanceof IndirectionCell)
+            return "Uninitialized " + theValue.getClass().getSimpleName();
+        return theValue.toString();
+    }
+    
     public void storeValue(FValue f2) {
         bug("Cannot store into lazy cell");
     }

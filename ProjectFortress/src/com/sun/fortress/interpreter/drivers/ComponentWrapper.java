@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -40,21 +41,19 @@ public class ComponentWrapper {
 
     BuildEnvironments be;
     Disambiguate dis;
+    boolean isNative; 
 
     int visitState;
     private final static int UNVISITED=0, POPULATED=1, TYPED=2, FUNCTIONED=3, FINISHED=4;
 
-    private ComponentWrapper() {
-        BetterEnv e = BetterEnv.empty();
-        e.setTopLevel();
-        be = new BuildEnvironments(e);
-    }
-
-    public ComponentWrapper(CompilationUnit comp) {
-        this();
+    public ComponentWrapper(CompilationUnit comp, boolean is_native) {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
+        BetterEnv e = BetterEnv.empty();
+        e.setTopLevel();
+        isNative = is_native;
+        be = isNative ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
     }
 
     /**
@@ -62,8 +61,9 @@ public class ComponentWrapper {
      * @param comp
      * @param api
      */
-    public ComponentWrapper(Component comp, ComponentWrapper api) {
-        this(comp);
+    public ComponentWrapper(Component comp, ComponentWrapper api, boolean is_native) {
+        this(comp, is_native);
+        
         exports.put(NodeUtil.nameString(api.getComponent().getName()), api);
     }
 

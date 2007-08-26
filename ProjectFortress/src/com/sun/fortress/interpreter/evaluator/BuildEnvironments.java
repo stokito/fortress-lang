@@ -373,7 +373,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         doDefs(defs);
     }
 
-    private void guardedPutValue(BetterEnv e, String name, FValue value,
+    protected void guardedPutValue(BetterEnv e, String name, FValue value,
             HasAt where) {
         guardedPutValue(e, name, value, null, where);
 
@@ -397,7 +397,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         e.putValue(name, value);
     }
 
-    private void guardedPutValue(BetterEnv e, String name, FValue value,
+    protected void guardedPutValue(BetterEnv e, String name, FValue value,
             FType ft, HasAt where) {
         try {
             if (ft != null) {
@@ -418,7 +418,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
     }
 
-    private void guardedPutType(String name, FType type, HasAt where) {
+    protected void guardedPutType(String name, FType type, HasAt where) {
         EvalType.guardedPutType(name, type, where, containing);
     }
 
@@ -652,7 +652,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
        return null;
     }
-    private void forObjectDecl1(ObjectDecl x) {
+    protected void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
         BetterEnv e = containing;
@@ -667,7 +667,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
         FType ft;
-        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls())
+        ft = staticParams.isEmpty() ?
+                  new FTypeObject(fname, e, x, x.getDecls())
                 : new FTypeGeneric(e, x, x.getDecls());
 
         // Need to check for overloaded constructor.
@@ -886,7 +887,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
 
-    private String obfuscated(String fname) {
+    protected String obfuscated(String fname) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
     }

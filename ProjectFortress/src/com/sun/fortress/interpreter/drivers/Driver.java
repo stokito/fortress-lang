@@ -275,7 +275,7 @@ public class Driver {
         Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
         ArrayList<ComponentWrapper> components = new ArrayList<ComponentWrapper>();
 
-        ComponentWrapper comp = new ComponentWrapper((Component) p);
+        ComponentWrapper comp = new ComponentWrapper((Component) p, false);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -303,7 +303,7 @@ public class Driver {
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
-        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary());
+        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(), false);
         lib.getEnvironment().installPrimitives();
         lib.populateEnvironment();
         pile.push(lib);
@@ -611,7 +611,7 @@ public class Driver {
              * Here, the linker prototype takes the extreme shortcut of assuming
              * that Api Foo is implemented by Component Foo, dots and all.
              *
-             * These two lines are what needs to be replaced by a real linker.
+             * These few lines are what needs to be replaced by a real linker.
              */
             Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
             Component newcomp;
@@ -626,8 +626,8 @@ public class Driver {
                     throw new ProgramError("" + ex +  " AND " + ex1);
                 }
             }
-            ComponentWrapper apicw = new ComponentWrapper(newapi);
-            ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
+            ComponentWrapper apicw = new ComponentWrapper(newapi, false);
+            ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw, is_native);
             newwrapper.populateEnvironment();
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);

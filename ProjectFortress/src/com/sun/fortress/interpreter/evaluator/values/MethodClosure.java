@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.interpreter.glue.prim.Bar;
+import com.sun.fortress.interpreter.glue.test.Bar;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -37,22 +37,14 @@ public class MethodClosure extends Closure implements Method {
 
     int selfParameterIndex;
 
-    void foo() {
-        if (def instanceof Bar) {
-            def = def;
-        }
-    }
-    
     public MethodClosure(BetterEnv within, Applicable fndef) {
         super(within, fndef);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        foo();
     }
 
     public MethodClosure(BetterEnv within, Applicable fndef, List<FType> args) {
         super(within, fndef, args);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        foo();
         // TODO this is really not figured out yet.
     }
 
@@ -65,7 +57,6 @@ public class MethodClosure extends Closure implements Method {
     protected MethodClosure(PartiallyDefinedMethod method, BetterEnv environment) {
         super(method, environment);
         selfParameterIndex = NodeUtil.selfParameterIndex(getDef());
-        foo();
     }
 
         /**

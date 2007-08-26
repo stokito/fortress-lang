@@ -15,14 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TestNative
-export TestNative
-
-language="java"
-package="com.sun.fortress.interpreter.glue.test"
+api TestNative
 
 object TNFoo(s:String)
-  bar():String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.TNFoo$bar")
+  bar():String
 end
 
 end
