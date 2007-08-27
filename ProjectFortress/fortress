@@ -30,7 +30,7 @@ if [ -z "$FORTRESS_HOME" ]; then
   fi
   if [ -L $cmd ]; then
      echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
-     echo "The target of the symbolic link could not be followed."
+     echo "The target of the symbolic link could not be followed (portably)."
      exit 1
   fi
   FORTRESS_HOME=${cmd%/*}/..

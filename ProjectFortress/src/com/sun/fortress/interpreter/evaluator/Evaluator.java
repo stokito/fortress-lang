@@ -919,16 +919,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
             GenericConstructor gc = (GenericConstructor) v;
             List<StaticArg> args = x.getStaticArgs();
             Constructor cl = (Constructor) gc.typeApply(args, e, x);
-            return cl.applyConstructor(java.util.Collections
-                    .<FValue> emptyList(), x, e);
+            return cl.applyOEConstructor( x, e);
         } else if (v instanceof Constructor) {
             Constructor cl = (Constructor) v;
             // FTypeObject fto = (FTypeObject) ft;
             // cl.setParams(Collections.<Parameter> emptyList());
             // BuildEnvironments.finishObjectTrait(x.getTraits(), fto, e);
             // cl.finishInitializing();
-            return cl.applyConstructor(java.util.Collections
-                    .<FValue> emptyList(), x, e);
+            return cl.applyOEConstructor( x, e);
         } else {
             throw new InterpreterBug(x,e,
                                      errorMsg("_RewriteObjectExpr ", s,

@@ -64,6 +64,32 @@ public class Constructor extends AnonymousConstructor {
     // that get rewritten.
     public HashSet<String> parameterNames = new HashSet<String>();
 
+    boolean finished = false;
+
+    FnName cfn;
+    List<? extends AbsDeclOrDecl> defs;
+
+    MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
+        new MultiMap<FTraitOrObject, SingleFcn>();
+
+    MultiMap<String, MethodClosure> namesToSignatureSets =
+        new MultiMap<String, MethodClosure>();
+
+    MultiMap<FTraitOrObject, String> traitsToNamesReferenced =
+        new MultiMap<FTraitOrObject, String>();
+
+    // sets of strings (can't be explicit due to erasure)
+    Set<?>[] traitNameReferenceArray;
+
+    FTraitOrObject[] traitArray;
+    MethodClosure[] methodsArray;
+    MethodClosure[] closuresArray;
+    int[] traitIndexForMethod; // 0 = object
+    int[] overloadMembership;  // 0 = no overload
+    int overloadCount = 0; // first overload is indexed at 1.
+    
+    BetterEnv methodsEnv;
+
     public Constructor(BetterEnv env,
             FTypeObject selfType,
             GenericWithParams def) {
@@ -339,7 +365,11 @@ public class Constructor extends AnonymousConstructor {
             closuresArray[i] = cl;
         }
 
-            finished = true;
+        methodsEnv = new BetterEnv(within, within.getAt());
+        addMethodsToEnv(methodsEnv);
+        methodsEnv.bless();
+        
+        finished = true;
     }
 
     /**
@@ -436,30 +466,6 @@ public class Constructor extends AnonymousConstructor {
         return (s(selfType)) + (l == null ? "(DOMAIN_ERROR null)" : Useful.listInParens(l)) + cfn.at();
     }
 
-    boolean finished = false;
-
-    FnName cfn;
-    List<? extends AbsDeclOrDecl> defs;
-
-    MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
-        new MultiMap<FTraitOrObject, SingleFcn>();
-
-    MultiMap<String, MethodClosure> namesToSignatureSets =
-        new MultiMap<String, MethodClosure>();
-
-    MultiMap<FTraitOrObject, String> traitsToNamesReferenced =
-        new MultiMap<FTraitOrObject, String>();
-
-    // sets of strings (can't be explicit due to erasure)
-    Set<?>[] traitNameReferenceArray;
-
-    FTraitOrObject[] traitArray;
-    MethodClosure[] methodsArray;
-    MethodClosure[] closuresArray;
-    int[] traitIndexForMethod; // 0 = object
-    int[] overloadMembership;  // 0 = no overload
-    int overloadCount = 0; // first overload is indexed at 1.
-
     public FnName getFnName() {
         return cfn;
     }
@@ -480,29 +486,57 @@ public class Constructor extends AnonymousConstructor {
     public FValue applyConstructor(
             List<FValue> args, HasAt loc, BetterEnv lex_env) {
         // Problem -- we need to detach self-env from other env.
-        BetterEnv self_env = buildEnvFromParams(args, loc);
+        BetterEnv self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
+       
+        FObject theObject = makeAnObject(lex_env, self_env);
 
+        self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
 
-        // BuildEnvironments be = new BuildObjectEnvironment(env);
+        // TODO this is WRONG.  The vars need to be inserted into self, but
+        // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
 
-        /* For each trait that supplies at least one method,
-         * construct an environment based on the trait.  To that
-         * environment, add the definitions for each NAME (after
-         * we resolve overloading) that is defined in that environment,
-         * based on the definition that is injected into the object
-         * environment.
-         */
+        self_env.bless(); // HACK we add to this later.
+                          // This should go wrong if one of the vars has closure value
+                          // or objectExpr value.
+        
+        if (defs.size() > 0) {
+            // Minor optimization, avoid this if no defs to eval.
+            EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
+            visitDefs(eve); // HACK here's where we add to self_env.
+        }
 
-        /*
-         * TODO: methods with 'self' in their parameter list
-         * create (additional) overloadings in the surrounding
-         * environment!
-         */
+        return theObject;
+    }
 
-        // visitDefs(be);
+    public FValue applyOEConstructor(HasAt loc, BetterEnv lex_env) {
+        // Problem -- we need to detach self-env from other env.
+        BetterEnv self_env = new BetterEnv(methodsEnv, loc);
+       
+        FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
+        if (surroundSelf != null)
+            self_env.putValueUnconditionally(WellKnownNames.secretParentName, surroundSelf);
 
-        BetterEnv[] trait_envs = new BetterEnv[traitArray.length];
-        trait_envs[0] = self_env;
+        FObject theObject = makeAnObject(lex_env, self_env);
+
+        self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
+
+        // TODO this is WRONG.  The vars need to be inserted into self, but
+        // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
+
+        self_env.bless(); // HACK we add to this later.
+                          // This should go wrong if one of the vars has closure value
+                          // or objectExpr value.
+        
+        if (defs.size() > 0) {
+            // Minor optimization, avoid this if no defs to eval.
+            EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
+            visitDefs(eve); // HACK here's where we add to self_env.
+        }
+
+        return theObject;
+    }
+
+    private void addMethodsToEnv(BetterEnv self_env) {
         OverloadedMethod[] overloads = new OverloadedMethod[overloadCount+1];
 
         // First initialize an array of environments.
@@ -539,34 +573,6 @@ public class Constructor extends AnonymousConstructor {
         for (int i = 1; i < overloads.length; i++) {
             overloads[i].bless();
         }
-
-        // Evaluate any vars defined inline within the environment.
-
-        // TODO, crap, we need to build an environment for those, too.
-        // This means we probably need to rewrite their field references
-        // to "self", and be sure it is defined in there.
-        // BUT! we have not "made an object yet".
-
-        // The above remarks are relatively wrong -- field initializers
-        // may not self-refer.
-
-        FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
-        if (surroundSelf != null)
-            self_env.putValueUnconditionally(WellKnownNames.secretParentName, surroundSelf);
-
-        FObject theObject = makeAnObject(lex_env, self_env);
-
-        self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
-
-        // TODO this is WRONG.  The vars need to be inserted into self, but
-        // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
-
-        self_env.bless(); // HACK we add to this later.
-
-        EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
-        visitDefs(eve); // HACK here's where we add to self_env.
-
-        return theObject;
     }
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
