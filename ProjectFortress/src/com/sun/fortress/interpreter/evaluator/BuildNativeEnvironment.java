@@ -1,7 +1,20 @@
-/*
- * Created on Aug 24, 2007
- *
- */
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.interpreter.evaluator;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,8 +68,8 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             } else {
                 throw new ProgramError("Native class " + classname + " must extend Constructor" );
             }
-           
-            
+
+
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -86,9 +99,9 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             e.printStackTrace();
             throw new Error(e);
         }
-        
+
     }
-    
+
     protected void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
@@ -116,10 +129,10 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
                 NI.nyi("Haven't figured out native generics yet");
-                
+
                 GenericConstructor gen = new GenericConstructor(e, x);
                 guardedPutValue(containing, fname, gen, x);
-                
+
             } else {
                 // TODO need to deal with constructor overloading.
 
