@@ -18,9 +18,13 @@
 ################################################################################
 
 
+# The following nonsense implements auto-homing, if no home is explicitly set
+
+# if Fortress home is not set
 if [ -z "$FORTRESS_HOME" ]; then
   cmd=$0
   emptyifslash=${cmd##*/*}
+  # if the command contains any slashes at all
   if [ -z "$emptyifslash" ]; then
     # slash occurs in name, use as is
     true;
@@ -28,10 +32,31 @@ if [ -z "$FORTRESS_HOME" ]; then
     # no slash
     cmd=`which $cmd`
   fi
+  # if the command that we found resolves to a symbolic link, try to follow
+  # (not possible on Solaris, yet)
   if [ -L $cmd ]; then
-     echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
-     echo "The target of the symbolic link could not be followed (portably)."
-     exit 1
+     READLINK=""
+     if [ -e /bin/readlink ]; then
+        # Linux
+        READLINK=/bin/readlink
+     elif [ -e /usr/bin/readlink ]; then
+        # MacOS
+        READLINK=/usr/bin/readlink
+     else
+       echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
+       echo "The target of the symbolic link could not be followed."
+       exit 1
+     fi
+     # Follow the link, figure out if it is absolute or relative.
+     target=`$READLINK $cmd`
+     emptyifslash=${target##/*}
+     # if absolute (begins with /)
+     if [ -z "$emptyifslash" ]; then
+       cmd=$target
+     else
+       cmd=${cmd%/*}/$target
+     fi
+     # echo Symlink resolves to $cmd
   fi
   FORTRESS_HOME=${cmd%/*}/..
   echo guessing FORTRESS_HOME=$FORTRESS_HOME
