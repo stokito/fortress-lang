@@ -18,25 +18,27 @@
 component EqualityOverloadBug
 export Executable
 
+(*
 object Baz
   toString():Baz = "Baz"
 end
 
 opr =(x:Baz, y:Baz): Boolean = do println("OK Baz"); true end
-
+*)
 
 object Bar
   toString():Bar = "Bar"
   opr =(self, _:Bar): Boolean = do println("OK Bar"); true end
 end
 
-
 run(args:String...):() = do
   assert(17,17,"ZZ32")
   assert(18.5,18.5,"RR64")
   assert("Howdy","Howdy","String")
   assert(Bar,Bar,"Bar")
+(*
   assert(Baz,Baz,"Baz")
+*)
 end
 
 end
