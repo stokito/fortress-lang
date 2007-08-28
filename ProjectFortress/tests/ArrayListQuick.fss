@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component PureListQuick
-import * from PureList
+component ArrayListQuick
+import * from ArrayList
 export Executable
 
 assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =
@@ -68,11 +68,10 @@ chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
 end
 
 run(args:String...):() = do
-  print("The adventure begins")
   (* The sizes which turned up bugs *)
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
   assert(20,testLens.generate[\ZZ32\](SumReduction[\ZZ32\](),identity[\ZZ32\]),
-         "sum wrong")
+            "sum wrong")
   for i <- seq(testLens) do
       print("\n" i ":")
       li = list(0#i)
@@ -81,7 +80,6 @@ run(args:String...):() = do
       chkExtract(li,i)
       (ll,lr) = li.split()
       lii = ll.append(lr)
-      (* assert(li,lii,"re-appended split wrong.") *)
       chkPop(lii,i)
       fli = li.filter(fn x => x REM 2 = 0)
       chkPop(fli,0,(i+1) DIV 2,2)

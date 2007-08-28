@@ -394,21 +394,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 try {
                     res = be.doLets((LetExpr) exp);
                 } catch (FortressError ex) {
-                    ex.setWhere(tag);
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    throw ex; // new ProgramError(exp, inner, "Wrapped
-                    // exception", ex);
+                    new ProgramError(exp, inner, "Wrapped exception", ex);
                 }
             } else {
                 try {
                     res = exp.accept(eval);
                 } catch (FortressError ex) {
-                    ex.setWhere(tag);
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    throw ex; // new ProgramError(exp, eval.e, "Wrapped
-                    // exception", ex);
+                    new ProgramError(exp, eval.e, "Wrapped exception", ex);
                 }
             }
         }

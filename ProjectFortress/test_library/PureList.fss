@@ -164,8 +164,6 @@ value object PureList[\E\]( it: FingerTree[\E\] )
           (_,res) = it.index(n)
           res
       end
-  opr [n:Range[\ZZ32\]]: PureList[\E\] =
-      drop(n.base()).take(n.size())
   split(n:ZZ32): (PureList[\E\], PureList[\E\]) =
       if n <= 0 then
           (emptyList[\E\](),self)

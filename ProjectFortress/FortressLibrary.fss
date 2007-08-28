@@ -396,11 +396,12 @@ third[\A,B,T\](a:A, b:B, t:T, u:Any...): T = t
 trait NatParam
   (* comprises { N[\n\] } where { nat n } *)
   getter toZZ() : ZZ32
-  getter toString() = n.toString()
+  getter toString()
 end
 
 value object N[\nat n\]() extends { NatParam }
   toZZ() = n
+  toString() = "" n
 end
 
 (* Inner loop of reflect, hoisted to top level because of incomplete

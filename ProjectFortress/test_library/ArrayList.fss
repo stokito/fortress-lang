@@ -1,0 +1,348 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ArrayList
+export ArrayList
+
+(** Array Lists, immutable style (not the mutable Java ArrayList style).
+    Hope is we can do a lot of operations in place with minimal updating.
+    Idea is we bake these off vs. PureList.
+  *)
+
+(* Tests can be found in
+   tests/ArrayListQuick.fss
+   demos/ArrayListLong.fss
+*)
+
+scale(x : ZZ32): ZZ32 = 2 x
+
+expansion(curr: ZZ32, new: ZZ32) =
+  if new > curr then
+      (* Common case? *)
+      (1 + scale curr) MAX new
+  elif scale new <= curr then
+      new
+  else
+      curr
+  end
+
+(** Generic list trait.
+    We return a Generator for non-List-specific operations for which
+    reuse of the Generator won't increase asymptotic complexity, but
+    return a List in cases (such as map and filter) where it will.
+*)
+trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
+  getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
+  getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
+  getter extractLeft(): Maybe[\(E,List[\E\])\]
+  getter extractRight(): Maybe[\(List[\E\],E)\]
+  getter indices(): ParRange[\ZZ32\] =
+      indexValuePairs().map[\ZZ32\](fn (i:ZZ32, _:E): ZZ32 => i)
+  getter indexValuePairs(): Generator[\(ZZ32,E)\]
+  generate[\R\](r: Reduction[\R\], body: E->R): R
+  map[\G\](f: E->G): List[\G\] =
+      self.concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
+  append(f:List[\E\]): List[\E\]
+  addLeft(e:E):List[\E\]
+  addRight(e:E):List[\E\]
+  take(n:ZZ32): List[\E\]
+  drop(n:ZZ32): List[\E\]
+  opr [n:ZZ32]: E
+  opr [n:Range[\ZZ32\]]: List[\E\] =
+      drop(n.base()).take(n.size())
+  split(n:ZZ32): (List[\E\], List[\E\])
+  split(): (List[\E\], List[\E\])
+  reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
+  zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
+      ZipGenerator[\E,F\](self,other)
+  filter(p: E -> Boolean): List[\E\] =
+      concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
+                                      else emptyList[\E\]() end)
+  opr =(self, other: List[\E\]): Boolean = do
+      println("In List =")
+      if self.size() = other.size() then
+          println("Sizes match")
+          self.zip[\E\](other).generate[\Boolean\](AndReduction,
+                                                   fn(a,b) => a=b)
+      else println("Sizes don't match"); false end
+    end
+  toString():String =
+    "<|" extractLeft().maybe[\String\](
+             fn () => " ",
+             fn (h,t) => h t.generate[\String\](StringReduction,
+                                                   fn (e:E) => ", " e)) "|>"
+  concatMap[\G\](f: E->List[\G\]): List[\G\] =
+    generate[\List[\G\]\](Concat[\G\](),f)
+end
+
+(** Vararg factory for lists; provides aggregate list constants *)
+opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
+
+fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] = do
+    fs = FlatStorageMaker[\E,n\]()
+    for (i,v) <- f do
+        fs.put(v,i)
+    end
+    Alr[\E,n\]( fs, 0, n, cantExtend )
+  end
+
+(** Convert generator into list; can be used to desugar list
+    comprehensions *)
+list[\E\](g:Generator[\E\]):List[\E\] =
+    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+
+(** Flatten a list of lists *)
+concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.reduce(Concat[\E\]())
+
+(** A reduction object for concatenating lists. *)
+object Concat[\E\]() extends Reduction[\ List[\E\] \]
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = a.append(b)
+end
+
+(** The same for reverse concatenation *)
+object RevConcat[\E\]() extends Reduction[\ List[\E\] \]
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = b.append(a)
+end
+
+(** A reduction object for concatenating specifically ArrayLists. *)
+object PLConcat[\E\]() extends Reduction[\ ArrayList[\E\] \]
+  empty(): ArrayList[\E\] = D0[\E\]()
+  join(a:ArrayList[\E\], b:ArrayList[\E\]): ArrayList[\E\] = a.append(b)
+end
+
+trait ArrayList[\E\] extends List[\E\]
+    append0(f: List[\E\]): ArrayList[\E\]
+end
+
+object CanExtend( settable canExtend : Boolean )
+  tryToExtend() : Boolean =
+    atomic if canExtend then canExtend := false; true else false end
+end
+
+cantExtend : CanExtend = CanExtend(false)
+
+value object Alr[\E,nat maxUn\]( underlying : FlatStorageMaker[\E,maxUn\],
+                                 firstUsed:ZZ32, firstUnused:ZZ32,
+                                 canExtend : CanExtend)
+      extends ArrayList[\E\]
+  getter size(): ZZ32 = firstUnused - firstUsed
+  getter isEmpty(): Boolean = firstUnused <= firstUsed
+  getter left():Maybe[\E\] =
+      if isEmpty() then Nothing[\E\]()
+      else Just[\E\](underlying.get(firstUsed)) end
+  getter right():Maybe[\E\] =
+      if isEmpty() then Nothing[\E\]()
+      else Just[\E\](underlying.get(firstUnused-1)) end
+  getter extractLeft(): Maybe[\(E,ArrayList[\E\])\] =
+      if isEmpty() then Nothing[\(E,ArrayList[\E\])\]()
+      else Just[\(E,ArrayList[\E\])\](underlying.get(firstUsed),
+                     Alr[\E, maxUn\](underlying, firstUsed+1,
+                                     firstUnused, canExtend))
+      end
+  getter extractRight(): Maybe[\(ArrayList[\E\],E)\] =
+      if isEmpty() then Nothing[\(ArrayList[\E\],E)\]()
+      else Just[\(ArrayList[\E\],E)\](
+                     Alr[\E, maxUn\](underlying, firstUsed,
+                                     firstUnused-1, cantExtend),
+                     underlying.get(firstUnused-1))
+      end
+  getter indices(): Generator[\ZZ32\] = 0#size()
+  getter indexValuePairs(): Generator[\(ZZ32,E)\] =
+      indices().map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) =>
+                                   (i,underlying.get(firstUsed+i)))
+  generate[\R\](r: Reduction[\R\], body: E->R): R =
+      (firstUsed#size()).generate[\R\](r, fn (i:ZZ32):R =>
+                                              body(underlying.get(i)))
+  seq(): SequentialGenerator[\E\] =
+      sequential(firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+
+  (* Internal: fill blindly from f; assume enough space *)
+  appendFrom(f:List[\E\]): ArrayList[\E\] = do
+      for (i,v) <- f.indexValuePairs() do
+          underlying.put(v, firstUnused + i)
+      end
+      self
+    end
+  appendFrom(f:ArrayList[\E\]): ArrayList[\E\] = do
+      fSize = f.size()
+      fFU = f.firstUsed
+      for i <- 0#fSize do
+          underlying.put(f.underlying.get(i+fFU), firstUnused + i)
+      end
+      self
+    end
+  appendClosed(f:List[\E\]): ArrayList[\E\] = do
+      appendFrom(f)
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(),
+                      cantExtend )
+    end
+
+  revAppendFrom(f:ArrayList[\E\]): ArrayList[\E\] = do
+      fSize = f.size()
+      fLU = f.firstUnused-1
+      for i <- 0#fSize do
+          underlying.put(f.underlying.get(fLU-i), firstUnused+i)
+      end
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+fSize,
+                      CanExtend(true))
+    end
+
+  append(f:List[\E\]): ArrayList[\E\] =
+      if size() <= 0 then
+          f
+      else
+          newUnused = f.size() + firstUnused
+          if newUnused <= maxUn AND canExtend.tryToExtend() then
+              append0(f)
+          else
+              increaseTo(newUnused-firstUsed).append0(f)
+          end
+      end
+  append0(f:List[\E\]): ArrayList[\E\] = do
+      assert(NOT canExtend.tryToExtend(), "append0 of extensible list!")
+      appendFrom(f)
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(),
+                      CanExtend(true))
+    end
+  (* addLeft is O(n) *)
+  addLeft(e:E):ArrayList[\E\] = do
+      rfl = reflect(expansion(maxUn, size()+1))
+      mkEmptyLike(self,rfl).addRight(e).append(self)
+    end
+  addRight(e:E):ArrayList[\E\] = do
+      newSize = f.size() + 1
+      if newSize <= maxUn AND canExtend.tryToExtend() then
+          addRight0(e)
+      else increaseTo(newSize).addRight(e)
+      end
+    end
+  addRight0(e:E): ArrayList[\E\] = do
+      assert(NOT canExtend.tryToExtend(), "addRight0 of extensible list!")
+      underlying.put(e,firstUnused)
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+1, CanExtend(true))
+    end
+  take(n:ZZ32): ArrayList[\E\] =
+      if n <= 0 then
+          emptyList[\E\]()
+      elif n < size() then
+          Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,cantExtend)
+      else
+          self
+      end
+  drop(n:ZZ32): ArrayList[\E\] =
+      if n <= 0 then
+          self
+      elif n < size() then
+          Alr[\E,maxUn\](underlying, firstUsed+n, firstUnused, canExtend)
+      else
+          emptyList[\E\]()
+      end
+  opr [n:ZZ32]: E =
+      if n < 0 then
+          fail("ArrayList[" n "] index negative")
+      elif n >= size() then
+          fail("ArrayList[" n "] of size " size() " index too large")
+      else
+          underlying.get(n+firstUsed)
+      end
+  split(n:ZZ32): (ArrayList[\E\], ArrayList[\E\]) =
+      if n <= 0 then
+          (emptyList[\E\](), self)
+      elif n < size() then
+          (Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,cantExtend),
+           Alr[\E,maxUn\](underlying, firstUsed+n, firstUnused, canExtend))
+      else
+          (self, emptyList[\E\]())
+      end
+  split(): (ArrayList[\E\], ArrayList[\E\]) =
+      if size() <= 1 then
+          (self, emptyList[\E\]())
+      else
+          split(partitionL(size()))
+      end
+  reverse(): ArrayList[\E\] = do
+      rfl = reflect(expansion(maxUn, size()))
+      mkEmptyLike(self,rfl).revAppendFrom(self)
+    end
+
+  increaseTo(newSize: ZZ32):ArrayList[\E\] = do
+      rfl = reflect(expansion(maxUn, newSize))
+      mkEmptyLike(self,rfl).appendClosed(self)
+    end
+end
+
+mkEmptyLike[\E, nat maxUn\](_:ArrayList[\E\], _:N[\maxUn\]): ArrayList[\E\] =
+    Alr[\E, maxUn\](FlatStorageMaker[\E,maxUn\](),0,0,cantExtend)
+
+(* The ZipGenerator works by first chopping the lists so that they are
+the same size, then successively splitting them.  The first argument
+is used as a template to guide the splitting process; the second
+argument is then split to match. *)
+value object ZipGenerator[\A,B\](transient x0: ArrayList[\A\],
+                                 transient y0: ArrayList[\B\])
+        extends { Generator[\(A,B)\] }
+    sz = (x0.size() MIN y0.size())
+    xs = x0.take(sz)
+    ys = y0.take(sz)
+    getter size() = sz
+    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
+        zgen(a: ArrayList[\A\], b: ArrayList[\B\]): R =
+          if a.size() > 1 then
+              (al,ar) = a.split()
+              (bl,br) = b.split(al.size())
+              r.join(zgen(al,bl),zgen(ar,br))
+          elif a.isEmpty() then
+              r.empty()
+          else
+              body(a[0],b[0])
+          end
+        zgen(xs,ys)
+      end
+end
+
+value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\])
+        extends { SequentialGenerator[\E\] }
+    getter size() = sz
+    generate[\R\](r: Reduction[\R\], body: E->R): R = do
+        zgen(a: ArrayList[\A\], b: ArrayList[\B\]): R =
+          if a.size() > 1 then
+              (al,ar) = a.split()
+              (bl,br) = b.split(al.size())
+              zgl = zgen(al,bl)
+              zgr = zgen(ar,br)
+              r.join(zgl,zgr)
+          elif a.isEmpty() then
+              r.empty()
+          else
+              body(a[0],b[0])
+          end
+        zgen(xs,ys)
+      end
+end
+
+emptyList[\E\](): List[\E\] =
+    Alr[\E,0\](FlatStorageMaker[\E,0\](),0,0,cantExtend)
+singleton[\E\](e:E): List[\E\] = do
+    u = FlatStorageMaker[\E,1\]()
+    u.put(e,0)
+    Alr[\E,1\](u,0,1,cantExtend)
+  end
+
+end
