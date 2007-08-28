@@ -20,29 +20,17 @@ component fortress.executable
 export Executable
 
 run(args:String...):()=do
-   a:ZZ32[10] = [0 1 2 3 4 5 6 7 8 9]
-   b:ZZ32[10] = [0 1 2 3 4 5 6 7 8 9]
-
+   a: Array[\ZZ32,ZZ32\] := array[\ZZ32\](100) 
    for i<-0#100 do
       atomic do 
-         a[1] += b[1]
-         a[2] += b[2]
-         a[3] += b[3]
-         a[4] += b[4]
-         a[5] += b[5]
+         a[i] := i
       end
    end
 
-   println("" "a[1] = " a[1]);
-   println("" "a[2] = " a[2]);
-   println("" "a[3] = " a[3]);
-   println("" "a[4] = " a[4]);
-   println("" "a[5] = " a[5]);
-
-   if a[1]=/=101 OR a[2]=/=202 OR a[3]=/=303 OR a[4]=/=404 OR a[5]=/=505 then
+   for i<-0#100 do
+      if a[i]=/=i then
       println("Fail: array operations not atomic")
-   else
-      println("Success")
+      end
    end
 
 end

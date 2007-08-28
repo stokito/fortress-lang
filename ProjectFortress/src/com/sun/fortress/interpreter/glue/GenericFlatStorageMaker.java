@@ -24,6 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeInt;
@@ -170,7 +171,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
          public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
              FlatStorage fs = (FlatStorage) selfValue;
              int i = ((HasIntValue)args.get(0)).getInt();
-             FValue r = fs.a[i];
+             FValue r = fs.a.get(i);
              if (r==null) {
                  throw new ProgramError(loc,fs.getLexicalEnv(),
                                errorMsg("Access to uninitialized element ",
@@ -194,7 +195,7 @@ public class GenericFlatStorageMaker extends GenericConstructor {
              FlatStorage fs = (FlatStorage) selfValue;
              // TODO type test.
              int ind = ((HasIntValue)args.get(1)).getInt();
-             fs.a[ind] = args.get(0);
+             fs.a.set(ind,args.get(0));
              return FVoid.V;
          }
 
@@ -224,18 +225,13 @@ public class GenericFlatStorageMaker extends GenericConstructor {
     }
 
     static class FlatStorage extends FObject {
-        /**
-         * Transactional Node factory.
-         */
- //        static Factory<ANode> factory = FortressTaskRunner.makeFactory(ANode.class);
-
         public FlatStorage(FTypeObject selfType, BetterEnv lex_env, BetterEnv self_env, FType t, long n) {
             super(selfType, lex_env, self_env);
             this.t = t;
-            this.a = new FValue[(int) n];
+            this.a = new AtomicArray<FValue>(FValue.class, (int) n);
         }
- FType t;
- FValue[] a;
+        FType t;
+	AtomicArray<FValue> a;
     }
 
 }
