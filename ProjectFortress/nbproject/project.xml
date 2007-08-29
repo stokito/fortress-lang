@@ -63,7 +63,7 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/1">
             <compilation-unit>
                 <package-root>src</package-root>
-                <classpath mode="compile">third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/junit/junit.jar:third_party/plt/plt.jar</classpath>
+                <classpath mode="compile">third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/junit/junit.jar:third_party/plt/plt.jar:third_party/ant/ant.jar</classpath>
                 <built-to>build</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
