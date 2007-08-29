@@ -323,31 +323,13 @@ public class NodeComparator {
                                              right.getArgs());
     }
 
-    static int subtypeCompareTo(ProductType left, ProductType right) {
+    static int subtypeCompareTo(TaggedDimType left, TaggedDimType right) {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(QuotientType left, QuotientType right) {
-        throw new InterpreterBug(left,
-                                 "subtypeCompareTo(" + left.getClass() + " " +
-                                 right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(InversionType left, InversionType right) {
-        throw new InterpreterBug(left,
-                                 "subtypeCompareTo(" + left.getClass() + " " +
-                                 right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(ChangeDimType left, ChangeDimType right) {
-        throw new InterpreterBug(left,
-                                 "subtypeCompareTo(" + left.getClass() + " " +
-                                 right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(OpDimType left, OpDimType right) {
+    static int subtypeCompareTo(TaggedUnitType left, TaggedUnitType right) {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");

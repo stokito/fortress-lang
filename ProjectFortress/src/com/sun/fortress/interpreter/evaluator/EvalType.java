@@ -373,15 +373,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductType(com.sun.fortress.interpreter.nodes.ProductType)
-     */
-    @Override
-    public FType forProductType(ProductType x) {
-        return IntNat.make(longify(x.getMultiplier()) *
-                           longify(x.getMultiplicand()));
-        }
-
-    /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductStaticArg(com.sun.fortress.interpreter.nodes.ProductStaticArg)
      */
     @Override
@@ -404,74 +395,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                            " (instead of IntNat)"));
         }
         return ((IntNat) t).getValue();
-    }
-
-    private long longify(DimUnitExpr type) {
-        FType t = type.accept(this);
-        if (!(t instanceof IntNat)) {
-            error(type,
-                  errorMsg("StaticArg ", type, " evaluated to ", t,
-                           " (instead of IntNat)"));
-        }
-        return ((IntNat) t).getValue();
-    }
-
-    public FType forBaseDimId(BaseDimId id) {
-        throw new InterpreterBug(id,
-                                 errorMsg("Evaluating BaseDimId ", id,
-                                          " is not yet implemented."));
-    }
-
-    public FType forBaseUnitId(BaseUnitId id) {
-        throw new InterpreterBug(id,
-                                 errorMsg("Evaluating BaseUnitId ", id,
-                                          " is not yet implemented."));
-    }
-
-    public FType forDimUnitId(DimUnitId i) {
-        try {
-            FType result = env.getType(i.getName());
-            return result;
-        } catch (FortressError p) {
-            p.setWhere(i);
-            p.setWithin(env);
-            throw p;
-        }
-    }
-
-    public FType forProductDimUnit(ProductDimUnit du) {
-        return IntNat.make(longify(du.getMultiplier()) *
-                           longify(du.getMultiplicand()));
-    }
-
-    public FType forQuotientDimUnit(QuotientDimUnit du) {
-        throw new InterpreterBug(du,
-                                 errorMsg("Evaluating QuotientDimUnit ",
-                                          du, " is not yet implemented."));
-    }
-
-    public FType forChangeDimUnit(ChangeDimUnit du) {
-        throw new InterpreterBug(du,
-                                 errorMsg("Evaluating OpDimUnit ",
-                                          du, " is not yet implemented."));
-    }
-
-    public FType forInversionDimUnit(InversionDimUnit du) {
-        throw new InterpreterBug(du,
-                                 errorMsg("Evaluating InversionDimUnit ",
-                                          du, " is not yet implemented."));
-    }
-
-    public FType forExponentDimUnit(ExponentDimUnit du) {
-        throw new InterpreterBug(du,
-                                 errorMsg("Evaluating ExponentDimunit ",
-                                          du, " is not yet implemented."));
-    }
-
-    public FType forOpDimUnit(OpDimUnit du) {
-        throw new InterpreterBug(du,
-                                 errorMsg("Evaluating OpDimUnit ",
-                                          du, " is not yet implemented."));
     }
 
     /* (non-Javadoc)

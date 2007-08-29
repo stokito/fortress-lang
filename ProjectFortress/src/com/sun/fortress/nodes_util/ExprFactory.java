@@ -198,7 +198,7 @@ public class ExprFactory {
             }
         });
     }
-    
+
     public static Generator makeGenerator(Span span, Iterable<Id> ids, Expr expr) {
         Iterable<IdName> names = IterUtil.map(ids, new Lambda<Id, IdName>() {
             public IdName value(Id id) { return NodeFactory.makeIdName(id); }
@@ -222,7 +222,7 @@ public class ExprFactory {
         return new OprExpr(span, false, Collections.singletonList(op),
                            Arrays.asList(first, second));
     }
-    
+
     public static OprExpr makeOprExpr(Span span, OpName op) {
         QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
         return new OprExpr(span, false, Collections.singletonList(name),
@@ -241,7 +241,7 @@ public class ExprFactory {
         return new OprExpr(span, false, Collections.singletonList(name),
                            Arrays.asList(first, second));
     }
-    
+
 
     public static FnRef makeFnRef(Span span, QualifiedIdName name, List<StaticArg> sargs) {
         List<QualifiedIdName> names = Collections.singletonList(name);
@@ -260,7 +260,7 @@ public class ExprFactory {
         return new FnRef(qName.getSpan(), false, qNames,
                          Collections.<StaticArg>emptyList());
     }
-    
+
     public static FnRef makeFnRef(DottedName api, IdName name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         List<QualifiedIdName> qNames = Collections.singletonList(qName);
@@ -285,7 +285,7 @@ public class ExprFactory {
     public static VarRef makeVarRef(Id id) {
         return new VarRef(id.getSpan(), false, NodeFactory.makeQualifiedIdName(id));
     }
-    
+
     public static VarRef makeVarRef(IdName name) {
         return new VarRef(name.getSpan(), false, NodeFactory.makeQualifiedIdName(name));
     }
@@ -299,13 +299,13 @@ public class ExprFactory {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(span, apiIds, name);
         return new VarRef(span, false, qName);
     }
-    
+
     /** Assumes {@code ids} is nonempty. */
     public static VarRef makeVarRef(Iterable<Id> ids) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(ids);
         return new VarRef(qName.getSpan(), false, qName);
     }
-    
+
     public static VarRef makeVarRef(DottedName api, IdName name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         return new VarRef(qName.getSpan(), false, qName);
@@ -360,18 +360,18 @@ public class ExprFactory {
             public Expr forAsIfExpr(AsIfExpr e) {
                 return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
             }
+            public Expr forProductUnitExpr(ProductUnitExpr e) {
+                return new ProductUnitExpr(e.getSpan(), true, e.getVal(),
+                                           e.getUnit());
+            }
             public Expr forQuotientUnitExpr(QuotientUnitExpr e) {
-                return new QuotientUnitExpr(e.getSpan(), true, e.getNumerator(),
-                                            e.getDenominator());
+                return new QuotientUnitExpr(e.getSpan(), true, e.getVal(),
+                                            e.getUnit());
             }
             public Expr forChangeUnitExpr(ChangeUnitExpr e) {
                 return new ChangeUnitExpr(e.getSpan(), true, e.getVal(),
                                           e.getUnit());
             }
-            public Expr forOpUnit(OpUnit e) {
-                return new OpUnit(e.getSpan(), true, e.getVal(), e.getOp());
-            }
-
             public Expr forAssignment(Assignment e) {
                 return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
                                       e.getRhs());

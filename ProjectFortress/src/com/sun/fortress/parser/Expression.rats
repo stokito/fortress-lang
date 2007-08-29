@@ -30,8 +30,6 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* Expr and UnitExpr are mutually left recursive.
-   We've inlined them into each other and removed the left recursion. */
 /* Expr ::=
      AssignLefts w AssignOp w Expr
    | OpExpr
@@ -296,10 +294,9 @@ PureList<PrecedenceOpExpr> LooseInfix =
    | Primary . Id
    | Primary ^ BaseExpr
    | Primary ExponentOp
-   | Primary w per w Primary
-   | Primary w in w Primary
-   | DUPreOp sr Primary
-   | Primary w DUPostOp
+   | Primary w dimensionless
+   | Primary w per w UnitExpr
+   | Primary w in w UnitExpr
    | Primary TupleExpr
    | Primary Parenthesized
    | Primary ( w )
@@ -317,10 +314,6 @@ Expr PrimaryFront =
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
-     }
-   / a1:DUPreOp sr a2:Primary
-     { yyValue = new OpUnit(createSpan(yyStart,yyCount), false,
-                            FortressUtil.buildPrimary((PureList<Expr>)a2), a1);
      };
 
 constant transient Action<PureList<Expr>> PrimaryTail =
@@ -328,7 +321,7 @@ constant transient Action<PureList<Expr>> PrimaryTail =
    / MethodInvocation
    / FieldSelection
    / ExponentExpr
-   / UnitExpr
+   / TaggedUnitExpr
    / TightJuxtaposition
    ;
 
@@ -431,33 +424,30 @@ constant inline Action<PureList<Expr>> ExponentExpr =
            }};
      };
 
-constant inline Action<PureList<Expr>> UnitExpr =
-     w per w a1:Primary
+constant inline Action<PureList<Expr>> TaggedUnitExpr =
+     w "dimensionless"
     { yyValue = new Action<PureList<Expr>>() {
           public PureList<Expr> run(PureList<Expr> base) {
               Span span = createSpan(yyStart,yyCount);
-              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
-              Expr right = FortressUtil.buildPrimary((PureList<Expr>)a1);
-              return PureList.make((Expr)new QuotientUnitExpr(span, false,
-                                                              left, right));
+              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
+              return PureList.make((Expr)new ProductUnitExpr(span,false,val,
+                                                             new BaseUnit(span)));
           }};
     }
-  / w in w a1:Primary
+  / w per w a1:UnitExpr
     { yyValue = new Action<PureList<Expr>>() {
           public PureList<Expr> run(PureList<Expr> base) {
               Span span = createSpan(yyStart,yyCount);
-              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
-              Expr right = FortressUtil.buildPrimary((PureList<Expr>)a1);
-              return PureList.make((Expr)new ChangeUnitExpr(span, false,
-                                                            left, right));
+              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
+              return PureList.make((Expr)new QuotientUnitExpr(span,false,val,a1));
           }};
     }
-  / w a1:DUPostOp
+  / w in w a1:UnitExpr
     { yyValue = new Action<PureList<Expr>>() {
           public PureList<Expr> run(PureList<Expr> base) {
               Span span = createSpan(yyStart,yyCount);
-              Expr left = FortressUtil.buildPrimary((PureList<Expr>)base);
-              return PureList.make((Expr)new OpUnit(span, false, left, a1));
+              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
+              return PureList.make((Expr)new ChangeUnitExpr(span,false,val,a1));
           }};
     };
 
@@ -478,6 +468,78 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                return a1.append(base);
+           }};
+     };
+
+/* UnitExpr ::=
+     dimensionless
+   | QualifiedIdName
+   | UnitExpr w DOT w UnitExpr
+   | UnitExpr sr UnitExpr
+   | UnitExpr w / w UnitExpr
+   | UnitExpr w per w UnitExpr
+   | 1 w / w UnitExpr
+   | UnitExpr ^ Number
+   | ( w UnitExpr w )
+   | DUPreOp sr UnitExpr
+   | UnitExpr w DUPostOp
+ */
+UnitExpr UnitExpr =
+     seed:UnitExprFront list:UnitExprTail*
+     { yyValue = (UnitExpr)apply(list, seed); };
+
+private UnitExpr UnitExprFront =
+     "dimensionless"
+     { yyValue = new BaseUnit(createSpan(yyStart,yyCount)); }
+   / a1:QualifiedName
+     { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1); }
+   / one w slash w a1:UnitExpr
+     { yyValue = new QuotientUnit(createSpan(yyStart,yyCount),
+                                  new BaseUnit(createSpan(yyStart,1)), a1); }
+   / openparen w a1:UnitExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
+   / a1:DUPreOp sr a2:UnitExpr
+     { yyValue = new OpUnit(createSpan(yyStart,yyCount), a2, a1); };
+
+private constant transient Action<UnitExpr> UnitExprTail =
+     ProductUnit
+   / QuotientUnit
+   / ExponentUnit
+   / OpUnit
+   ;
+
+private constant inline Action<UnitExpr> ProductUnit =
+     (w DOT w / sr) a1:UnitExpr
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new ProductUnit(createSpan(yyStart,yyCount),
+                                      (UnitExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<UnitExpr> QuotientUnit =
+     w (slash / per) w a1:UnitExpr
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new QuotientUnit(createSpan(yyStart,yyCount),
+                                       (UnitExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<UnitExpr> ExponentUnit =
+     caret a1:Number
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new ExponentUnit(createSpan(yyStart,yyCount),
+                                       (UnitExpr)base, a1);
+           }};
+     };
+
+private constant inline Action<UnitExpr> OpUnit =
+     w a1:DUPostOp
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               return new OpUnit(createSpan(yyStart,yyCount),(UnitExpr)base,a1);
            }};
      };
 

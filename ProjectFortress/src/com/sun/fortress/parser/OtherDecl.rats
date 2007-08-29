@@ -33,17 +33,19 @@ import Spacing;
 
 /* DimUnitDecl ::=
      dim w Id (w = w DimExpr)? s (unit | SI_unit) w Id (wr Id)* (w = w NoNewlineExpr)?
+   | dim w Id (w = w DimExpr)? s (unit | SI_unit) w Id (wr Id)* (w = w UnitExpr)?
    | dim w Id (w = w DimExpr)? (w default w Id)?
    | (unit | SI_unit) w Id (wr Id)* (w : w DimExpr)? (w = w NoNewlineExpr)?
+   | (unit | SI_unit) w Id (wr Id)* (w : w DimExpr)? (w = w UnitExpr)?
  */
 DimUnitDecl DimUnitDecl =
      dim w a1:Id a2:(w void:equals w DimExpr)? s a3:(unit / SI_unit) w a4:Id
-     a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
+     a5s:(wr Id)* a6:(w void:equals w (NoNewlineExpr / UnitExpr))?
      { Option<DimExpr> derived = Option.wrap(a2);
        List<IdName> ids = new ArrayList<IdName>();
        ids.add(NodeFactory.makeIdName(a4));
        for (Id a5Elt : a5s.list()) { ids.add(NodeFactory.makeIdName(a5Elt)); }
-       Option<Expr> def = Option.wrap(a6);
+       Option<ExprOrUnitExpr> def = Option.wrap((ExprOrUnitExpr)a6);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount),
                                              NodeFactory.makeIdName(a1),
                                              derived, a3, ids, def);
@@ -57,12 +59,12 @@ DimUnitDecl DimUnitDecl =
                                              derived, defaultId);
      }
    / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w DimExpr)?
-     a5:(w void:equals w NoNewlineExpr)?
+     a5:(w void:equals w (NoNewlineExpr / UnitExpr))?
      { Option<DimExpr> derived = Option.wrap(a4);
        List<IdName> ids = new ArrayList<IdName>();
        ids.add(NodeFactory.makeIdName(a2));
        for (Id a3Elt : a3s.list()) { ids.add(NodeFactory.makeIdName(a3Elt)); }
-       Option<Expr> def = Option.wrap(a5);
+       Option<ExprOrUnitExpr> def = Option.wrap((ExprOrUnitExpr)a5);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount),
                                              derived, a1, ids, def);
      };

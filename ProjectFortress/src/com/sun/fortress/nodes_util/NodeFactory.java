@@ -115,12 +115,12 @@ public class NodeFactory {
                                               Option<IdName> defaultId) {
         return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
                                false, Collections.<IdName>emptyList(),
-                               Option.<Expr>none());
+                               Option.<ExprOrUnitExpr>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
                                               String unit, List<IdName> ids,
-                                              Option<Expr> def) {
+                                              Option<ExprOrUnitExpr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
@@ -131,7 +131,7 @@ public class NodeFactory {
     public static DimUnitDecl makeDimUnitDecl(Span span, IdName dim,
                                               Option<DimExpr> derived,
                                               String unit, List<IdName> ids,
-                                              Option<Expr> def) {
+                                              Option<ExprOrUnitExpr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
@@ -154,11 +154,11 @@ public class NodeFactory {
     public static DottedName makeDottedName(Iterable<Id> ids) {
         return new DottedName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
     }
-    
+
     public static DottedName makeDottedName(Span span, Iterable<Id> ids) {
         return new DottedName(span, IterUtil.asList(ids));
     }
-    
+
     /** Create a DottedName from the name of the file with the given path. */
     public static DottedName makeDottedName(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
@@ -173,12 +173,12 @@ public class NodeFactory {
             return new DottedName(span, ids);
         }
     }
-    
+
     public static QualifiedIdName makeQualifiedIdName(Span span, String s) {
         return new QualifiedIdName(span, Option.<DottedName>none(),
                                    makeIdName(span, s));
     }
-    
+
     public static QualifiedIdName makeQualifiedIdName(Span span, Id id) {
         return new QualifiedIdName(span, Option.<DottedName>none(), makeIdName(id));
     }
@@ -187,11 +187,11 @@ public class NodeFactory {
         return new QualifiedIdName(id.getSpan(), Option.<DottedName>none(),
                                    makeIdName(id));
     }
-    
+
     public static QualifiedIdName makeQualifiedIdName(IdName name) {
         return new QualifiedIdName(name.getSpan(), Option.<DottedName>none(), name);
     }
-    
+
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> apiIds, Id id) {
         Span span;
         Option<DottedName> api;
@@ -214,12 +214,12 @@ public class NodeFactory {
         else { api = Option.some(makeDottedName(apiIds)); }
         return new QualifiedIdName(span, api, makeIdName(id));
     }
-    
+
     /** Assumes {@code ids} is nonempty. */
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> ids) {
         return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
-    
+
     public static QualifiedIdName makeQualifiedIdName(DottedName api, IdName name) {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
                                    name);
@@ -437,7 +437,7 @@ public class NodeFactory {
                                          Collections.<Modifier>emptyList(), true);
         return new VarDecl(span, Useful.<LValueBind>list(bind), init);
     }
-    
+
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
         LValueBind bind = new LValueBind(span, makeIdName(span, name),
                                          Option.<Type>none(),
@@ -473,19 +473,16 @@ public class NodeFactory {
             public DimExpr forBaseDim(BaseDim t) {
                 return new BaseDim(t.getSpan(), true);
             }
-            public DimExpr forDimId(DimId t) {
-                return new DimId(t.getSpan(), true, t.getName());
+            public DimExpr forDimId(DimRef t) {
+                return new DimRef(t.getSpan(), true, t.getName());
             }
             public DimExpr forProductDim(ProductDim t) {
-                return new ProductDim(t.getSpan(), true, t.getLeft(),
-                                      t.getRight());
+                return new ProductDim(t.getSpan(), true, t.getMultiplier(),
+                                      t.getMultiplicand());
             }
             public DimExpr forQuotientDim(QuotientDim t) {
                 return new QuotientDim(t.getSpan(), true, t.getNumerator(),
                                        t.getDenominator());
-            }
-            public DimExpr forChangeDim(ChangeDim t) {
-                return new ChangeDim(t.getSpan(), true, t.getVal(), t.getUnit());
             }
             public DimExpr forExponentDim(ExponentDim t) {
                 return new ExponentDim(t.getSpan(), true, t.getBase(),
@@ -502,43 +499,33 @@ public class NodeFactory {
         });
     }
 
-    public static DimUnitExpr makeInParentheses(DimUnitExpr dim) {
-        return dim.accept(new NodeAbstractVisitor<DimUnitExpr>() {
-            public DimUnitExpr forBaseDimUnit(BaseDimId t) {
-                return new BaseDimId(t.getSpan(), true);
+    public static UnitExpr makeInParentheses(UnitExpr dim) {
+        return dim.accept(new NodeAbstractVisitor<UnitExpr>() {
+            public UnitExpr forBaseUnit(BaseUnit t) {
+                return new BaseUnit(t.getSpan(), true);
             }
-            public DimUnitExpr forBaseUnitUnit(BaseUnitId t) {
-                return new BaseUnitId(t.getSpan(), true);
+            public UnitExpr forUnitId(UnitRef t) {
+                return new UnitRef(t.getSpan(), true, t.getName());
             }
-            public DimUnitExpr forDimUnitId(DimUnitId t) {
-                return new DimUnitId(t.getSpan(), true, t.getName());
+            public UnitExpr forProductUnit(ProductUnit t) {
+                return new ProductUnit(t.getSpan(), true, t.getMultiplier(),
+                                       t.getMultiplicand());
             }
-            public DimUnitExpr forProductDimUnit(ProductDimUnit t) {
-                return new ProductDimUnit(t.getSpan(), true, t.getMultiplier(),
-                                          t.getMultiplicand());
+            public UnitExpr forQuotientUnit(QuotientUnit t) {
+                return new QuotientUnit(t.getSpan(), true, t.getNumerator(),
+                                        t.getDenominator());
             }
-            public DimUnitExpr forQuotientDimUnit(QuotientDimUnit t) {
-                return new QuotientDimUnit(t.getSpan(), true, t.getNumerator(),
-                                           t.getDenominator());
+            public UnitExpr forExponentUnit(ExponentUnit t) {
+                return new ExponentUnit(t.getSpan(), true, t.getBase(),
+                                        t.getPower());
             }
-            public DimUnitExpr forChangeDimUnit(ChangeDimUnit t) {
-                return new ChangeDimUnit(t.getSpan(), true, t.getVal(),
-                                         t.getUnit());
+            public UnitExpr forOpUnit(OpUnit t) {
+                return new OpUnit(t.getSpan(), true, t.getVal(), t.getOp());
             }
-            public DimUnitExpr forInversionDimUnit(InversionDimUnit t) {
-                return new InversionDimUnit(t.getSpan(), true, t.getVal());
-            }
-            public DimUnitExpr forExponentDimUnit(ExponentDimUnit t) {
-                return new ExponentDimUnit(t.getSpan(), true, t.getBase(),
-                                           t.getPower());
-            }
-            public DimUnitExpr forOpDimUnit(OpDimUnit t) {
-                return new OpDimUnit(t.getSpan(), true, t.getVal(), t.getOp());
-            }
-            public DimUnitExpr defaultCase(Node x) {
+            public UnitExpr defaultCase(Node x) {
                 throw new InterpreterBug(x,
                                          "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of DimUnitExpr.");
+                                         " is not a subtype of UnitExpr.");
             }
         });
     }
@@ -679,23 +666,13 @@ public class NodeFactory {
             public Type forVoidType(VoidType t) {
                 return new VoidType(t.getSpan(), true);
             }
-            public Type forProductType(ProductType t) {
-                return new ProductType(t.getSpan(), true, t.getMultiplier(),
-                                       t.getMultiplicand());
+            public Type forTaggedDimType(TaggedDimType t) {
+                return new TaggedDimType(t.getSpan(), true, t.getType(),
+                                         t.getDim(), t.getUnit());
             }
-            public Type forQuotientType(QuotientType t) {
-                return new QuotientType(t.getSpan(), true, t.getNumerator(),
-                                        t.getDenominator());
-            }
-            public Type forInversionType(InversionType t) {
-                return new InversionType(t.getSpan(), true, t.getVal());
-            }
-            public Type forChangeDimType(ChangeDimType t) {
-                return new ChangeDimType(t.getSpan(), true, t.getType(),
-                                         t.getUnit());
-            }
-            public Type forOpDimType(OpDimType t) {
-                return new OpDimType(t.getSpan(), true, t.getVal(), t.getOp());
+            public Type forTaggedUnitType(TaggedUnitType t) {
+                return new TaggedUnitType(t.getSpan(), true, t.getType(),
+                                          t.getUnit());
             }
             public Type defaultCase(Node x) {
                 throw new InterpreterBug(x,

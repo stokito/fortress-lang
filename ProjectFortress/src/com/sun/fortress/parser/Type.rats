@@ -41,10 +41,10 @@ Type IsType = void:colon w Type ;
    ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)?
 
    NonArrowType ::=
-     DimType
-   | TraitType
+     TraitType
    | TupleType
    | ( w )
+   | DimType
 
    TraitType ::=
      Type w [ (w ArraySize)? w ]
@@ -53,14 +53,8 @@ Type IsType = void:colon w Type ;
    | QualifiedName (w [\ w StaticArgList w \])?
 
    DimType ::=
-     Type w DOT w DimUnitExpr
-   | Type sr DimUnitExpr
-   | Type w / w DimUnitExpr
-   | Type w per w DimUnitExpr
-   | Type w in w DimUnitExpr
-   | 1 w / w DimUnitExpr
-   | DUPreOp sr DimUnitExpr
-   | DimUnitExpr w DUPostOp
+     Type sr DimExpr (w in w UnitExpr)?
+   | Type sr UnitExpr
  */
 constant transient Type Type =
      seed:TypeFront list:TypeTail*
@@ -78,13 +72,7 @@ private Type TypeFront =
    ;
 
 private NonArrowType TypeFrontNonArrow =
-     one w slash w a1:DimUnitExpr
-     { yyValue = new InversionType(createSpan(yyStart,yyCount), a1); }
-   / a1:DUPreOp sr a2:DimUnitExpr
-     { yyValue = new OpDimType(createSpan(yyStart,yyCount), a2, a1); }
-   / a1:DimUnitExpr w a2:DUPreOp
-     { yyValue = new OpDimType(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
+     a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
      { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
        else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
      }
@@ -93,28 +81,7 @@ private NonArrowType TypeFrontNonArrow =
      { yyValue = new VoidType(createSpan(yyStart,yyCount)); };
 
 private constant transient Action<Type> TypeTail =
-     !(w match) (w "DOT":op w / sr) a1:DimUnitExpr
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               return new ProductType(createSpan(yyStart,yyCount),
-                                      (Type)base, a1);
-           }};
-     }
-   / !(w match) w (slash / per) w a1:DimUnitExpr
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               return new QuotientType(createSpan(yyStart,yyCount),
-                                       (Type)base, a1);
-           }};
-     }
-   / w in w a1:DimUnitExpr
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               return new ChangeDimType(createSpan(yyStart,yyCount),
-                                        (Type)base, a1);
-           }};
-     }
-   / w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
+     w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                Option<FixedDim> indices = Option.wrap(a1);
@@ -154,6 +121,23 @@ private constant transient Action<Type> TypeTail =
                                                      ty, a3.getRange(),
                                                      a3.getThrows());
            }};
+     }
+   / sr a1:DimExpr a2:(w in w UnitExpr)?
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               Option<UnitExpr> unit;
+               if (a2 == null) unit = Option.<UnitExpr>none();
+               else            unit = Option.<UnitExpr>some(a2);
+               return new TaggedDimType(createSpan(yyStart,yyCount),
+                                        (Type)base, a1, unit);
+           }};
+     }
+   / sr a1:UnitExpr
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return new TaggedUnitType(createSpan(yyStart,yyCount),
+                                         (Type)base, a1);
+           }};
      };
 
 private ArrowTypeTail ArrowTypeTail =
@@ -171,11 +155,11 @@ ArrowType ArrowType =
      };
 
 private NonArrowType NonArrowType =
-     DimType
-   / TraitType
+     TraitType
    / TupleType
    / openparen w closeparen
      { yyValue = new VoidType(createSpan(yyStart,yyCount)); }
+   / DimType
    ;
 
 /* TraitType ::=
@@ -248,114 +232,18 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* DimType ::=
-     Type w DOT w DimUnitExpr
-   | Type sr DimUnitExpr
-   | Type w / w DimUnitExpr
-   | Type w per w DimUnitExpr
-   | Type w in w DimUnitExpr
-   | 1 w / w DimUnitExpr
-   | DUPreOp sr DimUnitExpr
-   | DimUnitExpr w DUPostOp
+     Type sr DimExpr (w in w UnitExpr)?
+   | Type sr UnitExpr
  */
 private DimType DimType =
-     a1:Type (w "DOT":op w / sr) a2:DimUnitExpr
-     { yyValue = new ProductType(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:Type w (slash / per) w a2:DimUnitExpr
-     { yyValue = new QuotientType(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:Type w in w a2:DimUnitExpr
-     { yyValue = new ChangeDimType(createSpan(yyStart,yyCount), a1, a2); }
-   / one w slash w a1:DimUnitExpr
-     { yyValue = new InversionType(createSpan(yyStart,yyCount), a1); }
-   / a1:DUPreOp sr a2:DimUnitExpr
-     { yyValue = new OpDimType(createSpan(yyStart,yyCount), a2, a1); }
-   / a1:DimUnitExpr w a2:DUPostOp
-     { yyValue = new OpDimType(createSpan(yyStart,yyCount), a1, a2); };
-
-/* DimUnitExpr ::=
-     Unity
-   | dimensionless
-   | QualifiedName
-   | DimUnitExpr w DOT w DimUnitExpr
-   | DimUnitExpr sr DimUnitExpr
-   | DimUnitExpr w / w DimUnitExpr
-   | DimUnitExpr w per w DimUnitExpr
-   | DimUnitExpr w in w DimUnitExpr
-   | 1 w / w DimUnitExpr
-   | DimUnitExpr ^ Number
-   | ( w DimUnitExpr w )
-   | DUPreOp sr DimUnitExpr
-   | DimUnitExpr w DUPostOp
- */
-DimUnitExpr DimUnitExpr =
-     seed:DimUnitExprFront list:DimUnitExprTail*
-     { yyValue = (DimUnitExpr)apply(list, seed); };
-
-private DimUnitExpr DimUnitExprFront =
-     "Unity"
-     { yyValue = new BaseDimId(createSpan(yyStart,yyCount)); }
-   / "dimensionless"
-     { yyValue = new BaseUnitId(createSpan(yyStart,yyCount)); }
-   / a1:QualifiedName !(w opendoublesquare / w rightarrow / caret / w match)
-     { yyValue = new DimUnitId(createSpan(yyStart,yyCount), a1); }
-   / one w slash w a1:DimUnitExpr
-     { yyValue = new InversionDimUnit(createSpan(yyStart,yyCount), a1); }
-   / openparen w a1:DimUnitExpr w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
-   / a1:DUPreOp sr a2:DimUnitExpr
-     { yyValue = new OpDimUnit(createSpan(yyStart,yyCount), a2, a1); };
-
-private constant transient Action<DimUnitExpr> DimUnitExprTail =
-     ProductDimUnit
-   / QuotientDimUnit
-   / ChangeDimUnit
-   / ExponentDimUnit
-   / OpDimUnit
-   ;
-
-private constant inline Action<DimUnitExpr> ProductDimUnit =
-     (w DOT w / sr) a1:DimUnitExpr
-     { yyValue = new Action<DimUnitExpr>() {
-           public DimUnitExpr run(DimUnitExpr base) {
-               return new ProductDimUnit(createSpan(yyStart,yyCount),
-                                         (DimUnitExpr)base, a1);
-           }};
-     };
-
-private constant inline Action<DimUnitExpr> QuotientDimUnit =
-     w (slash / per) w a1:DimUnitExpr
-     { yyValue = new Action<DimUnitExpr>() {
-           public DimUnitExpr run(DimUnitExpr base) {
-               return new QuotientDimUnit(createSpan(yyStart,yyCount),
-                                          (DimUnitExpr)base, a1);
-           }};
-     };
-
-private constant inline Action<DimUnitExpr> ChangeDimUnit =
-     w in w a1:DimUnitExpr
-     { yyValue = new Action<DimUnitExpr>() {
-           public DimUnitExpr run(DimUnitExpr base) {
-               return new ChangeDimUnit(createSpan(yyStart,yyCount),
-                                        (DimUnitExpr)base, a1);
-           }};
-     };
-
-private constant inline Action<DimUnitExpr> ExponentDimUnit =
-     caret a1:Number
-     { yyValue = new Action<DimUnitExpr>() {
-           public DimUnitExpr run(DimUnitExpr base) {
-               return new ExponentDimUnit(createSpan(yyStart,yyCount),
-                                          (DimUnitExpr)base, a1);
-           }};
-     };
-
-private constant inline Action<DimUnitExpr> OpDimUnit =
-     w a1:DUPostOp
-     { yyValue = new Action<DimUnitExpr>() {
-           public DimUnitExpr run(DimUnitExpr base) {
-               return new OpDimUnit(createSpan(yyStart,yyCount),
-                                    (DimUnitExpr)base, a1);
-           }};
-     };
+     a1:Type sr a2:DimExpr a3:(w in w UnitExpr)?
+     { Option<UnitExpr> unit;
+       if (a3 == null) unit = Option.<UnitExpr>none();
+       else            unit = Option.<UnitExpr>some(a3);
+       yyValue = new TaggedDimType(createSpan(yyStart,yyCount), a1, a2, unit);
+     }
+   / a1:Type sr a2:UnitExpr
+     { yyValue = new TaggedUnitType(createSpan(yyStart,yyCount), a1, a2); };
 
 /* DimExpr ::=
      Unity
@@ -364,7 +252,6 @@ private constant inline Action<DimUnitExpr> OpDimUnit =
    | DimExpr sr DimExpr
    | DimExpr w / w DimExpr
    | DimExpr w per w DimExpr
-   | DimExpr w in w DimUnitExpr
    | 1 w / w DimExpr
    | DimExpr ^ Number
    | ( w DimExpr w )
@@ -379,7 +266,7 @@ private DimExpr DimExprFront =
      "Unity"
      { yyValue = new BaseDim(createSpan(yyStart,yyCount)); }
    / a1:QualifiedName
-     { yyValue = new DimId(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new DimRef(createSpan(yyStart,yyCount), a1); }
    / one w slash w a1:DimExpr
      { yyValue = new QuotientDim(createSpan(yyStart,yyCount),
                                  new BaseDim(createSpan(yyStart,1)), a1); }
@@ -391,7 +278,6 @@ private DimExpr DimExprFront =
 private constant transient Action<DimExpr> DimExprTail =
      ProductDim
    / QuotientDim
-   / ChangeDim
    / ExponentDim
    / OpDim
    ;
@@ -411,15 +297,6 @@ private constant inline Action<DimExpr> QuotientDim =
            public DimExpr run(DimExpr base) {
                return new QuotientDim(createSpan(yyStart,yyCount), (DimExpr)base,
                                       a1);
-           }};
-     };
-
-private constant inline Action<DimExpr> ChangeDim =
-     w in w a1:DimUnitExpr
-     { yyValue = new Action<DimExpr>() {
-           public DimExpr run(DimExpr base) {
-               return new ChangeDim(createSpan(yyStart,yyCount), (DimExpr)base,
-                                    a1);
            }};
      };
 

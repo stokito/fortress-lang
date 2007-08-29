@@ -76,6 +76,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * implemented by trait and object declarations in components or APIs
      */
     interface HasWhere(List<WhereClause> where);
+    /**
+     * right-hand side of unit declarations
+     * implemented by Expr and UnitExpr
+     */
+    interface ExprOrUnitExpr();
 
 /**
  * functional declaration or function expression
@@ -414,9 +419,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * dimension and unit declaration
      * DimUnitDecl may represent a single dimension declaration, a single
      * unit declaration, or both dimension and unit declarations.
-     * DimUnitDecl ::= dim Id (= DimExpr)? (default Id)?
+     * DimUnitDecl ::= dim Id (= DimExpr)? (unit | SI_unit) Id+ (= Expr)?
+     *               | dim Id (= DimExpr)? (unit | SI_unit) Id+ (= UnitExpr)?
+     *               | dim Id (= DimExpr)? (default Id)?
      *               | (unit | SI_unit) Id+ (: DimExpr)? (= Expr)?
-     *               | dim Id (= DimExpr)? (unit | SI_unit) Id+ (= Expr)?
+     *               | (unit | SI_unit) Id+ (: DimExpr)? (= UnitExpr)?
      * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
@@ -425,10 +432,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Option<IdName> default = Option.<IdName>none(),
                 boolean si_unit = false,
                 List<IdName> units = Collections.<IdName>emptyList(),
-                Option<Expr> def = Option.<Expr>none())
+                Option<ExprOrUnitExpr> def)
                implements Decl, AbsDecl;
     /**
-     * dimension expression used in dimension and unit declarations
+     * dimension expression
      */
     abstract DimExpr(boolean parenthesized = false);
         /* base dimension
@@ -440,13 +447,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * DimExpr ::= QualifiedIdName
          * e.g.) com.sun.fortress.dim.Length
          */
-        DimId(QualifiedIdName name);
+        DimRef(QualifiedIdName name);
         /* dimension multiplication
-         * DimExpr ::= DimExpr DimExpr
-         *           | DimExpr DOT DimExpr
+         * DimExpr ::= DimExpr DOT DimExpr
+         *           | DimExpr DimExpr
          * e.g.) Length Mass
          */
-        ProductDim(DimExpr left, DimExpr right);
+        ProductDim(DimExpr multiplier, DimExpr multiplicand);
         /* dimension division
          * DimExpr ::= DimExpr / DimExpr
          *           | DimExpr per DimExpr
@@ -454,12 +461,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) Length / Time
          */
         QuotientDim(DimExpr numerator, DimExpr denominator);
-        /**
-         * dimension change
-         * DimExpr ::= DimExpr in DimUnitExpr
-         * e.g.) Velocity in nm/s
-         */
-        ChangeDim(DimExpr val, DimUnitExpr unit);
         /* dimension exponentiation
          * DimExpr ::= DimExpr ^ IntLiteral
          * e.g.) Time^2
@@ -510,7 +511,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * expression
      */
-    abstract Expr(boolean parenthesized = false);
+    abstract Expr(boolean parenthesized = false) implements ExprOrUnitExpr;
         /**
          * type ascription expression
          * Expr ::= Expr as Type
@@ -524,23 +525,27 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         AsIfExpr(Expr expr, Type type);
         /**
-         * unit division
-         * Expr ::= Expr per Expr
-         * e.g.) meter per second
+         * expression with a unit
          */
-        QuotientUnitExpr(Expr numerator, Expr denominator);
+        abstract TaggedUnitExpr(Expr val, UnitExpr unit);
+            /**
+             * unit multiplication
+             * Expr ::= Expr dimensionless
+             * e.g.) 32 dimensionless
+             */
+            ProductUnitExpr();
+            /**
+             * unit division
+             * Expr ::= Expr per UnitExpr
+             * e.g.) meter per second
+             */
+            QuotientUnitExpr();
         /**
          * unit change
-         * Expr ::= Expr in Expr
+         * Expr ::= Expr in UnitExpr
          * e.g.) 1.3 m in nm
          */
-        ChangeUnitExpr(Expr val, Expr unit);
-        /* dimension with operator
-         * Expr ::= DUPreOp Expr
-         *        | Expr DUPostOp
-         * e.g.) second squared
-         */
-        OpUnit(Expr val, DimUnitOp op);
+        ChangeUnitExpr(Expr val, UnitExpr unit);
         /**
          * assignment expression
          * Expr ::= AssignLefts AssignOp Expr
@@ -1003,57 +1008,43 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         ListComprehension(Expr element);
     /**
-     * dimension and unit expression used in dimension types
+     * unit expression
      */
-    abstract DimUnitExpr(boolean parenthesized = false);
-        /* base dimension identifier
-         * DimUnitExpr ::= Unity
-         * e.g.) Unity
-         */
-        BaseDimId();
-        /* base unit identifier
-         * DimUnitExpr ::= dimensionless
+    abstract UnitExpr(boolean parenthesized = false) implements ExprOrUnitExpr;
+        /* base unit
+         * UnitExpr ::= dimensionless
          * e.g.) dimensionless
          */
-        BaseUnitId();
-        /* dimension and unit identifier
-         * DimUnitExpr ::= QualifiedIdName
+        BaseUnit();
+        /* unit identifier
+         * UnitExpr ::= QualifiedIdName
          * e.g.) com.sun.fortress.dim.Length
          */
-        DimUnitId(QualifiedIdName name);
-        /* dimension and unit multiplication
-         * DimUnitExpr ::= DimUnitExpr DOT DimUnitExpr
-         *               | DimUnitExpr DimUnitExpr
+        UnitRef(QualifiedIdName name);
+        /* unit multiplication
+         * UnitExpr ::= UnitExpr DOT UnitExpr
+         *            | UnitExpr UnitExpr
          * e.g.) Length Mass
          */
-        ProductDimUnit(DimUnitExpr multiplier, DimUnitExpr multiplicand);
-        /* dimension and unit division
-         * DimUnitExpr ::= DimUnitExpr / DimUnitExpr
-         *               | DimUnitExpr per DimUnitExpr
+        ProductUnit(UnitExpr multiplier, UnitExpr multiplicand);
+        /* unit division
+         * UnitExpr ::= UnitExpr / UnitExpr
+         *            | UnitExpr per UnitExpr
+         *            | 1 / UnitExpr
          * e.g.) Length / Time
          */
-        QuotientDimUnit(DimUnitExpr numerator, DimUnitExpr denominator);
-        /* dimension and unit conversion
-         * DimUnitExpr ::= DimUnitExpr in DimUnitExpr
-         * e.g.) Length in nm
-         */
-        ChangeDimUnit(DimUnitExpr val, DimUnitExpr unit);
-        /* dimension and unit inversion
-         * DimUnitExpr ::= 1 / DimUnitExpr
-         * e.g.) 1 / Time
-         */
-        InversionDimUnit(DimUnitExpr val);
-        /* dimension and unit exponentiation
-         * DimUnitExpr ::= DimUnitExpr ^ IntLiteral
+        QuotientUnit(UnitExpr numerator, UnitExpr denominator);
+        /* unit exponentiation
+         * UnitExpr ::= UnitExpr ^ IntLiteral
          * e.g.) Time^2
          */
-        ExponentDimUnit(DimUnitExpr base, IntLiteral power);
-        /* dimension and unit with operator
-         * DimUnitExpr ::= DUPreOp DimUnitExpr
-         *           | DimUnitExpr DUPostOp
+        ExponentUnit(UnitExpr base, IntLiteral power);
+        /* unit with operator
+         * UnitExpr ::= DUPreOp UnitExpr
+         *            | UnitExpr DUPostOp
          * e.g.) Time squared
          */
-        OpDimUnit(DimUnitExpr val, DimUnitOp op);
+        OpUnit(UnitExpr val, DimUnitOp op);
     /**
      * type
      * Type ::= ArrowType
@@ -1121,40 +1112,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * dimension type
              */
-            abstract DimType();
+            abstract DimType(Type type);
                 /**
-                 * dimension multiplication
-                 * DimType ::= Type DOT DimUnitExpr
-                 *           | Type DimUnitExpr
-                 * e.g.) Velocity Time
+                 * type with dimension
+                 * DimType ::= Type DimExpr (in UnitExpr)?
+                 * e.g.) RR64 Length
                  */
-                ProductType(Type multiplier, DimUnitExpr multiplicand);
+                TaggedDimType(DimExpr dim, Option<UnitExpr> unit);
                 /**
-                 * dimension division
-                 * DimType ::= Type / DimUnitExpr
-                 *           | Type per DimUnitExpr
-                 * e.g.) Velocity / Time
+                 * type with unit
+                 * DimType ::= Type UnitExpr
+                 * e.g.) RR64 meter
                  */
-                QuotientType(Type numerator, DimUnitExpr denominator);
-                /**
-                 * dimension type inversion
-                 * DimType ::= 1 / DimUnitExpr
-                 * e.g.) 1 / Time
-                 */
-                InversionType(DimUnitExpr val);
-                /**
-                 * dimension type conversion
-                 * DimType ::= Type in DimUnitExpr
-                 * e.g.) f/s in m/s
-                 */
-                ChangeDimType(Type type, DimUnitExpr unit);
-                /**
-                 * dimension type with operator
-                 * DimType ::= DUPreOp DimUnitExpr
-                 *           | DimUnitExpr DUPostOp
-                 * e.g.) second squared
-                 */
-                OpDimType(DimUnitExpr val, DimUnitOp op);
+                TaggedUnitType(UnitExpr unit);
         /**
          * static argument
          */

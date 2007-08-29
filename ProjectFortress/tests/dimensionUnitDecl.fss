@@ -24,7 +24,8 @@ dim Length SI_unit meter meters m
 dim Mass default Kilogram
 unit inch inches: Length
 unit feet: Length = foot
-unit radian = 1 meter / meter
+unit radian = 1 meter per meter
+unit meter_squared = square meter
 
 trait Float[\unit U absorbs unit, nat e, nat s\] end
 
