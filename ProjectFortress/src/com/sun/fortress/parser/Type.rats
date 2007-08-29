@@ -29,7 +29,7 @@ import Symbol;
 import Spacing;
 
 /* IsType ::= : w Type */
-Type IsType = colon w Type ;
+Type IsType = void:colon w Type ;
 
 /* NonArrowType, TraitType, and DimType are mutually left recursive.
    We've inlined them into each other and removed the left recursion. */

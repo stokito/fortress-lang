@@ -109,7 +109,9 @@ private String compOp =
    / "<="
    / ">=" ;
 
-private String condOp = op colon ;
+private String condOp =
+     a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
+   / a1:op a2:colon        { yyValue = a1+a2; };
 
 private String multiOp =
      "-/->"
@@ -157,13 +159,14 @@ String equalsOp = "=":singleOp;
 String semicolon = ";";
 String one = "1";
 
+String colon = ":" (!op);
+String colonOp = ":":singleOp;
+
 transient void closecurly = "}";
 transient void closeangle = "|>";
 transient void closesquare = "]";
 transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
-transient void colon = ":" (!op);
-transient void colonOp = ":":singleOp;
 transient void cross = "BY";
 transient void DOT = "DOT":OpName;
 transient void ellipses = "...";

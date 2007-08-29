@@ -56,7 +56,7 @@ DimUnitDecl DimUnitDecl =
                                              NodeFactory.makeIdName(a1),
                                              derived, defaultId);
      }
-   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w colon w DimExpr)?
+   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w DimExpr)?
      a5:(w void:equals w NoNewlineExpr)?
      { Option<DimExpr> derived = Option.wrap(a4);
        List<IdName> ids = new ArrayList<IdName>();
