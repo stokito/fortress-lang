@@ -24,8 +24,6 @@ import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseNatStaticArg;
-import com.sun.fortress.nodes.BaseOprStaticArg;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.NatParam;

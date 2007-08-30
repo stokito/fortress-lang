@@ -97,7 +97,7 @@ private String exponentOp = "^T" / "^" ;
  * shouldn't since this set of operators is open-ended.
  */
 private String OpName =
-     !(accumulator / cross) opn:id &{FortressUtil.validOp(opn) } ;
+     !(cross) opn:id &{FortressUtil.validOp(opn) } ;
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
@@ -203,7 +203,7 @@ Op Accumulator =
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "+"); }
    / "PROD":accumulator
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "DOT"); }
-   / BIG w Op ;
+   / void:BIG w Op ;
 
 /* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
 ArrayComprehensionClause ArrayComprehensionClause =

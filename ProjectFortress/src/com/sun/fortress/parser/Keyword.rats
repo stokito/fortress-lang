@@ -73,7 +73,6 @@ transient void pure = "pure" !(idrest);
 transient void reciprocal = "reciprocal" !(idrest);
 transient void static = "static" !(idrest);
 
-transient void BIG = "BIG" !(idrest);
 transient void absorbs = "absorbs" !(idrest);
 transient void also = "also" !(idrest);
 transient void api = "api" !(idrest);
@@ -132,6 +131,7 @@ transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
+String BIG = "BIG" !(idrest);
 String SI_unit = "SI_unit" !(idrest);
 String abstract = "abstract" !(idrest);
 String atomic = "atomic" !(idrest);

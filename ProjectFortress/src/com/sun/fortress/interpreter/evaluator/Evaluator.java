@@ -119,7 +119,6 @@ import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.Opr;
-import com.sun.fortress.nodes.BaseOprStaticArg;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.PostFix;
