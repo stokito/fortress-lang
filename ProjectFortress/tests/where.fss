@@ -25,6 +25,6 @@ trait T[\S, int i, unit U, bool b\]
           nat n, n = i, U = dimensionless, 2 n + i < 2^8 }
 end
 
-run(args:String...) = println "Where clasues test."
+run(args:String...) = println "Where clasues can be parsed."
 
 end
