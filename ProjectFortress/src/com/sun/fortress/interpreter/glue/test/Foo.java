@@ -19,30 +19,19 @@ package com.sun.fortress.interpreter.glue.test;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.interpreter.glue.NativeMeth;
 
-public class Foo extends NativeApp implements Method {
+public class Foo extends NativeMeth {
 
-    @Override
-    public FValue applyToArgs(List<FValue> args) {
-        // TODO Auto-generated method stub
-        throw new Error();
-    }
-
-    @Override
     public int getArity() {
         // Glitch -- the arity must match the SYNTACTIC arity of the method.
         return 1;
     }
 
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc,
-            BetterEnv envForInference) {
+    public FValue applyMethod(List<FValue> args, FObject selfValue) {
         FValue x = selfValue.getSelfEnv().getValue("y");
         FValue s = args.get(0);
         return FString.make(s.getString() + x.getString());

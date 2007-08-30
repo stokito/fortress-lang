@@ -26,12 +26,10 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.interpreter.glue.NativeApp;
+import com.sun.fortress.interpreter.glue.NativeMeth;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.useful.HasAt;
 
 public class TNFoo extends Constructor {
 
@@ -40,16 +38,10 @@ public class TNFoo extends Constructor {
         // TODO Auto-generated constructor stub
     }
 
-    public TNFoo(BetterEnv env, FTypeObject selfType, HasAt def, FnName name,
-            List<? extends AbsDeclOrDecl> defs) {
-        super(env, selfType, def, name, defs);
-        // TODO Auto-generated constructor stub
-    }
-    
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
         return new Obj(selfType, lex_env, self_env);
     }
-    
+
     static class Obj extends FObject {
         public Obj(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
             // might like to discard envs to perhaps save space,
@@ -57,36 +49,27 @@ public class TNFoo extends Constructor {
             super(selfType, BetterEnv.empty(), self_dot_env);
             int theCount = self_dot_env.getValue("n").getInt();
             String s = self_dot_env.getValue("s").getString();
-            
+
             while (theCount > 0) {
                 s = s + " " + s;
                 theCount--;
             }
-            
+
             theString = FString.make(s);
-    
+
         }
 
         FValue theString;
-       
+
     }
-    
-    public static class bar extends NativeApp implements Method {
 
-        @Override
-        public FValue applyToArgs(List<FValue> args) {
-            // TODO Auto-generated method stub
-            throw new Error();
-        }
-
-        @Override
+    public static class bar extends NativeMeth {
         public int getArity() {
             // Glitch -- the arity must match the SYNTACTIC arity of the method.
             return 0;
         }
 
-        public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc,
-                BetterEnv envForInference) {
+        public FValue applyMethod(List<FValue> args, FObject selfValue) {
             Obj tnf = (Obj) selfValue;
             return tnf.theString;
         }

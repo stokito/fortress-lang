@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component simpleSum
+export Executable
+
+opr SUM(g: Generator[\ZZ32\]):ZZ32 = g.reduce(SumReduction[\ZZ32\]())
+
+run(args:String...):() = do
+    s0 = SUM [x <- 0#10] x
+    assert(s0,55,"SUM [x<-0#10] x")
+    s1 = SUM [x <- 0#10] 2x+1
+    assert(s1,121,"SUM [x <- 0#10] 2x+1")
+    s2 = SUM (0#10)
+    assert(s2,55,"SUM (0#10)")
+  end
+
+end

@@ -43,6 +43,8 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * A NativeApp indicates that an action is implemented natively; the
  * type itself is abstract.
  *
+ * Programmers writing a NativeApp should implement getArity and ApplyToArgs.
+ *
  * We might want some way to sanity-check the expected type of a
  * native thing against the actual type declared in the applicable
  * object passed in.  Right now we just check arities.
