@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
+import com.sun.fortress.interpreter.evaluator.values.GenericNativeConstructor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.IdName;
@@ -52,23 +53,24 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         // TODO Auto-generated constructor stub
     }
 
-    private Constructor nativeConstructor(BetterEnv containing,
-            FTypeObject ft,
-            ObjectDecl x,
-            String fname) {
+    public static Constructor nativeConstructor(BetterEnv containing,
+            FTypeObject ft, GenericWithParams x, String fname) {
         String pack = containing.getValue("package").getString();
         String classname = pack + "." + fname;
         try {
             Class cl = Class.forName(classname);
             // cl must extend Constructor,
-            // cl must have a constructor BetterEnv env, FTypeObject selfType, GenericWithParams def
+            // cl must have a constructor BetterEnv env, FTypeObject selfType,
+            // GenericWithParams def
             if (Constructor.class.isAssignableFrom(cl)) {
-                java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(BetterEnv.class, FTypeObject.class, GenericWithParams.class);
+                java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(
+                        BetterEnv.class, FTypeObject.class,
+                        GenericWithParams.class);
                 return (Constructor) ccl.newInstance(containing, ft, x);
             } else {
-                throw new ProgramError("Native class " + classname + " must extend Constructor" );
+                throw new ProgramError("Native class " + classname
+                        + " must extend Constructor");
             }
-
 
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
@@ -105,7 +107,6 @@ public class BuildNativeEnvironment extends BuildEnvironments {
     protected void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
-        BetterEnv e = containing;
         IdName name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
@@ -117,9 +118,8 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
         FType ft;
-        ft = staticParams.isEmpty() ?
-                  new FTypeObject(fname, e, x, x.getDecls())
-                : new FTypeGeneric(e, x, x.getDecls());
+        ft = staticParams.isEmpty() ? new FTypeObject(fname, containing, x, x
+                .getDecls()) : new FTypeGeneric(containing, x, x.getDecls());
 
         // Need to check for overloaded constructor.
 
@@ -127,10 +127,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
 
         if (params.isSome()) {
             if (!staticParams.isEmpty()) {
-                // A generic, not yet a constructor
-                NI.nyi("Haven't figured out native generics yet");
-
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericNativeConstructor(containing, x, fname);
                 guardedPutValue(containing, fname, gen, x);
 
             } else {
@@ -138,8 +135,8 @@ public class BuildNativeEnvironment extends BuildEnvironments {
 
                 // If parameters are present, it is really a constructor
                 // BetterEnv interior = new SpineEnv(e, x);
-                Constructor cl = nativeConstructor(containing, (FTypeObject) ft,
-                        x, fname);
+                Constructor cl = nativeConstructor(containing,
+                        (FTypeObject) ft, x, fname);
                 guardedPutValue(containing, fname, cl, x);
                 // doDefs(interior, defs);
             }
@@ -149,7 +146,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
                 // A parameterized singleton is a sort of generic value.
                 NI.nyi("Haven't figured out native generics yet");
                 NI.nyi("Generic singleton objects");
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericConstructor(containing, x);
                 guardedPutValue(containing, obfuscated(fname), gen, x);
 
             } else {
@@ -159,14 +156,14 @@ public class BuildNativeEnvironment extends BuildEnvironments {
 
                 // TODO - binding into "containing", or "bindInto"?
 
-                Constructor cl = nativeConstructor(containing, (FTypeObject) ft,
-                        x, fname);
+                Constructor cl = nativeConstructor(containing,
+                        (FTypeObject) ft, x, fname);
                 guardedPutValue(containing, obfuscated(fname), cl, x);
 
                 // Create a little expression to run the constructor.
-                Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
-                      ExprFactory.makeVarRef(x.getSpan(), obfuscated(fname)),
-                      ExprFactory.makeVoidLiteral(x.getSpan()));
+                Expr init = ExprFactory.makeTightJuxt(x.getSpan(), ExprFactory
+                        .makeVarRef(x.getSpan(), obfuscated(fname)),
+                        ExprFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
 

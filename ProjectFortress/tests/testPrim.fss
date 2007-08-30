@@ -29,7 +29,8 @@ end
 run(args:String...):() = do
   println(bar("This is ", o))
   println (o.foo("This is "))
-  println(TNFoo("PASS!").bar())
+  println(TNFoo[\2\]("PASS!").bar())
+  println(TNFoo[\1\]("PASS!").bar())
   end
   
 end

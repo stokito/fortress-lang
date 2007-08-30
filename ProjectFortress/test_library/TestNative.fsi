@@ -17,7 +17,7 @@
 
 api TestNative
 
-object TNFoo(s:String)
+object TNFoo[\nat n\](s:String)
   bar():String
 end
 

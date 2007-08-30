@@ -55,10 +55,20 @@ public class TNFoo extends Constructor {
             // might like to discard envs to perhaps save space,
             // but need self_dot_env for method invocation lookup
             super(selfType, BetterEnv.empty(), self_dot_env);
-            theString = self_dot_env.getValue("s");
+            int theCount = self_dot_env.getValue("n").getInt();
+            String s = self_dot_env.getValue("s").getString();
+            
+            while (theCount > 0) {
+                s = s + " " + s;
+                theCount--;
+            }
+            
+            theString = FString.make(s);
+    
         }
 
         FValue theString;
+       
     }
     
     public static class bar extends NativeApp implements Method {

@@ -21,7 +21,7 @@ export TestNative
 language="java"
 package="com.sun.fortress.interpreter.glue.test"
 
-object TNFoo(s:String)
+object TNFoo[\nat n\](s:String)
   bar():String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.TNFoo$bar")
 end
 
