@@ -334,11 +334,10 @@ the top of the buffer list and made current.
 ******************************************************************************
    Batch Commands and Shell Scripts
 ******************************************************************************
-
 batch-fortify
 -----------
 You can format an entire Fortress file at the command line by invoking
-the batch-fortify function: 
+the batch-fortify function:
 
 emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f batch-fortify
 
@@ -355,14 +354,20 @@ Fortress doc comment consists of a series of lines, where the first
 line begins with "(**", the last line consists of "**)" and lines in
 between begin with "*", with optional leading spaces and tabs at the
 beginning of each line. For example, the following function definition
-"factorial" is preceded by a doc comment:   
+"factorial" is preceded by a doc comment:  
 
 (**
- * Takes a non-negative integer n and returns n!
- **)
-factorial(n) = 
+* Takes a non-negative integer n and returns n!
+**)
+factorial(n) =
     if n = 0 then 1
     else n factorial(n-1) end
+
+The fortex command strips the leading comment characters from 
+doc comment lines, but leaves them otherwise unprocessed. All 
+text other than doc comments is fortified. So, it's possible to embed LaTeX
+in a doc comment of a valid Fortress file, and then run 'fortex' on it
+to "uncomment" the doc comments and fortify the Fortress code.
 
 The fortex command also skips over "test" regions of a file, delimited
 with the following comment lines:
@@ -384,11 +389,7 @@ The idea is to allow users to provide test code in a file to check
 that it behaves as expected, without publishing tests in the fortified
 version of the file.
 
-Using function 'fortex', it is possible to write a legal Fortress file
-with doc comments (possibly containing embedded LaTeX commands) and
-produce a LaTeX file where all Fortress code is fortified and all doc
-comments are written as LaTeX prose describing the code. Again, a
-formatted file is created  with the same name and location as the
+Again, a formatted file is created  with the same name and location as the
 input file, but with extension .tex.
 
 This command can be called as follows:
@@ -436,5 +437,4 @@ This command can be called as follows:
 emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f foreg
 
 A convenience script 'foreg' for this command is provided in
-FORTRESS_HOME/bin. 
-
+FORTRESS_HOME/bin.
