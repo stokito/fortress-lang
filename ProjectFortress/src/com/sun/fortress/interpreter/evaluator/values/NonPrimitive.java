@@ -231,7 +231,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                         env.putValueUnconditionally(param.getName(), arg);
                     }
                 } catch (FortressError ex) {
-                    throw ex.setWhere(loc).setWithin(env);
+                    throw ex.setContext(loc,env);
                 }
             }
 

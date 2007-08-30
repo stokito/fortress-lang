@@ -693,9 +693,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             try {
                 return selectable.select(NodeUtil.nameString(fld));
             } catch (FortressError ex) {
-                ex.setWithin(e);
-                ex.setWhere(x);
-                throw ex;
+                throw ex.setContext(x,e);
             }
 //        } else if (fobj instanceof FObject) {
 //            FObject fobject = (FObject) fobj;
@@ -703,9 +701,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //            try {
 //                return fobject.getSelfEnv().getValue(fld.getName());
 //            } catch (FortressError ex) {
-//                ex.setWithin(e);
-//                ex.setWhere(x);
-//                throw ex;
+//                throw ex.setContext(x,e);
 //            }
         } else {
             throw new ProgramError(x, e,
@@ -940,9 +936,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         try {
             return e.getValue(NodeUtil.nameString(op));
         } catch (FortressError ex) {
-            ex.setWhere(op);
-            ex.setWithin(e);
-            throw ex;
+            throw ex.setContext(op,e);
         }
     }
     
@@ -1358,9 +1352,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 try {
                     res = ((Selectable) res).select(fld.getText());
                 } catch (FortressError ex) {
-                    ex.setWithin(e);
-                    ex.setWhere(x);
-                    throw ex;
+                    throw ex.setContext(x,e);
                 }
             } else {
                 throw new ProgramError(x, e,

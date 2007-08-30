@@ -80,9 +80,7 @@ public class FGenerator extends FValue {
             try {
                 ev.e.putValue(NodeUtil.nameString(id), val);
             } catch (FortressError pe) {
-                pe.setWithin(ev.e);
-                pe.setWhere(body);
-                throw pe;
+                throw pe.setContext(body,ev.e);
             }
             ev.eval(body);
             return true;

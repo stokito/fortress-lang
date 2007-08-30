@@ -179,9 +179,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             containing.putType(name, type);
         } catch (FortressError pe) {
-            pe.setWithin(containing);
-            pe.setWhere(where);
-            throw pe;
+            throw pe.setContext(where,containing);
         }
     }
 
@@ -190,9 +188,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             containing.putNat(name, nat);
         } catch (FortressError pe) {
-            pe.setWithin(containing);
-            pe.setWhere(where);
-            throw pe;
+            throw pe.setContext(where, containing);
         }
     }
 
@@ -201,9 +197,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             containing.putBool(name, b);
         } catch (FortressError pe) {
-            pe.setWithin(containing);
-            pe.setWhere(where);
-            throw pe;
+            throw pe.setContext(where,containing);
         }
     }
 
@@ -336,9 +330,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FType result = env.getType(i.getName());
             return result;
         } catch (FortressError p) {
-            p.setWhere(i);
-            p.setWithin(env);
-            throw p;
+            throw p.setContext(i,env);
         }
 
     }
@@ -437,9 +429,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FType result = env.getType(q);
             return result;
         } catch (FortressError p) {
-            p.setWhere(q);
-            p.setWithin(env);
-            throw p;
+            throw p.setContext(q,env);
         }
 
     }

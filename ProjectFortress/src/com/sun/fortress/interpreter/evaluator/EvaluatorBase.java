@@ -84,9 +84,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             try {
                 foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
             } catch (FortressError ex) {
-                ex.setWithin(e);
-                ex.setWhere(loc);
-                throw ex;
+                throw ex.setContext(loc,e);
             }
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
         }
@@ -149,9 +147,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
             catch (FortressError ex) {
                 /* Give decent feedback when unification fails. */
-                ex.setWithin(e);
-                ex.setWhere(loc);
-                throw ex;
+                throw ex.setContext(loc,e);
             }
         }
 

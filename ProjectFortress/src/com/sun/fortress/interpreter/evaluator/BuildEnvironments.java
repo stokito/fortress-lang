@@ -412,9 +412,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 putValue(e, name, value);
             }
         } catch (FortressError pe) {
-            pe.setWithin(e);
-            pe.setWhere(where);
-            throw pe;
+            throw pe.setContext(where,e);
         }
     }
 
@@ -937,10 +935,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                   FValue init_val = new LazilyEvaluatedCell(init, containing);
                   putValue(bindInto, sname, init_val);
               }
-           } catch (FortressError pe) {
-              pe.setWithin(bindInto);
-              pe.setWhere(x);
-              throw pe;
+          } catch (FortressError pe) {
+              throw pe.setContext(x,bindInto);
           }
 
 //        int index = 0;
@@ -967,10 +963,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //                        }
 //                        putValue(bindInto, sname, init_val);
 //                    }
-//                 } catch (FortressError pe) {
-//                    pe.setWithin(bindInto);
-//                    pe.setWhere(x);
-//                    throw pe;
+//                } catch (FortressError pe) {
+//                    throw pe.setContext(x,bindInto);
 //                }
 //
 //            } else {
@@ -1418,19 +1412,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // Option<Type> type = x.getType();
         LValueBind lvb = lhs.get(0);
 
-            IdName name = lvb.getName();
-            String sname = NodeUtil.nameString(name);
+        IdName name = lvb.getName();
+        String sname = NodeUtil.nameString(name);
 
-            try {
-                /* Assumption: we only care for APIs, for which this
-                 * is a placeholder. */
-                FValue init_val = new LazilyEvaluatedCell(null, null);
-                putValue(bindInto, sname, init_val);
-            } catch (FortressError pe) {
-                pe.setWithin(bindInto);
-                pe.setWhere(x);
-                throw pe;
-            }
+        try {
+            /* Assumption: we only care for APIs, for which this
+             * is a placeholder. */
+            FValue init_val = new LazilyEvaluatedCell(null, null);
+            putValue(bindInto, sname, init_val);
+        } catch (FortressError pe) {
+            throw pe.setContext(x,bindInto);
+        }
     }
 
     /*

@@ -68,7 +68,7 @@ chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
 end
 
 run(args:String...):() = do
-  print("The adventure begins")
+  start = nanoTime()
   (* The sizes which turned up bugs *)
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
   assert(20,testLens.generate[\ZZ32\](SumReduction[\ZZ32\](),identity[\ZZ32\]),
@@ -81,7 +81,6 @@ run(args:String...):() = do
       chkExtract(li,i)
       (ll,lr) = li.split()
       lii = ll.append(lr)
-      (* assert(li,lii,"re-appended split wrong.") *)
       chkPop(lii,i)
       fli = li.filter(fn x => x REM 2 = 0)
       chkPop(fli,0,(i+1) DIV 2,2)
@@ -114,7 +113,9 @@ run(args:String...):() = do
                     "zip mismatch ",li,lj)
       end
   end
-  println("\nSucceeded")
+  finish = nanoTime()
+  ms = ((finish-start) + 500000) DIV 1000000
+  println("\nSucceeded in " (ms/1000.0) "s")
 end
 
 end

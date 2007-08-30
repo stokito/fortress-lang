@@ -49,63 +49,36 @@ public class ProgramError extends FortressError {
         return fullMessage.toString();
     }
 
-    public ProgramError setWhere(HasAt where) {
-        this.where = where;
-        return this;
-    }
-
-    public ProgramError setWhere2(HasAt where2) {
-        this.where2 = where2;
-        return this;
-        }
-
-    public ProgramError setWithin(Environment within) {
-        this.within = within;
-        return this;
-        }
-
     public ProgramError() {
         super();
-
     }
 
     public ProgramError(HasAt loc, Environment env, String arg0) {
-        super(arg0);
-        where = loc; within = env;
-
+        super(loc,env,arg0);
     }
 
     public ProgramError(HasAt loc, String arg0) {
-        super(arg0);
-        where = loc;
-
+        super(loc,arg0);
     }
 
     public ProgramError(HasAt loc1, HasAt loc2, Environment env, String arg0) {
-        super(arg0);
-        where = loc1; where2 = loc2; within = env;
-
+        super(loc1,loc2,env,arg0);
     }
 
     public ProgramError(String arg0) {
         super(arg0);
-
     }
 
     public ProgramError(String arg0, Throwable arg1) {
         super(arg0, arg1);
-
     }
 
     public ProgramError(HasAt loc, Environment env, String arg0, Throwable arg1) {
-        super(arg0, arg1);
-        where = loc; within = env;
-
+        super(loc,env,arg0, arg1);
     }
 
     public ProgramError(Throwable arg0) {
         super(arg0);
-
     }
 
     public ProgramError(HasAt loc, String string, Throwable ex) {

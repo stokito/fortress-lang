@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -34,9 +35,9 @@ public abstract class FortressError extends RuntimeException {
      */
     private static final long serialVersionUID = 6117319678737763137L;
 
-    HasAt where;
-    HasAt where2;
-    Environment within;
+    private ArrayList<HasAt> where = new ArrayList<HasAt>();
+    private HasAt where2;
+    private Environment within;
 
     public static String errorMsg(Object... messages) {
         StringBuffer fullMessage = new StringBuffer();
@@ -52,40 +53,37 @@ public abstract class FortressError extends RuntimeException {
     }
 
     public FortressError setWhere(HasAt where) {
-        this.where = where;
+        /* The null test here is because the unit tests sometimes
+           fling around null location information. */
+        if (where!=null) this.where.add(where);
         return this;
     }
 
-    public FortressError setWhere2(HasAt where2) {
-        this.where2 = where2;
+    public FortressError setContext(HasAt where, Environment within) {
+        if (this.within != null) this.within = within;
+        setWhere(where);
         return this;
-        }
-
-    public FortressError setWithin(Environment within) {
-        this.within = within;
-        return this;
-        }
+    }
 
     public FortressError() {
         super();
-
     }
 
     public FortressError(HasAt loc, Environment env, String arg0) {
         super(arg0);
-        where = loc; within = env;
-
+        setWhere(loc);
+        within = env;
     }
 
     public FortressError(HasAt loc, String arg0) {
         super(arg0);
-        where = loc;
+        setWhere(loc);
 
     }
 
     public FortressError(HasAt loc1, HasAt loc2, Environment env, String arg0) {
         super(arg0);
-        where = loc1; where2 = loc2; within = env;
+        setWhere(loc1); where2 = loc2; within = env;
 
     }
 
@@ -101,7 +99,7 @@ public abstract class FortressError extends RuntimeException {
 
     public FortressError(HasAt loc, Environment env, String arg0, Throwable arg1) {
         super(arg0, arg1);
-        where = loc; within = env;
+        setWhere(loc); within = env;
 
     }
 
@@ -119,8 +117,30 @@ public abstract class FortressError extends RuntimeException {
      */
     @Override
     public String getMessage() {
-        return (where == null ? "" : ("\n"+where.at() + (where2 == null ? "" : (": and\n" + where2.at()) ) + ": ")) +
-        super.getMessage();
+        String msg = super.getMessage();
+        if (where.size() > 0) {
+            StringBuffer res = new StringBuffer();
+            res.append('\n');
+            res.append(where.get(0).at());
+            if (where2 != null) {
+                res.append(": and\n");
+                res.append(where2.at());
+            }
+            res.append(": ");
+            res.append(msg);
+            if (where.size() > 1) {
+                /* If additional location information was provided while
+                   unwinding from an error, print it. */
+                res.append("\nContext:");
+                for (HasAt loc : where) {
+                    res.append("\n\t");
+                    res.append(loc.at());
+                }
+            }
+            return res.toString();
+        } else {
+            return msg;
+        }
     }
 
     /* (non-Javadoc)
