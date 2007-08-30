@@ -1364,10 +1364,294 @@ as a comment and easily altered and reformatted as necessary."
       (goto-char old-point-position))))
 
 (defun batch-fortify ()
-    "Fortify the whole buffer and write to a filename in pwd, with extension .tex."
+    "Fortify the whole buffer and write to a filename in pwd, with
+extension .tex." 
     (mark-whole-buffer)
     (fortify 4)
-    (write-file (concat
-		 (file-name-sans-extension 
-		  (file-name-nondirectory (buffer-file-name)))
-		 ".tex")))
+    (write-as-tex-file))
+
+(defun fortex ()
+  "Fortify the whole buffer expect for stylized comments. Strip
+  stylized comments of leading comment characters. Write the result to
+  a file in the same location as the read file, but with extension 
+  .tex. Using this function, it is possible to write a legal Fortress
+  file with doc comments (possibly containing embedded LaTeX commands)
+  and produce a LaTeX file where all Fortress code is fortified and
+  all doc comments are written as LaTeX prose describing the code." 
+  (let ((more-lines t))
+    (goto-start-of-buffer)
+    (while more-lines
+       (cond ((at-start-of-doc-comment)
+	      (remove-doc-comment-chars)
+	      (setq more-lines (down-left-if-more-lines)))
+	     ((at-start-of-tests)
+	      (setq more-lines (omit-tests)))
+	     (t (fortify-next-code-block)
+		(setq more-lines (down-left-if-more-lines))))))
+  (write-as-tex-file))
+
+(defun foreg ()
+  "Fortify the region of the buffer delimited by special doc comments
+  '(** EXAMPLE **)' and '(** END EXAMPLE **)'. Remove all other text,
+  and save the result to a file at the same location as the read file,
+  but with extension .tex."
+  (let ((more-lines t))
+    (goto-start-of-buffer)
+    (while more-lines
+      (if (at-start-of-example) 
+	  (setq more-lines (fortify-example))
+	(setq more-lines (delete-line))))
+  (write-as-tex-file)))
+
+(defun remove-doc-comment-chars ()
+  "Removes beginning comment characters of the contiguous doc comment
+  starting at point. Once finished, point is at the very end of the
+  processed doc comment." 
+  (requires (at-start-of-doc-comment))
+
+  (let ((more-lines t))
+    (remove-start-of-doc-comment)
+    (while (and more-lines (at-middle-of-doc-comment))
+      (remove-middle-of-doc-comment)
+      (setq more-lines (down-left-if-more-lines)))
+    (if (at-end-of-doc-comment) 
+	(remove-end-of-doc-comment)
+      (signal-error "Missing end of doc comment"))))
+
+(defun fortify-next-code-block ()
+  "Finds and fortifies the contiguous block of Fortress code start at
+  point and ending at the next doc comment (or the end of the
+  file). Once finished, point is at the very end of the block of
+  code." 
+  (requires (not (at-start-of-doc-comment)))
+
+  (let ((more-lines t))
+    (push-mark)
+    (while (and more-lines 
+		(not (or (at-start-of-doc-comment)
+			 (at-start-of-tests))))
+      (setq more-lines (down-left-if-more-lines)))
+    (if (or (at-start-of-doc-comment)
+	    (at-start-of-tests))
+	(progn (forward-line -1)
+	       (end-of-line))
+      (end-of-line))
+    (fortify-if-not-whitespace)))
+
+(defun fortify-if-not-whitespace ()
+  "Checks that the region isn't empty before calling fortify."
+  (if (not (all-whitespacep (region-beginning) (region-end)))
+      (fortify 4)))
+
+(defun fortify-example ()
+  "Fortifies example code delimited by special doc comments 
+  '(** EXAMPLE **)' and '(** END EXAMPLE **)'."  
+  (requires (at-start-of-example))
+  
+  (delete-line)
+  (push-mark)
+  (let ((more-lines t))
+    (while (and more-lines (not (at-end-of-example)))
+      (setq more-lines (down-left-if-more-lines)))
+    (if (at-end-of-example)
+	(progn (fortify-if-not-whitespace)
+	       (delete-line))
+      (signal-error "Example must be terminated with '(* END EXAMPLE *)'."))))
+      
+(defun omit-tests ()
+  (requires (at-start-of-tests))
+
+  (let ((not-at-eof t))
+    (while (and not-at-eof
+		(not (at-end-of-tests)))
+      (setq not-at-eof (delete-line)))
+    (if (at-end-of-tests)
+	(delete-line)
+      (signal-error "Tests must be terminated with '(* END TESTS *)'"))))
+
+(defun remove-start-of-doc-comment ()
+  "Simple helper function that removes the leading whitespace and '('
+of a doc comment."  
+  (requires (at-start-of-doc-comment))
+
+  (beginning-of-line)
+  (delete-whitespace)
+  ;; Precondition assures that the next character is "("
+  (delete-char 1))
+
+(defun remove-middle-of-doc-comment ()
+  "Simple helper function that removes the leading asterisks and whitespace 
+of a line in the middle of a doc comment."
+  (requires (at-middle-of-doc-comment))
+
+  (beginning-of-line)
+  (delete-whitespace)
+  (delete-asterisks)
+  (delete-whitespace))
+
+(defun remove-end-of-doc-comment ()
+  "Simple helper function that removes the ending '**)' at the end of a 
+doc comment."
+  (requires (at-end-of-doc-comment))
+
+  (beginning-of-line)
+  (delete-whitespace)
+  ;; Precondition assures that the next three characters are "**)"
+  (delete-char 3)
+  ;; Ensure that no text occurs on line, after the end of the doc comment
+  (skip-leading-whitespace)
+  (if (not (eolp)) 
+      (signal-error "No extra text allowed on last line of a doc comment")))
+
+(defun at-start-of-example () (at-line "(* EXAMPLE *)"))
+(defun at-end-of-example () (at-line "(* END EXAMPLE *)"))
+
+(defun at-start-of-tests () (at-line "(* TESTS *)"))
+(defun at-end-of-tests () (at-line "(* END TESTS *)"))
+
+(defun at-line (line)
+    "Boolean function that determines whether point is at the
+beginning of an example, delimited by the doc comment '(** EXAMPLE **)'."
+    (beginning-of-line)
+    (skip-leading-whitespace)
+    (let ((left (point)))
+      (end-of-line)
+      (skip-preceding-whitespace)
+      (let* ((right (point))
+	     (candidate (buffer-substring left right)))
+	(beginning-of-line)
+	(equal candidate line))))
+
+(defun at-start-of-doc-comment ()
+  "Boolean function that determines whether point is at the beginning of a 
+doc comment."
+  (let ((result nil))
+    (beginning-of-line)
+    (skip-leading-whitespace)
+    (setq result (and (char-after (+ 2 (point)))
+		      (equal "(" (char-to-string (char-after (point))))
+		      (equal "*" (char-to-string (char-after (+ 1 (point)))))
+		      (equal "*" (char-to-string (char-after (+ 2 (point)))))))
+    (beginning-of-line)
+    result))
+
+(defun at-middle-of-doc-comment ()
+  "Boolean function that determines whether point is in the middle of a
+doc comment."
+  (let ((result nil))
+    (beginning-of-line)
+    (skip-leading-whitespace)
+
+    (setq result (and (char-after (point))
+		      (equal "*" (char-to-string (char-after (point))))
+		      (not (at-end-of-doc-comment))))
+    (beginning-of-line)
+    result))
+  
+(defun at-end-of-doc-comment ()
+  "Boolean function that determines whether point is at the en of a 
+doc comment."
+  (let ((result nil))
+    (beginning-of-line)
+    (skip-leading-whitespace)
+    
+    (setq result (and (char-after (+ 2 (point)))
+		      (equal "*" (char-to-string (char-after (point))))
+		      (equal "*" (char-to-string (char-after (+ 1 (point)))))
+		      (equal ")" (char-to-string (char-after (+ 2 (point)))))))
+    (beginning-of-line)
+    result))
+
+(defun delete-whitespace ()
+  "Simple helper function that deletes all whitespace immediately following 
+point."
+  (while (and (char-after (point))
+	      (whitespacep (char-to-string (char-after (point)))))
+    (delete-char 1)))
+  
+(defun skip-leading-whitespace ()
+  "Simple helper function that moves point to the next non-whitespace 
+character."
+  (while (and (char-after (point))
+	      (whitespacep (char-to-string (char-after (point)))))
+    (forward-char)))
+
+(defun skip-preceding-whitespace ()
+  "Simple helper function that moves point to the previous non-whitespace 
+character."
+  (while (and (char-before (point))
+	      (whitespacep (char-to-string (char-before (point)))))
+    (backward-char)))
+  
+
+(defun whitespacep (string)
+  (or (equal string " ")
+      (equal string "\t")))
+      
+(defun all-whitespacep (left right)
+  (let ((result t))
+    (while (< left right)
+      (setq result (and result 
+			(whitespacep (char-to-string
+				      (char-after (point))))))
+      (setq left (1+ left)))
+    result))
+
+(defun delete-asterisks ()
+  "Simple helper function that deletes a sequence of asterisks immediately 
+after point."
+  (while (and (char-after (point))
+	      (equal "*" (char-to-string (char-after (point)))))
+    (delete-char 1)))
+
+(defun delete-line ()
+  "Delete the current line and, if successful, return t. If current
+  line is the last line in the buffer (i.e., there is no newline
+  character at the end of it), delete its contents and return nil." 
+  (beginning-of-line)
+    (let ((left (point)))
+      (end-of-line)
+      (let ((right (point)))
+	(if (char-after right)
+	    ;; Delete the newline character immediately to the right
+	    ;; of the line.
+	    (progn (delete-region left (1+ right))
+		   t)
+	  (progn (delete-region left right)
+		 nil)))))
+
+(defun down-left-if-more-lines ()
+  "If there is a next line after point, moves point to the beginning of the 
+next line and returns true. Returns false otherwise."
+  (let ((result t))
+    (setq result (zerop (forward-line 1)))
+    (if result (beginning-of-line))
+    result))
+
+(defun goto-start-of-buffer ()
+  "Simple helper function that moves point to the start of the buffer."
+  (goto-char (point-min)))
+
+(defun write-as-tex-file ()
+  "Writes the current buffer to a new file with the same name and location, 
+but with suffix '.tex'."
+  (write-file (concat
+	       (file-name-sans-extension 
+		(file-name-nondirectory (buffer-file-name)))
+	       ".tex")))
+
+(defun requires (condition)
+  "Takes a condition and signals an error if the condition is false. 
+Intended to be used at the beginning of a function definition, 
+as a poor man's contract facility."
+  (if (not condition)
+      (signal-error "Precondition violated")))	      
+	     
+(defun signal-error (msg) 
+  "Signals an error, indicating the file name of the current buffer, 
+the line position of point, and the given message."
+  (error (concat (buffer-file-name) ": " msg)))
+
+
+
+

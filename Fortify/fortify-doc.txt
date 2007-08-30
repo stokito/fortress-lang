@@ -15,10 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-Okay, I think my little EMACS tool is now stable enough to try a beta release.
+This directory contains Emacs commands for converting Fortress code into LaTeX
+commands for the purposes of formatting.
 
-The main command is called "fortify", also bound to the key M-& (meta-ampersand).
-It formats a portion of the text in the buffer as Fortress code by inserting TeX
+The main command "fortify", also bound to the key M-& (meta-ampersand).
+formats a portion of the text in the buffer as Fortress code by inserting TeX
 commands and performing certain transformations, which include replacing all-caps
 identifiers with appropriate mathematical symbols.
 
@@ -330,8 +331,110 @@ words before point.  M-? makes it easy to switch to another buffer;
 each time it is typed in succession, a another buffer is pulled to
 the top of the buffer list and made current.
 
-You can also format an entire Fortress file at the command line by invoking the batch-fortify function:
+******************************************************************************
+   Batch Commands and Shell Scripts
+******************************************************************************
 
-emacs -batch YOUR-FORTRESS-FILE.fss -l ABSOLUTE-PATH-TO-FORTIFY-DIRECTORY/fortify.el -f batch-fortify
+batch-fortify
+-----------
+You can format an entire Fortress file at the command line by invoking
+the batch-fortify function: 
 
-The result is that a formatted file is created, with the same name and at the same location as the input file, but with extension .tex.
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f batch-fortify
+
+The result is that a formatted file is created, with the same name and
+at the same location as the input file, but with extension .tex.
+
+As a convenience, a bash script "fortify" is provided in
+FORTRESS_HOME/bin that executes this command on a given file.
+
+fortex
+-----
+You can also process a Fortress file containing "doc comments". A
+Fortress doc comment consists of a series of lines, where the first
+line begins with "(**", the last line consists of "**)" and lines in
+between begin with "*", with optional leading spaces and tabs at the
+beginning of each line. For example, the following function definition
+"factorial" is preceded by a doc comment:   
+
+(**
+ * Takes a non-negative integer n and returns n!
+ **)
+factorial(n) = 
+    if n = 0 then 1
+    else n factorial(n-1) end
+
+The fortex command also skips over "test" regions of a file, delimited
+with the following comment lines:
+
+(* TEST *)
+(* END TEST *)
+
+For example, the following code is a test region:
+
+(* TESTS *)
+run(args) = do
+    assertEquals(1, factorial(0))
+    assertEquals(1, factorial(1))
+    assertEquals(120, factorial(5))
+end
+(* END TESTS *)
+
+The idea is to allow users to provide test code in a file to check
+that it behaves as expected, without publishing tests in the fortified
+version of the file.
+
+Using function 'fortex', it is possible to write a legal Fortress file
+with doc comments (possibly containing embedded LaTeX commands) and
+produce a LaTeX file where all Fortress code is fortified and all doc
+comments are written as LaTeX prose describing the code. Again, a
+formatted file is created  with the same name and location as the
+input file, but with extension .tex.
+
+This command can be called as follows:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f fortex
+
+As with batch-fortify, a convenience script 'fortex' is provided in
+FORTRESS_HOME/bin.
+
+foreg
+-----
+It is often useful to fortify an example that is not itself a
+complete program. In such cases, it's still helpful if an enclosing
+program can be provided to check that the example is valid. For this
+purpose, the function 'foreg' is provided. This command deletes all
+lines in a file except those lines surrounded by "example"
+delimiters:
+
+(* EXAMPLE *)
+(* END EXAMPLE *)
+
+Lines in between (but not including) example delimiters are
+fortified. The result is stored in a file with the same name and
+location as the input file, but with suffix '.tex'. For example, the
+following file:
+
+----
+component tmp
+export Executable
+
+(* EXAMPLE *)
+    run(args) = ()
+(* END EXAMPLE *)
+
+end
+----
+is converted as follows:
+----
+\begin{Fortress}
+{\tt~~~~}\pushtabs\=\+\(    \VAR{run}(\VAR{args}) = ()\)\-\\\poptabs
+\end{Fortress}
+----
+This command can be called as follows:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f foreg
+
+A convenience script 'foreg' for this command is provided in
+FORTRESS_HOME/bin. 
+
