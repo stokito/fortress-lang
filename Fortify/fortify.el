@@ -1501,7 +1501,12 @@ doc comment."
   ;; Ensure that no text occurs on line, after the end of the doc comment
   (skip-leading-whitespace)
   (if (not (eolp)) 
-      (signal-error "No extra text allowed on last line of a doc comment")))
+      (signal-error "No extra text allowed on last line of a doc
+  comment"))
+  (delete-line)
+  ;; There must be at least one line above us (i.e., the former start
+  ;; of the doc comment)
+  (forward-line -1))
 
 (defun at-start-of-example () (at-line "(* EXAMPLE *)"))
 (defun at-end-of-example () (at-line "(* END EXAMPLE *)"))
