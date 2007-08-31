@@ -15,22 +15,24 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TestPrim
-import * from TestNative
+component nativeArrayTest
+import * from NativeArray
 export Executable
 
-object o
-  x:String = "a string"
-  y:String = "another string"
-  bar(s:String, self):String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.Bar")
-  foo(s:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.Foo")
-end
-
 run(args:String...):() = do
-    assert("This is a string",bar("This is ", o),"bar")
-    assert("This is another string", o.foo("This is "),"foo")
-    assert("PASS! PASS! PASS! PASS!",TNFoo[\2\]("PASS!").bar(),"TNFoo[\\2\\]")
-    assert("PASS! PASS!",TNFoo[\1\]("PASS!").bar(),"TNFoo[\\1\\]")
-  end
+  z:Array1[\String, 4, 3\] = PrimitiveVector[\String, 4, 3\]()
+  z[4]:="cat"
+  z[5]:="dog"
+  z[6]:="bat"
+  assert(z[4],"cat","z[4]")
+  assert(z[5],"dog","z[5]")
+  assert(z[6],"bat","z[6]")
+  println( z[4] " " z[5] " " z[6] )
+  assert(z.get(1),"dog","z.get(1)")
+  println( z.get(1) )
+  assert(z.rank(),1,"z.rank()")
+  println( z.rank() )
+  println(z)
+end
 
 end

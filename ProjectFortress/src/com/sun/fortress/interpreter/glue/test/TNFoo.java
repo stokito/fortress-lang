@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.glue.NativeMeth;
+import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.GenericWithParams;
@@ -42,7 +42,7 @@ public class TNFoo extends Constructor {
         return new Obj(selfType, lex_env, self_env);
     }
 
-    static class Obj extends FObject {
+    private static final class Obj extends FObject {
         public Obj(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
             // might like to discard envs to perhaps save space,
             // but need self_dot_env for method invocation lookup
@@ -63,13 +63,8 @@ public class TNFoo extends Constructor {
 
     }
 
-    public static class bar extends NativeMeth {
-        public int getArity() {
-            // Glitch -- the arity must match the SYNTACTIC arity of the method.
-            return 0;
-        }
-
-        public FValue applyMethod(List<FValue> args, FObject selfValue) {
+    public static final class bar extends NativeMeth0 {
+        protected FValue act(FObject selfValue) {
             Obj tnf = (Obj) selfValue;
             return tnf.theString;
         }

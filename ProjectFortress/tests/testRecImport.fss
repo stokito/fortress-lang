@@ -15,22 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TestPrim
-import * from TestNative
+component testRecImport
+import * from RecA
+import * from RecB
 export Executable
 
-object o
-  x:String = "a string"
-  y:String = "another string"
-  bar(s:String, self):String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.Bar")
-  foo(s:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.Foo")
-end
-
 run(args:String...):() = do
-    assert("This is a string",bar("This is ", o),"bar")
-    assert("This is another string", o.foo("This is "),"foo")
-    assert("PASS! PASS! PASS! PASS!",TNFoo[\2\]("PASS!").bar(),"TNFoo[\\2\\]")
-    assert("PASS! PASS!",TNFoo[\1\]("PASS!").bar(),"TNFoo[\\1\\]")
+    assert(even(0),"even(0)")
+    assert(NOT odd(0),"odd(0)")
+    assert(NOT even(5),"even(5)")
+    assert(odd(5),"odd(5)")
+    assert(even(-8),"even(-8)")
+    assert(NOT odd(-8),"odd(-8)")
   end
 
 end
