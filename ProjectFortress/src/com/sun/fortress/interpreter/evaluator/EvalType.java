@@ -310,7 +310,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         env = _env;
     }
 
-    public FType forBaseOprStaticArg(BaseOprStaticArg b) {
+    public FType forOprArg(OprArg b) {
         return new FTypeOpr(NodeUtil.nameString(b.getName()));
     }
 
@@ -320,7 +320,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeRest.make(rt.getType().accept(this));
     }
 
-    public FType forBaseBoolStaticArg(BaseBoolStaticArg b) {
+    public FType forBoolArg(BoolArg b) {
+        return b.getBool().accept(this);
+    }
+
+    public FType forBoolConstant(BoolConstant b) {
         if (b.isBool()) return new Bool("true", FBool.TRUE);
         else return new Bool("false", FBool.FALSE);
     }
@@ -351,8 +355,13 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatStaticArg(com.sun.fortress.interpreter.nodes.BaseNatStaticArg)
      */
     @Override
-    public FType forBaseNatStaticArg(BaseNatStaticArg x) {
-        return IntNat.make(x.getValue());
+    public FType forIntArg(IntArg x) {
+        IntExpr i = x.getVal();
+        if (i instanceof NumberConstraint) {
+            return IntNat.make(((NumberConstraint)i).getVal().getVal().intValue());
+        } else {
+            throw new ProgramError(x, "IntArg");
+        }
     }
 
     /* (non-Javadoc)

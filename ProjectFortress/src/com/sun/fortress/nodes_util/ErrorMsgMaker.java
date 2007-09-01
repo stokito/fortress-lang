@@ -67,8 +67,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                    "");
     }
 
-    public String forBaseNatStaticArg(BaseNatStaticArg node) {
-        return "" + node.getValue();
+    public String forNumberConstraint(NumberConstraint node) {
+        return "" + node.getVal().toString();
     }
 
     public String forBoolParam(BoolParam node) {
@@ -87,7 +87,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forId(Id node) {
         return node.getText();
     }
-    
+
     public String forOp(Op node) {
         return node.getText();
     }
@@ -119,7 +119,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forNatParam(NatParam node) {
         return "nat " + NodeUtil.nameString(node.getName());
     }
-    
+
     public String forName(Name n) {
         return NodeUtil.nameString(n);
     }

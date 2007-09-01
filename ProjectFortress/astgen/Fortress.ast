@@ -1130,18 +1130,36 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract StaticArg();
             /**
+             * identifier used as static argument
+             * StaticArg ::= QualifiedIdName
+             * e.g.) m
+             */
+            IdArg(QualifiedIdName name);
+            /**
+             * type used as static argument
+             * StaticArg ::= Type
+             * e.g.) List[\ZZ64\]
+             */
+            TypeArg(Type type);
+            /**
+             * boolean used as static argument
+             * StaticArg ::= BoolExpr
+             * e.g.) ninf OR pinf
+             */
+            BoolArg(BoolExpr bool);
+            /**
              * number used as static argument
              * StaticArg ::= Number
              * Number ::= IntLiteral
              * e.g.) 5
              */
-            BaseNatStaticArg(int value);
+            IntArg(IntExpr val);
             /**
              * operator used as static argument
              * StaticArg ::= Op
              * e.g.) +
              */
-            BaseOprStaticArg(FnName name);
+            OprArg(FnName name);
             /**
              * dimension representing dimensionless
              * StaticArg ::= Unity
@@ -1154,40 +1172,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) dimensionless
              */
             BaseUnitStaticArg();
-            /**
-             * boolean used as static argument
-             */
-            abstract BoolStaticArg();
-                /**
-                 * boolean constant
-                 * StaticArg ::= true | false
-                 * e.g.) true
-                 */
-                BaseBoolStaticArg(boolean bool);
-                /**
-                 * boolean negation
-                 * StaticArg ::= NOT StaticArg
-                 * e.g.) NOT ninf
-                 */
-                NotStaticArg(StaticArg val);
-                /**
-                 * boolean disjunction
-                 * StaticArg ::= StaticArg OR StaticArg
-                 * e.g.) ninf OR pinf
-                 */
-                OrStaticArg(StaticArg left, StaticArg right);
-                /**
-                 * boolean conjunction
-                 * StaticArg ::= StaticArg AND StaticArg
-                 * e.g.) ninf AND pinf
-                 */
-                AndStaticArg(StaticArg left, StaticArg right);
-                /**
-                 * boolean implication
-                 * StaticArg ::= StaticArg IMPLIES StaticArg
-                 * e.g.) gt AND eq IMPLIES ge
-                 */
-                ImpliesStaticArg(StaticArg left, StaticArg right);
             /**
              * static argument with operation
              */
@@ -1243,12 +1227,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) a = b
                  */
                 EqualsStaticArg(StaticArg left, StaticArg right);
-            /**
-             * type as static argument
-             * StaticArg ::= Type
-             * e.g.) List[\ZZ64\]
-             */
-            TypeArg(Type type);
     /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where { WhereClauseList }
@@ -1363,119 +1341,118 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             IEConstraint(IntExpr left, IntExpr right);
         /**
-         * boolean constraint used in where clauses
+         * boolean constraint declared in where clauses
          * WhereClause ::= BoolConstraint
-         */
-        abstract BoolConstraint();
-            /**
-             * boolean NOT constraint declared in where clauses
-             * BoolConstraint ::= NOT BoolExpr
-             * e.g.) NOT ninf
-             */
-            NotConstraint(BoolExpr bool);
-            /**
-             * boolean OR constraint declared in where clauses
-             * BoolConstraint ::= BoolExpr OR BoolExpr
-             * e.g.) ninf OR pinf
-             */
-            OrConstraint(BoolExpr left, BoolExpr right);
-            /**
-             * boolean AND constraint declared in where clauses
-             * BoolConstraint ::= BoolExpr AND BoolExpr
-             * e.g.) ninf AND pinf
-             */
-            AndConstraint(BoolExpr left, BoolExpr right);
-            /**
-             * boolean IMPLIES constraint declared in where clauses
-             * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
-             * e.g.) ninf IMPLIES pinf
-             */
-            ImpliesConstraint(BoolExpr left, BoolExpr right);
-            /**
-             * boolean equality constraint declared in where clauses
-             * BoolConstraint ::= BoolExpr = BoolExpr
-             * e.g.) ninf AND pinf = true
-             */
-            BEConstraint(BoolExpr left, BoolExpr right);
-    /**
-     * integer expression used in where clauses
-     */
-    abstract IntExpr(boolean parenthesized = false);
-        /**
-         * integer value used in where clauses
-         * IntExpr ::= IntVal
-         */
-        abstract IntVal();
-            /**
-             * integer number used in where clauses
-             * IntVal ::= Number
-             * e.g.) 8
-             */
-            NumberConstraint(IntLiteral val);
-            /**
-             * integer identiier used in where clauses
-             * IntVal ::= QualifiedIdName
-             * e.g.) m
-             */
-            IntIdConstraint(QualifiedIdName name);
-        /**
-         * integer addition used in where clauses
-         * IntExpr ::= IntExpr + IntExpr
-         * e.g.) m + 2
-         */
-        SumConstraint(IntExpr left, IntExpr right);
-        /**
-         * integer subtraction used in where clauses
-         * IntExpr ::= IntExpr - IntExpr
-         * e.g.) m - 2
-         */
-        MinusConstraint(IntExpr left, IntExpr right);
-        /**
-         * integer multiplication used in where clauses
-         * IntExpr ::= IntExpr IntExpr
-         *           | IntExpr DOT IntExpr
-         * e.g.) m DOT n
-         */
-        ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
-        /**
-         * integer exponentiation used in where clauses
-         * IntExpr ::= IntExpr caret IntVal
-         * e.g.) 2^b
-         */
-        ExponentConstraint(IntExpr base, IntVal power);
-    /**
-     * boolean expression used in where clauses
-     */
-    abstract BoolExpr(boolean parenthesized = false);
-        /**
-         * boolean value used in where clauses
-         * BoolExpr ::= BoolVal
-         */
-        abstract BoolVal();
-            /**
-             * true used in where clauses
-             * BoolVal ::= true
-             * e.g.) true
-             */
-            TrueConstraint();
-            /**
-             * false used in where clauses
-             * BoolVal ::= false
-             * e.g.) false
-             */
-            FalseConstraint();
-            /**
-             * boolean identiier used in where clauses
-             * BoolVal ::= QualifiedIdName
-             * e.g.) ninf
-             */
-            BoolIdConstraint(QualifiedIdName name);
-        /**
-         * boolean constraint used in boolean expression in where clausess
-         * BoolExpr ::= BoolConstraint
-         * e.g.)
+         * e.g.) pinf AND ninf
          */
         BoolConstraintExpr(BoolConstraint constraint);
+    /**
+     * static expression
+     */
+    abstract StaticExpr(boolean parenthesized = false);
+        /**
+         * integer expression
+         */
+        abstract IntExpr();
+            /**
+             * integer value
+             * IntExpr ::= IntVal
+             */
+            abstract IntVal();
+                /**
+                 * integer number
+                 * IntVal ::= Number
+                 * e.g.) 8
+                 */
+                NumberConstraint(IntLiteral val);
+                /**
+                 * integer identiier
+                 * IntVal ::= QualifiedIdName
+                 * e.g.) m
+                 */
+                IntRef(QualifiedIdName name);
+            /**
+             * integer addition
+             * IntExpr ::= IntExpr + IntExpr
+             * e.g.) m + 2
+             */
+            SumConstraint(IntExpr left, IntExpr right);
+            /**
+             * integer subtraction
+             * IntExpr ::= IntExpr - IntExpr
+             * e.g.) m - 2
+             */
+            MinusConstraint(IntExpr left, IntExpr right);
+            /**
+             * integer multiplication
+             * IntExpr ::= IntExpr IntExpr
+             *           | IntExpr DOT IntExpr
+             * e.g.) m DOT n
+             */
+            ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
+            /**
+             * integer exponentiation
+             * IntExpr ::= IntExpr caret IntVal
+             * e.g.) 2^b
+             */
+            ExponentConstraint(IntExpr base, IntVal power);
+        /**
+         * boolean expression
+         * StaticExpr ::= BoolExpr
+         */
+        abstract BoolExpr();
+            /**
+             * boolean value
+             * BoolExpr ::= BoolVal
+             */
+            abstract BoolVal();
+                /**
+                 * boolean constant
+                 * BoolVal ::= true | false
+                 * e.g.) true
+                 */
+                BoolConstant(boolean bool);
+                /**
+                 * boolean identiier
+                 * BoolVal ::= QualifiedIdName
+                 * e.g.) ninf
+                 */
+                BoolRef(QualifiedIdName name);
+            /**
+             * boolean constraint
+             * BoolExpr ::= BoolConstraint
+             */
+            abstract BoolConstraint();
+                /**
+                 * boolean NOT constraint
+                 * BoolConstraint ::= NOT BoolExpr
+                 * e.g.) NOT ninf
+                 */
+                NotConstraint(BoolExpr bool);
+                /**
+                 * boolean OR constraint
+                 * BoolConstraint ::= BoolExpr OR BoolExpr
+                 * e.g.) ninf OR pinf
+                 */
+                OrConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean AND constraint
+                 * BoolConstraint ::= BoolExpr AND BoolExpr
+                 * e.g.) ninf AND pinf
+                 */
+                AndConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean IMPLIES constraint
+                 * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
+                 * e.g.) ninf IMPLIES pinf
+                 */
+                ImpliesConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean equality constraint
+                 * BoolConstraint ::= BoolExpr = BoolExpr
+                 * e.g.) ninf AND pinf = true
+                 */
+                BEConstraint(BoolExpr left, BoolExpr right);
     /**
      * contracts used in functional declarations and object declarations
      * Contract ::= Requires? Ensures? Invariant?

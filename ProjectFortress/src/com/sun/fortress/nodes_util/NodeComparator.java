@@ -279,9 +279,16 @@ public class NodeComparator {
         return 0;
     }
 
-    static int subtypeCompareTo(BaseNatStaticArg left, BaseNatStaticArg right) {
-        return left.getValue() - right.getValue();
+    static int subtypeCompareTo(IntArg left, IntArg right) {
+        return subtypeCompareTo(left.getVal(), left.getVal());
+    }
+
+    static int subtypeCompareTo(IntExpr left, IntExpr right) {
+        if (left instanceof NumberConstraint && right instanceof NumberConstraint)
+            return ((NumberConstraint)left).getVal().getVal().intValue() -
+                   ((NumberConstraint)right).getVal().getVal().intValue();
         /* nat types -- difference will not overflow */
+        else return 0;
     }
 
     static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
@@ -312,7 +319,7 @@ public class NodeComparator {
                                                right.getDimensions());
     }
 
-    static int subtypeCompareTo(BaseOprStaticArg left, BaseOprStaticArg right) {
+    static int subtypeCompareTo(OprArg left, OprArg right) {
         return compare(left.getName(), right.getName());
     }
 

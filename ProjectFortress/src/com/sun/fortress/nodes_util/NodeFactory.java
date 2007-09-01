@@ -86,17 +86,8 @@ public class NodeFactory {
         return new ArrowType(span, domain, range, throws_);
     }
 
-    public static BaseNatStaticArg makeBaseNatStaticArg(Span span,
-                                                        IntLiteral value) {
-        return new BaseNatStaticArg(span, value.getVal().intValue());
-    }
-
-    public static BaseOprStaticArg makeBaseOprStaticArg(Span span, Op op) {
-        return new BaseOprStaticArg(span, new Opr(span, op));
-    }
-
-    public static BoolConstraintExpr makeBoolConstraintExpr(BoolConstraint bc) {
-        return new BoolConstraintExpr(bc.getSpan(), bc);
+    public static OprArg makeOprArg(Span span, Op op) {
+        return new OprArg(span, new Opr(span, op));
     }
 
     public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
@@ -447,18 +438,30 @@ public class NodeFactory {
 
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
-            public BoolExpr forTrueConstraint(TrueConstraint b) {
-                return new TrueConstraint(b.getSpan(), true);
+            public BoolExpr forBoolConstant(BoolConstant b) {
+                return new BoolConstant(b.getSpan(), true, b.isBool());
             }
-            public BoolExpr forFalseConstraint(FalseConstraint b) {
-                return new FalseConstraint(b.getSpan(), true);
+            public BoolExpr forBoolRef(BoolRef b) {
+                return new BoolRef(b.getSpan(), true, b.getName());
             }
-            public BoolExpr forBoolIdConstraint(BoolIdConstraint b) {
-                return new BoolIdConstraint(b.getSpan(), true, b.getName());
+            public BoolExpr forNotConstraint(NotConstraint b) {
+                return new NotConstraint(b.getSpan(), true, b.getBool());
             }
-            public BoolExpr forBoolConstraintExpr(BoolConstraintExpr b) {
-                return new BoolConstraintExpr(b.getSpan(), true,
-                                              b.getConstraint());
+            public BoolExpr forOrConstraint(OrConstraint b) {
+                return new OrConstraint(b.getSpan(), true, b.getLeft(),
+                                        b.getRight());
+            }
+            public BoolExpr forAndConstraint(AndConstraint b) {
+                return new AndConstraint(b.getSpan(), true, b.getLeft(),
+                                         b.getRight());
+            }
+            public BoolExpr forImpliesConstraint(ImpliesConstraint b) {
+                return new ImpliesConstraint(b.getSpan(), true, b.getLeft(),
+                                             b.getRight());
+            }
+            public BoolExpr forBEConstraint(BEConstraint b) {
+                return new BEConstraint(b.getSpan(), true, b.getLeft(),
+                                        b.getRight());
             }
             public BoolExpr defaultCase(Node x) {
                 throw new InterpreterBug(x,
@@ -535,8 +538,8 @@ public class NodeFactory {
             public IntExpr forNumberConstraint(NumberConstraint i) {
                 return new NumberConstraint(i.getSpan(), true, i.getVal());
             }
-            public IntExpr forIntIdConstraint(IntIdConstraint i) {
-                return new IntIdConstraint(i.getSpan(), true, i.getName());
+            public IntExpr forIntRef(IntRef i) {
+                return new IntRef(i.getSpan(), true, i.getName());
             }
             public IntExpr forSumConstraint(SumConstraint i) {
                 return new SumConstraint(i.getSpan(), true, i.getLeft(),
@@ -565,35 +568,20 @@ public class NodeFactory {
 
     public static StaticArg makeInParentheses(StaticArg ty) {
         return ty.accept(new NodeAbstractVisitor<StaticArg>() {
-            public StaticArg forBaseNatStaticArg(BaseNatStaticArg t) {
-                return new BaseNatStaticArg(t.getSpan(), true, t.getValue());
+            public StaticArg forBoolArg(BoolArg t) {
+                return new BoolArg(t.getSpan(), true, t.getBool());
             }
-            public StaticArg forBaseOprStaticArg(BaseOprStaticArg t) {
-                return new BaseOprStaticArg(t.getSpan(), true, t.getName());
+            public StaticArg forIntArg(IntArg t) {
+                return new IntArg(t.getSpan(), true, t.getVal());
+            }
+            public StaticArg forOprArg(OprArg t) {
+                return new OprArg(t.getSpan(), true, t.getName());
             }
             public StaticArg forBaseDimStaticArg(BaseDimStaticArg t) {
                 return new BaseDimStaticArg(t.getSpan(), true);
             }
             public StaticArg forBaseUnitStaticArg(BaseUnitStaticArg t) {
                 return new BaseUnitStaticArg(t.getSpan(), true);
-            }
-            public StaticArg forBaseBoolStaticArg(BaseBoolStaticArg t) {
-                return new BaseBoolStaticArg(t.getSpan(), true, t.isBool());
-            }
-            public StaticArg forNotStaticArg(NotStaticArg t) {
-                return new NotStaticArg(t.getSpan(), true, t.getVal());
-            }
-            public StaticArg forOrStaticArg(OrStaticArg t) {
-                return new OrStaticArg(t.getSpan(), true, t.getLeft(),
-                                       t.getRight());
-            }
-            public StaticArg forAndStaticArg(AndStaticArg t) {
-                return new AndStaticArg(t.getSpan(), true, t.getLeft(),
-                                        t.getRight());
-            }
-            public StaticArg forImpliesStaticArg(ImpliesStaticArg t) {
-                return new ImpliesStaticArg(t.getSpan(), true, t.getLeft(),
-                                            t.getRight());
             }
             public StaticArg forSumStaticArg(SumStaticArg t) {
                 return new SumStaticArg(t.getSpan(), true, t.getLeft(),

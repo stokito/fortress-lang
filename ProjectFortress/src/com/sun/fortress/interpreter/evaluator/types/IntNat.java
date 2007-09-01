@@ -20,7 +20,9 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.BaseNatStaticArg;
+import com.sun.fortress.nodes.NumberConstraint;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntExpr;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.ABoundingMap;
@@ -129,9 +131,13 @@ public class IntNat extends FTypeNat {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);
-        if (val instanceof BaseNatStaticArg) {
-            BaseNatStaticArg n = (BaseNatStaticArg) val;
-            return (n.getValue() == this.getValue());
+        if (val instanceof IntArg) {
+            IntExpr n = ((IntArg)val).getVal();
+            if (n instanceof NumberConstraint) {
+                return (((NumberConstraint)n).getVal().getVal().intValue() == this.getValue());
+            } else {
+                return false;
+            }
         } else {
             return false;
         }

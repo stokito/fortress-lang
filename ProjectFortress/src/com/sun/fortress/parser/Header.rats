@@ -147,7 +147,8 @@ WhereClause WhereClause =
    / a1:QualifiedName w equals w a2:QualifiedName
      { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
    / IntConstraint
-   / BoolConstraint ;
+   / a1:BoolConstraint
+     { yyValue = new BoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
 
 /* IntConstraint ::=
      IntExpr w <= w IntExpr
@@ -176,7 +177,7 @@ IntVal IntVal =
      a1:Number
      { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:QualifiedName
-     { yyValue = new IntIdConstraint(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new IntRef(createSpan(yyStart,yyCount), a1); };
 
 /* IntExpr ::=
      IntVal
@@ -187,7 +188,7 @@ IntVal IntVal =
    | IntExpr ^ IntVal
    | ( w IntExpr w )
  */
-private IntExpr IntExpr =
+IntExpr IntExpr =
      seed:IntExprFront list:IntExprTail*
      { yyValue = (IntExpr)apply(list, seed); };
 
@@ -279,7 +280,7 @@ private constant inline Action<BoolConstraint> OrBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new OrConstraint(createSpan(yyStart,yyCount),
-                                       NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+                                       (BoolConstraint)base, a1);
            }};
      };
 
@@ -288,7 +289,7 @@ private constant inline Action<BoolConstraint> AndBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new AndConstraint(createSpan(yyStart,yyCount),
-                                        NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+                                        (BoolConstraint)base, a1);
            }};
      };
 
@@ -297,7 +298,7 @@ private constant inline Action<BoolConstraint> ImpliesBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new ImpliesConstraint(createSpan(yyStart,yyCount),
-                                            NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+                                            (BoolConstraint)base, a1);
            }};
      };
 
@@ -306,7 +307,7 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new BEConstraint(createSpan(yyStart,yyCount),
-                                       NodeFactory.makeBoolConstraintExpr((BoolConstraint)base), a1);
+                                       (BoolConstraint)base, a1);
            }};
      };
 
@@ -317,18 +318,18 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
  */
 private BoolVal BoolVal =
      a1:"true"
-     { yyValue = new TrueConstraint(createSpan(yyStart,yyCount)); }
+     { yyValue = new BoolConstant(createSpan(yyStart,yyCount), true); }
    / a1:"false"
-     { yyValue = new FalseConstraint(createSpan(yyStart,yyCount)); }
+     { yyValue = new BoolConstant(createSpan(yyStart,yyCount), false); }
    / a1:QualifiedName
-     { yyValue = new BoolIdConstraint(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new BoolRef(createSpan(yyStart,yyCount), a1); };
 
 /* BoolExpr ::=
      BoolVal
    | BoolConstraint
    | ( w BoolExpr w )
  */
-private BoolExpr BoolExpr =
+BoolExpr BoolExpr =
      seed:BoolExprFront list:BoolExprTail*
      { yyValue = (BoolExpr)apply(list, seed); };
 
@@ -338,7 +339,7 @@ private BoolExpr BoolExprFront =
      { yyValue = NodeFactory.makeInParentheses(a1); }
    / "NOT":op w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolConstraintExpr(span, new NotConstraint(span, a1));
+       yyValue = new NotConstraint(span, a1);
      };
 
 private constant transient Action<BoolExpr> BoolExprTail =
@@ -353,8 +354,7 @@ private constant inline Action<BoolExpr> OrBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new OrConstraint(span,
-                                                       (BoolExpr)base, a1));
+               return new OrConstraint(span, (BoolExpr)base, a1);
            }};
      };
 
@@ -363,8 +363,7 @@ private constant inline Action<BoolExpr> AndBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new AndConstraint(span,
-                                                   (BoolExpr)base, a1));
+               return new AndConstraint(span, (BoolExpr)base, a1);
            }};
      };
 
@@ -373,8 +372,7 @@ private constant inline Action<BoolExpr> ImpliesBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new ImpliesConstraint(span,
-                                                   (BoolExpr)base, a1));
+               return new ImpliesConstraint(span, (BoolExpr)base, a1);
            }};
      };
 
@@ -383,8 +381,7 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               return new BoolConstraintExpr(span, new BEConstraint(span,
-                                                   (BoolExpr)base, a1));
+               return new BEConstraint(span, (BoolExpr)base, a1);
            }};
      };
 

@@ -351,17 +351,18 @@ private StaticArg StaticArg =
      seed:StaticArgFront list:StaticArgTail*
      { yyValue = (StaticArg)apply(list, seed); }
    / a1:Type
-     { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); };
+     { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
+   / a1:BoolExpr
+     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
+   ;
 
 private StaticArg StaticArgFront =
      a1:Number
-     { yyValue = NodeFactory.makeBaseNatStaticArg(createSpan(yyStart,yyCount), a1); }
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new IntArg(span, new NumberConstraint(span, a1));
+     }
    / a1:Op
-     { yyValue = NodeFactory.makeBaseOprStaticArg(createSpan(yyStart,yyCount), a1); }
-   / "true"
-     { yyValue = new BaseBoolStaticArg(createSpan(yyStart,yyCount), true); }
-   / "false"
-     { yyValue = new BaseBoolStaticArg(createSpan(yyStart,yyCount), false); }
+     { yyValue = NodeFactory.makeOprArg(createSpan(yyStart,yyCount), a1); }
    / "Unity"
      { yyValue = new BaseDimStaticArg(createSpan(yyStart,yyCount)); }
    / "dimensionless"
@@ -370,13 +371,12 @@ private StaticArg StaticArgFront =
      { yyValue = new TypeArg(a1.getSpan(), new IdType(a1.getSpan(), a1)); }
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
-       StaticArg one = NodeFactory.makeBaseNatStaticArg(span, ExprFactory.makeIntLiteral(span, "1"));
+       IntLiteral il = ExprFactory.makeIntLiteral(span, "1");
+       StaticArg one = new IntArg(span, new NumberConstraint(span, il));
        yyValue = new QuotientStaticArg(createSpan(yyStart,yyCount), one, a1);
      }
    / a1:DUPreOp sr a2:StaticArg
      { yyValue = new DimensionStaticArg(createSpan(yyStart,yyCount), a2, a1); }
-   / "NOT":op w a1:StaticArg
-     { yyValue = new NotStaticArg(createSpan(yyStart,yyCount), a1); }
    / openparen w a1:StaticArg w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
@@ -388,9 +388,6 @@ private constant transient Action<StaticArg> StaticArgTail =
    / ExponentStaticArg
    / DimensionStaticArg
    / EqualsStaticArg
-   / OrStaticArg
-   / AndStaticArg
-   / ImpliesStaticArg
    / ProductStaticArg
    ;
 
@@ -463,33 +460,6 @@ private constant inline Action<StaticArg> EqualsStaticArg =
            public StaticArg run(StaticArg base) {
                return new EqualsStaticArg(createSpan(yyStart,yyCount),
                                           (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> OrStaticArg =
-     w "OR":op w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new OrStaticArg(createSpan(yyStart,yyCount),
-                                      (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> AndStaticArg =
-     w "AND":op w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new AndStaticArg(createSpan(yyStart,yyCount),
-                                       (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> ImpliesStaticArg =
-     w "IMPLIES":op w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new ImpliesStaticArg(createSpan(yyStart,yyCount),
-                                           (StaticArg)base, a1);
            }};
      };
 
