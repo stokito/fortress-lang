@@ -48,7 +48,7 @@ Type IsType = void:colon w Type ;
 
    TraitType ::=
      Type w [ (w ArraySize)? w ]
-   | Type ^ StaticArgFront
+   | Type ^ IntExpr
    | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
    | QualifiedName (w [\ w StaticArgList w \])?
 
@@ -94,11 +94,12 @@ private constant transient Action<Type> TypeTail =
                                                      a2.getThrows());
            }};
      }
-   / caret a1:StaticArgFront a2:ArrowTypeTail?
+   / caret a1:IntExpr a2:ArrowTypeTail?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               StaticArg arg = new IntArg(a1.getSpan(),a1);
                ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
-                                                Option.some(a1));
+                                                Option.some(arg));
                NonArrowType ty =
                    NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                               (Type)base, er);
@@ -164,7 +165,7 @@ private NonArrowType NonArrowType =
 
 /* TraitType ::=
      Type [ (w ArraySize)? w ]
-   | Type ^ StaticArgFront
+   | Type ^ IntExpr
    | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
    | QualifiedName (w [\ w StaticArgList w \])?
  */
@@ -174,9 +175,10 @@ TraitType TraitType =
        yyValue = NodeFactory.makeArrayType(createSpan(yyStart,yyCount), a1,
                                            indices);
      }
-   / a1:Type caret a2:StaticArgFront
-     { ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
-                                        Option.some(a2));
+   / a1:Type caret a2:IntExpr
+     { StaticArg arg = new IntArg(a2.getSpan(),a2);
+       ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
+                                        Option.some(arg));
        yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),a1,er);
      }
    / a1:Type caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
@@ -322,34 +324,35 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* StaticArg ::=
-     Number
-   | Op
-   | true
-   | false
-   | Unity
-   | dimensionless
-   | QualifiedName
-   | StaticArg w + w StaticArg
-   | StaticArg w - w StaticArg
-   | StaticArg w / w StaticArg
-   | 1 w / w StaticArg
-   | StaticArg ^ IntVal
-   | StaticArg w per w StaticArg
-   | DUPreOp sr StaticArg
-   | StaticArg w DUPostOp
-   | NOT w StaticArg
-   | StaticArg w OR w StaticArg
-   | StaticArg w AND w StaticArg
-   | StaticArg w IMPLIES w StaticArg
-   | StaticArg w = w StaticArg
-   | StaticArg w DOT w StaticArg
-   | StaticArg sr StaticArg
+     Op
    | ( StaticArg )
+   | IntExpr
+   | BoolExpr
    | Type
+   | DimExpr
+   | UnitExpr
  */
 private StaticArg StaticArg =
-     seed:StaticArgFront list:StaticArgTail*
-     { yyValue = (StaticArg)apply(list, seed); }
+     a1:Op
+     { yyValue = NodeFactory.makeOprArg(createSpan(yyStart,yyCount), a1); }
+   / "Unity"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new DimArg(span, new BaseDim(span));
+     }
+   / "dimensionless"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new UnitArg(span, new BaseUnit(span));
+     }
+   / one w slash w a1:DimExpr
+     { Span span = createSpan(yyStart,1);
+       yyValue = new DimArg(span, new QuotientDim(span, new BaseDim(createSpan(yyStart,1)), a1));
+     }
+   / a1:DUPreOp sr a2:DimExpr
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new DimArg(span, new OpDim(span, a2, a1));
+     }
+   / openparen w a1:StaticArg w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /
                       w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
@@ -359,90 +362,14 @@ private StaticArg StaticArg =
                       w opendoublesquare / w opensquare / w rightarrow))
      a1:BoolExpr
      { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
-   / a1:Type
+   / !(QualifiedName (w DOT / w slash / w per / w DUPostOp))
+     a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
+   / a1:DimExpr
+     { yyValue = new DimArg(createSpan(yyStart,yyCount), a1); }
+   / a1:UnitExpr
+     { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
    ;
-
-private StaticArg StaticArgFront =
-     a1:Op
-     { yyValue = NodeFactory.makeOprArg(createSpan(yyStart,yyCount), a1); }
-   / "Unity"
-     { yyValue = new BaseDimStaticArg(createSpan(yyStart,yyCount)); }
-   / "dimensionless"
-     { yyValue = new BaseUnitStaticArg(createSpan(yyStart,yyCount)); }
-   / one w slash w a1:StaticArg
-     { Span span = createSpan(yyStart,1);
-       IntLiteral il = ExprFactory.makeIntLiteral(span, "1");
-       StaticArg one = new IntArg(span, new NumberConstraint(span, il));
-       yyValue = new QuotientStaticArg(createSpan(yyStart,yyCount), one, a1);
-     }
-   / a1:DUPreOp sr a2:StaticArg
-     { yyValue = new DimensionStaticArg(createSpan(yyStart,yyCount), a2, a1); }
-   / openparen w a1:StaticArg w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); };
-
-private constant transient Action<StaticArg> StaticArgTail =
-     QuotientStaticArg
-   / ChangeStaticArg
-   / ExponentStaticArg
-   / DimensionStaticArg
-   / EqualsStaticArg
-   / ProductStaticArg
-   ;
-
-private constant inline Action<StaticArg> ProductStaticArg =
-     (w DOT w / sr) a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new ProductStaticArg(createSpan(yyStart,yyCount),
-                                           (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> QuotientStaticArg =
-     w (slash / per) w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new QuotientStaticArg(createSpan(yyStart,yyCount),
-                                            (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> ChangeStaticArg =
-     w in w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new ChangeStaticArg(createSpan(yyStart,yyCount),
-                                          (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> ExponentStaticArg =
-     caret a1:IntVal
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new ExponentStaticArg(createSpan(yyStart,yyCount),
-                                            (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> DimensionStaticArg =
-     w a1:DUPostOp
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new DimensionStaticArg(createSpan(yyStart,yyCount),
-                                             (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> EqualsStaticArg =
-     w equals w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new EqualsStaticArg(createSpan(yyStart,yyCount),
-                                          (StaticArg)base, a1);
-           }};
-     };
 
 /* DUPreOp ::= square | cubic | inverse */
 DimUnitOp DUPreOp =

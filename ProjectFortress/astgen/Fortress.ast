@@ -1142,17 +1142,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             TypeArg(Type type);
             /**
-             * boolean used as static argument
-             * StaticArg ::= BoolExpr
-             * e.g.) ninf OR pinf
-             */
-            BoolArg(BoolExpr bool);
-            /**
              * integer used as static argument
              * StaticArg ::= IntExpr
              * e.g.) m + n
              */
             IntArg(IntExpr val);
+            /**
+             * boolean used as static argument
+             * StaticArg ::= BoolExpr
+             * e.g.) ninf OR pinf
+             */
+            BoolArg(BoolExpr bool);
             /**
              * operator used as static argument
              * StaticArg ::= Op
@@ -1160,60 +1160,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             OprArg(FnName name);
             /**
-             * dimension representing dimensionless
-             * StaticArg ::= Unity
+             * dimension used as static argument
+             * StaticArg ::= DimExpr
              * e.g.) Unity
              */
-            BaseDimStaticArg();
+            DimArg(DimExpr dim);
             /**
-             * dimensionless unit
-             * StaticArg ::= dimensionless
+             * unit used as static argument
+             * StaticArg ::= UnitExpr
              * e.g.) dimensionless
              */
-            BaseUnitStaticArg();
-            /**
-             * static argument with operation
-             */
-            abstract CompoundStaticArg();
-                /**
-                 * multiplication of static arguments
-                 * StaticArg ::= StaticArg StaticArg
-                 * e.g.) a + m c < n
-                 */
-                ProductStaticArg(StaticArg multiplier, StaticArg multiplicand);
-                /**
-                 * division of static arguments
-                 * StaticArg ::= StaticArg / StaticArg
-                 *             | 1 / StaticArg
-                 *             | StaticArg per StaticArg
-                 * e.g.) kilograms per cubic meter
-                 */
-                QuotientStaticArg(StaticArg numerator, StaticArg denominator);
-                /**
-                 * change unit of static arguments
-                 * StaticArg ::= StaticArg in StaticArg
-                 * e.g.) m in nm
-                 */
-                ChangeStaticArg(StaticArg val, StaticArg unit);
-                /**
-                 * exponentiation of static arguments
-                 * StaticArg ::= StaticArg ^ IntVal
-                 * e.g.) Length ^ 3
-                 */
-                ExponentStaticArg(StaticArg base, IntVal power);
-                /**
-                 * static argument with dimension operation
-                 * StaticArg ::= DUPreOp StaticArg
-                 *             | StaticArg DUPostOp
-                 * e.g.) meters per second squared
-                 */
-                DimensionStaticArg(StaticArg val, DimUnitOp op);
-                /**
-                 * static argument equality
-                 * StaticArg ::= StaticArg = StaticArg
-                 * e.g.) a = b
-                 */
-                EqualsStaticArg(StaticArg left, StaticArg right);
+            UnitArg(UnitExpr unit);
     /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where { WhereClauseList }

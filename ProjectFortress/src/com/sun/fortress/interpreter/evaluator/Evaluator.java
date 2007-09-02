@@ -145,7 +145,7 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.DimUnitDecl;
-import com.sun.fortress.nodes.BaseDimStaticArg;
+import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
@@ -432,7 +432,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
      runner.setCurrentTask(currentTask);
-     
+
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
                     Throwable t = tasks[i].taskException();
@@ -938,7 +938,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             throw ex.setContext(op,e);
         }
     }
-    
+
     public FValue forQualifiedName(QualifiedName n) {
         if (n.getApi().isSome()) {
             return NI.nyi("Qualified name");
@@ -1307,8 +1307,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forTypeArg");
     }
 
-    public FValue forBaseDimStaticArg(BaseDimStaticArg x) {
-        return NI("forBaseDimStaticArg");
+    public FValue forDimArg(DimArg x) {
+        return NI("forDimArg");
     }
 
     public FValue forDimUnitDecl(DimUnitDecl x) {
@@ -1334,7 +1334,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forVarRef(VarRef x) {
         // debugPrint("forVarRef " + x);
         Iterable<Id> names = NodeUtil.getIds(x.getVar());
-        
+
         FValue res = e.getValueNull(IterUtil.first(names).getText());
         if (res == null)
             error(x, e, errorMsg("undefined variable ",

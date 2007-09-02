@@ -291,12 +291,6 @@ public class NodeComparator {
         else return 0;
     }
 
-    static int subtypeCompareTo(ExponentStaticArg left, ExponentStaticArg right) {
-        throw new InterpreterBug(left,
-                                 "subtypeCompareTo(" + left.getClass() + " " +
-                                 right.getClass() + ") is not implemented!");
-   }
-
     static int subtypeCompareTo(FixedDim left, FixedDim right) {
         return extentRangeListComparer
             .compare(left.getExtents(), right.getExtents());
@@ -340,12 +334,6 @@ public class NodeComparator {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(QuotientStaticArg left, QuotientStaticArg right) {
-        // TODO Don't I need to worry about reducing the fraction?
-        return compare(left.getNumerator(), right.getNumerator(),
-                       left.getDenominator(), right.getDenominator());
     }
 
     static int subtypeCompareTo(VarargsType left, VarargsType right) {

@@ -577,35 +577,11 @@ public class NodeFactory {
             public StaticArg forOprArg(OprArg t) {
                 return new OprArg(t.getSpan(), true, t.getName());
             }
-            public StaticArg forBaseDimStaticArg(BaseDimStaticArg t) {
-                return new BaseDimStaticArg(t.getSpan(), true);
+            public StaticArg forDimArg(DimArg t) {
+                return new DimArg(t.getSpan(), true, t.getDim());
             }
-            public StaticArg forBaseUnitStaticArg(BaseUnitStaticArg t) {
-                return new BaseUnitStaticArg(t.getSpan(), true);
-            }
-            public StaticArg forProductStaticArg(ProductStaticArg t) {
-                return new ProductStaticArg(t.getSpan(), true, t.getMultiplier(),
-                                            t.getMultiplicand());
-            }
-            public StaticArg forQuotientStaticArg(QuotientStaticArg t) {
-                return new QuotientStaticArg(t.getSpan(), true, t.getNumerator(),
-                                             t.getDenominator());
-            }
-            public StaticArg forChangeStaticArg(ChangeStaticArg t) {
-                return new ChangeStaticArg(t.getSpan(), true, t.getVal(),
-                                           t.getUnit());
-            }
-            public StaticArg forExponentStaticArg(ExponentStaticArg t) {
-                return new ExponentStaticArg(t.getSpan(), true, t.getBase(),
-                                             t.getPower());
-            }
-            public StaticArg forDimensionStaticArg(DimensionStaticArg t) {
-                return new DimensionStaticArg(t.getSpan(), true, t.getVal(),
-                                              t.getOp());
-            }
-            public StaticArg forEqualsStaticArg(EqualsStaticArg t) {
-                return new EqualsStaticArg(t.getSpan(), true, t.getLeft(),
-                                           t.getRight());
+            public StaticArg forUnitArg(UnitArg t) {
+                return new UnitArg(t.getSpan(), true, t.getUnit());
             }
             public StaticArg forTypeArg(TypeArg t) {
                 return new TypeArg(t.getSpan(), true, t.getType());

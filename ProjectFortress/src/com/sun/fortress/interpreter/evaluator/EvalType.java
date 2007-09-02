@@ -405,15 +405,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return super.forOperatorParam(x);
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forProductStaticArg(com.sun.fortress.interpreter.nodes.ProductStaticArg)
-     */
-    @Override
-    public FType forProductStaticArg(ProductStaticArg x) {
-        return IntNat.make(longify(x.getMultiplier()) *
-                           longify(x.getMultiplicand()));
-        }
-
     private long nonEmpty(List<? extends Type> value) {
         if (value.size() == 0)
             error("Empty operands to nat arithmetic");
