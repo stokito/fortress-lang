@@ -352,16 +352,48 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forBaseNatStaticArg(com.sun.fortress.interpreter.nodes.BaseNatStaticArg)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIntArg(com.sun.fortress.interpreter.nodes.IntArg)
      */
     @Override
     public FType forIntArg(IntArg x) {
         IntExpr i = x.getVal();
-        if (i instanceof NumberConstraint) {
-            return IntNat.make(((NumberConstraint)i).getVal().getVal().intValue());
-        } else {
-            throw new ProgramError(x, "IntArg");
-        }
+        return i.accept(new NodeAbstractVisitor<FType>() {
+            private long longify(IntExpr ie) {
+                FType t = ie.accept(this);
+                if (!(t instanceof IntNat)) {
+                    error(ie, errorMsg("IntExpr ", ie, " evaluated to ", t,
+                                       " (instead of IntNat)"));
+                }
+                return ((IntNat)t).getValue();
+            }
+            public FType forNumberConstraint(NumberConstraint n) {
+                return IntNat.make(n.getVal().getVal().intValue());
+            }
+            public FType forIntRef(IntRef n) {
+                QualifiedIdName q = n.getName();
+                try {
+                    FType result = env.getType(q);
+                    return result;
+                } catch (FortressError p) {
+                    throw p.setContext(q, env);
+                }
+            }
+            public FType forSumConstraint(SumConstraint n) {
+                return IntNat.make(longify(n.getLeft()) + longify(n.getRight()));
+            }
+            public FType forMinusConstraint(MinusConstraint n) {
+                return IntNat.make(longify(n.getLeft()) - longify(n.getRight()));
+            }
+            public FType forProductConstraint(ProductConstraint n) {
+                return IntNat.make(longify(n.getMultiplier()) *
+                                   longify(n.getMultiplicand()));
+            }
+            public FType defaultCase(Node x) {
+                throw new InterpreterBug(x,
+                                         "EvalType: " + x.getClass() +
+                                         " is not a subtype of IntExpr.");
+            }
+        });
     }
 
     /* (non-Javadoc)
@@ -396,22 +428,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                            " (instead of IntNat)"));
         }
         return ((IntNat) t).getValue();
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSumStaticArg(com.sun.fortress.interpreter.nodes.SumStaticArg)
-     */
-    @Override
-    public FType forSumStaticArg(SumStaticArg x) {
-        return IntNat.make(longify(x.getLeft()) + longify(x.getRight()));
-        }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forMinusStaticArg(com.sun.fortress.interpreter.nodes.MinusStaticArg)
-     */
-    @Override
-    public FType forMinusStaticArg(MinusStaticArg x) {
-        return IntNat.make(longify(x.getLeft()) - longify(x.getRight()));
     }
 
     /* (non-Javadoc)

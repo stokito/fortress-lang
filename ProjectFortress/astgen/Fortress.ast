@@ -1148,10 +1148,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             BoolArg(BoolExpr bool);
             /**
-             * number used as static argument
-             * StaticArg ::= Number
-             * Number ::= IntLiteral
-             * e.g.) 5
+             * integer used as static argument
+             * StaticArg ::= IntExpr
+             * e.g.) m + n
              */
             IntArg(IntExpr val);
             /**
@@ -1176,18 +1175,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * static argument with operation
              */
             abstract CompoundStaticArg();
-                /**
-                 * summation of static arguments
-                 * StaticArg ::= StaticArg + StaticArg
-                 * e.g.) len + 2
-                 */
-                SumStaticArg(StaticArg left, StaticArg right);
-                /**
-                 * subtraction of static arguments
-                 * StaticArg ::= StaticArg - StaticArg
-                 * e.g.) len - 2
-                 */
-                MinusStaticArg(StaticArg left, StaticArg right);
                 /**
                  * multiplication of static arguments
                  * StaticArg ::= StaticArg StaticArg

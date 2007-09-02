@@ -350,25 +350,26 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
 private StaticArg StaticArg =
      seed:StaticArgFront list:StaticArgTail*
      { yyValue = (StaticArg)apply(list, seed); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
+     a1:IntExpr
+     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow))
+     a1:BoolExpr
+     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
    / a1:Type
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
-   / a1:BoolExpr
-     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
    ;
 
 private StaticArg StaticArgFront =
-     a1:Number
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new IntArg(span, new NumberConstraint(span, a1));
-     }
-   / a1:Op
+     a1:Op
      { yyValue = NodeFactory.makeOprArg(createSpan(yyStart,yyCount), a1); }
    / "Unity"
      { yyValue = new BaseDimStaticArg(createSpan(yyStart,yyCount)); }
    / "dimensionless"
      { yyValue = new BaseUnitStaticArg(createSpan(yyStart,yyCount)); }
-   / a1:QualifiedName !(w opendoublesquare / rightarrow / caret / w match)
-     { yyValue = new TypeArg(a1.getSpan(), new IdType(a1.getSpan(), a1)); }
    / one w slash w a1:StaticArg
      { Span span = createSpan(yyStart,1);
        IntLiteral il = ExprFactory.makeIntLiteral(span, "1");
@@ -381,33 +382,13 @@ private StaticArg StaticArgFront =
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
 private constant transient Action<StaticArg> StaticArgTail =
-     SumStaticArg
-   / MinusStaticArg
-   / QuotientStaticArg
+     QuotientStaticArg
    / ChangeStaticArg
    / ExponentStaticArg
    / DimensionStaticArg
    / EqualsStaticArg
    / ProductStaticArg
    ;
-
-private constant inline Action<StaticArg> SumStaticArg =
-     w plus w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new SumStaticArg(createSpan(yyStart,yyCount),
-                                       (StaticArg)base, a1);
-           }};
-     };
-
-private constant inline Action<StaticArg> MinusStaticArg =
-     w minus w a1:StaticArg
-     { yyValue = new Action<StaticArg>() {
-           public StaticArg run(StaticArg base) {
-               return new MinusStaticArg(createSpan(yyStart,yyCount),
-                                         (StaticArg)base, a1);
-           }};
-     };
 
 private constant inline Action<StaticArg> ProductStaticArg =
      (w DOT w / sr) a1:StaticArg

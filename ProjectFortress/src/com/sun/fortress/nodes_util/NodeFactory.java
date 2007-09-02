@@ -583,14 +583,6 @@ public class NodeFactory {
             public StaticArg forBaseUnitStaticArg(BaseUnitStaticArg t) {
                 return new BaseUnitStaticArg(t.getSpan(), true);
             }
-            public StaticArg forSumStaticArg(SumStaticArg t) {
-                return new SumStaticArg(t.getSpan(), true, t.getLeft(),
-                                        t.getRight());
-            }
-            public StaticArg forMinusStaticArg(MinusStaticArg t) {
-                return new MinusStaticArg(t.getSpan(), true, t.getLeft(),
-                                          t.getRight());
-            }
             public StaticArg forProductStaticArg(ProductStaticArg t) {
                 return new ProductStaticArg(t.getSpan(), true, t.getMultiplier(),
                                             t.getMultiplicand());
