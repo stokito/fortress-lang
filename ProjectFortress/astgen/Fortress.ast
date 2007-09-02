@@ -435,44 +435,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Option<ExprOrUnitExpr> def)
                implements Decl, AbsDecl;
     /**
-     * dimension expression
-     */
-    abstract DimExpr(boolean parenthesized = false);
-        /* base dimension
-         * DimExpr ::= Unity
-         * e.g.) Unity
-         */
-        BaseDim();
-        /* dimension identifier
-         * DimExpr ::= QualifiedIdName
-         * e.g.) com.sun.fortress.dim.Length
-         */
-        DimRef(QualifiedIdName name);
-        /* dimension multiplication
-         * DimExpr ::= DimExpr DOT DimExpr
-         *           | DimExpr DimExpr
-         * e.g.) Length Mass
-         */
-        ProductDim(DimExpr multiplier, DimExpr multiplicand);
-        /* dimension division
-         * DimExpr ::= DimExpr / DimExpr
-         *           | DimExpr per DimExpr
-         *           | 1 / DimExpr
-         * e.g.) Length / Time
-         */
-        QuotientDim(DimExpr numerator, DimExpr denominator);
-        /* dimension exponentiation
-         * DimExpr ::= DimExpr ^ IntLiteral
-         * e.g.) Time^2
-         */
-        ExponentDim(DimExpr base, IntLiteral power);
-        /* dimension with operator
-         * DimExpr ::= DUPreOp DimExpr
-         *           | DimExpr DUPostOp
-         * e.g.) Time squared
-         */
-        OpDim(DimExpr val, DimUnitOp op);
-    /**
      * test declaration
      * TestDecl ::= test Id [GeneratorList] = Expr
      * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
@@ -1008,44 +970,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         ListComprehension(Expr element);
     /**
-     * unit expression
-     */
-    abstract UnitExpr(boolean parenthesized = false) implements ExprOrUnitExpr;
-        /* base unit
-         * UnitExpr ::= dimensionless
-         * e.g.) dimensionless
-         */
-        BaseUnit();
-        /* unit identifier
-         * UnitExpr ::= QualifiedIdName
-         * e.g.) com.sun.fortress.dim.Length
-         */
-        UnitRef(QualifiedIdName name);
-        /* unit multiplication
-         * UnitExpr ::= UnitExpr DOT UnitExpr
-         *            | UnitExpr UnitExpr
-         * e.g.) Length Mass
-         */
-        ProductUnit(UnitExpr multiplier, UnitExpr multiplicand);
-        /* unit division
-         * UnitExpr ::= UnitExpr / UnitExpr
-         *            | UnitExpr per UnitExpr
-         *            | 1 / UnitExpr
-         * e.g.) Length / Time
-         */
-        QuotientUnit(UnitExpr numerator, UnitExpr denominator);
-        /* unit exponentiation
-         * UnitExpr ::= UnitExpr ^ IntLiteral
-         * e.g.) Time^2
-         */
-        ExponentUnit(UnitExpr base, IntLiteral power);
-        /* unit with operator
-         * UnitExpr ::= DUPreOp UnitExpr
-         *            | UnitExpr DUPostOp
-         * e.g.) Time squared
-         */
-        OpUnit(UnitExpr val, DimUnitOp op);
-    /**
      * type
      * Type ::= ArrowType
      *        | NonArrowType
@@ -1172,6 +1096,189 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             UnitArg(UnitExpr unit);
     /**
+     * static expression
+     */
+    abstract StaticExpr(boolean parenthesized = false);
+        /**
+         * integer expression
+         */
+        abstract IntExpr();
+            /**
+             * integer value
+             * IntExpr ::= IntVal
+             */
+            abstract IntVal();
+                /**
+                 * integer number
+                 * IntVal ::= Number
+                 * e.g.) 8
+                 */
+                NumberConstraint(IntLiteral val);
+                /**
+                 * integer identiier
+                 * IntVal ::= QualifiedIdName
+                 * e.g.) m
+                 */
+                IntRef(QualifiedIdName name);
+            /**
+             * integer addition
+             * IntExpr ::= IntExpr + IntExpr
+             * e.g.) m + 2
+             */
+            SumConstraint(IntExpr left, IntExpr right);
+            /**
+             * integer subtraction
+             * IntExpr ::= IntExpr - IntExpr
+             * e.g.) m - 2
+             */
+            MinusConstraint(IntExpr left, IntExpr right);
+            /**
+             * integer multiplication
+             * IntExpr ::= IntExpr IntExpr
+             *           | IntExpr DOT IntExpr
+             * e.g.) m DOT n
+             */
+            ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
+            /**
+             * integer exponentiation
+             * IntExpr ::= IntExpr caret IntVal
+             * e.g.) 2^b
+             */
+            ExponentConstraint(IntExpr base, IntVal power);
+        /**
+         * boolean expression
+         * StaticExpr ::= BoolExpr
+         */
+        abstract BoolExpr();
+            /**
+             * boolean value
+             * BoolExpr ::= BoolVal
+             */
+            abstract BoolVal();
+                /**
+                 * boolean constant
+                 * BoolVal ::= true | false
+                 * e.g.) true
+                 */
+                BoolConstant(boolean bool);
+                /**
+                 * boolean identiier
+                 * BoolVal ::= QualifiedIdName
+                 * e.g.) ninf
+                 */
+                BoolRef(QualifiedIdName name);
+            /**
+             * boolean constraint
+             * BoolExpr ::= BoolConstraint
+             */
+            abstract BoolConstraint();
+                /**
+                 * boolean NOT constraint
+                 * BoolConstraint ::= NOT BoolExpr
+                 * e.g.) NOT ninf
+                 */
+                NotConstraint(BoolExpr bool);
+                /**
+                 * boolean OR constraint
+                 * BoolConstraint ::= BoolExpr OR BoolExpr
+                 * e.g.) ninf OR pinf
+                 */
+                OrConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean AND constraint
+                 * BoolConstraint ::= BoolExpr AND BoolExpr
+                 * e.g.) ninf AND pinf
+                 */
+                AndConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean IMPLIES constraint
+                 * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
+                 * e.g.) ninf IMPLIES pinf
+                 */
+                ImpliesConstraint(BoolExpr left, BoolExpr right);
+                /**
+                 * boolean equality constraint
+                 * BoolConstraint ::= BoolExpr = BoolExpr
+                 * e.g.) ninf AND pinf = true
+                 */
+                BEConstraint(BoolExpr left, BoolExpr right);
+        /**
+         * dimension expression
+         */
+        abstract DimExpr();
+            /* base dimension
+             * DimExpr ::= Unity
+             * e.g.) Unity
+             */
+            BaseDim();
+            /* dimension identifier
+             * DimExpr ::= QualifiedIdName
+             * e.g.) com.sun.fortress.dim.Length
+             */
+            DimRef(QualifiedIdName name);
+            /* dimension multiplication
+             * DimExpr ::= DimExpr DOT DimExpr
+             *           | DimExpr DimExpr
+             * e.g.) Length Mass
+             */
+            ProductDim(DimExpr multiplier, DimExpr multiplicand);
+            /* dimension division
+             * DimExpr ::= DimExpr / DimExpr
+             *           | DimExpr per DimExpr
+             *           | 1 / DimExpr
+             * e.g.) Length / Time
+             */
+            QuotientDim(DimExpr numerator, DimExpr denominator);
+            /* dimension exponentiation
+             * DimExpr ::= DimExpr ^ IntLiteral
+             * e.g.) Time^2
+             */
+            ExponentDim(DimExpr base, IntLiteral power);
+            /* dimension with operator
+             * DimExpr ::= DUPreOp DimExpr
+             *           | DimExpr DUPostOp
+             * e.g.) Time squared
+             */
+            OpDim(DimExpr val, DimUnitOp op);
+        /**
+         * unit expression
+         */
+        abstract UnitExpr() implements ExprOrUnitExpr;
+            /* base unit
+             * UnitExpr ::= dimensionless
+             * e.g.) dimensionless
+             */
+            BaseUnit();
+            /* unit identifier
+             * UnitExpr ::= QualifiedIdName
+             * e.g.) com.sun.fortress.dim.Length
+             */
+            UnitRef(QualifiedIdName name);
+            /* unit multiplication
+             * UnitExpr ::= UnitExpr DOT UnitExpr
+             *            | UnitExpr UnitExpr
+             * e.g.) Length Mass
+             */
+            ProductUnit(UnitExpr multiplier, UnitExpr multiplicand);
+            /* unit division
+             * UnitExpr ::= UnitExpr / UnitExpr
+             *            | UnitExpr per UnitExpr
+             *            | 1 / UnitExpr
+             * e.g.) Length / Time
+             */
+            QuotientUnit(UnitExpr numerator, UnitExpr denominator);
+            /* unit exponentiation
+             * UnitExpr ::= UnitExpr ^ IntLiteral
+             * e.g.) Time^2
+             */
+            ExponentUnit(UnitExpr base, IntLiteral power);
+            /* unit with operator
+             * UnitExpr ::= DUPreOp UnitExpr
+             *            | UnitExpr DUPostOp
+             * e.g.) Time squared
+             */
+            OpUnit(UnitExpr val, DimUnitOp op);
+    /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where { WhereClauseList }
      * CoercionWhere ::= where { CoercionWhereClauseList }
@@ -1290,113 +1397,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) pinf AND ninf
          */
         BoolConstraintExpr(BoolConstraint constraint);
-    /**
-     * static expression
-     */
-    abstract StaticExpr(boolean parenthesized = false);
-        /**
-         * integer expression
-         */
-        abstract IntExpr();
-            /**
-             * integer value
-             * IntExpr ::= IntVal
-             */
-            abstract IntVal();
-                /**
-                 * integer number
-                 * IntVal ::= Number
-                 * e.g.) 8
-                 */
-                NumberConstraint(IntLiteral val);
-                /**
-                 * integer identiier
-                 * IntVal ::= QualifiedIdName
-                 * e.g.) m
-                 */
-                IntRef(QualifiedIdName name);
-            /**
-             * integer addition
-             * IntExpr ::= IntExpr + IntExpr
-             * e.g.) m + 2
-             */
-            SumConstraint(IntExpr left, IntExpr right);
-            /**
-             * integer subtraction
-             * IntExpr ::= IntExpr - IntExpr
-             * e.g.) m - 2
-             */
-            MinusConstraint(IntExpr left, IntExpr right);
-            /**
-             * integer multiplication
-             * IntExpr ::= IntExpr IntExpr
-             *           | IntExpr DOT IntExpr
-             * e.g.) m DOT n
-             */
-            ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
-            /**
-             * integer exponentiation
-             * IntExpr ::= IntExpr caret IntVal
-             * e.g.) 2^b
-             */
-            ExponentConstraint(IntExpr base, IntVal power);
-        /**
-         * boolean expression
-         * StaticExpr ::= BoolExpr
-         */
-        abstract BoolExpr();
-            /**
-             * boolean value
-             * BoolExpr ::= BoolVal
-             */
-            abstract BoolVal();
-                /**
-                 * boolean constant
-                 * BoolVal ::= true | false
-                 * e.g.) true
-                 */
-                BoolConstant(boolean bool);
-                /**
-                 * boolean identiier
-                 * BoolVal ::= QualifiedIdName
-                 * e.g.) ninf
-                 */
-                BoolRef(QualifiedIdName name);
-            /**
-             * boolean constraint
-             * BoolExpr ::= BoolConstraint
-             */
-            abstract BoolConstraint();
-                /**
-                 * boolean NOT constraint
-                 * BoolConstraint ::= NOT BoolExpr
-                 * e.g.) NOT ninf
-                 */
-                NotConstraint(BoolExpr bool);
-                /**
-                 * boolean OR constraint
-                 * BoolConstraint ::= BoolExpr OR BoolExpr
-                 * e.g.) ninf OR pinf
-                 */
-                OrConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean AND constraint
-                 * BoolConstraint ::= BoolExpr AND BoolExpr
-                 * e.g.) ninf AND pinf
-                 */
-                AndConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean IMPLIES constraint
-                 * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
-                 * e.g.) ninf IMPLIES pinf
-                 */
-                ImpliesConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean equality constraint
-                 * BoolConstraint ::= BoolExpr = BoolExpr
-                 * e.g.) ninf AND pinf = true
-                 */
-                BEConstraint(BoolExpr left, BoolExpr right);
     /**
      * contracts used in functional declarations and object declarations
      * Contract ::= Requires? Ensures? Invariant?
