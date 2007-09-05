@@ -633,7 +633,8 @@ public class Driver {
             pile.push(newwrapper);
 
             List<Import> imports = newcomp.getImports();
-            ensureImportsImplemented(linker, pile, imports);
+            // This is what pile.push is for:
+            // ensureImportsImplemented(linker, pile, imports);
 
             imports = newapi.getImports();
             ensureImportsImplemented(linker, pile, imports);

@@ -17,6 +17,11 @@
 
 api Set
 
+(**
+ * Sets represented using a tree structure.  The underlying type E
+ * must support comparison using < and =.  When generated these sets
+ * produce their elements in sorted order.
+ **)
 trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
    getVal():E  (* DEPRACATED *)
    printTree():()

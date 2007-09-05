@@ -101,7 +101,9 @@ public abstract class NonPrimitive extends Simple_fcn {
      * @return Returns the params.
      */
     public List<Parameter> getParams() {
-        return NI.nnf(params);
+        if (params==null)
+            return bug(getAt(),errorMsg("getParams of NonPrimitive ",this));
+        return params;
     }
 
     @Override
@@ -200,6 +202,8 @@ public abstract class NonPrimitive extends Simple_fcn {
 
                 FValue theArray = f
                         .apply(Collections.<FValue> emptyList(), loc, env);
+                if (!(theArray instanceof FObject))
+                    return bug(loc,errorMsg(f," returned non-FObject ",theArray));
                 // Use a wrapper to simplify our life
                 IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray, loc);
                 int j = 0;
