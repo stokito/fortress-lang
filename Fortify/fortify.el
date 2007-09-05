@@ -1366,6 +1366,7 @@ as a comment and easily altered and reformatted as necessary."
 (defun batch-fortify ()
     "Fortify the whole buffer and write to a filename in pwd, with
 extension .tex." 
+    (print-header "TOOL BATCH-FORTIFY")
     (mark-whole-buffer)
     (fortify 4)
     (write-as-tex-file))
@@ -1378,6 +1379,7 @@ extension .tex."
   file with doc comments (possibly containing embedded LaTeX commands)
   and produce a LaTeX file where all Fortress code is fortified and
   all doc comments are written as LaTeX prose describing the code." 
+  (print-header "TOOL FORTEX")
   (let ((more-lines t))
     (goto-start-of-buffer)
     (while more-lines
@@ -1387,14 +1389,15 @@ extension .tex."
 	     ((at-start-of-tests)
 	      (setq more-lines (omit-tests)))
 	     (t (fortify-next-code-block)
-		(setq more-lines (down-left-if-more-lines))))))
-  (write-as-tex-file))
+		(setq more-lines (down-left-if-more-lines)))))
+  (write-as-tex-file)))
 
 (defun foreg ()
   "Fortify the region of the buffer delimited by special doc comments
   '(** EXAMPLE **)' and '(** END EXAMPLE **)'. Remove all other text,
   and save the result to a file at the same location as the read file,
   but with extension .tex."
+  (print-header "TOOL FOREG")
   (let ((more-lines t))
     (goto-start-of-buffer)
     (while more-lines
@@ -1424,7 +1427,6 @@ extension .tex."
   file). Once finished, point is at the very end of the block of
   code." 
   (requires (not (at-start-of-doc-comment)))
-
   (let ((more-lines t))
     (push-mark)
     (while (and more-lines 
@@ -1436,11 +1438,11 @@ extension .tex."
 	(progn (forward-line -1)
 	       (end-of-line))
       (end-of-line))
-    (fortify-if-not-whitespace)))
+    (fortify-if-not-blank-space)))
 
-(defun fortify-if-not-whitespace ()
+(defun fortify-if-not-blank-space ()
   "Checks that the region isn't empty before calling fortify."
-  (if (not (all-whitespacep (region-beginning) (region-end)))
+  (if (not (all-blank-spacep (region-beginning) (region-end)))
       (fortify 4)))
 
 (defun fortify-example ()
@@ -1454,7 +1456,7 @@ extension .tex."
     (while (and more-lines (not (at-end-of-example)))
       (setq more-lines (down-left-if-more-lines)))
     (if (at-end-of-example)
-	(progn (fortify-if-not-whitespace)
+	(progn (fortify-if-not-blank-space)
 	       (delete-line))
       (signal-error "Example must be terminated with '(* END EXAMPLE *)'."))))
       
@@ -1487,7 +1489,20 @@ of a line in the middle of a doc comment."
   (beginning-of-line)
   (delete-whitespace)
   (delete-asterisks)
-  (delete-whitespace))
+  (delete-whitespace)
+  
+  ;; Check if this line is the end of the doc comment.
+  ;; If so, move the end of the comment to the next line,
+  ;; so it'll be picked up when that line is processed.
+  (end-of-line)
+  (skip-preceding-whitespace)
+  (if (<= (line-beginning-position)
+	  (- (point) 3))
+      (progn (forward-char -3)
+	     (if (at-end-of-doc-comment)
+		 (progn (insert-char `?\n' 1)
+			(forward-char -1))))))
+
 
 (defun remove-end-of-doc-comment ()
   "Simple helper function that removes the ending '**)' at the end of a 
@@ -1501,8 +1516,8 @@ doc comment."
   ;; Ensure that no text occurs on line, after the end of the doc comment
   (skip-leading-whitespace)
   (if (not (eolp)) 
-      (signal-error "No extra text allowed on last line of a doc
-  comment"))
+      (signal-error 
+       "No extra text allowed on last line of a doc comment"))
   (delete-line)
   ;; There must be at least one line above us (i.e., the former start
   ;; of the doc comment)
@@ -1557,15 +1572,12 @@ doc comment."
   "Boolean function that determines whether point is at the en of a 
 doc comment."
   (let ((result nil))
-    (beginning-of-line)
     (skip-leading-whitespace)
     
-    (setq result (and (char-after (+ 2 (point)))
-		      (equal "*" (char-to-string (char-after (point))))
-		      (equal "*" (char-to-string (char-after (+ 1 (point)))))
-		      (equal ")" (char-to-string (char-after (+ 2 (point)))))))
-    (beginning-of-line)
-    result))
+    (and (char-after (+ 2 (point)))
+	 (equal "*" (char-to-string (char-after (point))))
+	 (equal "*" (char-to-string (char-after (+ 1 (point)))))
+	 (equal ")" (char-to-string (char-after (+ 2 (point))))))))
 
 (defun delete-whitespace ()
   "Simple helper function that deletes all whitespace immediately following 
@@ -1592,13 +1604,18 @@ character."
 (defun whitespacep (string)
   (or (equal string " ")
       (equal string "\t")))
+
+(defun blank-spacep (string)
+  (or (whitespacep string)
+      (equal string "\n")
+      (equal string "\f")
+      (equal string "\r")))
       
-(defun all-whitespacep (left right)
+(defun all-blank-spacep (left right)
   (let ((result t))
     (while (< left right)
       (setq result (and result 
-			(whitespacep (char-to-string
-				      (char-after (point))))))
+			(blank-spacep (char-to-string (char-after left)))))
       (setq left (1+ left)))
     result))
 
@@ -1644,6 +1661,12 @@ but with suffix '.tex'."
 	       (file-name-sans-extension 
 		(file-name-nondirectory (buffer-file-name)))
 	       ".tex")))
+
+(defun print-header (author)
+  (print (concat "%% THIS FILE WAS AUTOGENERATED BY " author 
+		 "AT FORTRESS_HOME/Fortify/fortify.el"))
+  (print (concat "FROM SOURCE FILE" (buffer-file-name)))
+  (print "\n"))
 
 (defun requires (condition)
   "Takes a condition and signals an error if the condition is false. 
