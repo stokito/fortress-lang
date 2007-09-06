@@ -729,7 +729,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else if (sargs.isEmpty() && cl instanceof Method) {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-                return ((Method) cl).applyMethod(args, fobject, x, e);
+                try {
+                    return ((Method) cl).applyMethod(args, fobject, x, e);
+                } catch (FortressError ex) {
+                    throw ex.setContext(x, fobject.getSelfEnv());
+                }
             } else if (cl instanceof OverloadedMethod) {
                 throw new InterpreterBug(x, fobject.getSelfEnv(),
                                          "Don't actually resolve overloading of " +
@@ -743,7 +747,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 GenericMethod gm = ((MethodInstance) cl).getGenerator();
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-                return (gm.typeApply(sargs, e, x)).applyMethod(args, fobject, x, e);
+                try {
+                    return (gm.typeApply(sargs, e, x)).
+                            applyMethod(args, fobject, x, e);
+                } catch (FortressError ex) {
+                    throw ex.setContext(x,fobject.getSelfEnv());
+                }
             } else {
                 throw new ProgramError(x, fobject.getSelfEnv(),
                                        errorMsg("Unexpected method value in method ",

@@ -571,20 +571,43 @@ An object i that's an instance of Indexed defines three basic things:
   A set of utility functions, assign, fill, and copy.  Only fill and
     copy need to be defined.
 **)
-trait Indexed[\T extends Indexed[\T, E, I\], E, I\]
-    extends { HasRank, Generator[\(I,E)\] }
+trait Indexed[\E, I\] extends { DelegatedGenerator[\(I,E)\] }
+  getter size() (* = indexValuePairs().size() *)
+  getter indexValuePairs(): Generator[\(I,E)\] =
+      indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
+  getter indices(): Generator[\I\] =
+      indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
+  getter generator(): Generator[\E\] =
+      indexValuePairs()
+(*
+      indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
+*)
   opr[i:I] : E
+end
+
+(** The MutableIndexed trait is an indexed trait whose elements can be
+mutated using indexed assignment.  Right now we're
+using this type in a somewhat dangerous way, since eg
+Array1[\E,b0,s0\] extends both Indexed[\Array1[\E,b0,s0\],E,ZZ32\] and
+Indexed[\Array[\E,ZZ32\],E,ZZ32\].  We will need to find a solution to
+this at some point.
+
+In addition to the functionality in Indexed, MutableIndexed provides:
+  Indexed assignment, which each instance must define.
+  A set of utility functions, assign, fill, and copy.  Only copy needs
+    to be defined.
+**)
+trait MutableIndexed[\T extends MutableIndexed[\T, E, I\], E, I\]
+    extends { Indexed[\E,I\] }
   opr[i:I]:=(v:E) : ()
   assign(v:T):T = fill(fn (i:I):E => v[i])
-  fill(f:I->E):T
+  fill(f:I->E):T = indices().loop(fn (i:I):() => do self[i] := f(i) end)
   fill(v:E):T = fill(fn (i:I):E => v)
   copy():T
-  indices(): Generator[\I\] = self.map[\I\](fn (i:I, e:E): I => i)
-  elements(): Generator[\E\] = self.map[\E\](fn (i:I, e:E): E => e)
 end
 
 (* Array whose bounds are implicit rather than static. *)
-trait Array[\E,I\] extends Indexed[\Array[\E,I\],E,I\]
+trait Array[\E,I\] extends { HasRank, MutableIndexed[\Array[\E,I\],E,I\] }
   getter size(): I
   getter base(): I
   replica[\U\]():Array[\U,I\]
@@ -623,10 +646,11 @@ end
     The natural order of all generators is from b0 to b0+s0-1. **)
 trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
-              Indexed[\Array1[\T,b0,s0\],T,ZZ32\] }
+              MutableIndexed[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
   getter size():ZZ32 = s0
   getter base():ZZ32 = b0
+  getter indices():Range[\ZZ32\] = b0#s0
   getter toString() = do
     r = "[" b0 "#" s0 "] = ["
     if s0=0 then
@@ -642,8 +666,6 @@ trait Array1[\T, nat b0, nat s0\]
      and unchecked. *)
   get(i:ZZ32):T
   put(v:T, i:ZZ32)
-
-  indices():Range[\ZZ32\] = b0#s0
 
   (* Offset converts from b0 indexing to 0 indexing,
      bounds checking en route *)
@@ -846,10 +868,12 @@ opr [\ T extends Number, nat k \]
     these orderings (see Generator.cross()). **)
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\],
-              Indexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
+              MutableIndexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():(ZZ32,ZZ32) = (s0,s1)
   getter base():(ZZ32,ZZ32) = (b0,b1)
+  getter indices(): Generator[\(ZZ32,ZZ32)\] =
+      ParRange[\ZZ32\](b0,s0).cross[\ZZ32\](ParRange[\ZZ32\](b1,s1))
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
@@ -884,8 +908,6 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[t:(ZZ32,ZZ32)] : T = self.get(offset(t))
   opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset(t); self.put(v,i,j) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
-  indices(): Generator[\(ZZ32,ZZ32)\] =
-      ParRange[\ZZ32\](b0,s0).cross[\ZZ32\](ParRange[\ZZ32\](b1,s1))
   fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
       indices().loop(fn (a:ZZ32, b:ZZ32): () => put(f(a,b),a-b0, b-b1))
       self
@@ -1122,11 +1144,19 @@ flat3[\A,B,C\](t:(A,B), c:C): (A,B,C) = do (a,b) = t; (a,b,c) end
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
             Array[\T,(ZZ32,ZZ32,ZZ32)\],
-            Indexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
+            MutableIndexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
 
   getter size():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
   getter base():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
+
+  getter indices():Generator[\(ZZ32,ZZ32,ZZ32)\] = do
+      g0 = ParRange[\ZZ32\](b0,s0)
+      g1 = ParRange[\ZZ32\](b1,s1)
+      g2 = ParRange[\ZZ32\](b2,s2)
+      m(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do (j,k) = jk; (i,j,k) end
+      g0.cross(g1.cross(g2)).map(m)
+    end
 
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
@@ -1173,14 +1203,6 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     (a,b,c) = offset(i,j,k)
     self.put(v,a,b,c)
   end
-
-  indices():Generator[\(ZZ32,ZZ32,ZZ32)\] = do
-      g0 = ParRange[\ZZ32\](b0,s0)
-      g1 = ParRange[\ZZ32\](b1,s1)
-      g2 = ParRange[\ZZ32\](b2,s2)
-      m(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do (j,k) = jk; (i,j,k) end
-      g0.cross(g1.cross(g2)).map(m)
-    end
 
   generate[\R\](r:Reduction[\R\], m:((ZZ32,ZZ32,ZZ32),T)->R): R = do
       g0 = ParRange[\ZZ32\](0,s0)
@@ -1307,6 +1329,30 @@ object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     getter toString()="mapReduce.Reduction"
     empty() = z
     join(a:R, b:R): R = j(a,b)
+end
+
+(** The trait DelegatedGenerator[\E\] is used as a shortcut to define instances
+    of Generator[\E\] that delegate to an underlying generator(). **)
+trait DelegatedGenerator[\E\] extends Generator[\E\]
+    getter generator(): Generator[\E\]
+    getter size(): ZZ32 = generator().size()
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        generator().generate[\R\](r,body)
+    map[\G\](f: E->G): Generator[\G\] =
+        generator().map[\G\](f)
+    seq(): SequentialGenerator[\E\] = generator().seq()
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        generator().cross[\G\](g)
+(*
+    cross[\G\](g: Nothing[\G\]): Generator[\(E,G)\] = Nothing[\(E,G)\]()
+    cross[\G\](g: Just[\G\]): Generator[\(E,G)\] =
+        map[\(E,G)\](fn (e:E):(E,G) => (e, g.unJust()))
+*)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
+        generator().mapReduce[\R\](body,join,zero)
+    reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
+    reduce(r: Reduction[\E\]):E = generator().reduce(r)
+    loop(f:E->()): () = generator().loop(f)
 end
 
 (** Helpers for maps and cross products of generators.  These can be

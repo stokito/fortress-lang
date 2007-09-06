@@ -68,27 +68,27 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
     }
 
     protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode loc) {
-        if (foo instanceof FGenericFunction) {
-            FGenericFunction gen = (FGenericFunction) foo;
+        try {
+            if (foo instanceof FGenericFunction) {
+                FGenericFunction gen = (FGenericFunction) foo;
 
 // This caching did not seem to help performance.
 //
-//            Simple_fcn sfcn = gen.cache.get(args);
+//                Simple_fcn sfcn = gen.cache.get(args);
 //
-//            if (sfcn == null) {
-//                sfcn = inferAndInstantiateGenericFunction(args, gen, loc);
-//                gen.cache.syncPut(args, sfcn);
-//            }
+//                if (sfcn == null) {
+//                    sfcn = inferAndInstantiateGenericFunction(args, gen, loc);
+//                    gen.cache.syncPut(args, sfcn);
+//                }
 //
-//            foo = sfcn;
-            try {
+//                foo = sfcn;
                 foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
-            } catch (FortressError ex) {
-                throw ex.setContext(loc,e);
-            }
             // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
+            }
+            return foo.apply(args, loc, e);
+        } catch (FortressError ex) {
+            throw ex.setContext(loc,e);
         }
-        return foo.apply(args, loc, e);
     }
 
     /**
