@@ -204,7 +204,15 @@ trait Generator[\E\]
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    map[\G\](f: E->G): Generator[\G\] = SimpleMappedSeqGenerator[\E,G\](self,f)
     seq() = self
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        SimplePairSeqGenerator[\E,G\](self, g)
+(*
+    cross[\G\](g: Nothing[\G\]): Generator[\(E,G)\] = Nothing[\(E,G)\]()
+    cross[\G\](g: Just[\G\]): Generator[\(E,G)\] =
+        map[\(E,G)\](fn (e:E):(E,G) => (e, g.unJust()))
+*)
 end
 
 (** Operations which use generation internally.  Should be functional
@@ -218,8 +226,8 @@ opr IN[\E\](x: E, this: Generator[\E\]): Boolean =
     this.generate[\Boolean\](OrReduction, fn (y: E) => x=y)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
-seq[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
-sequential[\T\](g:Generator[\T\]):Generator[\T\] = g.seq()
+seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
+sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
 
 
 (** Maybe type *)
@@ -550,7 +558,6 @@ trait Indexed3[\ nat n \] end
 
 (** The indexed trait indicates that an object of type T can be
 indexed using type I to obtain elements with type E.
-
 
 An object i that's an instance of Indexed defines three basic things:
   The indexing operator, which must be defined for every instance of
@@ -1307,27 +1314,59 @@ end
     outwards if we think that'd be useful), but let's get this much
     working first. *)
 
-object SimpleMappedGenerator[\E,F\](g: Generator[\E\], f: E->F)
-        extends Generator[\F\]
-    getter size(): ZZ32 = g.size()
-    getter toString() = g ".map(f)"
+trait MappedGenerator[\E,F\] extends Generator[\F\]
+  comprises { SimpleMappedGenerator[\E,F\], SimpleMappedSeqGenerator[\E,F\] }
+    getter g(): Generator[\E\]
+    getter f(): E -> F
+    getter size(): ZZ32 = g().size()
+    getter toString(): String
     generate[\R\](r: Reduction[\R\], m: F->R): R =
-        g.generate[\R\](r, m COMPOSE f)
+        g().generate[\R\](r, m COMPOSE f())
     reduce(r: Reduction[\F\]): F =
-        g.generate[\R\](r, f)
+        g().generate[\R\](r, f())
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
-        SimpleMappedGenerator[\E,G\](g, f' COMPOSE f)
-    seq() = SimpleMappedGenerator[\E,F\](sequential(g),f)
+        SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
 end
 
-object SimplePairGenerator[\E,F\](e: Generator[\E\], f: Generator[\F\])
-        extends Generator[\(E,F)\]
-    getter size() = e.size() f.size()
-    getter toString()=(e ".cross(" f ")" )
+object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
+        extends MappedGenerator[\E,F\]
+    getter g() = g0
+    getter f() = f0
+    getter toString() = g ".map(f)"
+    seq() = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
+end
+
+object SimpleMappedSeqGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
+        extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
+    getter g() = g0
+    getter f() = f0
+    getter toString() = g ".map(f).seq()"
+end
+
+trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
+  comprises { SimplePairGenerator[\E,F\], SimplePairSeqGenerator[\E,F\] }
+    getter e(): Generator[\E\]
+    getter f(): Generator[\F\]
+    getter toString(): String
+    getter size() = e().size() f().size()
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
-        e.generate[\R\](r, fn (a: E): R =>
-                              f.generate[\R\](r, fn (b: F): R => m(a,b)))
-    seq() = SimplePairGenerator[\E,F\](sequential(e),seqential(f))
+        e().generate[\R\](r, fn (a: E): R =>
+                              f().generate[\R\](r, fn (b: F): R => m(a,b)))
+end
+
+object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
+        extends PairGenerator[\E,F\]
+    getter e() = e0
+    getter f() = f0
+    getter toString()=(e ".cross(" f ")" )
+    seq() = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
+end
+
+object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
+        extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
+    getter e() = e0
+    getter f() = f0
+    getter toString()=(e ".cross(" f ").seq()" )
 end
 
 (** Helper for serializing generators naively.  This code should make
