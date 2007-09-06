@@ -27,6 +27,13 @@
                     <target>clean</target>
                     <target>compile</target>
                 </action>
+                <action name="run">
+                    <target>test</target>
+                </action>
+                <action name="debug">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>debug-nb</target>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
@@ -56,6 +63,8 @@
                     <ide-action name="clean"/>
                     <ide-action name="test"/>
                     <ide-action name="rebuild"/>
+                    <ide-action name="run"/>
+                    <ide-action name="debug"/>
                 </context-menu>
             </view>
             <subprojects/>

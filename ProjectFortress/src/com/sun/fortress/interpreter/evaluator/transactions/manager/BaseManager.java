@@ -64,5 +64,7 @@ public class BaseManager implements ContentionManager {
   public void committed() {
   }
 
+  public void waitToRestart() {
+  }
 
 }

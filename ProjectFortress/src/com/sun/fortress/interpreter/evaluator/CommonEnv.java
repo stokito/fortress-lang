@@ -62,9 +62,9 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
 
     final public  FValue getValue(String str) {
         FValue x = getValueNull(str);
-        if (x == null)
+        if (x == null) {
             throw new ProgramError(errorMsg("Missing value ", str));
-        else
+	} else
             return x;
     }
 

@@ -66,7 +66,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
 	super(group);
         try {
-            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.BackoffManager");
+            Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager");
             setContentionManagerClass(managerClass);
         } catch (ClassNotFoundException ex) {
             System.out.println("UhOh Contention Manager not found");
@@ -163,9 +163,10 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 		if (threadState.commitTransaction()) {
 		    threadState.addToCommittedMemRefs(threadState.memRefs());
 		    return result;
-		}
-		threadState.incAttempts();
+		} 
 		// transaction aborted
+		threadState.incAttempts();
+                manager.waitToRestart();
 	    }
 	} finally {
 	    threadState.transaction = null;

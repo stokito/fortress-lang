@@ -307,8 +307,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
                 public FValue call() {
-                    Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
-                    return expr.accept(ev);
+                   Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                   return expr.accept(ev);
                 }
             }
         );
@@ -431,7 +431,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
-     runner.setCurrentTask(currentTask);
+            runner.setCurrentTask(currentTask);
 
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {

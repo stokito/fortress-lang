@@ -31,18 +31,24 @@ public class AtomicArray<T> {
   
   private final T[] array;
   private final T[] shadow;
-  private Transaction writer;
-  private ReadSet readers;
-  long version;
+  private Transaction[] writers;
+  private ReadSet[] readers;
+  long version[];
   private final String FORMAT = "Unexpected transaction state: %s";
   
   /** Creates a new instance of AtomicArray */
   public AtomicArray(Class _class, int capacity) {
     array  = (T[]) Array.newInstance(_class, capacity);
     shadow = (T[]) Array.newInstance(_class, capacity);
-    writer = Transaction.COMMITTED_TRANS;
-    readers = new ReadSet();
-    version = 0;
+    readers = new ReadSet[capacity];
+    writers = new Transaction[capacity];
+    version = new long[capacity];
+    for (int i = 0; i < capacity; i++) {
+	readers[i] = new ReadSet();
+	writers[i] = Transaction.COMMITTED_TRANS;
+        version[i] = 0;
+    }
+
   }
   
   public T get(int i) {
@@ -50,10 +56,10 @@ public class AtomicArray<T> {
     Transaction other = null;
     ContentionManager manager = FortressTaskRunner.getContentionManager();
     while (true) {
-      synchronized (this) {
-        other = openRead(me);
+      synchronized (readers[i]) {
+        other = openRead(me,i);
         if (other == null) {
-          return array[i];
+            return array[i];
         }
       }
       manager.resolveConflict(me, other);
@@ -64,10 +70,9 @@ public class AtomicArray<T> {
     Transaction me  = FortressTaskRunner.getTransaction();
     Transaction other = null;
     ContentionManager manager = FortressTaskRunner.getContentionManager();
-
     while (true) {
-      synchronized (this) {
-        other = openWrite(me);
+      synchronized (readers[i]) {
+        other = openWrite(me,i);
         if (other == null) {
           array[i] = value;
           return;
@@ -79,13 +84,13 @@ public class AtomicArray<T> {
   /**
    * Tries to open object for reading. Returns reference to conflictin transaction, if one exists
    **/
-  private Transaction openRead(Transaction me) {
+  private Transaction openRead(Transaction me, int i) {
     // not in a transaction
     if (me == null) {	// restore object if latest writer aborted
-      if (writer.isAborted()) {
-        restore();
-        version++;
-        writer = Transaction.COMMITTED_TRANS;
+      if (writers[i].isAborted()) {
+        restore(i);
+        version[i]++;
+        writers[i] = Transaction.COMMITTED_TRANS;
       }
       return null;
     }
@@ -94,74 +99,74 @@ public class AtomicArray<T> {
       throw new AbortedException();
     }
     // Have I already opened this object?
-    if (writer == me) {
+    if (writers[i] == me) {
       return null;
     }
-    switch (writer.getStatus()) {
+    switch (writers[i].getStatus()) {
       case ACTIVE:
-        return writer;
+        return writers[i];
       case COMMITTED:
         break;
       case ABORTED:
-        restore();
-        version++;
+        restore(i);
+        version[i]++;
         break;
       default:
-        throw new PanicException(FORMAT, writer.getStatus());
+        throw new PanicException(FORMAT, writers[i].getStatus());
     }
-    writer = Transaction.COMMITTED_TRANS;
-    readers.add(me);
+    writers[i] = Transaction.COMMITTED_TRANS;
+    readers[i].add(me);
     return null;
   }
   
   /**
    * Tries to open object for reading. Returns reference to conflicting transaction, if one exists
    **/
-  public Transaction openWrite(Transaction me) {
+  public Transaction openWrite(Transaction me, int i) {
     // not in a transaction
     if (me == null) {	// restore object if latest writer aborted
-      if (writer.isAborted()) {
-        restore();
-        version++;
-        writer = Transaction.COMMITTED_TRANS;
+      if (writers[i].isAborted()) {
+        restore(i);
+        version[i]++;
+        writers[i] = Transaction.COMMITTED_TRANS;
       }
       return null;
     }
     if (!me.validate()) {
       throw new AbortedException();
     }
-    if (me == writer) {
+    if (me == writers[i]) {
       return null;
     }
-    for (Transaction reader : readers) {
+    for (Transaction reader : readers[i]) {
       if (reader.isActive() && reader != me) {
         return reader;
       }
     }
-    readers.clear();
-    switch (writer.getStatus()) {
+    readers[i].clear();
+    switch (writers[i].getStatus()) {
       case ACTIVE:
-        return writer;
+        return writers[i];
       case COMMITTED:
-        backup();
-        version++;
+        backup(i);
+        version[i]++;
         break;
       case ABORTED:
-        restore();
-        version++;
+        restore(i);
+        version[i]++;
         break;
       default:
-        throw new PanicException(FORMAT, writer.getStatus());
+        throw new PanicException(FORMAT, writers[i].getStatus());
     }
-    writer = me;
+    writers[i] = me;
     return null;
   }
   
-  private void restore() {
-    System.arraycopy(shadow, 0, array, 0, array.length);
+  private void restore(int i) {
+      array[i] = shadow[i];
   }
-  private void backup() {
-    System.arraycopy(array, 0, shadow, 0, array.length);
+  private void backup(int i) {
+      shadow[i] = array[i];
   }
   
 }

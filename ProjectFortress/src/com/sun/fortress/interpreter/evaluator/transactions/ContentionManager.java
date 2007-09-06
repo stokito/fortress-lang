@@ -58,4 +58,10 @@ public interface ContentionManager {
    */
   void committed();
 
+  /**
+   * Wait before trying again
+   */
+
+  void waitToRestart();
+
 };

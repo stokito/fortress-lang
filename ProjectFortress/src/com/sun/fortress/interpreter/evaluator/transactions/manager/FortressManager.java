@@ -19,7 +19,6 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions.manager;
 
-import com.sun.fortress.interpreter.evaluator.transactions.util.Random;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Collection;
@@ -29,38 +28,31 @@ import java.util.Collection;
  * @author Maurice Herlihy
  */
 public class FortressManager extends BaseManager {
-  static final int MIN_LOG_BACKOFF = 4;
-  static final int MAX_LOG_BACKOFF = 26;
-  static final int MAX_RETRIES = 64;
 
-  Random random;
-
-  int currentAttempt = 0;
-
-  public FortressManager() {
-    random = new Random();
+  public FortressManager() { 
   }
+
   public void openSucceeded() {
     super.openSucceeded();
-    currentAttempt = 0;
   }
 
   public void resolveConflict(Transaction me, Transaction other) {
-      if (other.isActive() && other.startTime >  me.startTime) {
-	  other.abort();
+      if (other != me) {
+	  if (Math.random() > 0.5)
+	      other.abort();
+	  else me.abort();
       }
   }
 
   public void resolveConflict(Transaction me, Collection<Transaction> others) {
-    boolean beforeMe = false;
-    Transaction min = me;
-    for (Transaction other : others) {
-	if (other.isActive() && other.startTime < min.startTime) min = other;
-    }
+      me.abort();
+  }
 
-    if (min != me) me.abort();
-    for (Transaction other : others) {
-	if (other.isActive() && other != min) other.abort();
-    }
+  public void waitToRestart() {
+    int waitTime = (int) (Math.random() * 65536);
+    sleep(waitTime);   
+  }
+
+  public void committed() {
   }
 }
