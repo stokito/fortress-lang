@@ -20,6 +20,7 @@ package com.sun.fortress.ant_tasks;
 import com.sun.fortress.interpreter.drivers.fs;
 
 import java.io.File;
+import java.io.*;
 import java.util.*;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
@@ -43,16 +44,16 @@ public class FortressTask extends Task {
     public void setVerbose(boolean val) { verbose = val; }
     public void setTest(boolean val) { test = val; }
 
-    private ArrayList<String> buildOptions() {
-        ArrayList<String> result = new ArrayList<String>();
+    private StringBuffer buildOptions() {
+        StringBuffer result = new StringBuffer();
 
-        if (ast) { result.add("-ast"); }
-        if (keep) { result.add("-keep"); }
-        if (pause) { result.add("-pause"); }
-        if (parseOnly) { result.add("-parseOnly"); }
-        if (libraryTest) { result.add("-libraryTest"); }
-        if (verbose) { result.add("-v"); }
-        if (test) { result.add("-t"); }
+        if (ast) { result.append(" -ast "); }
+        if (keep) { result.append(" -keep "); }
+        if (pause) { result.append(" -pause "); }
+        if (parseOnly) { result.append(" -parseOnly "); }
+        if (libraryTest) { result.append(" -libraryTest "); }
+        if (verbose) { result.append("-v"); }
+        if (test) { result.append("-t"); }
 
         return result;
     }
@@ -63,14 +64,35 @@ public class FortressTask extends Task {
 
     public void execute() {
         try {
+            boolean failures = false; 
+            
             for (FileSet fileSet : filesets) {
                 DirectoryScanner dirScanner = fileSet.getDirectoryScanner(getProject());
                 String[] includedFiles = dirScanner.getIncludedFiles();
                 for (String fileName : includedFiles) {
-                    ArrayList<String> options = buildOptions();
-                    options.add(dirScanner.getBasedir() + File.separator + fileName);
-                    fs.main(options.toArray(new String[options.size()]));
+                    StringBuffer options = buildOptions();
+                    options.append(dirScanner.getBasedir() + File.separator + fileName);
+                    
+                    log("fortress" + options.toString());
+                    
+                    Process fortressProcess = Runtime.getRuntime().exec (
+                        "fortress" + 
+                        options.toString()
+                    );
+                    int exitValue = fortressProcess.waitFor();
+                    if (exitValue != 0) {
+                        failures = true;
+                        InputStream errors = fortressProcess.getErrorStream();
+                        Writer out = new BufferedWriter(new OutputStreamWriter(System.err));
+                        while (errors.available() != 0) {
+                            out.write(errors.read());
+                        }
+                        out.flush();
+                    }
                 }
+            }
+            if (failures) { 
+                throw new RuntimeException("FORTRESS FAILED ON SOME FILES. SEE ABOVE ERROR MESSAGES FOR DETAILS."); 
             }
         } catch (Throwable t) {
             throw new RuntimeException(t);

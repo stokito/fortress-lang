@@ -128,6 +128,9 @@ public class fs {
         System.err.println(task + ": " + time + " milliseconds");
     }
 
+    /**
+     * Parse and run the given program. Returns true iff there were no errors.
+     */
     private static void parseAndRun(String s) throws Throwable {
 //        String timeStamp = Useful.timeStamp();
 
@@ -155,7 +158,10 @@ public class fs {
                 finally { fout.close(); }
             }
 
-            if (p.isNone()) { System.err.println("FAIL: Syntax error(s)."); }
+            if (p.isNone()) { 
+                System.err.println("FAIL: Syntax error(s)."); 
+                System.exit(1);
+            }
             else if (!parseOnly) {
                 CompilationUnit _p = Option.unwrap(p);
 
@@ -171,10 +177,11 @@ public class fs {
         }
         catch (FortressError e) {
 //            keepTemp = true;
-            System.out.println("\n--------Fortress error appears below--------\n");
-            e.printInterpreterStackTrace(System.out);
-            System.out.println();
-            System.out.println(e.getMessage());
+            System.err.println("\n--------Fortress error appears below--------\n");
+            e.printInterpreterStackTrace(System.err);
+            System.err.println();
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
 //        catch (Throwable th) {
 //            keepTemp = true;
