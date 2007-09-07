@@ -158,7 +158,7 @@ private Enclosing EncloserPair = a1:LeftEncloser w a2:RightEncloser
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
-           throw new ProgramError(a2, "Mismatched Enclosers.");
+           yyValue = error(a2, "Mismatched Enclosers.");
      };
 
 /* AliasedNameList ::= AliasedName (w , w AliasedName)* */

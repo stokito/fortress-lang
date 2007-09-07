@@ -101,8 +101,8 @@ FnHeaderFront OpHeaderFront =
            }
            name = new Enclosing(span, opa2, opa4);
        } else
-           throw new ProgramError(opa2, "Mismatched enclosing operator definition: "
-                                        + left + " and " + right);
+           name = error(opa2, "Mismatched enclosing operator definition: "
+                              + left + " and " + right);
        if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa1, opa3, opparam);

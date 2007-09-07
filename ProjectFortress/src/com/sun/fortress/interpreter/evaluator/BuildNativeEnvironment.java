@@ -38,8 +38,9 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class BuildNativeEnvironment extends BuildEnvironments {
 
@@ -68,8 +69,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
                         GenericWithParams.class);
                 return (Constructor) ccl.newInstance(containing, ft, x);
             } else {
-                throw new ProgramError("Native class " + classname
-                        + " must extend Constructor");
+                return error("Native class " + classname + " must extend Constructor");
             }
 
         } catch (ClassNotFoundException e) {

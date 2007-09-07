@@ -99,6 +99,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
@@ -402,7 +403,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         try {
             if (ft != null) {
                 if (!ft.typeMatch(value)) {
-                    throw new ProgramError(where, e,
+                    error(where, e,
                             errorMsg("Type mismatch binding ", value, " (type ",
                                      value.type(), ") to ", name, " (type ",
                                      ft, ")"));
@@ -538,12 +539,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //                og.addOverload(cl);
 //            } else if (g instanceof GenericMethodSet
 //                    || g instanceof GenericMethod) {
-//                throw new ProgramError(x, e,
+//                error(x, e,
 //                        "Cannot combine generic method and nongeneric method "
 //                                + name.name() + " in an overloading");
 //            } else if (g instanceof GenericFunctionSet
 //                    || g instanceof FGenericFunction) {
-//                throw new ProgramError(x, e,
+//                error(x, e,
 //                        "Cannot combine generic function and nongeneric function "
 //                                + name.name() + " in an overloading");
 //            } else {
@@ -569,7 +570,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //            FnName name, FValue cl) {
 //        FValue fv = e.getValueNull(name.name());
 //        if (fv != null && !(fv instanceof Fcn)) {
-//            throw new ProgramError(x, e, "Generic not generic? " + name.name());
+//            error(x, e, "Generic not generic? " + name.name());
 //        }
 //        Fcn g = (Fcn) fv;
 //        // Actually need to test for diff types of g.
@@ -590,7 +591,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //
 //                    assignFunction(e, name, og);
 //                } else {
-//                    throw new ProgramError(x, e, "Overload of generic method "
+//                    error(x, e, "Overload of generic method "
 //                            + cl + " with non-generic/method " + g);
 //                }
 //            } else if (cl instanceof FGenericFunction) {
@@ -606,11 +607,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //
 //                    assignFunction(e, name, og);
 //                } else {
-//                    throw new ProgramError(x, e, "Overload of function method "
+//                    error(x, e, "Overload of function method "
 //                            + cl + " with non-generic/method " + g);
 //                }
 //            } else {
-//                throw new ProgramError(x, e,
+//                error(x, e,
 //                        "Overload of generic, but not a method/function" + cl
 //                                + " with generic/method " + g);
 //
@@ -1014,7 +1015,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
-                            throw new ProgramError(x, bindInto,
+                            ft = error(x, bindInto,
                                     errorMsg("Type mismatch binding ", value, " (type ",
                                              value.type(), ") to ", name, " (type ",
                                              ft, ")"));
@@ -1030,7 +1031,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     FValue value = bindInto.getValue(sname);
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
-                            throw new ProgramError(x, bindInto,
+                            error(x, bindInto,
                                   errorMsg("Type mismatch binding ", value, " (type ",
                                   value.type(), ") to ", name, " (type ",
                                   ft, ")"));

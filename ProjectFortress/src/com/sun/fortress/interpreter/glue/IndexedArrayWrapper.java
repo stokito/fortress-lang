@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.ArrayList;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -28,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
@@ -46,8 +46,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
         if (!(fv instanceof FObject)) {
             // This should only happen if the library is buggy.
             // But it *has* happened, and will happen again...
-            throw new ProgramError(at,errorMsg(" expected an array object, got ",
-                                               fv));
+            error(at,errorMsg(" expected an array object, got ", fv));
         }
         array = (FObject) fv;
         putter = (MethodClosure) array.getSelfEnv().getValue(WellKnownNames.arrayPutter);

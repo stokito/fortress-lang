@@ -22,7 +22,6 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -57,6 +56,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class GenericFlatStorageMaker extends GenericConstructor {
@@ -173,9 +173,9 @@ public class GenericFlatStorageMaker extends GenericConstructor {
              int i = ((HasIntValue)args.get(0)).getInt();
              FValue r = fs.a.get(i);
              if (r==null) {
-                 throw new ProgramError(loc,fs.getLexicalEnv(),
-                               errorMsg("Access to uninitialized element ",
-                                        i, " of array ", fs));
+                 error(loc,fs.getLexicalEnv(),
+                       errorMsg("Access to uninitialized element ",
+                                i, " of array ", fs));
              }
              return r;
          }

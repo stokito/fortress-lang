@@ -456,9 +456,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
-            throw new ProgramError(x, env,
-                                   errorMsg("Expected generic type, got ", ft1,
-                                            " instead"));
+            return error(x, env, errorMsg("Expected generic type, got ", ft1,
+                                          " instead"));
         }
     }
 
@@ -496,11 +495,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
                 natB = (FTypeNat)bt;
             } else {
-                throw new ProgramError(Option.unwrap(b),
-                                       errorMsg(extent,env,"Bad base ",
-                                                Option.unwrap(b),"=",
-                                                bt.getClass().getName(), " ",
-                                                bt));
+                natB = error(Option.unwrap(b),
+                             errorMsg(extent,env,"Bad base ",
+                                      Option.unwrap(b),"=",
+                                      bt.getClass().getName(), " ", bt));
             }
         } else {
             natB = IntNat.make(0);
@@ -511,11 +509,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             if (st instanceof IntNat || st instanceof SymbolicNat) {
                 natS = (FTypeNat)st;
             } else {
-                throw new ProgramError(Option.unwrap(s),
-                                       errorMsg(extent,env,"Bad size ",
-                                                Option.unwrap(s), "=",
-                                                st.getClass().getName(), " ",
-                                                st));
+                natS = error(Option.unwrap(s),
+                             errorMsg(extent,env,"Bad size ",
+                                      Option.unwrap(s), "=",
+                                      st.getClass().getName(), " ", st));
             }
         } else {
             natS = IntNat.make(0);

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -29,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.transactions.Recoverable;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Set;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
@@ -144,7 +144,7 @@ public class ReferenceCell extends IndirectionCell {
 		if (other == null) {
 		    FValue the_value = node.getValue();
 		    if (the_value == null) {
-			throw new ProgramError("Attempt to read uninitialized variable");
+			return error("Attempt to read uninitialized variable");
 		    }
 		    return the_value;
 		}

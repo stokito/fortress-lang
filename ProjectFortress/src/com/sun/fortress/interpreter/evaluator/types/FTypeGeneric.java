@@ -26,7 +26,6 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
@@ -44,6 +43,7 @@ import com.sun.fortress.useful.LazyFactory1P;
 import com.sun.fortress.useful.LazyMemo1P;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
@@ -222,10 +222,10 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != static_params.size()) {
-            throw new ProgramError(x, e,
-                     errorMsg("Generic instantiation (size) mismatch, expected ",
-                              Useful.listInOxfords(static_params),
-                              " got ", Useful.listInOxfords(args)));
+            error(x, e,
+                  errorMsg("Generic instantiation (size) mismatch, expected ",
+                           Useful.listInOxfords(static_params),
+                           " got ", Useful.listInOxfords(args)));
         }
         EvalType et = new EvalType(e);
         ArrayList<FType> argValues = et.forStaticArgList(args);

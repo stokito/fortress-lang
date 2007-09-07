@@ -840,7 +840,7 @@ public class Disambiguate extends Rewrite {
                          * Consequently we leave it commented out
                          * for the moment.
                          */
-                        // throw new ProgramError(t,"Type extends non-visible entity " + s);
+                        // error(t,"Type extends non-visible entity " + s);
                     } else {
                         bug(errorMsg("Type extends something unknown ", s, " = ", th));
                     }

@@ -39,8 +39,6 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
@@ -592,7 +590,7 @@ public class Driver {
                 ensureApiImplemented(linker, pile, source);
             }
             else {
-                throw new InterpreterBug(i,"Unrecognized import");
+                bug(i, "Unrecognized import");
             }
         }
     }
@@ -623,7 +621,7 @@ public class Driver {
                     newcomp = readTreeOrSourceComponent(LIB_NATIVE_DIR + apiname);
                     is_native = true;
                 } catch (Exception ex1) {
-                    throw new ProgramError("" + ex +  " AND " + ex1);
+                    newcomp = error(errorMsg(ex, " AND ", ex1));
                 }
             }
             ComponentWrapper apicw = new ComponentWrapper(newapi, false);
@@ -776,7 +774,7 @@ public class Driver {
                 return Option.unwrap(c);
             }
             else {
-                throw new ProgramError("Could not read " + librarySource + " or " + libraryTree);
+                return error("Could not read " + librarySource + " or " + libraryTree);
             }
         }
     }

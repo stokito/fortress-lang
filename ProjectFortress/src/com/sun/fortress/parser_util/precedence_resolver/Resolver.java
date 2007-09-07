@@ -51,11 +51,12 @@ import com.sun.fortress.parser_util.precedence_opexpr.Right;
 import com.sun.fortress.parser_util.precedence_opexpr.Tight;
 import com.sun.fortress.parser_util.precedence_opexpr.TightChain;
 import com.sun.fortress.parser_util.precedence_opexpr.TightInfix;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /*
  * This class implements the functionality for resolving operator precedence during parsing.
@@ -1222,7 +1223,7 @@ public class Resolver {
       for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
       msg += "\n  " + expr.toString();
       }
-      throw new ProgramError("Resolution of operator property failed for:\n" + msg);
+      return error("Resolution of operator property failed for:\n" + msg);
     }
   }
 }

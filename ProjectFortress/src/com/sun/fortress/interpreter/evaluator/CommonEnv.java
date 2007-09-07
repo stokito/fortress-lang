@@ -32,6 +32,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 /**
  * A CommonEnv enforces some default implementations of methods that filter
@@ -63,7 +64,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  FValue getValue(String str) {
         FValue x = getValueNull(str);
         if (x == null) {
-            throw new ProgramError(errorMsg("Missing value ", str));
+            return error(errorMsg("Missing value ", str));
 	} else
             return x;
     }
@@ -73,7 +74,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  FType getVarType(String str) {
         FType x = getVarTypeNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing type of ", str));
+            return error(errorMsg("Missing type of ", str));
         else
             return x;
     }
@@ -86,7 +87,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  FType getType(String str)  {
         FType x = getTypeNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing type ", str));
+            return error(errorMsg("Missing type ", str));
         else
             return x;
     }
@@ -95,7 +96,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  Declaration getDecl(String str)  {
         Declaration x = getDeclNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing declaration ", str));
+            return error(errorMsg("Missing declaration ", str));
         else
             return x;
     }
@@ -104,7 +105,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  Number getNat(String str) {
         Number x = getNatNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing nat ", str));
+            return error(errorMsg("Missing nat ", str));
         else
             return x;
     }
@@ -113,7 +114,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  Boolean getBool(String str)  {
         Boolean x = getBoolNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing boolean ", str));
+            return error(errorMsg("Missing boolean ", str));
         else
             return x;
     }
@@ -122,7 +123,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  SApi getApi(String str)  {
         SApi x = getApiNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing api ", str));
+            return error(errorMsg("Missing api ", str));
         else
             return x;
     }
@@ -131,7 +132,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  SApi getApi(DottedName d)  {
         SApi x = getApiNull(d);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing api ", d));
+            return error(errorMsg("Missing api ", d));
         else
             return x;
     }
@@ -140,7 +141,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  SComponent getComponent(String str)  {
         SComponent x = getComponentNull(str);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing component ", str));
+            return error(errorMsg("Missing component ", str));
         else
             return x;
     }
@@ -149,7 +150,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  SComponent getComponent(DottedName d)  {
         SComponent x = getComponentNull(d);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing component ", d));
+            return error(errorMsg("Missing component ", d));
         else
             return x;
     }
@@ -160,7 +161,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
         if (x == null)
             {
                 System.err.println(this.toString());
-                throw new ProgramError(errorMsg("Missing type ", q));
+                return error(errorMsg("Missing type ", q));
             }
         else
             return x;
@@ -170,7 +171,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
     final public  FValue getValue(QualifiedIdName q)  {
         FValue x = getValueNull(q);
         if (x == null)
-            throw new ProgramError(errorMsg("Missing value ", q));
+            return error(errorMsg("Missing value ", q));
         else
             return x;
     }

@@ -40,10 +40,11 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {
@@ -95,9 +96,8 @@ public class ASTUtil {
             return new OprExpr(span, false,
                                Collections.<QualifiedOpName>singletonList(qName), args);
         } else {
-            throw new ProgramError(right, "Mismatched Enclosers: " +
-                                          left.getText() + " and " +
-                                          right.getText());
+            return error(right, "Mismatched Enclosers: " +
+                         left.getText() + " and " + right.getText());
         }
     }
 

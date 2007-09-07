@@ -29,7 +29,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -155,7 +155,7 @@ public class NodeFactory {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
         if (file.length() <= 4) {
-            throw new ProgramError(new Id(span, "_"), "Invalid file name.");
+            return error(new Id(span, "_"), "Invalid file name.");
         }
         else {
             for (String n : file.substring(file.length()-4).split(delimiter)) {

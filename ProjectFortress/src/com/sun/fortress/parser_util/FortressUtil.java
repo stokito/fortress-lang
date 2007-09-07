@@ -33,13 +33,12 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public final class FortressUtil {
     public static void println(String arg) {
@@ -592,7 +591,7 @@ public final class FortressUtil {
                 elems.add(elem);
                 return new ArrayElements(span, false, dim, elems);
             } else if (elements.size() == 0) {
-                throw new ProgramError(multi, "Empty array/matrix literal.");
+                return error(multi, "Empty array/matrix literal.");
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
                 ArrayExpr last = elements.get(index);
@@ -600,15 +599,14 @@ public final class FortressUtil {
                 return new ArrayElements(span, false, _dim, elements);
             }
         } else {
-            throw new ProgramError(multi,
-                                   "ArrayElement or ArrayElements is expected.");
+            return error(multi, "ArrayElement or ArrayElements is expected.");
         }
     }
     public static ArrayExpr multiDimCons(Expr init,
                                         List<Pair<Integer,Expr>> rest) {
         ArrayExpr _init = multiDimElement(init);
         if (rest.isEmpty()) {
-            throw new InterpreterBug(init, "multiDimCons: empty rest");
+            return bug(init, "multiDimCons: empty rest");
         } else {
             Pair<Integer,Expr> pair = rest.get(0);
             Expr expr = pair.getB();
@@ -667,12 +665,11 @@ public final class FortressUtil {
                     return new UnpastingSplit(span, elems, dim);
                 }
             } else { // elems.size() == 0
-                throw new ProgramError(two, "Empty unpasting.");
+                return error(two, "Empty unpasting.");
             }
         } else { //    !(two instanceof UnpastingBind)
                  // && !(two instanceof UnpastingSplit)
-            throw new InterpreterBug(two,
-                                     "UnpastingBind or UnpastingSplit expected.");
+            return bug(two, "UnpastingBind or UnpastingSplit expected.");
         }
     }
 

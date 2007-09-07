@@ -64,6 +64,7 @@ import com.sun.fortress.useful.Voidoid;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
@@ -125,7 +126,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 if (!ft.typeMatch(value)) {
                     String m = errorMsg("Type mismatch assigning ", value, " (type ",
                                         value.type(), ") to ", s, " (type ", ft, ")");
-                    throw new ProgramError(x, e, m);
+                    error(x, e, m);
                 }
             }
             e.assignValue(x, s, value);
@@ -174,15 +175,15 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 //                if (outerType instanceof FAggregateType) {
 //                    bestGuess = ((FAggregateType) outerType).getElementType();
 //                } else {
-//                    throw new ProgramError(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
+//                    bestGuess = error(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
 //                }
             } else {
                 // Take the (urk!) JOIN of the types of the array elements.
                 // Do we require that they all lie on the same chain in
                 // the type system?  Not sure.
 
-                throw new ProgramError(x, evaluator.e,
-                            "Can't infer element type for array construction");
+                outerType = error(x, evaluator.e,
+                                  "Can't infer element type for array construction");
             }
 
             /*
@@ -250,7 +251,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);
                     else {
-                        throw new ProgramError(x, evaluator.e,
+                        error(x, evaluator.e,
                          errorMsg("RHS expression type ", value.type(),
                                   " is not assignable to LHS type ", outerType));
                     }
@@ -281,8 +282,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     @Override
     public Voidoid forTupleExpr(TupleExpr x) {
         if (!(value instanceof FTuple)) {
-            throw new ProgramError(x, evaluator.e,
-                                   errorMsg("RHS yields non-tuple ", value));
+            error(x, evaluator.e, errorMsg("RHS yields non-tuple ", value));
         }
         FTuple t = (FTuple)value;
         Iterator<FValue> rhsIterator = t.getVals().iterator();
