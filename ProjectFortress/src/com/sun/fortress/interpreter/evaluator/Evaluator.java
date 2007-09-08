@@ -703,8 +703,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //                throw ex.setContext(x,e);
 //            }
         } else {
-            throw new ProgramError(x, e,
-                    errorMsg("Non-object cannot have field ", NodeUtil.nameString(fld)));
+            return error(x, e,
+			 errorMsg("Non-object cannot have field ",
+				  NodeUtil.nameString(fld)));
         }
 
     }
@@ -725,7 +726,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO Environment is split, might not be best choice
                 // for error printing.
                 String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
-                throw new ProgramError(x, fobject.getSelfEnv(), msg);
+                return error(x, fobject.getSelfEnv(), msg);
             } else if (sargs.isEmpty() && cl instanceof Method) {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
@@ -754,13 +755,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x,fobject.getSelfEnv());
                 }
             } else {
-                throw new ProgramError(x, fobject.getSelfEnv(),
-                                       errorMsg("Unexpected method value in method ",
-                                                "invocation, ", cl));
+                return error(x, fobject.getSelfEnv(),
+			     errorMsg("Unexpected method value in method ",
+				      "invocation, ", cl));
             }
         } else {
-            throw new ProgramError(x, errorMsg("Unexpected receiver in method ",
-                                               "invocation, ", fobj));
+            return error(x, errorMsg("Unexpected receiver in method ",
+				     "invocation, ", fobj));
         }
     }
 
@@ -1149,9 +1150,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     if (cl == null) {
                         // TODO Environment is split, might not be best choice
                         // for error printing.
-                        throw new ProgramError(x, fobject.getSelfEnv(),
-                                               errorMsg("undefined method/field ",
-                                                        NodeUtil.nameString(fld)));
+                        return error(x, fobject.getSelfEnv(),
+				     errorMsg("undefined method/field ",
+					      NodeUtil.nameString(fld)));
                     } else if (cl instanceof OverloadedMethod) {
 
                         throw new InterpreterBug(x, fobject.getSelfEnv(),
@@ -1168,14 +1169,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                     evalInvocationArgs(exprs), fobject, x, e);
 
                     } else {
-                        throw new ProgramError(x, fobject.getSelfEnv(),
-                                               errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                                        cl));
+                        return error(x, fobject.getSelfEnv(),
+				     errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+					      cl));
                     }
                 } else {
-                    throw new ProgramError(x,
-                                           errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
-                                                    fobj));
+                    return error(x,
+				 errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
+					  fobj));
 
                 }
             }
@@ -1207,8 +1208,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (cl == null)
                 // TODO Environment is split, might not be best choice for error
                 // printing.
-                throw new ProgramError(x, fobject.getSelfEnv(),
-                        errorMsg("undefined method/field ", NodeUtil.nameString(fld)));
+                return error(x, fobject.getSelfEnv(),
+			     errorMsg("undefined method/field ",
+				      NodeUtil.nameString(fld)));
             else if (cl instanceof Method) {
                 return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
                         fobject, x, e);
@@ -1220,13 +1222,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO seems like we could be multiplying, too.
                 String msg = errorMsg("Tight juxtaposition of non-function ",
                                       NodeUtil.nameString(fld));
-                throw new ProgramError(x, fobject.getSelfEnv(), msg);
+                return error(x, fobject.getSelfEnv(), msg);
             }
         } else {
             // TODO Could be a fragment of a component/api name, too.
-            throw new ProgramError(x,
-                    errorMsg("", fobj, ".", fld,
-                             " but not object.something"));
+            return error(x,
+			 errorMsg("", fobj, ".", fld,
+				  " but not object.something"));
         }
     }
 
@@ -1363,9 +1365,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x,e);
                 }
             } else {
-                throw new ProgramError(x, e,
-                                       errorMsg("Non-object cannot have field ",
-                                                fld.getText()));
+                res = error(x, e, errorMsg("Non-object cannot have field ",
+                                           fld.getText()));
             }
         }
         return res;
@@ -1422,7 +1423,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
         } else {
-            throw new ProgramError(x, e, errorMsg("Unexpected FnRef value, ",g));
+            return error(x, e, errorMsg("Unexpected FnRef value, ",g));
         }
     }
 
