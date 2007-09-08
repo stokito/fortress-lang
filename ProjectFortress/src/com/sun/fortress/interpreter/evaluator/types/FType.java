@@ -365,11 +365,9 @@ abstract public class FType implements Comparable<FType> {
             (sz==0 || !(candidate.get(sz-1) instanceof FTypeRest));
     }
 
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc;
-//        return (val instanceof IdType &&
-//                name.equals(NodeUtil.nameString(((IdType)val).getName())));
         if (! (val instanceof IdType)) {
             rc = false;
         } else if (name.equals(NodeUtil.nameString(((IdType)val).getName()))) {
@@ -389,7 +387,7 @@ abstract public class FType implements Comparable<FType> {
                     "), abm="+abm);
         }
 
-        return rc;
+        return new Boolean(rc);
     }
 
     /** One-sided unification of this fully-computed FType with a signature.
@@ -429,7 +427,7 @@ abstract public class FType implements Comparable<FType> {
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
-            if (t.unifyNonVar(env, tp_set, abm, val)) return;
+            if (t.unifyNonVar(env, tp_set, abm, val).booleanValue()) return;
             if (DUMP_UNIFY) System.out.println("            "+t+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }

@@ -53,9 +53,9 @@ public class FTypeDynamic extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        return true;
+        return new Boolean(true);
     }
 
 }

@@ -148,14 +148,14 @@ public class FTypeArrow extends FType {
     }
 
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify arrow "+this+" and "+val+", abm="+abm);
         if (!(val instanceof ArrowType)) {
             if (FType.DUMP_UNIFY)
                 System.out.println("       non-arrow");
-            return false;
+            return new Boolean(false);
         }
         ArrowType arr = (ArrowType) val;
         try {
@@ -172,14 +172,14 @@ public class FTypeArrow extends FType {
                 ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((TupleType)valdom).getElements(),
                                                 Option.<VarargsType>none());
             } else {
-                return false;
+                return new Boolean(false);
             }
         } catch (FortressError p) {
-            return false;
+            return new Boolean(false);
         } catch (EmptyLatticeIntervalError p) {
-            return false;
+            return new Boolean(false);
         }
-        return true;
+        return new Boolean(true);
     }
 
 }

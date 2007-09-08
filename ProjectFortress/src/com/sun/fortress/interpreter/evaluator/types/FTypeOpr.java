@@ -19,11 +19,12 @@ package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
+
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeOpr extends FType {
     public FTypeOpr(String s) {
@@ -35,11 +36,11 @@ public class FTypeOpr extends FType {
      *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        throw new InterpreterBug(val,env,
-                errorMsg("Unimplemented --  unify opr parameter ", this,
-                         " and  type argument ", val));
+        return bug(val,env,
+                   errorMsg("Unimplemented --  unify opr parameter ", this,
+                            " and  type argument ", val));
     }
 
     /* (non-Javadoc)
