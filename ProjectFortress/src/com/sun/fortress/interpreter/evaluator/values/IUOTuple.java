@@ -78,35 +78,36 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         for (FValue i : elems) {
             // Used twice -- once for tuple rank, then for rank of
             // elements collected in the paste.
-            int element_rank;
+            Integer element_rank;
 
             // tuple case
             if (i instanceof IUOTuple) {
-                element_rank = ((IUOTuple) i).rank;
+                element_rank = new Integer(((IUOTuple) i).rank);
                 if (rank_seen < 0) {
-                    rank_seen = element_rank;
-                } else if (rank_seen != element_rank) {
-                    throw new ProgramError(at,
-                            errorMsg("Mixed-rank pastings within array/matrix paste"));
+                    rank_seen = element_rank.intValue();
+                } else if (rank_seen != element_rank.intValue()) {
+                    element_rank = error(at,
+                          errorMsg("Mixed-rank pastings within array/matrix paste"));
                 }
-                element_rank = ((IUOTuple) i).elementRank;
+                element_rank = new Integer(((IUOTuple) i).elementRank);
 
                 // non-tuple #1 -- there should be no other tuple elements
             } else if (rank_seen > 0) {
-                throw new ProgramError(at,
-                        errorMsg("Mixed-rank (paste/nonpaste) elements within array/matrix paste"));
+                element_rank = error(at,
+                      errorMsg("Mixed-rank (paste/nonpaste) elements within array/matrix paste"));
                 // The rank is negative or zero, make it zero
             } else {
                 rank_seen = 0;
-                element_rank = Glue.arrayRank(i);
+                element_rank = new Integer(Glue.arrayRank(i));
             }
 
             // Sanity-check the element rank; they had better all match.
             if (element_rank_seen <= 0) {
-                element_rank_seen = element_rank;
-            } else if (element_rank_seen != element_rank && element_rank > 0) {
-                throw new ProgramError(at,
-                        errorMsg("Mixed-rank elements within array/matrix paste"));
+                element_rank_seen = element_rank.intValue();
+            } else if (element_rank_seen != element_rank.intValue()
+                       && element_rank.intValue() > 0) {
+                error(at,
+                      errorMsg("Mixed-rank elements within array/matrix paste"));
             }
 
         }
