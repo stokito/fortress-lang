@@ -215,6 +215,10 @@ public class NodeFactory {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
                                    name);
     }
+    
+    public static QualifiedOpName makeQualifiedOpName(OpName name) {
+        return new QualifiedOpName(name.getSpan(), Option.<DottedName>none(), name);
+    }
 
     /**
      * Alternatively, you can invoke the FnDef constructor without a selfName

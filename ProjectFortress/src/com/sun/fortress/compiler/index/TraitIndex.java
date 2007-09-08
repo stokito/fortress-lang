@@ -32,7 +32,7 @@ import com.sun.fortress.useful.NI;
  * Wraps a trait or object declaration.  Comprises {@link ProperTraitIndex} and
  * {@link ObjectTraitIndex}.
  */
-public abstract class TraitIndex {
+public abstract class TraitIndex extends TypeConsIndex {
     
     private final TraitObjectAbsDeclOrDecl _ast;
     private final Map<IdName, Method> _getters;
@@ -55,10 +55,6 @@ public abstract class TraitIndex {
         _functionalMethods = functionalMethods;
     }
     
-    
-    public Map<IdName, StaticParam> staticParameters() {
-        return NI.nyi();
-    }
     
     public Set<Type> extendsTypes() {
         return NI.nyi();

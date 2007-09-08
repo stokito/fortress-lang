@@ -35,16 +35,16 @@ public class CompilationUnitIndex {
     private final CompilationUnit _ast;
     private final Map<IdName, Variable> _variables;
     private final Relation<FnName, Function> _functions;
-    private final Map<IdName, TraitIndex> _traits;
+    private final Map<IdName, TypeConsIndex> _typeConses;
     
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<IdName, Variable> variables,
                                 Relation<FnName, Function> functions,
-                                Map<IdName, TraitIndex> traits) {
+                                Map<IdName, TypeConsIndex> typeConses) {
         _ast = ast;
         _variables = Collections.unmodifiableMap(variables);
         _functions = CollectUtil.unmodifiableRelation(functions);
-        _traits = Collections.unmodifiableMap(traits);
+        _typeConses = Collections.unmodifiableMap(typeConses);
     }
     
     public CompilationUnit ast() { return _ast; }
@@ -61,6 +61,6 @@ public class CompilationUnitIndex {
     
     public Relation<FnName, Function> functions() { return _functions; }
     
-    public Map<IdName, TraitIndex> traits() { return _traits; }
+    public Map<IdName, TypeConsIndex> typeConses() { return _typeConses; }
     
 }

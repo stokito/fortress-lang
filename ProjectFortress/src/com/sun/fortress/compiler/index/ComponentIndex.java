@@ -35,8 +35,8 @@ public class ComponentIndex extends CompilationUnitIndex {
                           Map<IdName, Variable> variables,
                           Set<VarDecl> initializers,
                           Relation<FnName, Function> functions,
-                          Map<IdName, TraitIndex> traits) {
-        super(ast, variables, functions, traits);
+                          Map<IdName, TypeConsIndex> typeConses) {
+        super(ast, variables, functions, typeConses);
         _initializers = initializers;
     }
     

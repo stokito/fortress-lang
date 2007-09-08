@@ -15,22 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.disambiguator;
+package com.sun.fortress.compiler.index;
 
-import java.util.Set;
+import java.util.Map;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.TypeAlias;
 
-public class LocalVarEnvironment extends DelegatingEnvironment {
-    private Set<IdName> _vars;
+import com.sun.fortress.useful.NI;
+
+public abstract class TypeAliasIndex {
     
-    public LocalVarEnvironment(Environment parent, Set<IdName> vars) {
-        super(parent);
-        _vars = vars;
+    private final TypeAlias _ast;
+    
+    public TypeAliasIndex(TypeAlias ast) {
+        _ast = ast;
     }
-    
-    @Override public boolean hasVar(IdName name) {
-        return _vars.contains(name) || super.hasVar(name);
-    }
-    
+
 }

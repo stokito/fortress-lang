@@ -24,8 +24,10 @@ import java.util.HashSet;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.collect.ConsList;
+import edu.rice.cs.plt.collect.CollectUtil;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -35,7 +37,8 @@ import com.sun.fortress.compiler.index.ApiIndex;
 
 /**
  * <p>Eliminates ambiguities in an AST that can be resolved solely by knowing what kind
- * of entity a name refers to.  This class specifically handles the following:
+ * of entity a name refers to.  This class assumes all types in declarations have been
+ * resolved, and specifically handles the following:
  * <ul>
  * <li>All names referring to APIs are made fully qualified (FnRefs and OprExprs may then
  *     contain lists of qualified names referring to multiple APIs).
@@ -48,24 +51,27 @@ import com.sun.fortress.compiler.index.ApiIndex;
  *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
  * <li>FnRefs referring to trait members, and that are juxtaposed with Exprs, become 
  *     MethodInvocations.</li>
- * <li>IdTypes referring to traits become InstantiatedTypes (with 0 arguments).</li>
+ * <li>StaticArgs of FnRefs, and types nested within them, are disambiguated.</li>
  * </ul>
  * 
  * Additionally, all name references that are undefined or used incorrectly are
- * treated as static errors.  (Note that names of trait members cannot be checked
- * in this phase, because their validity depends on subtyping relationships.)</p>
+ * treated as static errors.</p>
  */
-public class DisambiguationVisitor extends NodeUpdateVisitor {
+public class ExprDisambiguator extends NodeUpdateVisitor {
     
-    private Environment _env;
-    private GlobalEnvironment _globalEnv;
+    private NameEnv _env;
+    private Set<FnName> _onDemandImports;
     private List<StaticError> _errors;
     
-    public DisambiguationVisitor(Environment env, GlobalEnvironment globalEnv,
-                                 List<StaticError> errors) {
+    public ExprDisambiguator(NameEnv env, Set<FnName> onDemandImports,
+                             List<StaticError> errors) {
         _env = env;
-        _globalEnv = globalEnv;
+        _onDemandImports = onDemandImports;
         _errors = errors;
+    }
+    
+    private void error(String msg, HasAt loc) {
+        _errors.add(StaticError.make(msg, loc));
     }
     
     /** LocalVarDecls introduce local variables while visiting the body. */
@@ -73,8 +79,8 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
       List<LValue> lhsResult = recurOnListOfLValue(that.getLhs());
       Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
       Set<IdName> definedNames = extractDefinedVarNames(lhsResult);
-      Environment newEnv = new LocalVarEnvironment(_env, definedNames);
-      DisambiguationVisitor v = new DisambiguationVisitor(newEnv, _globalEnv, _errors);
+      NameEnv newEnv = new LocalVarEnv(_env, definedNames);
+      ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLocalVarDeclOnly(that, bodyResult, lhsResult, rhsResult);
     }
@@ -98,9 +104,7 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
         else { // lv instanceof UnpastingSplit
           extractDefinedVarNames(((UnpastingSplit)lv).getElems(), result);
         }
-        if (!valid) {
-          _errors.add(StaticError.make("Duplicate local variable name", lv));
-        }
+        if (!valid) { error("Duplicate local variable name", lv); }
       }
     }
     
@@ -108,8 +112,8 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
     @Override public Node forLetFn(LetFn that) {
       List<FnDef> fnsResult = recurOnListOfFnDef(that.getFns());
       Set<FnName> definedNames = extractDefinedFnNames(fnsResult);
-      Environment newEnv = new LocalFnEnvironment(_env, definedNames);
-      DisambiguationVisitor v = new DisambiguationVisitor(newEnv, _globalEnv, _errors);
+      NameEnv newEnv = new LocalFnEnv(_env, definedNames);
+      ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLetFnOnly(that, bodyResult, fnsResult);
     }
@@ -129,37 +133,40 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
         IdName entity = NodeFactory.makeIdName(ConsList.first(fields));
         fields = ConsList.rest(fields);
         
-        // Declared variable reference
-        if (result == null && _env.hasVar(entity)) {
-            if (ConsList.isEmpty(fields)) { return that; }
-            else { result = ExprFactory.makeVarRef(entity); }
+        // Treat it as an unqualified name
+        Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
+        Set<QualifiedIdName> fns = _env.explicitFunctionNames(entity);
+        if (vars.isEmpty() && fns.isEmpty()) {
+            vars = _env.onDemandVariableNames(entity);
+            fns = _env.onDemandFunctionNames(entity);
+            _onDemandImports.add(entity);
         }
         
-        // Declared function reference
-        if (result == null && _env.hasFn(entity)) {
-            List<QualifiedIdName> fns = new ArrayList<QualifiedIdName>(1);
-            fns.add(NodeFactory.makeQualifiedIdName(entity));
-            fns.addAll(makeQualifiedNames(_env.apisForFn(entity), entity));
-            result = new FnRef(entity.getSpan(), fns);
-        }
-        
-        // Imported variable reference
-        if (result == null) {
-            Option<DottedName> varApi = _env.apiForVar(entity);
-            if (varApi.isSome()) {
-                result = ExprFactory.makeVarRef(Option.unwrap(varApi), entity);
+        if (vars.size() == 1 && fns.isEmpty()) {
+            QualifiedIdName newName = IterUtil.first(vars);
+            if (newName.getApi().isNone() && newName.getName() == entity &&
+                ConsList.isEmpty(fields)) {
+                // no change -- no need to recreate the VarRef
+                return that;
             }
+            else { result = new VarRef(newName.getSpan(), newName); }
         }
+        else if (vars.isEmpty() && !fns.isEmpty()) {
+            result = new FnRef(entity.getSpan(), IterUtil.asList(fns));
+            // TODO: insert correct number of to-infer arguments?
+        }
+        else if (!vars.isEmpty() || !fns.isEmpty()) {
+            Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, fns);
+            error("Name may refer to: " + NodeUtil.namesString(varsAndFns), name);
+            return that;
+        }
+        // otherwise, leave result uninitialized
         
-        // Imported function reference
-        if (result == null) {
-            Set<DottedName> fnApis = _env.apisForFn(entity);
-            if (!fnApis.isEmpty()) {
-                result = new FnRef(entity.getSpan(), makeQualifiedNames(fnApis, entity));
-            }
-        }
-                
-        // Qualified name
+        
+        // Treat it as a qualified name
+        // TODO: This is probably not the correct strategy for resolving ambiguities
+        //       between API names and other entity names (the specification is not
+        //       yet clear on this)
         if (result == null) {
             List<Id> api = new ArrayList<Id>();
             while (result == null && !ConsList.isEmpty(fields)) {
@@ -168,16 +175,25 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
                 fields = ConsList.rest(fields);
 
                 DottedName apiName = NodeFactory.makeDottedName(api);
-                if (_globalEnv.definesApi(apiName)) {
-                    ApiIndex index = _globalEnv.api(apiName);
-                    if (index.variables().containsKey(entity)) {
-                        if (ConsList.isEmpty(fields)) { return that; }
-                        else { result = ExprFactory.makeVarRef(apiName, entity); }
+                Option<DottedName> realApiNameOpt = _env.apiName(apiName);
+                if (realApiNameOpt.isSome()) {
+                    DottedName realApiName = Option.unwrap(realApiNameOpt);
+                    QualifiedIdName newName =
+                        NodeFactory.makeQualifiedIdName(realApiName, entity);
+                    if (_env.hasQualifiedVariable(newName)) {
+                        if (ConsList.isEmpty(fields) && apiName == realApiName) {
+                            // no change -- no need to recreate the VarRef
+                            return that;
+                        }
+                        else { result = new VarRef(newName.getSpan(), newName); }
                     }
-                    else if (index.functions().containsFirst(entity)) {
-                        result = ExprFactory.makeFnRef(apiName, entity);
+                    else if (_env.hasQualifiedFunction(newName)) {
+                        result = ExprFactory.makeFnRef(newName);
+                        // TODO: insert correct number of to-infer arguments?
                     }
+                    // otherwise, leave result uninitialized and loop
                 }
+                // otherwise, leave result uninitialized and loop
             }
         }
         
@@ -191,20 +207,9 @@ public class DisambiguationVisitor extends NodeUpdateVisitor {
             return result;
         }
         else {
-            String err = "Unrecognized name, '" + NodeUtil.nameString(that.getVar()) + "'";
-            _errors.add(StaticError.make(err, that));
+            error("Unrecognized name: " + NodeUtil.nameString(that.getVar()), that);
             return that;
         }
     }
-    
-    
-    private static List<QualifiedIdName> makeQualifiedNames(Set<DottedName> apis,
-                                                            IdName entity) {
-        List<QualifiedIdName> result = new ArrayList<QualifiedIdName>(apis.size());
-        for (DottedName api : apis) {
-            result.add(new QualifiedIdName(entity.getSpan(), Option.some(api), entity));
-        }
-        return result;
-    }
-    
+       
 }

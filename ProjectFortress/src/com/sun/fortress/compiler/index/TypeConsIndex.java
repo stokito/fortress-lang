@@ -15,22 +15,26 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.disambiguator;
+package com.sun.fortress.compiler.index;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.Collections;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.StaticParam;
 
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.useful.NI;
 
-public class LocalFnEnvironment extends DelegatingEnvironment {
-    private Set<FnName> _fns;
+/**
+ * Represents a possibly-parameterized type declaration.  Comprises
+ * {@link TraitIndex} and {@link TypeAlias}.
+ */
+public abstract class TypeConsIndex {
     
-    public LocalFnEnvironment(Environment parent, Set<FnName> fns) {
-        super(parent);
-        _fns = fns;
-    }
-    
-    @Override public boolean hasFn(FnName name) {
-        return _fns.contains(name) || super.hasFn(name);
+    public TypeConsIndex() {}
+
+    public Map<IdName, StaticParam> staticParameters() {
+        // TODO: implement correctly
+        return Collections.emptyMap();
     }
     
 }

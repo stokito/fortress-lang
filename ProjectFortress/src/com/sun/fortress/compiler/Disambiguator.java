@@ -20,17 +20,21 @@ package com.sun.fortress.compiler;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.disambiguator.Environment;
-import com.sun.fortress.compiler.disambiguator.TopLevelEnvironment;
-import com.sun.fortress.compiler.disambiguator.DisambiguationVisitor;
+import com.sun.fortress.compiler.disambiguator.NameEnv;
+import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
+import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
+import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what kind
@@ -77,13 +81,19 @@ public class Disambiguator {
         Iterable<StaticError> errors = IterUtil.empty();
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
-            Environment env = new TopLevelEnvironment(globalEnv, index);
+            NameEnv env = new TopLevelEnv(globalEnv, index);
+            Set<FnName> onDemandImports = new HashSet<FnName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            DisambiguationVisitor v = new DisambiguationVisitor(env, globalEnv, newErrs);
-            Api result = (Api) api.accept(v);
+            TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
+            Api tdResult = (Api) api.accept(td);
+            if (newErrs.isEmpty()) {
+                ExprDisambiguator ed = new ExprDisambiguator(env, onDemandImports,
+                                                             newErrs);
+                Api edResult = (Api) tdResult.accept(ed);
+                if (newErrs.isEmpty()) { results.add(edResult); }
+            }
             
-            if (newErrs.isEmpty()) { results.add(result); }
-            else { errors = IterUtil.compose(errors, newErrs); }
+            if (!newErrs.isEmpty()) { errors = IterUtil.compose(errors, newErrs); }
         }
         return new ApiResult(results, errors);
     }
@@ -112,13 +122,19 @@ public class Disambiguator {
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-            Environment env = new TopLevelEnvironment(globalEnv, index);
+            NameEnv env = new TopLevelEnv(globalEnv, index);
+            Set<FnName> onDemandImports = new HashSet<FnName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            DisambiguationVisitor v = new DisambiguationVisitor(env, globalEnv,newErrs);
-            Component result = (Component) comp.accept(v);
+            TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
+            Component tdResult = (Component) comp.accept(td);
+            if (newErrs.isEmpty()) {
+                ExprDisambiguator ed = new ExprDisambiguator(env, onDemandImports,
+                                                             newErrs);
+                Component edResult = (Component) tdResult.accept(ed);
+                if (newErrs.isEmpty()) { results.add(edResult); }
+            }
             
-            if (newErrs.isEmpty()) { results.add(result); }
-            else { errors = IterUtil.compose(errors, newErrs); }
+            if (!newErrs.isEmpty()) { errors = IterUtil.compose(errors, newErrs); }
         }
         return new ComponentResult(results, errors);
     }

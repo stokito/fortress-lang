@@ -18,27 +18,25 @@
 package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
-import edu.rice.cs.plt.tuple.Option;
+import java.util.Collections;
 
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.FnName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes_util.NodeFactory;
 
-public abstract class DelegatingEnvironment extends Environment {
-    private Environment _parent;
+public class LocalVarEnv extends DelegatingNameEnv {
+    private Set<IdName> _vars;
     
-    public DelegatingEnvironment(Environment parent) {
-        _parent = parent;
+    public LocalVarEnv(NameEnv parent, Set<IdName> vars) {
+        super(parent);
+        _vars = vars;
     }
     
-    public boolean hasVar(IdName name) { return _parent.hasVar(name); }
-    public boolean hasFn(FnName name) { return _parent.hasFn(name); }
-    public boolean hasTrait(IdName name) { return _parent.hasTrait(name); }
-    public boolean hasTypeVar(IdName name) { return _parent.hasTypeVar(name); }
-    
-    public Option<DottedName> apiForVar(IdName name) { return _parent.apiForVar(name); }
-    public Set<DottedName> apisForFn(FnName name) { return _parent.apisForFn(name); }
-    public Option<DottedName> apiForTrait(IdName name) {
-        return _parent.apiForTrait(name);
+    @Override public Set<QualifiedIdName> explicitVariableNames(IdName name) {
+        if (_vars.contains(name)) {
+            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+        }
+        else { return super.explicitVariableNames(name); }
     }
+    
 }

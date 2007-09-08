@@ -18,26 +18,35 @@
 package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
+import java.util.Collections;
 
+import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.QualifiedOpName;
+import com.sun.fortress.nodes_util.NodeFactory;
 
-public class StaticParamEnvironment extends DelegatingEnvironment {
-    private Set<IdName> _typeParams;
-    private Set<IdName> _valParams;
+public class LocalFnEnv extends DelegatingNameEnv {
+    private Set<FnName> _fns;
     
-    public StaticParamEnvironment(Environment parent, Set<IdName> typeParams,
-                                  Set<IdName> valParams) {
+    public LocalFnEnv(NameEnv parent, Set<FnName> fns) {
         super(parent);
-        _typeParams = typeParams;
-        _valParams = valParams;
+        _fns = fns;
     }
     
-    @Override public boolean hasVar(IdName name) {
-        return _valParams.contains(name) || super.hasVar(name);
+    @Override public Set<QualifiedIdName> explicitFunctionNames(IdName name) {
+        if (_fns.contains(name)) {
+            return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
+        }
+        else { return super.explicitFunctionNames(name); }
     }
     
-    @Override public boolean hasTypeVar(IdName name) {
-        return _typeParams.contains(name) || super.hasTypeVar(name);
+    @Override public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
+        if (_fns.contains(name)) {
+            return Collections.singleton(NodeFactory.makeQualifiedOpName(name));
+        }
+        else { return super.explicitFunctionNames(name); }
     }
     
 }

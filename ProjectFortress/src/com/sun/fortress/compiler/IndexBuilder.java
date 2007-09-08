@@ -97,13 +97,14 @@ public class IndexBuilder {
         final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
         final Relation<FnName, Function> functions =
           new HashRelation<FnName, Function>(true, false);
-        final Map<IdName, TraitIndex> traits = new HashMap<IdName, TraitIndex>();
+        final Map<IdName, TypeConsIndex> typeConses =
+            new HashMap<IdName, TypeConsIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsTraitDecl(AbsTraitDecl d) {
-                buildTrait(d, traits, functions);
+                buildTrait(d, typeConses, functions);
             }
             @Override public void forAbsObjectDecl(AbsObjectDecl d) {
-                buildObject(d, traits, functions, variables);
+                buildObject(d, typeConses, functions, variables);
             }
             @Override public void forAbsVarDecl(AbsVarDecl d) {
                 buildVariables(d, variables);
@@ -130,7 +131,7 @@ public class IndexBuilder {
         for (AbsDecl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ApiIndex api = new ApiIndex(ast, variables, functions, traits);
+        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses);
         apis.put(ast.getName(), api);
     }
 
@@ -141,13 +142,14 @@ public class IndexBuilder {
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<FnName, Function> functions =
             new HashRelation<FnName, Function>(true, false);
-        final Map<IdName, TraitIndex> traits = new HashMap<IdName, TraitIndex>();
+        final Map<IdName, TypeConsIndex> typeConses =
+            new HashMap<IdName, TypeConsIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
-                buildTrait(d, traits, functions);
+                buildTrait(d, typeConses, functions);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, traits, functions, variables);
+                buildObject(d, typeConses, functions, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables); initializers.add(d);
@@ -178,7 +180,7 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         ComponentIndex comp = new ComponentIndex(ast, variables, initializers,
-                                                 functions, traits);
+                                                 functions, typeConses);
         components.put(ast.getName(), comp);
     }
 
@@ -187,7 +189,8 @@ public class IndexBuilder {
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
      */
-    private void buildTrait(TraitAbsDeclOrDecl ast, Map<IdName, TraitIndex> traits,
+    private void buildTrait(TraitAbsDeclOrDecl ast,
+                            Map<IdName, TypeConsIndex> typeConses,
                             final Relation<FnName, Function> functions) {
         final IdName name = ast.getName();
         final Map<IdName, Method> getters = new HashMap<IdName, Method>();
@@ -214,7 +217,7 @@ public class IndexBuilder {
         }
         TraitIndex trait = new ProperTraitIndex(ast, getters, setters, coercions,
                                                 dottedMethods, functionalMethods);
-        traits.put(name, trait);
+        typeConses.put(name, trait);
     }
 
     /**
@@ -223,7 +226,7 @@ public class IndexBuilder {
      * put it in the appropriate map.
      */
     private void buildObject(ObjectAbsDeclOrDecl ast,
-                             Map<IdName, TraitIndex> traits,
+                             Map<IdName, TypeConsIndex> typeConses,
                              final Relation<FnName, Function> functions,
                              Map<IdName, Variable> variables) {
         final IdName name = ast.getName();
@@ -273,7 +276,7 @@ public class IndexBuilder {
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,
                                                 getters, setters, coercions,
                                                 dottedMethods, functionalMethods);
-        traits.put(name, trait);
+        typeConses.put(name, trait);
     }
 
 

@@ -161,6 +161,10 @@ public class NodeUtil {
         });
     }
     
+    public static String namesString(Iterable<? extends Name> names) {
+        return IterUtil.toString(IterUtil.map(names, NameToStringFn), "", ", ", "");
+    }
+    
 
     /* getName *************************************************************/
     public static String getName(StaticParam param) {
