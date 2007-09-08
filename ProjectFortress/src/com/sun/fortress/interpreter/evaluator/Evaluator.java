@@ -218,12 +218,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue NI(String s) {
-        return bug(this.getClass().getName() + "." + s + " not implemented");
+        throw new InterpreterBug(this.getClass().getName() + "." + s
+                + " not implemented");
     }
 
     public FValue NI(String s, AbstractNode n) {
-        return bug(n, this.getClass().getName() + "." + s
-                      + " not implemented, input \n" + NodeUtil.dump(n));
+        throw new InterpreterBug(n, this.getClass().getName() + "." + s
+                + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
     public FValue forAccumulator(Accumulator x) {
@@ -394,7 +395,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    res = error(exp, inner, "Wrapped exception", ex);
+                    new ProgramError(exp, inner, "Wrapped exception", ex);
                 }
             } else {
                 try {
@@ -402,7 +403,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    res = error(exp, eval.e, "Wrapped exception", ex);
+                    new ProgramError(exp, eval.e, "Wrapped exception", ex);
                 }
             }
         }
@@ -702,9 +703,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //                throw ex.setContext(x,e);
 //            }
         } else {
-            return error(x, e,
-                         errorMsg("Non-object cannot have field ",
-                                  NodeUtil.nameString(fld)));
+            throw new ProgramError(x, e,
+                    errorMsg("Non-object cannot have field ", NodeUtil.nameString(fld)));
         }
 
     }
@@ -725,7 +725,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO Environment is split, might not be best choice
                 // for error printing.
                 String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
-                return error(x, fobject.getSelfEnv(), msg);
+                throw new ProgramError(x, fobject.getSelfEnv(), msg);
             } else if (sargs.isEmpty() && cl instanceof Method) {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
@@ -735,9 +735,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x, fobject.getSelfEnv());
                 }
             } else if (cl instanceof OverloadedMethod) {
-                return bug(x, fobject.getSelfEnv(),
-                           "Don't actually resolve overloading of " +
-                           "generic methods yet.");
+                throw new InterpreterBug(x, fobject.getSelfEnv(),
+                                         "Don't actually resolve overloading of " +
+                                         "generic methods yet.");
             } else if (cl instanceof MethodInstance) {
                 // What gets retrieved is the symbolic instantiation of
                 // the generic method.
@@ -754,13 +754,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x,fobject.getSelfEnv());
                 }
             } else {
-                return error(x, fobject.getSelfEnv(),
-                             errorMsg("Unexpected method value in method ",
-                                      "invocation, ", cl));
+                throw new ProgramError(x, fobject.getSelfEnv(),
+                                       errorMsg("Unexpected method value in method ",
+                                                "invocation, ", cl));
             }
         } else {
-            return error(x, errorMsg("Unexpected receiver in method ",
-                                     "invocation, ", fobj));
+            throw new ProgramError(x, errorMsg("Unexpected receiver in method ",
+                                               "invocation, ", fobj));
         }
     }
 
@@ -818,15 +818,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forLabel(Label x) {
         /* Don't forget to use a new evaluator/environment for the inner block. */
-        return bug(x,"label construct not yet implemented.");
+        throw new InterpreterBug(x,"label construct not yet implemented.");
     }
 
     public FValue forLetFn(LetFn x) {
-        return bug(x,"forLetFn not implemented.");
+        throw new InterpreterBug(x,"forLetFn not implemented.");
     }
 
     public FValue forListComprehension(ListComprehension x) {
-        return bug(x,"list comprehensions not yet implemented.");
+        throw new InterpreterBug(x,"list comprehensions not yet implemented.");
     }
 
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
@@ -887,7 +887,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-        return bug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+        throw new InterpreterBug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
         // return x.getElement().accept(notInPaste);
     }
@@ -928,9 +928,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // cl.finishInitializing();
             return cl.applyOEConstructor( x, e);
         } else {
-            return bug(x,e,
-                       errorMsg("_RewriteObjectExpr ", s,
-                                " has 'constructor' ", v));
+            throw new InterpreterBug(x,e,
+                                     errorMsg("_RewriteObjectExpr ", s,
+                                              " has 'constructor' ", v));
         }
 
         // Option<List<Type>> traits = x.getTraits();
@@ -1149,13 +1149,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     if (cl == null) {
                         // TODO Environment is split, might not be best choice
                         // for error printing.
-                        return error(x, fobject.getSelfEnv(),
-                                     errorMsg("undefined method/field ",
-                                              NodeUtil.nameString(fld)));
+                        throw new ProgramError(x, fobject.getSelfEnv(),
+                                               errorMsg("undefined method/field ",
+                                                        NodeUtil.nameString(fld)));
                     } else if (cl instanceof OverloadedMethod) {
 
-                        return bug(x, fobject.getSelfEnv(),
-                                   "Don't actually resolve overloading of generic methods yet.");
+                        throw new InterpreterBug(x, fobject.getSelfEnv(),
+                                                 "Don't actually resolve overloading of generic methods yet.");
 
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
@@ -1168,14 +1168,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                     evalInvocationArgs(exprs), fobject, x, e);
 
                     } else {
-                        return error(x, fobject.getSelfEnv(),
-                                     errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                              cl));
+                        throw new ProgramError(x, fobject.getSelfEnv(),
+                                               errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+                                                        cl));
                     }
                 } else {
-                    return error(x,
-                                 errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
-                                          fobj));
+                    throw new ProgramError(x,
+                                           errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
+                                                    fobj));
 
                 }
             }
@@ -1207,9 +1207,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (cl == null)
                 // TODO Environment is split, might not be best choice for error
                 // printing.
-                return error(x, fobject.getSelfEnv(),
-                             errorMsg("undefined method/field ",
-                                      NodeUtil.nameString(fld)));
+                throw new ProgramError(x, fobject.getSelfEnv(),
+                        errorMsg("undefined method/field ", NodeUtil.nameString(fld)));
             else if (cl instanceof Method) {
                 return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
                         fobject, x, e);
@@ -1221,13 +1220,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO seems like we could be multiplying, too.
                 String msg = errorMsg("Tight juxtaposition of non-function ",
                                       NodeUtil.nameString(fld));
-                return error(x, fobject.getSelfEnv(), msg);
+                throw new ProgramError(x, fobject.getSelfEnv(), msg);
             }
         } else {
             // TODO Could be a fragment of a component/api name, too.
-            return error(x,
-                         errorMsg("", fobj, ".", fld,
-                                  " but not object.something"));
+            throw new ProgramError(x,
+                    errorMsg("", fobj, ".", fld,
+                             " but not object.something"));
         }
     }
 
@@ -1364,9 +1363,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x,e);
                 }
             } else {
-                res = error(x, e,
-                            errorMsg("Non-object cannot have field ",
-                                     fld.getText()));
+                throw new ProgramError(x, e,
+                                       errorMsg("Non-object cannot have field ",
+                                                fld.getText()));
             }
         }
         return res;
@@ -1423,7 +1422,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
         } else {
-            return error(x, e, errorMsg("Unexpected FnRef value, ",g));
+            throw new ProgramError(x, e, errorMsg("Unexpected FnRef value, ",g));
         }
     }
 

@@ -89,12 +89,10 @@ public class Resolver {
   private static Precedence precedence(Op op1, Op op2) {
       String op1name = op1.getText();
       String op2name = op2.getText();
-  System.out.println("op1name=" + op1name + " op2name=" + op2name);
       if (op1name.charAt(0)==':') op1name = op1name.substring(1);
       if (op2name.charAt(0)==':') op2name = op2name.substring(1);
       if (op1name.charAt(op1name.length()-1)==':') op1name = op1name.substring(0,op1name.length()-1);
       if (op2name.charAt(op2name.length()-1)==':') op2name = op2name.substring(0,op2name.length()-1);
-  System.out.println("op1name=" + op1name + " op2name=" + op2name);
       return PrecedenceMap.ONLY.get(op1name, op2name);
   }
 
