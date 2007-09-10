@@ -28,10 +28,11 @@ import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
@@ -541,9 +542,8 @@ public class ExprFactory {
                                          e.getSubs(), e.getOp());
             }
             public Expr defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of Expr.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of Expr.");
             }
         });
     }

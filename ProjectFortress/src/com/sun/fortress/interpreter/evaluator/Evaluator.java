@@ -218,12 +218,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue NI(String s) {
-        throw new InterpreterBug(this.getClass().getName() + "." + s
-                + " not implemented");
+        return bug(this.getClass().getName() + "." + s + " not implemented");
     }
 
     public FValue NI(String s, AbstractNode n) {
-        throw new InterpreterBug(n, this.getClass().getName() + "." + s
+        return bug(n, this.getClass().getName() + "." + s
                 + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
@@ -736,9 +735,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     throw ex.setContext(x, fobject.getSelfEnv());
                 }
             } else if (cl instanceof OverloadedMethod) {
-                throw new InterpreterBug(x, fobject.getSelfEnv(),
-                                         "Don't actually resolve overloading of " +
-                                         "generic methods yet.");
+                return bug(x, fobject.getSelfEnv(),
+			   "Don't actually resolve overloading of " +
+			   "generic methods yet.");
             } else if (cl instanceof MethodInstance) {
                 // What gets retrieved is the symbolic instantiation of
                 // the generic method.
@@ -819,15 +818,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forLabel(Label x) {
         /* Don't forget to use a new evaluator/environment for the inner block. */
-        throw new InterpreterBug(x,"label construct not yet implemented.");
+        return bug(x,"label construct not yet implemented.");
     }
 
     public FValue forLetFn(LetFn x) {
-        throw new InterpreterBug(x,"forLetFn not implemented.");
+        return bug(x,"forLetFn not implemented.");
     }
 
     public FValue forListComprehension(ListComprehension x) {
-        throw new InterpreterBug(x,"list comprehensions not yet implemented.");
+        return bug(x,"list comprehensions not yet implemented.");
     }
 
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
@@ -888,7 +887,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-        throw new InterpreterBug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+	return bug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
         // return x.getElement().accept(notInPaste);
     }
@@ -929,9 +928,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // cl.finishInitializing();
             return cl.applyOEConstructor( x, e);
         } else {
-            throw new InterpreterBug(x,e,
-                                     errorMsg("_RewriteObjectExpr ", s,
-                                              " has 'constructor' ", v));
+            return bug(x,e, errorMsg("_RewriteObjectExpr ", s,
+				     " has 'constructor' ", v));
         }
 
         // Option<List<Type>> traits = x.getTraits();
@@ -1155,8 +1153,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 					      NodeUtil.nameString(fld)));
                     } else if (cl instanceof OverloadedMethod) {
 
-                        throw new InterpreterBug(x, fobject.getSelfEnv(),
-                                                 "Don't actually resolve overloading of generic methods yet.");
+                        return bug(x, fobject.getSelfEnv(),
+				   "Don't actually resolve overloading of generic methods yet.");
 
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
