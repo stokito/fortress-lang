@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 
 /**
  * Till we get a linker, this is how we link.
@@ -51,6 +52,7 @@ public class Libraries {
 
         if (c != null) {
             library = c;
+            c = (Component) RewriteInAbsenceOfTypeInfo.Only.visit(c);
             c = (Component) dis.visit(c);
             be.forComponent1(c);
             Glue.installHooks(be.getEnvironment());

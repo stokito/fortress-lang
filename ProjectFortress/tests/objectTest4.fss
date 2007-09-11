@@ -28,12 +28,13 @@ object A(i:ZZ32, j:ZZ32)
   getI():ZZ32 = self.i
   getZ():ZZ32 = j
 
-  setF(g) = do f := g; end (* Update the closure-valued field *)
+  setF(g) = do f := g; println "setf"; end (* Update the closure-valued field *)
 end
 
 (* Test that a's fields have the expected sum *)
 s(a:A, n:ZZ32) = println(
-  if (a.id().getI() + a.id().getZ() = n) then "pass" else "fail" end
+  if (a.id().getI() + a.id().getZ() = n) then "pass" else
+     "fail " a.id().getI() " "  a.id().getZ() " " n end
   )
 
 run(args:String...):()=do
@@ -44,7 +45,7 @@ run(args:String...):()=do
   s(a.f(),5) (* a.f = g, g() = A(2,3) *)
 
   a.setF(h)
-  s(a.f(),9) (* a.f = h, h() = A(3,6) *)
+  s((a.f)(),9) (* a.f = h, h() = A(3,6) *)
 
 end
 end

@@ -810,12 +810,35 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                  List<StaticArg> staticArgs
                                      = Collections.<StaticArg>emptyList(),
                                  Expr arg);
+                                 
                 /**
                  * field selection expression
                  * Primary ::= Primary . Id
                  * e.g.) Empty.length
                  */
-                FieldRef(Expr obj, IdName field) implements LHS;
+                abstract AbstractFieldRef(Expr obj) implements LHS;
+                    /**
+                     * A field selection, unless it is a method reference
+                     */
+                    FieldRef(IdName field);
+                    /**
+                     * A field selection, for sure.
+                     * (though its implementation might be a getter/setter).
+                     */
+                    FieldRefForSure(IdName field);
+                    /**
+                     * A rewritten field ref (not a getter/setter).
+                     * also used to disambiguate lexical references to self/parent
+                     * and within objectexprs to get access to outer scopes
+                     * where the vars in the outer scopes may in turn have been
+                     * API-qualified.
+                     *
+                     * If the reference to outer scope can be "fixed" (there is
+                     * only one out scope) then it might be good to narrow this
+                     * back down to an IdName.
+                     */
+                    _RewriteFieldRef(Name field);
+                
                 /**
                  * juxtaposition of expressions
                  * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
@@ -854,6 +877,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 FnRef(List<QualifiedIdName> fns,
                       List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
+                
+                /**
+                 * The rewriting to explicitly name self and parent
+                 * pre-interpretation may generalize the dotted
+                 * list from a FnRef into something else.
+                 */
+                _RewriteFnRef(Expr fn,
+                              List<StaticArg> staticArgs
+                          = Collections.<StaticArg>emptyList());
+                
                 /**
                  * simple expression
                  * Primary ::= BaseExpr
@@ -1118,7 +1151,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * integer identiier
                  * IntVal ::= QualifiedIdName
                  * e.g.) m
-                 */
+             */
                 IntRef(QualifiedIdName name);
             /**
              * integer addition
@@ -1126,40 +1159,40 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) m + 2
              */
             SumConstraint(IntExpr left, IntExpr right);
-            /**
+                /**
              * integer subtraction
              * IntExpr ::= IntExpr - IntExpr
              * e.g.) m - 2
-             */
+                 */
             MinusConstraint(IntExpr left, IntExpr right);
-            /**
+                /**
              * integer multiplication
              * IntExpr ::= IntExpr IntExpr
              *           | IntExpr DOT IntExpr
              * e.g.) m DOT n
-             */
+                 */
             ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
-            /**
+                /**
              * integer exponentiation
              * IntExpr ::= IntExpr caret IntVal
              * e.g.) 2^b
-             */
+                 */
             ExponentConstraint(IntExpr base, IntVal power);
-        /**
+                /**
          * boolean expression
          * StaticExpr ::= BoolExpr
-         */
+                 */
         abstract BoolExpr();
-            /**
+                /**
              * boolean value
              * BoolExpr ::= BoolVal
-             */
+                 */
             abstract BoolVal();
-                /**
+            /**
                  * boolean constant
                  * BoolVal ::= true | false
                  * e.g.) true
-                 */
+             */
                 BoolConstant(boolean bool);
                 /**
                  * boolean identiier
@@ -1167,10 +1200,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) ninf
                  */
                 BoolRef(QualifiedIdName name);
-            /**
+                /**
              * boolean constraint
              * BoolExpr ::= BoolConstraint
-             */
+                 */
             abstract BoolConstraint();
                 /**
                  * boolean NOT constraint
@@ -1202,7 +1235,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) ninf AND pinf = true
                  */
                 BEConstraint(BoolExpr left, BoolExpr right);
-        /**
+                /**
          * dimension expression
          */
         abstract DimExpr();
@@ -1238,9 +1271,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * DimExpr ::= DUPreOp DimExpr
              *           | DimExpr DUPostOp
              * e.g.) Time squared
-             */
+                 */
             OpDim(DimExpr val, DimUnitOp op);
-        /**
+            /**
          * unit expression
          */
         abstract UnitExpr() implements ExprOrUnitExpr;

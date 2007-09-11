@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 import com.sun.fortress.useful.Useful;
 
 
@@ -118,6 +119,7 @@ public class ComponentWrapper {
      */
     private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env) {
         dis = new Disambiguate();
+        cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         build_env.visit(cu);
