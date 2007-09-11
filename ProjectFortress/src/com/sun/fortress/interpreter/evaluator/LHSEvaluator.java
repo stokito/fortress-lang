@@ -43,6 +43,9 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.nodes.AbstractFieldRef;
+import com.sun.fortress.nodes.FieldRefForSure;
+import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
@@ -58,6 +61,7 @@ import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
@@ -86,24 +90,41 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFieldRef(com.sun.fortress.interpreter.nodes.FieldRef)
-     */
-    @Override
-    public Voidoid forFieldRef(FieldRef x) {
+    public Voidoid forFieldRefCommon(AbstractFieldRef x, Name what) {
         Expr from = x.getObj();
-        IdName what = x.getField();
         // TODO need to generalize to dotted names.
         FValue val = from.accept(evaluator);
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
-            obj.getSelfEnv().assignValue(x, what.getId().getText(), value);
+            if (what instanceof IdName) {
+                obj.getSelfEnv().assignValue(x, ((IdName)what).getId().getText(), value);
+            } else {
+                throw new InterpreterBug("'what' not instanceof IDName, instead is " + what );
+            }
             return null;
         } else {
             return NI.nyi("FieldRef expression, not object.field");
         }
-
     }
+
+    @Override
+    public Voidoid forFieldRef(FieldRef x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor#for_RewriteFieldRef(com.sun.fortress.nodes._RewriteFieldRef)
+     */
+    @Override
+    public Voidoid for_RewriteFieldRef(_RewriteFieldRef x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
+    @Override
+    public Voidoid forFieldRefForSure(FieldRefForSure x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
 
 
     LHSEvaluator(Evaluator evaluator, FValue value) {
@@ -126,7 +147,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 if (!ft.typeMatch(value)) {
                     String m = errorMsg("Type mismatch assigning ", value, " (type ",
                                         value.type(), ") to ", s, " (type ", ft, ")");
-                    error(x, e, m);
+                    return error(x, e, m);
                 }
             }
             e.assignValue(x, s, value);
@@ -175,7 +196,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 //                if (outerType instanceof FAggregateType) {
 //                    bestGuess = ((FAggregateType) outerType).getElementType();
 //                } else {
-//                    bestGuess = error(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
+//                    throw new ProgramError(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
 //                }
             } else {
                 // Take the (urk!) JOIN of the types of the array elements.
@@ -183,7 +204,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 // the type system?  Not sure.
 
                 outerType = error(x, evaluator.e,
-                                  "Can't infer element type for array construction");
+                            "Can't infer element type for array construction");
             }
 
             /*
@@ -250,7 +271,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);
-                    else {
+                    else {                  
                         error(x, evaluator.e,
                          errorMsg("RHS expression type ", value.type(),
                                   " is not assignable to LHS type ", outerType));

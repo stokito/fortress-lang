@@ -65,6 +65,7 @@ import com.sun.fortress.interpreter.glue.MethodWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
+import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.Assignment;
@@ -91,6 +92,7 @@ import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
+import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteral;
 import com.sun.fortress.nodes.FnExpr;
@@ -114,7 +116,10 @@ import com.sun.fortress.nodes.ArrayExpr;
 import com.sun.fortress.nodes.ArrayElement;
 import com.sun.fortress.nodes.ArrayElements;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes._RewriteFieldRef;
+import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
@@ -168,7 +173,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Evaluator extends EvaluatorBase<FValue> {
-    boolean debug = false;
+     boolean debug = false;
     final public static FVoid evVoid = FVoid.V;
 
     public FValue eval(Expr e) {
@@ -306,8 +311,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
                 public FValue call() {
-                   Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
-                   return expr.accept(ev);
+                    Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                    return expr.accept(ev);
                 }
             }
         );
@@ -394,7 +399,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    new ProgramError(exp, inner, "Wrapped exception", ex);
+                    throw new ProgramError(exp, inner, "Wrapped exception", ex);
                 }
             } else {
                 try {
@@ -402,7 +407,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    new ProgramError(exp, eval.e, "Wrapped exception", ex);
+                    throw new ProgramError(exp, eval.e, "Wrapped exception", ex);
                 }
             }
         }
@@ -430,7 +435,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
-            runner.setCurrentTask(currentTask);
+     runner.setCurrentTask(currentTask);
 
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
@@ -676,37 +681,55 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forExtentRange");
     }
 
+    @Override
     public FValue forFieldRef(FieldRef x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor#for_RewriteFieldRef(com.sun.fortress.nodes._RewriteFieldRef)
+     */
+    @Override
+    public FValue for_RewriteFieldRef(_RewriteFieldRef x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
+    @Override
+    public FValue forFieldRefForSure(FieldRefForSure x) {
+        return forFieldRefCommon(x, x.getField());
+    }
+
+    private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressError,
+            ProgramError {
         Expr obj = x.getObj();
-        IdName fld = x.getField();
+       
         FValue fobj = obj.accept(this);
         if (fobj instanceof Selectable) {
             Selectable selectable = (Selectable) fobj;
             /*
-             * Selectable was introduced to make it not necessary
-             * to know whether a.b was field b of object a, or member
-             * b of api a (or api name prefix, extended).
+             * Selectable was introduced to make it not necessary to know
+             * whether a.b was field b of object a, or member b of api a (or api
+             * name prefix, extended).
              */
-//          TODO Need to distinguish between public/private methods/fields
+            // TODO Need to distinguish between public/private methods/fields
             try {
                 return selectable.select(NodeUtil.nameString(fld));
             } catch (FortressError ex) {
-                throw ex.setContext(x,e);
+                throw ex.setContext(x, e);
             }
-//        } else if (fobj instanceof FObject) {
-//            FObject fobject = (FObject) fobj;
-//            // TODO Need to distinguish between public/private methods/fields
-//            try {
-//                return fobject.getSelfEnv().getValue(fld.getName());
-//            } catch (FortressError ex) {
-//                throw ex.setContext(x,e);
-//            }
+            // } else if (fobj instanceof FObject) {
+            // FObject fobject = (FObject) fobj;
+            // // TODO Need to distinguish between public/private methods/fields
+            // try {
+            // return fobject.getSelfEnv().getValue(fld.getName());
+            // } catch (FortressError ex) {
+            // throw ex.setContext(x,e);
+            //        }
         } else {
-            return error(x, e,
+           return error(x, e,
 			 errorMsg("Non-object cannot have field ",
 				  NodeUtil.nameString(fld)));
         }
-
     }
 
     public FValue forMethodInvocation(MethodInvocation x) {
@@ -730,14 +753,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
                 try {
-                    return ((Method) cl).applyMethod(args, fobject, x, e);
+                return ((Method) cl).applyMethod(args, fobject, x, e);
                 } catch (FortressError ex) {
                     throw ex.setContext(x, fobject.getSelfEnv());
                 }
             } else if (cl instanceof OverloadedMethod) {
                 return bug(x, fobject.getSelfEnv(),
-			   "Don't actually resolve overloading of " +
-			   "generic methods yet.");
+                                         "Don't actually resolve overloading of " +
+                                         "generic methods yet.");
             } else if (cl instanceof MethodInstance) {
                 // What gets retrieved is the symbolic instantiation of
                 // the generic method.
@@ -755,12 +778,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             } else {
                 return error(x, fobject.getSelfEnv(),
-			     errorMsg("Unexpected method value in method ",
-				      "invocation, ", cl));
+                                       errorMsg("Unexpected method value in method ",
+                                                "invocation, ", cl));
             }
         } else {
             return error(x, errorMsg("Unexpected receiver in method ",
-				     "invocation, ", fobj));
+                                               "invocation, ", fobj));
         }
     }
 
@@ -929,7 +952,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return cl.applyOEConstructor( x, e);
         } else {
             return bug(x,e, errorMsg("_RewriteObjectExpr ", s,
-				     " has 'constructor' ", v));
+                                              " has 'constructor' ", v));
         }
 
         // Option<List<Type>> traits = x.getTraits();
@@ -1102,6 +1125,52 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forSubscriptOp(SubscriptOp x) {
         return NI("forSubscriptOp");
     }
+    
+    public FValue invokeGenericMethod(FObject fobject, Name fld, List<StaticArg> args, List<Expr> exprs, HasAt x) {
+        FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
+        if (cl == null) {
+            // TODO Environment is split, might not be best choice
+            // for error printing.
+            throw new ProgramError(x, fobject.getSelfEnv(),
+                                   errorMsg("undefined method/field ",
+                                            NodeUtil.nameString(fld)));
+        } else if (cl instanceof OverloadedMethod) {
+
+            throw new InterpreterBug(x, fobject.getSelfEnv(),
+                                     "Don't actually resolve overloading of generic methods yet.");
+
+        } else if (cl instanceof MethodInstance) {
+            // What gets retrieved is the symbolic instantiation of
+            // the generic method.
+            // This is ever-so-slightly wrong -- we need to not
+            // create an "instance"
+            // if the parameters are non-symbolic.
+            GenericMethod gm = ((MethodInstance) cl).getGenerator();
+            return (gm.typeApply(args, e, x)).applyMethod(
+                        evalInvocationArgs(exprs), fobject, x, e);
+
+        } else {
+            throw new ProgramError(x, fobject.getSelfEnv(),
+                                   errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+                                            cl));
+        }
+    }
+    
+    Name fldName(AbstractFieldRef arf) {
+        if (arf instanceof FieldRef) {
+            return ((FieldRef)arf).getField();
+        }
+        if (arf instanceof FieldRefForSure) {
+            return ((FieldRefForSure)arf).getField();
+                       
+        }
+        if (arf instanceof _RewriteFieldRef) {
+            return ((_RewriteFieldRef)arf).getField();
+                        
+        }
+        return bug("Unexpected AbstractFieldRef " + arf);
+        
+    }
 
     /** Assumes wrapped FnRefs have ids fields of length 1. */
     public FValue forTightJuxt(TightJuxt x) {
@@ -1129,6 +1198,38 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
 
+        } else if (fcnExpr instanceof _RewriteFieldRef) {
+            // In this case, open code the FieldRef evaluation
+            // so that the object can be preserved. Alternate
+            // strategy might be to generate a closure from
+            // the field selection.
+            _RewriteFieldRef fld_sel = (_RewriteFieldRef) fcnExpr;
+            Expr obj = fld_sel.getObj();
+            Name fld = fld_sel.getField();
+            if (fld instanceof IdName) {
+                FValue fobj = obj.accept(this);
+                return juxtMemberSelection(x, fobj, (IdName) fld, exprs);
+            } else {
+                NI.nyi("Field selector of dotted");
+            }
+                
+
+        } else if (fcnExpr instanceof _RewriteFnRef) {
+            // Only come here if there are static args -- must be generic
+            // Note that ALL method references have been rewritten into 
+            // this.that form, so that bare var-ref is a function
+            _RewriteFnRef rfr = (_RewriteFnRef) fcnExpr;
+            Expr fn = rfr.getFn();
+            List<StaticArg> args = rfr.getStaticArgs();
+            if (fn instanceof AbstractFieldRef) {
+                AbstractFieldRef arf = (AbstractFieldRef) fn;
+                FValue fobj = arf.getObj().accept(this);
+                return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
+            } else if (fn instanceof VarRef) {
+                // FALL OUT TO REGULAR FUNCTION CASE!
+            } else {
+                return bug("_RewriteFnRef with unexpected fn " + fn);
+            }
         } else if (fcnExpr instanceof FnRef) {
             // We must evaluate the receiver separately so we can get a handle on it
             FnRef tax = (FnRef) fcnExpr;
@@ -1149,12 +1250,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         // TODO Environment is split, might not be best choice
                         // for error printing.
                         return error(x, fobject.getSelfEnv(),
-				     errorMsg("undefined method/field ",
-					      NodeUtil.nameString(fld)));
+                                               errorMsg("undefined method/field ",
+                                                        NodeUtil.nameString(fld)));
                     } else if (cl instanceof OverloadedMethod) {
 
                         return bug(x, fobject.getSelfEnv(),
-				   "Don't actually resolve overloading of generic methods yet.");
+                                                 "Don't actually resolve overloading of generic methods yet.");
 
                     } else if (cl instanceof MethodInstance) {
                         // What gets retrieved is the symbolic instantiation of
@@ -1168,13 +1269,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
                     } else {
                         return error(x, fobject.getSelfEnv(),
-				     errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-					      cl));
+                                               errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+                                                        cl));
                     }
                 } else {
                     return error(x,
-				 errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
-					  fobj));
+                                           errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
+                                                    fobj));
 
                 }
             }
@@ -1182,7 +1283,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
-            return NI.nyi("Functional method application");
+            return NI.nyi("Unexpected application of " + fcnExpr);
         } else {
             return finishFunctionInvocation(exprs, fnVal, x);
         }
@@ -1225,8 +1326,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else {
             // TODO Could be a fragment of a component/api name, too.
             return error(x,
-			 errorMsg("", fobj, ".", fld,
-				  " but not object.something"));
+                    errorMsg("", fobj, ".", fld,
+                             " but not object.something"));
         }
     }
 
@@ -1364,7 +1465,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             } else {
                 res = error(x, e, errorMsg("Non-object cannot have field ",
-                                           fld.getText()));
+                                                fld.getText()));
             }
         }
         return res;
@@ -1425,6 +1526,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
+    @Override
+    public FValue for_RewriteFnRef(_RewriteFnRef x) {
+        Expr name = x.getFn();
+        FValue g = name.accept(this);
+        List<StaticArg> args = x.getStaticArgs();
+        if (g instanceof FGenericFunction) {
+            return ((FGenericFunction) g).typeApply(args, e, x);
+        } else if (g instanceof GenericConstructor) {
+            return ((GenericConstructor) g).typeApply(args, e, x);
+        } else if (g instanceof OverloadedFunction) {
+            return((OverloadedFunction) g).typeApply(args, e, x);
+        } else {
+            throw new ProgramError(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
+        }
+    }
+    
     public FValue for_WrappedFValue(_WrappedFValue w) {
         return w.getFValue();
     }

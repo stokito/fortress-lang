@@ -31,6 +31,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -42,13 +43,19 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
+import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Expr;
@@ -67,6 +74,8 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes._RewriteFieldRef;
+import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.InstantiatedType;
@@ -139,7 +148,9 @@ public class Disambiguate extends Rewrite {
         int nestedness;
         Thing() { nestedness = objectNestingDepth; }
         /** May assume {@code original} has a non-zero length. */
-        Iterable<Id> replacement(Iterable<Id> original) { return original; }
+        Expr replacement(VarRef original) {
+            return original;
+        }
         public String toString() { return "Thing@"+nestedness; }
     }
 
@@ -157,23 +168,44 @@ public class Disambiguate extends Rewrite {
         public String toString() { return "Trait="+defOrDecl; }
     }
 
+    
+    static IdName filterQID(QualifiedIdName qid) {
+        if (qid.getApi().isNone())
+            return qid.getName();
+        throw new InterpreterBug("Not yet prepared for QIDsref'd through self/parent, QID=" + NodeUtil.dump(qid));
+    }
 
     private class Member extends Thing {
-        @Override Iterable<Id> replacement(Iterable<Id> original) {
-            Span s = IterUtil.first(original).getSpan();
-            return prependSelf(original, s, objectNestingDepth - nestedness);
+        Expr replacement(VarRef original) {
+            _RewriteFieldRef fs = new _RewriteFieldRef(original.getSpan(), false,
+                                               // Use this constructor
+                // here because it is a
+                // com.sun.fortress.interpreter.rewrite.
+                dottedReference(original.getSpan(),
+                                objectNestingDepth - nestedness), filterQID(original.getVar()));
+        return fs;
         }
+        
+//        @Override Iterable<Id> replacement(Iterable<Id> original) {
+//            Span s = IterUtil.first(original).getSpan();
+//            return prependSelf(original, s, objectNestingDepth - nestedness);
+//        }
         public String toString() { return "Member@"+nestedness; }
     }
 
     private class SelfRewrite extends Thing {
         String s;
         SelfRewrite(String s) { this.s = s; }
-        @Override Iterable<Id> replacement(Iterable<Id> original) {
-            Span s = IterUtil.first(original).getSpan();
-            return prependSelf(IterUtil.skipFirst(original), s,
-                               objectNestingDepth - nestedness);
+        Expr replacement(VarRef original) {
+            Expr expr = dottedReference(original.getSpan(),
+                    objectNestingDepth - nestedness);
+            return expr;
         }
+//        @Override Iterable<Id> replacement(Iterable<Id> original) {
+//            Span s = IterUtil.first(original).getSpan();
+//            return prependSelf(IterUtil.skipFirst(original), s,
+//                               objectNestingDepth - nestedness);
+//        }
         public String toString() { return "Self("+s+")@"+nestedness; }
     }
 
@@ -181,6 +213,11 @@ public class Disambiguate extends Rewrite {
      * Rewritings in scope.
      */
     private BATree<String, Thing> e;
+    
+    /**
+     * Package names in scope.
+     */
+    private BASet<String> packages;
 
     /**
      * Generic parameters currently in scope.
@@ -206,6 +243,7 @@ public class Disambiguate extends Rewrite {
         e = initial;
         visibleGenericParameters = initialGenericScope;
         usedGenericParameters = new BATree<String, StaticParam>(StringComparer.V);
+        packages = new BASet<String>(StringComparer.V);
     }
 
     public Disambiguate() {
@@ -279,33 +317,44 @@ public class Disambiguate extends Rewrite {
         }
     }
 
-    Iterable<Id> newName(Iterable<Id> ids, String s) {
+    Expr newName(VarRef vre, String s) {
         Thing t = e.get(s);
         if (t == null) {
-            return ids;
+            return vre;
         } else {
-            return t.replacement(ids);
+            return t.replacement(vre);
         }
+
     }
+
+//    Iterable<Id> newName(Iterable<Id> ids, String s) {
+//        Thing t = e.get(s);
+//        if (t == null) {
+//            return ids;
+//        } else {
+//            return t.replacement(ids);
+//        }
+//    }
 
     /**
      * Returns the proper name for the object enclosing a method/field; either
      * "self/notself", or "*parent."^N "self", where N is nesting depth.
+     *
+     * @param s
+     * @param i
+     * @return
      */
-    private static Iterable<Id> prependSelf(Iterable<Id> ids, Span span, int i) {
-        if (i < 0) {
-            bug(IterUtil.first(ids), "Confusion in member reference numbering.");
-            return null;
+    Expr dottedReference(Span s, int i) {
+        if (i == 0) {
+            return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
         }
-        else if (i == 0) {
-            return IterUtil.compose(new Id(span, WellKnownNames.secretSelfName), ids);
+        if (i > 0) {
+            return new FieldRef(s, false, dottedReference(s, i - 1),
+                                      new IdName(s, new Id(s, WellKnownNames.secretParentName)));
+        } else {
+            throw new Error("Confusion in member reference numbering.");
         }
-        else {
-            Id self = new Id(span, WellKnownNames.secretSelfName);
-            Id parent = new Id(span, WellKnownNames.secretParentName);
-            return IterUtil.compose(IterUtil.compose(self, IterUtil.copy(parent, i)),
-                                    ids);
-        }
+
     }
 
     public void registerComponent(Component c) {
@@ -342,6 +391,19 @@ public class Disambiguate extends Rewrite {
             Component com = (Component) node;
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
+            List<Import> imports = com.getImports();
+            for (Import imp : imports) {
+                if (imp instanceof ImportApi) {
+                    ImportApi impapi = (ImportApi) imp;
+                    List<AliasedDottedName> ladn = impapi.getApis();
+                    for (AliasedDottedName adn : ladn) {
+                        DottedName dn = adn.getApi();
+                        Option<DottedName> odn = adn.getAlias();
+                        dn = odn.isSome() ? Option.unwrap(odn, dn) : dn;
+                        packages.add(NodeUtil.nameString(dn));
+                    }
+                }
+            }
             return visitNode(node);
 
         } else if (node instanceof Api) {
@@ -373,7 +435,8 @@ public class Disambiguate extends Rewrite {
                  */
 
                 if (node instanceof VarRef) {
-                    VarRef vre = (VarRef) node;
+                    VarRef vre = (VarRef) node;    
+                    
                     Iterable<Id> ids = NodeUtil.getIds(vre.getVar());
 
                     String s = IterUtil.first(ids).getText();
@@ -381,34 +444,38 @@ public class Disambiguate extends Rewrite {
                     if (tp != null) {
                         usedGenericParameters.put(s, tp);
                     }
-                    Iterable<Id> update = newName(ids, s);
-                    if (update == ids) { return vre; }
-                    else {
-                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
-                        Id newName = IterUtil.last(update);
-                        return new VarRef(vre.getSpan(), vre.isParenthesized(),
-                                     NodeFactory.makeQualifiedIdName(newApi, newName));
-                    }
-                } else if (node instanceof FnRef) {
-                    FnRef fr = (FnRef) node;
-                    Iterable<Id> ids = NodeUtil.getIds(fr.getFns().get(0));
-
-                    String s = IterUtil.first(ids).getText();
-                    StaticParam tp = visibleGenericParameters.get(s);
-                    if (tp != null) {
-                        usedGenericParameters.put(s, tp);
-                    }
-                    Iterable<Id> update = newName(ids, s);
-                    if (update == ids) { return fr; }
-                    else {
-                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
-                        Id newName = IterUtil.last(update);
-                        QualifiedIdName newQ =
-                            NodeFactory.makeQualifiedIdName(newApi, newName);
-                        return new FnRef(fr.getSpan(), fr.isParenthesized(),
-                                         Collections.singletonList(newQ),
-                                         fr.getStaticArgs());
-                    }
+                    Expr update = newName(vre, s);
+                    return update;
+//                    if (update == vre) { return vre; }
+//                    else {
+//                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
+//                        Id newName = IterUtil.last(update);
+//                        return new VarRef(vre.getSpan(), vre.isParenthesized(),
+//                                     NodeFactory.makeQualifiedIdName(newApi, newName));
+//                    }
+                } else if (node instanceof _RewriteFnRef) {
+                    
+                    _RewriteFnRef fr = (_RewriteFnRef) node;
+                    
+                    // This next seems unnecessary
+                    
+//                    Iterable<Id> ids = NodeUtil.getIds(fr.getFns().get(0));
+//                    String s = IterUtil.first(ids).getText();
+//                    StaticParam tp = visibleGenericParameters.get(s);
+//                    if (tp != null) {
+//                        usedGenericParameters.put(s, tp);
+//                    }
+                    
+//                    if (update == ids) { return fr; }
+//                    else {
+//                        List<Id> newApi = IterUtil.asList(IterUtil.skipLast(update));
+//                        Id newName = IterUtil.last(update);
+//                        QualifiedIdName newQ =
+//                            NodeFactory.makeQualifiedIdName(newApi, newName);
+//                        return new FnRef(fr.getSpan(), fr.isParenthesized(),
+//                                         Collections.singletonList(newQ),
+//                                         fr.getStaticArgs());
+//                    }
                 }
                 else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
@@ -437,7 +504,10 @@ public class Disambiguate extends Rewrite {
                     // However, since the LHS of a field selection might
                     // be a method invocation, we DO need to check that.
                     FieldRef fs = (FieldRef) node;
-
+                    
+                    // Rewrite this to a getter?
+                } else if ( node instanceof Assignment) {
+                    
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
                     VarDecl vd = (VarDecl) node;
@@ -459,7 +529,7 @@ public class Disambiguate extends Rewrite {
                             IdName newName = NodeFactory.makeIdName(at,
                                                                     "$" + element_index);
                             newdecls.add(new VarDecl(at, Useful.list(lv),
-                                    new FieldRef(at, false, init, newName)));
+                                    new _RewriteFieldRef(at, false, init, newName)));
                             element_index++;
                         }
                         return new RewriteHackList(newdecls);

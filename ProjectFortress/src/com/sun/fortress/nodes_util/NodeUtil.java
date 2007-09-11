@@ -27,6 +27,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
@@ -327,7 +328,7 @@ public class NodeUtil {
         Printer p = new Printer(true, true, true);
         p.dump(n, appendable, 0);
     }
-
+    
     public static <T> T NYI(String s) {
         return (T)bug("AST." + s + " NYI");
     }

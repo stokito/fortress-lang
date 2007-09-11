@@ -23,6 +23,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
@@ -38,6 +39,7 @@ import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.NI;
@@ -109,6 +111,22 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         return new FieldRef(x.getSpan(), false, from, x.getField());
     }
 
+    
+    @Override
+    public LHS forFieldRefForSure(FieldRefForSure x) {
+        Expr from = wrapEval(x.getObj(), "Non-object in field selection");
+        // TODO need to generalize to dotted names.
+        return new FieldRefForSure(x.getSpan(), false, from, x.getField());
+    }
+
+    
+    @Override
+    public LHS for_RewriteFieldRef(_RewriteFieldRef x) {
+        Expr from = wrapEval(x.getObj(), "Non-object in field selection");
+        // TODO need to generalize to dotted names.
+        return new _RewriteFieldRef(x.getSpan(), false, from, x.getField());
+    }
+    
     public LHS forVarRef(VarRef x) {
         QualifiedIdName var = x.getVar();
         if (var.getApi().isNone()) { return x; }

@@ -20,15 +20,15 @@ TEST-RESULTS/*
 *~
 *.jst
 *.tfs
+*.tfi
 fortress_*.zip
 .dependencies/dependencies.txt
 META
 bin/
 build/
-src/com/sun/fortress/interpreter/nodes/BaseNodeVisitor.java
-src/com/sun/fortress/interpreter/nodes/NodeVisitor.java
-src/com/sun/fortress/interpreter/parser/Fortress.java
+src/com/sun/fortress/nodes/
+src/com/sun/fortress/parser/Fortress.java
 FortressLibrary.ast
 FortressLibrary.jst
-src/com/sun/fortress/interpreter/parser/precedence/resolver/Operators.java
+src/com/sun/fortress/parser_util/precedence_resolver/Operators.java
 
