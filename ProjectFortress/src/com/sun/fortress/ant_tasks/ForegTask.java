@@ -26,6 +26,6 @@ import java.util.*;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
 
-public class FortexTask extends BatchTask {
-    public FortexTask() { super("fortex"); }
+public class ForegTask extends BatchTask {
+    public ForegTask() { super("foreg"); }
 }

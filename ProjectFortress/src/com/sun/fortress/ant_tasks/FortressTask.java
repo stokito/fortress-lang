@@ -25,9 +25,7 @@ import java.util.*;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
 
-public class FortressTask extends Task {
-    private Vector<FileSet> filesets = new Vector<FileSet>();
-
+public class FortressTask extends BatchTask {
     private boolean ast = false;
     private boolean keep = false;
     private boolean pause = false;
@@ -35,67 +33,15 @@ public class FortressTask extends Task {
     private boolean libraryTest = false;
     private boolean verbose = false;
     private boolean test = false;
+    
+    public FortressTask() { super("fortress"); }
 
-    public void setAst(boolean val) { ast = val; }
-    public void setKeep(boolean val) { keep = val; }
-    public void setPause(boolean val) { pause = val; }
-    public void setParseOnly(boolean val) { parseOnly = val; }
-    public void setLibraryTest(boolean val) { libraryTest = val; }
-    public void setVerbose(boolean val) { verbose = val; }
-    public void setTest(boolean val) { test = val; }
+    public void setAst(boolean val) { execOptions.append(" -ast "); }
+    public void setKeep(boolean val) { execOptions.append(" -keep "); }
+    public void setPause(boolean val) { execOptions.append(" -pause "); }
+    public void setParseOnly(boolean val) { execOptions.append(" -parseOnly "); }
+    public void setLibraryTest(boolean val) { execOptions.append(" -libraryTest "); }
+    public void setVerbose(boolean val) { execOptions.append("-v"); }
+    public void setTest(boolean val) { execOptions.append("-t"); }
 
-    private StringBuffer buildOptions() {
-        StringBuffer result = new StringBuffer();
-
-        if (ast) { result.append(" -ast "); }
-        if (keep) { result.append(" -keep "); }
-        if (pause) { result.append(" -pause "); }
-        if (parseOnly) { result.append(" -parseOnly "); }
-        if (libraryTest) { result.append(" -libraryTest "); }
-        if (verbose) { result.append("-v"); }
-        if (test) { result.append("-t"); }
-
-        return result;
-    }
-
-    public void addFileset(FileSet fileset) {
-        filesets.add(fileset);
-    }
-
-    public void execute() {
-        try {
-            boolean failures = false; 
-            
-            for (FileSet fileSet : filesets) {
-                DirectoryScanner dirScanner = fileSet.getDirectoryScanner(getProject());
-                String[] includedFiles = dirScanner.getIncludedFiles();
-                for (String fileName : includedFiles) {
-                    StringBuffer options = buildOptions();
-                    options.append(dirScanner.getBasedir() + File.separator + fileName);
-                    
-                    log("fortress" + options.toString());
-                    
-                    Process fortressProcess = Runtime.getRuntime().exec (
-                        "fortress" + 
-                        options.toString()
-                    );
-                    int exitValue = fortressProcess.waitFor();
-                    if (exitValue != 0) {
-                        failures = true;
-                        InputStream errors = fortressProcess.getErrorStream();
-                        Writer out = new BufferedWriter(new OutputStreamWriter(System.err));
-                        while (errors.available() != 0) {
-                            out.write(errors.read());
-                        }
-                        out.flush();
-                    }
-                }
-            }
-            if (failures) { 
-                throw new RuntimeException("FORTRESS FAILED ON SOME FILES. SEE ABOVE ERROR MESSAGES FOR DETAILS."); 
-            }
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-    }
 }

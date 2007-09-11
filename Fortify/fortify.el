@@ -1414,10 +1414,10 @@ extension .tex."
 
   (let ((more-lines t))
     (remove-start-of-doc-comment)
-    (while (and more-lines (at-middle-of-doc-comment))
+    (while (and more-lines (not (at-end-of-doc-comment)))
       (remove-middle-of-doc-comment)
       (setq more-lines (down-left-if-more-lines)))
-    (if (at-end-of-doc-comment) 
+    (if (at-end-of-doc-comment)
 	(remove-end-of-doc-comment)
       (signal-error "Missing end of doc comment"))))
 
@@ -1484,8 +1484,6 @@ of a doc comment."
 (defun remove-middle-of-doc-comment ()
   "Simple helper function that removes the leading asterisks and whitespace 
 of a line in the middle of a doc comment."
-  (requires (at-middle-of-doc-comment))
-
   (beginning-of-line)
   (delete-whitespace)
   (delete-asterisks)
@@ -1532,48 +1530,32 @@ doc comment."
 (defun at-line (line)
     "Boolean function that determines whether point is at the
 beginning of an example, delimited by the doc comment '(** EXAMPLE **)'."
-    (beginning-of-line)
-    (skip-leading-whitespace)
-    (let ((left (point)))
-      (end-of-line)
-      (skip-preceding-whitespace)
-      (let* ((right (point))
-	     (candidate (buffer-substring left right)))
-	(beginning-of-line)
-	(equal candidate line))))
+    (save-excursion
+      (beginning-of-line)
+      (skip-leading-whitespace)
+      (let ((left (point)))
+	(end-of-line)
+	(skip-preceding-whitespace)
+	(let* ((right (point))
+	       (candidate (buffer-substring left right)))
+	  (equal candidate line)))))
 
 (defun at-start-of-doc-comment ()
   "Boolean function that determines whether point is at the beginning of a 
 doc comment."
-  (let ((result nil))
+  (save-excursion
     (beginning-of-line)
     (skip-leading-whitespace)
-    (setq result (and (char-after (+ 2 (point)))
-		      (equal "(" (char-to-string (char-after (point))))
-		      (equal "*" (char-to-string (char-after (+ 1 (point)))))
-		      (equal "*" (char-to-string (char-after (+ 2 (point)))))))
-    (beginning-of-line)
-    result))
+    (and (char-after (+ 2 (point)))
+	 (equal "(" (char-to-string (char-after (point))))
+	 (equal "*" (char-to-string (char-after (+ 1 (point)))))
+	 (equal "*" (char-to-string (char-after (+ 2 (point))))))))
 
-(defun at-middle-of-doc-comment ()
-  "Boolean function that determines whether point is in the middle of a
-doc comment."
-  (let ((result nil))
-    (beginning-of-line)
-    (skip-leading-whitespace)
-
-    (setq result (and (char-after (point))
-		      (equal "*" (char-to-string (char-after (point))))
-		      (not (at-end-of-doc-comment))))
-    (beginning-of-line)
-    result))
-  
 (defun at-end-of-doc-comment ()
   "Boolean function that determines whether point is at the en of a 
 doc comment."
-  (let ((result nil))
+  (save-excursion
     (skip-leading-whitespace)
-    
     (and (char-after (+ 2 (point)))
 	 (equal "*" (char-to-string (char-after (point))))
 	 (equal "*" (char-to-string (char-after (+ 1 (point)))))
@@ -1645,10 +1627,14 @@ after point."
 (defun down-left-if-more-lines ()
   "If there is a next line after point, moves point to the beginning of the 
 next line and returns true. Returns false otherwise."
-  (let ((result t))
-    (setq result (zerop (forward-line 1)))
-    (if result (beginning-of-line))
-    result))
+  (let ((last-line nil))
+    (save-excursion
+      (end-of-line)
+      (setq not-last-line (not (equal (point) (point-max)))))
+    (if not-last-line
+	(progn (forward-line 1)
+	       (beginning-of-line)))
+    not-last-line))
 
 (defun goto-start-of-buffer ()
   "Simple helper function that moves point to the start of the buffer."
