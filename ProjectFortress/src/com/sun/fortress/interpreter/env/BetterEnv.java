@@ -27,7 +27,6 @@ import com.sun.fortress.interpreter.evaluator.CircularDependenceError;
 import com.sun.fortress.interpreter.evaluator.CommonEnv;
 import com.sun.fortress.interpreter.evaluator.Declaration;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.Primitives;
 import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.scopes.SApi;
@@ -422,22 +421,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 //
 //    }
 
-//    public boolean casValue(String str, FValue old_value, FValue new_value) {
-//        FValue v = get(var_env, str);
-//        if (v instanceof ReferenceCell) {
-//            return ((ReferenceCell)v).casValue(old_value, new_value);
-//        }
-//        if (v == null)
-//            error("Cannot CAS to unbound variable " + str);
-//        error("Cannot CAS to immutable " + str);
-//    }
-
-//    public boolean casValue(FValue f1, FValue old_value, FValue new_value) {
-//        return  casValue(string(f1), old_value, new_value);
-//    }
-
-    public boolean casValue(String str, FValue old_value, FValue new_value) {
-        throw new InterpreterBug("Cas on envs no longer supported");
+    public Boolean casValue(String str, FValue old_value, FValue new_value) {
+        return bug("Cas on envs no longer supported");
     }
 
 

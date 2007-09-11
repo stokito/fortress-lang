@@ -31,7 +31,6 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.useful.Pair;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -167,7 +166,7 @@ public class Unprinter extends NodeReflection {
                 c1 = l.name(false);
                 next = l.name();
             } else if (sawFile) {
-                throw new InterpreterBug("Saw f,l:c~f,l with no following colon");
+                next = bug("Saw f,l:c~f,l with no following colon");
             } else {
                 c1 = l_or_c;
                 if (")".equals(colon)) {
@@ -175,7 +174,7 @@ public class Unprinter extends NodeReflection {
                 } else if (colon.length() == 0) {
                     next = l.name();
                 } else {
-                    throw new InterpreterBug("Did we expect this?");
+                    next = bug("Did we expect this?");
                 }
 
             }
@@ -467,7 +466,7 @@ public class Unprinter extends NodeReflection {
             char c = s.charAt(i);
             if (needsBackslash(c)) {
                 sb.append('\\');
-                sb.append(afterBackslash(c));
+                sb.append(afterBackslash(c).charValue());
             } else if (needsUnicoding(c)) {
                 // At least two characters following \',
                 // and also beginning with 0-9.
@@ -496,25 +495,24 @@ public class Unprinter extends NodeReflection {
                 || c == '\"' || c == '\\';
     }
 
-    private static char afterBackslash(char c) {
+    private static Character afterBackslash(char c) {
         switch (c) {
         case '\b':
-            return 'b';
+            return new Character('b');
         case '\t':
-            return 't';
+            return new Character('t');
         case '\n':
-            return 'n';
+            return new Character('n');
         case '\f':
-            return 'f';
+            return new Character('f');
         case '\r':
-            return 'r';
+            return new Character('r');
         case '\"':
-            return '\"';
+            return new Character('\"');
         case '\\':
-            return '\\';
+            return new Character('\\');
         default:
-            throw new InterpreterBug("Invalid input, character value 0x"
-                    + Integer.toHexString(c));
+            return bug("Invalid input, character value 0x" + Integer.toHexString(c));
         }
     }
 
@@ -533,7 +531,7 @@ public class Unprinter extends NodeReflection {
             x = deQuote(a).intern(); // Internal form is quoted
             y = deQuote(l.name()).intern(); // Internal form is quoted
         } else {
-            throw new InterpreterBug("Pair of unknown stuff beginning " + a);
+            return bug("Pair of unknown stuff beginning " + a);
         }
         expectPrefix(")");
         return new Pair<Object, Object>(x, y);
@@ -576,7 +574,7 @@ public class Unprinter extends NodeReflection {
             } else if (s.startsWith("]")) {
                 return a;
             } else {
-                throw new InterpreterBug("List of unknown element beginning " + s);
+                return bug("List of unknown element beginning " + s);
             }
             a.add(x);
             s = l.name();
@@ -592,7 +590,7 @@ public class Unprinter extends NodeReflection {
         String s = l.name();
         if (")".equals(s)) { return Option.none(); }
         else if (!"_value".equals(s)) {
-            throw new InterpreterBug("Expected '_value' saw '" + s + "'");
+            return bug("Expected '_value' saw '" + s + "'");
         }
         expectPrefix("=");
         Object x;

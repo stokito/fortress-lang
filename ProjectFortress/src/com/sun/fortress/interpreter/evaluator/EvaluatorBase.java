@@ -47,6 +47,7 @@ import com.sun.fortress.useful.StringComparer;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
@@ -63,7 +64,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         if (foo instanceof Fcn) {
             return functionInvocation(args, (Fcn) foo, loc);
         } else {
-            throw new InterpreterBug(loc, errorMsg("Not a Fcn: ", foo));
+            return bug(loc, errorMsg("Not a Fcn: ", foo));
         }
     }
 

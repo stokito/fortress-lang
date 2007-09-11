@@ -969,8 +969,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //                }
 //
 //            } else {
-//                throw new InterpreterBug(x,
-//                        "Don't support arbitary LHS in Var decl yet");
+//                bug(x, "Don't support arbitary LHS in Var decl yet");
 //            }
 //        }
     }

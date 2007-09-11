@@ -21,7 +21,6 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
@@ -144,17 +143,14 @@ public abstract class NativeApp implements Applicable {
             res.init(defn);
             return res;
         } catch (java.lang.ClassNotFoundException x) {
-            throw new InterpreterBug(defn,"Native class "+str
-                                     +" not found.",x);
+            return bug(defn,"Native class "+str +" not found.",x);
         } catch (java.lang.InstantiationException x) {
-            throw new InterpreterBug(defn,"Native class "+str
-                                     +" has no nullary constructor.",x);
+            return bug(defn,"Native class "+str +" has no nullary constructor.",x);
         } catch (java.lang.IllegalAccessException x) {
-            throw new InterpreterBug(defn,"Native class "+str
-                                     +" cannot be accessed.",x);
+            return bug(defn,"Native class "+str +" cannot be accessed.",x);
         } catch (java.lang.ClassCastException x) {
-            throw new InterpreterBug(defn,"Native class "+str
-                                     +" is not a NativeApp.",x);
+            return bug(defn,"Native class "+str +" is not a NativeApp.",x);
+                                    
         }
     }
 }

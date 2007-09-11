@@ -25,7 +25,6 @@ import java.util.Map;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
@@ -45,6 +44,7 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
     public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members) {
@@ -191,15 +191,13 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
 
                 rval = fto;
             } else {
-                throw new InterpreterBug(within, errorMsg(
-                        "Generic def-or-declaration surprise ", dod));
+                rval = bug(within, errorMsg("Generic def-or-declaration surprise ", dod));
             }
 
             return rval;
 
         } else {
-            throw new InterpreterBug(within, errorMsg("Generic surprise ",
-                                                      gen.def));
+            return bug(within, errorMsg("Generic surprise ", gen.def));
         }
     }
 

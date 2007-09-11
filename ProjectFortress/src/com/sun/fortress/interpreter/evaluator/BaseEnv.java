@@ -45,7 +45,7 @@ abstract public class BaseEnv implements Environment {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.Environment#casValue(com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
-    final public boolean casValue(FValue f1, FValue old_value, FValue new_value) {
+    final public Boolean casValue(FValue f1, FValue old_value, FValue new_value) {
         return casValue(string(f1), old_value, new_value);
     }
 

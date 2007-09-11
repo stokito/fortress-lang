@@ -28,6 +28,8 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 /**
  * A _WrappedFValue permits the interpreter to incorporate intermediate
  * interpreter-computed values
@@ -67,11 +69,11 @@ public class _WrappedFValue extends DelimitedExpr {
             RetType result = (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
             return result;
         } else {
-            throw new InterpreterBug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+            return (RetType)bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
         }
     }
     public void accept(NodeVisitor_void visitor) {
-        throw new InterpreterBug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
+        bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
     }
 
     /**

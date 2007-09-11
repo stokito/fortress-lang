@@ -29,6 +29,7 @@ import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class TypeRange {
     FTypeNat base;
@@ -61,19 +62,19 @@ public class TypeRange {
             return NI.ni();
     }
 
-    public long getEvaluatedBase() {
+    public Long getEvaluatedBase() {
         return evaluatedNat(base);
     }
 
-    public long getEvaluatedSize() {
+    public Long getEvaluatedSize() {
         return evaluatedNat(size);
     }
 
-    private static long evaluatedNat(FTypeNat x) throws InterpreterBug {
+    private static Long evaluatedNat(FTypeNat x) throws InterpreterBug {
         if (x instanceof IntNat) {
-            return ((IntNat) x).getValue();
+            return new Long(((IntNat) x).getValue());
         }
-        throw new InterpreterBug(errorMsg("Expected fully evaluated nat parameter, found ", x));
+        return bug(errorMsg("Expected fully evaluated nat parameter, found ", x));
     }
 
     public boolean compatible(TypeRange j) {

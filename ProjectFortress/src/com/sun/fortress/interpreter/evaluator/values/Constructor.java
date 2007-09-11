@@ -35,7 +35,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
@@ -241,7 +240,7 @@ public class Constructor extends AnonymousConstructor {
 
             if (too instanceof FTypeObject)
                 objectDefinesAny = true;
-            if (isNotADef(sf, too))
+            if (isNotADef(sf, too).booleanValue())
                 error(cfn, "Object " + cfn.stringName() +
                            " does not define method " + sf.getString() +
                            " declared in " + too.getName());
@@ -379,17 +378,16 @@ public class Constructor extends AnonymousConstructor {
       * @param too
       * @return
       */
-    private boolean isNotADef(SingleFcn sf, FTraitOrObject too) {
-        if (too instanceof FTypeObject) return false;
+    private Boolean isNotADef(SingleFcn sf, FTraitOrObject too) {
+        if (too instanceof FTypeObject) return new Boolean(false);
         if (sf instanceof MethodClosure) {
             MethodClosure pdm = (MethodClosure) sf;
             Applicable a = pdm.getDef();
             if (a instanceof FnDef)
-                return false;
-            return true;
+                return new Boolean(false);
+            return new Boolean(true);
         }
-        throw new InterpreterBug(errorMsg("Unexpected symbolic method binding ",
-                                          sf));
+        return bug(errorMsg("Unexpected symbolic method binding ", sf));
     }
 
     /**

@@ -90,9 +90,9 @@ public interface Environment  {
 
     // public abstract void assignValue(FValue f1, FValue f2);
 
-    public abstract boolean casValue(String str, FValue old_value, FValue new_value);
+    public abstract Boolean casValue(String str, FValue old_value, FValue new_value);
 
-    public abstract boolean casValue(FValue f1, FValue old_value, FValue new_value);
+    public abstract Boolean casValue(FValue f1, FValue old_value, FValue new_value);
 
     public abstract Closure getRunMethod();
 

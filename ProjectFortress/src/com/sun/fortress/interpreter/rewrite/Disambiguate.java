@@ -31,7 +31,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -812,7 +811,7 @@ public class Disambiguate extends Rewrite {
                     } catch (NullPointerException x) {
                         String msg = errorMsg("Entity ", s, " not found in typeEnv ",
                                               typeEnv);
-                        throw new InterpreterBug(msg);
+                        th = bug(msg);
                     }
                     if (th instanceof Trait) {
                         Trait tr = (Trait) th;

@@ -22,11 +22,11 @@ import java.util.Comparator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFullComparer;
@@ -223,9 +223,8 @@ public class GenericMethod extends MethodClosure implements
             return NodeUtil.nameString(left.getName())
                 .compareTo(NodeUtil.nameString(na.getName()));
         } else {
-            throw new InterpreterBug(left,
-                                     "NodeComparator.compare(" +
-                                     left.getClass() + ", " + right.getClass());
+            throw new InterpreterBug(left, "NodeComparator.compare(" +
+				     left.getClass() + ", " + right.getClass());
         }
     }
 

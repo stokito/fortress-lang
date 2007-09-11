@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.glue.test.Bar;
@@ -32,6 +31,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class MethodClosure extends Closure implements Method {
 
@@ -93,8 +93,8 @@ public class MethodClosure extends Closure implements Method {
             return ((Method) def).applyMethod(args, selfValue, loc,
                     envForInference);
         } else
-            throw new InterpreterBug("MethodClosure " + this
-                    + " has neither body nor def instanceof Method");
+            return bug("MethodClosure " + this
+		       + " has neither body nor def instanceof Method");
 
     }
     public boolean isMethod() {

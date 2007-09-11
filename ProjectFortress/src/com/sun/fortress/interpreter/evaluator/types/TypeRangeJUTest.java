@@ -50,8 +50,8 @@ public class TypeRangeJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testGetEvaluatedBase() {
         TypeRange y = new TypeRange(0,1);
         TypeRange z = new TypeRange(1,1);
-        assertEquals(0,y.getEvaluatedBase());
-        assertEquals(1,z.getEvaluatedBase());
+        assertEquals(0,y.getEvaluatedBase().longValue());
+        assertEquals(1,z.getEvaluatedBase().longValue());
     }
 
     /*
@@ -60,8 +60,8 @@ public class TypeRangeJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testGetEvaluatedSize() {
         TypeRange y = new TypeRange(0,1);
         TypeRange z = new TypeRange(0,2);
-        assertEquals(1,y.getEvaluatedSize());
-        assertEquals(2,z.getEvaluatedSize());
+        assertEquals(1,y.getEvaluatedSize().longValue());
+        assertEquals(2,z.getEvaluatedSize().longValue());
     }
 
     /*

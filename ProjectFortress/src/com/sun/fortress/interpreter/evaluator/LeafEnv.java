@@ -427,8 +427,8 @@ class LeafEnv extends CommonEnv {
         return pfx_env;
     }
 
-    public boolean casValue(String str, FValue old_value, FValue new_value) {
-        return var_env.replace(str, old_value, NI.nnf(new_value));
+    public Boolean casValue(String str, FValue old_value, FValue new_value) {
+        return new Boolean(var_env.replace(str, old_value, NI.nnf(new_value)));
     }
 
     @Override

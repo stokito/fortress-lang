@@ -28,6 +28,7 @@ import com.sun.fortress.useful.EquivalenceClass;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public abstract class FValue {
     //   public static final FValue ZERO = new FInt(0);
@@ -45,8 +46,8 @@ public abstract class FValue {
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
-    public BufferedReader getBufferedReader() { throw new InterpreterBug("getBufferedReader not implemented for " + getClass().getSimpleName()); }
-    public BufferedWriter getBufferedWriter() { throw new InterpreterBug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
+    public BufferedReader getBufferedReader() { return bug("getBufferedReader not implemented for " + getClass().getSimpleName()); }
+    public BufferedWriter getBufferedWriter() { return bug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}

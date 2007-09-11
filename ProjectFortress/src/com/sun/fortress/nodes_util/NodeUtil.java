@@ -27,7 +27,6 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeApplicable;
@@ -256,7 +255,7 @@ public class NodeUtil {
                         return new UnitIterable<String>(
                            Option.unwrap(d.getDim()).getId().getText());
                     else
-                        throw new InterpreterBug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
+                        return bug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
                 } else
                     return new IterableOnceTranslatingList<Name, String>(
                            d.getUnits(), NameToStringFn);
@@ -330,7 +329,7 @@ public class NodeUtil {
     }
 
     public static <T> T NYI(String s) {
-        throw new InterpreterBug("AST." + s + " NYI");
+        return (T)bug("AST." + s + " NYI");
     }
 
     /* function ************************************************************/

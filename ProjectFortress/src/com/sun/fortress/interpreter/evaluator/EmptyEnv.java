@@ -37,8 +37,8 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.CommonEnv#casValue(java.lang.String, com.sun.fortress.interpreter.evaluator.values.FValue, com.sun.fortress.interpreter.evaluator.values.FValue)
      */
     @Override
-    public boolean casValue(String str, FValue old_value, FValue new_value) {
-        throw new InterpreterBug("Empty environment does not support cas");
+    public Boolean casValue(String str, FValue old_value, FValue new_value) {
+        return bug("Empty environment does not support cas");
     }
 
 
@@ -92,7 +92,7 @@ public class EmptyEnv extends CommonEnv {
      */
     @Override
     public Closure getRunMethod() {
-        throw new InterpreterBug("Empty environment does not have run method");
+        return bug("Empty environment does not have run method");
    }
 
 

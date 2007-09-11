@@ -26,7 +26,6 @@ import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.InstantiatedType;
@@ -117,7 +116,7 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected FTypeGeneric getGeneric() {
-        throw new InterpreterBug(errorMsg("getGeneric() of non-Generic ",this));
+        return bug(errorMsg("getGeneric() of non-Generic ",this));
     }
 
     /** Only implemented by subtypes which extend GenericTypeInstance.
@@ -125,13 +124,11 @@ abstract public class FTraitOrObject extends FType {
      *  unifyNonVarGeneric.
      */
     protected List<FType> getTypeParams() {
-        throw new InterpreterBug(errorMsg("getTypeParams() of non-Generic ",
-                                          this));
+        return bug(errorMsg("getTypeParams() of non-Generic ", this));
     }
 
     protected List<FType> getTypeParamsForName() {
-        throw new InterpreterBug(errorMsg("getTypeParamsForName() of non-Generic ",
-                                          this));
+        return bug(errorMsg("getTypeParamsForName() of non-Generic ", this));
     }
 
     protected List<FType> computeTransitiveExtends() {

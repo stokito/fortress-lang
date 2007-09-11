@@ -51,6 +51,7 @@ import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
 
@@ -389,9 +390,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                                    longify(n.getMultiplicand()));
             }
             public FType defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "EvalType: " + x.getClass() +
-                                         " is not a subtype of IntExpr.");
+                return bug(x, "EvalType: " + x.getClass() +
+			      " is not a subtype of IntExpr.");
             }
         });
     }

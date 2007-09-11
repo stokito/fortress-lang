@@ -28,11 +28,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
+
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
@@ -468,9 +469,8 @@ public class NodeFactory {
                                         b.getRight());
             }
             public BoolExpr defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of BoolExpr.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of BoolExpr.");
             }
         });
     }
@@ -499,9 +499,8 @@ public class NodeFactory {
                 return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of DimExpr.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of DimExpr.");
             }
         });
     }
@@ -530,9 +529,8 @@ public class NodeFactory {
                 return new OpUnit(t.getSpan(), true, t.getVal(), t.getOp());
             }
             public UnitExpr defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of UnitExpr.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of UnitExpr.");
             }
         });
     }
@@ -563,9 +561,8 @@ public class NodeFactory {
                                               i.getPower());
             }
             public IntExpr defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of IntExpr.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of IntExpr.");
             }
         });
     }
@@ -591,9 +588,8 @@ public class NodeFactory {
                 return new TypeArg(t.getSpan(), true, t.getType());
             }
             public StaticArg defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of StaticArg.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of StaticArg.");
             }
         });
     }
@@ -635,9 +631,8 @@ public class NodeFactory {
                                           t.getUnit());
             }
             public Type defaultCase(Node x) {
-                throw new InterpreterBug(x,
-                                         "makeInParentheses: " + x.getClass() +
-                                         " is not a subtype of Type.");
+                return bug(x, "makeInParentheses: " + x.getClass() +
+			      " is not a subtype of Type.");
             }
         });
     }
