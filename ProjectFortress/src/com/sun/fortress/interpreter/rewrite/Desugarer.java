@@ -139,7 +139,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * it references (the safe assumption is that it is parameterized by all of them,
  * the clever assumption keeps track of which one it actually uses).
  */
-public class Disambiguate extends Rewrite {
+public class Desugarer extends Rewrite {
 
     public final static IdName LOOP_NAME =
         NodeFactory.makeIdName(WellKnownNames.loopMethod);
@@ -239,14 +239,14 @@ public class Disambiguate extends Rewrite {
      */
     private ArrayList<_RewriteObjectExpr> objectExprs = new ArrayList<_RewriteObjectExpr>();
 
-    Disambiguate(BATree<String, Thing> initial, BATree<String, StaticParam> initialGenericScope) {
+    Desugarer(BATree<String, Thing> initial, BATree<String, StaticParam> initialGenericScope) {
         e = initial;
         visibleGenericParameters = initialGenericScope;
         usedGenericParameters = new BATree<String, StaticParam>(StringComparer.V);
         packages = new BASet<String>(StringComparer.V);
     }
 
-    public Disambiguate() {
+    public Desugarer() {
         this(new BATree<String, Thing>(StringComparer.V), new BATree<String, StaticParam>(StringComparer.V));
     }
 

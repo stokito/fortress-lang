@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 import com.sun.fortress.useful.Useful;
 
@@ -41,7 +41,7 @@ public class ComponentWrapper {
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
 
     BuildEnvironments be;
-    Disambiguate dis;
+    Desugarer dis;
     boolean isNative; 
 
     int visitState;
@@ -118,7 +118,7 @@ public class ComponentWrapper {
      *
      */
     private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env) {
-        dis = new Disambiguate();
+        dis = new Desugarer();
         cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!

@@ -63,7 +63,7 @@ import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
-import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;

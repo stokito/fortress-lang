@@ -22,7 +22,7 @@ import java.io.IOException;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.interpreter.rewrite.Disambiguate;
+import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 
 /**
@@ -44,7 +44,7 @@ public class Libraries {
         return library;
     }
     
-    public static Component link(BuildEnvironments be, Disambiguate dis) throws IOException {
+    public static Component link(BuildEnvironments be, Desugarer dis) throws IOException {
         Component c = library;
         
         if (c == null)
