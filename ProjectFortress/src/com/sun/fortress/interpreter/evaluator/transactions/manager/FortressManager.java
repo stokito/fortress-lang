@@ -24,8 +24,8 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.Collection;
 
 /**
- * Contention manager employing simple exponential backoff.
- * @author Maurice Herlihy
+ * Contention manager for Fortress should be called
+ * Russian Roulette, or do you feel lucky punk?
  */
 public class FortressManager extends BaseManager {
 

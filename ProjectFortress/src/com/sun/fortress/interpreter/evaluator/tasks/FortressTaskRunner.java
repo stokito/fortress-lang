@@ -141,6 +141,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 	ThreadState threadState = BaseTask.getThreadState();
 	ContentionManager manager = threadState.manager();
 	T result = null;
+	int count = 0;
 	try {
 	    while (true) {
 		threadState.beginTransaction();
@@ -150,8 +151,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 		} catch (SnapshotException e) {
 		    threadState.abortTransaction();
 		} catch (FortressError e) {
- 		    e.printStackTrace(System.out);
-		    throw new PanicException("Unhandled exception " + e);
+                    e.printStackTrace(System.out);
+                    throw new PanicException("Unhandled exception " + e);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		    throw new PanicException("Unhandled exception " + e);

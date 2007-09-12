@@ -22,8 +22,12 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException; 
 
 import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
+
+import jsr166y.forkjoin.*;
 
 public class SpawnTask extends BaseTask {
     
@@ -44,19 +48,18 @@ public class SpawnTask extends BaseTask {
         eval = e;
     }
     
-    public FValue val() {
-        st_wait();
-        return val;
-    }
-    
     public void print() {
         System.out.println("Spawn Task: Expr = " + expr +
                            " eval = " + eval +
                            " val = " + val);
     }
-    
-    public void st_wait() {}
-    public Boolean ready() { return false;}
-    public void stop() { }
-    
+
+    public FValue result() {
+	while (!isDone());
+        return val;
+    }
+
+    public void waitForResult() {
+	while (!isDone());
+    }
 }
