@@ -39,7 +39,7 @@ public class FThread extends FConstructedValue {
     public FThread(Expr b, Evaluator e) {
 	
 	int numThreads = Runtime.getRuntime().availableProcessors();
-        String numThreadsString = System.getenv("NumFortressThreads");
+        String numThreadsString = System.getenv("FORTRESS_THREADS");
         
 	if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);

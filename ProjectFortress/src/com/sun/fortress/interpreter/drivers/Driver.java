@@ -684,7 +684,7 @@ public class Driver {
         throws Throwable
     {
         _libraryTest = libraryTest;
-        String numThreadsString = System.getenv("NumFortressThreads");
+        String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);
 

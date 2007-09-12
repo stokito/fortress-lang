@@ -15,28 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component seqLoop
+component atomicExpr
 export Executable
 
 run(args:String...) = do
-  a = vector[\ZZ32,100\]()
-  z : ZZ32 := 0
-  for i <- seq(0#100) do
-    (* Deliberately set up a race condition so that parallel execution
-       is *likely* to cause a failure.  It's hard to actually *guarantee*.
-       This test always succeeds if you set FORTRESS_THREADS=1 before running.
-     *)
-    a[i] := z
-    z += 1
-  end
-  if z=/=100 then
-    println("FAIL z = " z)
-  end
-  for i <- 0#100 do
-    if i=/=a[i] then
-      println("FAIL a[" i "] = " a[i])
-    end
-  end
+   var x : ZZ32 = 0
+   var y : ZZ32 = 0
+   var z : ZZ32 = 0
+   (atomic do x+=1; y+=1; end, atomic do z:=x+y end)
+   if z=0 then println("PASS")
+   elif z = 1 then println("FAIL")
+   elif z = 2 then println("PASS")
+   else println("FAIL") end
 end
-
 end
