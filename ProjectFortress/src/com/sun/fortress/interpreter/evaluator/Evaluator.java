@@ -1188,11 +1188,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             bug(x,e,"empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
-        // Translate compound VarRefs to FieldRefs
-        if (fcnExpr instanceof VarRef && ((VarRef)fcnExpr).getVar().getApi().isSome()) {
-            fcnExpr = ExprFactory.makeFieldRef((VarRef)fcnExpr);
-        }
-
         if (fcnExpr instanceof FieldRef) {
             // In this case, open code the FieldRef evaluation
             // so that the object can be preserved. Alternate
@@ -1237,56 +1232,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return bug("_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
-            // We must evaluate the receiver separately so we can get a handle on it
-            FnRef tax = (FnRef) fcnExpr;
-            QualifiedIdName fnName = tax.getFns().get(0);
-            if (fnName.getApi().isSome()) {
-                List<Id> ids = Option.unwrap(fnName.getApi()).getIds();
-                VarRef receiverVar = ExprFactory.makeVarRef(ids);
-                IdName fld = fnName.getName();
-                List<StaticArg> args = tax.getStaticArgs();
-                FValue fobj = forVarRef(receiverVar);
-
-                if (fobj instanceof FObject) {
-                    FObject fobject = (FObject) fobj;
-                    // TODO Need to distinguish between public/private
-                    // methods/fields
-                    FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
-                    if (cl == null) {
-                        // TODO Environment is split, might not be best choice
-                        // for error printing.
-                        return error(x, fobject.getSelfEnv(),
-                                               errorMsg("undefined method/field ",
-                                                        NodeUtil.nameString(fld)));
-                    } else if (cl instanceof OverloadedMethod) {
-
-                        return bug(x, fobject.getSelfEnv(),
-                                                 "Don't actually resolve overloading of generic methods yet.");
-
-                    } else if (cl instanceof MethodInstance) {
-                        // What gets retrieved is the symbolic instantiation of
-                        // the generic method.
-                        // This is ever-so-slightly wrong -- we need to not
-                        // create an "instance"
-                        // if the parameters are non-symbolic.
-                        GenericMethod gm = ((MethodInstance) cl).getGenerator();
-                        return (gm.typeApply(args, e, x)).applyMethod(
-                                    evalInvocationArgs(exprs), fobject, x, e);
-
-                    } else {
-                        return error(x, fobject.getSelfEnv(),
-                                               errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                                        cl));
-                    }
-                } else {
-                    return error(x,
-                                           errorMsg("Unexpected Selection LHS in Juxt of FnRef of Selection, ",
-                                                    fobj));
-
-                }
-            }
-            // else fall through
+            return NI.na("FnRefs are supposed to be gone from the AST");          
         }
+        
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
             return NI.nyi("Unexpected application of " + fcnExpr);

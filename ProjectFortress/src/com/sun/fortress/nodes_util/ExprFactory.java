@@ -317,15 +317,6 @@ public class ExprFactory {
         return new VarRef(qName.getSpan(), false, qName);
     }
 
-    /**
-     * Translate a VarRef to a FieldRef, where the last name in the VarRef is treated
-     * as the name of a field.  Assumes {@code v.getName().getApi().isSome()} holds.
-     */
-    public static FieldRef makeFieldRef(VarRef v) {
-        VarRef obj = makeVarRef(Option.unwrap(v.getVar().getApi()).getIds());
-        return new FieldRef(v.getSpan(), v.isParenthesized(), obj, v.getVar().getName());
-    }
-
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
         return new FieldRef(FortressUtil.spanTwo(receiver, field), false, receiver,
                             NodeFactory.makeIdName(field));

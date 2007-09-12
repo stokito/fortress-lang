@@ -130,7 +130,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     public LHS forVarRef(VarRef x) {
         QualifiedIdName var = x.getVar();
         if (var.getApi().isNone()) { return x; }
-        else { return forFieldRef(ExprFactory.makeFieldRef(x)); }
+        else return NI.na("No post-processing of qualified names for VarRef");
     }
 
     /* (non-Javadoc)

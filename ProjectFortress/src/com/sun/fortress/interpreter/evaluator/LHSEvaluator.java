@@ -153,7 +153,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             e.assignValue(x, s, value);
             return null;
         } else {
-            return forFieldRef(ExprFactory.makeFieldRef(x));
+            return NI.na("wrong processing of QID var-ref");
+            // return forFieldRef(ExprFactory.makeFieldRef(x));
         }
     }
 
