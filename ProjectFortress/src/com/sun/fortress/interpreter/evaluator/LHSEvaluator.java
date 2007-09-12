@@ -24,7 +24,6 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
@@ -70,6 +69,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     /* (non-Javadoc)
@@ -99,7 +99,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
             if (what instanceof IdName) {
                 obj.getSelfEnv().assignValue(x, ((IdName)what).getId().getText(), value);
             } else {
-                throw new InterpreterBug("'what' not instanceof IDName, instead is " + what );
+                bug("'what' not instanceof IDName, instead is " + what );
             }
             return null;
         } else {
@@ -196,7 +196,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 //                if (outerType instanceof FAggregateType) {
 //                    bestGuess = ((FAggregateType) outerType).getElementType();
 //                } else {
-//                    throw new ProgramError(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
+//                    bestGuess = error(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
 //                }
             } else {
                 // Take the (urk!) JOIN of the types of the array elements.

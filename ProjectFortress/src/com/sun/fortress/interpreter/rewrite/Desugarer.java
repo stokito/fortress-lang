@@ -31,7 +31,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
-import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -172,7 +171,7 @@ public class Desugarer extends Rewrite {
     static IdName filterQID(QualifiedIdName qid) {
         if (qid.getApi().isNone())
             return qid.getName();
-        throw new InterpreterBug("Not yet prepared for QIDsref'd through self/parent, QID=" + NodeUtil.dump(qid));
+        return bug("Not yet prepared for QIDsref'd through self/parent, QID=" + NodeUtil.dump(qid));
     }
 
     private class Member extends Thing {

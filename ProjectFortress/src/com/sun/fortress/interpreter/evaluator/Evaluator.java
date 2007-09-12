@@ -399,7 +399,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    throw new ProgramError(exp, inner, "Wrapped exception", ex);
+                    res = error(exp, inner, "Wrapped exception", ex);
+		    /*
+		    new ProgramError(exp, inner, "Wrapped exception", ex);
+		    */
                 }
             } else {
                 try {
@@ -407,7 +410,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 } catch (FortressError ex) {
                     throw ex; /* Skip the wrapper */
                 } catch (RuntimeException ex) {
-                    throw new ProgramError(exp, eval.e, "Wrapped exception", ex);
+                    res = error(exp, eval.e, "Wrapped exception", ex);
+		    /*
+                    new ProgramError(exp, eval.e, "Wrapped exception", ex);
+		    */
                 }
             }
         }
@@ -1131,13 +1137,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (cl == null) {
             // TODO Environment is split, might not be best choice
             // for error printing.
-            throw new ProgramError(x, fobject.getSelfEnv(),
-                                   errorMsg("undefined method/field ",
-                                            NodeUtil.nameString(fld)));
+            return error(x, fobject.getSelfEnv(),
+			 errorMsg("undefined method/field ",
+				  NodeUtil.nameString(fld)));
         } else if (cl instanceof OverloadedMethod) {
 
-            throw new InterpreterBug(x, fobject.getSelfEnv(),
-                                     "Don't actually resolve overloading of generic methods yet.");
+            return bug(x, fobject.getSelfEnv(),
+		       "Don't actually resolve overloading of generic methods yet.");
 
         } else if (cl instanceof MethodInstance) {
             // What gets retrieved is the symbolic instantiation of
@@ -1150,9 +1156,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         evalInvocationArgs(exprs), fobject, x, e);
 
         } else {
-            throw new ProgramError(x, fobject.getSelfEnv(),
-                                   errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-                                            cl));
+            return error(x, fobject.getSelfEnv(),
+			 errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+				  cl));
         }
     }
     
@@ -1538,7 +1544,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof OverloadedFunction) {
             return((OverloadedFunction) g).typeApply(args, e, x);
         } else {
-            throw new ProgramError(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
+            return error(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
         }
     }
     
