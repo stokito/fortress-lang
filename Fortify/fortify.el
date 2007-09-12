@@ -1376,24 +1376,27 @@ extension .tex."
 write to a file in the same location as the read file, but with
 extension '.tex'."
   (print-header "TOOL FORTICK")
-  (let ((left (point-min))
+  (let ((pos (point-min))
 	(at-end nil))
     (while (not at-end)
-      (let ((next-opening (find-next-tick left)))
+      (let ((next-opening (find-next-tick pos)))
 	     (if (equal next-opening (point-max))
 		 (setq at-end t)
 	       (progn 
 		 (let ((next-closing (find-next-tick (+ 1 next-opening))))
-		   (if (equal next-closing (point-max))
-		       (signal-error "Mismatched tick"))
-		   (delete-char-at next-opening)
-		   ;; The left tick has been deleted, so the right tick
-		   ;; has moved to the left.
-		   (setq next-closing (- next-closing 1))
-		   (delete-char-at next-closing)
-		   (mark-region next-opening next-closing)
-		   (fortify-if-not-blank-space)
-		   (setq left next-closing)))))))
+		   (cond ((equal next-closing (point-max))
+			  (signal-error "Mismatched tick"))
+			 ((equal next-closing (+ 1 next-opening))
+			  ;; Two adjacent ticks denotes an escaped tick.
+			  (delete-char-at next-opening)
+			  (setq pos next-closing))
+			 (t (delete-char-at next-opening)
+			    ;; The left tick has been deleted, so the right tick
+			    ;; has moved to the left.
+			    (setq next-closing (- next-closing 1))
+			    (delete-char-at next-closing)
+			    (fortify-region next-opening next-closing)
+			    (setq pos next-closing)))))))))
   (write-as-tex-file))
 
 (defun delete-char-at (pos)
@@ -1407,10 +1410,12 @@ extension '.tex'."
     (setq pos (+ 1 pos)))
   pos)
 
-(defun mark-region (left right)
-  (goto-char left)
-  (push-mark)
-  (goto-char right))
+(defun fortify-region (left right)
+  (save-excursion
+    (goto-char left)
+    (push-mark)
+    (goto-char right)
+    (fortify-if-not-blank-space)))
 
 (defun fortex ()
   "Fortify the whole buffer expect for stylized comments. Strip
