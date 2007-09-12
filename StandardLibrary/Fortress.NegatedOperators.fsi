@@ -1,30 +1,30 @@
 (**
- * \chapter{Negated Relational Operators}
- * \chaplabel{lib:negated-relational-operators}
+  \chapter{Negated Relational Operators}
+  \chaplabel{lib:negated-relational-operators}
  **)
 
 (** \section{Negated Equivalence Operators} **)
 
-(** \Function { **)
+                                              (** \Function { **)
 opr NSEQV(x: Any, y: Any): Boolean
-(** } \seclabel{operator-NSEQV} **)
+                                              (** } \seclabel{operator-NSEQV} **)
 
 (**
- * The infix operator \EXP{\not\sequiv} applies \EXP{\neg} to the
- * result of \EXP{\sequiv} on the same operands. 
+  The infix operator \EXP{\not\sequiv} applies \EXP{\neg} to the
+  result of \EXP{\sequiv} on the same operands. 
  **)
 
-(** \Function { **)
+                                              (** \Function { **)
 opr NEQV[\T extends BinaryPredicate[\T,EQV\]\](x: T, y: T): Boolean
-(** } \seclabel{operator-NEQV} **)
+                                              (** } \seclabel{operator-NEQV} **)
 
-(** \Function* { **)
+                                              (** \Function* { **)
 opr NEQV[\T extends BinaryIntervalPredicate[\T,EQV\]\](x: T, y: T): BooleanInterval
-(** } \seclabel{interval-operator-NEQV} **)
+                                              (** } \seclabel{interval-operator-NEQV} **)
 
 (**
- * The infix operator \EXP{\not\equiv} applies \EXP{\neg} to the
- * result of \EXP{\equiv} on the same operands. 
+  The infix operator \EXP{\not\equiv} applies \EXP{\neg} to the
+  result of \EXP{\equiv} on the same operands. 
  **)
 
 (** \Function { **)
@@ -36,8 +36,8 @@ opr NE[\T extends BinaryIntervalPredicate[\T,=\]\](x: T, y: T): BooleanInterval
 (** } \seclabel{interval-operator-NE} **)
 
 (**
- * The infix operator \EXP{\neq} applies \EXP{\neg} to the result of
- * \EXP{=} on the same operands. 
+  The infix operator \EXP{\neq} applies \EXP{\neg} to the result of
+  \EXP{=} on the same operands. 
  **)
 
 (** \Function { **)
@@ -49,8 +49,8 @@ opr NSIMEQ[\T extends BinaryIntervalPredicate[\T,SIMEQ\]\](x: T, y: T): BooleanI
 (** } \seclabel{interval-operator-NSIMEQ} **)
 
 (**
- * The infix operator \EXP{\not\simeq} applies \EXP{\neg} to the
- * result of \EXP{\simeq} on the same operands. 
+  The infix operator \EXP{\not\simeq} applies \EXP{\neg} to the
+  result of \EXP{\simeq} on the same operands. 
  **)
 
 (** \Function { **)
@@ -58,8 +58,8 @@ opr NAPPROX[\T extends BinaryPredicate[\T,APPROX\]\](x: T, y: T): Boolean
 (** } \seclabel{operator-NAPPROX} **)
 
 (**
- * The infix operator \EXP{\not\approx} applies \EXP{\neg} to the
- * result of \EXP{\approx} on the same operands. 
+  The infix operator \EXP{\not\approx} applies \EXP{\neg} to the
+  result of \EXP{\approx} on the same operands. 
  **)
 
 (** \Function { **)
@@ -78,8 +78,8 @@ opr NLT[\T extends BinaryIntervalPredicate[\T,LT\]\](x: T, y: T): BooleanInterva
 (** } \seclabel{interval-operator-NLT} **)
 
 (**
- * The infix operator \EXP{\nless} applies \EXP{\neg} to the result of
- * \EXP{<} on the same operands. 
+  The infix operator \EXP{\nless} applies \EXP{\neg} to the result of
+  \EXP{<} on the same operands. 
  **)
 
 (** \Function { **)
@@ -91,8 +91,8 @@ opr NLE[\T extends BinaryIntervalPredicate[\T,LE\]\](x: T, y: T): BooleanInterva
 (** } \seclabel{interval-operator-NLE} **)
 
 (**
- * The infix operator \EXP{\nleq} applies \EXP{\neg} to the result of
- * \EXP{\leq} on the same operands. 
+  The infix operator \EXP{\nleq} applies \EXP{\neg} to the result of
+  \EXP{\leq} on the same operands. 
  **)
 
 (** \Function { **)
@@ -104,8 +104,8 @@ opr NGE[\T extends BinaryIntervalPredicate[\T,GE\]\](x: T, y: T): BooleanInterva
 (** } \seclabel{interval-operator-NGE} **)
 
 (**
- * The infix operator \EXP{\ngeq} applies \EXP{\neg} to the result of
- * \EXP{\geq} on the same operands. 
+  The infix operator \EXP{\ngeq} applies \EXP{\neg} to the result of
+  \EXP{\geq} on the same operands. 
  **)
 
 (** \Function { **)
@@ -117,8 +117,8 @@ opr NGT[\T extends BinaryIntervalPredicate[\T,GT\]\](x: T, y: T): BooleanInterva
 (** } \seclabel{interval-operator-NGT} **)
 
 (**
- * The infix operator \EXP{\ngtr} applies \EXP{\neg} to the result of
- * \EXP{>} on the same operands.
+  The infix operator \EXP{\ngtr} applies \EXP{\neg} to the result of
+  \EXP{>} on the same operands.
  **)
  
 
@@ -133,8 +133,8 @@ opr NSUBSET[\T extends BinaryIntervalPredicate[\T,SUBSET\]\](x: T, y: T): Boolea
 (** } \seclabel{interval-operator-NSUBSET} **)
 
 (**
- * The infix operator \EXP{\not\subset} applies \EXP{\neg} to the
- * result of \EXP{\subset} on the same operands.  
+  The infix operator \EXP{\not\subset} applies \EXP{\neg} to the
+  result of \EXP{\subset} on the same operands.  
  **)
 
 (** \Function { **)
@@ -146,8 +146,8 @@ opr NSUBSETEQ[\T extends BinaryIntervalPredicate[\T,SUBSETEQ\]\](x: T, y: T): Bo
 (** } \seclabel{interval-operator-NSUBSETEQ} **)
 
 (**
- * The infix operator \EXP{\nsubseteq} applies \EXP{\neg} to the
- * result of \EXP{\subseteq} on the same operands. 
+  The infix operator \EXP{\nsubseteq} applies \EXP{\neg} to the
+  result of \EXP{\subseteq} on the same operands. 
  **)
 
 (** \Function { **)
@@ -159,8 +159,8 @@ opr NSUPSETEQ[\T extends BinaryIntervalPredicate[\T,SUPSETEQ\]\](x: T, y: T): Bo
 (** } \seclabel{interval-operator-NSUPSETEQ} **)
 
 (** 
- * The infix operator \EXP{\nsupseteq} applies \EXP{\neg} to the
- * result of \EXP{\supseteq} on the same operands. 
+  The infix operator \EXP{\nsupseteq} applies \EXP{\neg} to the
+  result of \EXP{\supseteq} on the same operands. 
  **)
 
 (** \Function { **)
@@ -172,12 +172,12 @@ opr NSUPSET[\T extends BinaryIntervalPredicate[\T,SUPSET\]\](x: T, y: T): Boolea
 (** } \seclabel{interval-operator-NSUPSET} **)
 
 (**
- * The infix operator \EXP{\not\supset} applies \EXP{\neg} to the
- * result of \EXP{\supset} on the same operands. 
+  The infix operator \EXP{\not\supset} applies \EXP{\neg} to the
+  result of \EXP{\supset} on the same operands. 
  **)
 
 (**
- * \section{Negated Square Comparison Operators}
+  \section{Negated Square Comparison Operators}
  **)
 
 (** \Function { **)
@@ -189,8 +189,8 @@ opr NSQSUBSET[\T extends BinaryIntervalPredicate[\T,SQSUBSET\]\](x: T, y: T): Bo
 (** } \seclabel{interval-operator-NSQSUBSET} **)
 
 (**
- * The infix operator \EXP{\not\sqsubset} applies \EXP{\neg} to the
- * result of \EXP{\sqsubset} on the same operands. 
+  The infix operator \EXP{\not\sqsubset} applies \EXP{\neg} to the
+  result of \EXP{\sqsubset} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -202,8 +202,8 @@ opr NSQSUBSETEQ[\T extends BinaryIntervalPredicate[\T,SQSUBSETEQ\]\](x: T, y: T)
 (** } \seclabel{interval-operator-NSQSUBSETEQ} **)
 
 (** 
- * The infix operator \EXP{\not\sqsubseteq} applies \EXP{\neg} to the
- * result of \EXP{\sqsubseteq} on the same operands. 
+  The infix operator \EXP{\not\sqsubseteq} applies \EXP{\neg} to the
+  result of \EXP{\sqsubseteq} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -215,8 +215,8 @@ opr NSQSUPSETEQ[\T extends BinaryIntervalPredicate[\T,SQSUPSETEQ\]\](x: T, y: T)
 (** } \seclabel{interval-operator-NSQSUPSETEQ} **)
 
 (** 
- * The infix operator \EXP{\not\sqsupseteq} applies \EXP{\neg} to the
- * result of \EXP{\sqsupseteq} on the same operands. 
+  The infix operator \EXP{\not\sqsupseteq} applies \EXP{\neg} to the
+  result of \EXP{\sqsupseteq} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -228,8 +228,8 @@ opr NSQSUPSET[\T extends BinaryIntervalPredicate[\T,SQSUPSET\]\](x: T, y: T): Bo
 (** } \seclabel{interval-operator-NSQSUPSET} **)
 
 (**
- * The infix operator \EXP{\not\sqsupset} applies \EXP{\neg} to the
- * result of \EXP{\sqsupset} on the same operands 
+  The infix operator \EXP{\not\sqsupset} applies \EXP{\neg} to the
+  result of \EXP{\sqsupset} on the same operands 
  **)
 
 (** \section{Negated Curly Comparison Operators} **)
@@ -243,8 +243,8 @@ opr NPREC[\T extends BinaryIntervalPredicate[\T,PREC\]\](x: T, y: T): BooleanInt
 (** } \seclabel{interval-operator-NPREC} **)
 
 (** 
- * The infix operator \EXP{\nprec} applies \EXP{\neg} to the result of
- * \EXP{\prec} on the same operands. 
+  The infix operator \EXP{\nprec} applies \EXP{\neg} to the result of
+  \EXP{\prec} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -256,8 +256,8 @@ opr NPRECEQ[\T extends BinaryIntervalPredicate[\T,PRECEQ\]\](x: T, y: T): Boolea
 (** } \seclabel{interval-operator-NPRECEQ} **)
 
 (**
- * The infix operator \EXP{\not\preceq} applies \EXP{\neg} to the
- * result of \EXP{\preceq} on the same operands.
+  The infix operator \EXP{\not\preceq} applies \EXP{\neg} to the
+  result of \EXP{\preceq} on the same operands.
  **)
 
 (** \Function { **)    
@@ -269,8 +269,8 @@ opr NSUCCEQ[\T extends BinaryIntervalPredicate[\T,SUCCEQ\]\](x: T, y: T): Boolea
 (** } \seclabel{interval-operator-NSUCCEQ} **)
 
 (**
- * The infix operator \EXP{\not\succeq} applies \EXP{\neg} to the
- * result of \EXP{\succeq} on the same operands. 
+  The infix operator \EXP{\not\succeq} applies \EXP{\neg} to the
+  result of \EXP{\succeq} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -282,8 +282,8 @@ opr NSUCC[\T extends BinaryIntervalPredicate[\T,SUCC\]\](x: T, y: T): BooleanInt
 (** } \seclabel{interval-operator-NSUCC} **)
 
 (**
- * The infix operator \EXP{\nsucc} applies \EXP{\neg} to the result of
- * \EXP{\succ} on the same operands.
+  The infix operator \EXP{\nsucc} applies \EXP{\neg} to the result of
+  \EXP{\succ} on the same operands.
  **)
  
 (** \section{Negated Miscellaneous Relational Operators} **)
@@ -297,8 +297,8 @@ opr NOTIN[\T extends BinaryIntervalPredicate[\T,IN\]\](x: T, y: T): BooleanInter
 (** } \seclabel{interval-operator-NOTIN} **)
 
 (**
- * The infix operator \EXP{\not\in} applies \EXP{\neg} to the result
- * of \EXP{\in} on the same operands. 
+  The infix operator \EXP{\not\in} applies \EXP{\neg} to the result
+  of \EXP{\in} on the same operands. 
  **)
 
 (** \Function { **)    
@@ -310,8 +310,8 @@ opr NOTNI[\T extends BinaryIntervalPredicate[\T,CONTAINS\]\](x: T, y: T): Boolea
 (** } \seclabel{interval-operator-NOTNI} **)
 
 (** 
- * The infix operator \EXP{\not\ni} applies \EXP{\neg} to the result
- * of \EXP{\ni} on the same operands. 
+  The infix operator \EXP{\not\ni} applies \EXP{\neg} to the result
+  of \EXP{\ni} on the same operands. 
  **)
 
 (** \section{Other Negated Operators} **)
@@ -325,7 +325,7 @@ opr NPARALLEL[\T extends BinaryIntervalPredicate[\T,PARALLEL\]\](x: T, y: T): Bo
 (** } \seclabel{interval-operator-NPARALLEL} **)
 
 (**
- * The infix operator \EXP{\nparallel} applies \EXP{\neg} to the
- * result of \EXP{\parallel} on the same operands.
+  The infix operator \EXP{\nparallel} applies \EXP{\neg} to the
+  result of \EXP{\parallel} on the same operands.
  **)
 

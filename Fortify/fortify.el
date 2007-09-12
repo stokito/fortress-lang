@@ -1371,6 +1371,47 @@ extension .tex."
     (fortify 4)
     (write-as-tex-file))
 
+(defun fortick ()
+  "Fortify all sections of a buffer delimited with backticks, and 
+write to a file in the same location as the read file, but with
+extension '.tex'."
+  (print-header "TOOL FORTICK")
+  (let ((left (point-min))
+	(at-end nil))
+    (while (not at-end)
+      (let ((next-opening (find-next-tick left)))
+	     (if (equal next-opening (point-max))
+		 (setq at-end t)
+	       (progn 
+		 (let ((next-closing (find-next-tick (+ 1 next-opening))))
+		   (if (equal next-closing (point-max))
+		       (signal-error "Mismatched tick"))
+		   (delete-char-at next-opening)
+		   ;; The left tick has been deleted, so the right tick
+		   ;; has moved to the left.
+		   (setq next-closing (- next-closing 1))
+		   (delete-char-at next-closing)
+		   (mark-region next-opening next-closing)
+		   (fortify-if-not-blank-space)
+		   (setq left next-closing)))))))
+  (write-as-tex-file))
+
+(defun delete-char-at (pos)
+  (save-excursion
+    (goto-char pos)
+    (delete-char 1)))
+
+(defun find-next-tick (pos)
+  (while (and (< pos (point-max))
+	      (not (equal (char-to-string (char-after pos)) "`")))
+    (setq pos (+ 1 pos)))
+  pos)
+
+(defun mark-region (left right)
+  (goto-char left)
+  (push-mark)
+  (goto-char right))
+
 (defun fortex ()
   "Fortify the whole buffer expect for stylized comments. Strip
   stylized comments of leading comment characters. Write the result to
