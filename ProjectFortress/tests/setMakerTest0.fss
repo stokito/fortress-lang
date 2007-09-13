@@ -47,7 +47,7 @@ end
 opr[\T\] {x:T...} = do
    s:Set[\T\] := emptySet[\T\]()
    print("{ ")
-   for (_,v) <- seq(x) do
+   for v <- seq(x) do
       print(v " ")
       s := s.add(v)
    end

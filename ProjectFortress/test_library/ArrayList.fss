@@ -94,7 +94,7 @@ opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 
 fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] = do
     fs = FlatStorageMaker[\E,n\]()
-    for (i,v) <- f do
+    for (i,v) <- f.indexValuePairs() do
         fs.put(v,i)
     end
     Alr[\E,n\]( fs, 0, n, cantExtend )

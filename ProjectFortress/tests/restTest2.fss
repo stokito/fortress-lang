@@ -21,7 +21,7 @@ export Executable
 
 foo(y:ZZ32, z:ZZ32, x:ZZ32...) = do
    var sum:ZZ32 = y + z
-   for i <- x.base()#x.size() do
+   for i <- x.indices() do
      sum += x[i]
    end
    sum
@@ -31,8 +31,8 @@ foo(y:ZZ32) = y
 
 
 run(args:String...):() = do
-   println(foo(1,2,3,4,5))
-   println(foo(17))
+   assert(foo(1,2,3,4,5),15,"foo(1,2,3,4,5)")
+   assert(foo(17),17,"foo(17)")
 end
 
 end

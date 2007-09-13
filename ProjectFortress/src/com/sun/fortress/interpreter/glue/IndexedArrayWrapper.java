@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.IndexedSource;
 import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
-import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
+import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -32,8 +32,8 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
 
-    MethodClosure putter;
-    MethodClosure getter;
+    Method putter;
+    Method getter;
     FObject array;
     HasAt at;
     int rank;
@@ -49,8 +49,8 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
             error(at,errorMsg(" expected an array object, got ", fv));
         }
         array = (FObject) fv;
-        putter = (MethodClosure) array.getSelfEnv().getValue(WellKnownNames.arrayPutter);
-        getter = (MethodClosure) array.getSelfEnv().getValue(WellKnownNames.arrayGetter);
+        putter = (Method) array.getSelfEnv().getValue(WellKnownNames.arrayPutter);
+        getter = (Method) array.getSelfEnv().getValue(WellKnownNames.arrayGetter);
         rank = Glue.arrayRank(array);
         this.at = at;
         l = new ArrayList<FValue>(1+rank);

@@ -190,16 +190,17 @@ trait Generator[\E\]
 
     (** Derived generation operations *)
     (** mapReduce is equivalent to generate, but takes an explicit join
-    and zero which can have any type.  It still assumes join is
-    associative and that zero is the identity of join. *)
+        and zero which can have any type.  It still assumes join is
+        associative and that zero is the identity of join. **)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
         generate[\R\](MapReduceReduction[\R\](join,zero), body)
-    (** reduce works much like generate or mapReduce, but has no body expression *)
+    (** reduce works much like generate or mapReduce,
+        but has no body expression **)
     reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
     reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
     (** loop is a version of generate which discards the void results
         of the body computation.  It is used to translated
-        reduction-variable-free for loops. *)
+        reduction-variable-free for loops. **)
     loop(f:E->()): () = generate[\()\](VoidReduction, f)
 end
 
@@ -571,18 +572,25 @@ An object i that's an instance of Indexed defines three basic things:
   A set of utility functions, assign, fill, and copy.  Only fill and
     copy need to be defined.
 **)
-trait Indexed[\E, I\] extends { DelegatedGenerator[\(I,E)\] }
+trait Indexed[\E, I\] extends { DelegatedGenerator[\E\] }
   getter size() (* = indexValuePairs().size() *)
   getter indexValuePairs(): Generator[\(I,E)\] =
       indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
   getter indices(): Generator[\I\] =
       indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
   getter generator(): Generator[\E\] =
-      indexValuePairs()
-(*
       indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
-*)
   opr[i:I] : E
+
+  (** The ivmap function isn't merely a convenient shortcut.  It's
+      actually intended to create a copy of the underlying indexed
+      structure when that is appropriate.
+
+      The usual map function in Generator should do the same (and does
+      for the instances in this library).  Copying
+      can be bad for space, but is complexity-preserving if the mapped
+      generator is used more than once. **)
+  ivmap[\R\](f:(I,E)->R): Generator[\R\] = indexValuePairs().map[\R\](f)
 end
 
 (** The MutableIndexed trait is an indexed trait whose elements can be
@@ -601,15 +609,18 @@ trait MutableIndexed[\T extends MutableIndexed[\T, E, I\], E, I\]
     extends { Indexed[\E,I\] }
   opr[i:I]:=(v:E) : ()
   assign(v:T):T = fill(fn (i:I):E => v[i])
-  fill(f:I->E):T = indices().loop(fn (i:I):() => do self[i] := f(i) end)
+  fill(f:I->E):T = do
+      indices().loop(fn (i:I):() => do self[i] := f(i) end)
+      self
+    end
   fill(v:E):T = fill(fn (i:I):E => v)
   copy():T
 end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends { HasRank, MutableIndexed[\Array[\E,I\],E,I\] }
-  getter size(): I
-  getter base(): I
+  getter minIndex(): I
+  getter maxIndex(): I
   replica[\U\]():Array[\U,I\]
 end
 
@@ -630,6 +641,51 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
 __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
+(** A repository for tons of default array functionality. **)
+trait ImplementedArrayType[\T extends ArrayType[\E,I\],E,I\]
+    extends { Array[\E,I\], MutableIndexed[\T,E,I\] }
+  (** CONCRETE GETTERS
+      Default implementations of getters based on abstract methods
+      below. **)
+  getter indices(): Generator[\I\] =
+      zeroIndices().map[\I\](fn (i:I):I => toIndex(i))
+  getter indexValuePairs(): Generator[\(I,E)\] =
+      zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
+  getter generator(): Generator[\E\] =
+      zeroIndices().map[\E\](fn (i:I):E => get(i))
+  (** ABSTRACT METHODS **)
+  (** 0-based non-bounds-checked indexing **)
+  get(i:I): E
+  put(e:E, i:I): ()
+  zeroIndices(): Generator[\I\]
+  (** Convert from base()-based indexing to 0-based indexing,
+      performing bounds checking. **)
+  offset(i:I): I
+  (** Convert from 0-based indexing to base()-based indexing **)
+  toIndex(i:I): I
+  (** CONCRETE METHODS
+      Default implementations of most array stuff based on the above.
+      The things we can't provide are anything involving replica. **)
+  opr [i:I]:E = get(offset(i))
+  opr [i:I]:=(v:E):() = put(v,offset(i))
+  assign(v:T):T = do
+      for i <- zeroIndices() do put(v.get(i),i) end
+      self
+    end
+  fill(f:I->E):T = do
+      for i <- zeroIndices() do put(f(i),i) end
+      self
+    end
+  fill(v:E):T = do
+      for i <- zeroIndices() do put(v,i) end
+      self
+    end
+  copy():T
+  eq(other: T): Boolean =
+    zeroIndices().generate[\Boolean\](AndReduction,
+                               fn (i:I):Boolean => get(i)=other.get(i))
+end
+
 (* Canonical partitioning of a positive number x into two pieces.  If
      (a,b) = partition(n)
    and n > 0 then 0 < a <= b,  n = a + b.
@@ -645,11 +701,12 @@ end
 
     The natural order of all generators is from b0 to b0+s0-1. **)
 trait Array1[\T, nat b0, nat s0\]
-    extends { Indexed1 [\s0\], Rank1, Array[\T,ZZ32\],
-              MutableIndexed[\Array1[\T,b0,s0\],T,ZZ32\] }
+    extends { Indexed1 [\s0\], Rank1,
+              ImplementedArrayType[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
   getter size():ZZ32 = s0
-  getter base():ZZ32 = b0
+  getter minIndex():ZZ32 = b0
+  getter maxIndex():ZZ32 = s0+b0-1
   getter indices():Range[\ZZ32\] = b0#s0
   getter toString() = do
     r = "[" b0 "#" s0 "] = ["
@@ -658,7 +715,7 @@ trait Array1[\T, nat b0, nat s0\]
     else
       f(i:ZZ32,t:T):String = " " t
       j(a:String,b:String) = a b
-      r self.mapReduce[\String\](f,j,"") " ]"
+      r indexValuePairs().mapReduce[\String\](f,j,"") " ]"
     end
   end
 
@@ -674,9 +731,9 @@ trait Array1[\T, nat b0, nat s0\]
     if r >= s0 OR r < 0 then oops(1, b0, s0, i) end
     r
   end
+  toIndex(i:ZZ32):ZZ32 = i + b0
 
-  opr[i:ZZ32] : T = get(offset(i))
-  opr[i:ZZ32]:=(v:T) : () = put(v, offset(i))
+  zeroIndices(): Generator[\ZZ32\] = 0#s0
 
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
     o0 : ZZ32 = o - b0
@@ -698,28 +755,12 @@ trait Array1[\T, nat b0, nat s0\]
      etc.) but with a different element type. *)
   replica[\U\]():Array1[\U,b0,s0\] = __builtinFactory1[\U,b0,s0\]()
 
-  assign(other:Array1[\T,b0,s0\]): Array1[\T,b0,s0\] =
-      fill(fn (i:ZZ32): T => other.get(i-b0))
-
-  generate[\R\](r: Reduction[\R\],m: (ZZ32,T)->R): R =
-    ParRange[\ZZ32\](0,s0).generate[\R\](r, fn (i: ZZ32): R => m(b0+i,get(i)))
-
-  seq(): SequentialGenerator[\(ZZ32,T)\] =
-    SeqRange[\ZZ32\](0,s0).map[\(ZZ32,T)\](fn (i: ZZ32): (ZZ32,T) =>
-                                              (b0+i,self.get(i)))
-
-  fill(f:ZZ32->T):Array1[\T,b0,s0\] = do
-    ParRange[\ZZ32\](0,s0).loop(fn (i: ZZ32): () => put(f(b0+i),i))
-    self
-  end
-
   copy():Array1[\T,b0,s0\] = replica[\T\]().assign(self)
 
-  map[\R\](f:(ZZ32,T)->R): R =
+  map[\R\](f:T->R): Array1[\R,b0,s0\] =
+      replica[\R\]().fill(fn (i:ZZ32):R => f(get(i-b0)))
+  ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\] =
       replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
-
-  eq(o:Array1[\T,b0,s0\]):Boolean =
-    generate[\Boolean\](AndReduction, fn (i: ZZ32,e: T): Boolean => e=o.get(i))
 end
 
 (* A 1-D subarray, defined wrt underlying FlatStorage.
@@ -776,16 +817,16 @@ end
 
 trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     add(v:Vector[\T,s0\]): Vector[\T,s0\] =
-        map[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
     subtract(v:Vector[\T,s0\]): Vector[\T,s0\] =
-        map[\T\](fn (i:ZZ32, e: T):T => e - v.get(i))
-    negate(): Vector[\T,s0\] = map[\T\](fn (i:ZZ32, e: T):T => - e)
-    scale(t: T): Vector[\T,s0\] = map[\T\](fn (i,v) => t v)
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e - v.get(i))
+    negate(): Vector[\T,s0\] = map[\T\](fn (e: T):T => - e)
+    scale(t: T): Vector[\T,s0\] = map[\T\](fn (v) => t v)
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
-        map[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
     dot(v: Vector[\T,s0\]): T =
-        mapReduce[\T\](fn (i:ZZ32, me_i:T):T => me_i v.get(i),
-                       fn (x,y)=>x+y,0)
+        indexValuePairs().generate[\T\](SumReduction[\T\](),
+                                        fn (i:ZZ32, me_i:T):T => me_i v.get(i))
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
@@ -867,13 +908,13 @@ opr [\ T extends Number, nat k \]
     of elements need only be consistent with the cross product of
     these orderings (see Generator.cross()). **)
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
-    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2, Array[\T,(ZZ32,ZZ32)\],
-              MutableIndexed[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
+    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2,
+              ImplementedArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
-  getter size():(ZZ32,ZZ32) = (s0,s1)
-  getter base():(ZZ32,ZZ32) = (b0,b1)
-  getter indices(): Generator[\(ZZ32,ZZ32)\] =
-      ParRange[\ZZ32\](b0,s0).cross[\ZZ32\](ParRange[\ZZ32\](b1,s1))
+  getter size():ZZ32 = s0 s1
+  getter maxIndex():(ZZ32,ZZ32) = (s0+b0-1,s1+b1-1)
+  getter minIndex():(ZZ32,ZZ32) = (b0,b1)
+  getter indices(): Generator[\(ZZ32,ZZ32)\] = (b0#s0).cross[\ZZ32\](b1#s1)
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
@@ -893,7 +934,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     end
   end
   (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
-  offset(a0:ZZ32,a1:ZZ32):(ZZ32,ZZ32) = do
+  offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do
+    (a0,a1) = t
     c0 = a0 - b0
     c1 = a1 - b1
     if c0 < 0 OR c0 >= s0 OR c1 < 0 OR c1 >= s1 then
@@ -905,36 +947,23 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     end
     (c0,c1)
   end
-  opr[t:(ZZ32,ZZ32)] : T = self.get(offset(t))
-  opr[t:(ZZ32,ZZ32)]:=(v:T):() = do (i,j) = offset(t); self.put(v,i,j) end
-  opr[x:ZZ32,y:ZZ32]:=(v:T):() = do (i,j) = offset(x,y); self.put(v,i,j) end
-  fill(f:(ZZ32,ZZ32)->T):Array2[\T,b0,s0,b1,s1\] = do
-      indices().loop(fn (a:ZZ32, b:ZZ32): () => put(f(a,b),a-b0, b-b1))
-      self
-    end
+  toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
+  opr [x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
+
+  zeroIndices():Generator[\(ZZ32,ZZ32)\] = (0#s0).cross[\ZZ32\](0#s1)
+
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
-  generate[\R\](r: Reduction[\R\], m: ((ZZ32,ZZ32),T)->R): R =
-      ParRange[\ZZ32\](0,s0).cross[\ZZ32\](
-          ParRange[\ZZ32\](0,s1)).generate[\R\](
-              r, fn (a:ZZ32, b:ZZ32): R => m((a+b0,b+b1),get(a,b)))
-  seq(): SequentialGenerator[\((ZZ32,ZZ32),T)\] =
-      SeqRange[\ZZ32\](0,s0).cross[\ZZ32\](
-          SeqRange[\ZZ32\](0,s1)).map[\((ZZ32,ZZ32),T)\](
-              fn (a:ZZ32, b:ZZ32): ((ZZ32,ZZ32),T)=>((a+b0,b+b1),self.get(a,b)))
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
   put(v:T, i:ZZ32, j:ZZ32) : ()
-  get(i:ZZ32, j:ZZ32):T
+  put(v:T, t:(ZZ32, ZZ32)) : () = do (a0,a1)=t; put(v,a0,a1) end
+  get(t:(ZZ32, ZZ32)):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
   (* Copied here from Indexed, for better return type information. *)
-  assign(other: Array2[\T,b0,s0,b1,s1\]): Array2[\T,b0,s0,b1,s1\] =
-      fill(fn (i:ZZ32,j:ZZ32) => other.get(i-b0,j-b1))
-  fill(v:T):Array2[\T,b0,s0,b1,s1\] = fill(fn (i:ZZ32,j:ZZ32):T => v)
-  map[\R\](f:((ZZ32,ZZ32),T)->R): R =
+  map[\R\](f:T->R): Array2[\R,b0,s0,b1,s1\] =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f(get(i-b0,j-b1)))
+  ivmap[\R\](f:((ZZ32,ZZ32),T)->R): Array2[\R,b0,s0,b1,s1\] =
       replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f((i,j),get(i-b0,j-b1)))
-  eq(o:Array2[\T,b0,s0,b1,s1\]):Boolean =
-    generate[\Boolean\](AndReduction,
-                        fn (i:(ZZ32,ZZ32),e:T): Boolean => e = o.get(i))
 end
 
 (** Default array is column-major, but we could switch it. **)
@@ -942,7 +971,7 @@ object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
   mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
-  get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
+  get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
 
 (** Transposes the index of the underlying array mem, and transposes
@@ -953,22 +982,17 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] = mem.replica[\U\]().t()
 
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
-  get(i:ZZ32, j:ZZ32):T = mem.get(j,i)
+  get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(j,i) end
   t() = mem
 end
 
 trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
     add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
-(*   This version of the code breaks horribly.
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get i)
-*)
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
+        ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
     subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
-    negate(): Matrix[\T,s0,s1\] =
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => - e)
-    scale(t: T): Matrix[\T,s0,s1\] =
-        map[\T\](fn (i:(ZZ32,ZZ32),e:T):T => t e)
+        ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
+    negate(): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => - e)
+    scale(t: T): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => t e)
     mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
         res = matrix[\T,s0,s2\]()
         mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
@@ -1013,13 +1037,15 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
         end
       end
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
-        row(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j):T => get(i,j) v_j,
-                                         fn (a,b)=> a+b, 0)
+        row(i:ZZ32):T =
+            v.indexValuePairs().generate[\T\](SumReduction[\T\](),
+                                      fn (j:ZZ32, v_j):T => get(i,j) v_j)
         vector[\T,s0\]().fill(row)
       end
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
-        col(i:ZZ32):T = v.mapReduce[\T\](fn (j:ZZ32, v_j) => v_j get(j,i),
-                                         fn (a,b)=> a+b, 0)
+        col(i:ZZ32):T =
+            v.indexValuePairs().generate[\T\](SumReduction[\T\](),
+                                      fn (j:ZZ32, v_j):T => v_j get(j,i))
         vector[\T,s1\]().fill(col)
       end
     t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
@@ -1030,7 +1056,7 @@ object __DefaultMatrix[\T, nat s0, nat s1\]()
     extends Matrix[\T, s0, s1\]
   mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
-  get(i:ZZ32, j:ZZ32):T = mem.get(i s1 + j)
+  get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
 
 object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
@@ -1038,7 +1064,7 @@ object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
     replica[\U\]():Array2[\U,0,s0,0,s1\] = mem.replica[\U\]().t()
 
     put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
-    get(i:ZZ32, j:ZZ32):T = mem.get(j,i)
+    get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(j,i) end
     t(): Matrix[\T,s1,s0\] = mem
     add(v:TransposedMatrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.add(v.t()).t()
     subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.subtract(v.t()).t()
@@ -1133,7 +1159,7 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
 (* Helper function for Array3 *)
-flat3[\A,B,C\](t:(A,B), c:C): (A,B,C) = do (a,b) = t; (a,b,c) end
+flat3(t:(ZZ32,ZZ32), c:ZZ32): (ZZ32,ZZ32,ZZ32) = do (a,b) = t; (a,b,c) end
 
 (** Array3[\T,b0,s0,b1,s1,b2,s2\] is the type of 3-dimensional arrays
     of element type T, with size s_i in the i^th dimension and lowest
@@ -1143,20 +1169,16 @@ flat3[\A,B,C\](t:(A,B), c:C): (A,B,C) = do (a,b) = t; (a,b,c) end
     Generator.cross()). **)
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
-            Array[\T,(ZZ32,ZZ32,ZZ32)\],
-            MutableIndexed[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,(ZZ32,ZZ32,ZZ32)\] }
+            ImplementedArrayType[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,
+                                  (ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
 
-  getter size():(ZZ32,ZZ32,ZZ32) = (s0,s1,s2)
-  getter base():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
+  getter size():ZZ32 = s0 s1 s2
+  getter maxIndex():(ZZ32,ZZ32,ZZ32) = (b0+s0-1,b1+s1-1,b2+s2-1)
+  getter minIndex():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
 
-  getter indices():Generator[\(ZZ32,ZZ32,ZZ32)\] = do
-      g0 = ParRange[\ZZ32\](b0,s0)
-      g1 = ParRange[\ZZ32\](b1,s1)
-      g2 = ParRange[\ZZ32\](b2,s2)
-      m(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do (j,k) = jk; (i,j,k) end
-      g0.cross(g1.cross(g2)).map(m)
-    end
+  getter indices():Generator[\(ZZ32,ZZ32,ZZ32)\] =
+      (b0#s0).cross(b1#s1).cross(b2#s2).map(flat3)
 
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
@@ -1184,75 +1206,47 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   end
 
   (* Again, offset performs bounds checking and shifts to 0 indexing. *)
-  offset(a0:ZZ32,a1:ZZ32,a2:ZZ32):(ZZ32,ZZ32,ZZ32) = do
+  offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+    (a0,a1,a2)=t
     c0 = a0 - b0; c1 = a1 - b1; c2 = a2 - b2
     if c0 >= s0 OR c0 < 0 then oops(1, b0, s0, a0); end
     if c1 >= s1 OR c1 < 0 then oops(2, b1, s1, a1); end
     if c2 >= s2 OR c2 < 0 then oops(3, b2, s2, a2); end
     (c0,c1,c2)
   end
+  toIndex(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) =
+      do (a0,a1,a2) = t; (a0+b0,a1+b1,a2+b2) end
 
   (* And get and put are 0-indexed without bounds checks. *)
   put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : ()
-  get(i:ZZ32, j:ZZ32, k:ZZ32) : T
+  put(v:T, t:(ZZ32,ZZ32,ZZ32)) : () = do (i,j,k)=t; put(v,i,j,k) end
+  get(t:(ZZ32,ZZ32,ZZ32)):T
 
-  opr[t:(ZZ32, ZZ32, ZZ32)] : T = self.get(offset(t))
-  (* opr[i:ZZ32, j:ZZ32, k:ZZ32] : T = self.get(offset(i,j,k)) *)
-  opr[t:(ZZ32,ZZ32,ZZ32)] := (v:T) = do (a,b,c)=offset(t); self.put(v,a,b,c) end
-  opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do
-    (a,b,c) = offset(i,j,k)
-    self.put(v,a,b,c)
-  end
+  opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
 
-  generate[\R\](r:Reduction[\R\], m:((ZZ32,ZZ32,ZZ32),T)->R): R = do
-      g0 = ParRange[\ZZ32\](0,s0)
-      g1 = ParRange[\ZZ32\](0,s1)
-      g2 = ParRange[\ZZ32\](0,s2)
-      mm(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
-          (j,k) = jk
-          m((b0+i,b1+j,b2+k),get(i,j,k))
-        end
-      g0.cross(g1.cross(g2)).generate[\R\](r,mm)
-    end
+  zeroIndices():Generator[\(ZZ32,ZZ32,ZZ32)\] =
+      (0#s0).cross(0#s1).cross(0#s2).map(flat3)
 
-  seq(): SequentialGenerator[\((ZZ32,ZZ32,ZZ32),T)\] = do
-      g0 = SeqRange[\ZZ32\](0,s0)
-      g1 = SeqRange[\ZZ32\](0,s1)
-      g2 = SeqRange[\ZZ32\](0,s2)
-      mm(i:ZZ32,jk:(ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
-          (j,k) = jk
-          ((b0+i,b1+j,b2+k),get(i,j,k))
-        end
-      g0.cross(g1.cross(g2)).map[\((ZZ32,ZZ32,ZZ32),T)\](mm)
-    end
-
-  fill(f:(ZZ32,ZZ32,ZZ32)->T):Array3[\T,b0,s1,b1,s1,b2,s2\] = do
-    indices().loop(fn (i:ZZ32,j:ZZ32,k:ZZ32):() => put(f(i,j,k),i-b0,j-b0,k-b0))
-    self
-  end
-  replica[\U\]():Array3[\T,b0,s0,b1,s1,b2,s2\]
+  replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
+      __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]
   copy():Array3[\T,b0,s0,b1,s1,b2,s2\] = self.replica[\T\]().assign(self)
-  assign(v:Array3[\T,b0,s0,b1,s1,b2,s2\]) =
-      fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T =>
-               put(v.get(i-b0,j-b1,k-b2),i-b0,j-b1,k-b2))
-  map[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R): R =
+  map[\R\](f:T->R): Array3[\R,b0,s0,b1,s1,b2,s2\] =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):R =>
+                              f(get(i-b0,j-b1,k-b2)))
+  ivmap[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R): Array3[\R,b0,s0,b1,s1,b2,s2\] =
       replica[\R\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):R =>
                               f((i,j,k),get(i-b0,j-b1,k-b2)))
-  eq(o:Array3[\T,b0,s0,b1,s1,b2,s2\]):Boolean =
-      generate[\Boolean\](AndReduction,
-                          fn (i:(ZZ32,ZZ32,ZZ32),e:T) => e = o[i])
+
 end
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
   mem:FlatStorageMaker[\T,(s0 (s1 s2))\] = FlatStorageMaker[\T,(s0 (s1 s2))\]()
 
-  ofs = s1 s2
+  ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
 
-  replica():Array3[\T,b0,s0,b1,s1,b2,s2\] =
-      __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
-  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : () = mem.put(v, i ofs + j s2 + k)
-  get(i:ZZ32, j:ZZ32, k:ZZ32) : T = mem.get(i ofs + j s2 + k)
+  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : () = mem.put(v, ofs(i,j,k))
+  get(t:(ZZ32,ZZ32,ZZ32)) : T = mem.get(ofs(t))
 end
 
 __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():

@@ -24,10 +24,10 @@ export Runnable
 
 trait Sparse[\N extends Number, nat n, nat m\]
   extends Matrix[\N,n,m\]
-    get(i:ZZ32,j:ZZ32) = do println("OK: sparse get"); 0 end
+    get(t:(ZZ32,ZZ32)) = do println("OK: sparse get"); 0 end
     put(v:N, i:ZZ32, j:ZZ32) = fail("Sparse put")
     replica[\U\]() = fail("Sparse replica")
-    mapReduce[\R\](f:((ZZ32,ZZ32),N)->R, j:(R,R)->R, z:R):R =
+    mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
           fail("Sparse mapReduce")
 end
 
