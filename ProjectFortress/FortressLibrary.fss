@@ -125,9 +125,6 @@ assert(x:Any, y:Any, failMsg: String): () =
  *)
 
 trait Generator[\E\]
-    getter isEmpty(): Boolean = size()=0
-    getter size(): ZZ32
-
     (** generate is the core of Generator.  It generates elements of
         type E and passes them to the body function.  This generation
         can occur using any mixture of serial and parallel execution
@@ -182,11 +179,6 @@ trait Generator[\E\]
         But seq(a.cross(b)) may have a different natural order. *)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         SimplePairGenerator[\E,G\](self, g)
-(*
-    cross[\G\](g: Nothing[\G\]): Generator[\(E,G)\] = Nothing[\(E,G)\]()
-    cross[\G\](g: Just[\G\]): Generator[\(E,G)\] =
-        map[\(E,G)\](fn (e:E):(E,G) => (e, g.unJust()))
-*)
 
     (** Derived generation operations *)
     (** mapReduce is equivalent to generate, but takes an explicit join
@@ -205,15 +197,9 @@ trait Generator[\E\]
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    map[\G\](f: E->G): Generator[\G\] = SimpleMappedSeqGenerator[\E,G\](self,f)
+    map[\G\](f: E->G): SequentialGenerator[\G\] =
+        SimpleMappedSeqGenerator[\E,G\](self,f)
     seq() = self
-    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
-        SimplePairSeqGenerator[\E,G\](self, g)
-(*
-    cross[\G\](g: Nothing[\G\]): Generator[\(E,G)\] = Nothing[\(E,G)\]()
-    cross[\G\](g: Just[\G\]): Generator[\(E,G)\] =
-        map[\(E,G)\](fn (e:E):(E,G) => (e, g.unJust()))
-*)
 end
 
 (** Operations which use generation internally.  Should be functional
@@ -573,7 +559,10 @@ An object i that's an instance of Indexed defines three basic things:
     copy need to be defined.
 **)
 trait Indexed[\E, I\] extends { DelegatedGenerator[\E\] }
-  getter size() (* = indexValuePairs().size() *)
+  getter isEmpty(): Boolean = size()=0
+  getter size()
+  getter minIndex(): I
+  getter maxIndex(): I
   getter indexValuePairs(): Generator[\(I,E)\] =
       indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
   getter indices(): Generator[\I\] =
@@ -590,7 +579,7 @@ trait Indexed[\E, I\] extends { DelegatedGenerator[\E\] }
       for the instances in this library).  Copying
       can be bad for space, but is complexity-preserving if the mapped
       generator is used more than once. **)
-  ivmap[\R\](f:(I,E)->R): Generator[\R\] = indexValuePairs().map[\R\](f)
+  ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
 end
 
 (** The MutableIndexed trait is an indexed trait whose elements can be
@@ -619,8 +608,6 @@ end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends { HasRank, MutableIndexed[\Array[\E,I\],E,I\] }
-  getter minIndex(): I
-  getter maxIndex(): I
   replica[\U\]():Array[\U,I\]
 end
 
@@ -642,7 +629,7 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (** A repository for tons of default array functionality. **)
-trait ImplementedArrayType[\T extends ArrayType[\E,I\],E,I\]
+trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
     extends { Array[\E,I\], MutableIndexed[\T,E,I\] }
   (** CONCRETE GETTERS
       Default implementations of getters based on abstract methods
@@ -702,7 +689,7 @@ end
     The natural order of all generators is from b0 to b0+s0-1. **)
 trait Array1[\T, nat b0, nat s0\]
     extends { Indexed1 [\s0\], Rank1,
-              ImplementedArrayType[\Array1[\T,b0,s0\],T,ZZ32\] }
+              StandardArrayType[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
   getter size():ZZ32 = s0
   getter minIndex():ZZ32 = b0
@@ -909,7 +896,7 @@ opr [\ T extends Number, nat k \]
     these orderings (see Generator.cross()). **)
 trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends { Indexed1[\s0\], Indexed2[\s1\], Rank2,
-              ImplementedArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
+              StandardArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32 = s0 s1
   getter maxIndex():(ZZ32,ZZ32) = (s0+b0-1,s1+b1-1)
@@ -1169,7 +1156,7 @@ flat3(t:(ZZ32,ZZ32), c:ZZ32): (ZZ32,ZZ32,ZZ32) = do (a,b) = t; (a,b,c) end
     Generator.cross()). **)
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
-            ImplementedArrayType[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,
+            StandardArrayType[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,
                                   (ZZ32,ZZ32,ZZ32)\] }
   excludes { Number, String }
 
@@ -1337,11 +1324,6 @@ trait DelegatedGenerator[\E\] extends Generator[\E\]
     seq(): SequentialGenerator[\E\] = generator().seq()
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
-(*
-    cross[\G\](g: Nothing[\G\]): Generator[\(E,G)\] = Nothing[\(E,G)\]()
-    cross[\G\](g: Just[\G\]): Generator[\(E,G)\] =
-        map[\(E,G)\](fn (e:E):(E,G) => (e, g.unJust()))
-*)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
         generator().mapReduce[\R\](body,join,zero)
     reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
@@ -1355,7 +1337,6 @@ end
     working first. *)
 
 trait MappedGenerator[\E,F\] extends Generator[\F\]
-  comprises { SimpleMappedGenerator[\E,F\], SimpleMappedSeqGenerator[\E,F\] }
     getter g(): Generator[\E\]
     getter f(): E -> F
     getter size(): ZZ32 = g().size()
@@ -1750,7 +1731,6 @@ println():() = println("")
 printThreadInfo(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
 printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
 throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
-
 
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
