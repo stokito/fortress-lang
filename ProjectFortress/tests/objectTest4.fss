@@ -42,7 +42,7 @@ run(args:String...):()=do
   a = A(3,4)
   s(a,7)
 
-  s(a.f(),5) (* a.f = g, g() = A(2,3) *)
+  s((a.f)(),5) (* a.f = g, g() = A(2,3) *)
 
   a.setF(h)
   s((a.f)(),9) (* a.f = h, h() = A(3,6) *)

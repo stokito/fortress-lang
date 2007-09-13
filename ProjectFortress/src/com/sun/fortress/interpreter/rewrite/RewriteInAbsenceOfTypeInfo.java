@@ -25,10 +25,15 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Juxt;
+import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
+import com.sun.fortress.nodes_util.ExprFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -109,8 +114,32 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         if (node instanceof FnRef) 
          
             return visit(translateFnRef((FnRef)node));
+        
+        if (node instanceof TightJuxt && looksLikeMethodInvocation((Juxt) node)) {
+            return visit(translateJuxtOfDotted((Juxt) node));
+        }
             
-            return visitNode(node);
+            
+        return visitNode(node);
+    }
+
+    private AbstractNode translateJuxtOfDotted(Juxt node) {
+        List<Expr> exprs = node.getExprs();
+        VarRef first = (VarRef) exprs.get(0);
+        QualifiedIdName qidn = first.getVar();
+        List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+        
+        return new MethodInvocation(node.getSpan(),
+                                false,
+                                translateQualifiedToFieldRef(ids),
+                                qidn.getName(), exprs.size() == 2 ? exprs.get(1) :
+                                    new TupleExpr(exprs.subList(1, exprs.size())));
+    }
+
+    private boolean looksLikeMethodInvocation(Juxt node) {
+        Expr first = node.getExprs().get(0);
+        return (first instanceof VarRef && ! first.isParenthesized() &&
+                ((VarRef)first).getVar().getApi().isSome());
     }
 
 }

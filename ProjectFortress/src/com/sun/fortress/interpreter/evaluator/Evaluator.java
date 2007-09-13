@@ -395,9 +395,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (exp instanceof LetExpr) {
                 BetterEnv inner = new BetterEnv(eval.e, exp);
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
-		res = be.doLets((LetExpr) exp);
+                    res = be.doLets((LetExpr) exp);
             } else {
-                res = exp.accept(eval);
+                    res = exp.accept(eval);
             }
         }
         return res;
@@ -411,10 +411,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
      /* If we are already in a transaction, don't evaluate in parallel */
-        } else if (BaseTask.getThreadState().transactionNesting() > 0) {
-            for (Expr exp : exprs) {
-               resList.add(exp.accept(this));
-        }
+ } else if (BaseTask.getThreadState().transactionNesting() > 0) {
+     for (Expr exp : exprs) {
+  resList.add(exp.accept(this));
+     }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
@@ -424,7 +424,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
-            runner.setCurrentTask(currentTask);
+     runner.setCurrentTask(currentTask);
 
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
@@ -768,7 +768,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else {
                 return error(x, fobject.getSelfEnv(),
                                        errorMsg("Unexpected method value in method ",
-                                                "invocation, ", cl));
+                                                "invocation, ", cl.toString() + "\n" +  NodeUtil.dump(x)));
             }
         } else {
             return error(x, errorMsg("Unexpected receiver in method ",
