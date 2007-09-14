@@ -18,13 +18,8 @@
 component restTest
 export Executable
 
-foo(x:ZZ32...) = do
-   var sum:ZZ32 = 0
-   for i <- x.indices() do
-     sum += x[i]
-   end
-   sum
-end
+foo(x:ZZ32...) =
+  x.reduce(SumReduction[\ZZ32\]())
 
 
 run(args:String...):() = do

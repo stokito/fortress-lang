@@ -1344,7 +1344,7 @@ trait MappedGenerator[\E,F\] extends Generator[\F\]
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         g().generate[\R\](r, m COMPOSE f())
     reduce(r: Reduction[\F\]): F =
-        g().generate[\R\](r, f())
+        g().generate[\F\](r, f())
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
 end
