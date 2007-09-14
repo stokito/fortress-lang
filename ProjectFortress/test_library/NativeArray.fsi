@@ -17,6 +17,6 @@
 
 api NativeArray
 
-object PrimitiveVector[\T, nat b0, nat s0\]() extends Array1[\T,b0,s0\] end
+object PrimitiveArray[\T, nat b0, nat s0\]() extends Array1[\T,b0,s0\] end
 
 end

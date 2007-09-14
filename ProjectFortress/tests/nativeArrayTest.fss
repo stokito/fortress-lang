@@ -20,7 +20,7 @@ import * from NativeArray
 export Executable
 
 run(args:String...):() = do
-  z:Array1[\String, 4, 3\] = PrimitiveVector[\String, 4, 3\]()
+  z:Array1[\String, 4, 3\] = PrimitiveArray[\String, 4, 3\]()
   z[4]:="cat"
   z[5]:="dog"
   z[6]:="bat"

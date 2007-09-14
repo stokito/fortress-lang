@@ -52,7 +52,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\] extends {
 end
 
 object DefaultArray2[\T, nat s0, nat s1\]() extends Array2[\T, 0, s0, 0, s1\]
-  mem:Array1[\T, 0, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
+  mem:Array1[\T, 0, (s0 s1) \] = array1[\T, (s0 s1) \]()
 
   opr[i:ZZ32, j:ZZ32] : T = self.mem.get((s1 i)+j)
   opr[i:ZZ32, j:ZZ32]:= (v:T) = self.mem.put(v, (s1 i)+j)
@@ -87,7 +87,7 @@ object None[\T\]() extends Option[\T\] (* where {T extends Object} *)
 end
 
 object SimpleHashTable[\T extends Hashable, nat startingSize\]() extends HashTable[\T\]
-  basis : Option[\T\][#] = FlatStorageMaker[\Option[\T\],startingSize\]()
+  basis : Option[\T\][#] = array1[\Option[\T\],startingSize\]()
   modulus : ZZ32 = startingSize
 
   modulo(x,y) = x

@@ -93,7 +93,7 @@ end
 opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 
 fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] = do
-    fs = FlatStorageMaker[\E,n\]()
+    fs = PrimitiveArray[\E,0,n\]()
     for (i,v) <- f.indexValuePairs() do
         fs.put(v,i)
     end
@@ -137,7 +137,7 @@ end
 
 cantExtend : CanExtend = CanExtend(false)
 
-value object Alr[\E,nat maxUn\]( underlying : FlatStorageMaker[\E,maxUn\],
+value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32,
                                  canExtend : CanExtend)
       extends ArrayList[\E\]
@@ -288,7 +288,7 @@ value object Alr[\E,nat maxUn\]( underlying : FlatStorageMaker[\E,maxUn\],
 end
 
 mkEmptyLike[\E, nat maxUn\](_:ArrayList[\E\], _:N[\maxUn\]): ArrayList[\E\] =
-    Alr[\E, maxUn\](FlatStorageMaker[\E,maxUn\](),0,0,cantExtend)
+    Alr[\E, maxUn\](PrimitiveArray[\E,0,maxUn\](),0,0,cantExtend)
 
 (* The ZipGenerator works by first chopping the lists so that they are
 the same size, then successively splitting them.  The first argument
@@ -338,9 +338,9 @@ value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\
 end
 
 emptyList[\E\](): List[\E\] =
-    Alr[\E,0\](FlatStorageMaker[\E,0\](),0,0,cantExtend)
+    Alr[\E,0\](PrimitiveArray[\E,0,0\](),0,0,cantExtend)
 singleton[\E\](e:E): List[\E\] = do
-    u = FlatStorageMaker[\E,1\]()
+    u = PrimitiveArray[\E,0,1\]()
     u.put(e,0)
     Alr[\E,1\](u,0,1,cantExtend)
   end

@@ -58,7 +58,7 @@ end
 
 run(args:String...):()=do
 
-  z:Array1[\String, 0, 3\] = FlatStorageMaker[\String, 3\]()
+  z:Array1[\String, 0, 3\] = array1[\String, 0, 3\]()
   z[0]:="cat"
   z[1]:="dog"
   z[2]:="bat"

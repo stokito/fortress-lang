@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
+import com.sun.fortress.interpreter.evaluator.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
@@ -452,6 +453,15 @@ public class Driver {
      * @param into_e
      * @param from_e
      * @param except_names
+     *
+     * The current import process can attempt to import some entities
+     * twice into the same component.  This happesn in the case of
+     * certain kinds of recursive api import, and also (more
+     * importantly) when there are imports in FortressLibrary.fss.
+     * Eventually fixes elsewhere in the system should eliminate this
+     * problem; in the mean time we simply catch duplicate insertions
+     * here and silently ignore them.  This is a stopgap measure that
+     * should go away.
      */
     private static void importAllExcept(final BetterEnv into_e,
             BetterEnv api_e, final BetterEnv from_e,
@@ -466,6 +476,14 @@ public class Driver {
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
                 }
             }
         };
@@ -482,6 +500,14 @@ public class Driver {
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
                 }
             }
         };
@@ -494,6 +520,14 @@ public class Driver {
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
                 }
             }
         };
@@ -506,6 +540,14 @@ public class Driver {
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
                 }
             }
         };
@@ -518,6 +560,14 @@ public class Driver {
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
                           + " not found in implementing component " + c);
+                } catch (RedefinitionError re) {
+                    if (re.existingValue == null ||
+                        re.existingValue != re.attemptedReplacementValue) {
+                        /* Completely new or bogus definition. */
+                        throw re;
+                    } else {
+                        /* Redefining entity as itself; silently ignore. */
+                    }
                 }
             }
         };

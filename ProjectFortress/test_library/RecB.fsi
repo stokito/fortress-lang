@@ -16,7 +16,13 @@
  ******************************************************************************)
 
 api RecB
+import * from RecA
+
+trait Even
+  getter anOdd(): Odd
+end
 
 even(x:ZZ32): Boolean
+(* odd(x:ZZ32): Boolean *)
 
 end

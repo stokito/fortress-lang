@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component FortressLibrary
-(* import * from NativeArray *)
+import * from NativeArray
 export Executable
 
 (** The following function is actually recognized as a special piece
@@ -750,25 +750,6 @@ trait Array1[\T, nat b0, nat s0\]
       replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
 end
 
-(* A 1-D subarray, defined wrt underlying FlatStorage.
-   l0 is the underlying size, m0 the stride, and o0 the starting
-   offset in the underlying FlatStorage.
-   Invariant: (s0-1) m0 + o0 < l0 *)
-object __SubArray1[\T, nat b0, nat s0, nat l0\]
-       (mem:FlatStorageMaker[\T,l0\], o0:ZZ32, m0:ZZ32)
-       extends Array1[\T, b0, s0\]
-    index(i:ZZ32):T = i m0 + o0
-    get(i:ZZ32):T = mem.get(index(i))
-    put(v:T, i:ZZ32):T = mem.put(v,index(i))
-    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      o_n : ZZ32 = o - b0
-      if o_n < 0 OR o_n > s0-s then
-          fail("__SubArray1: subarray exceeds bounds of underlying array.")
-      end
-      __SubArray1[\T,b,s,l0\](mem,index(o_n),m0)
-    end
-end
-
 (* A 1-D subarray of an Array1.
    b_a and s_a are the underlying array's bounds; s0 and b0 are the
    result bounds.  o0 is the starting offset in the underlying array,
@@ -789,19 +770,6 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     end
 end
 
-object __DefaultArray1[\T, nat b0, nat s0\]() extends Array1[\T, b0, s0\]
-  mem:FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
-  get(i:ZZ32):T = mem.get(i)
-  put(v:T, i:ZZ32) = mem.put(v,i)
-  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-    o0 : ZZ32 = o - b0
-    if o0 < 0 OR o0 > s0-s then
-        fail("__DefaultArray1: subarray exceeds bounds of underlying array.")
-    end
-    __SubArray1[\T,b,s,s0\](mem,o0,1)
-  end
-end
-
 trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     add(v:Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
@@ -817,7 +785,7 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
-  mem: FlatStorageMaker[\T, s0\] = FlatStorageMaker[\T, s0\]()
+  mem: PrimitiveArray[\T,0, s0\] = PrimitiveArray[\T,0, s0\]()
   get(i:ZZ32):T = mem.get(i)
   put(v:T, i:ZZ32) = mem.put(v,i)
   replica[\U\]() = array1[\T,s0\]()
@@ -830,7 +798,7 @@ end
    named in this file, with this type signature.  A similar thing is
    true for K-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
-    if b0=0 then array1[\T,s0\]() else __DefaultArray1[\T,b0,s0\]() end
+    if b0=0 then array1[\T,s0\]() else PrimitiveArray[\T,b0,s0\]() end
 
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
     typecase _ = __Proxy[\T\]() of
@@ -839,7 +807,7 @@ array1[\T, nat s0\]():Array1[\T,0,s0\] =
         __Proxy[\Integral\] => vector[\T,s0\]()
         __Proxy[\RR64\] => vector[\T,s0\]()
         __Proxy[\Number\] => vector[\T,s0\]()
-        else => __DefaultArray1[\T,0,s0\]()
+        else => PrimitiveArray[\T,0,s0\]()
     end
 array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
 array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
@@ -956,7 +924,7 @@ end
 (** Default array is column-major, but we could switch it. **)
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
-  mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
+  mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
@@ -1041,7 +1009,7 @@ end
 (* Default matrix should match default array in column vs row-major. *)
 object __DefaultMatrix[\T, nat s0, nat s1\]()
     extends Matrix[\T, s0, s1\]
-  mem:FlatStorageMaker[\T, (s0 s1) \] = FlatStorageMaker[\T, (s0 s1) \]()
+  mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
   put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
@@ -1228,7 +1196,7 @@ end
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
-  mem:FlatStorageMaker[\T,(s0 (s1 s2))\] = FlatStorageMaker[\T,(s0 (s1 s2))\]()
+  mem:PrimitiveArray[\T,0,(s0 (s1 s2))\] = PrimitiveArray[\T,0,(s0 (s1 s2))\]()
 
   ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
 

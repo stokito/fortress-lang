@@ -274,13 +274,13 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     // = redefinition of a mutable cell (doesn't seem to).
                     IndirectionCell ic = (IndirectionCell) fvo;
                     if (ic instanceof ReferenceCell) {
-                        throw new RedefinitionError("Mutable variable", index, value);
+                        throw new RedefinitionError("Mutable variable", index, fvo, value);
                     } else {
                         ic.storeValue((FValue) value);
                         return table;
                     }
                 }
-                throw new RedefinitionError(what, index, original.getValue(), value);
+                throw new RedefinitionError(what, index, fvo, value);
             }
             return new_table;
         }
@@ -308,14 +308,14 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     // = redefinition of a mutable cell (doesn't seem to).
                     IndirectionCell ic = (IndirectionCell) fvo;
                     if (ic instanceof ReferenceCell) {
-                        throw new RedefinitionError("Mutable variable", index, value);
+                        throw new RedefinitionError("Mutable variable", index, fvo, value);
                     } else if (! ic.isInitialized()) {
                         ic.storeValue((FValue) value);
                         return table;
                     } else {
                         // ic is an initialized value cell, not a true function.
                         // do not overload.
-                        throw new RedefinitionError(what, index, original.getValue(), value);
+                        throw new RedefinitionError(what, index, fvo, value);
                     }
                 }
 

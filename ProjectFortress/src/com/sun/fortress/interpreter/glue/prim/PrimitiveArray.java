@@ -37,9 +37,9 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class PrimitiveVector extends Constructor {
+public class PrimitiveArray extends Constructor {
 
-    public PrimitiveVector(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public PrimitiveArray(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }

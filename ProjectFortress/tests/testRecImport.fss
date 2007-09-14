@@ -20,6 +20,16 @@ import * from RecA
 import * from RecB
 export Executable
 
+object MyOdd extends Odd
+  anEven():Even = MyEven
+  toString():String = "MyOdd"
+end
+
+object MyEven extends Even
+  anOdd():Odd = MyOdd
+  toString():String = "MyEven"
+end
+
 run(args:String...):() = do
     assert(even(0),"even(0)")
     assert(NOT odd(0),"odd(0)")
@@ -27,6 +37,10 @@ run(args:String...):() = do
     assert(odd(5),"odd(5)")
     assert(even(-8),"even(-8)")
     assert(NOT odd(-8),"odd(-8)")
+    assert(MyOdd.toString(),"MyOdd", "MyOdd")
+    assert(MyEven.toString(),"MyEven", "MyEven")
+    assert(MyEven.anOdd().toString(),"MyOdd", "MyEven.anOdd")
+    assert(MyEven.anOdd().anEven().toString(),"MyEven", "MyEven.anOdd.anEven")
   end
 
 end
