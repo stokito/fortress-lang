@@ -47,7 +47,7 @@ public class ExprFactory {
         int denomPower;
 
         // Trim leading zeroes
-        while (s.length() > 1 && s.charAt(0) == '0') {
+        while (s.length() > 2 && s.charAt(0) == '0' && s.charAt(1) == '0') {
             s = s.substring(1);
         }
 
@@ -268,7 +268,7 @@ public class ExprFactory {
         return new FnRef(qName.getSpan(), false, qNames,
                          Collections.<StaticArg>emptyList());
     }
-    
+
     public static FnRef makeFnRef(QualifiedIdName name) {
         return new FnRef(name.getSpan(), false, Collections.singletonList(name),
                          Collections.<StaticArg>emptyList());
