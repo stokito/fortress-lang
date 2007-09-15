@@ -36,10 +36,6 @@ import com.sun.fortress.useful.Useful;
 
 public class Glue {
 
-    static public void installHooks(BetterEnv e) {
-        Primitives.install_value(e, "FlatStorageMaker", new GenericFlatStorageMaker(e));
-    }
-
     static public int natFromGeneric(FType vt, String trait, String nat) {
         if (vt instanceof FTraitOrObject) {
             FTraitOrObject fto = (FTraitOrObject) vt;

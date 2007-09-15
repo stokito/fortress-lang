@@ -323,14 +323,6 @@ public class Driver {
         }
 
         /*
-         * Transitional stuff.
-         *
-         * This will stick native hooks into the "library", and these will in
-         * turn be copied into all the other environments.
-         */
-        Glue.installHooks(lib.getEnvironment());
-
-        /*
          * Inject imported names into environments.
          *
          * TODO traits and objects must have their members filtered in these

@@ -55,7 +55,6 @@ public class Libraries {
             c = (Component) RewriteInAbsenceOfTypeInfo.Only.visit(c);
             c = (Component) dis.visit(c);
             be.forComponent1(c);
-            Glue.installHooks(be.getEnvironment());
             be.secondPass();
             /*
              * This is ugly, but it probably needs to be exposed
