@@ -57,7 +57,7 @@ object Stats
         n = n0 + overAYear
         (pos,posMed) = median(0#365, fn (i) => histogram[posOut,i])
         (neg,negMed) = median(0#365, fn (i) => histogram[negOut,i])
-        maxEntry = histogram.generate[\ZZ32\](MaxPosReduction, fn (_,i) => i)
+        maxEntry = histogram.generate[\ZZ32\](MaxPosReduction, fn (i) => i)
         scale : RR64 = 30.0 / maxEntry
         barlen(i:ZZ32): ZZ32 = if i > 0 then (narrow |\ scale i /|) MAX 1
                                else 0 end
