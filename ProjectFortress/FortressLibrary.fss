@@ -557,28 +557,26 @@ An object i that's an instance of Indexed defines three basic things:
   A set of utility functions, assign, fill, and copy.  Only fill and
     copy need to be defined.
 **)
-trait Indexed[\E, I\] extends { DelegatedGenerator[\E\] }
-  getter isEmpty(): Boolean = size()=0
-  getter size()
-  getter minIndex(): I
-  getter maxIndex(): I
-  getter indexValuePairs(): Generator[\(I,E)\] =
-      indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
-  getter indices(): Generator[\I\] =
-      indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
-  getter generator(): Generator[\E\] =
-      indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
-  opr[i:I] : E
+trait Indexed[\E, I\] extends DelegatedGenerator[\E\]
+    getter isEmpty(): Boolean = size()=0
+    getter size()
+    getter minIndex(): I
+    getter maxIndex(): I
+    getter indexValuePairs(): Generator[\(I,E)\] =
+        indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
+    getter indices(): Generator[\I\] =
+        indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
+    opr[i:I] : E
 
-  (** The ivmap function isn't merely a convenient shortcut.  It's
-      actually intended to create a copy of the underlying indexed
-      structure when that is appropriate.
+    (** The ivmap function isn't merely a convenient shortcut.  It's
+        actually intended to create a copy of the underlying indexed
+        structure when that is appropriate.
 
-      The usual map function in Generator should do the same (and does
-      for the instances in this library).  Copying
-      can be bad for space, but is complexity-preserving if the mapped
-      generator is used more than once. **)
-  ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
+        The usual map function in Generator should do the same (and does
+        for the instances in this library).  Copying
+        can be bad for space, but is complexity-preserving if the mapped
+        generator is used more than once. **)
+    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
 end
 
 (** The MutableIndexed trait is an indexed trait whose elements can be
@@ -753,7 +751,7 @@ trait Array1[\T, nat b0, nat s0\]
       replica[\R\]().fill(fn (i:ZZ32):R => f(get(i-b0)))
   ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\] =
       replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
-    end
+end
 
 (* A 1-D subarray of an Array1.
    b_a and s_a are the underlying array's bounds; s0 and b0 are the
@@ -767,12 +765,12 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     get(i:ZZ32):T = arr.get(index(i))
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      o_n : ZZ32 = o - b0
-      if o_n < 0 OR o_n > s0-s then
-        fail("__SimpleSubArray1: subarray exceeds bounds of underlying array.")
+        o_n : ZZ32 = o - b0
+        if o_n < 0 OR o_n > s0-s then
+          fail("__SimpleSubArray1: subarray exceeds bounds of underlying array.")
+        end
+        __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
-      __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
-  end
 end
 
 trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
