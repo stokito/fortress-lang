@@ -45,15 +45,17 @@ expansion(curr: ZZ32, new: ZZ32) =
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
+trait List[\E\] extends { Indexed[\E,ZZ32\] } excludes { Number, HasRank }
+  getter minIndex(): ZZ32 = 0
+  getter maxIndex(): ZZ32 = size()-1
   getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
   getter indices(): ParRange[\ZZ32\] =
       indexValuePairs().map[\ZZ32\](fn (i:ZZ32, _:E): ZZ32 => i)
-  getter indexValuePairs(): Generator[\(ZZ32,E)\]
-  generate[\R\](r: Reduction[\R\], body: E->R): R
+      (* This definition ensures that we follow the data distribution. *)
+
   map[\G\](f: E->G): List[\G\] =
       self.concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
   append(f:List[\E\]): List[\E\]
@@ -86,7 +88,7 @@ trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
              fn (h,t) => h t.generate[\String\](StringReduction,
                                                    fn (e:E) => ", " e)) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
-    generate[\List[\G\]\](Concat[\G\](),f)
+    self.generate[\List[\G\]\](Concat[\G\](),f)
 end
 
 (** Vararg factory for lists; provides aggregate list constants *)
@@ -166,11 +168,8 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
       indices().map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) =>
                                    (i,underlying.get(firstUsed+i)))
-  generate[\R\](r: Reduction[\R\], body: E->R): R =
-      (firstUsed#size()).generate[\R\](r, fn (i:ZZ32):R =>
-                                              body(underlying.get(i)))
-  seq(): SequentialGenerator[\E\] =
-      sequential(firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+  getter generator(): Generator[\E\] =
+      (firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
 
   (* Internal: fill blindly from f; assume enough space *)
   appendFrom(f:List[\E\]): ArrayList[\E\] = do
