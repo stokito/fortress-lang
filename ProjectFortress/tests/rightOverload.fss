@@ -23,7 +23,7 @@ export Runnable
 trait Sparse[\N extends Number, nat n, nat m\]
   extends Array2[\N,0,n,0,m\]
     get(t:(ZZ32,ZZ32)) = fail("Sparse get")
-    put(v:N, i:ZZ32, j:ZZ32) = fail("Sparse put")
+    put(t:(ZZ32,ZZ32), v:N) = fail("Sparse put")
     replica[\U\]() = fail("Sparse replica")
     mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
           fail("Sparse mapReduce")

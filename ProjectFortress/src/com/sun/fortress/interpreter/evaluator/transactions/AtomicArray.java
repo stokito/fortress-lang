@@ -33,7 +33,7 @@ public class AtomicArray<T> {
   private final T[] shadow;
   private Transaction[] writers;
   private ReadSet[] readers;
-  long version[];
+  // long version[];
   private final String FORMAT = "Unexpected transaction state: %s";
   
   /** Creates a new instance of AtomicArray */
@@ -42,11 +42,11 @@ public class AtomicArray<T> {
     shadow = (T[]) Array.newInstance(_class, capacity);
     readers = new ReadSet[capacity];
     writers = new Transaction[capacity];
-    version = new long[capacity];
+    // version = new long[capacity];
     for (int i = 0; i < capacity; i++) {
 	readers[i] = new ReadSet();
 	writers[i] = Transaction.COMMITTED_TRANS;
-        version[i] = 0;
+        // version[i] = 0;
     }
 
   }
@@ -81,6 +81,29 @@ public class AtomicArray<T> {
       manager.resolveConflict(me, other);
     }
   }
+
+  /**
+   * Init is equivalent to set, but fails (returns false) for non-null
+   * contents.
+   **/
+  public boolean init(int i, T value) {
+    Transaction me  = FortressTaskRunner.getTransaction();
+    Transaction other = null;
+    ContentionManager manager = FortressTaskRunner.getContentionManager();
+    while (true) {
+      synchronized (readers[i]) {
+        other = openWrite(me,i);
+        /* Note openWrite gives us read permission as well. */
+        if (other == null) {
+          if (array[i]!=null) return false;
+          array[i] = value;
+          return true;
+        }
+      }
+      manager.resolveConflict(me, other);
+    }
+  }
+
   /**
    * Tries to open object for reading. Returns reference to conflictin transaction, if one exists
    **/
@@ -89,7 +112,7 @@ public class AtomicArray<T> {
     if (me == null) {	// restore object if latest writer aborted
       if (writers[i].isAborted()) {
         restore(i);
-        version[i]++;
+        // version[i]++;
         writers[i] = Transaction.COMMITTED_TRANS;
       }
       return null;
@@ -109,7 +132,7 @@ public class AtomicArray<T> {
         break;
       case ABORTED:
         restore(i);
-        version[i]++;
+        // version[i]++;
         break;
       default:
         throw new PanicException(FORMAT, writers[i].getStatus());
@@ -127,7 +150,7 @@ public class AtomicArray<T> {
     if (me == null) {	// restore object if latest writer aborted
       if (writers[i].isAborted()) {
         restore(i);
-        version[i]++;
+        // version[i]++;
         writers[i] = Transaction.COMMITTED_TRANS;
       }
       return null;
@@ -149,11 +172,11 @@ public class AtomicArray<T> {
         return writers[i];
       case COMMITTED:
         backup(i);
-        version[i]++;
+        // version[i]++;
         break;
       case ABORTED:
         restore(i);
-        version[i]++;
+        // version[i]++;
         break;
       default:
         throw new PanicException(FORMAT, writers[i].getStatus());

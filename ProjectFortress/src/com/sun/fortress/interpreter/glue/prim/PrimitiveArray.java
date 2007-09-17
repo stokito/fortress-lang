@@ -73,11 +73,21 @@ public class PrimitiveArray extends Constructor {
     }
 
     public static final class put extends NativeMeth2 {
-        public FValue act(FObject self, FValue x, FValue ii) {
-            // System.out.println(self+".put("+x+","+ii+")");
+        public FValue act(FObject self, FValue ii, FValue x) {
+            // System.out.println(self+".put("+ii+","+x+")");
             Vec v = (Vec) self;
             int i = ii.getInt();
             v.a.set(i,x);
+            return FVoid.V;
+        }
+    }
+
+    public static final class init0 extends NativeMeth2 {
+        public FValue act(FObject self, FValue ii, FValue x) {
+            // System.out.println(self+".init0("+ii+","+x+")");
+            Vec v = (Vec) self;
+            int i = ii.getInt();
+            v.a.init(i,x);
             return FVoid.V;
         }
     }

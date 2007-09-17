@@ -95,7 +95,7 @@ opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] = do
     fs = PrimitiveArray[\E,0,n\]()
     for (i,v) <- f.indexValuePairs() do
-        fs.put(v,i)
+        fs.put(i,v)
     end
     Alr[\E,n\]( fs, 0, n, cantExtend )
   end
@@ -175,7 +175,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
   (* Internal: fill blindly from f; assume enough space *)
   appendFrom(f:List[\E\]): ArrayList[\E\] = do
       for (i,v) <- f.indexValuePairs() do
-          underlying.put(v, firstUnused + i)
+          underlying.put(firstUnused + i, v)
       end
       self
     end
@@ -183,7 +183,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       fSize = f.size()
       fFU = f.firstUsed
       for i <- 0#fSize do
-          underlying.put(f.underlying.get(i+fFU), firstUnused + i)
+          underlying.put(firstUnused + i, f.underlying.get(i+fFU))
       end
       self
     end
@@ -197,7 +197,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       fSize = f.size()
       fLU = f.firstUnused-1
       for i <- 0#fSize do
-          underlying.put(f.underlying.get(fLU-i), firstUnused+i)
+          underlying.put(firstUnused+i, f.underlying.get(fLU-i))
       end
       Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+fSize,
                       CanExtend(true))
@@ -234,7 +234,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
     end
   addRight0(e:E): ArrayList[\E\] = do
       assert(NOT canExtend.tryToExtend(), "addRight0 of extensible list!")
-      underlying.put(e,firstUnused)
+      underlying.put(firstUnused,e)
       Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+1, CanExtend(true))
     end
   take(n:ZZ32): ArrayList[\E\] =
@@ -339,9 +339,10 @@ end
 
 emptyList[\E\](): List[\E\] =
     Alr[\E,0\](PrimitiveArray[\E,0,0\](),0,0,cantExtend)
+
 singleton[\E\](e:E): List[\E\] = do
     u = PrimitiveArray[\E,0,1\]()
-    u.put(e,0)
+    u.put(0,e)
     Alr[\E,1\](u,0,1,cantExtend)
   end
 

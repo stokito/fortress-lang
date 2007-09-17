@@ -120,8 +120,7 @@ assert(x:Any, y:Any, failMsg: String): () =
  * of natural order and by default are defined in terms of the
  * generate() method.
  *
- * Minimal complete definition of a Generator is the size() and
- * generate(...) methods.
+ * Minimal complete definition of a Generator is the generate(...) method.
  *)
 
 trait Generator[\E\]
@@ -597,9 +596,13 @@ In addition to the functionality in Indexed, MutableIndexed provides:
 trait MutableIndexed[\T extends MutableIndexed[\T, E, I\], E, I\]
     extends { Indexed[\E,I\] }
   opr[i:I]:=(v:E) : ()
+  (* version of assignment that is specifically for initialization;
+     it may omit a write barrier, perform already-initialized error
+     checking, etc. *)
+  init(i:I, v:E): () = do self[i] := v end
   assign(v:T):T = fill(fn (i:I):E => v[i])
   fill(f:I->E):T = do
-      indices().loop(fn (i:I):() => do self[i] := f(i) end)
+      indices().loop(fn (i:I):() => init(i,f(i)))
       self
     end
   fill(v:E):T = fill(fn (i:I):E => v)
@@ -643,7 +646,8 @@ trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
   (** ABSTRACT METHODS **)
   (** 0-based non-bounds-checked indexing **)
   get(i:I): E
-  put(e:E, i:I): ()
+  put(i:I, e:E): ()
+  init0(i:I, e:E): () = put(i,e)
   zeroIndices(): Generator[\I\]
   (** Convert from base()-based indexing to 0-based indexing,
       performing bounds checking. **)
@@ -654,17 +658,18 @@ trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
       Default implementations of most array stuff based on the above.
       The things we can't provide are anything involving replica. **)
   opr [i:I]:E = get(offset(i))
-  opr [i:I]:=(v:E):() = put(v,offset(i))
+  opr [i:I]:=(v:E):() = put(offset(i),v)
+  init(i:I, v:E) = init0(offset(i),v)
   assign(v:T):T = do
-      for i <- zeroIndices() do put(v.get(i),i) end
+      for i <- zeroIndices() do put(i,v.get(i)) end
       self
     end
   fill(f:I->E):T = do
-      for i <- zeroIndices() do put(f(i),i) end
+      for i <- zeroIndices() do init0(i,f(toIndex(i))) end
       self
     end
   fill(v:E):T = do
-      for i <- zeroIndices() do put(v,i) end
+      for i <- zeroIndices() do init0(i,v) end
       self
     end
   copy():T
@@ -709,7 +714,7 @@ trait Array1[\T, nat b0, nat s0\]
   (* Get and put come from implementation.  They are always 0-indexed
      and unchecked. *)
   get(i:ZZ32):T
-  put(v:T, i:ZZ32)
+  put(i:ZZ32, v:T)
 
   (* Offset converts from b0 indexing to 0 indexing,
      bounds checking en route *)
@@ -760,7 +765,7 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
        extends Array1[\T, b0, s0\]
     index(i:ZZ32):T = i m0 + o0
     get(i:ZZ32):T = arr.get(index(i))
-    put(v:T,i:ZZ32): () = arr.put(v,index(i))
+    put(i:ZZ32,v:T): () = arr.put(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
       o_n : ZZ32 = o - b0
       if o_n < 0 OR o_n > s0-s then
@@ -787,7 +792,7 @@ end
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
   mem: PrimitiveArray[\T,0, s0\] = PrimitiveArray[\T,0, s0\]()
   get(i:ZZ32):T = mem.get(i)
-  put(v:T, i:ZZ32) = mem.put(v,i)
+  put(i:ZZ32, v:T) = mem.put(i,v)
   replica[\U\]() = array1[\T,s0\]()
 end
 
@@ -910,8 +915,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
   copy():Array2[\T,b0,s0,b1,s1\] = self.replica[\T\]().assign(self)
-  put(v:T, i:ZZ32, j:ZZ32) : ()
-  put(v:T, t:(ZZ32, ZZ32)) : () = do (a0,a1)=t; put(v,a0,a1) end
+  put(t:(ZZ32, ZZ32), v:T) : ()
   get(t:(ZZ32, ZZ32)):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
   (* Copied here from Indexed, for better return type information. *)
@@ -925,7 +929,7 @@ end
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
   mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
-  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
+  put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put(i s1 + j, v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
 
@@ -936,7 +940,7 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends Array2[\T, b0, s0, b1, s1\]
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] = mem.replica[\U\]().t()
 
-  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
+  put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put((j,i),v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(j,i) end
   t() = mem
 end
@@ -955,7 +959,7 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
               if k=1 then
                 pr : T = get(a,b) other.get(b,c)
                 (* If this were atomic, we could parallelize j-partition. *)
-                res.put(res.get(a,c) + pr, a, c)
+                res.put((a,c), res.get(a,c) + pr)
               else
                 (k0,k1) = partition(k)
                 (mma(a,i,b,j,c,k0),mma(a,i,b,j,c+k0,k1))
@@ -971,7 +975,7 @@ trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
         mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
             if k>=i AND k>=j then
               if k=1 then
-                res.put(get(a,b) other.get(b,c), a, c)
+                res.put((a,c), get(a,b) other.get(b,c))
               else
                 (k0,k1) = partition(k)
                 (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
@@ -1010,7 +1014,7 @@ end
 object __DefaultMatrix[\T, nat s0, nat s1\]()
     extends Matrix[\T, s0, s1\]
   mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
-  put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v, i s1 + j)
+  put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put(i s1 + j, v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
 
@@ -1018,7 +1022,7 @@ object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
         extends Matrix[\T, s0, s1\]
     replica[\U\]():Array2[\U,0,s0,0,s1\] = mem.replica[\U\]().t()
 
-    put(v:T, i:ZZ32, j:ZZ32) : () = mem.put(v,j,i)
+    put(t:(ZZ32,ZZ32), v:T) : () = mem.put((j,i),v)
     get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(j,i) end
     t(): Matrix[\T,s1,s0\] = mem
     add(v:TransposedMatrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.add(v.t()).t()
@@ -1173,8 +1177,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
       do (a0,a1,a2) = t; (a0+b0,a1+b1,a2+b2) end
 
   (* And get and put are 0-indexed without bounds checks. *)
-  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : ()
-  put(v:T, t:(ZZ32,ZZ32,ZZ32)) : () = do (i,j,k)=t; put(v,i,j,k) end
+  put(t:(ZZ32,ZZ32,ZZ32), v:T) : ()
   get(t:(ZZ32,ZZ32,ZZ32)):T
 
   opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
@@ -1200,7 +1203,7 @@ object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() ex
 
   ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
 
-  put(v:T, i:ZZ32, j:ZZ32, k:ZZ32) : () = mem.put(v, ofs(i,j,k))
+  put(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.put(ofs(t),v)
   get(t:(ZZ32,ZZ32,ZZ32)) : T = mem.get(ofs(t))
 end
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
+import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.IndexedSource;
 import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
@@ -58,24 +59,26 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
 
     public void put(FValue what, int[] indices, int indices_depth) {
         l.clear();
-        l.add(what);
         if (indices_depth == 1) {
-          l.add(FInt.make(indices[0]));
+            l.add(FInt.make(indices[0]));
         } else {
             // This "fixes" the row-column confusion in pasted arrays.
-            l.add(FInt.make(indices[1]));
-            l.add(FInt.make(indices[0]));
+            ArrayList<FValue> tup = new ArrayList<FValue>(rank);
+            tup.add(FInt.make(indices[1]));
+            tup.add(FInt.make(indices[0]));
             for (int i = 2; i < indices_depth; i++) {
-                l.add(FInt.make(indices[i]));
+                tup.add(FInt.make(indices[i]));
             }
+            l.add(FTuple.make(tup));
         }
+        l.add(what);
         putter.applyMethod(l,array,at, null);
     }
 
     public void put(FValue what, int index) {
         l.clear();
-        l.add(what);
         l.add(FInt.make(index));
+        l.add(what);
         putter.applyMethod(l,array,at, null);
     }
 
