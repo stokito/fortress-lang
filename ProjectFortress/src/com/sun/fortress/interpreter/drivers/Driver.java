@@ -294,7 +294,7 @@ public class Driver {
          * the values/types associated with each of those names).
          *
          */
-        comp.populateEnvironment();
+        comp.populateEnvironment(false);
         linker.put("main", comp);
         pile.push(comp);
 
@@ -304,7 +304,7 @@ public class Driver {
          */
         ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(), false);
         lib.getEnvironment().installPrimitives();
-        lib.populateEnvironment();
+        lib.populateEnvironment(true);
         pile.push(lib);
 
         /*
@@ -475,8 +475,8 @@ public class Driver {
                         throw re;
                     } else {
                         /* Redefining entity as itself; silently ignore. */
-                    }
                 }
+            }
             }
         };
         /*
@@ -519,8 +519,8 @@ public class Driver {
                         throw re;
                     } else {
                         /* Redefining entity as itself; silently ignore. */
-                    }
                 }
+            }
             }
         };
         Visitor2<String, Number> vn = new Visitor2<String, Number>() {
@@ -539,8 +539,8 @@ public class Driver {
                         throw re;
                     } else {
                         /* Redefining entity as itself; silently ignore. */
-                    }
                 }
+            }
             }
         };
         Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
@@ -668,7 +668,7 @@ public class Driver {
             }
             ComponentWrapper apicw = new ComponentWrapper(newapi, false);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw, is_native);
-            newwrapper.populateEnvironment();
+            newwrapper.populateEnvironment(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
 

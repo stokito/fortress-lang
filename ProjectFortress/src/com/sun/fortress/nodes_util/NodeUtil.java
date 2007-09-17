@@ -153,12 +153,14 @@ public class NodeUtil {
     
     public static String nameString(QualifiedName n) {
         final String last = n.getName().accept(nameGetter);
-        return n.getApi().apply(new OptionVisitor<DottedName, String>() {
-            public String forSome(DottedName api) {
-                return nameString(api) + "." + last;
-            }
-            public String forNone() { return last; }
-        });
+//        return n.getApi().apply(new OptionVisitor<DottedName, String>() {
+//            public String forSome(DottedName api) {
+//                return nameString(api) + "." + last;
+//            }
+//            public String forNone() { return last; }
+//        });
+        Option<DottedName> odn = n.getApi();
+        return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
     
     public static String namesString(Iterable<? extends Name> names) {
@@ -193,41 +195,45 @@ public class NodeUtil {
         });
     }
 
+    private final static NodeAbstractVisitor<String> stringNameVisitor =
+        new NodeAbstractVisitor<String>() {
+        public String forDimUnitDecl(DimUnitDecl node) {
+            if (node.getDim().isSome()) {
+                if (node.getUnits().isEmpty())
+                    return Option.unwrap(node.getDim()).getId().getText();
+                else
+                    return Option.unwrap(node.getDim()).getId().getText() + " and " +
+                           Useful.listInDelimiters("", node.getUnits(), "");
+            } else
+                return Useful.listInDelimiters("", node.getUnits(), "");
+        }
+        public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
+            return nameString(node.getName());
+        }
+        public String forFnName(FnName node) {
+            return nameString(node);
+        }
+        public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
+            return node.getName().getId().getText();
+        }
+        public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
+            return node.getGenSymName();
+        }
+        public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
+            return node.getName().getId().getText();
+        }
+        public String forTypeAlias(TypeAlias node) {
+            return node.getName().getId().getText();
+        }
+        public String defaultCase(Node node) {
+            return node.getClass().getSimpleName();
+        }
+    };
+    
+    
     /* stringName **********************************************************/
     public static String stringName(Node the_node) {
-        return the_node.accept(new NodeAbstractVisitor<String>() {
-            public String forDimUnitDecl(DimUnitDecl node) {
-                if (node.getDim().isSome()) {
-                    if (node.getUnits().isEmpty())
-                        return Option.unwrap(node.getDim()).getId().getText();
-                    else
-                        return Option.unwrap(node.getDim()).getId().getText() + " and " +
-                               Useful.listInDelimiters("", node.getUnits(), "");
-                } else
-                    return Useful.listInDelimiters("", node.getUnits(), "");
-            }
-            public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
-                return nameString(node.getName());
-            }
-            public String forFnName(FnName node) {
-                return nameString(node);
-            }
-            public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
-                return node.getName().getId().getText();
-            }
-            public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
-                return node.getGenSymName();
-            }
-            public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
-                return node.getName().getId().getText();
-            }
-            public String forTypeAlias(TypeAlias node) {
-                return node.getName().getId().getText();
-            }
-            public String defaultCase(Node node) {
-                return node.getClass().getSimpleName();
-            }
-        });
+        return the_node.accept(stringNameVisitor);
     }
 
     /* stringNames *********************************************************/

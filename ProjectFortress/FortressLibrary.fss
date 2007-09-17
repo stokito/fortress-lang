@@ -753,7 +753,7 @@ trait Array1[\T, nat b0, nat s0\]
       replica[\R\]().fill(fn (i:ZZ32):R => f(get(i-b0)))
   ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\] =
       replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
-end
+    end
 
 (* A 1-D subarray of an Array1.
    b_a and s_a are the underlying array's bounds; s0 and b0 are the
@@ -772,7 +772,7 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
         fail("__SimpleSubArray1: subarray exceeds bounds of underlying array.")
       end
       __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
-    end
+  end
 end
 
 trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
@@ -1280,7 +1280,7 @@ end
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     getter toString()="mapReduce.Reduction"
     empty() = z
-    join(a:R, b:R): R = j(a,b)
+    join(a:R, b:R): R = (j)(a,b)
 end
 
 (** The trait DelegatedGenerator[\E\] is used as a shortcut to define instances

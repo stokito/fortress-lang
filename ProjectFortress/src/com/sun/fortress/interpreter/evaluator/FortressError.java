@@ -34,6 +34,7 @@ public abstract class FortressError extends RuntimeException {
      * Make Eclipse happy
      */
     private static final long serialVersionUID = 6117319678737763137L;
+    private static final boolean dumpEnv = false;
 
     private ArrayList<HasAt> where = new ArrayList<HasAt>();
     private HasAt where2;
@@ -156,7 +157,7 @@ public abstract class FortressError extends RuntimeException {
      *
      */
     private void printInterpreterStackTrace(PrintWriter app) {
-        if (within != null) {
+        if (dumpEnv && within != null) {
             try {
             within.dump(app);
             } catch (IOException ex) {
@@ -170,7 +171,7 @@ public abstract class FortressError extends RuntimeException {
      *
      */
     public void printInterpreterStackTrace(PrintStream app) {
-        if (within != null) {
+        if (dumpEnv && within != null) {
             try {
             within.dump(app);
             } catch (IOException ex) {

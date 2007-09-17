@@ -87,6 +87,9 @@ public class ComponentWrapper {
 
     /**
      * Inject names into all the appropriate environments.
+     * 
+     * isLibrary exists only to allow more focussed debugging dumps,
+     * and is propagated forward to the Desugarer.
      *
      * This populates both the component environment and all the
      * API environments.  The relationship between these two
@@ -101,24 +104,24 @@ public class ComponentWrapper {
      * though that may need to change.
      *
      */
-    public void populateEnvironment() {
+    public void populateEnvironment(boolean isLibrary) {
         if (visitState != UNVISITED)
             return;
 
         visitState = POPULATED;
 
-        p = populateOne(p, be);
+        p = populateOne(p, be, isLibrary);
 
         for (ComponentWrapper api: exports.values()) {
-            api.populateEnvironment();
+            api.populateEnvironment(isLibrary);
         }
     }
 
     /**
      *
      */
-    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env) {
-        dis = new Desugarer();
+    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env, boolean isLibrary) {
+        dis = new Desugarer(isLibrary);
         cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
