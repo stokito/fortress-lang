@@ -104,18 +104,18 @@ ExternalSyntax ExternalSyntax =
                                     NodeFactory.makeIdName(a2),a3,a4);
      };
 
-/* OpenExpander ::= Id | LeftEncloser */
+/* OpenExpander ::= Id | LeftEncloser | Encloser */
 FnName OpenExpander =
      a1:Id
      { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
-   / a1:LeftEncloser
+   / a1:(LeftEncloser / Encloser)
      { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
 
-/* CloseExpander ::= Id | RightEncloser | end */
+/* CloseExpander ::= Id | RightEncloser | Encloser | end */
 FnName CloseExpander =
      a1:Id
      { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
-   / a1:RightEncloser
+   / a1:(RightEncloser / Encloser)
      { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); }
    / end
      { Span span = createSpan(yyStart,yyCount);

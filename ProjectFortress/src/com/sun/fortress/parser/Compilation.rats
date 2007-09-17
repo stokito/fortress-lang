@@ -153,8 +153,9 @@ private AliasedName AliasedName =
            yyValue = NodeFactory.makeAliasedName(span, a1, a2);
      };
 
-/* EncloserPair ::= LeftEncloser w RightEncloser */
-private Enclosing EncloserPair = a1:LeftEncloser w a2:RightEncloser
+/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+private Enclosing EncloserPair =
+     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else

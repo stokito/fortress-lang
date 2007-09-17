@@ -402,7 +402,12 @@ public class PrecedenceMap {
     public boolean matchedBrackets(String l, String r) {
         CanonOp le = rep.get(l);
         CanonOp re = rep.get(r);
-        if (le!=null && re!=null) return bracket.get(le).equals(re);
+	/* [// may be paired with /] and [/ may be paired with //] */
+        if (le!=null && re!=null) {
+	    if ((l.equals("[//") && r.equals("/]")) ||
+		(l.equals("[/") && r.equals("//]"))) return true;
+	    else return bracket.get(le).equals(re);
+	}
         /* Check bracketmania.  Don't parse, just look for matched pairs. */
         int len = r.length();
         if (l.length() != len) return false;

@@ -64,11 +64,13 @@ private String leftEncloser =
 
 private String leftEncloserMulti =
      "(" ("/"+ / "\\"+)
+   / "[/\\/\\/" / "[/\\/"
    / "[" (sd slashes)
    / "{" (sd slashes)
    / lesses sd (slashes / bars)
    / bars sd slashes
    / "{*" /  "[*"
+   / "((>" / "(<"
    ;
 
 private String rightEncloser =
@@ -83,6 +85,8 @@ private String rightEncloserMulti =
    / bars sd greaters
    / "*]" / "*}"
    / "]" / "}"
+   / ">)" / "<))"
+   / "/\\/\\/]" / "/\\/]"
    ;
 
 private String exponentOp = "^T" / "^" ;
@@ -129,7 +133,13 @@ private String multiOp =
    / "<<"
    / "**"
    / "!!"
+   / "///"
+   / "//"
    ;
+
+/*
+transient void leftarrow = !(multiOp) "<-";
+*/
 
 private String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
@@ -170,9 +180,8 @@ transient void closeparen = ")";
 transient void cross = "BY";
 transient void DOT = "DOT":OpName;
 transient void ellipses = "...";
-transient void emptylist = "()";
-transient void leftarrow  = !(multiOp) "<-";
-transient void mapsto =  "|->";
+transient void leftarrow = !(multiOp) "<-";
+transient void mapsto = "|->";
 transient void match = "=>";
 transient void minus = "-":singleOp;
 transient void opencurly = "{":leftEncloser;
