@@ -54,7 +54,8 @@ c_2_1
   big solidus
   big reverse solidus
   circled division sign
-  double solidus operator
+  double solidus operator, //
+  triple solidus binary relation, ///
 
 addition_and_subtraction
   plus sign
@@ -70,7 +71,7 @@ multiplication_and_division
   division slash
   asterisk operator
   dot operator
-  vector or cross product
+  vector or cross product, cross
 
 dot_above_addition_and_subtraction
   dot plus, dotplus
@@ -149,7 +150,7 @@ set_union
   closed union with serifs and smash product
 
 misc_set
-  set minus
+  set minus, setminus
 
 square_intersection
   square cap, sqcap
@@ -485,9 +486,9 @@ boolean_misc
   nor
 
 enclosing_left
-  left square bracket, [
-  left curly bracket, {
-  left-pointing double angle quotation mark
+  left square bracket
+  left curly bracket
+#  left-pointing double angle quotation mark
   left square bracket with quill, [./
   left ceiling, |/
   left floor, |\
@@ -517,9 +518,9 @@ enclosing_left
   left white lenticular bracket, {/
 
 enclosing_right
-  right square bracket, ]
-  right curly bracket, }
-  right-pointing double angle quotation mark
+  right square bracket
+  right curly bracket
+#  right-pointing double angle quotation mark
   right square bracket with quill, /.]
   right ceiling,\|
   right floor,/|
@@ -532,8 +533,8 @@ enclosing_right
   z notation right image bracket, /)
   z notation right binding bracket, ||>
   right square bracket with underbar, \.]
-  right square bracket with tick in top corner, //.]
-  right square bracket with tick in bottom corner, \\.]
+  right square bracket with tick in bottom corner, //.]
+  right square bracket with tick in top corner, \\.]
   right angle bracket with dot, |.>
   right arc greater-than bracket, >)
   double right arc less-than bracket, <))
@@ -552,8 +553,6 @@ enclosing
   vertical line
   double vertical line, ||
   triple vertical bar binary relation, |||
-  double solidus operator, //
-  triple solidus binary relation, ///
 
 other_operators
   exclamation mark
@@ -569,10 +568,10 @@ other_operators
   yen sign
   broken bar
   not sign, not
- degree sign, degrees
+  degree sign, degrees
   inverted question mark
   double exclamation mark, !!
-#  leftwards arrow, <-
+  leftwards arrow, <-
   upwards arrow, uparrow
   downwards arrow, downarrow
   up down arrow, updownarrow
@@ -690,7 +689,7 @@ other_operators
   n-ary coproduct, coproduct
   n-ary summation, sum
   ring operator, circ, ring, compose
-  bullet operator
+  bullet operator, bullet
   square root, sqrt
   cube root, cbrt
   fourth root, fourthroot
@@ -734,8 +733,8 @@ other_operators
   circled dash
   right tack, vdash, turnstile
   left tack, dashv
-  down tack, top
-  up tack, bottom
+#  down tack, top
+#  up tack, bottom
   assertion
   models
   true
