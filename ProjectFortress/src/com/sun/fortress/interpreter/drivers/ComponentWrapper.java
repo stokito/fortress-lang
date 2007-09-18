@@ -34,6 +34,9 @@ import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class ComponentWrapper {
     CompilationUnit p;
@@ -45,7 +48,7 @@ public class ComponentWrapper {
     boolean isNative; 
 
     int visitState;
-    private final static int UNVISITED=0, POPULATED=1, TYPED=2, FUNCTIONED=3, FINISHED=4;
+    private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
     public ComponentWrapper(CompilationUnit comp, boolean is_native) {
         if (comp == null)
@@ -85,48 +88,39 @@ public class ComponentWrapper {
         return visitState == POPULATED;
     }
 
-    /**
-     * Inject names into all the appropriate environments.
-     * 
-     * isLibrary exists only to allow more focussed debugging dumps,
-     * and is propagated forward to the Desugarer.
-     *
-     * This populates both the component environment and all the
-     * API environments.  The relationship between these two
-     * environments is a little delicate and probably is not yet
-     * implemented correctly.
-     *
-     * A separate API environment must be maintained to ensure that
-     * imports are filtered through the API, and do not inadvertently
-     * pick up names from the implementing component.
-     *
-     * Currently, the API names are not additionally initialized,
-     * though that may need to change.
-     *
-     */
-    public void populateEnvironment(boolean isLibrary) {
+    public void getExports(boolean isLibrary) {
         if (visitState != UNVISITED)
             return;
-
-        visitState = POPULATED;
-
-        p = populateOne(p, be, isLibrary);
+        
+        visitState = IMPORTED;
 
         for (ComponentWrapper api: exports.values()) {
-            api.populateEnvironment(isLibrary);
+            api.getExports(isLibrary);
         }
     }
 
     /**
      *
      */
-    private CompilationUnit populateOne(CompilationUnit cu, BuildEnvironments build_env, boolean isLibrary) {
+    public CompilationUnit populateOne(boolean isLibrary) {
+        if (visitState != IMPORTED)
+            return bug("Component wrapper in wrong visit state: " + visitState);
+        
+        visitState = POPULATED;
+
+        CompilationUnit cu = p;
         dis = new Desugarer(isLibrary);
         cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
-        build_env.visit(cu);
-
+        be.visit(cu);
+        
+        p = cu;
+        
+        for (ComponentWrapper api: exports.values()) {
+            api.populateOne(isLibrary);
+        }
+        
         return cu;
     }
 

@@ -405,7 +405,8 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond) bug(loc,"Cannot call before 'setFinished()'");
+        if (!finishedSecond)
+            bug(loc,"Cannot call before 'setFinished()'");
         int best = -1;
         SingleFcn best_sfn = null;
 

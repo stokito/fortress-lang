@@ -156,6 +156,7 @@ public class Desugarer extends Rewrite {
         NodeFactory.makeIdName(WellKnownNames.loopMethod);
     
     private boolean isLibrary; 
+    private final static boolean debug = false;
 
     private class Thing {
         int nestedness;
@@ -504,12 +505,12 @@ public class Desugarer extends Rewrite {
 //                }
 //            }
             
-            if (false && ! isLibrary)
+            if (debug && ! isLibrary)
                 System.err.println("BEFORE\n" + NodeUtil.dump(node));
             
             AbstractNode nn = visitNode(node);
             
-            if (false && ! isLibrary)
+            if (debug && ! isLibrary)
                 System.err.println("AFTER\n" + NodeUtil.dump(nn));
             
             

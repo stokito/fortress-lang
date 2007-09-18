@@ -294,7 +294,7 @@ public class Driver {
          * the values/types associated with each of those names).
          *
          */
-        comp.populateEnvironment(false);
+        comp.getExports(false);
         linker.put("main", comp);
         pile.push(comp);
 
@@ -304,7 +304,7 @@ public class Driver {
          */
         ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(), false);
         lib.getEnvironment().installPrimitives();
-        lib.populateEnvironment(true);
+        lib.getExports(true);
         pile.push(lib);
 
         /*
@@ -320,6 +320,14 @@ public class Driver {
             List<Import> imports = c.getImports();
 
             ensureImportsImplemented(linker, pile, imports);
+        }
+        
+        /*
+         * After all apis etc have been imported, populate their environments.
+         */
+        for (ComponentWrapper cw : components) {
+            // System.err.println("populating " + cw);
+            cw.populateOne(cw != comp);
         }
 
         /*
@@ -668,7 +676,7 @@ public class Driver {
             }
             ComponentWrapper apicw = new ComponentWrapper(newapi, false);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw, is_native);
-            newwrapper.populateEnvironment(true);
+            newwrapper.getExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
 
