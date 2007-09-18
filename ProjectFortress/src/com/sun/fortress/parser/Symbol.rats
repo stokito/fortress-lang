@@ -126,6 +126,7 @@ private String multiOp =
    / mapstoOp
    / "<<<"
    / "<->"
+   / leftarrow
    / "<=>"
    / "->"
    / doublerightarrow
@@ -136,10 +137,6 @@ private String multiOp =
    / "///"
    / "//"
    ;
-
-/*
-transient void leftarrow = !(multiOp) "<-";
-*/
 
 private String singleOp =
      !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
@@ -162,6 +159,8 @@ String doublerightarrow = "=>" &(w NoNewlineExpr w match);
 /* The operator "BY" should not be used with ExtentRange. */
 String crossOp = "BY":OpName &(w ExtentRange);
 
+String leftarrow = "<-";
+
 String caret = "^":exponentOp;
 String colonequals = ":=";
 String equals = "=" (!op);
@@ -180,7 +179,6 @@ transient void closeparen = ")";
 transient void cross = "BY";
 transient void DOT = "DOT":OpName;
 transient void ellipses = "...";
-transient void leftarrow = !(multiOp) "<-";
 transient void mapsto = "|->";
 transient void match = "=>";
 transient void minus = "-":singleOp;

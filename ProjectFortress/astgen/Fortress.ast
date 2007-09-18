@@ -810,7 +810,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                  List<StaticArg> staticArgs
                                      = Collections.<StaticArg>emptyList(),
                                  Expr arg);
-                                 
                 /**
                  * field selection expression
                  * Primary ::= Primary . Id
@@ -838,7 +837,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * back down to an IdName.
                      */
                     _RewriteFieldRef(Name field);
-                
+
                 /**
                  * juxtaposition of expressions
                  * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
@@ -877,7 +876,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 FnRef(List<QualifiedIdName> fns,
                       List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
-                
+
                 /**
                  * The rewriting to explicitly name self and parent
                  * pre-interpretation may generalize the dotted
@@ -886,7 +885,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 _RewriteFnRef(Expr fn,
                               List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
-                
+
                 /**
                  * simple expression
                  * Primary ::= BaseExpr
