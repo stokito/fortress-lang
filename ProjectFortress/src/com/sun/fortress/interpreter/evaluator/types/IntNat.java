@@ -127,19 +127,19 @@ public class IntNat extends FTypeNat {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+val);
         if (val instanceof IntArg) {
             IntExpr n = ((IntArg)val).getVal();
             if (n instanceof NumberConstraint) {
-                return new Boolean((((NumberConstraint)n).getVal().getVal().intValue() == this.getValue()));
+                return (((NumberConstraint)n).getVal().getVal().intValue() == this.getValue());
             } else {
-                return new Boolean(false);
+                return false;
             }
         } else {
-            return new Boolean(false);
+            return false;
         }
     }
 }

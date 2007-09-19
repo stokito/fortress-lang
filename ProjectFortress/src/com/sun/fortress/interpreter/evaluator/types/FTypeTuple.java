@@ -349,14 +349,14 @@ public class FTypeTuple extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        if (!(val instanceof TupleType)) return new Boolean(false);
+        if (!(val instanceof TupleType)) return false;
         TupleType tup = (TupleType) val;
-        if (!(tup.getKeywords().isEmpty())) return new Boolean(false);
-        return new Boolean(unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs()));
+        if (!(tup.getKeywords().isEmpty())) return false;
+        return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
     }
 
 }

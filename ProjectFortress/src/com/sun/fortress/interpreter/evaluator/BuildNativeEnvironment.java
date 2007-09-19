@@ -41,6 +41,7 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class BuildNativeEnvironment extends BuildEnvironments {
 
@@ -144,8 +145,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                NI.nyi("Haven't figured out native generics yet");
-                NI.nyi("Generic singleton objects");
+                bug(x,"Native generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(containing, x);
                 guardedPutValue(containing, obfuscated(fname), gen, x);
 

@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Pair;
@@ -365,7 +366,7 @@ abstract public class FType implements Comparable<FType> {
             (sz==0 || !(candidate.get(sz-1) instanceof FTypeRest));
     }
 
-    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         boolean rc;
         if (! (val instanceof IdType)) {
@@ -387,7 +388,7 @@ abstract public class FType implements Comparable<FType> {
                     "), abm="+abm);
         }
 
-        return new Boolean(rc);
+        return rc;
     }
 
     /** One-sided unification of this fully-computed FType with a signature.
@@ -412,6 +413,11 @@ abstract public class FType implements Comparable<FType> {
                     if (DUMP_UNIFY) System.out.print("Trying "+k+"="+this);
                     try {
                        abm.joinPut(k, this);
+                    } catch (EmptyLatticeIntervalError el) {
+                        if (DUMP_UNIFY) System.out.println("Out of bounds");
+                        error(errorMsg("Actual type ",this,
+                                       " out of bounds for variable ",k));
+                        return;
                     } catch (Error th) {
                         if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
                         throw th;
@@ -427,7 +433,7 @@ abstract public class FType implements Comparable<FType> {
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
-            if (t.unifyNonVar(env, tp_set, abm, val).booleanValue()) return;
+            if (t.unifyNonVar(env, tp_set, abm, val)) return;
             if (DUMP_UNIFY) System.out.println("            "+t+" !=  "+val+", abm=" + abm);
             abm.assign(savedAbm);
         }

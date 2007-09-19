@@ -693,7 +693,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                NI.nyi("Generic singleton objects");
+                bug(x,"Generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(e, x);
                 guardedPutValue(containing, obfuscated(fname), gen, x);
 
@@ -1560,7 +1560,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         } else {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
-                NI.nyi("Generic singleton objects");
+                bug(x,"Generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(e, x);
                 guardedPutValue(containing, obfuscated(fname), gen, x);
 

@@ -37,42 +37,52 @@ opr <</ x:RR64 \>>:String = "<</" x "\\>>"
 opr || x:RR64 ||:String = "||" x "||" *)
 opr ||| x:RR64 |||:String = "|||" x "|||"
 
+tst(a:Any, b:Any, msg:String): () =
+    if a =/= b then
+        assert(a,b,msg)
+    else
+        println(b msg)
+    end
+
 run(Args:String...) = do
-  println( <| 2.5 |> )
-  println( <<| 2.5 |>> )
+  tst( <|2.5|>,"<|2.5|>","")
+  tst( <<|2.5|>>,"<<|2.5|>>","")
 
 (*
-  println(⟨ 2.5 ⟩)
-  println(⟪ 2.5⟫)
+  tst(⟨2.5⟩,"⟨2.5⟩","")
+  tst(⟪2.5⟫,"⟪2.5⟫","")
 *)
 
-  println(|/ 2.5 \|)
-  println(|\ 2.5 /|)
+  tst(|/2.5\|,3," ceiling")
+  tst(|\2.5/|,2," floor")
 
 (*
-  println(⌈ 2.5 ⌉)
-  println(⌊ 2.5 ⌋)
+  tst(⌈2.5⌉,"⌈2.5⌉","")
+  tst(⌊2.5⌋,"⌊2.5⌋","")
 *)
 
-  println({\ 2.5 \})
-  println({/ 2.5 /})
+  tst( {\2.5\},"{\\2.5\\}","")
+  tst( {/2.5/},"{/2.5/}","")
 
-  println([/ 2.5 /])
-  println([// 2.5 //])
+  tst( [/2.5/],"[/2.5/]","")
+(* The following is mis-parsed:
+  tst( [//2.5//] ,"[//2.5//]","")
+*)
+  tst( [//2.5 //] ,"[//2.5//]","")
 
-  println({*/ 2.5 /*})
-  println([*/ 2.5 /*])
+  tst( {*/2.5/*},"{*/2.5/*}","")
+  tst( [*/2.5/*],"[*/2.5/*]","")
 
 
-  println((\ 2.5 \))
+  tst( (\2.5\),"(\\2.5\\)","")
 
-  println( </ 2.5 \> )
-  println( <</ 2.5 \>> )
+  tst( </2.5\>,"</2.5\\>","")
+  tst( <</2.5\>>,"<</2.5\\>>","")
 
-  println( |-2.5| )
+  tst( |-2.5|, 2.5, " abs")
   y : RR64[2] = [ -2.5 0.0 ]
-  println( ||y|| )
-  println( |||2.5||| )
+  tst( ||y||, 2.5, " vector length" )
+  tst( |||2.5|||,"|||2.5|||","")
 
 end
 

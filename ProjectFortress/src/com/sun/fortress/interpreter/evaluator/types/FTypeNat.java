@@ -44,10 +44,13 @@ abstract public class FTypeNat extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected Boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
+    protected boolean unifyNonVar(BetterEnv env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        return error(val,env, errorMsg("Can't unify nat parameter ", this,
-                                       " and  type argument ", val));
+        /* Unification has failed due to a fundamental kind error.
+           Report that and fail. */
+        error(val,env, errorMsg("Can't unify nat parameter ", this,
+                                " and  type argument ", val));
+        return false;
     }
 
 }

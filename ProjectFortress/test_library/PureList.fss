@@ -31,7 +31,7 @@ export PureList
     to be able to do so.  This involves questions about the encoding
     of existentials, especially constrained existentials.
 
-  *)
+ **)
 
 (* Tests can be found in
    tests/PureListQuick.fss
@@ -61,7 +61,7 @@ trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
   drop(n:ZZ32): List[\E\]
   opr [n:ZZ32]: E
   opr [n:Range[\ZZ32\]]: List[\E\] =
-      drop(n.base()).take(n.size())
+      drop(n.lower()).take(n.extent())
   split(n:ZZ32): (List[\E\], List[\E\])
   split(): (List[\E\], List[\E\])
   reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])

@@ -193,6 +193,10 @@ trait Generator[\E\]
         of the body computation.  It is used to translated
         reduction-variable-free for loops. **)
     loop(f:E->()): () = generate[\()\](VoidReduction, f)
+    (** The contains method shouldn't be used directly; programmers
+        should use the IN operator instead.  It exists simply to work
+        around bugs. **)
+    contains(x:E) = this.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
@@ -208,8 +212,7 @@ end
     = to its first argument.  x NOTIN g is simply NOT (x IN g).
     Unless documented otherwise, this is O(n) for an n-element
     Generator (it simply performs naive matching).  **)
-opr IN[\E\](x: E, this: Generator[\E\]): Boolean =
-    this.generate[\Boolean\](OrReduction, fn (y: E) => x=y)
+opr IN[\E\](x: E, this: Generator[\E\]): Boolean = this.contains(x)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
 seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
@@ -257,6 +260,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     reduce(_: Reduction[\T\]):T = x
     loop(f:T->()): () = f(x)
     maybe[\R\](_: ()->R, justAction: T->R): R = justAction(x)
+    contains(y:T): Boolean = x=y
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
@@ -277,12 +281,8 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     reduce(r: Reduction[\T\]):T = r.empty()
     loop(f:T->()): () = ()
     maybe[\R\](nothingAction: ()->R, _: T->R): R = nothingAction()
+    contains(x:T): Boolean = false
 end
-
-opr IN[\E\](x: E, g: Nothing[\E\]): Boolean = false
-opr NOTIN[\E\](x: E, g: Nothing[\E\]): Boolean = true
-opr IN[\E\](x: E, g: Just[\E\]): Boolean = x=g.unJust()
-opr NOTIN[\E\](x: E, g: Just[\E\]): Boolean = x=/=g.unJust()
 
 (** Exception hierarchy *)
 
@@ -546,25 +546,28 @@ trait Indexed3[\ nat n \] end
 indexed using type I to obtain elements with type E.
 
 An object i that's an instance of Indexed defines three basic things:
-  The indexing operator, which must be defined for every instance of
+  The indexing operator opr [], which must be defined for every instance of
     the type.
-  A suite of generators:  i.indices generates the index space of the
+
+  A suite of generators: i.indices generates the index space of the
     array.  i itself generates the values contained at those indices.
     i.indexValuePairs yields pairs of (index,value).  All of these
-    share the same natural order.  It is necessary to define one
-    of indices() and indexValuePairs(); the generator() is
-    defined in terms of indexValuePairs().
+    share the same natural order.  It is necessary to define one of
+    indices() and indexValuePairs(), in addition to generate() (but
+    the latter requirement can be dispensed by instead extending
+    DelegatedIndexed).
+
   A set of utility functions, assign, fill, and copy.  Only fill and
     copy need to be defined.
 **)
-trait Indexed[\E, I\] extends DelegatedGenerator[\E\]
+trait Indexed[\E, I\] extends Generator[\E\]
     getter isEmpty(): Boolean = size()=0
     getter size()
     getter minIndex(): I
     getter maxIndex(): I
-    getter indexValuePairs(): Generator[\(I,E)\] =
+    getter indexValuePairs(): Indexed[\(I,E),I\] =
         indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
-    getter indices(): Generator[\I\] =
+    getter indices(): Indexed[\I,I\] =
         indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
     opr[i:I] : E
 
@@ -579,17 +582,43 @@ trait Indexed[\E, I\] extends DelegatedGenerator[\E\]
     ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
 end
 
-(** The MutableIndexed trait is an indexed trait whose elements can be
-mutated using indexed assignment.  Right now we're
-using this type in a somewhat dangerous way, since eg
-Array1[\E,b0,s0\] extends both Indexed[\Array1[\E,b0,s0\],E,ZZ32\] and
-Indexed[\Array[\E,ZZ32\],E,ZZ32\].  We will need to find a solution to
-this at some point.
+(** DelegatedIndexed is an Indexed generator that has recourse to
+    another Indexed generator() internally.  By default this in turn
+    is defined in terms of indexValuePairs().  Thus it's only
+    necessary to define either indexValuePairs() or indices().
 
-In addition to the functionality in Indexed, MutableIndexed provides:
-  Indexed assignment, which each instance must define.
-  A set of utility functions, assign, fill, and copy.  Only copy needs
-    to be defined.
+    This class is designed for convenience; it shouldn't be used as a
+    type in runing code, but only as a supertype in lieu of Indexed.
+**)
+trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
+    getter generator(): Generator[\E\] =
+        indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
+    getter size(): ZZ32 = generator().size()
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        generator().generate[\R\](r,body)
+    map[\G\](f: E->G): Generator[\G\] =
+        generator().map[\G\](f)
+    seq(): SequentialGenerator[\E\] = generator().seq()
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        generator().cross[\G\](g)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
+        generator().mapReduce[\R\](body,join,zero)
+    reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
+    reduce(r: Reduction[\E\]):E = generator().reduce(r)
+    loop(f:E->()): () = generator().loop(f)
+end
+
+(** The MutableIndexed trait is an indexed trait whose elements can be
+    mutated using indexed assignment.  Right now we're using this type
+    in a somewhat dangerous way, since eg Array1[\E,b0,s0\] extends
+    both Indexed[\Array1[\E,b0,s0\],E,ZZ32\] and
+    Indexed[\Array[\E,ZZ32\],E,ZZ32\].  We will need to find a
+    solution to this at some point.
+
+    In addition to the functionality in Indexed, MutableIndexed provides:
+      Indexed assignment, which each instance must define.
+      A set of utility functions, assign, fill, and copy.  Only copy needs
+        to be defined.
 **)
 trait MutableIndexed[\T extends MutableIndexed[\T, E, I\], E, I\]
     extends { Indexed[\E,I\] }
@@ -631,49 +660,56 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
 
 (** A repository for tons of default array functionality. **)
 trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
-    extends { Array[\E,I\], MutableIndexed[\T,E,I\] }
-  (** CONCRETE GETTERS
-      Default implementations of getters based on abstract methods
-      below. **)
-  getter indices(): Generator[\I\] =
-      zeroIndices().map[\I\](fn (i:I):I => toIndex(i))
-  getter indexValuePairs(): Generator[\(I,E)\] =
-      zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
-  getter generator(): Generator[\E\] =
-      zeroIndices().map[\E\](fn (i:I):E => get(i))
-  (** ABSTRACT METHODS **)
-  (** 0-based non-bounds-checked indexing **)
-  get(i:I): E
-  put(i:I, e:E): ()
-  init0(i:I, e:E): () = put(i,e)
-  zeroIndices(): Generator[\I\]
-  (** Convert from base()-based indexing to 0-based indexing,
-      performing bounds checking. **)
-  offset(i:I): I
-  (** Convert from 0-based indexing to base()-based indexing **)
-  toIndex(i:I): I
-  (** CONCRETE METHODS
-      Default implementations of most array stuff based on the above.
-      The things we can't provide are anything involving replica. **)
-  opr [i:I]:E = get(offset(i))
-  opr [i:I]:=(v:E):() = put(offset(i),v)
-  init(i:I, v:E) = init0(offset(i),v)
-  assign(v:T):T = do
-      for i <- zeroIndices() do put(i,v.get(i)) end
-      self
-    end
-  fill(f:I->E):T = do
-      for i <- zeroIndices() do init0(i,f(toIndex(i))) end
-      self
-    end
-  fill(v:E):T = do
-      for i <- zeroIndices() do init0(i,v) end
-      self
-    end
-  copy():T
-  eq(other: T): Boolean =
-    zeroIndices().generate[\Boolean\](AndReduction,
-                               fn (i:I):Boolean => get(i)=other.get(i))
+      extends { Array[\E,I\], MutableIndexed[\T,E,I\], DelegatedIndexed[\E,I\] }
+    (** CONCRETE GETTERS
+        Default implementations of getters based on abstract methods
+        below. **)
+    getter indices(): Generator[\I\] =
+        zeroIndices().map[\I\](fn (i:I):I => toIndex(i))
+    getter indexValuePairs(): Generator[\(I,E)\] =
+        zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
+    getter generator(): Generator[\E\] =
+        zeroIndices().map[\E\](fn (i:I):E => get(i))
+    (** ABSTRACT METHODS **)
+    (** 0-based non-bounds-checked indexing **)
+    get(i:I): E
+    put(i:I, e:E): ()
+    init0(i:I, e:E): () = put(i,e)
+    zeroIndices(): Generator[\I\]
+    (** Convert from base()-based indexing to 0-based indexing,
+        performing bounds checking. **)
+    offset(i:I): I
+    (** Convert from 0-based indexing to base()-based indexing **)
+    toIndex(i:I): I
+    (** CONCRETE METHODS
+        Default implementations of most array stuff based on the above.
+        The things we can't provide are anything involving replica. **)
+    opr [i:I]:E = get(offset(i))
+    opr [i:I]:=(v:E):() = put(offset(i),v)
+    init(i:I, v:E) = init0(offset(i),v)
+
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        generator().generate[\R\](r,body)
+    map[\G\](f: E->G): Generator[\G\] =
+        generator().map[\G\](f)
+    seq(): SequentialGenerator[\E\] = generator().seq()
+
+    assign(v:T):T = do
+        for i <- zeroIndices() do put(i,v.get(i)) end
+        self
+      end
+    fill(f:I->E):T = do
+        for i <- zeroIndices() do init0(i,f(toIndex(i))) end
+        self
+      end
+    fill(v:E):T = do
+        for i <- zeroIndices() do init0(i,v) end
+        self
+      end
+    copy():T
+    eq(other: T): Boolean =
+      zeroIndices().generate[\Boolean\](AndReduction,
+                                 fn (i:I):Boolean => get(i)=other.get(i))
 end
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -697,7 +733,7 @@ trait Array1[\T, nat b0, nat s0\]
   getter size():ZZ32 = s0
   getter minIndex():ZZ32 = b0
   getter maxIndex():ZZ32 = s0+b0-1
-  getter indices():Range[\ZZ32\] = b0#s0
+  getter indices():ScalarRange[\ZZ32\] = b0#s0
   getter toString() = do
     r = "[" b0 "#" s0 "] = ["
     if s0=0 then
@@ -735,11 +771,11 @@ trait Array1[\T, nat b0, nat s0\]
   __subarray[\nat b, nat s, nat o\]
             (_:N[\b\],_:N[\o\],_:N[\s\]):Array1[\T,b,s\] = subarray[\b,s,o\]()
 
-  opr[r:Range[\ZZ32\]]:Array[\T,ZZ32\] = do
-      (b,s) = (reflect(r.base()), reflect(r.size()))
+  opr[r:ScalarRange[\ZZ32\]]:Array[\T,ZZ32\] = do
+      (b,s) = (reflect(r.lower()), reflect(r.size()))
       self.__subarray(N[\0\],b,s)
     end
-  opr[r:Range[\ZZ32\]]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
+  opr[r:ScalarRange[\ZZ32\]]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
@@ -1281,25 +1317,6 @@ object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     join(a:R, b:R): R = (j)(a,b)
 end
 
-(** The trait DelegatedGenerator[\E\] is used as a shortcut to define instances
-    of Generator[\E\] that delegate to an underlying generator(). **)
-trait DelegatedGenerator[\E\] extends Generator[\E\]
-    getter generator(): Generator[\E\]
-    getter size(): ZZ32 = generator().size()
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
-        generator().generate[\R\](r,body)
-    map[\G\](f: E->G): Generator[\G\] =
-        generator().map[\G\](f)
-    seq(): SequentialGenerator[\E\] = generator().seq()
-    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
-        generator().cross[\G\](g)
-    mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
-        generator().mapReduce[\R\](body,join,zero)
-    reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
-    reduce(r: Reduction[\E\]):E = generator().reduce(r)
-    loop(f:E->()): () = generator().loop(f)
-end
-
 (** Helpers for maps and cross products of generators.  These can be
     quite a bit more sophisticated (for example, we can hoist maps
     outwards if we think that'd be useful), but let's get this much
@@ -1389,25 +1406,126 @@ object NaiveSeqGenerator[\E\](g: Generator[\E\])
     end
 end
 
+(** Ranges in general represent uses of the # and : operators.
+    It's mostly subtypes of Range that are interesting.  **)
+trait Range[\T\]
+    comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
+                RangeWithExtent[\T\], OpenRange[\T\] }
+end
+
+object OpenRange[\T\]() extends Range[\T\]
+end
+
+trait RangeWithLower[\T\] extends Range[\T\]
+        comprises { LowerRange[\T\], FullRange[\T\] }
+    getter lower():T
+end
+
+object LowerRange[\T\](lo:T)
+    getter lower():T = lo
+    toString():String = lower() "#"
+end
+
+trait RangeWithUpper[\T\] extends Range[\T\]
+        comprises { UpperRange[\T\], FullRange[\T\] }
+    getter upper():T
+end
+
+object UpperRange[\T\](up:T)
+    getter upper():T = up
+    toString():String = ":" upper()
+end
+
+trait RangeWithExtent[\T\] extends Range[\T\]
+        comprises { SizeRange[\T\], FullRange[\T\] }
+    getter extent():T
+    toString():String = "#" extent()
+end
+
+object ExtentRange[\T\](ex:T) extends Range[\T\]
+    getter extent():T = ex
+end
+
+trait FullRange[\T\]
+    extends { RangeWithLower[\T\], RangeWithUpper[\T\], RangeWithExtent[\T\] }
+    (** Square-bracket indexing on a FullRange restricts that range to
+         the range provided.  Restriction should behave as follows:
+            - Restriction to an OpenRange is the identity.
+            - An UpperRange or ExtentRange restrict the upper bound and
+              extent of the range.
+          - A LowerRange restricts the lower bound and extent of the range.
+        Note that this makes it compatible with the square-bracket
+        indexing of the Indexed trait. **)
+    opr [r:Range[\T\]]: FullRange[\T\]
+
+    toString():String = lower() "#" extent()
+
+end
+
+trait GeneratedRange[\T\] extends { FullRange[\T\], Indexed[\T,T\] }
+        comprises { ScalarRange[\T\], TupleRange[\T\] }
+    getter minIndex():T = lower()
+    getter maxIndex():T = upper()
+    getter indexValuePairs(): Generator[\(T,T)\] =
+        self.map[\(T,T)\](fn (t:T):(T,T) => (t,t))
+    getter indices(): Generator[\T\] = self
+    (** Helper for partially ordering Ts, defines the indexing operations. **)
+    before(a:T, b:T): Boolean
+    (** another is used as a helper for other defaults. **)
+    another(l:T, s:T): GeneratedRange[\T\]
+
+    map[\G\](f: T->G): Generator[\G\] = SimpleMappedGenerator[\T,G\](self,f)
+    contains(x:T): Boolean = NOT (before(x,lower())) AND eqOrBefore(x,upper())
+    opr [i:T]: T = i
+    opr [r:Range[\T\]]: GeneratedRange[\T\] = fail("Unrecognized Range " r)
+    opr [r:OpenRange[\T\]]: GeneratedRange[\T\] = self
+    opr [r:LowerRange[\T\]]: GeneratedRange[\T\] =
+        if before(r.lower(),lower()) then
+            fail(self " doesn't contain lower " r)
+        else
+            another(r.lower(), upper()+1-r.lower())
+        end
+    opr [r:UpperRange[\T\]]: GeneratedRange[\T\] =
+        if before(upper(), r.upper()) then
+            fail(self " doesn't contain upper " r)
+        else
+            another(lower(), r.upper()-lower()+1)
+        end
+    opr [r:ExtentRange[\T\]]: GeneratedRange[\T\] =
+        if before(extent(), r.extent()) then
+            fail(self "is smaller than extent " r)
+        else
+            another(lower(), r.extent())
+        end
+    opr [r:FullRange[\T\]]: GeneratedRange[\T\] =
+        if before(r.lower(),lower()) then
+            fail(self " doesn't contain lower bound of " r)
+        elif before(upper(),r.upper()) then
+            fail(self " doesn't contain upper bound of " r)
+        else
+            another(r.lower(),r.extent())
+        end
+end
+
 (** ParRanges and SeqRanges, the simplest and most basic of all
 generators.  They generate size() numbers, incrementing by 1, starting
-with base() (that's the canonical ordering). *)
-trait Range[\N extends Number\] extends Generator[\N\]
-    getter size():N
-    getter base():N
+with lower() (that's the canonical ordering). *)
+trait ScalarRange[\N extends Integral\]
+        extends { GeneratedRange[\N\] }
+    getter upper():N = lower() + extent() - 1
+    getter size():ZZ32 = narrow(|\extent()/|)
+    before(a:N, b:N): Boolean = a < b
 end
-opr IN[\E\](x: E, r: Range[\E\]): Boolean = do
-        b = r.base()
-        b <= x AND (x-b < r.size())
-    end
 
-object ParRange[\N extends Number\](lo:N, sz:N)
-        extends Range[\N\]
-    getter size() = narrow(|\sz/|) MAX 0
-    getter base() = lo
-    getter toString()= lo "#" sz
+value object ParRange[\N extends Integral\](lo:N, ex:N)
+        extends ScalarRange[\N\]
+    getter extent() = ex
+    getter lower() = lo
+
+    seq() = SeqRange[\N\](lo,ex)
+    another(l:N, e:N): ParRange[\N\] = ParRange[\N\](l,e)
     generate[\R\](r: Reduction[\R\], m: N->R): R =
-        if sz < 1 then
+        if size() < 1 then
             r.empty()
         else
             gen(l,s) = if s>=2 then
@@ -1416,12 +1534,11 @@ object ParRange[\N extends Number\](lo:N, sz:N)
                        else
                            m(l)
                        end
-            gen(lo,narrow |\sz/|)
+            gen(lo,size())
         end
-    seq() = SeqRange[\N\](base(),size())
 
     mapReduce[\R\](m: N->R, j:(R,R)->R, z:R): R =
-        if sz < 1 then
+        if size() < 1 then
             z
         else
             gen(l,s) = if s>=2 then
@@ -1430,10 +1547,10 @@ object ParRange[\N extends Number\](lo:N, sz:N)
                        else
                            m(l)
                        end
-            gen(lo,narrow |\sz/|)
+            gen(lo,size())
         end
     reduce(j:(N,N)->N, z:N):N =
-        if sz < 1 then
+        if size() < 1 then
             z
         else
             gen(l,s) = if s>=2 then
@@ -1442,10 +1559,10 @@ object ParRange[\N extends Number\](lo:N, sz:N)
                        else
                            l
                        end
-            gen(lo,narrow |\sz/|)
+            gen(lo,size())
         end
     reduce(r: Reduction[\N\]):N =
-        if sz < 1 then
+        if size() < 1 then
             r.empty()
         else
             gen(l,s) = if s>=2 then
@@ -1454,10 +1571,10 @@ object ParRange[\N extends Number\](lo:N, sz:N)
                        else
                            l
                        end
-            gen(lo,narrow |\sz/|)
+            gen(lo,size())
         end
     loop(f:N->()): () =
-        if sz < 1 then
+        if size() < 1 then
             ()
         else
             gen(l,s) = if s>=2 then
@@ -1467,16 +1584,17 @@ object ParRange[\N extends Number\](lo:N, sz:N)
                        else
                            f(l)
                        end
-            gen(lo,narrow |\sz/|)
+            gen(lo,size())
         end
 end
-object SeqRange[\N extends Number\](lo:N, sz:N)
-        extends { Range[\N\], SequentialGenerator[\N\] }
-    getter size() = sz
-    getter base() = lo
-    getter toString() = "seq(" lo "#" sz ")"
+value object SeqRange[\N extends Integral\](lo:N, ex:N)
+        extends { ScalarRange[\N\], SequentialGenerator[\N\] }
+    getter extent() = ex
+    getter lower() = lo
+    getter toString() = "seq(" lo "#" ex ")"
+    another(l:N, e:N): SeqRange[\N\] = SeqRange[\N\](l,e)
     generate[\R\](r: Reduction[\R\], m: N->R): R = do
-        h = lo + sz
+        h = lo + ex
         l : N := lo
         acc : R = r.empty()
         (* DO NOT DEFINE THIS USING RECURSION!!! *)
@@ -1487,7 +1605,7 @@ object SeqRange[\N extends Number\](lo:N, sz:N)
         acc
       end
     loop(f: N->()): () = do
-        h = lo + sz
+        h = lo + ex
         l : N := lo
         (* DO NOT DEFINE THIS USING RECURSION!!! *)
         while l < h do
@@ -1497,19 +1615,52 @@ object SeqRange[\N extends Number\](lo:N, sz:N)
       end
 end
 
-(** The # and : operators serve as factories for parallel ranges. **)
-opr #(lo:ZZ32, sz:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,sz)
-opr #(lo:ZZ64, sz:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,sz)
-opr #(lo:RR64, sz:RR64): Range[\RR64\] = ParRange[\RR64\](lo,sz)
+trait TupleRange[\T\] extends GeneratedRange[\T\]
+end
 
-opr :(lo:ZZ32, hi:ZZ32): Range[\ZZ32\] = ParRange[\ZZ32\](lo,hi-lo+1)
-opr :(lo:ZZ64, hi:ZZ64): Range[\ZZ64\] = ParRange[\ZZ64\](lo,hi-lo+1)
-opr :(lo:RR64, hi:RR64): Range[\RR64\] = ParRange[\RR64\](lo,hi-lo+1)
+object Tuple2Range[\N extends Integral, M extends Integral\]
+                  (transient lo:(N,M), transient ex:(N,M))
+        extends { TupleRange[\(N,M)\] }
+    (l1,l2) = lo
+    (x1,x2) = ex
+    getter extent():(N,M) = (x1,x2)
+    getter lower():(N,M) = (l1,l2)
+    getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper())
+    getter size():(N,M) = (l1#x1).size() (l2#x2).size()
+    getter generator():Generator[\(N,M)\] = (l1#x1).cross(l2#x2)
+    before(t1:(N,M),t2:(N,M)):Boolean =
+        do (a1,b1) = t1; (a2,b2) = t2; a1 < a2 OR b1 < b2 end
+end
+
+object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integral\]
+                  (transient lo:(N1,N2,N3), transient ex:(N1,N2,N3))
+        extends { TupleRange[\(N1,N2,N3)\] }
+    (l1,l2,l3) = lo
+    (x1,x2,x3) = ex
+    getter extent():(N,M) = (x1,x2,x3)
+    getter lower():(N,M) = (l1,l2,l3)
+    getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
+    getter size():(N,M) = (l1#x1).size() (l2#x2).size() (l3#x3).size()
+    getter generator():Generator[\(N,M)\] =
+        (l1#x1).cross(l2#x2).cross(l3#x3).map[\(N1,N2,N3)\](
+            fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
+    before(t1:(N1,N2,N3),t2:(N1,N2,N3)):Boolean =
+        do (a1,b1,c1) = t1; (a2,b2,c2) = t2; a1 < a2 OR b1 < b2 OR c1 < c2 end
+end
+
+(** The # and : operators serve as factories for parallel ranges. **)
+opr #[\I extends Integral\](lo:I, ex:I): ParRange[\I\] = ParRange[\I\](lo,ex)
+opr #(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] = ParRange[\ZZ32\](lo,ex)
+
+opr :[\I extends Integral\](lo:I, hi:I): ParRange[\I\] =
+        ParRange[\I\](lo,hi-lo+1)
+opr :(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] =
+        ParRange[\ZZ32\](lo,hi-lo+1)
 
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 
-opr [\ N extends Number \]|x:N| = if x>=0 then x else -x end
+opr [\ N extends Integral \]|x:N| = if x>=0 then x else -x end
 
 opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
 opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
@@ -1640,7 +1791,6 @@ ceiling(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.pri
 opr |/a:Number\|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
 truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
-opr |x:ZZ64|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
 
 opr DOT(a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition

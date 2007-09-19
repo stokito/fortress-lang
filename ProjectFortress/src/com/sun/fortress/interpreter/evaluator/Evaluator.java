@@ -764,6 +764,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                             applyMethod(args, fobject, x, e);
                 } catch (FortressError ex) {
                     throw ex.setContext(x,fobject.getSelfEnv());
+                } catch (StackOverflowError soe) {
+                    return error(x,fobject.getSelfEnv(),
+                                 errorMsg("Stack overflow on ",x));
                 }
             } else {
                 return error(x, fobject.getSelfEnv(),

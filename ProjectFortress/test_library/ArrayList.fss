@@ -19,9 +19,37 @@ component ArrayList
 export ArrayList
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
-    Hope is we can do a lot of operations in place with minimal updating.
-    Idea is we bake these off vs. PureList.
-  *)
+
+    An ArrayList is an immutable segment of a mutable array.  The rest
+    of the mutable array may contain elements of purelists in which
+    this list is contained, or may be free for future use.  Every
+    PureList includes a pointer to a flag canExtend; if this flag is
+    true we are permitted to add additional elements to the PureList
+    in place by writing into the mutable array.  At most one instance
+    sharing the same backing array will obtain permission to extend
+    the array in this way; we atomically check and update the flag to
+    guarantee this.  Having obtained permission to extend the list,
+    that permission may be extended to future attempts to extend.
+
+    Eventually the backing array fills and we must allocate a new
+    backing array to accept new elements.  At the moment we're not
+    particularly careful to avoid stealing permission to extend for
+    overflowing append operations.
+
+    Note that because of this implementation, an ArrayList can be
+    efficiently extended on the right (addRight) and appended to
+    (append), but cannot be efficiently extended on the left
+    (addLeft).
+
+    Note also that the implementation hasn't yet been carefully
+    checked for amortization, so it is quite likely there are a number
+    of asymptotic infelicities in the implementation.
+
+    Finally, note that this is an efficient *amortized* structure.  An
+    individual operation may be quite slow due to copying work.
+
+    Baking these off vs PureLists, they look very good in practice.
+ **)
 
 (* Tests can be found in
    tests/ArrayListQuick.fss
@@ -65,7 +93,7 @@ trait List[\E\] extends { Indexed[\E,ZZ32\] } excludes { Number, HasRank }
   drop(n:ZZ32): List[\E\]
   opr [n:ZZ32]: E
   opr [n:Range[\ZZ32\]]: List[\E\] =
-      drop(n.base()).take(n.size())
+      drop(n.lower()).take(n.extent())
   split(n:ZZ32): (List[\E\], List[\E\])
   split(): (List[\E\], List[\E\])
   reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
@@ -91,16 +119,11 @@ trait List[\E\] extends { Indexed[\E,ZZ32\] } excludes { Number, HasRank }
     self.generate[\List[\G\]\](Concat[\G\](),f)
 end
 
-(** Vararg factory for lists; provides aggregate list constants *)
+(** Vararg factory for lists; provides aggregate list constants **)
 opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 
-fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] = do
-    fs = PrimitiveArray[\E,0,n\]()
-    for (i,v) <- f.indexValuePairs() do
-        fs.put(i,v)
-    end
-    Alr[\E,n\]( fs, 0, n, cantExtend )
-  end
+fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
+    Alr[\E,n\]( PrimitiveArray[\E,0,n\]().assign(f), 0, n, cantExtend )
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -128,7 +151,7 @@ object PLConcat[\E\]() extends Reduction[\ ArrayList[\E\] \]
   join(a:ArrayList[\E\], b:ArrayList[\E\]): ArrayList[\E\] = a.append(b)
 end
 
-trait ArrayList[\E\] extends List[\E\]
+trait ArrayList[\E\] extends { List[\E\], DelegatedIndexed[\E,ZZ32\] }
     append0(f: List[\E\]): ArrayList[\E\]
 end
 
