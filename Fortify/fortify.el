@@ -1366,6 +1366,7 @@ as a comment and easily altered and reformatted as necessary."
 (defun batch-fortify ()
     "Fortify the whole buffer and write to a filename in pwd, with
 extension .tex." 
+    (remove-copyright)
     (print-header "TOOL BATCH-FORTIFY")
     (mark-whole-buffer)
     (fortify 4)
@@ -1375,6 +1376,7 @@ extension .tex."
   "Fortify all sections of a buffer delimited with backticks, and 
 write to a file in the same location as the read file, but with
 extension '.tex'."
+  (remove-copyright)
   (print-header "TOOL FORTICK")
   (let ((pos (point-min))
 	(at-end nil))
@@ -1425,6 +1427,7 @@ extension '.tex'."
   file with doc comments (possibly containing embedded LaTeX commands)
   and produce a LaTeX file where all Fortress code is fortified and
   all doc comments are written as LaTeX prose describing the code." 
+  (remove-copyright)
   (print-header "TOOL FORTEX")
   (let ((more-lines t))
     (goto-start-of-buffer)
@@ -1443,6 +1446,7 @@ extension '.tex'."
   '(** EXAMPLE **)' and '(** END EXAMPLE **)'. Remove all other text,
   and save the result to a file at the same location as the read file,
   but with extension .tex."
+  (remove-copyright)
   (print-header "TOOL FOREG")
   (let ((more-lines t))
     (goto-start-of-buffer)
@@ -1505,17 +1509,6 @@ extension '.tex'."
 	(progn (fortify-if-not-blank-space)
 	       (delete-line))
       (signal-error "Example must be terminated with '(* END EXAMPLE *)'."))))
-      
-(defun omit-tests ()
-  (requires (at-start-of-tests))
-
-  (let ((not-at-eof t))
-    (while (and not-at-eof
-		(not (at-end-of-tests)))
-      (setq not-at-eof (delete-line)))
-    (if (at-end-of-tests)
-	(delete-line)
-      (signal-error "Tests must be terminated with '(* END TESTS *)'"))))
 
 (defun remove-start-of-doc-comment ()
   "Simple helper function that removes the leading whitespace and '('
@@ -1567,11 +1560,38 @@ doc comment."
   ;; of the doc comment)
   (forward-line -1))
 
-(defun at-start-of-example () (at-line "(* EXAMPLE *)"))
-(defun at-end-of-example () (at-line "(* END EXAMPLE *)"))
+(defun at-start-of-copyright () (at-line "(** COPYRIGHT **)"))
+(defun at-end-of-copyright () (at-line "(** END COPYRIGHT **)"))
 
-(defun at-start-of-tests () (at-line "(* TESTS *)"))
-(defun at-end-of-tests () (at-line "(* END TESTS *)"))
+(defun at-start-of-example () (at-line "(** EXAMPLE **)"))
+(defun at-end-of-example () (at-line "(** END EXAMPLE **)"))
+
+(defun at-start-of-tests () (at-line "(** TESTS **)"))
+(defun at-end-of-tests () (at-line "(** END TESTS **)"))
+
+(defun remove-block (test-for-start test-for-end error-string)
+  "Removes everything up to the line designated by `test-for-end`.
+If that line isn't found, signal the error message `error-string`.
+This function should only be called at a position where `test-for-start`
+is true."
+  (requires (funcall test-for-start))
+
+  (let ((not-at-eof t))
+    (while (and not-at-eof
+		(not (funcall test-for-end)))
+      (setq not-at-eof (delete-line)))
+    (if (funcall test-for-end)
+	(delete-line)
+      (signal-error error-string))))
+
+(defun remove-copyright ()
+  (remove-block 'at-start-of-copyright 'at-end-of-copyright 
+		(concat "Copyright notice must be terminated with"
+			"'(** END COPYRIGHT **)'.")))
+
+(defun omit-tests ()
+  (remove-block 'at-start-of-tests 'at-end-of-tests
+		"Tests must be terminated with '(** END TESTS **)'"))
 
 (defun at-line (line)
     "Boolean function that determines whether point is at the
