@@ -134,8 +134,8 @@ private String multiOp =
    / "<<"
    / "**"
    / "!!"
-   / "///"
-   / "//"
+    / "///" (!rightEncloserMulti)
+    / "//" (!rightEncloserMulti)
    ;
 
 private String singleOp =
