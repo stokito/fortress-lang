@@ -28,19 +28,19 @@ import Spacing;
 
 /* AbsFldDecl ::=
      AbsFldMods? AbsFldWTypes
-   | AbsFldMods? IdOrIdTuple w : w Type...
-   | AbsFldMods? IdOrIdTuple w : w SimpleTupleType
+   | AbsFldMods? BindIdOrBindIdTuple w : w Type...
+   | AbsFldMods? BindIdOrBindIdTuple w : w SimpleTupleType
    AbsFldWTypes ::=
      AbsFldWType
    | ( w AbsFldWType (w , w AbsFldWType)+ w )
-   AbsFldWType ::= Id w IsType
+   AbsFldWType ::= BindId w IsType
  */
 AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
 List<Modifier> VarMods := AbsFldMods ;
 
-/* ApiFldDecl ::= ApiFldMods? Id w IsType */
-AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:Id w a3:IsType
+/* ApiFldDecl ::= ApiFldMods? BindId w IsType */
+AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:BindId w a3:IsType
      { List<LValueBind> lhs;
        if (a1 == null)
             lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3));

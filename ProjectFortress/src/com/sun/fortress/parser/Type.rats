@@ -215,8 +215,8 @@ Type TupleType =
      }
    / SimpleTupleType ;
 
-/* KeywordType ::= Id w = w Type */
-private KeywordType KeywordType = a1:Id w equals w a2:Type
+/* KeywordType ::= BindId w = w Type */
+private KeywordType KeywordType = a1:BindId w equals w a2:Type
      { yyValue = new KeywordType(createSpan(yyStart,yyCount),
                                  NodeFactory.makeIdName(a1), a2);
      };

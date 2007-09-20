@@ -88,12 +88,12 @@ private FnDef LocalFnDecl =
    LocalVarWTypes ::=
      LocalVarWType
    | ( w LocalVarWType (w , w LocalVarWType)+ w )
-   LocalVarWType ::= Id s : s Type
+   LocalVarWType ::= BindId s : s Type
    LocalVarWoTypes ::=
      LocalVarWoType
    | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
    LocalVarWoType ::=
-     Id
+     BindId
    | Unpasting
  */
 LocalVarDecl LocalVarDecl =
@@ -156,7 +156,7 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
      };
 
-LValueBind VarWType := a1:Id s colon s a2:Type
+LValueBind VarWType := a1:BindId s colon s a2:Type
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* VarWoTypes ::=
@@ -170,7 +170,7 @@ List<LValue> VarWoTypes =
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 LValue VarWoType =
-     a1:Id
+     a1:BindId
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount), a1); }
    / Unpasting ;
 
@@ -187,11 +187,11 @@ private Unpasting UnpastingElems =
    / UnpastingElem ;
 
 /* UnpastingElem ::=
-     Id (w [ w UnpastingDim w ])?
+     BindId (w [ w UnpastingDim w ])?
    | Unpasting
  */
 private Unpasting UnpastingElem =
-     a1:Id a2:(opensquare w UnpastingDim w closesquare)?
+     a1:BindId a2:(opensquare w UnpastingDim w closesquare)?
      { if (a2 == null)
            yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
                                        NodeFactory.makeIdName(a1),

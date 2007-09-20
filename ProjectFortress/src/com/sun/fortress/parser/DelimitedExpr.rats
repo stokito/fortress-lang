@@ -190,13 +190,13 @@ Block CaseElse = else w match w BlockElems ;
 /* TypecaseBindings ::=
      ( w BindingList w )
    | Binding
-   | Id
+   | BindId
  */
 private List<Binding> TypecaseBindings =
      openparen w BindingList w closeparen
    / a1:Binding
      { yyValue = FortressUtil.mkList(a1); }
-   / a1:Id
+   / a1:BindId
      { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount),
                                                  NodeFactory.makeIdName(a1),
                                                  ExprFactory.makeVarRef(a1)));
@@ -206,8 +206,8 @@ private List<Binding> TypecaseBindings =
 private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Binding ::= Id w = w Expr */
-private Binding Binding = a1:Id w equals w a2:Expr
+/* Binding ::= BindId w = w Expr */
+private Binding Binding = a1:BindId w equals w a2:Expr
      { yyValue = new Binding(createSpan(yyStart,yyCount),
                              NodeFactory.makeIdName(a1), a2);
      };
@@ -231,8 +231,8 @@ List<Type> TypecaseTypes =
    / a1:Type
      { yyValue = FortressUtil.mkList(a1); };
 
-/* Catch ::= catch w Id w CatchClauses */
-Catch Catch = catch w a1:Id w a2:CatchClauses
+/* Catch ::= catch w BindId w CatchClauses */
+Catch Catch = catch w a1:BindId w a2:CatchClauses
      { yyValue = new Catch(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2);
      };
 

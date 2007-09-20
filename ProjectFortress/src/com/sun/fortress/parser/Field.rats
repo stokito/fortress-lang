@@ -28,13 +28,13 @@ import Spacing;
 
 /* FldDecl ::=
      FldMods? FldWTypes w InitVal
-   | FldMods? IdOrIdTuple w = w NoNewlineExpr
-   | FldMods? IdOrIdTuple w : w Type w ... w InitVal
-   | FldMods? IdOrIdTuple w : w SimpleTupleType w InitVal
+   | FldMods? BindIdOrBindIdTuple w = w NoNewlineExpr
+   | FldMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
+   | FldMods? BindIdOrBindIdTuple w : w SimpleTupleType w InitVal
    FldWTypes ::=
      FldWType
    | ( w FldWType (w , w FldWType)+ w )
-   FldWType ::= Id w IsType
+   FldWType ::= BindId w IsType
  */
 VarDecl FldDecl = VarDecl ;
 

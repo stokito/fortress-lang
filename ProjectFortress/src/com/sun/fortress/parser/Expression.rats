@@ -588,11 +588,11 @@ List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Generator ::=
-     IdOrIdTuple w <- w Expr
+     BindIdOrBindIdTuple w <- w Expr
    | Expr
  */
 Generator Generator =
-     a1:IdOrIdTuple w leftarrow w a2:Expr
+     a1:BindIdOrBindIdTuple w leftarrow w a2:Expr
      { yyValue = ExprFactory.makeGenerator(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Expr
      { yyValue = new Generator(createSpan(yyStart,yyCount),
