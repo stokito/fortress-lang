@@ -1657,6 +1657,25 @@ opr :[\I extends Integral\](lo:I, hi:I): ParRange[\I\] =
 opr :(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] =
         ParRange[\ZZ32\](lo,hi-lo+1)
 
+(** Factories for incomplete ranges **)
+(* BUG: we can't define both a prefix and a suffix version of a single
+   operator right now.  They get thrown into the same overloading
+   bucket.  Meanwhile, if we define a prefix operator and use it in
+   suffix form it'll work and vice versa. *)
+(*
+opr [\T\](x:T)# : RangeWithLower[\T\] = RangeWithLower[\T\](x)
+*)
+opr [\T\](x:T): : RangeWithLower[\T\] = RangeWithLower[\T\](x)
+
+opr #[\T\](x:T) : RangeWithExtent[\T\] = RangeWithExtent[\T\](x)
+
+(*
+opr :[\T\](x:T) : RangeWithUpper[\T\] = RangeWithUpper[\T\](x)
+*)
+
+opr #[\T\](): OpenRange[\T\] = OpenRange[\T\]()
+opr :[\T\](): OpenRange[\T\] = OpenRange[\T\]()
+
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 

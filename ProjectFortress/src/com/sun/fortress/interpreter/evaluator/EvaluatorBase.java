@@ -130,10 +130,16 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (FValue a : args) {
             FType at = a.type();
             if (at==null) {
-                error(loc, errorMsg(loc.at()," Argument ",a,
-                                    " has no type information"));
+                return error(loc, errorMsg("Argument ",a,
+                                           " has no type information"));
             }
-            p = pit.hasNext() ? pit.next() : p;
+            if (pit.hasNext()) {
+                p = pit.next();
+            } else if (p==null) {
+                error(loc, errorMsg(" Arguments ",args,
+                                    " given to 0-argument generic function ",
+                                    appliedThing));
+            }
             try {
                 if (p instanceof NormalParam) {
                     Option<Type> t = ((NormalParam)p).getType();
