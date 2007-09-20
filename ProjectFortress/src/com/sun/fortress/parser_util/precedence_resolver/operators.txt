@@ -689,7 +689,7 @@ other_operators
   n-ary coproduct, coproduct
   n-ary summation, sum
   ring operator, circ, ring, compose
-  bullet operator, bullet
+  bullet operator
   square root, sqrt
   cube root, cbrt
   fourth root, fourthroot
