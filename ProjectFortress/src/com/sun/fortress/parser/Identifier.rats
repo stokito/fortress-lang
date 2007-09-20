@@ -37,6 +37,7 @@ private String IdText  = a1:id &{ !FortressUtil.validOp(a1) && !a1.equals("_") }
 
 Id Id = a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
+/* BindId ::= Id / _ */
 Id BindId =
      Id
    / a1:"_" { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
