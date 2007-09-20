@@ -48,7 +48,7 @@ abstract public class Simple_fcn extends SingleFcn {
      *
      * @return A string suitable for identifying the source of the function.
      */
-    abstract String at();
+    abstract public String at();
 
     // NOTE: I believe it is ok for functions to use object identity for
     // equals and hashCode().

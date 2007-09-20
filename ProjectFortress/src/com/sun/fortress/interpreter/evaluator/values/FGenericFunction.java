@@ -52,8 +52,12 @@ public class FGenericFunction extends SingleFcn
      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
      */
     @Override
-    String at() {
+    public String at() {
         return fndef.at();
+    }
+    
+     public String stringName() {
+        return fndef.stringName();
     }
 
     /* (non-Javadoc)

@@ -94,22 +94,33 @@ public class ComponentWrapper {
         
         visitState = IMPORTED;
 
+        dis = new Desugarer(isLibrary);
+        
         for (ComponentWrapper api: exports.values()) {
             api.getExports(isLibrary);
         }
     }
 
+    public void preloadTopLevel() {
+        
+        dis.preloadTopLevel(p);
+        for (ComponentWrapper api: exports.values()) {
+            api.preloadTopLevel();
+        }
+        
+    }
+    
     /**
      *
      */
-    public CompilationUnit populateOne(boolean isLibrary) {
+    public CompilationUnit populateOne() {
         if (visitState != IMPORTED)
             return bug("Component wrapper in wrong visit state: " + visitState);
         
         visitState = POPULATED;
 
         CompilationUnit cu = p;
-        dis = new Desugarer(isLibrary);
+        
         cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
@@ -118,7 +129,7 @@ public class ComponentWrapper {
         p = cu;
         
         for (ComponentWrapper api: exports.values()) {
-            api.populateOne(isLibrary);
+            api.populateOne();
         }
         
         return cu;
@@ -179,5 +190,7 @@ public class ComponentWrapper {
     public ComponentWrapper getExportedCW(String apiname) {
         return exports.get(apiname);
     }
+
+ 
 
 }

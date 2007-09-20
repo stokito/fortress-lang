@@ -219,6 +219,19 @@ public class Useful {
 
     }
 
+    public static <T, U> List<U> applyToAllAppending(Collection<T> s, Fn<T, U> verb, List<U> result) {
+        for (T i : s)
+            result.add(verb.apply(i));
+        return result;
+
+    }
+   
+    public static <T, U> Set<U> applyToAllInserting(Collection<T> s, Fn<T, U> verb, Set<U> result) {
+        for (T i : s)
+            result.add(verb.apply(i));
+        return result;
+    }
+   
     public static <T> Set<T> set(Iterable<T> xs) {
       HashSet<T> result = new HashSet<T>();
 
@@ -598,10 +611,12 @@ public class Useful {
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
     }
 
-    static public boolean olderThanOrMissing(String resultFile, String inputFile) {
+    static public boolean olderThanOrMissing(String resultFile, String inputFile) throws FileNotFoundException {
         File res = new File(resultFile);
         File inp = new File(inputFile);
         // res does not exist, OR res has a smaller birthday.
+        if (!inp.exists())
+            throw new FileNotFoundException(inputFile);
         return !res.exists() || (res.lastModified() < inp.lastModified());
     }
 

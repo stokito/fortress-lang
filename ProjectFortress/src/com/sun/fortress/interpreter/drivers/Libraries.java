@@ -39,7 +39,7 @@ public class Libraries {
 
     public static Component theLibrary() throws IOException {
         if (library == null) {
-            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename);
+            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename);
         }
         return library;
     }
@@ -48,7 +48,7 @@ public class Libraries {
         Component c = library;
         
         if (c == null)
-            c = (Component) Driver.readTreeOrSourceComponent(libraryBasename);
+            c = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename);
 
         if (c != null) {
             library = c;

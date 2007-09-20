@@ -50,15 +50,15 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-public abstract class SingleFcn extends Fcn {
+public abstract class SingleFcn extends Fcn implements HasAt {
 
     public SingleFcn(BetterEnv within) {
         super(within);
     }
 
-    abstract String at();
+    abstract public String  at();
     abstract public List<FType> getDomain();
-
+    
     public List<FValue> fixupArgCount(List<FValue> args) {
         System.out.println("Naive fixupArgCount "+this+
                            "("+this.getClass()+")"+

@@ -48,7 +48,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      * @see com.sun.fortress.interpreter.evaluator.values.Simple_fcn#at()
      */
     @Override
-    String at() {
+    public String at() {
         return getAt().at();
     }
 

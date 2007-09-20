@@ -48,7 +48,7 @@ fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
 
 value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32)
-      extends List[\E\]
+      extends { List[\E\], DelegatedIndexed[\E, ZZ32\]}
   getter size(): ZZ32 = firstUnused - firstUsed
   getter isEmpty(): Boolean = firstUnused <= firstUsed
   getter generator(): Generator[\E\] =

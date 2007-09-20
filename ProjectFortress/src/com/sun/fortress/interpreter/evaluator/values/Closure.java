@@ -66,6 +66,10 @@ public class Closure extends NonPrimitive implements Scope {
     protected HasAt getAt() {
         return def;
     }
+    
+    public String stringName() {
+        return def.stringName();
+    }
 
     public boolean hasSelfDotMethodInvocation() {
         return false;

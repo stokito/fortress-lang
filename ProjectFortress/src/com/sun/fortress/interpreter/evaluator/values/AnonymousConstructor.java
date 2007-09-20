@@ -43,6 +43,10 @@ public class AnonymousConstructor extends NonPrimitive {
     public HasAt getAt() {
         return at;
     }
+    
+    public String stringName() {
+        return "Constructor for " + selfType;
+    }
 
     @Override
     protected void setValueType() {

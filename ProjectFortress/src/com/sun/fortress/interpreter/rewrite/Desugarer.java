@@ -178,7 +178,8 @@ public class Desugarer extends Rewrite {
      */
     private class Trait extends Local {
         TraitAbsDeclOrDecl defOrDecl;
-        Trait(TraitAbsDeclOrDecl dod) { defOrDecl = dod; }
+        Map<String, Thing> env;
+        Trait(TraitAbsDeclOrDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
         public String toString() { return "Trait="+defOrDecl; }
     }
 
@@ -317,12 +318,6 @@ public class Desugarer extends Rewrite {
     private BATree<String, StaticParam> usedGenericParameters;
 
     /**
-     * Disambiguating environment map -- in what environment was each trait declared?
-     */
-
-    private BATree<UIDObject, Map<String, Thing> > traitDisEnvMap = UIDMapFactory.< Map<String, Thing> >make();
-
-    /**
      * All the object exprs (this may generalize to nested functions as well)
      * need to have their gensym'd types and constructors registered at the
      * top level.  The top level environment is available to the creator/caller
@@ -454,16 +449,36 @@ public class Desugarer extends Rewrite {
 
     }
 
-    public void registerComponent(Component c) {
-        // TODO put top-level names in various environments
+    public void preloadTopLevel(CompilationUnit tlnode) {
+        if (tlnode instanceof  Component) {
+            // Iterate over definitions, collecting mapping from name
+            // to node.
+            // TODO - we may need to separate this out some more because of
+            // circular dependences between type names. See above.
+            Component com = (Component) tlnode;
+            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            defsToLocals(defs);
+        } else if (tlnode instanceof Api) {
+            // Iterate over definitions, collecting mapping from name
+            // to node.
+            // TODO - we may need to separate this out some more because of
+            // circular dependences between type names. See above.
+            Api com = (Api) tlnode;
+            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            defsToLocals(defs);
+        }
+        
     }
-
-    public CompilationUnit rewriteComponents(CompilationUnit p) {
-        // TODO visit all the components, rewriting as necessary
-        // Return the replacement for p.
-        return p;
+    
+    public boolean injectAtTopLevel(String putName, String getName, Desugarer getFrom) {
+        Thing th = getFrom.rewrites.get(getName);
+        if (rewrites.get(putName) == th)
+            return false;
+        rewrites.put(putName, th);
+        return true;
+        
     }
-
+    
     /**
      * Performs an object-reference-disambiguating com.sun.fortress.interpreter.rewrite of the AST. Any
      * effects on the environment from the toplevel remain visible, otherwise
@@ -471,12 +486,27 @@ public class Desugarer extends Rewrite {
      */
     @Override
     public AbstractNode visit(AbstractNode node) {
-        BATree<String, Thing> savedE = rewrites.copy();
-        BASet<String> savedA = arrows.copy();
-        BATree<String, StaticParam> savedVisibleGenerics = visibleGenericParameters.copy();
-        BATree<String, StaticParam> savedUsedGenerics = usedGenericParameters.copy();
+//        BATree<String, Thing> savedE = rewrites.copy();
+//        BASet<String> savedA = arrows.copy();
+//        BATree<String, StaticParam> savedVisibleGenerics = visibleGenericParameters.copy();
+//        BATree<String, StaticParam> savedUsedGenerics = usedGenericParameters.copy();
+//        BATree<String, Boolean> immediateDef = null;
+
+        BATree<String, Thing> savedE = rewrites;
+        rewrites = rewrites.copy();
+        
+        BASet<String> savedA = arrows;
+        arrows = arrows.copy();
+        
+        BATree<String, StaticParam> savedVisibleGenerics = visibleGenericParameters;
+        visibleGenericParameters = visibleGenericParameters.copy();
+        
+        BATree<String, StaticParam> savedUsedGenerics = usedGenericParameters;
+        usedGenericParameters = usedGenericParameters.copy();
+        
         BATree<String, Boolean> immediateDef = null;
 
+        
         boolean savedFnDefIsMethod = atTopLevelInsideTraitOrObject;
         int savedObjectNestingDepth = objectNestingDepth;
         String savedSelfName = currentSelfName;
@@ -818,7 +848,7 @@ public class Desugarer extends Rewrite {
      */
     private void accumulateMembersFromExtends(TraitAbsDeclOrDecl td) {
         accumulateMembersFromExtends(NodeUtil.getTypes(td.getExtendsClause()),
-                                     traitDisEnvMap.get(td) );
+                rewrites);
     }
 
     private void accumulateMembersFromExtends(List<TraitType> xtends, Map<String, Thing> disEnv) {
@@ -860,8 +890,7 @@ public class Desugarer extends Rewrite {
             String s = d.stringName();
             if (d instanceof TraitAbsDeclOrDecl) {
                 TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
-                traitDisEnvMap.put(dod, rewrites); // dod.setDisEnv(e);
-                rewrites.put(s, new Trait(dod));
+                rewrites.put(s, new Trait(dod, rewrites));
             } else {
                 rewrites.put(s, new Local());
             }
@@ -1022,7 +1051,7 @@ public class Desugarer extends Rewrite {
                                 members.add(sdd);
                             }
                             accumulateTraitsAndMethods(NodeUtil.getTypes(tdod.getExtendsClause()),
-                                                       traitDisEnvMap.get(tdod), members, types,
+                                                       tr.env, members, types,
                                                        arrow_names, not_arrow_names,
                                                        visited);
                         }
@@ -1075,5 +1104,9 @@ public class Desugarer extends Rewrite {
                 return true;
         }
         return false;
+    }
+
+    public Set<String> getTopLevelRewriteNames() {
+        return rewrites.keySet();
     }
 }

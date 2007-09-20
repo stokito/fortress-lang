@@ -44,6 +44,10 @@ public class Dummy_fcn extends Simple_fcn {
     public FnName getFnName() {
         return fnName;
     }
+    
+    public String stringName() {
+        return fnName.stringName();
+    }
 
     public Dummy_fcn(List<FType> _params) {
         super(BetterEnv.empty());
@@ -66,7 +70,7 @@ public class Dummy_fcn extends Simple_fcn {
      * @see com.sun.fortress.interpreter.evaluator.values.Simple_fcn#at()
      */
     @Override
-    String at() {
+    public String  at() {
         return allocationSite;
     }
 

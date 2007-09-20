@@ -26,8 +26,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -322,12 +325,32 @@ public class Driver {
             ensureImportsImplemented(linker, pile, imports);
         }
         
+        // Desugarer needs to know about trait members.
+        for (ComponentWrapper cw : components) {
+            cw.preloadTopLevel();
+        }
+        
+        // Iterate to a fixed point, pushing trait info as far as necessary.
+        boolean change = true;
+        while (change) {
+            change = false;
+            for (ComponentWrapper cw : components) {
+                change |= injectTraitMembersForDesugaring(linker, cw);
+            }
+
+            for (String s : lib.dis.getTopLevelRewriteNames()) {
+                for (ComponentWrapper cw : components) {
+                    change |= cw.dis.injectAtTopLevel(s, s, lib.dis);
+                }
+            }
+        }
+
         /*
          * After all apis etc have been imported, populate their environments.
          */
         for (ComponentWrapper cw : components) {
             // System.err.println("populating " + cw);
-            cw.populateOne(cw != comp);
+            cw.populateOne();
         }
 
         /*
@@ -343,95 +366,17 @@ public class Driver {
          * overloading there.
          */
         for (ComponentWrapper cw : components) {
-            CompilationUnit c = cw.getComponent();
-            List<Import> imports = c.getImports();
-            final BetterEnv e = cw.getEnvironment();
-
             /*
              * Transitional stuff. Import everything from "library" into a
              * Component.
              */
 
             if (cw != lib)
-                importAllExcept(e, lib.getEnvironment(), lib.getEnvironment(),
+                importAllExcept(cw.getEnvironment(), lib.getEnvironment(), lib.getEnvironment(),
                         Collections.<String> emptyList(), "FortressLibrary",
                         "FortressLibrary");
 
-            for (Import i : imports) {
-                if (i instanceof ImportApi) {
-                    ImportApi ix = (ImportApi) i;
-                    List<AliasedDottedName> apis = ix.getApis();
-                    for (AliasedDottedName adi : apis) {
-                        DottedName id = adi.getApi();
-                        String from_apiname = NodeUtil.nameString(id);
-
-                        Option<DottedName> alias = adi.getAlias();
-                        String known_as = NodeUtil.nameString(Option.unwrap(alias, id));
-
-                        ComponentWrapper from_cw = linker.get(from_apiname);
-
-                        /*
-                         * Every name N in api A with optional alias B is added
-                         * to e, using the value from the component C
-                         * implementing A. If B is present, C.N is referenced as
-                         * B.N, else it is referenced as A.N.
-                         */
-
-                        /*
-                         * Not-yet-implemented because of issues with selectors.
-                         */
-                        bug(adi, errorMsg("Import of dotted names from API ",
-                                          adi, "; try import * from insteand."));
-                    }
-
-                } else if (i instanceof ImportFrom) {
-                    ImportFrom ix = (ImportFrom) i;
-                    DottedName source = ix.getApi();
-                    String from_apiname = NodeUtil.nameString(source);
-
-                    ComponentWrapper from_cw = linker.get(from_apiname);
-                    BetterEnv from_e = from_cw.getEnvironment();
-                    BetterEnv api_e = from_cw.getExportedCW(from_apiname)
-                            .getEnvironment();
-
-                    /* Pull in names, UNqualified */
-
-                    if (ix instanceof ImportNames) {
-                        /* A set of names */
-                        List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
-                        for (AliasedName an : names) {
-                            FnName name = an.getName();
-                            Option<FnName> alias = an.getAlias();
-                            /*
-                             * If alias exists, associate the binding from
-                             * component_wrapper with alias, otherwise associate
-                             * it with plain old name.
-                             */
-
-                            inject(e, api_e, from_e, name, alias, from_apiname,
-                                   NodeUtil.nameString(from_cw.getComponent().getName()));
-                        }
-
-                    } else if (ix instanceof ImportStar) {
-                        /* All names BUT excepts, as they are listed. */
-                        final List<FnName> excepts = ((ImportStar) ix)
-                                .getExcept();
-                        final List<String> except_names = Useful.applyToAll(
-                                excepts, new Fn<FnName, String>() {
-                                    public String apply(FnName n) {
-                                        return NodeUtil.nameString(n);
-                                    }
-                                });
-
-                        importAllExcept(e, api_e, from_e, except_names,
-                                        from_apiname,
-                                        NodeUtil.nameString(from_cw.getComponent().getName()));
-
-                    }
-                } else {
-
-                }
-            }
+            injectExplicitImports(linker, cw);
         }
 
         for (ComponentWrapper cw : components) {
@@ -447,6 +392,165 @@ public class Driver {
         // Libraries.link(be, dis);
 
         return comp.getEnvironment();
+    }
+
+    private static void injectExplicitImports(
+            HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
+        CompilationUnit c = cw.getComponent();
+        List<Import> imports = c.getImports();
+        
+        final BetterEnv e = cw.getEnvironment();
+
+        for (Import i : imports) {
+            if (i instanceof ImportApi) {
+                ImportApi ix = (ImportApi) i;
+                List<AliasedDottedName> apis = ix.getApis();
+                for (AliasedDottedName adi : apis) {
+                    DottedName id = adi.getApi();
+                    String from_apiname = NodeUtil.nameString(id);
+
+                    Option<DottedName> alias = adi.getAlias();
+                    String known_as = NodeUtil.nameString(Option.unwrap(alias, id));
+
+                    ComponentWrapper from_cw = linker.get(from_apiname);
+
+                    /*
+                     * Every name N in api A with optional alias B is added
+                     * to e, using the value from the component C
+                     * implementing A. If B is present, C.N is referenced as
+                     * B.N, else it is referenced as A.N.
+                     */
+
+                    /*
+                     * Not-yet-implemented because of issues with selectors.
+                     */
+                    bug(adi, errorMsg("Import of dotted names from API ",
+                                      adi, "; try import * from insteand."));
+                }
+
+            } else if (i instanceof ImportFrom) {
+                ImportFrom ix = (ImportFrom) i;
+                DottedName source = ix.getApi();
+                String from_apiname = NodeUtil.nameString(source);
+
+                ComponentWrapper from_cw = linker.get(from_apiname);
+                BetterEnv from_e = from_cw.getEnvironment();
+                BetterEnv api_e = from_cw.getExportedCW(from_apiname)
+                        .getEnvironment();
+
+                /* Pull in names, UNqualified */
+
+                if (ix instanceof ImportNames) {
+                    /* A set of names */
+                    List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
+                    for (AliasedName an : names) {
+                        FnName name = an.getName();
+                        Option<FnName> alias = an.getAlias();
+                        /*
+                         * If alias exists, associate the binding from
+                         * component_wrapper with alias, otherwise associate
+                         * it with plain old name.
+                         */
+
+                        inject(e, api_e, from_e, name, alias, from_apiname,
+                               NodeUtil.nameString(from_cw.getComponent().getName()));
+                    }
+
+                } else if (ix instanceof ImportStar) {
+                    /* All names BUT excepts, as they are listed. */
+                    final List<FnName> excepts = ((ImportStar) ix)
+                            .getExcept();
+                    final List<String> except_names = Useful.applyToAll(
+                            excepts, new Fn<FnName, String>() {
+                                public String apply(FnName n) {
+                                    return NodeUtil.nameString(n);
+                                }
+                            });
+
+                    importAllExcept(e, api_e, from_e, except_names,
+                                    from_apiname,
+                                    NodeUtil.nameString(from_cw.getComponent().getName()));
+
+                }
+            } else {
+
+            }
+        }
+    }
+
+    /**
+     * Copies rewriting information (traits, what members they define) from apis into
+     * components.  This scaffolding is necessary to get the simplification right
+     * for member (field, method) references.
+     * 
+     * @param linker
+     * @param cw
+     */
+    private static boolean injectTraitMembersForDesugaring(
+            HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
+        CompilationUnit c = cw.getComponent();
+        List<Import> imports = c.getImports();
+        boolean change = false;
+        
+        for (Import i : imports) {
+            if (i instanceof ImportApi) {
+                
+                    /*
+                     * Not-yet-implemented because of issues with selectors.
+                     */
+                    bug(errorMsg("NYI Import of dotted names ; try 'import * from' instead."));
+
+            } else if (i instanceof ImportFrom) {
+                ImportFrom ix = (ImportFrom) i;
+                DottedName source = ix.getApi();
+                String from_apiname = NodeUtil.nameString(source);
+
+                ComponentWrapper from_cw = linker.get(from_apiname);
+                ComponentWrapper api_cw = from_cw.getExportedCW(from_apiname);
+
+                /* Pull in names, UNqualified */
+
+                if (ix instanceof ImportNames) {
+                    /* A set of names */
+                    List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
+                    for (AliasedName an : names) {
+                        FnName name = an.getName();
+                        Option<FnName> alias = an.getAlias();
+                        /*
+                         * If alias exists, associate the binding from
+                         * component_wrapper with alias, otherwise associate
+                         * it with plain old name.
+                         */
+                        change |= cw.dis.injectAtTopLevel(Option.unwrap(alias, name).stringName(), name.stringName(), api_cw.dis);
+                        
+                    }
+
+                } else if (ix instanceof ImportStar) {
+                    /* All names BUT excepts, as they are listed. */
+                    final List<FnName> excepts = ((ImportStar) ix)
+                            .getExcept();
+                    final Set<String> except_names = Useful.applyToAllInserting(
+                            excepts,
+                            new Fn<FnName, String>() {
+                                public String apply(FnName n) {
+                                    return NodeUtil.nameString(n);
+                                }
+                            },
+                            new HashSet<String>());
+
+                    for (String s : api_cw.dis.getTopLevelRewriteNames()) {
+                        if (! except_names.contains(s)) {
+                            change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis);
+                        }
+                    }
+                        
+
+                }
+            } else {
+                bug(errorMsg("NYI Import " + i));
+            }
+        }
+        return change;
     }
 
     /**
@@ -661,14 +765,14 @@ public class Driver {
              *
              * These few lines are what needs to be replaced by a real linker.
              */
-            Api newapi = readTreeOrSourceApi(LIB_DIR + apiname);
+            Api newapi = readTreeOrSourceApi(apiname, LIB_DIR + apiname);
             Component newcomp;
             boolean is_native = false;
             try {
-                newcomp = readTreeOrSourceComponent(LIB_DIR + apiname);
+                newcomp = readTreeOrSourceComponent(apiname, LIB_DIR + apiname);
             } catch (Exception ex) {
                 try {
-                    newcomp = readTreeOrSourceComponent(LIB_NATIVE_DIR + apiname);
+                    newcomp = readTreeOrSourceComponent(apiname, LIB_NATIVE_DIR + apiname);
                     is_native = true;
                 } catch (Exception ex1) {
                     newcomp = error(errorMsg(ex, " AND ", ex1));
@@ -769,15 +873,17 @@ public class Driver {
         }
     }
 
-    public static Component readTreeOrSourceComponent(String basename) throws IOException {
-        return (Component) readTreeOrSource(basename + "." + COMP_SOURCE_SUFFIX, basename
+    public static Component readTreeOrSourceComponent(String key, String basename) throws IOException {
+        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX, basename + "." + COMP_SOURCE_SUFFIX, basename
                 + "." + COMP_TREE_SUFFIX);
     }
 
-    public static Api readTreeOrSourceApi(String basename) throws IOException {
-        return (Api) readTreeOrSource(basename + "." + API_SOURCE_SUFFIX, basename + "." + API_TREE_SUFFIX);
+    public static Api readTreeOrSourceApi(String key, String basename) throws IOException {
+        return (Api) readTreeOrSource(key + "." + API_SOURCE_SUFFIX, basename + "." + API_SOURCE_SUFFIX, basename + "." + API_TREE_SUFFIX);
     }
 
+    static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
+    
     /**
      * Attempts to read in preparsed program. Reparses if parsed form is missing
      * or newer than preparsed form.
@@ -786,8 +892,11 @@ public class Driver {
      * @param libraryTree
      */
     public static CompilationUnit
-        readTreeOrSource(String librarySource, String libraryTree) throws IOException
+        readTreeOrSource(String key, String librarySource, String libraryTree) throws IOException
     {
+        if (false && libraryCache.containsKey(key))
+            return libraryCache.get(key);
+        
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
 
             System.err.println("Missing or stale preparsed AST "
@@ -807,6 +916,7 @@ public class Driver {
                          + (System.currentTimeMillis() - begin)
                          + " milliseconds");
                 writeJavaAst(c, libraryTree);
+                libraryCache.put(key, c);
                 return c;
             }
             finally { r.close(); }
@@ -821,6 +931,7 @@ public class Driver {
                      + " milliseconds");
 
             if (c.isSome()) {
+                libraryCache.put(key, Option.unwrap(c));
                 return Option.unwrap(c);
             }
             else {
