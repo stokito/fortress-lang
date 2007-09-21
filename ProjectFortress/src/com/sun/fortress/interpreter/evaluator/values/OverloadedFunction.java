@@ -205,6 +205,7 @@ public class  OverloadedFunction extends Fcn
                 boolean unequal = false;
                 boolean sawSymbolic1 = false;
                 boolean sawSymbolic2 = false;
+                int selfIndex = -1;
 
                 exclDumpln("Checking exclusion of "+pl1+" and "+pl2+":");
                 for (int k = 0; k < min; k++) {
@@ -246,8 +247,18 @@ public class  OverloadedFunction extends Fcn
                             exclDumpln(" right better.");
                         }
                         if (local_unrelated && unrelated == -1) {
-                            unrelated = k;
-                            exclDumpln("Unrelated.");
+                            // Here we check for self parameters!
+                            if (f1 instanceof FunctionalMethod &&
+                                f2 instanceof FunctionalMethod &&
+                                ((FunctionalMethod)f1).selfParameterIndex == ((FunctionalMethod)f2).selfParameterIndex &&
+                                ((FunctionalMethod)f1).selfParameterIndex == k) {
+                                exclDumpln("self params.");
+                                // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
+                                selfIndex = k;
+                            } else {
+                                unrelated = k;
+                                exclDumpln("Unrelated.");
+                            }
                         }
                     }
                 }
@@ -278,7 +289,7 @@ public class  OverloadedFunction extends Fcn
                             formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
                             formatParameterComparison(p2better, o1, o2, "less")));
                 }
-                if (!distinct && p1better < 0 && p2better < 0 ) {
+                if (!distinct && p1better < 0 && p2better < 0 && selfIndex < 0) {
                     String explanation = null;
                     if (l1 == l2 && rest1 == rest2) {
                         if (unequal)
