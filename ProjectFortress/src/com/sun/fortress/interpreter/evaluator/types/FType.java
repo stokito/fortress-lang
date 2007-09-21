@@ -68,7 +68,7 @@ abstract public class FType implements Comparable<FType> {
     final String name;
     private final int serial;
     private final int hash;
-    private BASet<FType> excludes = new BASet<FType>(comparator);
+    protected BASet<FType> excludes = new BASet<FType>(comparator);
     private static int counter;
     protected volatile List<FType> transitiveExtends;
    // Must be volatile due to lazy initialization / double-checked locking.
@@ -171,6 +171,8 @@ abstract public class FType implements Comparable<FType> {
 
     public boolean excludesOther(FType other) {
         if (other instanceof FTypeArrow) // FTypeArrow handles other case
+            return true;
+        if (other instanceof FTypeTuple) // FTypeTuple handles other case
             return true;
         else return excludesOtherInner(other);
     }

@@ -359,4 +359,100 @@ public class FTypeTuple extends FType {
         return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
     }
 
+    static final boolean DUMP_EXCLUSION = false;
+
+    private static void exclDump(String s) {
+        if (DUMP_EXCLUSION) {
+            System.out.print(s);
+        }
+    }
+
+    private static void exclDumpln(String s) {
+        if (DUMP_EXCLUSION) {
+            System.out.println(s);
+        }
+    }
+
+    @Override
+    public boolean excludesOther(FType other) {
+        exclDump(this +".excludesOther("+other+"):");
+
+        if (this==other) {
+            exclDumpln(" No.  Equal.");
+            return false;
+        }
+        if (!(other instanceof FTypeTuple)) {
+            exclDumpln(" Excludes.  Non-tuple.");
+            return true;
+        }
+
+        /* Step 0: Extract lists of types, and swap if this is longer
+         * just to keep the number of cases sane. */
+        List<FType> otherTypes = ((FTypeTuple) other).l;
+        int lSize = l.size();
+        int otherSize = otherTypes.size();
+        if (lSize > otherSize) {
+            exclDumpln(" Swapping.");
+            return other.excludesOther(this);
+        }
+
+        /* Step 0.5: Check cached excludes before doing anything fancy. */
+        if (excludes.contains(other)) {
+            exclDumpln(" Cached.");
+            return true;
+        }
+
+        /* Step 1: Figure out what to do with last element of shorter
+         * tuple.  Hope to fail fast by finding length mismatch w/o rest. */
+        FType last = l.get(lSize-1);
+        if (last instanceof FTypeRest) {
+            last = ((FTypeRest)last).getType();
+        } else if (otherSize > lSize) {
+            if (otherSize == lSize+1 &&
+                otherTypes.get(lSize) instanceof FTypeRest) {
+                exclDumpln(" No. Empty rest.");
+                return false;
+            }
+            exclDumpln(" Excludes. Length mismatch, no rest");
+            this.addExclude(other);
+            return true;
+        }
+
+        /* Step 2: Match up all-but-last elements of tuples.
+         */
+        for (int i=0; i < lSize-1; i++) {
+            if (l.get(i).excludesOther(otherTypes.get(i))) {
+                exclDumpln(" Excludes type "+ i);
+                this.addExclude(other);
+                return true;
+            }
+            exclDump(" "+ i);
+        }
+
+        /* Step 3: Match all-but-last element of longer tuple with
+         * last varargs type of shorter tuple. */
+        for (int i = lSize-1; i < otherSize-1; i++) {
+            if (last.excludesOther(otherTypes.get(i))) {
+                exclDumpln(" Excludes rest "+ i);
+                this.addExclude(other);
+                return true;
+            }
+            exclDump(" "+ i);
+        }
+
+        /* Step 4: Deal with the final element of both tuples,
+         * handling varargs in longer tuple. */
+        FType otherLast = l.get(otherSize-1);
+        if (otherLast instanceof FTypeRest) {
+            otherLast = ((FTypeRest)otherLast).getType();
+        }
+        if (last.excludesOther(otherLast)) {
+            exclDumpln(" Excludes last.");
+            this.addExclude(other);
+            return true;
+        }
+        exclDumpln(" No exclusion.");
+        return false;
+    }
+
 }

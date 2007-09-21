@@ -563,13 +563,16 @@ An object i that's an instance of Indexed defines three basic things:
 trait Indexed[\E, I\] extends Generator[\E\]
     getter isEmpty(): Boolean = size()=0
     getter size()
-    getter minIndex(): I
-    getter maxIndex(): I
+    getter bounds(): Range[\I\]
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
     getter indices(): Indexed[\I,I\] =
         indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
     opr[i:I] : E
+    opr[r:Range[\I\]] : Indexed[\E,I\] =
+        fail("Unrecoginzed range index " self "[" r "]")
+    (* opr[r:FullRange[\I\]] : Indexed[\E,I\] *)
+    opr[_:OpenRange[\I\]] : Indexed[\E,I\] = self
 
     (** The ivmap function isn't merely a convenient shortcut.  It's
         actually intended to create a copy of the underlying indexed
@@ -664,18 +667,18 @@ trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)
-    getter indices(): Generator[\I\] =
-        zeroIndices().map[\I\](fn (i:I):I => toIndex(i))
-    getter indexValuePairs(): Generator[\(I,E)\] =
+    getter bounds(): GeneratedRange[\I\]
+    getter indices(): Indexed[\I,I\] = bounds()
+    getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
-    getter generator(): Generator[\E\] =
+    getter generator(): Indexed[\E,I\] =
         zeroIndices().map[\E\](fn (i:I):E => get(i))
     (** ABSTRACT METHODS **)
     (** 0-based non-bounds-checked indexing **)
     get(i:I): E
     put(i:I, e:E): ()
     init0(i:I, e:E): () = put(i,e)
-    zeroIndices(): Generator[\I\]
+    zeroIndices(): GeneratedRange[\I\]
     (** Convert from base()-based indexing to 0-based indexing,
         performing bounds checking. **)
     offset(i:I): I
@@ -731,9 +734,7 @@ trait Array1[\T, nat b0, nat s0\]
               StandardArrayType[\Array1[\T,b0,s0\],T,ZZ32\] }
     excludes {Number, String}
   getter size():ZZ32 = s0
-  getter minIndex():ZZ32 = b0
-  getter maxIndex():ZZ32 = s0+b0-1
-  getter indices():ScalarRange[\ZZ32\] = b0#s0
+  getter bounds():ScalarRange[\ZZ32\] = b0#s0
   getter toString() = do
     r = "[" b0 "#" s0 "] = ["
     if s0=0 then
@@ -759,7 +760,7 @@ trait Array1[\T, nat b0, nat s0\]
   end
   toIndex(i:ZZ32):ZZ32 = i + b0
 
-  zeroIndices(): Generator[\ZZ32\] = 0#s0
+  zeroIndices(): ScalarRange[\ZZ32\] = 0#s0
 
   subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
     o0 : ZZ32 = o - b0
@@ -906,9 +907,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
               StandardArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32 = s0 s1
-  getter maxIndex():(ZZ32,ZZ32) = (s0+b0-1,s1+b1-1)
-  getter minIndex():(ZZ32,ZZ32) = (b0,b1)
-  getter indices(): Generator[\(ZZ32,ZZ32)\] = (b0#s0).cross[\ZZ32\](b1#s1)
+  getter bounds():Tuple2Range[\ZZ32,ZZ32\] = (b0,b1)#(s0,s1)
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
@@ -944,7 +943,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
   opr [x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
 
-  zeroIndices():Generator[\(ZZ32,ZZ32)\] = (0#s0).cross[\ZZ32\](0#s1)
+  zeroIndices():Tuple2Range[\ZZ32,ZZ32\] = (0,0)#(s0,s1)
 
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
@@ -1151,9 +1150,6 @@ opr DOT[\ T extends Number, nat n, nat m, nat p \]
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
 
-(* Helper function for Array3 *)
-flat3(t:(ZZ32,ZZ32), c:ZZ32): (ZZ32,ZZ32,ZZ32) = do (a,b) = t; (a,b,c) end
-
 (** Array3[\T,b0,s0,b1,s1,b2,s2\] is the type of 3-dimensional arrays
     of element type T, with size s_i in the i^th dimension and lowest
     index (b0,b1,b2).  Natural order for all generators in each
@@ -1167,11 +1163,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   excludes { Number, String }
 
   getter size():ZZ32 = s0 s1 s2
-  getter maxIndex():(ZZ32,ZZ32,ZZ32) = (b0+s0-1,b1+s1-1,b2+s2-1)
-  getter minIndex():(ZZ32,ZZ32,ZZ32) = (b0,b1,b2)
-
-  getter indices():Generator[\(ZZ32,ZZ32,ZZ32)\] =
-      (b0#s0).cross(b1#s1).cross(b2#s2).map(flat3)
+  getter bounds():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (b0,b1,b2)#(s0,s1,s2)
 
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
@@ -1216,8 +1208,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
   opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
 
-  zeroIndices():Generator[\(ZZ32,ZZ32,ZZ32)\] =
-      (0#s0).cross(0#s1).cross(0#s2).map(flat3)
+  zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (0,0,0)#(s0,s1,s2)
 
   replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
       __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]
@@ -1391,7 +1382,6 @@ end
  *  Note that a similar trick can be used to reverse and sequentialize
  *  a generator (use forward function composition rather than reverse
  *  composition, and flipping around the join at the leaves). *)
-
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     size() = g.size()
@@ -1411,6 +1401,7 @@ end
 trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], OpenRange[\T\] }
+    excludes { Number }
 end
 
 object OpenRange[\T\]() extends Range[\T\]
@@ -1421,7 +1412,7 @@ trait RangeWithLower[\T\] extends Range[\T\]
     getter lower():T
 end
 
-object LowerRange[\T\](lo:T)
+object LowerRange[\T\](lo:T) extends RangeWithLower[\T\]
     getter lower():T = lo
     toString():String = lower() "#"
 end
@@ -1431,7 +1422,7 @@ trait RangeWithUpper[\T\] extends Range[\T\]
     getter upper():T
 end
 
-object UpperRange[\T\](up:T)
+object UpperRange[\T\](up:T) extends RangeWithUpper[\T\]
     getter upper():T = up
     toString():String = ":" upper()
 end
@@ -1442,7 +1433,7 @@ trait RangeWithExtent[\T\] extends Range[\T\]
     toString():String = "#" extent()
 end
 
-object ExtentRange[\T\](ex:T) extends Range[\T\]
+object ExtentRange[\T\](ex:T) extends RangeWithExtent[\T\]
     getter extent():T = ex
 end
 
@@ -1464,11 +1455,10 @@ end
 
 trait GeneratedRange[\T\] extends { FullRange[\T\], Indexed[\T,T\] }
         comprises { ScalarRange[\T\], TupleRange[\T\] }
-    getter minIndex():T = lower()
-    getter maxIndex():T = upper()
+    getter bounds():GeneratedRange[\T\] = self
     getter indexValuePairs(): Generator[\(T,T)\] =
         self.map[\(T,T)\](fn (t:T):(T,T) => (t,t))
-    getter indices(): Generator[\T\] = self
+    getter indices(): GeneratedRange[\T\] = self
     (** Helper for partially ordering Ts, defines the indexing operations. **)
     before(a:T, b:T): Boolean
     (** another is used as a helper for other defaults. **)
@@ -1619,24 +1609,25 @@ trait TupleRange[\T\] extends GeneratedRange[\T\]
 end
 
 object Tuple2Range[\N extends Integral, M extends Integral\]
-                  (transient lo:(N,M), transient ex:(N,M))
-        extends { TupleRange[\(N,M)\] }
-    (l1,l2) = lo
-    (x1,x2) = ex
+                  (l1:N,l2:M,x1:N,x2:M)
+        extends { TupleRange[\(N,M)\], DelegatedIndexed[\(N,M),(N,M)\] }
     getter extent():(N,M) = (x1,x2)
     getter lower():(N,M) = (l1,l2)
     getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper())
     getter size():(N,M) = (l1#x1).size() (l2#x2).size()
-    getter generator():Generator[\(N,M)\] = (l1#x1).cross(l2#x2)
+    getter generator():Generator[\(N,M)\] = (l1#x1).cross[\M\](l2#x2)
     before(t1:(N,M),t2:(N,M)):Boolean =
         do (a1,b1) = t1; (a2,b2) = t2; a1 < a2 OR b1 < b2 end
+    another(t1:(N,M),t2:(N,M)):Tuple2Range[\N,M\] =
+        do (a1,b1) = t1; (a2,b2) = t2
+           Tuple2Range[\N,M\](a1,b1,a2,b2)
+        end
 end
 
 object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integral\]
-                  (transient lo:(N1,N2,N3), transient ex:(N1,N2,N3))
-        extends { TupleRange[\(N1,N2,N3)\] }
-    (l1,l2,l3) = lo
-    (x1,x2,x3) = ex
+                  (l1:N1,l2:N2,l3:N3,x1:N1,x2:N2,x3:N3)
+        extends { TupleRange[\(N1,N2,N3)\],
+                  DelegatedIndexed[\(N1,N2,N3),(N1,N2,N3)\] }
     getter extent():(N,M) = (x1,x2,x3)
     getter lower():(N,M) = (l1,l2,l3)
     getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
@@ -1646,16 +1637,34 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
     before(t1:(N1,N2,N3),t2:(N1,N2,N3)):Boolean =
         do (a1,b1,c1) = t1; (a2,b2,c2) = t2; a1 < a2 OR b1 < b2 OR c1 < c2 end
+    another(t1:(N,M),t2:(N,M)):Tuple3Range[\N,M\] =
+        do (a1,b1,c1) = t1; (a2,b2,c2) = t2
+           Tuple3Range[\N,M\](a1,b1,c1,a2,b2,c2)
+        end
 end
 
 (** The # and : operators serve as factories for parallel ranges. **)
 opr #[\I extends Integral\](lo:I, ex:I): ParRange[\I\] = ParRange[\I\](lo,ex)
 opr #(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] = ParRange[\ZZ32\](lo,ex)
+opr #[\I extends Integral, J extends Integral\]
+     (lo:(I,J), ex:(I,J)): Tuple2Range[\I,J\] =
+    do (l1,l2)=lo; (x1,x2)=ex; Tuple2Range[\I,J\](l1,l2,x1,x2) end
+opr #[\I extends Integral, J extends Integral, K extends Integral\]
+     (lo:(I,J,K), ex:(I,J,K)): Tuple3Range[\I,J,K\] =
+    do (l1,l2,l3)=lo; (x1,x2,x3)=ex; Tuple3Range[\I,J,K\](l1,l2,l3,x1,x2,x3) end
 
 opr :[\I extends Integral\](lo:I, hi:I): ParRange[\I\] =
         ParRange[\I\](lo,hi-lo+1)
 opr :(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] =
         ParRange[\ZZ32\](lo,hi-lo+1)
+opr :[\I extends Integral, J extends Integral\]
+     (lo:(I,J), hi:(I,J)): Tuple2Range[\I,J\] =
+    do (l1,l2)=lo; (h1,h2)=hi; Tuple2Range[\I,J\](l1,l2,h1-l1+1,h2-l2+1) end
+opr :[\I extends Integral, J extends Integral, K extends Integral\]
+     (lo:(I,J,K), hi:(I,J,K)): Tuple3Range[\I,J,K\] = do
+    (l1,l2,l3)=lo; (h1,h2,h3)=hi
+    Tuple3Range[\I,J,K\](l1,l2,l3,h1-l1+1,h2-l2+1,h3-l3+1)
+  end
 
 (** Factories for incomplete ranges **)
 (* BUG: we can't define both a prefix and a suffix version of a single

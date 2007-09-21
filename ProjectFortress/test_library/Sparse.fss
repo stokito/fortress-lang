@@ -23,9 +23,9 @@ export Sparse
 (*public*) object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
   extends Vector[\T,n\]
     get(i:ZZ32):T = do
-      b = mem.minIndex()
+      b = mem.bounds().lower()
       lo:ZZ32 := -1
-      hi:ZZ32 := mem.size()
+      hi:ZZ32 := mem.bounds().extent()
       while lo + 1 < hi do
         mid = (lo+hi) DIV 2
         (ii,_) = mem[b+mid]

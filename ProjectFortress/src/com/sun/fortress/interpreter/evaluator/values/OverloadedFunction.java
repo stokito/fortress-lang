@@ -56,6 +56,20 @@ public class  OverloadedFunction extends Fcn
     protected boolean finishedSecond = false;
     protected FnName fnName;
 
+    static final boolean DUMP_EXCLUSION = false;
+
+    private static void exclDump(String s) {
+        if (DUMP_EXCLUSION) {
+            System.out.print(s);
+        }
+    }
+
+    private static void exclDumpln(String s) {
+        if (DUMP_EXCLUSION) {
+            System.out.println(s);
+        }
+    }
+
     BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
         new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
 
@@ -192,14 +206,19 @@ public class  OverloadedFunction extends Fcn
                 boolean sawSymbolic1 = false;
                 boolean sawSymbolic2 = false;
 
+                exclDumpln("Checking exclusion of "+pl1+" and "+pl2+":");
                 for (int k = 0; k < min; k++) {
                     FType p1 = pl1.get(k);
                     FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
+                    exclDump(k+": "+p1+" and "+p2+", ");
 
                     p1 = deRest(p1);
                     p2 = deRest(p2);
 
-                    if (p1.equals(p2)) continue;
+                    if (p1==p2) {
+                        exclDumpln("equal.");
+                        continue;
+                    }
 
                     if (p1.isSymbolic() )
                         sawSymbolic1 = true;
@@ -210,6 +229,7 @@ public class  OverloadedFunction extends Fcn
                     unequal = true;
 
                     if (p1.excludesOther(p2)) {
+                        exclDumpln("distinct.");
                         distinct = true;
                     } else {
                         boolean local_unrelated = true;
@@ -218,13 +238,17 @@ public class  OverloadedFunction extends Fcn
                         if (p1subp2 && !p2subp1) {
                             p1better = k;
                             local_unrelated = false;
+                            exclDumpln(" left better.");
                          }
                         if (p2subp1 && !p1subp2) {
                             p2better = k;
                             local_unrelated = false;
+                            exclDumpln(" right better.");
                         }
-                        if (local_unrelated && unrelated == -1)
+                        if (local_unrelated && unrelated == -1) {
                             unrelated = k;
+                            exclDumpln("Unrelated.");
+                        }
                     }
                 }
 
