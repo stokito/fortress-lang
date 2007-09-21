@@ -1585,9 +1585,10 @@ is true."
       (signal-error error-string))))
 
 (defun remove-copyright ()
-  (remove-block 'at-start-of-copyright 'at-end-of-copyright 
-		(concat "Copyright notice must be terminated with"
-			"'(** END COPYRIGHT **)'.")))
+  (if (at-start-of-copyright)
+      (remove-block 'at-start-of-copyright 'at-end-of-copyright 
+		    (concat "Copyright notice must be terminated with"
+			    "'(** END COPYRIGHT **)'."))))
 
 (defun omit-tests ()
   (remove-block 'at-start-of-tests 'at-end-of-tests
