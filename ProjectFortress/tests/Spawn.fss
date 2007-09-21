@@ -45,8 +45,9 @@ end
 test3():() = do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
-   spawn do while (x = 0) do y := 1 end end
+   pt:PrimitiveThread[\Any\] = spawn do y := 1; while (x = 0) do end end
    x:=1
+   pt.wait()
    assert(y=1,"test3 y=1")
 end
 
