@@ -17,6 +17,7 @@
 
 component FortressLibrary
 import * from NativeArray
+import * from NativeThread
 export Executable
 
 (** The following function is actually recognized as a special piece

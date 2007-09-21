@@ -83,10 +83,12 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.TupleExpr;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -787,6 +789,8 @@ public class Desugarer extends Rewrite {
                         return NI.nyi("forAtDo");
                     }
                     return visitGeneratorList(f, f.getGens(), LOOP_NAME, df.getExpr());
+                } else if (node instanceof Spawn) {
+                    return translateSpawn((Spawn)node);
                 } else {
                     atTopLevelInsideTraitOrObject = false;
                 }
@@ -1093,6 +1097,25 @@ public class Desugarer extends Rewrite {
                                 visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteral(node.getSpan()) : // wrong span
                                 visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                     new TupleExpr(visitedArgs));
+    }
+
+    private AbstractNode translateSpawn(Spawn s) {
+        Expr body = s.getBody();
+        Span sp   = s.getSpan();
+        // If the user writes Spawn(foo) instead of Spawn(foo()) we get an inexplicable error
+        // message.  We might want to put in a check for that someday.
+	AbstractNode rewrittenExpr =  visit(body);
+        Expr in_fn = new VarRef(sp, new QualifiedIdName(new IdName(sp, new Id("PrimitiveThread"))));
+        List<StaticArg> args = new ArrayList<StaticArg>();
+        args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new IdName(sp, new Id("Any"))))));
+	_RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
+        List<Param> params = new ArrayList<Param>();
+        FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
+        List<Expr> exprs = new ArrayList<Expr>();
+        exprs.add(fn);
+	exprs.add(fnExpr);
+        TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
+        return juxt;
     }
 
     private boolean looksLikeMethodInvocation(Juxt node) {

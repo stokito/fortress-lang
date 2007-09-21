@@ -15,13 +15,21 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Spawn2
-export Executable
+component NativeThread
+export NativeThread
 
-run(args:String...):()=do
-   var x : ZZ32 = 0
-   spawn do while (x = 0) do println("I love to Spin") end end
-   x:=1
-   println("Success")
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
+
+object PrimitiveThread[\T\] (fcn:()->T)
+  val():T         = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$val")
+  wait():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$wait")
+  ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$ready")
+  stop():()       = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveThread$stop")
 end
 end
+
+
+
+
+

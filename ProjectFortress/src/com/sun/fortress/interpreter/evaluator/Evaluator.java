@@ -46,7 +46,6 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FStringLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FThread;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
@@ -1075,8 +1074,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     */
 
     public FValue forSpawn(Spawn x) {
-        Expr body = x.getBody();
-        return new FThread(body, this);
+      //        Expr body = x.getBody();
+      //        FThread ft = new FThread(body,this);
+        return NI("forSpawn");
     }
 
     public FValue forStringLiteral(StringLiteral x) {

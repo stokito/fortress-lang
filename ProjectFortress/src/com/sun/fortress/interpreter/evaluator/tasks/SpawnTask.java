@@ -20,18 +20,23 @@
 package com.sun.fortress.interpreter.evaluator.tasks;
 
 import java.io.IOException; 
+import java.util.List;
+import java.util.ArrayList;
 
+import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.useful.HasAt;
 
 import jsr166y.forkjoin.*;
 
 public class SpawnTask extends BaseTask {
     
-    Expr expr;
+    SingleFcn fcn;
     
     Evaluator eval;
     
@@ -40,16 +45,19 @@ public class SpawnTask extends BaseTask {
     public void compute() {
 	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
 	runner.setCurrentTask(this);
-	val = new Evaluator(eval, expr).eval(expr);
+        List<FValue> args = new ArrayList<FValue>();
+        HasAt loc = new HasAt.FromString("FRED");
+        BetterEnv e = eval.e;
+	val = fcn.apply(args, loc, e);
     }
     
-    public SpawnTask(Expr b, Evaluator e) {
-        expr = b;
+    public SpawnTask(SingleFcn sf, Evaluator e) {
+        fcn = sf;
         eval = e;
     }
     
     public void print() {
-        System.out.println("Spawn Task: Expr = " + expr +
+        System.out.println("Spawn Task: Function = " + fcn +
                            " eval = " + eval +
                            " val = " + val);
     }
@@ -63,3 +71,5 @@ public class SpawnTask extends BaseTask {
 	while (!isDone());
     }
 }
+
+

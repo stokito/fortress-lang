@@ -15,27 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Spawn3
-export Executable
+api NativeThread
 
-x: ZZ32 := 0
-i: ZZ32 := 0
+object PrimitiveThread[\T\]() end
 
-(* This tended to fail spuriously (and often) with a stack overflow in
-   its previous tail-recursive incarnation.  Now we just keep an
-   iteration count and fail if we reach the iteration count. *)
-a() = while x = 0 AND i < 1000 do
-          println("I love to Spin")
-          i += 1
-      end
-
-run(args:String...):()=do
-   spawn do a() end
-   x:=1
-   if i<1000 then
-       println("Success")
-   else
-       println("FAIL")
-   end
-end
 end
