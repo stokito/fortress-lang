@@ -59,7 +59,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DottedName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportFrom;
@@ -444,8 +444,8 @@ public class Driver {
                     /* A set of names */
                     List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
                     for (AliasedName an : names) {
-                        FnName name = an.getName();
-                        Option<FnName> alias = an.getAlias();
+                        SimpleName name = an.getName();
+                        Option<SimpleName> alias = an.getAlias();
                         /*
                          * If alias exists, associate the binding from
                          * component_wrapper with alias, otherwise associate
@@ -458,11 +458,11 @@ public class Driver {
 
                 } else if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed. */
-                    final List<FnName> excepts = ((ImportStar) ix)
+                    final List<SimpleName> excepts = ((ImportStar) ix)
                             .getExcept();
                     final List<String> except_names = Useful.applyToAll(
-                            excepts, new Fn<FnName, String>() {
-                                public String apply(FnName n) {
+                            excepts, new Fn<SimpleName, String>() {
+                                public String apply(SimpleName n) {
                                     return NodeUtil.nameString(n);
                                 }
                             });
@@ -514,8 +514,8 @@ public class Driver {
                     /* A set of names */
                     List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
                     for (AliasedName an : names) {
-                        FnName name = an.getName();
-                        Option<FnName> alias = an.getAlias();
+                        SimpleName name = an.getName();
+                        Option<SimpleName> alias = an.getAlias();
                         /*
                          * If alias exists, associate the binding from
                          * component_wrapper with alias, otherwise associate
@@ -527,12 +527,12 @@ public class Driver {
 
                 } else if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed. */
-                    final List<FnName> excepts = ((ImportStar) ix)
+                    final List<SimpleName> excepts = ((ImportStar) ix)
                             .getExcept();
                     final Set<String> except_names = Useful.applyToAllInserting(
                             excepts,
-                            new Fn<FnName, String>() {
-                                public String apply(FnName n) {
+                            new Fn<SimpleName, String>() {
+                                public String apply(SimpleName n) {
                                     return NodeUtil.nameString(n);
                                 }
                             },
@@ -680,7 +680,7 @@ public class Driver {
     }
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
-            FnName name, Option<FnName> alias, String a, String c) {
+            SimpleName name, Option<SimpleName> alias, String a, String c) {
         String s = NodeUtil.nameString(name);
         String add_as = s;
         if (alias.isSome()) {

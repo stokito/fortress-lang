@@ -24,7 +24,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.DottedName;
 
 import com.sun.fortress.useful.NI;
@@ -34,12 +34,12 @@ public class CompilationUnitIndex {
     
     private final CompilationUnit _ast;
     private final Map<IdName, Variable> _variables;
-    private final Relation<FnName, Function> _functions;
+    private final Relation<SimpleName, Function> _functions;
     private final Map<IdName, TypeConsIndex> _typeConses;
     
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<IdName, Variable> variables,
-                                Relation<FnName, Function> functions,
+                                Relation<SimpleName, Function> functions,
                                 Map<IdName, TypeConsIndex> typeConses) {
         _ast = ast;
         _variables = Collections.unmodifiableMap(variables);
@@ -59,7 +59,7 @@ public class CompilationUnitIndex {
     
     public Map<IdName, Variable> variables() { return _variables; }
     
-    public Relation<FnName, Function> functions() { return _functions; }
+    public Relation<SimpleName, Function> functions() { return _functions; }
     
     public Map<IdName, TypeConsIndex> typeConses() { return _typeConses; }
     

@@ -39,7 +39,7 @@ public class NodeUtil {
 
     public static final String defaultSelfName = WellKnownNames.defaultSelfName;
 
-    
+
     public static Iterable<Id> getIds(final QualifiedIdName qName) {
         return qName.getApi().apply(new OptionVisitor<DottedName, Iterable<Id>>() {
             public Iterable<Id> forSome(DottedName apiName) {
@@ -75,13 +75,13 @@ public class NodeUtil {
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
         String name = nameString(app.getName());
-        
+
             int spi = selfParameterIndex(app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + name;
             else
                 return name;
-        
+
     }
 
     public static Option<Expr> getBody(Applicable def) {
@@ -111,7 +111,7 @@ public class NodeUtil {
 
     private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
-        
+
         @Override public String forDottedName(DottedName n) {
             return nameString(n);
             }
@@ -141,16 +141,16 @@ public class NodeUtil {
     public static String nameString(IdName n) {
         return n.getId().getText();
     }
-    
+
     public static String nameString(Opr n) {
         return n.getOp().getText();
     }
-    
+
     public static String nameString(DottedName n) {
         Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
         return IterUtil.toString(ns, "", ".", "");
     }
-    
+
     public static String nameString(QualifiedName n) {
         final String last = n.getName().accept(nameGetter);
 //        return n.getApi().apply(new OptionVisitor<DottedName, String>() {
@@ -162,11 +162,11 @@ public class NodeUtil {
         Option<DottedName> odn = n.getApi();
         return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
-    
+
     public static String namesString(Iterable<? extends Name> names) {
         return IterUtil.toString(IterUtil.map(names, NameToStringFn), "", ", ", "");
     }
-    
+
 
     /* getName *************************************************************/
     public static String getName(StaticParam param) {
@@ -210,7 +210,7 @@ public class NodeUtil {
         public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
             return nameString(node.getName());
         }
-        public String forFnName(FnName node) {
+        public String forSimpleName(SimpleName node) {
             return nameString(node);
         }
         public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
@@ -229,8 +229,8 @@ public class NodeUtil {
             return node.getClass().getSimpleName();
         }
     };
-    
-    
+
+
     /* stringName **********************************************************/
     public static String stringName(Node the_node) {
         return the_node.accept(stringNameVisitor);
@@ -334,7 +334,7 @@ public class NodeUtil {
         Printer p = new Printer(true, true, true);
         p.dump(n, appendable, 0);
     }
-    
+
     public static <T> T NYI(String s) {
         return (T)bug("AST." + s + " NYI");
     }

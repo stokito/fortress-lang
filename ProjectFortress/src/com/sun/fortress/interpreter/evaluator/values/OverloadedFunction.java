@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;
@@ -54,7 +54,7 @@ public class  OverloadedFunction extends Fcn
     protected List<Overload> overloads = new ArrayList<Overload>();
     protected boolean finishedFirst = false;
     protected boolean finishedSecond = false;
-    protected FnName fnName;
+    protected SimpleName fnName;
 
     static final boolean DUMP_EXCLUSION = false;
 
@@ -86,7 +86,7 @@ public class  OverloadedFunction extends Fcn
         return finishedSecond;
     }
 
-    public FnName getFnName() {
+    public SimpleName getFnName() {
         return fnName;
     }
 
@@ -373,12 +373,12 @@ public class  OverloadedFunction extends Fcn
      *
      * @param within
      */
-    public OverloadedFunction(FnName fnName, BetterEnv within) {
+    public OverloadedFunction(SimpleName fnName, BetterEnv within) {
         super(within);
         this.fnName = fnName;
     }
 
-    public OverloadedFunction(FnName fnName, Set<? extends Simple_fcn> ssf, BetterEnv within) {
+    public OverloadedFunction(SimpleName fnName, Set<? extends Simple_fcn> ssf, BetterEnv within) {
         this(fnName, within);
         for (Simple_fcn sf : ssf) {
             addOverload(sf);

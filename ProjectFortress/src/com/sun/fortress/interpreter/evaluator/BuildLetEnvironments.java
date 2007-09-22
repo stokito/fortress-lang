@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetExpr;
@@ -65,7 +65,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         for (int i = 0; i < fns.size(); i++) {
             FnDef fn = fns.get(i);
 
-            FnName name = fn.getName();
+            SimpleName name = fn.getName();
             //Expr expr = fn.getBody();
             String fname = NodeUtil.nameString(name);
             List<Param> params = fn.getParams();

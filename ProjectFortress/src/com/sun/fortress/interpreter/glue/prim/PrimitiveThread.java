@@ -39,7 +39,6 @@ import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnName;
 import com.sun.fortress.nodes.GenericWithParams;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
@@ -63,7 +62,7 @@ public class PrimitiveThread extends Constructor {
             super(selfType, BetterEnv.empty(), self_dot_env);
             int numThreads = Runtime.getRuntime().availableProcessors();
             String numThreadsString = System.getenv("FORTRESS_THREADS");
-        
+
             if (numThreadsString != null)
                 numThreads = Integer.parseInt(numThreadsString);
             group = new FortressTaskRunnerGroup(numThreads);
@@ -107,6 +106,3 @@ public class PrimitiveThread extends Constructor {
         }
     }
 }
-
-
-

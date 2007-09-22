@@ -23,7 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 
 import com.sun.fortress.useful.NI;
 
@@ -34,8 +34,8 @@ public class ProperTraitIndex extends TraitIndex {
                             Map<IdName, Method> getters,
                             Map<IdName, Method> setters,
                             Set<Function> coercions,
-                            Relation<FnName, Method> dottedMethods,
-                            Relation<FnName, FunctionalMethod> functionalMethods) {
+                            Relation<SimpleName, Method> dottedMethods,
+                            Relation<SimpleName, FunctionalMethod> functionalMethods) {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
     }
     

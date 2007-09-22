@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;

@@ -66,7 +66,7 @@ import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
@@ -522,7 +522,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
        return null;
     }
 
-//    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, FnName name,
+//    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, SimpleName name,
 //            Simple_fcn cl) {
 //        Fcn g = (Fcn) e.getValueNull(name.name());
 //        if (g == null) {
@@ -567,7 +567,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //     * @param cl
 //     */
 //    private void putOrOverloadOrShadowGeneric(HasAt x, BetterEnv e,
-//            FnName name, FValue cl) {
+//            SimpleName name, FValue cl) {
 //        FValue fv = e.getValueNull(name.name());
 //        if (fv != null && !(fv instanceof Fcn)) {
 //            error(x, e, "Generic not generic? " + name.name());
@@ -626,13 +626,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         return new Closure(e, x);
     }
 
-    private void putFunction(BetterEnv e, FnName name, FValue f, HasAt x) {
+    private void putFunction(BetterEnv e, SimpleName name, FValue f, HasAt x) {
         String s = NodeUtil.nameString(name);
         guardedPutValue(e, s, f, x);
         e.noteName(s);
     }
 
-    private static void assignFunction(BetterEnv e, FnName name, FValue f) {
+    private static void assignFunction(BetterEnv e, SimpleName name, FValue f) {
         e.putValueUnconditionally(NodeUtil.nameString(name), f);
     }
 

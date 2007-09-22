@@ -60,10 +60,10 @@ import com.sun.fortress.compiler.index.ApiIndex;
 public class ExprDisambiguator extends NodeUpdateVisitor {
     
     private NameEnv _env;
-    private Set<FnName> _onDemandImports;
+    private Set<SimpleName> _onDemandImports;
     private List<StaticError> _errors;
     
-    public ExprDisambiguator(NameEnv env, Set<FnName> onDemandImports,
+    public ExprDisambiguator(NameEnv env, Set<SimpleName> onDemandImports,
                              List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;
@@ -111,15 +111,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     /** LetFns introduce local functions while visiting the body. */
     @Override public Node forLetFn(LetFn that) {
       List<FnDef> fnsResult = recurOnListOfFnDef(that.getFns());
-      Set<FnName> definedNames = extractDefinedFnNames(fnsResult);
+      Set<SimpleName> definedNames = extractDefinedFnNames(fnsResult);
       NameEnv newEnv = new LocalFnEnv(_env, definedNames);
       ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLetFnOnly(that, bodyResult, fnsResult);
     }
     
-    private Set<FnName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
-      Set<FnName> result = new HashSet<FnName>();
+    private Set<SimpleName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
+      Set<SimpleName> result = new HashSet<SimpleName>();
       for (FnDef fd : fnDefs) { result.add(fd.getName()); }
       // multiple instances of the same name are allowed
       return result;

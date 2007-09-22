@@ -88,7 +88,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
  *  - String nameAsMethod(Applicable)
  *  - Option<Expr> getBody(Applicable)
  */
-interface Applicable(FnName name, List<StaticParam> staticParams,
+interface Applicable(SimpleName name, List<StaticParam> staticParams,
                      List<Param> params, Option<Type> returnType,
                      List<WhereClause> where) extends HasAt;
 
@@ -145,7 +145,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * e.g.) import * except {opr UNION, union} from Set
              */
-            ImportStar(List<FnName> except);
+            ImportStar(List<SimpleName> except);
             /**
              * e.g.) import {empty, union} from Set
              */
@@ -168,7 +168,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * EncloserPair ::= LeftEncloser RightEncloser
      * e.g.) longComplexName as shortName
      */
-    AliasedName(FnName name, Option<FnName> alias = Option.<FnName>none());
+    AliasedName(SimpleName name, Option<SimpleName> alias = Option.<SimpleName>none());
     /**
      * aliased dotted id used in import statements
      * AliasedDottedName ::= DottedName (as DottedName)?
@@ -350,7 +350,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract FnAbsDeclOrDecl(List<Modifier> mods
                                  = Collections.<Modifier>emptyList(),
-                             FnName name,
+                             SimpleName name,
                              List<StaticParam> staticParams
                                  = Collections.<StaticParam>emptyList(),
                              List<Param> params,
@@ -450,8 +450,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * syntax expanders declaration in components or APIs
      */
-    abstract ExternalSyntaxAbsDeclOrDecl(FnName openExpander, IdName name,
-                                         FnName closeExpander)
+    abstract ExternalSyntaxAbsDeclOrDecl(SimpleName openExpander, IdName name,
+                                         SimpleName closeExpander)
                                         implements AbsDeclOrDecl;
         /**
          * syntax expanders declaration in APIs
@@ -712,7 +712,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
                boolean parenthesized = false,
-               FnName name = new AnonymousFnName(in_span),
+               SimpleName name = new AnonymousFnName(in_span),
                List<StaticParam> staticParams
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
@@ -1114,7 +1114,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * StaticArg ::= Op
              * e.g.) +
              */
-            OprArg(FnName name);
+            OprArg(SimpleName name);
             /**
              * dimension used as static argument
              * StaticArg ::= DimExpr
@@ -1563,7 +1563,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         OperatorParam(OpName name);
        /**
          * type parameter
-         * StaticParam ::= Id Extends? ( absorbs unit )?
+         * StaticParam ::= Id Extends? (absorbs unit)?
          * e.g.) EltType extends Number absorbs unit
          */
         SimpleTypeParam(IdName name,
@@ -1572,7 +1572,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                         boolean absorbs = false);
        /**
          * unit parameter
-         * StaticParam ::= unit Id ( : DimExpr )? ( absorbs unit )?
+         * StaticParam ::= unit Id (: DimExpr)? (absorbs unit)?
          * e.g.) unit U absrbs unit
          */
         UnitParam(IdName name, Option<DimExpr> dim = Option.<DimExpr>none(),
@@ -1582,7 +1582,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract Name();
         /**
-         * An unstructured sequence of ids naming an API or component
+         * unstructured sequence of ids naming an API or component
          * DottedName ::= (Id.)*Id
          * e.g.) com.sun.fortress.nodes_util
          */
@@ -1591,7 +1591,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * A name prefixed by an optional API name
          */
         abstract QualifiedName(Option<DottedName> api = Option.<DottedName>none(),
-                               FnName name);
+                               SimpleName name);
             /**
              * qualified id name
              * QualifiedIdName ::= (Id.)*Id
@@ -1605,15 +1605,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             QualifiedOpName(OpName name);
         /**
-         * The declared name of a functional
+         * unqualified name
          */
-        abstract FnName();
+        abstract SimpleName();
             /**
-             * Simple id-based name of an entity
+             * unqualified id name
              */
             IdName(Id id);
             /**
-             * name representing operators
+             * unqualified operator name
              */
             abstract OpName();
                 /**

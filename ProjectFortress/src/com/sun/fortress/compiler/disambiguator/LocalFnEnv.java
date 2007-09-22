@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import java.util.Collections;
 
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -28,9 +28,9 @@ import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 public class LocalFnEnv extends DelegatingNameEnv {
-    private Set<FnName> _fns;
+    private Set<SimpleName> _fns;
     
-    public LocalFnEnv(NameEnv parent, Set<FnName> fns) {
+    public LocalFnEnv(NameEnv parent, Set<SimpleName> fns) {
         super(parent);
         _fns = fns;
     }

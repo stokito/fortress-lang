@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -35,7 +35,7 @@ import com.sun.fortress.useful.Useful;
 
 public class NativeApplicable implements Applicable {
     String name;
-    FnName fnName;
+    SimpleName fnName;
 
     NativeApplicable(String name) {
         this.name = name;
@@ -61,7 +61,7 @@ public class NativeApplicable implements Applicable {
         return NI.ni();
     }
 
-    public FnName getName() {
+    public SimpleName getName() {
         return fnName;
     }
 

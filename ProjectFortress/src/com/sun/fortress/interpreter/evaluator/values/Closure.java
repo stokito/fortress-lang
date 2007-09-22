@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -59,7 +59,7 @@ public class Closure extends NonPrimitive implements Scope {
      * @see com.sun.fortress.interpreter.evaluator.values.Fcn#getFnName()
      */
     @Override
-    public FnName getFnName() {
+    public SimpleName getFnName() {
         return def.getName();
     }
 

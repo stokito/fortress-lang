@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticParam;
@@ -88,7 +88,7 @@ public abstract class NativeApp implements Applicable {
     public List<StaticParam> getStaticParams() {
         return a.getStaticParams();
     }
-    public FnName getName() { return a.getName(); }
+    public SimpleName getName() { return a.getName(); }
     public List<WhereClause> getWhere() { return a.getWhere(); }
     public String at() { return a.at(); }
     public String stringName() { return a.stringName(); }

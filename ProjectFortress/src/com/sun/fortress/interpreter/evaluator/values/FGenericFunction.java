@@ -28,7 +28,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeComparator;
@@ -185,7 +185,7 @@ public class FGenericFunction extends SingleFcn
     }
 
     @Override
-    public FnName getFnName() {
+    public SimpleName getFnName() {
         return fndef.getName();
     }
 
@@ -199,8 +199,8 @@ public class FGenericFunction extends SingleFcn
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            FnName fn0 = a0.getName();
-            FnName fn1 = a1.getName();
+            SimpleName fn0 = a0.getName();
+            SimpleName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;

@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericFul
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OperatorParam;
@@ -179,8 +179,8 @@ public class GenericMethod extends MethodClosure implements
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            FnName fn0 = a0.getName();
-            FnName fn1 = a1.getName();
+            SimpleName fn0 = a0.getName();
+            SimpleName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;

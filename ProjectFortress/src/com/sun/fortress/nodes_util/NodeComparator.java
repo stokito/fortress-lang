@@ -162,8 +162,8 @@ public class NodeComparator {
     }
 
     public static int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
-        FnName fn0 = left.getName();
-        FnName fn1 = right.getName();
+        SimpleName fn0 = left.getName();
+        SimpleName fn1 = right.getName();
         int x = NodeComparator.compare(fn0, fn1);
         if (x != 0)  return x;
         x = compare(left.getStaticParams(), right.getStaticParams());
@@ -172,7 +172,7 @@ public class NodeComparator {
         return x;
     }
 
-    public static int compare(FnName left, FnName right) {
+    public static int compare(SimpleName left, SimpleName right) {
         Class leftClass = left.getClass();
         Class rightClass = right.getClass();
 

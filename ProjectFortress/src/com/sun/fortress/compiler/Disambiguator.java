@@ -27,7 +27,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DottedName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -82,7 +82,7 @@ public class Disambiguator {
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index);
-            Set<FnName> onDemandImports = new HashSet<FnName>();
+            Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
@@ -123,7 +123,7 @@ public class Disambiguator {
                 throw new IllegalArgumentException("Missing component index");
             }
             NameEnv env = new TopLevelEnv(globalEnv, index);
-            Set<FnName> onDemandImports = new HashSet<FnName>();
+            Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) comp.accept(td);

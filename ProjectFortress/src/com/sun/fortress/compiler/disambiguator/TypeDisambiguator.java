@@ -58,10 +58,10 @@ import com.sun.fortress.useful.HasAt;
 public class TypeDisambiguator extends NodeUpdateVisitor {
     
     private TypeNameEnv _env;
-    private Set<FnName> _onDemandImports;
+    private Set<SimpleName> _onDemandImports;
     private List<StaticError> _errors;
     
-    public TypeDisambiguator(TypeNameEnv env, Set<FnName> onDemandImports,
+    public TypeDisambiguator(TypeNameEnv env, Set<SimpleName> onDemandImports,
                              List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;

@@ -1,3 +1,19 @@
+* Constraints that should be checked by the static checker
+ 1) Operator Declarations
+  - An infix/multifix operator declaration must not have any keyword parameters,
+    and must be capable of accepting at least two arguments.  It is permissible
+    to use a varargs parameter.
+  - An operator declaration for superscripting (^) should have exactly two value
+    parameters.
+  - A prefix operator declaration must have one value parameter, which must not
+    be a keyword parameter or varargs parameter.
+  - A postfix operator declaration must have one value parameter, which must not
+    be a keyword parameter or varargs parameter
+  - A nofix operator declaration must have no parameters.
+  - If a result type appears in a subscripted assignment operator method
+    declaration, it must be ().
+
+
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast
  1) CSG defines productions for "NONTERMINALs" and "NONTERMINALList". For

@@ -87,7 +87,7 @@ FnHeaderFront OpHeaderFront =
      opr opa1:(w StaticParams)? big:(w BIG)? w opa2:(LeftEncloser / Encloser) w
      opa3:Params w opa4:(RightEncloser / Encloser) opa5:(w void:colonequals w
      openparen w SubscriptAssignParam w closeparen)?
-     { FnName name;
+     { SimpleName name;
        Span span = createSpan(yyStart,yyCount);
        String left  = opa2.getText();
        String right = opa4.getText();

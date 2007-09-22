@@ -95,8 +95,8 @@ public class IndexBuilder {
     /** Create an ApiIndex and add it to the given map. */
     private void buildApi(Api ast, Map<DottedName, ApiIndex> apis) {
         final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
-        final Relation<FnName, Function> functions =
-          new HashRelation<FnName, Function>(true, false);
+        final Relation<SimpleName, Function> functions =
+          new HashRelation<SimpleName, Function>(true, false);
         final Map<IdName, TypeConsIndex> typeConses =
             new HashMap<IdName, TypeConsIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
@@ -140,8 +140,8 @@ public class IndexBuilder {
                                 Map<DottedName, ComponentIndex> components) {
         final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
-        final Relation<FnName, Function> functions =
-            new HashRelation<FnName, Function>(true, false);
+        final Relation<SimpleName, Function> functions =
+            new HashRelation<SimpleName, Function>(true, false);
         final Map<IdName, TypeConsIndex> typeConses =
             new HashMap<IdName, TypeConsIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
@@ -191,15 +191,15 @@ public class IndexBuilder {
      */
     private void buildTrait(TraitAbsDeclOrDecl ast,
                             Map<IdName, TypeConsIndex> typeConses,
-                            final Relation<FnName, Function> functions) {
+                            final Relation<SimpleName, Function> functions) {
         final IdName name = ast.getName();
         final Map<IdName, Method> getters = new HashMap<IdName, Method>();
         final Map<IdName, Method> setters = new HashMap<IdName, Method>();
         final Set<Function> coercions = new HashSet<Function>();
-        final Relation<FnName, Method> dottedMethods =
-            new HashRelation<FnName, Method>(true, false);
-        final Relation<FnName, FunctionalMethod> functionalMethods =
-            new HashRelation<FnName, FunctionalMethod>(true, false);
+        final Relation<SimpleName, Method> dottedMethods =
+            new HashRelation<SimpleName, Method>(true, false);
+        final Relation<SimpleName, FunctionalMethod> functionalMethods =
+            new HashRelation<SimpleName, FunctionalMethod>(true, false);
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsVarDecl(AbsVarDecl d) {
                 buildTraitFields(d, name, getters, setters);
@@ -227,7 +227,7 @@ public class IndexBuilder {
      */
     private void buildObject(ObjectAbsDeclOrDecl ast,
                              Map<IdName, TypeConsIndex> typeConses,
-                             final Relation<FnName, Function> functions,
+                             final Relation<SimpleName, Function> functions,
                              Map<IdName, Variable> variables) {
         final IdName name = ast.getName();
         final Map<IdName, Variable> fields = new HashMap<IdName, Variable>();
@@ -235,10 +235,10 @@ public class IndexBuilder {
         final Map<IdName, Method> getters = new HashMap<IdName, Method>();
         final Map<IdName, Method> setters = new HashMap<IdName, Method>();
         final Set<Function> coercions = new HashSet<Function>();
-        final Relation<FnName, Method> dottedMethods =
-            new HashRelation<FnName, Method>(true, false);
-        final Relation<FnName, FunctionalMethod> functionalMethods =
-            new HashRelation<FnName, FunctionalMethod>(true, false);
+        final Relation<SimpleName, Method> dottedMethods =
+            new HashRelation<SimpleName, Method>(true, false);
+        final Relation<SimpleName, FunctionalMethod> functionalMethods =
+            new HashRelation<SimpleName, FunctionalMethod>(true, false);
 
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
@@ -341,7 +341,7 @@ public class IndexBuilder {
      * relation.
      */
     private void buildFunction(FnAbsDeclOrDecl ast,
-                               Relation<FnName, Function> functions) {
+                               Relation<SimpleName, Function> functions) {
         functions.add(ast.getName(), new DeclaredFunction(ast));
     }
 
@@ -355,12 +355,12 @@ public class IndexBuilder {
                              Map<IdName, Method> getters,
                              Map<IdName, Method> setters,
                              Set<Function> coercions,
-                             Relation<FnName, Method> dottedMethods,
-                             Relation<FnName, FunctionalMethod> functionalMethods,
-                             Relation<FnName, Function> topLevelFunctions) {
+                             Relation<SimpleName, Method> dottedMethods,
+                             Relation<SimpleName, FunctionalMethod> functionalMethods,
+                             Relation<SimpleName, Function> topLevelFunctions) {
         ModifierSet mods = extractModifiers(ast.getMods());
         // TODO: check for correct modifiers?
-        FnName name = ast.getName();
+        SimpleName name = ast.getName();
         if (mods.isGetter) {
             if (name instanceof IdName) {
                 getters.put((IdName) name, new DeclaredMethod(ast, declaringTrait));

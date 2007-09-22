@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 
 import com.sun.fortress.useful.NI;
 
@@ -38,15 +38,15 @@ public abstract class TraitIndex extends TypeConsIndex {
     private final Map<IdName, Method> _getters;
     private final Map<IdName, Method> _setters;
     private final Set<Function> _coercions;
-    private final Relation<FnName, Method> _dottedMethods;
-    private final Relation<FnName, FunctionalMethod> _functionalMethods;
+    private final Relation<SimpleName, Method> _dottedMethods;
+    private final Relation<SimpleName, FunctionalMethod> _functionalMethods;
     
     public TraitIndex(TraitObjectAbsDeclOrDecl ast,
                       Map<IdName, Method> getters,
                       Map<IdName, Method> setters,
                       Set<Function> coercions,
-                      Relation<FnName, Method> dottedMethods,
-                      Relation<FnName, FunctionalMethod> functionalMethods) {
+                      Relation<SimpleName, Method> dottedMethods,
+                      Relation<SimpleName, FunctionalMethod> functionalMethods) {
         _ast = ast;
         _getters = getters;
         _setters = setters;
@@ -72,11 +72,11 @@ public abstract class TraitIndex extends TypeConsIndex {
         return NI.nyi();
     }
     
-    public Relation<FnName, Method> dottedMethods() {
+    public Relation<SimpleName, Method> dottedMethods() {
         return NI.nyi();
     }
     
-    public Relation<FnName, FunctionalMethod> functionalMethods() {
+    public Relation<SimpleName, FunctionalMethod> functionalMethods() {
         return NI.nyi();
     }
     

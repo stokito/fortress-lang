@@ -38,7 +38,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
-                                          Option<Id> optSelfName, FnName name,
+                                          Option<Id> optSelfName, SimpleName name,
                                           List<StaticParam> staticParams,
                                           List<Param> params,
                                           Option<Type> returnType,
@@ -56,22 +56,22 @@ public class NodeFactory {
     }
 
     public static AliasedName makeAliasedName(Span span, Id id) {
-        return new AliasedName(span, makeIdName(id), Option.<FnName>none());
+        return new AliasedName(span, makeIdName(id), Option.<SimpleName>none());
     }
 
     public static AliasedName makeAliasedName(Span span, Id id, Id alias) {
         return new AliasedName(span, makeIdName(id),
-                               Option.<FnName>some(makeIdName(alias)));
+                               Option.<SimpleName>some(makeIdName(alias)));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
     public static AliasedName makeAliasedName(Span span, OpName op) {
-        return new AliasedName(span, op, Option.<FnName>none());
+        return new AliasedName(span, op, Option.<SimpleName>none());
     }
 
     public static AliasedName makeAliasedName(Span span, OpName op,
                                               OpName alias) {
-        return new AliasedName(span, op, Option.<FnName>some(alias));
+        return new AliasedName(span, op, Option.<SimpleName>some(alias));
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
@@ -216,7 +216,7 @@ public class NodeFactory {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
                                    name);
     }
-    
+
     public static QualifiedOpName makeQualifiedOpName(OpName name) {
         return new QualifiedOpName(name.getSpan(), Option.<DottedName>none(), name);
     }
@@ -225,7 +225,7 @@ public class NodeFactory {
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
     public static FnDef makeFnDecl(Span s, List<Modifier> mods,
-                                   Option<Id> optSelfName, FnName name,
+                                   Option<Id> optSelfName, SimpleName name,
                                    List<StaticParam> staticParams,
                                    List<Param> params,
                                    Option<Type> returnType,

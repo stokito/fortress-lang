@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.GenericWithParams;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;

@@ -21,13 +21,13 @@ import java.util.Map;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 
 public class ApiIndex extends CompilationUnitIndex {
     
     public ApiIndex(Api ast,
                     Map<IdName, Variable> variables,
-                    Relation<FnName, Function> functions,
+                    Relation<SimpleName, Function> functions,
                     Map<IdName, TypeConsIndex> typeConses) {
         super(ast, variables, functions, typeConses);
     }

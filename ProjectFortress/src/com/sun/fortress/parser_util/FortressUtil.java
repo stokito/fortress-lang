@@ -459,7 +459,7 @@ public final class FortressUtil {
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        FnName name, List<StaticParam> sparams,
+                                        SimpleName name, List<StaticParam> sparams,
                                         List<Param> params,
                                         FnHeaderClause fhc) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
@@ -472,7 +472,7 @@ public final class FortressUtil {
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        FnName name, List<Param> params,
+                                        SimpleName name, List<Param> params,
                                         Type ty) {
         return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
                                          FortressUtil.emptyStaticParams(),
@@ -494,7 +494,7 @@ public final class FortressUtil {
                                       contract, expr);
     }
 
-    public static FnDef mkFnDecl(Span span, List<Modifier> mods, FnName name,
+    public static FnDef mkFnDecl(Span span, List<Modifier> mods, SimpleName name,
                                  List<StaticParam> sparams, List<Param> params,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();

@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
@@ -64,7 +64,7 @@ abstract public class Fcn extends FConstructedValue {
         return false;
     }
 
-    abstract public FnName getFnName();
+    abstract public SimpleName getFnName();
 
     /**
      * Returns the name if this "function" is regarded as a method.

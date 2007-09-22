@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.HasParams;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -65,7 +65,7 @@ public class Constructor extends AnonymousConstructor {
 
     boolean finished = false;
 
-    FnName cfn;
+    SimpleName cfn;
     List<? extends AbsDeclOrDecl> defs;
 
     MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
@@ -140,7 +140,7 @@ public class Constructor extends AnonymousConstructor {
     // TODO need to copy the field names
 
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
-                FnName name, List<? extends AbsDeclOrDecl> defs) {
+                SimpleName name, List<? extends AbsDeclOrDecl> defs) {
         super(env, selfType, def); // TODO verify that this is the proper env.
         this.cfn = name;
         this.defs = defs;
@@ -464,7 +464,7 @@ public class Constructor extends AnonymousConstructor {
         return (s(selfType)) + (l == null ? "(DOMAIN_ERROR null)" : Useful.listInParens(l)) + cfn.at();
     }
 
-    public FnName getFnName() {
+    public SimpleName getFnName() {
         return cfn;
     }
 

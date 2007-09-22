@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes.FnName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeComparator;
 
@@ -36,8 +36,8 @@ public interface  GenericFunctionOrMethod {
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            FnName fn0 = a0.getName();
-            FnName fn1 = a1.getName();
+            SimpleName fn0 = a0.getName();
+            SimpleName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
