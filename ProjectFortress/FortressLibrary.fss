@@ -405,13 +405,13 @@ end
 
 (** Casting *)
 
-cast[\T\](x:Any):T =
+cast[\T extends Any\](x:Any):T =
   typecase x of
     T => x
     else => printTaskTrace(); throw CastException
   end
 
-instanceOf[\T\](x:Any):Boolean =
+instanceOf[\T extends Any\](x:Any):Boolean =
   typecase x of
     T => true
     else => false
@@ -421,7 +421,7 @@ instanceOf[\T\](x:Any):Boolean =
 
 ignore(_:Any):() = ()
 
-identity[\T\](x:T):T = x
+identity[\T extends Any\](x:T):T = x
 
 (** Transactional retry *)
 retry[\T\]():T = fail("Transactional retry not yet implemented.")
