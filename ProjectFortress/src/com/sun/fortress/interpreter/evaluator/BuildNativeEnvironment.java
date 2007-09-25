@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -44,11 +45,6 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class BuildNativeEnvironment extends BuildEnvironments {
-
-    public BuildNativeEnvironment(BetterEnv within, BetterEnv bind_into) {
-        super(within, bind_into);
-        // TODO Auto-generated constructor stub
-    }
 
     public BuildNativeEnvironment(BetterEnv within) {
         super(within);
@@ -118,7 +114,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         // Contract contract;
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
-        FType ft;
+        FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty() ? new FTypeObject(fname, containing, x, x
                 .getDecls()) : new FTypeGeneric(containing, x, x.getDecls());
 

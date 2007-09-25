@@ -44,16 +44,13 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-abstract public class FTraitOrObject extends FType {
+abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
 
 
     List<FType> extends_;
-    BetterEnv env;
     HasAt at;
     volatile List<FType> properTransitiveExtends;
     // Must be volatile due to lazy initialization / double-checked locking.
-
-    List<? extends AbsDeclOrDecl> members;
 
     abstract protected void finishInitializing();
 
@@ -164,18 +161,6 @@ abstract public class FTraitOrObject extends FType {
         this.env = env;
         this.members = members;
         this.at = at;
-    }
-
-    /**
-     *
-     * @return Environment for the interior of this trait or object.
-     */
-    public BetterEnv getEnv() {
-        return env;
-    }
-
-     public List<? extends AbsDeclOrDecl> getASTmembers() {
-        return members;
     }
 
     public boolean equals(Object other) {

@@ -46,7 +46,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
+public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
     public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members) {
         super(NodeUtil.stringName(d));
         env = e;
@@ -71,26 +71,17 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
     }
 
 
-    BetterEnv env;
-
-    Generic def;
+     Generic def;
 
     public Generic getDef() {
         return def;
     }
 
-    @Override
-    public BetterEnv getEnv() {
-        return env;
-    }
-
-    List<StaticParam> params;
+     List<StaticParam> params;
 
     HasAt genericAt;
 
     String genericName;
-
-    List<? extends AbsDeclOrDecl> members;
 
     private class Factory implements
             LazyFactory1P<List<FType>, FTraitOrObject, HasAt> {
@@ -158,10 +149,13 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                                                             // second pass.
 
                 // Perhaps make this conditional on nothing being symbolic here?
-                be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
+                ftt.initializeFunctionalMethods();
+                //be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
                 be.secondPass();
                 be.finishTrait(td, ftt, clenv);
                 be.thirdPass();
+                // Perhaps this is ok now that we have self-param double-overload fix in.
+                // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
                 rval = ftt;
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
@@ -170,11 +164,16 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
-                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                fto.initializeFunctionalMethods();
+                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
                 be.secondPass();
                 be.finishObjectTrait(td, fto);
                 be.thirdPass();
-                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                fto.finishFunctionalMethods();
+                for (FType fte : fto.getExtends()) {
+                    ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
+                }
                 rval = fto;
             } else if (dod instanceof _RewriteObjectExpr) {
                 _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
@@ -183,12 +182,16 @@ public class FTypeGeneric extends FType implements Factory1P<List<FType>, FTrait
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
 
-                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                fto.initializeFunctionalMethods();
+                // be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
                 be.secondPass();
                 be.finishObjectTrait(td, fto);
                 be.thirdPass();
-                be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
-
+                //be.scanForFunctionalMethodNames(fto, td.getDecls(), true);
+                fto.finishFunctionalMethods();
+                for (FType fte : fto.getExtends()) {
+                    ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
+                }
                 rval = fto;
             } else {
                 rval = bug(within, errorMsg("Generic def-or-declaration surprise ", dod));

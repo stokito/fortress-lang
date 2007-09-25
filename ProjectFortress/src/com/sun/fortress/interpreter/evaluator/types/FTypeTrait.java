@@ -34,7 +34,7 @@ public class FTypeTrait extends FTraitOrObject {
      * and where-clause-types introduced in the trait
      * definition.  A trait method environment does
      * NOT contain the members (methods) of the trait
-     * itself; those are obained by lookup from $self,
+     * itself; those are obtained by lookup from $self,
      * which is defined as part of method invocation.
      */
     BetterEnv methodEnv;
