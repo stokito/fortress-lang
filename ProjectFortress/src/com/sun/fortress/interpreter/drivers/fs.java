@@ -45,6 +45,7 @@ public class fs {
     private static String explicitParser = null;
     private static boolean parseOnly = false;
     private static boolean libraryTest = false;
+    private static boolean woLibrary = false;
     private static boolean test = false;
     private static boolean pause = false;
     private static List<String> listArgs = new ArrayList<String>();
@@ -79,6 +80,8 @@ public class fs {
                   parseOnly = true;
                 } else if ("-libraryTest".equalsIgnoreCase(s)) {
                   libraryTest = true;
+                } else if ("-woLibrary".equalsIgnoreCase(s)) {
+                  woLibrary = true;
                 } else if ("-v".equalsIgnoreCase(s)) {
                     verbose = true;
                 } else if ("-t".equalsIgnoreCase(s)) {
@@ -158,8 +161,8 @@ public class fs {
                 finally { fout.close(); }
             }
 
-            if (p.isNone()) { 
-                System.err.println("FAIL: Syntax error(s)."); 
+            if (p.isNone()) {
+                System.err.println("FAIL: Syntax error(s).");
                 System.exit(1);
             }
             else if (!parseOnly) {
@@ -170,7 +173,7 @@ public class fs {
                   System.err.println("Interpreting");
                 }
                 begin = System.currentTimeMillis();
-                Driver.runProgram(_p, test, libraryTest, listArgs);
+                Driver.runProgram(_p, test, libraryTest, woLibrary, listArgs);
                 reportCompletion("Program execution", begin);
             }
 

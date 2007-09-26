@@ -264,6 +264,11 @@ public class Driver {
     }
 
     public static BetterEnv evalComponent(CompilationUnit p) throws IOException {
+        return evalComponent(p, false);
+    }
+
+    public static BetterEnv evalComponent(CompilationUnit p,
+                                          boolean woLibrary) throws IOException {
 
         Init.initializeEverything();
 
@@ -324,12 +329,12 @@ public class Driver {
 
             ensureImportsImplemented(linker, pile, imports);
         }
-        
+
         // Desugarer needs to know about trait members.
         for (ComponentWrapper cw : components) {
             cw.preloadTopLevel();
         }
-        
+
         // Iterate to a fixed point, pushing trait info as far as necessary.
         boolean change = true;
         while (change) {
@@ -371,7 +376,7 @@ public class Driver {
              * Component.
              */
 
-            if (cw != lib)
+            if (cw != lib && !woLibrary)
                 importAllExcept(cw.getEnvironment(), lib.getEnvironment(), lib.getEnvironment(),
                         Collections.<String> emptyList(), "FortressLibrary",
                         "FortressLibrary");
@@ -398,7 +403,7 @@ public class Driver {
             HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
         CompilationUnit c = cw.getComponent();
         List<Import> imports = c.getImports();
-        
+
         final BetterEnv e = cw.getEnvironment();
 
         for (Import i : imports) {
@@ -482,7 +487,7 @@ public class Driver {
      * Copies rewriting information (traits, what members they define) from apis into
      * components.  This scaffolding is necessary to get the simplification right
      * for member (field, method) references.
-     * 
+     *
      * @param linker
      * @param cw
      */
@@ -491,10 +496,10 @@ public class Driver {
         CompilationUnit c = cw.getComponent();
         List<Import> imports = c.getImports();
         boolean change = false;
-        
+
         for (Import i : imports) {
             if (i instanceof ImportApi) {
-                
+
                     /*
                      * Not-yet-implemented because of issues with selectors.
                      */
@@ -522,7 +527,7 @@ public class Driver {
                          * it with plain old name.
                          */
                         change |= cw.dis.injectAtTopLevel(Option.unwrap(alias, name).stringName(), name.stringName(), api_cw.dis);
-                        
+
                     }
 
                 } else if (ix instanceof ImportStar) {
@@ -543,7 +548,7 @@ public class Driver {
                             change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis);
                         }
                     }
-                        
+
 
                 }
             } else {
@@ -795,12 +800,13 @@ public class Driver {
 
     // This runs the program from inside a task.
     public static void
-        runProgramTask(CompilationUnit p, boolean runTests, List<String> args)
+        runProgramTask(CompilationUnit p, boolean runTests, boolean woLibrary,
+                       List<String> args)
         throws IOException
     {
 
         FortressTests.reset();
-        BetterEnv e = evalComponent(p);
+        BetterEnv e = evalComponent(p, woLibrary);
 
         Closure run_fn = e.getRunMethod();
         Toplevel toplevel = new Toplevel();
@@ -831,10 +837,11 @@ public class Driver {
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram (CompilationUnit p,
-                                   boolean runTests,
-                                   boolean libraryTest,
-                                   List<String> args)
+    public static void runProgram(CompilationUnit p,
+                                  boolean runTests,
+                                  boolean libraryTest,
+                                  boolean woLibrary,
+                                  List<String> args)
         throws Throwable
     {
         _libraryTest = libraryTest;
@@ -846,7 +853,7 @@ public class Driver {
 
            group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(p, runTests, args);
+        EvaluatorTask evTask = new EvaluatorTask(p, runTests, woLibrary, args);
         try {
             group.invoke(evTask);
         }
@@ -860,7 +867,7 @@ public class Driver {
 
     public static void runProgram(CompilationUnit p, boolean runTests,
             List<String> args) throws Throwable {
-        runProgram(p, runTests, false, args);
+        runProgram(p, runTests, false, false, args);
     }
 
     private static class Toplevel implements HasAt {
@@ -883,7 +890,7 @@ public class Driver {
     }
 
     static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
-    
+
     /**
      * Attempts to read in preparsed program. Reparses if parsed form is missing
      * or newer than preparsed form.
@@ -896,7 +903,7 @@ public class Driver {
     {
         if (false && libraryCache.containsKey(key))
             return libraryCache.get(key);
-        
+
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
 
             System.err.println("Missing or stale preparsed AST "

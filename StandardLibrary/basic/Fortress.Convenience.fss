@@ -1,21 +1,21 @@
 export Fortress.Convenience
 
 (* Casting *)
-cast[\T\](x):T =
+cast[\T extends Any\](x: Any): T =
   typecase x of
     T => x
-    else => throw CastException
+    else => printTaskTrace(); throw CastException
   end
 
 (* Instanceof Testing *)
-instanceOf[\T\](x):Boolean =
+instanceOf[\T extends Any\](x: Any): Boolean =
   typecase x of
     T => true
     else => false
   end
 
 (* Ignoring Values *)
-ignore(x: Any) = ()
+ignore(_: Any) = ()
 
 (* Enforcing Tuples *)
 tuple[\T extends Tuple\](x: T) = x
