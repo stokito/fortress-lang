@@ -15,7 +15,7 @@
 ;;    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ;;
 ;;
-;; Stuff for the EMACS "fortify" command (M-&) 
+;; Stuff for the EMACS "fortify" command (M-&)
 ;;
 
 
@@ -886,14 +886,14 @@ Fortress source code)."
 	;; Various brackets, observing interior space (important that llbracket come after langle)
 	("\\[ " "[{}\\\\,")
 	(" \\]" "{}\\\\,]")
-	("<\\\\ " "<\\\\\\\\,")
-	("<\\\\\\([^)]\\)" "{}\\\\langle{}\\1")
-	(" \\\\>" "{}\\\\,\\\\>")
-	("\\\\>" "{}\\\\rangle{}")
-	("<<\\\\ " "<<\\\\\\\\,")
-	("<<\\\\" "{}\\\\langle\\\\!\\\\langle{}")
-	(" \\\\>>" "{}\\\\,\\\\>>")
-	("\\\\>>" "{}\\\\rangle\\\!\\\\rangle{}")
+	("<| " "<|\\\\,")
+	("<|\\([^)]\\)" "{}\\\\langle{}\\1")
+	(" |>" "{}\\\\,|>")
+	("|>" "{}\\\\rangle{}")
+	("<<| " "<<|\\\\,")
+	("<<|" "{}\\\\langle\\\\!\\\\langle{}")
+	(" |>>" "{}\\\\,|>>")
+	("|>>" "{}\\\\rangle\\\!\\\\rangle{}")
 	("</ " "</\\\\,")
 	("</" "{}\\\\ulcorner{}")
 	(" />" "{}\\\\,/>")
@@ -1365,7 +1365,7 @@ as a comment and easily altered and reformatted as necessary."
 
 (defun batch-fortify ()
     "Fortify the whole buffer and write to a filename in pwd, with
-extension .tex." 
+extension .tex."
     (remove-copyright)
     (print-header "TOOL BATCH-FORTIFY")
     (mark-whole-buffer)
@@ -1373,7 +1373,7 @@ extension .tex."
     (write-as-tex-file))
 
 (defun fortick ()
-  "Fortify all sections of a buffer delimited with backticks, and 
+  "Fortify all sections of a buffer delimited with backticks, and
 write to a file in the same location as the read file, but with
 extension '.tex'."
   (remove-copyright)
@@ -1384,7 +1384,7 @@ extension '.tex'."
       (let ((next-opening (find-next-tick pos)))
 	     (if (equal next-opening (point-max))
 		 (setq at-end t)
-	       (progn 
+	       (progn
 		 (let ((next-closing (find-next-tick (+ 1 next-opening))))
 		   (cond ((equal next-closing (point-max))
 			  (signal-error "Mismatched tick"))
@@ -1422,11 +1422,11 @@ extension '.tex'."
 (defun fortex ()
   "Fortify the whole buffer expect for stylized comments. Strip
   stylized comments of leading comment characters. Write the result to
-  a file in the same location as the read file, but with extension 
+  a file in the same location as the read file, but with extension
   .tex. Using this function, it is possible to write a legal Fortress
   file with doc comments (possibly containing embedded LaTeX commands)
   and produce a LaTeX file where all Fortress code is fortified and
-  all doc comments are written as LaTeX prose describing the code." 
+  all doc comments are written as LaTeX prose describing the code."
   (remove-copyright)
   (print-header "TOOL FORTEX")
   (let ((more-lines t))
@@ -1451,7 +1451,7 @@ extension '.tex'."
   (let ((more-lines t))
     (goto-start-of-buffer)
     (while more-lines
-      (if (at-start-of-example) 
+      (if (at-start-of-example)
 	  (setq more-lines (fortify-example))
 	(setq more-lines (delete-line))))
   (write-as-tex-file)))
@@ -1459,7 +1459,7 @@ extension '.tex'."
 (defun remove-doc-comment-chars ()
   "Removes beginning comment characters of the contiguous doc comment
   starting at point. Once finished, point is at the very end of the
-  processed doc comment." 
+  processed doc comment."
   (requires (at-start-of-doc-comment))
 
   (let ((more-lines t))
@@ -1475,11 +1475,11 @@ extension '.tex'."
   "Finds and fortifies the contiguous block of Fortress code start at
   point and ending at the next doc comment (or the end of the
   file). Once finished, point is at the very end of the block of
-  code." 
+  code."
   (requires (not (at-start-of-doc-comment)))
   (let ((more-lines t))
     (push-mark)
-    (while (and more-lines 
+    (while (and more-lines
 		(not (or (at-start-of-doc-comment)
 			 (at-start-of-tests))))
       (setq more-lines (down-left-if-more-lines)))
@@ -1496,10 +1496,10 @@ extension '.tex'."
       (fortify 4)))
 
 (defun fortify-example ()
-  "Fortifies example code delimited by special doc comments 
-  '(** EXAMPLE **)' and '(** END EXAMPLE **)'."  
+  "Fortifies example code delimited by special doc comments
+  '(** EXAMPLE **)' and '(** END EXAMPLE **)'."
   (requires (at-start-of-example))
-  
+
   (delete-line)
   (push-mark)
   (let ((more-lines t))
@@ -1512,7 +1512,7 @@ extension '.tex'."
 
 (defun remove-start-of-doc-comment ()
   "Simple helper function that removes the leading whitespace and '('
-of a doc comment."  
+of a doc comment."
   (requires (at-start-of-doc-comment))
 
   (beginning-of-line)
@@ -1521,13 +1521,13 @@ of a doc comment."
   (delete-char 1))
 
 (defun remove-middle-of-doc-comment ()
-  "Simple helper function that removes the leading asterisks and whitespace 
+  "Simple helper function that removes the leading asterisks and whitespace
 of a line in the middle of a doc comment."
   (beginning-of-line)
   (delete-whitespace)
   (delete-asterisks)
   (delete-whitespace)
-  
+
   ;; Check if this line is the end of the doc comment.
   ;; If so, move the end of the comment to the next line,
   ;; so it'll be picked up when that line is processed.
@@ -1542,7 +1542,7 @@ of a line in the middle of a doc comment."
 
 
 (defun remove-end-of-doc-comment ()
-  "Simple helper function that removes the ending '**)' at the end of a 
+  "Simple helper function that removes the ending '**)' at the end of a
 doc comment."
   (requires (at-end-of-doc-comment))
 
@@ -1552,8 +1552,8 @@ doc comment."
   (delete-char 3)
   ;; Ensure that no text occurs on line, after the end of the doc comment
   (skip-leading-whitespace)
-  (if (not (eolp)) 
-      (signal-error 
+  (if (not (eolp))
+      (signal-error
        "No extra text allowed on last line of a doc comment"))
   (delete-line)
   ;; There must be at least one line above us (i.e., the former start
@@ -1586,7 +1586,7 @@ is true."
 
 (defun remove-copyright ()
   (if (at-start-of-copyright)
-      (remove-block 'at-start-of-copyright 'at-end-of-copyright 
+      (remove-block 'at-start-of-copyright 'at-end-of-copyright
 		    (concat "Copyright notice must be terminated with"
 			    "'(** END COPYRIGHT **)'."))))
 
@@ -1608,7 +1608,7 @@ beginning of an example, delimited by the doc comment '(** EXAMPLE **)'."
 	  (equal candidate line)))))
 
 (defun at-start-of-doc-comment ()
-  "Boolean function that determines whether point is at the beginning of a 
+  "Boolean function that determines whether point is at the beginning of a
 doc comment."
   (save-excursion
     (beginning-of-line)
@@ -1619,7 +1619,7 @@ doc comment."
 	 (equal "*" (char-to-string (char-after (+ 2 (point))))))))
 
 (defun at-end-of-doc-comment ()
-  "Boolean function that determines whether point is at the en of a 
+  "Boolean function that determines whether point is at the en of a
 doc comment."
   (save-excursion
     (skip-leading-whitespace)
@@ -1629,26 +1629,26 @@ doc comment."
 	 (equal ")" (char-to-string (char-after (+ 2 (point))))))))
 
 (defun delete-whitespace ()
-  "Simple helper function that deletes all whitespace immediately following 
+  "Simple helper function that deletes all whitespace immediately following
 point."
   (while (and (char-after (point))
 	      (whitespacep (char-to-string (char-after (point)))))
     (delete-char 1)))
-  
+
 (defun skip-leading-whitespace ()
-  "Simple helper function that moves point to the next non-whitespace 
+  "Simple helper function that moves point to the next non-whitespace
 character."
   (while (and (char-after (point))
 	      (whitespacep (char-to-string (char-after (point)))))
     (forward-char)))
 
 (defun skip-preceding-whitespace ()
-  "Simple helper function that moves point to the previous non-whitespace 
+  "Simple helper function that moves point to the previous non-whitespace
 character."
   (while (and (char-before (point))
 	      (whitespacep (char-to-string (char-before (point)))))
     (backward-char)))
-  
+
 
 (defun whitespacep (string)
   (or (equal string " ")
@@ -1659,17 +1659,17 @@ character."
       (equal string "\n")
       (equal string "\f")
       (equal string "\r")))
-      
+
 (defun all-blank-spacep (left right)
   (let ((result t))
     (while (< left right)
-      (setq result (and result 
+      (setq result (and result
 			(blank-spacep (char-to-string (char-after left)))))
       (setq left (1+ left)))
     result))
 
 (defun delete-asterisks ()
-  "Simple helper function that deletes a sequence of asterisks immediately 
+  "Simple helper function that deletes a sequence of asterisks immediately
 after point."
   (while (and (char-after (point))
 	      (equal "*" (char-to-string (char-after (point)))))
@@ -1678,7 +1678,7 @@ after point."
 (defun delete-line ()
   "Delete the current line and, if successful, return t. If current
   line is the last line in the buffer (i.e., there is no newline
-  character at the end of it), delete its contents and return nil." 
+  character at the end of it), delete its contents and return nil."
   (beginning-of-line)
     (let ((left (point)))
       (end-of-line)
@@ -1692,7 +1692,7 @@ after point."
 		 nil)))))
 
 (defun down-left-if-more-lines ()
-  "If there is a next line after point, moves point to the beginning of the 
+  "If there is a next line after point, moves point to the beginning of the
 next line and returns true. Returns false otherwise."
   (let ((last-line nil))
     (save-excursion
@@ -1708,16 +1708,16 @@ next line and returns true. Returns false otherwise."
   (goto-char (point-min)))
 
 (defun write-as-tex-file ()
-  "Writes the current buffer to a new file with the same name and location, 
+  "Writes the current buffer to a new file with the same name and location,
 but with suffix '.tex'."
   (write-file (concat
-	       (file-name-sans-extension 
+	       (file-name-sans-extension
 		(file-name-nondirectory (buffer-file-name)))
 	       ".tex")))
 
 ;; This isn't working yet
 (defun print-header (author)
-;;  (insert (concat "%% THIS FILE WAS AUTOGENERATED BY " author 
+;;  (insert (concat "%% THIS FILE WAS AUTOGENERATED BY " author
 ;;		 " AT FORTRESS_HOME/Fortify/fortify.el"))
 ;;  (newline)
 ;;  (insert (concat "%% FROM SOURCE FILE" (buffer-file-name) "\n"))
@@ -1726,17 +1726,13 @@ but with suffix '.tex'."
 )
 
 (defun requires (condition)
-  "Takes a condition and signals an error if the condition is false. 
-Intended to be used at the beginning of a function definition, 
+  "Takes a condition and signals an error if the condition is false.
+Intended to be used at the beginning of a function definition,
 as a poor man's contract facility."
   (if (not condition)
-      (signal-error "Precondition violated")))	      
-	     
-(defun signal-error (msg) 
-  "Signals an error, indicating the file name of the current buffer, 
+      (signal-error "Precondition violated")))
+
+(defun signal-error (msg)
+  "Signals an error, indicating the file name of the current buffer,
 the line position of point, and the given message."
   (error (concat (buffer-file-name) ": " msg)))
-
-
-
-
