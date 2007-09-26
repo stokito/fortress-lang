@@ -28,15 +28,6 @@ object PrimitiveArray[\T, nat b0, nat s0\]() extends Array1[\T,b0,s0\]
     builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveArray$put")
   init0(i:ZZ32, v:T):() =
     builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveArray$init0")
-
-  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-    o0 : ZZ32 = o - b0
-    if o0 < 0 OR o0 > s0-s then
-        fail("__DefaultArray1: subarray exceeds bounds of underlying array.")
-    end
-    __SimpleSubArray1[\T,b,s,b0,s0\](mem,o0,1)
-  end
-
 end
 
 end

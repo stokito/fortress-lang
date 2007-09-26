@@ -46,7 +46,7 @@ public class TNFoo extends Constructor {
         public Obj(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
             // might like to discard envs to perhaps save space,
             // but need self_dot_env for method invocation lookup
-            super(selfType, BetterEnv.empty(), self_dot_env);
+            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
             int theCount = self_dot_env.getValue("n").getInt();
             String s = self_dot_env.getValue("s").getString();
 

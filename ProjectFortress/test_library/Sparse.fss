@@ -18,7 +18,7 @@
 component Sparse
 export Sparse
 
-(*public*) trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = array[\T\](l).assign(v)
+(*public*) trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = v[#l].copy()
 
 (*public*) object SparseVector[\T, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
   extends Vector[\T,n\]
@@ -48,7 +48,7 @@ export Sparse
         t1 = v.mem.size()
         (j1: ZZ32, v1: T) := (-2, 0)
         res: T := r
-        for i0 <- seq(0#mem.size()) do
+        for i0 <- sequential(0#mem.size()) do
             (j0,v0) = mem.get(i0)
             while j0>j1 AND i1<t1 do
                 (j1,v1) := v.mem.get(i1)
@@ -99,7 +99,7 @@ end
                              fn (a:ZZ32,b:ZZ32):ZZ32 => a+b, 0)
    res:Array[\(ZZ32,RR64),ZZ32\] := array[\(ZZ32,RR64)\](sz)
    j : ZZ32 := res.minIndex()
-   for (i,v) <- seq(me.indexValuePairs().indices()) do
+   for (i,v) <- sequential(me.indexValuePairs().indices()) do
       if v =/= 0 then
          res[j] := (i,v)
          j += 1
@@ -138,7 +138,7 @@ end
               mem0 = array[\(ZZ32,RR64)\](p)
               r = rows[i]
               o : ZZ32 := 0
-              for j <- seq(0#p) do
+              for j <- sequential(0#p) do
                 d = r DOT other.cols[j]
                 if d=/=0 then
                   mem0[o] := (j,d)

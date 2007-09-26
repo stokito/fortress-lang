@@ -43,7 +43,8 @@ export PureList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
+trait List[\E\] extends { Generator[\E\], Equality }
+        excludes { Number, HasRank }
   getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
@@ -70,7 +71,7 @@ trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
   filter(p: E -> Boolean): List[\E\] =
       concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
                                       else emptyList[\E\]() end)
-  opr =(self, other: List[\E\]): Boolean = do
+  eq(other: List[\E\]): Boolean = do
       println("In List =")
       if self.size() = other.size() then
           println("Sizes match")

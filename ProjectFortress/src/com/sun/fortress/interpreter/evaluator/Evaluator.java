@@ -690,7 +690,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressError,
             ProgramError {
         Expr obj = x.getObj();
-       
+
         FValue fobj = obj.accept(this);
         if (fobj instanceof Selectable) {
             Selectable selectable = (Selectable) fobj;
@@ -715,8 +715,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             //        }
         } else {
            return error(x, e,
-			 errorMsg("Non-object cannot have field ",
-				  NodeUtil.nameString(fld)));
+ errorMsg("Non-object cannot have field ",
+                                  NodeUtil.nameString(fld)));
         }
     }
 
@@ -741,7 +741,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> args = argList(arg.accept(this));
                     //evalInvocationArgs(java.util.Arrays.asList(null, arg));
                 try {
-                return ((Method) cl).applyMethod(args, fobject, x, e);
+                    return ((Method) cl).applyMethod(args, fobject, x, e);
                 } catch (FortressError ex) {
                     throw ex.setContext(x, fobject.getSelfEnv());
                 }
@@ -901,7 +901,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-	return bug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+        return bug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
         // return x.getElement().accept(notInPaste);
     }
@@ -1117,19 +1117,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forSubscriptOp(SubscriptOp x) {
         return NI("forSubscriptOp");
     }
-    
+
     public FValue invokeGenericMethod(FObject fobject, Name fld, List<StaticArg> args, List<Expr> exprs, HasAt x) {
         FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(fld));
         if (cl == null) {
             // TODO Environment is split, might not be best choice
             // for error printing.
             return error(x, fobject.getSelfEnv(),
-			 errorMsg("undefined method/field ",
-				  NodeUtil.nameString(fld)));
+                         errorMsg("undefined method/field ",
+                                  NodeUtil.nameString(fld)));
         } else if (cl instanceof OverloadedMethod) {
 
             return bug(x, fobject.getSelfEnv(),
-		       "Don't actually resolve overloading of generic methods yet.");
+                       "Don't actually resolve overloading of generic methods yet.");
 
         } else if (cl instanceof MethodInstance) {
             // What gets retrieved is the symbolic instantiation of
@@ -1143,25 +1143,25 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         } else {
             return error(x, fobject.getSelfEnv(),
-			 errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
-				  cl));
+                         errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
+                                  cl));
         }
     }
-    
+
     Name fldName(AbstractFieldRef arf) {
         if (arf instanceof FieldRef) {
             return ((FieldRef)arf).getField();
         }
         if (arf instanceof FieldRefForSure) {
             return ((FieldRefForSure)arf).getField();
-                       
+
         }
         if (arf instanceof _RewriteFieldRef) {
             return ((_RewriteFieldRef)arf).getField();
-                        
+
         }
         return bug("Unexpected AbstractFieldRef " + arf);
-        
+
     }
 
     /** Assumes wrapped FnRefs have ids fields of length 1. */
@@ -1199,11 +1199,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else {
                 NI.nyi("Field selector of dotted");
             }
-                
-
         } else if (fcnExpr instanceof _RewriteFnRef) {
             // Only come here if there are static args -- must be generic
-            // Note that ALL method references have been rewritten into 
+            // Note that ALL method references have been rewritten into
             // this.that form, so that bare var-ref is a function
             _RewriteFnRef rfr = (_RewriteFnRef) fcnExpr;
             Expr fn = rfr.getFn();
@@ -1211,16 +1209,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (fn instanceof AbstractFieldRef) {
                 AbstractFieldRef arf = (AbstractFieldRef) fn;
                 FValue fobj = arf.getObj().accept(this);
-                return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
+                try {
+                    return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
+                } catch (FortressError ex) {
+                    throw ex.setContext(x,e);
+                }
             } else if (fn instanceof VarRef) {
                 // FALL OUT TO REGULAR FUNCTION CASE!
             } else {
                 return bug("_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
-            return NI.na("FnRefs are supposed to be gone from the AST");          
+            return NI.na("FnRefs are supposed to be gone from the AST");
         }
-        
+
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
             return NI.nyi("Unexpected application of " + fcnExpr);
@@ -1248,8 +1250,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO Environment is split, might not be best choice for error
                 // printing.
                 return error(x, fobject.getSelfEnv(),
-			     errorMsg("undefined method/field ",
-				      NodeUtil.nameString(fld)));
+                             errorMsg("undefined method/field ",
+                                      NodeUtil.nameString(fld)));
             else if (cl instanceof Method) {
                 return ((Method) cl).applyMethod(evalInvocationArgs(exprs),
                         fobject, x, e);
@@ -1481,7 +1483,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return error(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
         }
     }
-    
+
     public FValue for_WrappedFValue(_WrappedFValue w) {
         return w.getFValue();
     }

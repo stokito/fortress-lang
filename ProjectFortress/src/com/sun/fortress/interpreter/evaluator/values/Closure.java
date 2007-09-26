@@ -146,7 +146,7 @@ public class Closure extends NonPrimitive implements Scope {
         return Option.unwrap(optBody, (Expr) null);
     }
 
-    
+
     public FValue applyInner(List<FValue> args, HasAt loc,
                              BetterEnv envForInference) {
         if (def instanceof NativeApp) {

@@ -58,15 +58,20 @@ public class  OverloadedFunction extends Fcn
 
     static final boolean DUMP_EXCLUSION = false;
 
-    private static void exclDump(String s) {
+    public static void exclDump(Object... os) {
         if (DUMP_EXCLUSION) {
-            System.out.print(s);
+            for (Object o : os) {
+                System.out.print(o);
+            }
         }
     }
 
-    private static void exclDumpln(String s) {
+    public static void exclDumpln(Object... os) {
         if (DUMP_EXCLUSION) {
-            System.out.println(s);
+            for (Object o : os) {
+                System.out.print(o);
+            }
+            System.out.println();
         }
     }
 
@@ -207,11 +212,11 @@ public class  OverloadedFunction extends Fcn
                 boolean sawSymbolic2 = false;
                 int selfIndex = -1;
 
-                exclDumpln("Checking exclusion of "+pl1+" and "+pl2+":");
+                exclDumpln("Checking exclusion of ",pl1," and ",pl2,":");
                 for (int k = 0; k < min; k++) {
                     FType p1 = pl1.get(k);
                     FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
-                    exclDump(k+": "+p1+" and "+p2+", ");
+                    exclDump(k,": ",p1," and ",p2,", ");
 
                     p1 = deRest(p1);
                     p2 = deRest(p2);
@@ -240,7 +245,7 @@ public class  OverloadedFunction extends Fcn
                             p1better = k;
                             local_unrelated = false;
                             exclDumpln(" left better.");
-                         }
+                        }
                         if (p2subp1 && !p1subp2) {
                             p2better = k;
                             local_unrelated = false;

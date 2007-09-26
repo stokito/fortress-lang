@@ -39,6 +39,10 @@ public class MethodClosureInstance extends MethodClosure  implements MethodInsta
         super(within, fndef, args);
         this.generator = generator;
         this.genericEnv = genericEnv;
+        if (!genericEnv.getBlessed()) {
+            System.out.println("Creating a MethodClosureInstance for "+fndef+args+
+                               "with unblessed genericEnv "+genericEnv);
+        }
    }
 
     public BetterEnv getEvalEnv() {

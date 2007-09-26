@@ -37,7 +37,8 @@ api ArrayList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
+trait List[\E\] extends { Indexed[\E,ZZ32\], Equality }
+        excludes { Number, HasRank }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]
   getter extractLeft(): Maybe[\(E,List[\E\])\]
@@ -57,8 +58,6 @@ trait List[\E\] extends { Generator[\E\] } excludes { Number, HasRank }
   reverse(): List[\E\]
   zip[\F\](other: List[\F\]): Generator[\(E,F)\]
   filter(p: E -> Boolean): List[\E\]
-  (** NOTE: this overloading doesn't seem to be getting used. *)
-  opr =(self, other: List[\E\]): Boolean
   toString():String
   concatMap[\G\](f: E->List[\G\]): List[\G\]
 end

@@ -34,7 +34,7 @@ public class FTypeTop extends FTypeTrait {
     private final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
 
     private FTypeTop() {
-        super("Any",BetterEnv.empty(),new HasAt.FromString("Built in"),
+        super("Any",BetterEnv.blessedEmpty(),new HasAt.FromString("Built in"),
                 Collections.<AbsDeclOrDecl>emptyList());
         membersInitialized = true;
     }

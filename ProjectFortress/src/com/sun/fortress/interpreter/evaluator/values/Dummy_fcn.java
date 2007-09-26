@@ -50,7 +50,7 @@ public class Dummy_fcn extends Simple_fcn {
     }
 
     public Dummy_fcn(List<FType> _params) {
-        super(BetterEnv.empty());
+        super(BetterEnv.blessedEmpty());
         allocationSite = Useful.backtrace(2, 3);
         this.domain = _params;
         setFtype(FTypeArrow.make(_params, FTypeVoid.ONLY));

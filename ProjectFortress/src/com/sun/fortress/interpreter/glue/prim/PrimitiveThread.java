@@ -59,7 +59,7 @@ public class PrimitiveThread extends Constructor {
         private final SpawnTask st;
 
         public Thread_prim(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.empty(), self_dot_env);
+            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
             int numThreads = Runtime.getRuntime().availableProcessors();
             String numThreadsString = System.getenv("FORTRESS_THREADS");
 

@@ -130,6 +130,12 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return new BetterEnv("Empty");
     }
 
+    public static BetterEnv blessedEmpty() {
+        BetterEnv r = empty();
+        r.bless();
+        return r;
+    }
+
     public static BetterEnv primitive() {
         return empty().installPrimitives();
     }
@@ -169,9 +175,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
     }
 
     public BetterEnv(BetterEnv existing, BetterEnv additions) {
-        if ( ! existing.blessed)
-            bug(within,existing,"Internal error, attempt to copy environment still under construction");
-        if ( ! additions.blessed)
+        if ( !existing.blessed || !additions.blessed )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);

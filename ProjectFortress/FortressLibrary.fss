@@ -87,9 +87,11 @@ assert(flag: Boolean, failMsg: String): () =
         fail(failMsg)
     end
 
-assert(x:Any, y:Any, failMsg: String): () =
+assert(x:Any, y:Any, failMsg: Any...): () =
     if x =/= y then
-        fail(x " =/= " y "; " failMsg)
+        msg = (x " =/= " y "; "
+               failMsg.generate[\String\](StringReduction, fn (x:Any) => "" x))
+        fail(msg)
     end
 
 (** Generator
@@ -224,9 +226,9 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
-value trait MaybeType excludes { Number }
-    (* comprises Maybe[\T\] where [\T\] *)
-  getter isJust() : Boolean
+value trait MaybeType extends { Equality } excludes { Number }
+        (* comprises Maybe[\T\] where [\T\] *)
+    getter isJust() : Boolean
 end
 
 (** Maybe[\T\] represents either Nothing or a single element of type T
@@ -249,7 +251,6 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     getter toString():String = "Just(" x ")"
     getter isJust() = true
     getter unJust() = x
-    opr =(self, o:Just[\T\]) = (x=o.unJust())
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
 
     map[\G\](f: T->G): Generator[\G\] = Just[\G\](f(x))
@@ -262,6 +263,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     loop(f:T->()): () = f(x)
     maybe[\R\](_: ()->R, justAction: T->R): R = justAction(x)
     contains(y:T): Boolean = x=y
+    eq(o:Just[\T\]): Boolean = x=o.unJust()
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
@@ -271,7 +273,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     getter isJust() = false
     getter unJust() = throw UnJustNothing
     getter toString():String = "Nothing"
-    opr =(self, o:Nothing[\T\]) = true
+    eq(_:Nothing[\T\]) = true
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
 
     map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
@@ -508,13 +510,16 @@ oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
    fail("For subscript " s " wanted " l "#" sz " but got " got);
 end
 
-trait HasRank excludes { Number, MaybeType }
-  (* comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] } *)
-  rank():ZZ32
-  eq(o:HasRank):Boolean = false
+trait Equality excludes { Number }
+  eq(o:Equality):Boolean = false
 end
 
-opr =(a:HasRank, b:HasRank):Boolean = a.eq(b)
+opr =(a:Equality, b:Equality):Boolean = a.eq(b)
+
+trait HasRank extends Equality excludes { Number, MaybeType }
+  (* comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] } *)
+  rank():ZZ32
+end
 
 (* Declared Rank-n-ness *)
 trait Rank[\ nat n \] extends HasRank
@@ -570,10 +575,18 @@ trait Indexed[\E, I\] extends Generator[\E\]
     getter indices(): Indexed[\I,I\] =
         indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
     opr[i:I] : E
-    opr[r:Range[\I\]] : Indexed[\E,I\] =
-        fail("Unrecoginzed range index " self "[" r "]")
-    (* opr[r:FullRange[\I\]] : Indexed[\E,I\] *)
-    opr[_:OpenRange[\I\]] : Indexed[\E,I\] = self
+
+    (** Indexing by ranges.  The results are 0-based when the
+        underlying index type has a notion of 0.  This ensures
+        consistency of behavior between types such as vectors that
+        *only* support 0 indexing and types such as arrays that permit
+        other choices of lower bounds.  The easiest way to index by
+        ranges is to take advantage of indexing on the ranges
+        themselves by writing bounds()[r] in order to narrow and
+        bounds check the range r and obtain a closed range of indices
+        on the underlying data. **)
+    opr[r:Range[\I\]] : Indexed[\E,I\]
+    opr[_:OpenRange[\Any\]] : Indexed[\E,I\] = self[OpenRange[\I\]()]
 
     (** The ivmap function isn't merely a convenient shortcut.  It's
         actually intended to create a copy of the underlying indexed
@@ -627,11 +640,17 @@ end
 trait MutableIndexed[\T extends MutableIndexed[\T, E, I\], E, I\]
     extends { Indexed[\E,I\] }
   opr[i:I]:=(v:E) : ()
-  (* version of assignment that is specifically for initialization;
-     it may omit a write barrier, perform already-initialized error
-     checking, etc. *)
+
+  (** For Ranged assignment, the extents of r and v.bounds() must
+      match, but the lower bounds need not. **)
+  opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
+  opr[_:OpenRange[\Any\]]:=(v:Indexed[\E,I\]) : () = do self[bounds()] := v end
+
+  (** init is a version of assignment that is specifically for initialization;
+      it may omit a write barrier, perform already-initialized error
+      checking, etc. **)
   init(i:I, v:E): () = do self[i] := v end
-  assign(v:T):T = fill(fn (i:I):E => v[i])
+
   fill(f:I->E):T = do
       indices().loop(fn (i:I):() => init(i,f(i)))
       self
@@ -642,7 +661,15 @@ end
 
 (* Array whose bounds are implicit rather than static. *)
 trait Array[\E,I\] extends { HasRank, MutableIndexed[\Array[\E,I\],E,I\] }
-  replica[\U\]():Array[\U,I\]
+    getter bounds(): FullRange[\I\]
+    (** Create a fresh array structurally identical to the present
+        one, but holding elements of type U. **)
+    replica[\U\]():Array[\U,I\]
+
+    (** Shift the origin of an array.  This should yield a new view of
+        the same array; ie updates to either will be reflected in the
+        other. **)
+    shift(newOrigin:I):Array[\E,I\]
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
@@ -663,12 +690,11 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (** A repository for tons of default array functionality. **)
-trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
+trait StandardArrayType[\T extends StandardArrayType[\E,I\],E,I\]
       extends { Array[\E,I\], MutableIndexed[\T,E,I\], DelegatedIndexed[\E,I\] }
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)
-    getter bounds(): GeneratedRange[\I\]
     getter indices(): Indexed[\I,I\] = bounds()
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
@@ -679,7 +705,7 @@ trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
     get(i:I): E
     put(i:I, e:E): ()
     init0(i:I, e:E): () = put(i,e)
-    zeroIndices(): GeneratedRange[\I\]
+    zeroIndices(): FullRange[\I\]
     (** Convert from base()-based indexing to 0-based indexing,
         performing bounds checking. **)
     offset(i:I): I
@@ -688,9 +714,22 @@ trait StandardArrayType[\T extends ArrayType[\E,I\],E,I\]
     (** CONCRETE METHODS
         Default implementations of most array stuff based on the above.
         The things we can't provide are anything involving replica. **)
-    opr [i:I]:E = get(offset(i))
-    opr [i:I]:=(v:E):() = put(offset(i),v)
+    opr[i:I]:E = get(offset(i))
+    opr[i:I]:=(v:E):() = put(offset(i),v)
     init(i:I, v:E) = init0(offset(i),v)
+
+    opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):() = do
+        a0 = a[a.bounds()]      (* Make a have 0 origin *)
+        s0 = self[r]            (* Make self have 0 origin *)
+        if a0.bounds() = s0.bounds() then
+            for (i,v) <- a.indexValuePairs() do
+                s0.put(i,v)
+            end
+        else
+            fail("Can't assign indexed with bounds " a.bounds()
+                 "\n to differently-sized subarray " self.bounds())
+        end
+      end
 
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
@@ -722,9 +761,9 @@ end
    As it turns out we choose a to be the largest power of 2 < n.
 *)
 partition(x:ZZ32):(ZZ32,ZZ32) = do
-  m = partitionL(x)
-  (m,x-m)
-end
+    m = partitionL(x)
+    (m,x-m)
+  end
 
 (** Array1[\T,b0,s0\] is a 1-dimension array whose s0 elements are of
     type T, and whose lowest index is b0.
@@ -763,21 +802,24 @@ trait Array1[\T, nat b0, nat s0\]
 
   zeroIndices(): ScalarRange[\ZZ32\] = 0#s0
 
-  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-    o0 : ZZ32 = o - b0
-    if o0 < 0 OR o0 > s0-s then
-        fail("Array1: subarray exceeds bounds of underlying array.")
-    end
-    __SimpleSubArray1[\T,b,s,b0,s0\](self,o0,1)
-  end
-  __subarray[\nat b, nat s, nat o\]
-            (_:N[\b\],_:N[\o\],_:N[\s\]):Array1[\T,b,s\] = subarray[\b,s,o\]()
+  shift(o:ZZ32): Array[\T,ZZ32\] =
+      __subarray(self,reflect(o),N[\s0\](),N[\b0\]())
 
-  opr[r:ScalarRange[\ZZ32\]]:Array[\T,ZZ32\] = do
-      (b,s) = (reflect(r.lower()), reflect(r.size()))
-      self.__subarray(N[\0\],b,s)
+  opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
+      r' = bounds()[r]
+      z = N[\0\]()
+      s = reflect(r'.size())
+      l = reflect(r'.lower())
+      __subarray(self,z,s,l)
     end
-  opr[r:ScalarRange[\ZZ32\]]:=(v:Array[\T,ZZ32\]) = do self[r].assign(v); () end
+
+  (** subarray selects a subarray of this array based on static parameters.
+      b#s are the new bounds of the array; o is
+      the index of the subarray within the current array. **)
+  subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+    boundsCheck = bounds()[o#s]
+    __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
+  end
 
   (* the replica method returns a replica of the array (similar layout
      etc.) but with a different element type. *)
@@ -791,8 +833,14 @@ trait Array1[\T, nat b0, nat s0\]
       replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
 end
 
+(* WORK AROUND absence of type inference in method calls. *)
+__subarray[\T, nat b0, nat s0, nat b, nat s, nat o\]
+          (it:Array1[\T,b0,s0\],
+           _:N[\b\],_:N[\s\],_:N[\o\]):Array1[\T,b,s\] = it.subarray[\b,s,o\]()
+
+
 (* A 1-D subarray of an Array1.
-   b_a and s_a are the underlying array's bounds; s0 and b0 are the
+   b_a#s_a is the underlying array's bounds; b0#s0 is the
    result bounds.  o0 is the starting offset in the underlying array,
    defined in 0-indexed space.  m0 the stride within that array.
    Invariant: (s0-1) m0 + o0 - b_a) < s_a *)
@@ -803,10 +851,8 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     get(i:ZZ32):T = arr.get(index(i))
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
+        boundsCheck = bounds()[o#s]
         o_n : ZZ32 = o - b0
-        if o_n < 0 OR o_n > s0-s then
-          fail("__SimpleSubArray1: subarray exceeds bounds of underlying array.")
-        end
         __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
 end
@@ -942,7 +988,33 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     (c0,c1)
   end
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
-  opr [x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
+  opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
+  opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      r' = bounds()[r]
+      (z0,z1) = r'.extent()
+      (l0,l1) = r'.lower()
+      __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
+                 reflect(l0),reflect(l1))
+    end
+  shift(t:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
+      (o0,o1)=t
+      __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
+    end
+
+  (** 2-D subarray given static subarray parameters.
+      (bo1,bo2)#(so1,so2) are output bounds.
+      The result is the subarray starting at (o0,o1) in the original array.
+   **)
+  subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+          (): Array2[\T,bo0,so0,bo1,so1\] = do
+      boundsCheck = bounds()[ (o0,o1)#(so0,so1) ]
+      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
+    end
+
+  __subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+          (_:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
+           _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] =
+      subarray[\bo0,so0,bo1,so1,o0,o1\]()
 
   zeroIndices():Tuple2Range[\ZZ32,ZZ32\] = (0,0)#(s0,s1)
 
@@ -977,6 +1049,23 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put((j,i),v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(j,i) end
   t() = mem
+end
+
+(** Simple 2-D subarray, used when we have no other knowledge of the
+    underlying structure.  If we're on top of a PrimitiveArray we can
+    really do much better than this.
+    (b0,b1)#(s0,s1) are the bounds of the subarray.
+    (bu0,bu1)#(su0,su1) are the bounds of the underlying array.
+    m_i, o_i are multiplier and offset (0-based) of dimension i.
+**)
+object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
+                     nat bu0, nat su0, nat bu1, nat su1\]
+                (mem: Array2[\T,bu0,su0,bu1,su1\],
+                 m0:ZZ32, o0:ZZ32, m1:ZZ32, o1:ZZ32)
+        extends Array2[\T,b0,s0,b1,s1\]
+    index(a0:ZZ32, a1:ZZ32): (ZZ32,ZZ32) = (m0 a0 + o0, m1 a1 + o1)
+    put(t:(ZZ32,ZZ32), v:T): () = mem.put(index(t),v)
+    get(t:(ZZ32,ZZ32)): T = mem.get(index(t))
 end
 
 trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
@@ -1208,6 +1297,36 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   get(t:(ZZ32,ZZ32,ZZ32)):T
 
   opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
+  opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
+      r' = bounds()[r]
+      (z0,z1,z2) = r'.size()
+      (l0,l1,l2) = r'.lower()
+      __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
+                 N[\0\](),reflect(z2), reflect(l0),reflect(l1), reflect(l2))
+    end
+  shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
+      (o0,o1,o2)=t
+      __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], reflect(o2),N[\s2\],
+                 N[\b0\],N[\b1\],N[\b2\])
+    end
+
+  (** 2-D subarray given static subarray parameters.
+      (bo1,bo2)#(so1,so2) are output bounds.
+      The result is the subarray starting at (o0,o1) in the original array.
+   **)
+  subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
+            nat o0, nat o1, nat o2\]
+          (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
+      boundsCheck = bounds()[ (o0,o1,o2)#(so0,so1,so2) ]
+      SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\]
+               (self,1,o0,1,o1,1,o2)
+    end
+
+  __subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
+              nat o0, nat o1, nat o2\]
+          (_:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],_:N[\bo2\],_:N[\so2\],
+           _:N[\o0\],_:N[\o1\],_:N[\o2\]): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
+      subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\]()
 
   zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\] = (0,0,0)#(s0,s1,s2)
 
@@ -1231,6 +1350,24 @@ object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() ex
 
   put(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.put(ofs(t),v)
   get(t:(ZZ32,ZZ32,ZZ32)) : T = mem.get(ofs(t))
+end
+
+(** Simple 3-D subarray, used when we have no other knowledge of the
+    underlying structure.  If we're on top of a PrimitiveArray we can
+    really do much better than this.
+    (b0,b1,b2)#(s0,s1,s2) are the bounds of the subarray.
+    (bu0,bu1,bu2)#(su0,su1,su2) are the bounds of the underlying array.
+    m_i, o_i are multiplier and offset (0-based) of dimension i.
+**)
+object SubArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
+                     nat bu0, nat su0, nat bu1, nat su1, nat bu2, nat su2\]
+                (mem: Array2[\T,bu0,su0,bu1,su1,bu2,su2\],
+                 m0:ZZ32,o0:ZZ32, m1:ZZ32,o1:ZZ32, m2:ZZ32, o2:ZZ32)
+        extends Array3[\T,b0,s0,b1,s1,b2,s2\]
+    index(a0:ZZ32, a1:ZZ32, a2:ZZ32): (ZZ32,ZZ32,ZZ32) =
+        (m0 a0 + o0, m1 a1 + o1, m2 a2 + o2)
+    put(t:(ZZ32,ZZ32,ZZ32), v:T): () = mem.put(index(t),v)
+    get(t:(ZZ32,ZZ32,ZZ32)): T = mem.get(index(t))
 end
 
 __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
@@ -1399,13 +1536,21 @@ end
 
 (** Ranges in general represent uses of the # and : operators.
     It's mostly subtypes of Range that are interesting.  **)
-trait Range[\T\]
+trait Range[\T\] extends { Equality }
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
-                RangeWithExtent[\T\], OpenRange[\T\] }
+                RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
 end
 
-object OpenRange[\T\]() extends Range[\T\]
+trait PartialRange[\T\] extends Range[\T\]
+    comprises { OpenRange[\T\],
+                LowerRange[\T\], UpperRange[\T\], ExtentRange[\T\] }
+    excludes { FullRange[\T\] }
+end
+
+object OpenRange[\T\]() extends { Range[\T\], PartialRange[\T\] }
+    toString():String = "#"
+    eq[\U\](_:OpenRange[\U\]): Boolean = true
 end
 
 trait RangeWithLower[\T\] extends Range[\T\]
@@ -1413,9 +1558,10 @@ trait RangeWithLower[\T\] extends Range[\T\]
     getter lower():T
 end
 
-object LowerRange[\T\](lo:T) extends RangeWithLower[\T\]
+object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
     getter lower():T = lo
     toString():String = lower() "#"
+    eq(x:LowerRange[\T\]): Boolean = lower() = x.lower()
 end
 
 trait RangeWithUpper[\T\] extends Range[\T\]
@@ -1423,9 +1569,10 @@ trait RangeWithUpper[\T\] extends Range[\T\]
     getter upper():T
 end
 
-object UpperRange[\T\](up:T) extends RangeWithUpper[\T\]
+object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     getter upper():T = up
     toString():String = ":" upper()
+    eq(x:UpperRange[\T\]): Boolean = upper() = x.upper()
 end
 
 trait RangeWithExtent[\T\] extends Range[\T\]
@@ -1434,12 +1581,22 @@ trait RangeWithExtent[\T\] extends Range[\T\]
     toString():String = "#" extent()
 end
 
-object ExtentRange[\T\](ex:T) extends RangeWithExtent[\T\]
+object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
     getter extent():T = ex
+    eq(x:ExtentRange[\T\]): Boolean = extent() = x.extent()
 end
 
 trait FullRange[\T\]
-    extends { RangeWithLower[\T\], RangeWithUpper[\T\], RangeWithExtent[\T\] }
+        extends { RangeWithLower[\T\], RangeWithUpper[\T\],
+                  RangeWithExtent[\T\], Indexed[\T,T\] }
+        comprises { ScalarRange[\T\], TupleRange[\T\] }
+    getter indexValuePairs(): Indexed[\(T,T),T\] =
+        self.map[\(T,T)\](fn (t:T):(T,T) => (t,t))
+    getter indices(): FullRange[\T\] = self
+
+    map[\G\](f: T->G): Generator[\G\] = SimpleMappedGenerator[\T,G\](self,f)
+    opr[r:Range[\T\]]: FullRange[\T\] = fail("Unrecognized Range " r)
+    opr[_:OpenRange[\T\]]: FullRange[\T\] = self
     (** Square-bracket indexing on a FullRange restricts that range to
          the range provided.  Restriction should behave as follows:
             - Restriction to an OpenRange is the identity.
@@ -1448,64 +1605,59 @@ trait FullRange[\T\]
           - A LowerRange restricts the lower bound and extent of the range.
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
-    opr [r:Range[\T\]]: FullRange[\T\]
+    opr[r:LowerRange[\T\]]: FullRange[\T\] =
+        if contains(r.lower()) then
+            r.lower():upper()
+        else
+            fail(self "[" r "] does not contain lower bound")
+        end
+    opr[r:UpperRange[\T\]]: FullRange[\T\] =
+        if contains(r.upper()) then
+            lower():r.upper()
+        else
+            fail(self "[" r "] does not contain upper bound")
+        end
+    opr[r:ExtentRange[\T\]]: FullRange[\T\] = do
+        res = lower()#r.extent()
+        if contains(res.upper()) then
+            res
+        else
+            fail(self "[" r "] is not sufficiently large in some dimension")
+        end
+      end
+    opr[r:FullRange[\T\]]: FullRange[\T\] =
+        if NOT (contains(r.lower())) then
+            fail(self "[" r "] does not contain lower bound")
+        elif NOT (contains(r.upper())) then
+            fail(self "[" r "] does not contain upper bound")
+        else
+            r
+        end
 
     toString():String = lower() "#" extent()
-
 end
 
-trait GeneratedRange[\T\] extends { FullRange[\T\], Indexed[\T,T\] }
-        comprises { ScalarRange[\T\], TupleRange[\T\] }
-    getter bounds():GeneratedRange[\T\] = self
-    getter indexValuePairs(): Generator[\(T,T)\] =
-        self.map[\(T,T)\](fn (t:T):(T,T) => (t,t))
-    getter indices(): GeneratedRange[\T\] = self
-    (** Helper for partially ordering Ts, defines the indexing operations. **)
-    before(a:T, b:T): Boolean
-    (** another is used as a helper for other defaults. **)
-    another(l:T, s:T): GeneratedRange[\T\]
-
-    map[\G\](f: T->G): Generator[\G\] = SimpleMappedGenerator[\T,G\](self,f)
-    contains(x:T): Boolean = NOT (before(x,lower())) AND eqOrBefore(x,upper())
-    opr [i:T]: T = i
-    opr [r:Range[\T\]]: GeneratedRange[\T\] = fail("Unrecognized Range " r)
-    opr [r:OpenRange[\T\]]: GeneratedRange[\T\] = self
-    opr [r:LowerRange[\T\]]: GeneratedRange[\T\] =
-        if before(r.lower(),lower()) then
-            fail(self " doesn't contain lower " r)
-        else
-            another(r.lower(), upper()+1-r.lower())
-        end
-    opr [r:UpperRange[\T\]]: GeneratedRange[\T\] =
-        if before(upper(), r.upper()) then
-            fail(self " doesn't contain upper " r)
-        else
-            another(lower(), r.upper()-lower()+1)
-        end
-    opr [r:ExtentRange[\T\]]: GeneratedRange[\T\] =
-        if before(extent(), r.extent()) then
-            fail(self "is smaller than extent " r)
-        else
-            another(lower(), r.extent())
-        end
-    opr [r:FullRange[\T\]]: GeneratedRange[\T\] =
-        if before(r.lower(),lower()) then
-            fail(self " doesn't contain lower bound of " r)
-        elif before(upper(),r.upper()) then
-            fail(self " doesn't contain upper bound of " r)
-        else
-            another(r.lower(),r.extent())
-        end
-end
+rangeIndexFailure[\T\](r:FullRange[\T\],i:T): () =
+    fail(r "[" i "] out of range.")
 
 (** ParRanges and SeqRanges, the simplest and most basic of all
 generators.  They generate size() numbers, incrementing by 1, starting
 with lower() (that's the canonical ordering). *)
 trait ScalarRange[\N extends Integral\]
-        extends { GeneratedRange[\N\] }
+        extends { FullRange[\N\] }
+    getter bounds():FullRange[\N\] = 0#extent()
     getter upper():N = lower() + extent() - 1
     getter size():ZZ32 = narrow(|\extent()/|)
-    before(a:N, b:N): Boolean = a < b
+    opr[i:N]: N =
+        if i >= 0 AND i < extent() then
+            i + lower()
+        else
+            rangeIndexFailure[\N\](self,i)
+        end
+    contains(a:N): Boolean = do
+        t = a - lower()
+        t >= 0 AND t < size()
+      end
 end
 
 value object ParRange[\N extends Integral\](lo:N, ex:N)
@@ -1514,7 +1666,6 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
     getter lower() = lo
 
     seq() = SeqRange[\N\](lo,ex)
-    another(l:N, e:N): ParRange[\N\] = ParRange[\N\](l,e)
     generate[\R\](r: Reduction[\R\], m: N->R): R =
         if size() < 1 then
             r.empty()
@@ -1577,13 +1728,13 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        end
             gen(lo,size())
         end
+    eq(x:ParRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
 end
 value object SeqRange[\N extends Integral\](lo:N, ex:N)
         extends { ScalarRange[\N\], SequentialGenerator[\N\] }
     getter extent() = ex
     getter lower() = lo
     getter toString() = "seq(" lo "#" ex ")"
-    another(l:N, e:N): SeqRange[\N\] = SeqRange[\N\](l,e)
     generate[\R\](r: Reduction[\R\], m: N->R): R = do
         h = lo + ex
         l : N := lo
@@ -1604,25 +1755,34 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
             l += 1
         end
       end
+    eq(x:SeqRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
 end
 
-trait TupleRange[\T\] extends GeneratedRange[\T\]
+trait TupleRange[\T\] extends FullRange[\T\]
 end
 
 object Tuple2Range[\N extends Integral, M extends Integral\]
                   (l1:N,l2:M,x1:N,x2:M)
         extends { TupleRange[\(N,M)\], DelegatedIndexed[\(N,M),(N,M)\] }
+    getter bounds():(N,M) = (0,0)#(x1,x2)
     getter extent():(N,M) = (x1,x2)
     getter lower():(N,M) = (l1,l2)
     getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper())
     getter size():(N,M) = (l1#x1).size() (l2#x2).size()
     getter generator():Generator[\(N,M)\] = (l1#x1).cross[\M\](l2#x2)
-    before(t1:(N,M),t2:(N,M)):Boolean =
-        do (a1,b1) = t1; (a2,b2) = t2; a1 < a2 OR b1 < b2 end
-    another(t1:(N,M),t2:(N,M)):Tuple2Range[\N,M\] =
-        do (a1,b1) = t1; (a2,b2) = t2
-           Tuple2Range[\N,M\](a1,b1,a2,b2)
+    getter toString(): String = "(" l1 "," l2 ")#(" x1 "," x2 ")"
+    opr[i:(N,M)]: (N,M) = do
+        (i1,i2) = i
+        if (0#x1).contains(i1) AND (0#x2).contains(i2) then
+            (i1+l1,i2+l2)
+        else
+            rangeIndexFailure[\(N,M)\](self,i)
         end
+      end
+    contains(v1:N, v2:M): Boolean =
+        (l1#x1).contains(v1) AND (l2#x2).contains(v2)
+    eq(r:Tuple2Range[\N,M\]): Boolean =
+        l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2)
 end
 
 object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integral\]
@@ -1636,12 +1796,21 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
     getter generator():Generator[\(N,M)\] =
         (l1#x1).cross(l2#x2).cross(l3#x3).map[\(N1,N2,N3)\](
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
-    before(t1:(N1,N2,N3),t2:(N1,N2,N3)):Boolean =
-        do (a1,b1,c1) = t1; (a2,b2,c2) = t2; a1 < a2 OR b1 < b2 OR c1 < c2 end
-    another(t1:(N,M),t2:(N,M)):Tuple3Range[\N,M\] =
-        do (a1,b1,c1) = t1; (a2,b2,c2) = t2
-           Tuple3Range[\N,M\](a1,b1,c1,a2,b2,c2)
+    getter toString(): String = "(" l1 "," l2 "," l3 ")#(" x1 "," x2 "," x3 ")"
+    opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
+        (i1,i2,i3) = i
+        if (0#x1).contains(i1) AND (0#x2).contains(i2) AND
+           (0#x3).contains(i3) then
+            (i1+l1,i2+l2, i3+l3)
+        else
+            rangeIndexFailure[\(N,M)\](self,i)
         end
+      end
+    contains(v1:N1, v2:N2, v3:N3): Boolean =
+        (l1#x1).contains(v1) AND (l2#x2).contains(v2) AND (l3#x3).contains(v3)
+    eq(r:Tuple3Range[\N1,N2,N3\]): Boolean =
+        l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2) AND
+        l3.eq(r.l3) AND x3.eq(r.x3)
 end
 
 (** The # and : operators serve as factories for parallel ranges. **)
@@ -1673,18 +1842,17 @@ opr :[\I extends Integral, J extends Integral, K extends Integral\]
    bucket.  Meanwhile, if we define a prefix operator and use it in
    suffix form it'll work and vice versa. *)
 (*
-opr [\T\](x:T)# : RangeWithLower[\T\] = RangeWithLower[\T\](x)
+opr [\T\](x:T)# : LowerRange[\T\] = LowerRange[\T\](x)
 *)
-opr [\T\](x:T): : RangeWithLower[\T\] = RangeWithLower[\T\](x)
-
-opr #[\T\](x:T) : RangeWithExtent[\T\] = RangeWithExtent[\T\](x)
+opr [\T\](x:T): : LowerRange[\T\] = LowerRange[\T\](x)
+opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
 
 (*
-opr :[\T\](x:T) : RangeWithUpper[\T\] = RangeWithUpper[\T\](x)
+opr :[\T\](x:T) : UpperRange[\T\] = UpperRange[\T\](x)
 *)
 
-opr #[\T\](): OpenRange[\T\] = OpenRange[\T\]()
-opr :[\T\](): OpenRange[\T\] = OpenRange[\T\]()
+opr #(): OpenRange[\Any\] = OpenRange[\Any\]()
+opr :(): OpenRange[\Any\] = OpenRange[\Any\]()
 
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
@@ -1838,6 +2006,9 @@ opr juxtaposition
      (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr DOT(a:String, b:()):String = a "()"
 opr juxtaposition(a:String, b:()):String = a "()"
+opr DOT(a:String, b:(Any,Any)):String = do (i,j) = b; a "(" i "," j ")" end
+opr juxtaposition(a:String, b:(Any,Any)):String =
+    do (i,j) = b; a "(" i "," j ")" end
 opr DOT(a:(), b:String):String = "()" b
 opr juxtaposition(a:(), b:String):String = "()" b
 opr DOT(a:Any, b:String):String = a.toString() b

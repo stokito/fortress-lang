@@ -43,6 +43,8 @@ import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 
 abstract public class FType implements Comparable<FType> {
 
@@ -68,7 +70,7 @@ abstract public class FType implements Comparable<FType> {
     final String name;
     private final int serial;
     private final int hash;
-    protected BASet<FType> excludes = new BASet<FType>(comparator);
+    private BASet<FType> excludes = new BASet<FType>(comparator);
     private static int counter;
     protected volatile List<FType> transitiveExtends;
    // Must be volatile due to lazy initialization / double-checked locking.
@@ -178,9 +180,10 @@ abstract public class FType implements Comparable<FType> {
     }
 
     private boolean excludesOtherInner(FType other) {
-
-        if (this == other)
+        if (this == other) {
+            exclDumpln("No.  Equal.");
             return false;
+        }
 
         // If neither type can be extended, then they exclude.
 
@@ -189,16 +192,23 @@ abstract public class FType implements Comparable<FType> {
 
         // Otherwise, look for exclusion in the supertypes.
         if (cannotBeExtended()) {
-            if (other.cannotBeExtended)
+            if (other.cannotBeExtended) {
+                exclDumpln("Excludes.  Neither can be extended.");
                 return true;
+            }
 
             // Optimization hack -- check memoized exclusion before doing work.
-            if (excludes.contains(other))
+            if (excludes.contains(other)) {
+                exclDumpln("Excludes (cached).");
                 return true;
+            }
 
-            if (getTransitiveExtends().contains(other))
+            if (getTransitiveExtends().contains(other)) {
+                exclDumpln("No.  Transitive extend contains.");
                 return false;
+            }
 
+            exclDumpln("Excludes.  Non-extensible + no supertype");
             // Memoize
             this.addExclude(other);
             return true;
@@ -206,12 +216,17 @@ abstract public class FType implements Comparable<FType> {
 
         } else if (other.cannotBeExtended()) {
             // Optimization hack -- check memoized exclusion before doing work.
-            if (excludes.contains(other))
+            if (excludes.contains(other)) {
+                exclDumpln("Excludes (cached').");
                 return true;
+            }
 
-            if (other.getTransitiveExtends().contains(this))
+            if (other.getTransitiveExtends().contains(this)) {
+                exclDumpln("No.  Contains transitive extend.");
                 return false;
+            }
 
+            exclDumpln("Excludes.  No supertype + non-extensible");
             // Memoize
             this.addExclude(other);
             return true;
@@ -221,10 +236,13 @@ abstract public class FType implements Comparable<FType> {
         // Not necessarily an optimization hack here; this is part of
         // the definition, but it also probes memoized results.
 
-        if (excludes.contains(other))
+        if (excludes.contains(other)) {
+            exclDumpln("Excludes (cached\").");
             return true;
+        }
 
         if (other.getExcludes().contains(this)) {
+            exclDumpln("Excludes (other declared).");
             this.addExclude(other);
             return true;
         }
@@ -234,17 +252,20 @@ abstract public class FType implements Comparable<FType> {
             for (FType o : other.getTransitiveExtends()) {
                 if ( !(t == this && o == other) && t_excludes.contains(o)) {
                     // Short-circuit any future queries
+                    exclDumpln("Excludes via ",t," and ",o);
                     this.addExclude(o);
+                    if (o!=other) this.addExclude(other);
                     return true;
                 }
             }
         }
+        exclDumpln("No.");
         return false;
 
     }
 
     public BetterEnv getEnv() {
-        return BetterEnv.empty();
+        return BetterEnv.blessedEmpty();
     }
 
     protected final boolean commonSubtypeOf(FType other) {

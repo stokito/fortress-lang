@@ -52,7 +52,7 @@ public class PrimitiveArray extends Constructor {
         AtomicArray<FValue> a;
 
         public Vec(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.empty(), self_dot_env);
+            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
             long n = self_dot_env.getValue("s0").getLong();
             this.a = new AtomicArray<FValue>(FValue.class, (int) n);
         }

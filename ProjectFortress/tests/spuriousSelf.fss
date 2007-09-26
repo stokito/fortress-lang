@@ -53,7 +53,8 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
   getter generator(): Generator[\E\] =
       (firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
 
-  opr [n:ZZ32]: E = fail("[] irrelevant")
+  opr[_:ZZ32]: E = fail("[] irrelevant")
+  opr[_:Range[\ZZ32\]]: List[\E\] = fail("[..#..] irrelevant")
 end
 
 run(args:String...):() = do
