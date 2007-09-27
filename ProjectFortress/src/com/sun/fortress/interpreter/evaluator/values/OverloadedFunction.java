@@ -51,10 +51,13 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public class  OverloadedFunction extends Fcn
     implements Factory1P<List<FType>, Fcn, HasAt>{
 
-    protected List<Overload> overloads = new ArrayList<Overload>();
-    protected boolean finishedFirst = false;
-    protected boolean finishedSecond = false;
+    protected volatile List<Overload> overloads = new ArrayList<Overload>();
+    private List<Overload> pendingOverloads = new ArrayList<Overload>();
+    protected volatile boolean finishedFirst = false;
+    protected volatile boolean finishedSecond = false;
     protected SimpleName fnName;
+    
+    private Thread currentUpdater;
 
     static final boolean DUMP_EXCLUSION = false;
 
@@ -114,7 +117,7 @@ public class  OverloadedFunction extends Fcn
         if (finishedFirst)
             return;
 
-        for (Overload ol : getOverloads()) {
+        for (Overload ol : pendingOverloads) {
             SingleFcn sfcn = ol.getFn();
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
@@ -139,22 +142,25 @@ public class  OverloadedFunction extends Fcn
      * are consistent, and assigns a type to the value.
      */
     @SuppressWarnings("unchecked")
-    public void finishInitializingSecondPart() {
+    public synchronized void finishInitializingSecondPart() {
 
         if (finishedSecond)
             return;
+        
+        List<Overload> new_overloads = pendingOverloads;
+        new_overloads.addAll(overloads);   
 
         // Put shorter parameter lists first (it's a funny sort order).
         // TODO I don't understand what's "unchecked" about the next line.
-        java.util.Collections.<Overload>sort(overloads);
-        ArrayList<FType> ftalist = new ArrayList<FType> (overloads.size());
+        java.util.Collections.<Overload>sort(new_overloads);
+        ArrayList<FType> ftalist = new ArrayList<FType> (new_overloads.size());
 
-        for (int i = 0; i< overloads.size(); i++) {
-            ftalist.add(overloads.get(i).getFn().type());
+        for (int i = 0; i< new_overloads.size(); i++) {
+            ftalist.add(new_overloads.get(i).getFn().type());
 
             for (int j = i-1; j >= 0 ; j--) {
-                Overload o1 = overloads.get(i);
-                Overload o2 = overloads.get(j);
+                Overload o1 = new_overloads.get(i);
+                Overload o2 = new_overloads.get(j);
 
                 SingleFcn f1 = o1.getFn();
                 SingleFcn f2 = o2.getFn();
@@ -288,7 +294,7 @@ public class  OverloadedFunction extends Fcn
                     error(o1, o2, within, explanation);
                 }
 
-                if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, overloads)) {
+                if (!distinct && p1better >= 0 && p2better >= 0 &&  !meetExistsIn(o1, o2, new_overloads)) {
                     error(o1, o2, within,
                             errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
                             formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
@@ -314,7 +320,7 @@ public class  OverloadedFunction extends Fcn
         this.setFtypeUnconditionally(ftoa);
         //String ftoas = ftoa.toString();
         //System.err.println(ftoas);
-        finishedSecond = true;
+        bless();
     }
 
     private String formatParameterComparison(int i, Overload o1, Overload o2,
@@ -398,9 +404,15 @@ public class  OverloadedFunction extends Fcn
     }
 
     public void addOverloads(OverloadedFunction cls) {
-        for (Overload cl : cls.overloads) {
+        List<Overload> clso = cls.overloads;
+        for (Overload cl : clso) {
             addOverload(cl);
         }
+        clso = cls.pendingOverloads;
+        for (Overload cl : clso) {
+            addOverload(cl);
+        }
+        
     }
 
     /**
@@ -410,12 +422,31 @@ public class  OverloadedFunction extends Fcn
      *
      * @param overload
      */
-    public void addOverload(Overload overload) {
+    public synchronized void addOverload(Overload overload) {
 //        if (finishedSecond)
 //            throw new IllegalStateException("Cannot add overloads after overloaded function is complete");
-        overloads.add(overload);
+        
+        Thread me = Thread.currentThread();
+        
+        if (currentUpdater == null) {
+            currentUpdater = me;
+        }
+        
+        while (currentUpdater != me) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            if (currentUpdater == null)
+                currentUpdater = me;
+        }
+        
         finishedFirst = false;
         finishedSecond = false;
+        pendingOverloads.add(overload);
+        
     }
 
     @Override
@@ -445,8 +476,15 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond)
-            bug(loc,"Cannot call before 'setFinished()'");
+        if (!finishedSecond) {
+            synchronized(this) {
+                if (!finishedSecond &&
+                        (currentUpdater == Thread.currentThread() ||
+                         currentUpdater == null))
+                    bug(loc,"Cannot call before 'setFinished()'");
+            }
+        }
+           
         int best = -1;
         SingleFcn best_sfn = null;
 
@@ -524,10 +562,13 @@ public class  OverloadedFunction extends Fcn
      * "correct by construction" and do not require the
      * very exciting overload consistency test.
      */
-    public void bless() {
+    public synchronized void bless() {
+        this.overloads = pendingOverloads;
+        this.pendingOverloads = new ArrayList<Overload>();
         finishedSecond = true;
         finishedFirst = true;
-
+        notifyAll();
+        currentUpdater = null;
     }
 
     /* This code gives overloaded functions the interface of a set of generic
