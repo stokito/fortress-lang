@@ -102,7 +102,7 @@ trait List[\E\] extends { Equality, Indexed[\E,ZZ32\] }
   filter(p: E -> Boolean): List[\E\] =
       concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
                                       else emptyList[\E\]() end)
-  opr =(self, other: List[\E\]): Boolean = do
+  eq(other: List[\E\]): Boolean = do
       println("In List =")
       if self.size() = other.size() then
           println("Sizes match")
