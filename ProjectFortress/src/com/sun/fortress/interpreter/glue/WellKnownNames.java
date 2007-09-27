@@ -38,4 +38,6 @@ public class WellKnownNames {
     public static String loopMethod = "loop";
     public static String generateMethod = "generate";
     public static String generatorCross = "cross";
+
+    public static String forbiddenException = "ForbiddenException";
 }

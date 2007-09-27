@@ -99,6 +99,7 @@ import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
@@ -141,6 +142,7 @@ import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptOp;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
@@ -715,7 +717,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             //        }
         } else {
            return error(x, e,
- errorMsg("Non-object cannot have field ",
+                         errorMsg("Non-object cannot have field ",
                                   NodeUtil.nameString(fld)));
         }
     }
@@ -1311,7 +1313,52 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTry(Try x) {
-        return NI("forTry");
+        Evaluator ev = new Evaluator(this, x);
+        Block body = x.getBody();
+        FValue res = FVoid.V;
+        try {
+            res = body.accept(this);
+        } catch (FortressException exc) {
+            Option<Catch> _catchClause = x.getCatchClause();
+            FType excType = exc.getException().type();
+            if (_catchClause.isSome()) {
+                Catch _catch = Option.unwrap(_catchClause);
+                IdName name = _catch.getName();
+                List<CatchClause> clauses = _catch.getClauses();
+                e.putValue(name.getId().getText(), exc.getException());
+
+                for (CatchClause clause : clauses) {
+                    TraitType match = clause.getMatch();
+                    Block catchBody = clause.getBody();
+                    FType foo = EvalType.getFType(match, e);
+                    if (excType.subtypeOf(foo)) {
+                        res = catchBody.accept(this);
+                        return res;
+                    }
+                }
+            }
+            List<TraitType> forbid = x.getForbid();
+            for (TraitType forbidType : forbid) {
+                if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
+                  FType ftype = e.getTypeNull(WellKnownNames.forbiddenException);
+                  List<FValue> args = new ArrayList<FValue>();
+                  args.add(exc.getException());
+                  Constructor c = (Constructor) e.getValue(WellKnownNames.forbiddenException);
+                  // Can we get a better HasAt?
+                  HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
+                  FObject f = (FObject) c.apply(args, at, e);
+                  FortressException f_exc = new FortressException(f);
+                  throw f_exc;
+                }
+            }
+        } finally {
+            Option<Block> finallyClause = x.getFinallyClause();
+            if (finallyClause.isSome()) {
+                Block b = Option.unwrap(finallyClause);
+                b.accept(this);
+            }
+        }
+        return res;
     }
 
     public FValue forTupleExpr(TupleExpr x) {
@@ -1431,7 +1478,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forThrow(Throw throw1) {
-        return NI("forThrow");
+        Expr ex = throw1.getExpr();
+        FObject v = (FObject) ex.accept(this);
+        FortressException f_exc = new FortressException(v);
+        throw f_exc;
+        // neverReached
     }
 
     public FValue forCharLiteral(CharLiteral x) {

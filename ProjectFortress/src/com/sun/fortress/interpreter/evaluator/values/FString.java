@@ -32,7 +32,7 @@ public class FString extends FValue {
     protected FString(String x) {
         val = x;
     }
-    public static FValue make(String s) {
+    public static FString make(String s) {
         return new FString(s);
     }
   }

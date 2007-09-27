@@ -297,8 +297,6 @@ end
 trait UncheckedException extends Exception excludes CheckedException
 end
 
-(*********  Commented out until we actually make exceptions work.
-
 object FailCalled(s:String) extends UncheckedException
   toString(): String = "FAIL: " s
 end
@@ -351,15 +349,10 @@ end
 object FloatingComparisonException extends UncheckedException
 end
 
-
-*****************)
-
 (* Checked Exceptions *)
 
 trait CheckedException extends Exception excludes UncheckedException
 end
-
-(**************** Commented out until we actually have exceptions.
 
 object CastException extends CheckedException
 end
@@ -402,8 +395,6 @@ end
 (* Should take a spawned thread as an argument *)
 object AtomicSpawnSynchronization extends {UncheckedException}
 end
-
-***************)
 
 (** Casting *)
 
