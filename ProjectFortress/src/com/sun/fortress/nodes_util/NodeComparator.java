@@ -52,7 +52,7 @@ public class NodeComparator {
     /* list comparers ****************************************************/
     static class ExtentRangeComparer implements Comparator<ExtentRange> {
         public int compare(ExtentRange left, ExtentRange right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static ExtentRangeComparer extentRangeComparer = new ExtentRangeComparer();
@@ -61,7 +61,7 @@ public class NodeComparator {
 
     static class KeywordTypeComparer implements Comparator<KeywordType> {
         public int compare(KeywordType left, KeywordType right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static KeywordTypeComparer keywordTypeComparer = new KeywordTypeComparer();
@@ -70,7 +70,7 @@ public class NodeComparator {
 
     static class ParamComparer implements Comparator<Param> {
         public int compare(Param left, Param right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static ParamComparer paramComparer = new ParamComparer();
@@ -84,7 +84,7 @@ public class NodeComparator {
             if (oclass != tclass) {
                 return tclass.getName().compareTo(oclass.getName());
             }
-            return subtypeCompareTo(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     public final static StaticParamComparer staticParamComparer =
@@ -94,7 +94,7 @@ public class NodeComparator {
 
     static class StaticArgComparer implements Comparator<StaticArg> {
         public int compare(StaticArg left, StaticArg right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static StaticArgComparer staticArgComparer = new StaticArgComparer();
@@ -103,7 +103,7 @@ public class NodeComparator {
 
     static class TraitTypeComparer implements Comparator<TraitType> {
         public int compare(TraitType left, TraitType right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static TraitTypeComparer traitTypeComparer = new TraitTypeComparer();
@@ -112,7 +112,7 @@ public class NodeComparator {
 
     static class TypeComparer implements Comparator<Type> {
         public int compare(Type left, Type right) {
-            return compare(left, right);
+            return NodeComparator.compare(left, right);
         }
     }
     final static TypeComparer typeComparer = new TypeComparer();
@@ -172,7 +172,15 @@ public class NodeComparator {
         return x;
     }
 
-    public static int compare(SimpleName left, SimpleName right) {
+    static class FnAbsDeclOrDeclComparer implements Comparator<FnAbsDeclOrDecl> {
+        public int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
+            return NodeComparator.compare(left, right);
+        }
+    }
+    
+    public final static FnAbsDeclOrDeclComparer fnAbsDeclOrDeclComparer = new FnAbsDeclOrDeclComparer();
+
+     public static int compare(SimpleName left, SimpleName right) {
         Class leftClass = left.getClass();
         Class rightClass = right.getClass();
 
@@ -261,12 +269,12 @@ public class NodeComparator {
     }
 
     /* subtypeCompareTo **************************************************/
-    static int subtypeCompareTo(ArrayType left, ArrayType right) {
+    static int compare(ArrayType left, ArrayType right) {
         return compare(left.getElement(), right.getElement(),
                        left.getIndices(), right.getIndices());
     }
 
-    static int subtypeCompareTo(ArrowType left, ArrowType right) {
+    static int compare(ArrowType left, ArrowType right) {
         int x = compare(left.getRange(), right.getRange());
         if (x != 0) return x;
         x = compare(left.getDomain(), right.getDomain());
@@ -279,7 +287,7 @@ public class NodeComparator {
         return 0;
     }
 
-    static int subtypeCompareTo(IntArg left, IntArg right) {
+    static int compare(IntArg left, IntArg right) {
         return subtypeCompareTo(left.getVal(), left.getVal());
     }
 
@@ -291,12 +299,12 @@ public class NodeComparator {
         else return 0;
     }
 
-    static int subtypeCompareTo(FixedDim left, FixedDim right) {
+    static int compare(FixedDim left, FixedDim right) {
         return extentRangeListComparer
             .compare(left.getExtents(), right.getExtents());
     }
 
-    static int subtypeCompareTo(IdType left, IdType right) {
+    static int compare(IdType left, IdType right) {
         return compare(left.getName(), right.getName());
     }
 
@@ -306,41 +314,41 @@ public class NodeComparator {
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(MatrixType left, MatrixType right) {
+    static int compare(MatrixType left, MatrixType right) {
         int y = compare(left.getElement(), right.getElement());
         if (y != 0) return y;
         return extentRangeListComparer.compare(left.getDimensions(),
                                                right.getDimensions());
     }
 
-    static int subtypeCompareTo(OprArg left, OprArg right) {
+    static int compare(OprArg left, OprArg right) {
         return compare(left.getName(), right.getName());
     }
 
-    static int subtypeCompareTo(InstantiatedType left, InstantiatedType right) {
+    static int compare(InstantiatedType left, InstantiatedType right) {
         int c = compare(left.getName(), right.getName());
         if (c != 0) return c;
         return staticArgListComparer.compare(left.getArgs(),
                                              right.getArgs());
     }
 
-    static int subtypeCompareTo(TaggedDimType left, TaggedDimType right) {
+    static int compare(TaggedDimType left, TaggedDimType right) {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(TaggedUnitType left, TaggedUnitType right) {
+    static int compare(TaggedUnitType left, TaggedUnitType right) {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int subtypeCompareTo(VarargsType left, VarargsType right) {
+    static int compare(VarargsType left, VarargsType right) {
         return compare(left.getType(), right.getType());
     }
 
-    static int subtypeCompareTo(SimpleTypeParam left, SimpleTypeParam right) {
+    static int compare(SimpleTypeParam left, SimpleTypeParam right) {
         int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
         if (x != 0) {
             return x;
@@ -353,19 +361,58 @@ public class NodeComparator {
         return traitTypeListComparer.compare(l, ol);
     }
 
-    static int subtypeCompareTo(StaticParam left, StaticParam right) {
+    static int compare(StaticParam left, StaticParam right) {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }
 
-    static int subtypeCompareTo(TupleType left, TupleType right) {
+    static int compare(TupleType left, TupleType right) {
         // TODO: Handle TupleTypes with varargs and keywords
         return typeListComparer.compare(left.getElements(), right.getElements());
     }
 
-    static int subtypeCompareTo(TypeArg left, TypeArg right) {
+    static int compare(TypeArg left, TypeArg right) {
         return compare(left.getType(), right.getType());
     }
-    static int subtypeCompareTo(Type left, Type right) {
+    
+    private static int subtypeCompareTo(Type left, Type right) {
+        // Commented out cases haven't had their methods implememnted yet,
+        // and will stack overflow instead.
+        
+        if (left instanceof ArrowType) {
+            return compare((ArrowType) left, (ArrowType) right);
+        } else if (left instanceof VoidType) {
+            return 0;
+        } else if (left instanceof TupleType) {
+            return compare((TupleType) left, (TupleType) right);
+        } else if (left instanceof TaggedDimType) {
+            return compare((TaggedDimType) left, (TaggedDimType) right);
+        } else if (left instanceof TaggedUnitType) {
+            return compare((TaggedUnitType) left, (TaggedUnitType) right);
+        } else if (left instanceof ArrayType) {
+            return compare((ArrayType) left, (ArrayType) right);
+        } else if (left instanceof IdType) {
+            return compare((IdType) left, (IdType) right);
+        } else if (left instanceof InstantiatedType) {
+            return compare((InstantiatedType) left, (InstantiatedType) right);
+        } else if (left instanceof MatrixType) {
+            return compare((MatrixType) left, (MatrixType) right);
+        } else if (left instanceof BoolArg) {
+            //return compare((BoolArg) left, (BoolArg) right);
+        } else if (left instanceof DimArg) {
+            //return compare((DimArg) left, (DimArg) right);
+        } else if (left instanceof IdArg) {
+            //return compare((IdArg) left, (IdArg) right);
+        } else if (left instanceof IntArg) {
+            return compare((IntArg) left, (IntArg) right);
+        } else if (left instanceof OprArg) {
+            return compare((OprArg) left, (OprArg) right);
+        } else if (left instanceof TypeArg) {
+            return compare((TypeArg) left, (TypeArg) right);
+        } else if (left instanceof UnitArg) {
+            //return compare((UnitArg) left, (UnitArg) right);
+        } else {
+            
+        }
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");

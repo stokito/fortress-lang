@@ -21,13 +21,14 @@ import java.util.AbstractSet;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
  *
  * Does not yet support item removal; does not yet support all the SortedSet
- * methods that it could in principle support.
+ * methods that it could in principle support.  (lacks headset/subset/tailset).
  */
 public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
@@ -424,5 +425,32 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         }
 
     }
+
+    public Comparator<? super T> comparator() {
+        return comp;
+    }
+
+    public T first() {
+        return min();
+    }
+
+    public T last() {
+        return max();
+    }
+
+//    public SortedSet<T> headSet(T arg0) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public SortedSet<T> subSet(T arg0, T arg1) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    public SortedSet<T> tailSet(T arg0) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
 }

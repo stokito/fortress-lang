@@ -21,6 +21,7 @@
 package com.sun.fortress.interpreter.evaluator.types;
 
 import java.util.List;
+import java.util.SortedSet;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
@@ -29,7 +30,10 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Useful;
 
 public abstract class FTraitOrObjectOrGeneric extends FType {
 
@@ -56,46 +60,47 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
    public void initializeFunctionalMethods() {
         FTraitOrObjectOrGeneric x = this;
         BetterEnv topLevel = getEnv();
-        List<? extends AbsDeclOrDecl> defs = members;
+        // List<? extends AbsDeclOrDecl> defs = members;
         
-        for (AbsDeclOrDecl dod : defs) {
-            // Filter out non-functions.
-            if (dod instanceof FnAbsDeclOrDecl) {
-                int spi = NodeUtil
-                        .selfParameterIndex((FnAbsDeclOrDecl) dod);
-                if (spi >= 0) {
-                    // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
-                    // System.err.println("Functional method " + dod + "
-                    // pass
-                    // "+pass);
-                    String fndodname = NodeUtil.nameString(fndod.getName());
-                    {
-                        Fcn cl;
-                        // If the container is generic, then we create an
-                        // empty top-level overloading, to be filled in as
-                        // the container is instantiated.
-                        
-                        // if (x.getStaticParams().isPresent()) {
-                        if (x instanceof FTypeGeneric) {
-                            cl = new OverloadedFunction(fndod.getName(),
-                                    topLevel);
-                        } else {
-                            // Note that the instantiation of a generic
-                            // comes
-                            // here too
-                            cl = new FunctionalMethod(topLevel, fndod,
-                                    spi, x);
-                        }
+        SortedSet<FnAbsDeclOrDecl> defs = Useful.<AbsDeclOrDecl, FnAbsDeclOrDecl>filteredSortedSet(members,
+                new Fn<AbsDeclOrDecl, FnAbsDeclOrDecl>() {
+                    @Override
+                    public FnAbsDeclOrDecl apply(AbsDeclOrDecl x) {
+                        if (x instanceof FnAbsDeclOrDecl) return (FnAbsDeclOrDecl) x;
+                        return null;
+                    }},
+                NodeComparator.fnAbsDeclOrDeclComparer);
+        
+        for (FnAbsDeclOrDecl dod : defs) {
 
-                        // TODO test and other modifiers
+            int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+            if (spi >= 0) {
+                // If it is a functional method, it is definitely a
+                // FnAbsDeclOrDecl
+                FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                String fndodname = NodeUtil.nameString(fndod.getName());
+                {
+                    Fcn cl;
+                    // If the container is generic, then we create an
+                    // empty top-level overloading, to be filled in as
+                    // the container is instantiated.
 
-                        
-                        topLevel.putValueNoShadowFn(fndodname, cl);
+                    // if (x.getStaticParams().isPresent()) {
+                    if (x instanceof FTypeGeneric) {
+                        cl = new OverloadedFunction(fndod.getName(), topLevel);
+                    } else {
+                        // Note that the instantiation of a generic
+                        // comes
+                        // here too
+                        cl = new FunctionalMethod(topLevel, fndod, spi, x);
                     }
+
+                    // TODO test and other modifiers
+
+                    topLevel.putValueNoShadowFn(fndodname, cl);
                 }
             }
+
         }
     }
 

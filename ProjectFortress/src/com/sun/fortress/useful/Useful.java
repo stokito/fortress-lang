@@ -38,6 +38,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /*
  * Created on Feb 3, 2006
@@ -322,6 +324,28 @@ public class Useful {
         return result;
       }
 
+    public static <T,U> List<U> filteredList(Iterable<? extends T> l, Fn<T,U> f) {
+        ArrayList<U> result = new ArrayList<U>();
+        for (T t : l) {
+            U u = f.apply(t);
+            if (u != null)
+                result.add(u);
+        }
+        return result;
+    }
+    
+    
+    public static <T,U> SortedSet<U>  filteredSortedSet(Iterable<? extends T> l, Fn<T,U> f, Comparator<U> c) {
+        SortedSet<U> result = new TreeSet<U>(c);
+        for (T t : l) {
+            U u = f.apply(t);
+            if (u != null)
+                result.add(u);
+        }
+        return result;
+    }
+    
+    
     public static <T> List<T> list(T x1, T x2, T x3, T x4) {
         ArrayList<T> result = new ArrayList<T>(4);
         result.add(x1);
