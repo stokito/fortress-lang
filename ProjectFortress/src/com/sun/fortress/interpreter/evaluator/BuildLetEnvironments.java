@@ -78,6 +78,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
                 throw pe.setContext(x,containing);
             }
             // TODO Local functions cannot be Enclosing, can they?
+            // Local functions cannot be any operator including Enclosing.
             FType ft = EvalType.getFTypeFromOption(retType,containing);
             List<Parameter> fparams = EvalType.paramsToParameters(containing, params);
             cl.setParamsAndReturnType(fparams, ft);

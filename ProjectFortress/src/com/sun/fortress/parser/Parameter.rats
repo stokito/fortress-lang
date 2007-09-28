@@ -80,8 +80,8 @@ NormalParam Param = PlainParam ;
 /* OpHeaderFront ::=
      opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
-   | opr (w StaticParams)? w ValParam (w BIG)? w Op
-   | opr (w BIG)? w (Op | ExponentOp | Encloser) (w StaticParams)? w ValParam
+   | opr (w StaticParams)? w ValParam w (Op / ExponentOp)
+   | opr (w BIG)? w (Op | caret | Encloser) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
      opr opa1:(w StaticParams)? big:(w BIG)? w opa2:(LeftEncloser / Encloser) w
@@ -92,14 +92,14 @@ FnHeaderFront OpHeaderFront =
        String left  = opa2.getText();
        String right = opa4.getText();
        if (left.equals("[") && right.equals("]")) {
-           if (opa5 == null) name = new SubscriptOp(span);
-           else              name = new SubscriptAssign(span);
+           if (opa5 == null) name = new SubscriptOp(span, opa2, opa4);
+           else              name = new SubscriptAssign(span, opa2, opa4);
        } else if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
            if (big != null) {
                opa2 = NodeFactory.makeOp(opa2.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOp(opa4.getSpan(), "BIG " + right);
            }
-           name = new Enclosing(span, opa2, opa4);
+           name = new Bracketing(span, opa2, opa4);
        } else
            name = error(opa2, "Mismatched enclosing operator definition: "
                               + left + " and " + right);
@@ -107,20 +107,20 @@ FnHeaderFront OpHeaderFront =
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa1, opa3, opparam);
      }
-   / opr a1:(w StaticParams)? w a2:ValParam big:(w BIG)? w a3:Op
+   / opr a1:(w StaticParams)? w a2:ValParam w a3:(Op / ExponentOp)
      { Span span = createSpan(yyStart,yyCount);
-       if (big != null)
-           a3 = NodeFactory.makeOp(a3.getSpan(), "BIG " + a3.getText());
        if (a1 == null) yyValue = new FnHeaderFront(new PostFix(span,a3), a2);
        else            yyValue = new FnHeaderFront(new PostFix(span,a3), a1, a2);
      }
-   / opr big:(w BIG)? w a1:(Op / ExponentOp / Encloser) a2:(w StaticParams)? w
-     a3:ValParam
+   / opr big:(w BIG)? w
+     a1:(Op / caret {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),"^");} / Encloser)
+     a2:(w StaticParams)? w a3:ValParam
      { Span span = createSpan(yyStart,yyCount);
+       Op op = (Op)a1;
        if (big != null)
-           a1 = NodeFactory.makeOp(a1.getSpan(), "BIG " + a1.getText());
-       if (a2 == null) yyValue = new FnHeaderFront(new Opr(span,a1), a3);
-       else            yyValue = new FnHeaderFront(new Opr(span,a1), a2, a3);
+           op = NodeFactory.makeOp(op.getSpan(), "BIG " + op.getText());
+       if (a2 == null) yyValue = new FnHeaderFront(new Opr(span,op), a3);
+       else            yyValue = new FnHeaderFront(new Opr(span,op), a2, a3);
      };
 
 /* SubscriptAssignParam ::= Varargs | Param */

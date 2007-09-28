@@ -154,10 +154,10 @@ private AliasedName AliasedName =
      };
 
 /* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
-private Enclosing EncloserPair =
+private Bracketing EncloserPair =
      a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
        else
            yyValue = error(a2, "Mismatched Enclosers.");
      };

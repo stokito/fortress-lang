@@ -277,7 +277,7 @@ public class ExprFactory {
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs) {
-        return new SubscriptExpr(span, false, obj, subs, Option.<Enclosing>none());
+        return new SubscriptExpr(span, false, obj, subs, Option.<SubscriptOp>none());
     }
 
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {

@@ -786,7 +786,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) a[i]
              */
             SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<Enclosing> op = Option.<Enclosing>none())
+                          Option<SubscriptOp> op = Option.<SubscriptOp>none())
                          implements LHS;
             /**
              * primary expression
@@ -1588,7 +1588,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         DottedName(List<Id> ids);
         /**
-         * A name prefixed by an optional API name
+         * name prefixed by an optional API name
          */
         abstract QualifiedName(Option<DottedName> api = Option.<DottedName>none(),
                                SimpleName name);
@@ -1617,8 +1617,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract OpName();
                 /**
-                 * operator that is not an encloser, a postfix operator,
-                 * a subscripted assignment, a subscripting operator
+                 * infix/prefix/nofix/multifix operator
                  * e.g.) COMPOSE
                  * e.g.) +
                  */
@@ -1633,17 +1632,22 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * EncloserPair ::= LeftEncloser RightEncloser
                  * e.g.) </ />
                  */
-                Enclosing(Op open, Op close);
-                /**
-                 * subscripting operator [ ]
-                 * e.g.) a[i]
-                 */
-                SubscriptOp();
-                /**
-                 * subscripted assignment operator [ ] :=
-                 * e.g.) a[i] := 1
-                 */
-                SubscriptAssign();
+                abstract Enclosing(Op open, Op close);
+                    /**
+                     * bracketing operator
+                     * e.g.) a[i]
+                     */
+                    Bracketing();
+                    /**
+                     * subscripting operator
+                     * e.g.) a[i]
+                     */
+                    SubscriptOp();
+                    /**
+                     * subscripted assignment operator
+                     * e.g.) a[i] := 1
+                     */
+                    SubscriptAssign();
             /**
              * internal name for anonymous function expressions
              * not created during parsing but during evaluation

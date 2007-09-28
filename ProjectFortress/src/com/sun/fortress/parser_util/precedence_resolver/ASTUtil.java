@@ -26,7 +26,7 @@ import java.util.Collections;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.ChainExpr;
-import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.Bracketing;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
@@ -90,9 +90,9 @@ public class ASTUtil {
     public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
-            Enclosing en = new Enclosing(s, left, right);
+            Bracketing en = new Bracketing(s, left, right);
             QualifiedOpName qName = new QualifiedOpName(s, Option.<DottedName>none(),
-                                                        new Enclosing(s, left, right));
+                                                        new Bracketing(s, left, right));
             return new OprExpr(span, false,
                                Collections.<QualifiedOpName>singletonList(qName), args);
         } else {

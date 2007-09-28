@@ -85,6 +85,7 @@ import com.sun.fortress.nodes.CharLiteral;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.Bracketing;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Entry;
 import com.sun.fortress.nodes.Exit;
@@ -972,7 +973,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forEnclosing(Enclosing x) {
+    public FValue forBracketing(Bracketing x) {
         return getOp(x);
     }
 
@@ -1117,7 +1118,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forSubscriptOp(SubscriptOp x) {
-        return NI("forSubscriptOp");
+        return getOp(x);
     }
 
     public FValue invokeGenericMethod(FObject fobject, Name fld, List<StaticArg> args, List<Expr> exprs, HasAt x) {
