@@ -1,0 +1,44 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.Bracketing
+
+export Executable
+
+(*
+opr <|x: Vector, y: Vector|> = SUM[i <- x.indices]x[i] DOT y[i]
+*)
+(** EXAMPLE **)
+(* angle bracket notation for inner product *)
+opr [\T extends Number, nat k\]<|x: Vector[\T,k\], y: Vector[\T,k\]|> = do
+  var result: ZZ32 = 0
+  for i <- x.indices() do result += x[i] y[i] end
+  result
+end
+(** END EXAMPLE **)
+
+vector1 = vector[\ZZ32, 2\](2)
+vector2 = vector[\ZZ32, 2\](3)
+
+run(args:String...) = do
+  assert( <|vector1, vector2|> = 12)
+  println("OprDecl.Bracketing.fss passed.")
+end
+
+end

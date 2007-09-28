@@ -1,0 +1,49 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.SubscriptedAssignment
+
+export Executable
+
+object BizarroIndex
+  val = 2
+end
+object Widget end
+
+object SubscriptedAssignmentTest
+  bizarroFetch(x: BizarroIndex) = BizarroIndex.val
+  bizarroInstall(x: BizarroIndex, newValue: Widget) = ()
+  opr [x: BizarroIndex] = self.bizarroFetch(x)
+(** EXAMPLE **)
+  (* subscripted assignment method *)
+  opr [x: BizarroIndex] := (newValue: Widget) = self.bizarroInstall(x, newValue)
+(** END EXAMPLE **)
+end
+
+foo = SubscriptedAssignmentTest
+p = BizarroIndex
+myWidget = Widget
+
+run(args:String...) = do
+  assert(SubscriptedAssignmentTest[BizarroIndex] = 2)
+  foo[p] := myWidget
+  println("OprDecl.SubscriptedAssignment.fss passed.")
+end
+
+end
