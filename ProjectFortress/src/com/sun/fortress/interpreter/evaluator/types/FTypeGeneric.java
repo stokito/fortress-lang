@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -47,6 +48,26 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
+    
+    /**
+     * This is a HACK, to let other people make progress.
+     * Traits should not be scanned for functional methods until the last possible moment,
+     * and that is not known until, say, a generic constructor is returned.
+     * 
+     */
+    static ThreadLocal<List<FTypeTrait>> pendingFunctionalMethodFinishes = new ThreadLocal<List<FTypeTrait>>() {
+        protected synchronized List<FTypeTrait> initialValue() {
+            return new ArrayList<FTypeTrait>();
+        }
+    };
+    
+    static public void flushPendingTraitFMs() {
+        for (FTypeTrait tt : pendingFunctionalMethodFinishes.get()) {
+            tt.finishFunctionalMethods();
+        }
+        pendingFunctionalMethodFinishes.get().clear();
+    }
+    
     public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members) {
         super(NodeUtil.stringName(d));
         env = e;
@@ -156,6 +177,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 be.thirdPass();
                 // Perhaps this is ok now that we have self-param double-overload fix in.
                 // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
+                
+                pendingFunctionalMethodFinishes.get().add(ftt);
+                
                 rval = ftt;
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
