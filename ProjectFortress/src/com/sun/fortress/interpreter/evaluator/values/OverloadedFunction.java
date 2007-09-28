@@ -117,7 +117,11 @@ public class  OverloadedFunction extends Fcn
         if (finishedFirst)
             return;
 
-        for (Overload ol : pendingOverloads) {
+        Overload ol;
+        for (int i = 0; i < pendingOverloads.size(); i++) {
+            // Cannot be an iterator -- will get comodification exception
+            // iteration to the growing end is perfectly ok.
+            ol = pendingOverloads.get(i);
             SingleFcn sfcn = ol.getFn();
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
