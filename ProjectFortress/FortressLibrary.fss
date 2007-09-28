@@ -107,8 +107,8 @@ assert(x:Any, y:Any, failMsg: Any...): () =
  * Every generator has a notion of a "natural order" (which by default is
  * unspecified), which describes the ordering of reduction operations,
  * and also describes the order in which elements are produced by the
- * sequential version of the same generator (given by the seq()
- * method).  The default implementation of seq() guarantees that these
+ * sequential version of the same generator (given by the seq(self)
+ * method).  The default implementation of seq(self) guarantees that these
  * orders will match.
  *
  * Note in particular that the natural order of a Generator must be
@@ -199,7 +199,7 @@ trait Generator[\E\]
     (** The contains method shouldn't be used directly; programmers
         should use the IN operator instead.  It exists simply to work
         around bugs. **)
-    contains(x:E) = this.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
+    contains(x:E) = self.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
@@ -219,7 +219,7 @@ opr IN[\E\](x: E, this: Generator[\E\]): Boolean = this.contains(x)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
 seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
-sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
+sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 
 (** Maybe type *)
@@ -617,7 +617,7 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
         generator().generate[\R\](r,body)
     map[\G\](f: E->G): Generator[\G\] =
         generator().map[\G\](f)
-    seq(): SequentialGenerator[\E\] = generator().seq()
+    seq(): SequentialGenerator[\E\] = sequential(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
@@ -737,7 +737,7 @@ trait StandardArrayType[\T extends StandardArrayType[\E,I\],E,I\]
         generator().generate[\R\](r,body)
     map[\G\](f: E->G): Generator[\G\] =
         generator().map[\G\](f)
-    seq(): SequentialGenerator[\E\] = generator().seq()
+    seq(): SequentialGenerator[\E\] = sequential(generator())
 
     assign(v:T):T = do
         for i <- zeroIndices() do put(i,v.get(i)) end
@@ -1478,7 +1478,7 @@ object SimpleMappedSeqGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
         extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = g ".map(f).seq()"
+    getter toString() = "seq(" g ".map(f))"
 end
 
 trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
@@ -1504,7 +1504,7 @@ object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
         extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
     getter e() = e0
     getter f() = f0
-    getter toString()=(e ".cross(" f ").seq()" )
+    getter toString()=("seq(" e ".cross(" f "))" )
 end
 
 (** Helper for serializing generators naively.  This code should make
@@ -1608,29 +1608,29 @@ trait FullRange[\T\]
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
     opr[r:LowerRange[\T\]]: FullRange[\T\] =
-        if contains(r.lower()) then
+        if r.lower() IN self then
             r.lower():upper()
         else
             fail(self "[" r "] does not contain lower bound")
         end
     opr[r:UpperRange[\T\]]: FullRange[\T\] =
-        if contains(r.upper()) then
+        if r.upper() IN self then
             lower():r.upper()
         else
             fail(self "[" r "] does not contain upper bound")
         end
     opr[r:ExtentRange[\T\]]: FullRange[\T\] = do
         res = lower()#r.extent()
-        if contains(res.upper()) then
+        if res.upper() IN self then
             res
         else
             fail(self "[" r "] is not sufficiently large in some dimension")
         end
       end
     opr[r:FullRange[\T\]]: FullRange[\T\] =
-        if NOT (contains(r.lower())) then
+        if r.lower() NOTIN self then
             fail(self "[" r "] does not contain lower bound")
-        elif NOT (contains(r.upper())) then
+        elif r.upper() NOTIN self then
             fail(self "[" r "] does not contain upper bound")
         else
             r
@@ -1775,14 +1775,14 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
     getter toString(): String = "(" l1 "," l2 ")#(" x1 "," x2 ")"
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
-        if (0#x1).contains(i1) AND (0#x2).contains(i2) then
+        if i1 IN (0#x1) AND i2 IN (0#x2) then
             (i1+l1,i2+l2)
         else
             rangeIndexFailure[\(N,M)\](self,i)
         end
       end
     contains(v1:N, v2:M): Boolean =
-        (l1#x1).contains(v1) AND (l2#x2).contains(v2)
+        v1 IN (l1#x1) AND v2 IN (l2#x2)
     eq(r:Tuple2Range[\N,M\]): Boolean =
         l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2)
 end
@@ -1801,15 +1801,14 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
     getter toString(): String = "(" l1 "," l2 "," l3 ")#(" x1 "," x2 "," x3 ")"
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
-        if (0#x1).contains(i1) AND (0#x2).contains(i2) AND
-           (0#x3).contains(i3) then
+        if i1 IN (0#x1) AND i2 IN (0#x2) AND i3 IN (0#x3) then
             (i1+l1,i2+l2, i3+l3)
         else
             rangeIndexFailure[\(N,M)\](self,i)
         end
       end
     contains(v1:N1, v2:N2, v3:N3): Boolean =
-        (l1#x1).contains(v1) AND (l2#x2).contains(v2) AND (l3#x3).contains(v3)
+        v1 IN (l1#x1) AND v2 IN (l2#x2) AND v3 IN (l3#x3)
     eq(r:Tuple3Range[\N1,N2,N3\]): Boolean =
         l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2) AND
         l3.eq(r.l3) AND x3.eq(r.x3)
