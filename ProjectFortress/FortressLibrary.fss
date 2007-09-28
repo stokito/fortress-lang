@@ -240,7 +240,7 @@ end
     Thus Just[\T\] can be used as a single-element generator, and
     Nothing can be used as an empty generator. *)
 value trait Maybe[\T\]
-    extends { MaybeType, SequentialGenerator[\T\]}
+    extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
     comprises { Nothing[\T\], Just[\T\] }
   getter unJust() : T throws UnJustNothing
   maybe[\R\](nothingAction: ()->R, justAction: T->R): R
@@ -252,6 +252,11 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     getter isJust() = true
     getter unJust() = x
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
+    opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
+    opr[r:Range[\ZZ32\]]:Maybe[\T\] = do
+        r' = (0#1)[r]
+        if r'.extent()=0 then Nothing[\T\]() else self end
+      end
 
     map[\G\](f: T->G): Generator[\G\] = Just[\G\](f(x))
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
@@ -273,8 +278,9 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     getter isJust() = false
     getter unJust() = throw UnJustNothing
     getter toString():String = "Nothing"
-    eq(_:Nothing[\T\]) = true
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+    opr[_:ZZ32]: T = fail("Cannot index Nothing")
+    opr[_:Range[\ZZ32\]]: Nothing[\T\] = fail("Cannot index Nothing")
 
     map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]()
@@ -285,6 +291,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     loop(f:T->()): () = ()
     maybe[\R\](nothingAction: ()->R, _: T->R): R = nothingAction()
     contains(x:T): Boolean = false
+    eq(_:Nothing[\T\]) = true
 end
 
 (** Exception hierarchy *)
@@ -588,6 +595,10 @@ trait Indexed[\E, I\] extends Generator[\E\]
         can be bad for space, but is complexity-preserving if the mapped
         generator is used more than once. **)
     ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
+end
+
+trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
+   bounds(): Range[\ZZ32\] = 0#size()
 end
 
 (** DelegatedIndexed is an Indexed generator that has recourse to

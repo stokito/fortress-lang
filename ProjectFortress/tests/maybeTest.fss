@@ -41,6 +41,7 @@ run(args:String...):() = do
   end
   times: ZZ32 := 0
   for x <- b do
+    assert(x)
     atomic times += 1
   end
   assert(times,1," WRONG number of times.")

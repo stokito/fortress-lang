@@ -73,19 +73,14 @@ expansion(curr: ZZ32, new: ZZ32) =
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Equality, Indexed[\E,ZZ32\] }
+trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
         excludes { Number, HasRank }
-  getter bounds(): ScalarRange[\ZZ32\] = 0#size()
   getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  getter indices(): Indexed[\ZZ32,ZZ32\] =
-      indexValuePairs().map[\ZZ32\](fn (i:ZZ32, _:E): ZZ32 => i)
-      (* This definition ensures that we follow the data distribution. *)
-
   map[\G\](f: E->G): List[\G\] =
-      self.concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
+      concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
   append(f:List[\E\]): List[\E\]
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]

@@ -37,22 +37,17 @@ api PureList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Indexed[\E,ZZ32\], Equality }
+trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  getter indices(): ParRange[\ZZ32\]
-  getter indexValuePairs(): Generator[\(ZZ32,E)\]
-  map[\G\](f: E->G): List[\G\]
   append(f:List[\E\]): List[\E\]
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
   take(n:ZZ32): List[\E\]
   drop(n:ZZ32): List[\E\]
-  opr [n:ZZ32]: E
-  opr [n:Range[\ZZ32\]]: List[\E\]
   split(n:ZZ32): (List[\E\], List[\E\])
   split(): (List[\E\], List[\E\])
   reverse(): List[\E\]

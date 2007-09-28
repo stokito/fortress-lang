@@ -31,6 +31,9 @@ import com.sun.fortress.useful.HasAt;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
+/** This wrapper class is used in the implementation of pasting in
+    LHSEvaluator and IUOTuple.
+ */
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
 
     Method putter;

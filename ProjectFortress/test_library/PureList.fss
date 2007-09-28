@@ -43,18 +43,14 @@ export PureList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Generator[\E\], Equality }
+trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  getter indices(): ParRange[\ZZ32\] =
-      indexValuePairs().map[\ZZ32\](fn (i:ZZ32, _:E): ZZ32 => i)
-  getter indexValuePairs(): Generator[\(ZZ32,E)\]
-  generate[\R\](r: Reduction[\R\], body: E->R): R
   map[\G\](f: E->G): List[\G\] =
-      self.concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
+      concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
   append(f:List[\E\]): List[\E\]
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
@@ -85,14 +81,11 @@ trait List[\E\] extends { Generator[\E\], Equality }
              fn (h,t) => h t.generate[\String\](StringReduction,
                                                    fn (e:E) => ", " e)) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
-    generate[\List[\G\]\](Concat[\G\](),f)
+      generate[\List[\G\]\](Concat[\G\](),f)
 end
 
 (** Vararg factory for lists; provides aggregate list constants *)
-opr [\E\]<| xs: E... |>: List[\E\] =
-    (0#xs.size()).generate[\List[\E\]\](
-                         Concat[\E\](),
-                         fn (i:ZZ32):List[\E\] => singleton[\E\](xs.get(i)))
+opr [\E\]<| xs: E... |>: List[\E\] = list[\E\](xs)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
