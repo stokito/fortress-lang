@@ -20,16 +20,4 @@ import java.io.*;
 
 public abstract class ShellObject {
    protected static final String SEP = File.separator;
-
-   /* Relative location of the resident fortress to the jar file this class is packaged into. */
-   protected static final String FORTRESS = fortressLocation();
-
-   private static String fortressLocation() {
-      try {
-         return new File(System.getenv("FORTRESS")).getCanonicalPath();
-      }
-      catch (Exception e) {
-	  return "";
-      }
-   }
 }

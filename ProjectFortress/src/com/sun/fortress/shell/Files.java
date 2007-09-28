@@ -49,24 +49,4 @@ public class Files {
    public static BufferedWriter writer(String fileName) throws IOException {
       return new BufferedWriter(new FileWriter(fileName));
    }
-
-   /* Extract file within jar at path src to external file at path dest.*/
-   public static void extractFile(String src, File dest) throws IOException {
-      InputStream input = new BufferedInputStream(Extractor.class.getResourceAsStream(src));
-      OutputStream output = new BufferedOutputStream(new FileOutputStream(dest));
-
-      for (int next = input.read(); next != -1; next = input.read()) {
-         output.write(next);
-      }
-      output.flush();
-   }
-
-   /* Extract file within jar at path src to a temp file, and return the temp file.*/
-   public static File extractTemp(String src, String prefix, String suffix) throws IOException {
-      File result = File.createTempFile("fortress_" + prefix, suffix);
-      extractFile(src, result);
-      return result;
-   }
-
-
 }

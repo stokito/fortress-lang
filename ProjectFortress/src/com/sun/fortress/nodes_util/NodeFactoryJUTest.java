@@ -15,28 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler;
+package com.sun.fortress.nodes_util;
 
-import java.util.Map;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.TcWrapper;
 
-/**
- * Allows the {@link Fortress} class to interface with a custom repository
- * implementation.  May be based on a file system, database, transient
- * memory, etc. 
+/** 
+ * More tests are needed over NodeFactory. This is a start.
  */
-public interface FortressRepository {
-    
-    /**
-     * Provide an updating view of the apis present in the repository.
-     * Need not support mutation.
-     */
-    public Map<DottedName, ApiIndex> apis();
-    
-    public void addApi(DottedName name, ApiIndex definition);
-    
-    public void addComponent(DottedName name, ComponentIndex definition);
-    
+public class NodeFactoryJUTest extends TcWrapper {
+    public void testMakeDottedName() {
+        DottedName result = NodeFactory.makeDottedName(new Span(), "foobar.fss", "\\.");
+        assertEquals("foobar", result.toString());
+    }
 }

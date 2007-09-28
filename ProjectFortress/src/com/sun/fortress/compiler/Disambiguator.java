@@ -37,21 +37,25 @@ import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 
 /**
- * Eliminates ambiguities in an AST that can be resolved solely by knowing what kind
- * of entity a name refers to.  This class specifically handles the following:
+ * Eliminates ambiguities in an AST that can be resolved solely by knowing what
+ * kind of entity a name refers to.  This class specifically handles
+ * the following:  
  * <ul>
- * <li>All names referring to APIs are made fully qualified (FnRefs and OprExprs may then
- *     contain lists of qualified names referring to multiple APIs).
- * <li>VarRefs referring to functions become FnRefs with placeholders for implicit static
- *     arguments filled in (to be replaced later during type inference).</li>
+ * <li>All names referring to APIs are made fully qualified (FnRefs
+ *     and OprExprs may then contain lists of qualified names referring to
+ *     multiple APIs).</li>
+ * <li>VarRefs referring to functions become FnRefs with placeholders
+ *     for implicit static arguments filled in (to be replaced later
+ *     during type inference).</li> 
  * <li>VarRefs referring to getters, setters, or methods become FieldRefs.</li>
  * <li>VarRefs referring to methods, and that are juxtaposed with Exprs, become 
  *     MethodInvocations.</li>
- * <li>FieldRefs referring to methods, and that are juxtaposed with Exprs, become 
- *     MethodInvocations.</li>
+ * <li>FieldRefs referring to methods, and that are juxtaposed with
+ *     Exprs, become MethodInvocations.</li>
  * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become 
  *     MethodInvocations.</li>
- * <li>IdTypes referring to traits become InstantiatedTypes (with 0 arguments)</li>
+ * <li>IdTypes referring to traits become InstantiatedTypes (with 0
+ *     arguments)</li> 
  * </ul>
  * 
  * Additionally, all name references that are undefined or used incorrectly are
@@ -63,7 +67,8 @@ public class Disambiguator {
     public static class ApiResult extends StaticPhaseResult {
         private final Iterable<Api> _apis;
             
-        public ApiResult(Iterable<Api> apis, Iterable<? extends StaticError> errors) {
+        public ApiResult(Iterable<Api> apis, 
+			 Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -72,8 +77,8 @@ public class Disambiguator {
     }
     
     /**
-     * Disambiguate the given apis. To support circular references, the apis should
-     * appear in the given environment.
+     * Disambiguate the given apis. To support circular references,
+     * the apis should appear in the given environment.
      */
     public static ApiResult disambiguateApis(Iterable<Api> apis,
                                              GlobalEnvironment globalEnv) {
@@ -84,16 +89,19 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index);
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
+            TypeDisambiguator td = 
+		new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
-                ExprDisambiguator ed = new ExprDisambiguator(env, onDemandImports,
-                                                             newErrs);
+                ExprDisambiguator ed = 
+		    new ExprDisambiguator(env, onDemandImports, newErrs);
                 Api edResult = (Api) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
-            if (!newErrs.isEmpty()) { errors = IterUtil.compose(errors, newErrs); }
+            if (!newErrs.isEmpty()) { 
+		errors = IterUtil.compose(errors, newErrs); 
+	    }
         }
         return new ApiResult(results, errors);
     }
@@ -125,18 +133,20 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index);
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            TypeDisambiguator td = new TypeDisambiguator(env, onDemandImports, newErrs);
+            TypeDisambiguator td = 
+		new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) comp.accept(td);
             if (newErrs.isEmpty()) {
-                ExprDisambiguator ed = new ExprDisambiguator(env, onDemandImports,
-                                                             newErrs);
+                ExprDisambiguator ed = 
+		    new ExprDisambiguator(env, onDemandImports, newErrs);
                 Component edResult = (Component) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
-            if (!newErrs.isEmpty()) { errors = IterUtil.compose(errors, newErrs); }
+            if (!newErrs.isEmpty()) { 
+		errors = IterUtil.compose(errors, newErrs); 
+	    }
         }
         return new ComponentResult(results, errors);
     }
-    
 }

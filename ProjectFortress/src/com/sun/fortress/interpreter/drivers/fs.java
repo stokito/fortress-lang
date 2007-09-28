@@ -34,8 +34,8 @@ import com.sun.fortress.useful.Useful;
 
 public class fs {
 
-    private static final String SXP_SUFFIX = ".sxp";
-    private static final String JAVA_AST_SUFFIX = ".tfs";
+    public static final String SXP_SUFFIX = ".sxp";
+    public static final String JAVA_AST_SUFFIX = ".tfs";
 
     // Options set by main()
     private static boolean doAst = false;

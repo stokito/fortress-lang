@@ -155,11 +155,13 @@ public class NodeFactory {
     public static DottedName makeDottedName(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
+        System.out.println(file);
+        System.out.println(file.substring(0, file.length()-4));
         if (file.length() <= 4) {
             return error(new Id(span, "_"), "Invalid file name.");
         }
         else {
-            for (String n : file.substring(file.length()-4).split(delimiter)) {
+            for (String n : file.substring(0, file.length()-4).split(delimiter)) {
                 ids.add(new Id(span, n));
             }
             return new DottedName(span, ids);
@@ -470,7 +472,7 @@ public class NodeFactory {
             }
             public BoolExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of BoolExpr.");
+         " is not a subtype of BoolExpr.");
             }
         });
     }
@@ -500,7 +502,7 @@ public class NodeFactory {
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of DimExpr.");
+         " is not a subtype of DimExpr.");
             }
         });
     }
@@ -530,7 +532,7 @@ public class NodeFactory {
             }
             public UnitExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of UnitExpr.");
+         " is not a subtype of UnitExpr.");
             }
         });
     }
@@ -562,7 +564,7 @@ public class NodeFactory {
             }
             public IntExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of IntExpr.");
+         " is not a subtype of IntExpr.");
             }
         });
     }
@@ -589,7 +591,7 @@ public class NodeFactory {
             }
             public StaticArg defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of StaticArg.");
+         " is not a subtype of StaticArg.");
             }
         });
     }
@@ -632,7 +634,7 @@ public class NodeFactory {
             }
             public Type defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-			      " is not a subtype of Type.");
+         " is not a subtype of Type.");
             }
         });
     }

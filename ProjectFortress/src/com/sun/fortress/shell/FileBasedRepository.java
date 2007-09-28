@@ -17,29 +17,34 @@
 
 package com.sun.fortress.shell;
 
-import java.io.File;
-import junit.framework.TestCase;
-// import org.apache.tools.ant.launch.Launcher;
+import com.sun.fortress.compiler.*;
+import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.nodes.DottedName;
 
-/**
- * A JUnit test case class.
- * Every method starting with the word "test" will be called when running
- * the test with JUnit.
- */
-public class ShellTest extends TestCase {
+import java.io.*;
+import java.util.*;
 
-   public void testSelfUpgrade() throws UserError, InterruptedException {
-      Shell shell = new Shell(".");
-      shell.selfUpgrade("fortress_mock_upgrade.jar");
-      assert(new File(".java/fortress_mock_upgrade.jar").exists());
-   }
+public class FileBasedRepository implements FortressRepository {
 
-   public void testCompile() throws UserError, InterruptedException {
-      //assert(! Component.exists("TestComponent.fss"));
-      Shell shell = new Shell(".");
-      shell.compile("TestComponent.fss");
-      //assert(Component.exists("TestComponent.fss"));
-   }
+    private final Map<DottedName, ApiIndex> apis = 
+ new HashMap<DottedName, ApiIndex>(); 
+    private final String home;
+    
+    public FileBasedRepository(String _home) {
+        home = _home;
+        initializeApis();
+    }
 
+    private void initializeApis() {
+    }
 
+    public Map<DottedName, ApiIndex> apis() { return apis; }
+
+    public void addApi(DottedName name, ApiIndex def) {
+ apis.put(name, def);
+    }
+    
+    public void addComponent(DottedName name, ComponentIndex def) {
+ // write component file to pwd.
+    }
 }

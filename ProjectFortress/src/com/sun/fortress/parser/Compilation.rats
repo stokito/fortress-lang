@@ -40,6 +40,7 @@ public CompilationUnit File =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
+       System.out.println("name: " + name);
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / a1:(w Imports)? w a2:AbsDecls w
@@ -47,6 +48,7 @@ public CompilationUnit File =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
+       System.out.println("name: " + name);
        yyValue = new Api(span, name, a1, a2);
      }
    / w a1:Imports a2:(w AbsDecls)? w
@@ -54,6 +56,7 @@ public CompilationUnit File =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
+       System.out.println("name: " + name);
        yyValue = new Api(span, name, a1, a2);
      };
 
