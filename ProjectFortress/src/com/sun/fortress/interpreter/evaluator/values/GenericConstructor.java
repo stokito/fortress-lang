@@ -91,6 +91,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
       Constructor cl = new Constructor(clenv, objectType, odefOrDecl);
       cl.setParams(objectParams);
       cl.finishInitializing();
+      FTypeGeneric.flushPendingTraitFMs();
       return cl;
   }
 

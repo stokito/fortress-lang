@@ -26,10 +26,12 @@ import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.scopes.Scope;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeDynamic;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Applicable;
@@ -205,10 +207,11 @@ public class Closure extends NonPrimitive implements Scope {
         FType ft = EvalType.getFTypeFromOption(rt, env);
         if (ft instanceof FTypeDynamic)
             ft = BottomType.ONLY;
-
+        
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);
+        
         return this;
     }
 

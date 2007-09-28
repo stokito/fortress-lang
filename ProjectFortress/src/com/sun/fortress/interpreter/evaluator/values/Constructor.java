@@ -281,7 +281,7 @@ public class Constructor extends AnonymousConstructor {
 
         /* At construction time,
           1) create an array of environments (one per trait)
-          2) iterate over the methods, and assign each of them the appropiate
+          2) iterate over the methods, and assign each of them the appropriate
              environment to form closures, setting the results aside.
           3) then form any overloads necessary
           4) then iterate over the traits, binding names to method values.
@@ -364,6 +364,7 @@ public class Constructor extends AnonymousConstructor {
             closuresArray[i] = cl;
         }
 
+       
         methodsEnv = new BetterEnv(within, within.getAt());
         addMethodsToEnv(methodsEnv);
         methodsEnv.bless();
