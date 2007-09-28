@@ -62,7 +62,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     };
     
     static public void flushPendingTraitFMs() {
-        for (FTypeTrait tt : pendingFunctionalMethodFinishes.get()) {
+        for (int i = 0; i < pendingFunctionalMethodFinishes.get().size(); i++) {
+            FTypeTrait tt = pendingFunctionalMethodFinishes.get().get(i);
             tt.finishFunctionalMethods();
         }
         pendingFunctionalMethodFinishes.get().clear();

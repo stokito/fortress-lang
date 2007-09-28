@@ -87,8 +87,13 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
       return s(odefOrDecl);
   }
 
-  protected Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {
-      Constructor cl = new Constructor(clenv, objectType, odefOrDecl);
+  protected Constructor constructAConstructor(BetterEnv clenv,
+                                              FTypeObject objectType) {
+    return new Constructor(clenv, objectType, odefOrDecl);
+  }
+  
+  private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {
+      Constructor cl = constructAConstructor(clenv, objectType);
       cl.setParams(objectParams);
       cl.finishInitializing();
       FTypeGeneric.flushPendingTraitFMs();

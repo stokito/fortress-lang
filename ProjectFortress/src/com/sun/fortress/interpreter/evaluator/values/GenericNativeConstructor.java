@@ -22,6 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 
@@ -35,11 +36,9 @@ public class GenericNativeConstructor extends GenericConstructor {
         this.name = name;
     }
 
-    protected Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {
-        Constructor cl = BuildNativeEnvironment.nativeConstructor(clenv, objectType, odefOrDecl, name);
-        cl.setParams(objectParams);
-        cl.finishInitializing();
-        return cl;
-    }
+    protected Constructor constructAConstructor(BetterEnv clenv,
+            FTypeObject objectType) {
+        return BuildNativeEnvironment.nativeConstructor(clenv, objectType, odefOrDecl, name);
+      }
 
 }

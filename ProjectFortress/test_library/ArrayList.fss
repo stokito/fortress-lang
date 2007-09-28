@@ -318,7 +318,7 @@ value object ZipGenerator[\A,B\](transient x0: ArrayList[\A\],
     xs = x0.take(sz)
     ys = y0.take(sz)
     getter size() = sz
-    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
     generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
         zgen(a: ArrayList[\A\], b: ArrayList[\B\]): R =
           if a.size() > 1 then
