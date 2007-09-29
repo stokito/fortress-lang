@@ -98,7 +98,8 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
     public LHS forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
-        return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs);
+        return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs,
+                                             x.getOp());
     }
 
     /* (non-Javadoc)
@@ -111,7 +112,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         return new FieldRef(x.getSpan(), false, from, x.getField());
     }
 
-    
+
     @Override
     public LHS forFieldRefForSure(FieldRefForSure x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
@@ -119,14 +120,14 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
         return new FieldRefForSure(x.getSpan(), false, from, x.getField());
     }
 
-    
+
     @Override
     public LHS for_RewriteFieldRef(_RewriteFieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
         return new _RewriteFieldRef(x.getSpan(), false, from, x.getField());
     }
-    
+
     public LHS forVarRef(VarRef x) {
         QualifiedIdName var = x.getVar();
         if (var.getApi().isNone()) { return x; }

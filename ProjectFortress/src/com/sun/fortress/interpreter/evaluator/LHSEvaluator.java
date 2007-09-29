@@ -54,6 +54,7 @@ import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
+import com.sun.fortress.nodes.SubscriptOp;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Unpasting;
@@ -79,9 +80,16 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public Voidoid forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
+        Option<SubscriptOp> op = x.getOp();
         // Should evaluate obj.[](subs, value)
         FObject array = (FObject) obj.accept(evaluator);
-        Method cl = (Method) array.getSelfEnv().getValue("[]=");
+        String opString;
+        if (op.isSome()) {
+            opString = NodeUtil.nameString(Option.unwrap(op));
+        } else {
+            opString = "[]=";
+        }
+        Method cl = (Method) array.getSelfEnv().getValue(opString);
         ArrayList<FValue> subscriptsAndValue = new ArrayList<FValue>(1+subs.size());
         subscriptsAndValue.add(value);
         evaluator.evalExprList(subs, subscriptsAndValue);
@@ -272,7 +280,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType))
                         evaluator.e.putVariable(s, value, outerType);
-                    else {                  
+                    else {
                         error(x, evaluator.e,
                          errorMsg("RHS expression type ", value.type(),
                                   " is not assignable to LHS type ", outerType));

@@ -1101,13 +1101,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
+        Option<SubscriptOp> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
             error(obj, errorMsg("Value should be an object; got " + arr));
         }
         FObject array = (FObject) arr;
-        FValue ixing = array.getSelfEnv().getValueNull("[]");
+        String opString;
+        if (op.isSome()) {
+            opString = NodeUtil.nameString(Option.unwrap(op));
+        } else {
+            opString = "[]";
+        }
+        FValue ixing = array.getSelfEnv().getValueNull(opString);
         if (ixing == null || !(ixing instanceof Method)) {
             error(x,errorMsg("Could not find appropriate definition of opr [] on ",
                              array));
