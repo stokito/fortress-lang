@@ -79,22 +79,19 @@ NormalParam Param = PlainParam ;
 
 /* OpHeaderFront ::=
      opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
-     (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
-   | opr (w StaticParams)? w ValParam w (Op / ExponentOp)
+     (RightEncloser | Encloser)
+   | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
    | opr (w BIG)? w (Op | caret | Encloser) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
+     <Enclosing>
      opr opa1:(w StaticParams)? big:(w BIG)? w opa2:(LeftEncloser / Encloser) w
-     opa3:Params w opa4:(RightEncloser / Encloser) opa5:(w void:colonequals w
-     openparen w SubscriptAssignParam w closeparen)?
+     opa3:Params w opa4:(RightEncloser / Encloser)
      { SimpleName name;
        Span span = createSpan(yyStart,yyCount);
        String left  = opa2.getText();
        String right = opa4.getText();
-       if (left.equals("[") && right.equals("]")) {
-           if (opa5 == null) name = new SubscriptOp(span, opa2, opa4);
-           else              name = new SubscriptAssign(span, opa2, opa4);
-       } else if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
+       if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
            if (big != null) {
                opa2 = NodeFactory.makeOp(opa2.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOp(opa4.getSpan(), "BIG " + right);
@@ -104,8 +101,7 @@ FnHeaderFront OpHeaderFront =
            name = error(opa2, "Mismatched enclosing operator definition: "
                               + left + " and " + right);
        if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
-       Option<Param> opparam = Option.wrap(opa5);
-       yyValue = new FnHeaderFront(name, opa1, opa3, opparam);
+       yyValue = new FnHeaderFront(name, opa1, opa3);
      }
    / opr a1:(w StaticParams)? w a2:ValParam w a3:(Op / ExponentOp)
      { Span span = createSpan(yyStart,yyCount);
@@ -122,8 +118,3 @@ FnHeaderFront OpHeaderFront =
        if (a2 == null) yyValue = new FnHeaderFront(new Opr(span,op), a3);
        else            yyValue = new FnHeaderFront(new Opr(span,op), a2, a3);
      };
-
-/* SubscriptAssignParam ::= Varargs | Param */
-private Param SubscriptAssignParam =
-     Varargs
-   / Param ;

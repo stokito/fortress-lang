@@ -50,7 +50,7 @@ Expr Aggregate =
        elements.addAll(a2s.list());
        yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
      }
-   / opensquare w RectElements w closesquare ;
+   / void:opensquare w RectElements w void:closesquare ;
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
 private ArrayExpr RectElements =

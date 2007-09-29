@@ -107,14 +107,17 @@ constant transient Action<Expr> AssignLeftTail =
     ;
 
 constant inline Action<Expr> SubscriptAssign =
-    opensquare a1:(w ExprList)? w closesquare
+    a1:opensquare a2:(w ExprList)? w a3:closesquare
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
               List<Expr> es;
-              if (a1 == null) es = FortressUtil.emptyExprs();
-              else            es = a1;
-              return ExprFactory.makeSubscriptExpr(createSpan(yyStart,yyCount),
-                                                   base, es);
+              if (a2 == null) es = FortressUtil.emptyExprs();
+              else            es = a2;
+              Span span = createSpan(yyStart,yyCount);
+              Op open  = NodeFactory.makeOp(createSpan(yyStart, yyStart+1), a1);
+              Op close = NodeFactory.makeOp(createSpan(yyCount-1,1),a3);
+              SubscriptOp op = new SubscriptOp(span, open, close);
+              return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op));
           }};
     };
 
@@ -326,15 +329,18 @@ constant transient Action<PureList<Expr>> PrimaryTail =
    ;
 
 constant inline Action<PureList<Expr>> SubscriptExpr =
-     opensquare a1:(w ExprList)? w closesquare
+     a1:opensquare a2:(w ExprList)? w a3:closesquare
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr arr = FortressUtil.buildPrimary((PureList<Expr>)base);
                List<Expr> es;
-               if (a1 == null) es = FortressUtil.emptyExprs();
-               else            es = a1;
-               return PureList.make((Expr)ExprFactory.makeSubscriptExpr(span, arr, es));
+               if (a2 == null) es = FortressUtil.emptyExprs();
+               else            es = a2;
+               Op open  = NodeFactory.makeOp(createSpan(yyStart, yyStart+1), a1);
+               Op close = NodeFactory.makeOp(createSpan(yyCount-1,1),a3);
+               SubscriptOp op = new SubscriptOp(span, open, close);
+               return PureList.make((Expr)ExprFactory.makeSubscriptExpr(span, arr, es, Option.some(op)));
            }};
      }
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
@@ -558,7 +564,8 @@ Expr FlowExpr =
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
-   / a1:Accumulator a2:(w opensquare w GeneratorList w closesquare)? w a3:Expr
+   / a1:Accumulator a2:(w void:opensquare w GeneratorList w void:closesquare)? w
+     a3:Expr
      { if (a2 == null) a2 = Collections.<Generator>emptyList();
        yyValue = new Accumulator(createSpan(yyStart,yyCount), false,
                                  NodeFactory.makeOpr(a1), a2, a3);

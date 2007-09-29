@@ -121,9 +121,9 @@ public class NodeUtil {
         public String forIdName(IdName n) { return n.getId().getText(); }
         public String forOpr(Opr n) { return n.getOp().getText(); }
         public String forPostFix(PostFix n) { return n.getOp().getText(); }
-        public String forEnclosing(Enclosing n) { return n.getOpen().getText(); }
-        public String forSubscriptOp(SubscriptOp n) { return "[]"; }
-        public String forSubscriptAssign(SubscriptAssign n) { return "[]="; }
+        public String forEnclosing(Enclosing n) {
+            return n.getOpen().getText() + " " + n.getClose().getText();
+        }
         public String forAnonymousFnName(AnonymousFnName n) {
             return n.getSpan().toString();
         }

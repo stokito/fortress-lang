@@ -175,7 +175,8 @@ LValue VarWoType =
    / Unpasting ;
 
 /* Unpasting ::= [ w UnpastingElems w ] */
-private Unpasting Unpasting = opensquare w UnpastingElems w closesquare ;
+private Unpasting Unpasting =
+     void:opensquare w UnpastingElems w void:closesquare ;
 
 /* UnpastingElems ::=
      UnpastingElem
@@ -191,7 +192,7 @@ private Unpasting UnpastingElems =
    | Unpasting
  */
 private Unpasting UnpastingElem =
-     a1:BindId a2:(opensquare w UnpastingDim w closesquare)?
+     a1:BindId a2:(void:opensquare w UnpastingDim w void:closesquare)?
      { if (a2 == null)
            yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
                                        NodeFactory.makeIdName(a1),

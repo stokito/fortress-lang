@@ -280,6 +280,12 @@ public class ExprFactory {
         return new SubscriptExpr(span, false, obj, subs, Option.<SubscriptOp>none());
     }
 
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs,
+                                                  Option<SubscriptOp> op) {
+        return new SubscriptExpr(span, false, obj, subs, op);
+    }
+
     public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
         return new TightJuxt(span, false, Useful.list(first, second));
     }

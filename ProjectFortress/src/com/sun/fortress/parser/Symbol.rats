@@ -89,7 +89,7 @@ private String rightEncloserMulti =
    / "/\\/\\/]" / "/\\/]"
    ;
 
-private String exponentOp = "^T" / "^" ;
+private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
 
 /* Finally, a nonreserved word that is made up of a mixture of uppercase
  * letters and underscores (but no digits), does not begin or end with an
@@ -161,7 +161,7 @@ String crossOp = "BY":OpName &(w ExtentRange);
 
 String leftarrow = "<-";
 
-String caret = "^":exponentOp;
+String caret = "^";
 String colonequals = ":=";
 String equals = "=" (!op);
 String equalsOp = "=":singleOp;
@@ -170,10 +170,11 @@ String one = "1";
 
 String colon = ":" (!op);
 String colonOp = ":":singleOp;
+String closesquare = "]";
+String opensquare = "[":leftEncloser;
 
 transient void closecurly = "}";
 transient void closeangle = "|>";
-transient void closesquare = "]";
 transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
 transient void cross = "BY";
@@ -186,7 +187,6 @@ transient void opencurly = "{":leftEncloser;
 transient void openangle = "<|":leftEncloser;
 transient void opendoublesquare = "[\\";
 transient void openparen = !(leftEncloser) "(";
-transient void opensquare = "[":leftEncloser;
 transient void plus = "+":singleOp;
 transient void pound = "#":singleOp;
 transient void slash = "/":singleOp;

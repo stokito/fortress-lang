@@ -239,6 +239,14 @@ public final class FortressUtil {
         resetMods();
     }
 
+    /* true is there exists a self parameter in a given parameter list */
+    public static boolean isFunctionalMethod(List<Param> params) {
+        for (Param p : params) {
+            if (p.getName().getId().getText().equals("self")) return true;
+        }
+        return false;
+    }
+
     private static boolean compoundOp(String s) {
         return (s.length() > 1 && s.endsWith("=")
                 && !s.equals("<=") && !s.equals(">=")
