@@ -28,7 +28,7 @@ opr <|x: Vector, y: Vector|> = SUM[i <- x.indices]x[i] DOT y[i]
 (* angle bracket notation for inner product *)
 opr [\T extends Number, nat k\]<|x: Vector[\T,k\], y: Vector[\T,k\]|> = do
   var result: ZZ32 = 0
-  for i <- x.indices() do result += x[i] y[i] end
+  for i <- x.indices() do atomic result += x[i] y[i] end
   result
 end
 (** END EXAMPLE **)

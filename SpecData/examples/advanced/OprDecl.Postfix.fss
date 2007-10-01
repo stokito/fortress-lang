@@ -27,7 +27,7 @@ opr (n: ZZ32)! = PRODUCT[i <- 1:n]i (* factorial *)
 (** EXAMPLE **)
 opr (n: ZZ32)! = do    (* factorial *)
   var result: ZZ32 = 1
-  for i <- 1:n do result := result i end
+  for i <- 1:n do atomic result := result i end
   result
 end
 (** END EXAMPLE **)
