@@ -1,0 +1,47 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Expression.append
+
+export Executable
+
+trait Object end
+trait List
+  cons(x: Object, self): List
+  append(xs: List, self): List
+end
+object Cons(hd: Object, tl: List) extends List
+  cons(x: Object, self) = Cons(x, self)
+  append(xs: List, self) = append(append(xs, Cons(hd, Empty)), tl)
+end
+object Empty extends List
+  cons(x: Object, self) = Cons(x, self)
+  append(xs: List, self) = xs
+end
+
+run(args:String...) = do
+  l1 = Empty
+  l2 = Empty
+(** EXAMPLE **)
+  append(l1, l2)
+(** END EXAMPLE **)
+  ()
+end
+
+end
