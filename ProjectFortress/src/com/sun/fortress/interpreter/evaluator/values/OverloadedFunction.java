@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
@@ -38,6 +40,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.useful.BATreeEC;
+import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
@@ -51,14 +54,18 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public class  OverloadedFunction extends Fcn
     implements Factory1P<List<FType>, Fcn, HasAt>{
 
+    private final boolean debug = false;
+    /**
+     * Disables ALL consistency checking of overloaded functions.
+     */
+    private final boolean noCheck = false;
+    
     protected volatile List<Overload> overloads = new ArrayList<Overload>();
     private List<Overload> pendingOverloads = new ArrayList<Overload>();
-    protected volatile boolean finishedFirst = false;
-    protected volatile boolean finishedSecond = false;
+    protected volatile boolean finishedFirst = true; // an empty overload is consistent
+    protected volatile boolean finishedSecond = true;
     protected SimpleName fnName;
     
-    private Thread currentUpdater;
-
     static final boolean DUMP_EXCLUSION = false;
 
     public static void exclDump(Object... os) {
@@ -123,21 +130,33 @@ public class  OverloadedFunction extends Fcn
             // iteration to the growing end is perfectly ok.
             ol = pendingOverloads.get(i);
             SingleFcn sfcn = ol.getFn();
+            
+            String ps = ol.ps != null ? String.valueOf(ol.ps) + " " : "";
+            
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
                 if (! cl.getFinished())
                     cl.finishInitializing();
+                
+                if (debug) {
+                    System.err.println("Overload " + ps  + cl);
+                }
 
             } else if (sfcn instanceof Dummy_fcn) {
-                // Primitives are all ready
+                if (debug)
+                    System.err.println("Overload primitive " + ps  + sfcn);
 
             } else if (sfcn instanceof FGenericFunction) {
-                // no finishInitializing for these guys, yet
+                if (debug)
+                    System.err.println("Overload generic " + ps  + sfcn);
 
             } else {
                 bug(errorMsg("Expected a closure or primitive, instead got ",
                              sfcn));
              }
+            
+            if (ol.ps != null)
+                ol.ps.close();
         }
         finishedFirst = true;
     }
@@ -162,6 +181,8 @@ public class  OverloadedFunction extends Fcn
         for (int i = 0; i< new_overloads.size(); i++) {
             ftalist.add(new_overloads.get(i).getFn().type());
 
+            if (!noCheck) {
+            
             for (int j = i-1; j >= 0 ; j--) {
                 Overload o1 = new_overloads.get(i);
                 Overload o2 = new_overloads.get(j);
@@ -319,6 +340,7 @@ public class  OverloadedFunction extends Fcn
                     error(o1, o2, within, explanation);
                 }
             }
+            }
         }
         FType ftoa = FTypeOverloadedArrow.make(ftalist);
         this.setFtypeUnconditionally(ftoa);
@@ -404,7 +426,7 @@ public class  OverloadedFunction extends Fcn
     public void addOverload(SingleFcn fn) {
 //        if (finishedFirst && !fn.getFinished())
 //            throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
-        addOverload(new Overload(fn));
+        addOverload(new Overload(fn, this));
     }
 
     public void addOverloads(OverloadedFunction cls) {
@@ -426,30 +448,49 @@ public class  OverloadedFunction extends Fcn
      *
      * @param overload
      */
-    public synchronized void addOverload(Overload overload) {
+    public void addOverload(Overload overload) {
 //        if (finishedSecond)
 //            throw new IllegalStateException("Cannot add overloads after overloaded function is complete");
         
-        Thread me = Thread.currentThread();
+//        Thread me = Thread.currentThread();
+//        
+//        if (currentUpdater == null) {
+//            currentUpdater = me;
+//        }
+//        
+//        while (currentUpdater != me) {
+//            try {
+//                wait();
+//            } catch (InterruptedException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//            if (currentUpdater == null)
+//                currentUpdater = me;
+//        }
+//        
         
-        if (currentUpdater == null) {
-            currentUpdater = me;
+        if (!finishedSecond) {
+            pendingOverloads.add(overload);
+            // InstantiationLock.lastOverload = this;
+            // InstantiationLock.lastOverloadThrowable = Useful.backtrace(0, 1000);
+        } else {
+            // InstantiationLock.L.lock();
+            if (debug)
+                System.err.println("Lock " + fnName.stringName());
+            finishedFirst = false;
+            finishedSecond = false;
+            pendingOverloads.add(overload);
+            // InstantiationLock.lastOverload = this;
+            // InstantiationLock.lastOverloadThrowable = Useful.backtrace(0, 1000);
         }
         
-        while (currentUpdater != me) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            if (currentUpdater == null)
-                currentUpdater = me;
+        if (debug) {
+            DebugletPrintStream ps = DebugletPrintStream.make("OVERLOADS");
+            overload.ps = ps;
+            System.err.println("add " + ps + " " + overload);
+            ps.backtrace().flush();
         }
-        
-        finishedFirst = false;
-        finishedSecond = false;
-        pendingOverloads.add(overload);
         
     }
 
@@ -480,14 +521,9 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
-        if (!finishedSecond) {
-            synchronized(this) {
-                if (!finishedSecond &&
-                        (currentUpdater == Thread.currentThread() ||
-                         currentUpdater == null))
-                    bug(loc,"Cannot call before 'setFinished()'");
-            }
-        }
+      
+        if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
+            bug(loc, "Cannot call before 'setFinished()'");
            
         int best = -1;
         SingleFcn best_sfn = null;
@@ -566,13 +602,16 @@ public class  OverloadedFunction extends Fcn
      * "correct by construction" and do not require the
      * very exciting overload consistency test.
      */
-    public synchronized void bless() {
+    public void bless() {
+        if (finishedSecond)
+            return;
         this.overloads = pendingOverloads;
         this.pendingOverloads = new ArrayList<Overload>();
         finishedSecond = true;
         finishedFirst = true;
-        notifyAll();
-        currentUpdater = null;
+        if (debug)
+            System.err.println("Unlock " + fnName.stringName());
+        // InstantiationLock.L.unlock();
     }
 
     /* This code gives overloaded functions the interface of a set of generic

@@ -25,6 +25,6 @@ fi
 
 
 
-java -cp "$CP" -Xmx512m -Xms256m \
+FORTRESS_THREADS=4 java -Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=n -cp "$CP" -Xmx512m -Xms256m \
 junit.swingui.TestRunner \
 com.sun.fortress.interpreter.drivers.SystemJUTests >& test.log

@@ -24,6 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -35,6 +36,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
+import com.sun.fortress.useful.Memo1PCL;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
@@ -63,8 +65,8 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
 
     }
 
-     Memo1P<List<FType>, Constructor, HasAt> memo =
-         new Memo1P<List<FType>, Constructor, HasAt>(new Factory());
+     Memo1PCL<List<FType>, Constructor, HasAt> memo =
+         new Memo1PCL<List<FType>, Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
 
      public Constructor make(List<FType> l, HasAt within) {
         return memo.make(l, within);

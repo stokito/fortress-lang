@@ -37,6 +37,7 @@ import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.ListComparer;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -50,7 +51,7 @@ abstract public class FType implements Comparable<FType> {
 
     protected static final boolean DUMP_UNIFY = false;
 
-    static Comparator<FType> comparator = new Comparator<FType>() {
+    static public Comparator<FType> comparator = new Comparator<FType>() {
 
         public int compare(FType arg0, FType arg1) {
             return arg0.compareTo(arg1);
@@ -58,6 +59,8 @@ abstract public class FType implements Comparable<FType> {
 
     };
 
+    static public ListComparer<FType> listComparer = new ListComparer<FType>();
+    
     // static Random random = new Random(0xd06f00d);
 
     /* (non-Javadoc)
@@ -247,9 +250,13 @@ abstract public class FType implements Comparable<FType> {
             return true;
         }
 
-        for (FType t : getTransitiveExtends()) {
+        List<FType> extendsThis = getTransitiveExtends();
+        for (FType t : extendsThis) {
             BASet t_excludes = t.excludes;
-            for (FType o : other.getTransitiveExtends()) {
+            if (t_excludes.isEmpty())
+                continue;
+            List<FType> extendsOther = other.getTransitiveExtends();
+            for (FType o : extendsOther) {
                 if ( !(t == this && o == other) && t_excludes.contains(o)) {
                     // Short-circuit any future queries
                     exclDumpln("Excludes via ",t," and ",o);

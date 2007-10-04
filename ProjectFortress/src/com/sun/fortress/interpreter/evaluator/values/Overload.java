@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.HasAt;
 
 
@@ -41,7 +42,7 @@ public class Overload implements Comparable, HasAt {
         return fn.toString();
     }
 
-    public Overload(SingleFcn fn) {
+    public Overload(SingleFcn fn, OverloadedFunction olf) {
         this.fn = fn;
     }
 
@@ -71,6 +72,8 @@ public class Overload implements Comparable, HasAt {
 
 
     private SingleFcn fn;
+    
+    DebugletPrintStream ps;
 
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)

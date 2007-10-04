@@ -17,20 +17,40 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import java.util.List;
 import java.util.Set;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.Factory1;
+import com.sun.fortress.useful.Memo1C;
+import com.sun.fortress.useful.StringComparer;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeOpr extends FType {
-    public FTypeOpr(String s) {
+    private FTypeOpr(String s) {
         super(s);
     }
 
+    static Memo1C<String, FType> memo = null;
+
+    private static class Factory implements Factory1<String, FType> {
+        public FType make(String part1) {
+            return new FTypeOpr(part1);
+        }
+    }
+    
+    public static void reset() {
+        memo = new Memo1C<String, FType>( new Factory(), StringComparer.V);
+    }
+    
+    static public FType make(String s) {
+        return memo.make(s);
+    }
+    
     /*
      * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
      *      com.sun.fortress.interpreter.nodes.TypeRef)

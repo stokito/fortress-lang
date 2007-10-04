@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeIntLiteral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeIntegral;
 import com.sun.fortress.interpreter.evaluator.types.FTypeLong;
 import com.sun.fortress.interpreter.evaluator.types.FTypeNumber;
+import com.sun.fortress.interpreter.evaluator.types.FTypeOpr;
 import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
@@ -50,6 +51,7 @@ public class Init {
     public static void initializeEverything() {
         FTypeArrow.reset();
         FTypeTuple.reset();
+        FTypeOpr.reset();
         FTypeRest.reset();
         FTypeOverloadedArrow.reset();
         FortressTests.reset();

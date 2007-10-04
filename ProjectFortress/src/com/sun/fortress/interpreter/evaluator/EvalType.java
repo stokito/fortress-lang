@@ -312,7 +312,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forOprArg(OprArg b) {
-        return new FTypeOpr(NodeUtil.nameString(b.getName()));
+        return FTypeOpr.make(NodeUtil.nameString(b.getName()));
     }
 
     public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }

@@ -17,35 +17,35 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.LazyFactory1P;
-import com.sun.fortress.useful.LazyMemo1P;
+import com.sun.fortress.useful.LazyMemo1PCL;
 import com.sun.fortress.useful.Useful;
-
-import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
     
@@ -230,9 +230,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     }
 
 
-    LazyMemo1P<List<FType>, FTraitOrObject, HasAt> memo =
-        new LazyMemo1P<List<FType>, FTraitOrObject, HasAt>(
-            new Factory());
+    LazyMemo1PCL<List<FType>, FTraitOrObject, HasAt> memo =
+        new LazyMemo1PCL<List<FType>, FTraitOrObject, HasAt>(
+            new Factory(), FType.listComparer, InstantiationLock.L);
 
     public FTraitOrObject make(List<FType> l, HasAt within) {
         // System.out.println(""+within.at()+": "+

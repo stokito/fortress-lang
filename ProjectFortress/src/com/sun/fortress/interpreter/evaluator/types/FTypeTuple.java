@@ -45,7 +45,6 @@ import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.e
 // TODO need to memoize this to preserver type EQuality
 public class FTypeTuple extends FType {
 
-    static ListComparer<FType> listComparer = new ListComparer<FType>();
     List<FType> l;
 
     private static class Factory implements Factory1<List<FType>, FType> {

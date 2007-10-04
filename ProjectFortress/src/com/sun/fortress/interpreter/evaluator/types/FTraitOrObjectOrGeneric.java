@@ -87,17 +87,21 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
 
                     // if (x.getStaticParams().isPresent()) {
                     if (x instanceof FTypeGeneric) {
-                        cl = new OverloadedFunction(fndod.getName(), topLevel);
+                        
+                           cl = new OverloadedFunction(fndod.getName(), topLevel);
+                           topLevel.putValueNoShadowFn(fndodname, cl);
+                        
                     } else {
                         // Note that the instantiation of a generic
                         // comes
                         // here too
                         cl = new FunctionalMethod(topLevel, fndod, spi, x);
+                        topLevel.putValueNoShadowFn(fndodname, cl);
                     }
 
                     // TODO test and other modifiers
 
-                    topLevel.putValueNoShadowFn(fndodname, cl);
+                    
                 }
             }
 
