@@ -20,14 +20,14 @@ import * from NativeArray
 export Executable
 
 run(args:String...):() = do
-  z:Array1[\String, 4, 3\] = PrimitiveArray[\String, 4, 3\]()
-  z[4]:="cat"
-  z[5]:="dog"
-  z[6]:="bat"
-  assert(z[4],"cat","z[4]")
-  assert(z[5],"dog","z[5]")
-  assert(z[6],"bat","z[6]")
-  println( z[4] " " z[5] " " z[6] )
+  z:Array1[\String, 0, 3\] = PrimitiveArray[\String, 3\]()
+  z[0]:="cat"
+  z[1]:="dog"
+  z[2]:="bat"
+  assert(z[0],"cat","z[0]")
+  assert(z[1],"dog","z[1]")
+  assert(z[2],"bat","z[2]")
+  println( z[0] " " z[1] " " z[2] )
   assert(z.get(1),"dog","z.get(1)")
   println( z.get(1) )
   assert(z.rank(),1,"z.rank()")

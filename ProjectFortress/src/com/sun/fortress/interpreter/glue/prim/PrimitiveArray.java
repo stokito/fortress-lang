@@ -21,9 +21,11 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
+// import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -46,6 +48,7 @@ public class PrimitiveArray extends Constructor {
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
         return new Vec(selfType, lex_env, self_env);
+        // return new AtomicFTypeArray(selfType, lex_env, self_env);
     }
 
     private static final class Vec extends FObject {
@@ -61,9 +64,10 @@ public class PrimitiveArray extends Constructor {
     public static final class get extends NativeMeth1 {
         public FValue act(FObject self, FValue ii) {
             // System.out.println(self+".get("+ii+")");
-            Vec v = (Vec) self;
+            // AtomicFTypeArray v = (AtomicFTypeArray) self;
+            AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
-            FValue r = v.a.get(i);
+            FValue r = v.get(i);
             if (r==null) {
                 error(errorMsg("Access to uninitialized element ",
                                i, " of array ", v));
@@ -75,9 +79,10 @@ public class PrimitiveArray extends Constructor {
     public static final class put extends NativeMeth2 {
         public FValue act(FObject self, FValue ii, FValue x) {
             // System.out.println(self+".put("+ii+","+x+")");
-            Vec v = (Vec) self;
+            // AtomicFTypeArray v = (AtomicFTypeArray) self;
+            AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
-            v.a.set(i,x);
+            v.set(i,x);
             return FVoid.V;
         }
     }
@@ -85,10 +90,10 @@ public class PrimitiveArray extends Constructor {
     public static final class init0 extends NativeMeth2 {
         public FValue act(FObject self, FValue ii, FValue x) {
             // System.out.println(self+".init0("+ii+","+x+")");
-            Vec v = (Vec) self;
+            // AtomicFTypeArray v = (AtomicFTypeArray) self;
+            AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
-            v.a.init(i,x);
-            return FVoid.V;
+            return FBool.make(v.init(i,x));
         }
     }
 

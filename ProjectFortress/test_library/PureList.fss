@@ -49,8 +49,6 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  map[\G\](f: E->G): List[\G\] =
-      concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
   append(f:List[\E\]): List[\E\]
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
@@ -65,8 +63,8 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
   zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
       ZipGenerator[\E,F\](self,other)
   filter(p: E -> Boolean): List[\E\] =
-      concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
-                                      else emptyList[\E\]() end)
+      concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
+                                              else emptyList[\E\]() end)
   eq(other: List[\E\]): Boolean = do
       println("In List =")
       if self.size() = other.size() then
@@ -82,6 +80,11 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
                                                    fn (e:E) => ", " e)) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
       generate[\List[\G\]\](Concat[\G\](),f)
+  map[\G\](f: E->G): List[\G\] =
+      concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
+  ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
+      indexValuePairs().generate[\List[\G\]\](Concat[\G\](),
+                fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
 (** Vararg factory for lists; provides aggregate list constants *)
@@ -93,7 +96,7 @@ list[\E\](g:Generator[\E\]):List[\E\] =
     g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
 
 (** Flatten a list of lists *)
-concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.reduce(Concat[\E\]())
+concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
 object Concat[\E\]() extends Reduction[\ List[\E\] \]
@@ -125,10 +128,10 @@ value object PureList[\E\]( it: FingerTree[\E\] )
   getter extractLeft(): Maybe[\(E,PureList[\E\])\] = extractLeft1(it)
   getter extractRight(): Maybe[\(PureList[\E\],E)\] = extractRight1(it)
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
-      IndexValuePairs(it)
+      IndexValuePairs[\E\](it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
-  seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
+  seq(): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
   append(f:List[\E\]): PureList[\E\] =
       append(f.generate[\PureList[\E\]\](PLConcat[\E\](),singleton[\E\]))
   append(f:PureList[\E\]): PureList[\E\] =
@@ -213,7 +216,7 @@ value object ZipGenerator[\A,B\](transient x0: PureList[\A\],
     xs = x0.take(sz)
     ys = y0.take(sz)
     getter size() = sz
-    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
     generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
         zgen(a: PureList[\A\], b: PureList[\B\]): R =
           if a.size() > 1 then
@@ -275,14 +278,15 @@ end
 
 object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
     getter size(): ZZ32 = it.size()
-    generate[\R\](r: Reduction[\R\], body: E->R): R = it.ivgen[\R\](r,body)
-    seq(self): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
+    generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
+        it.ivgen[\R\](0,r,body)
+    seq(): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
 end
 
 object SequentialIndexValuePairs[\E\](it: FingerTree[\E\])
         extends SequentialGenerator[\(ZZ32,E)\]
     getter size(): ZZ32 = it.size()
-    generate[\R\](r: Reduction[\R\], body: E->R): R = it.sivgen[\R\](r,body)
+    generate[\R\](r: Reduction[\R\], body: E->R): R = it.sivgen[\R\](0,r,body)
 end
 
 trait FingerTree[\E\] extends FTStructure[\E\]

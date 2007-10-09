@@ -23,7 +23,7 @@ weight:ZZ32 = 4
 trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
     comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
   seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
-  seq(self): SequentialGenerator[\(Key,Val)\] = SeqMapGenerator[\Key,Val\](self)
+  seq(): SequentialGenerator[\(Key,Val)\] = SeqMapGenerator[\Key,Val\](self)
   getPair():(Key, Val)
   getKey():Key
   getVal():Val

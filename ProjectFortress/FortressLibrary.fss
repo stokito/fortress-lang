@@ -70,9 +70,8 @@ see here.
 
 (** Equality *)
 
-(* Ideally equality will become a more ubiquitous funcitonal method.
-   Right now bugs mean equality is only a funcitonal method for the
-   Maybe type. *)
+(* Ideally equality will become a more ubiquitous functional method.
+   Right now bugs mean equality is not a functional method. *)
 opr =(a:Any, b:Any):Boolean = false
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
@@ -152,7 +151,20 @@ trait Generator[\E\]
     map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
     (** seq produces a sequential version of the same generator, in
         which elements are produced in the generator's natural order. *)
-    seq(self): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+    seq(): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+
+    (** Nesting of two generators; the innermost is data-dependent
+        upon the outer one.  This is specifically designed to be
+        overloaded so that the combined generators have properties
+        appropriate to the pairing.  Because of the data dependency
+        the natural order of the nesting is the natural order of the
+        inner generators, in the natural order the outer nesting
+        produces them.  So for example, if we write:
+          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+        then the natural order is 0,1,2,3,100,101,102,103,200,201,202,203
+     **)
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        SimpleNestedGenerator[\E,G\](self,f)
 
     (** Cross product of two generators.  This is specifically
         designed to be overloaded, such that pairs of independent
@@ -203,9 +215,21 @@ trait Generator[\E\]
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    seq() = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
-    seq(self) = self
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        typecase f of
+            E -> SequentialGenerator[\G\] =>
+                SimpleNestedSeqGenerator[\E,G\](self,f)
+            else => SimpleNestedGenerator[\E,G\](self,f)
+        end
+    cross[\F\](g:Generator[\F\]): Generator[\(E,F)\] =
+        typecase g of
+            SequentialGenerator[\F\] =>
+                    SimplePairSeqGenerator[\E,F\](self,g)
+            else => SimplePairGenerator[\E,F\](self,g)
+        end
 end
 
 (** Operations which use generation internally.  Should be functional
@@ -218,7 +242,7 @@ end
 opr IN[\E\](x: E, this: Generator[\E\]): Boolean = this.contains(x)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
-(* seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq() *)
+seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 
@@ -240,10 +264,10 @@ end
     Thus Just[\T\] can be used as a single-element generator, and
     Nothing can be used as an empty generator. *)
 value trait Maybe[\T\]
-    extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
-    comprises { Nothing[\T\], Just[\T\] }
-  getter unJust() : T throws UnJustNothing
-  maybe[\R\](nothingAction: ()->R, justAction: T->R): R
+        extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
+        comprises { Nothing[\T\], Just[\T\] }
+    getter unJust() : T throws UnJustNothing
+    maybe[\R\](nothingAction: ()->R, justAction: T->R): R
 end
 
 value object Just[\T\](x:T) extends {Maybe[\T\]}
@@ -280,7 +304,10 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     getter toString():String = "Nothing"
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
     opr[_:ZZ32]: T = fail("Cannot index Nothing")
-    opr[_:Range[\ZZ32\]]: Nothing[\T\] = fail("Cannot index Nothing")
+    opr[r:Range[\ZZ32\]]: Nothing[\T\] = do
+        r' = (0#0)[r]   (* Bounds check; 0-based/empty ranges only *)
+        self
+      end
 
     map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]()
@@ -595,6 +622,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         can be bad for space, but is complexity-preserving if the mapped
         generator is used more than once. **)
     ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
+    map[\R\](f:E->R): Indexed[\R, I\] = SimpleMappedIndexed[\E,R,I\](self,f)
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
@@ -617,7 +645,7 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
         generator().generate[\R\](r,body)
     map[\G\](f: E->G): Generator[\G\] =
         generator().map[\G\](f)
-    seq(self): SequentialGenerator[\E\] = sequential(generator())
+    seq(): SequentialGenerator[\E\] = sequential(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
@@ -735,12 +763,20 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
 
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
-    map[\G\](f: E->G): Generator[\G\] =
-        generator().map[\G\](f)
-    seq(self): SequentialGenerator[\E\] = sequential(generator())
+    map[\G\](f: E->G): Indexed[\G,I\]
+    ivmap[\G\](f: (I,E)->G): Indexed[\G,I\]
+    seq(): SequentialGenerator[\E\] = sequential(generator())
 
     assign(v:T):T = do
         for i <- zeroIndices() do put(i,v.get(i)) end
+        self
+      end
+    assign(e:E):T = do
+        for i <- zeroIndices() do put(i,e) end
+        self
+      end
+    assign(f:I->E):T = do
+        for i <- zeroIndices() do put(i,f(toIndex(i))) end
         self
       end
     fill(f:I->E):T = do
@@ -805,7 +841,11 @@ trait Array1[\T, nat b0, nat s0\]
   zeroIndices(): ScalarRange[\ZZ32\] = 0#s0
 
   shift(o:ZZ32): Array[\T,ZZ32\] =
-      __subarray(self,reflect(o),N[\s0\](),N[\b0\]())
+      if o=0 then
+          self
+      else
+          __subarray(self,reflect(o),N[\s0\](),N[\b0\]())
+      end
 
   opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
       r' = bounds()[r]
@@ -874,7 +914,7 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
-  mem: PrimitiveArray[\T,0, s0\] = PrimitiveArray[\T,0, s0\]()
+  mem: PrimitiveArray[\T,s0\] = PrimitiveArray[\T,s0\]()
   get(i:ZZ32):T = mem.get(i)
   put(i:ZZ32, v:T) = mem.put(i,v)
   replica[\U\]() = array1[\T,s0\]()
@@ -886,8 +926,13 @@ end
    enshrined in WellKnownNames.java.  There must be some factory,
    named in this file, with this type signature.  A similar thing is
    true for K-dimensional array types. *)
-__builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] =
-    if b0=0 then array1[\T,s0\]() else PrimitiveArray[\T,b0,s0\]() end
+__builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
+    r = array1[\T,s0\]()
+    typecase _ = N[\b0\]() of
+        N[\0\] => r
+        else => r.subarray[\b0,s0,0\]()
+    end
+  end
 
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
     typecase _ = __Proxy[\T\]() of
@@ -896,7 +941,7 @@ array1[\T, nat s0\]():Array1[\T,0,s0\] =
         __Proxy[\Integral\] => vector[\T,s0\]()
         __Proxy[\RR64\] => vector[\T,s0\]()
         __Proxy[\Number\] => vector[\T,s0\]()
-        else => PrimitiveArray[\T,0,s0\]()
+        else => PrimitiveArray[\T,s0\]()
     end
 array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
 array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
@@ -1000,7 +1045,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     end
   shift(t:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1)=t
-      __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
+      if o0=0 AND o1=0 then
+          self
+      else
+          __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
+      end
     end
 
   (** 2-D subarray given static subarray parameters.
@@ -1026,7 +1075,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   put(t:(ZZ32, ZZ32), v:T) : ()
   get(t:(ZZ32, ZZ32)):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
-  (* Copied here from Indexed, for better return type information. *)
+  (* Copied here for better return type information. *)
   map[\R\](f:T->R): Array2[\R,b0,s0,b1,s1\] =
       replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f(get(i-b0,j-b1)))
   ivmap[\R\](f:((ZZ32,ZZ32),T)->R): Array2[\R,b0,s0,b1,s1\] =
@@ -1036,7 +1085,7 @@ end
 (** Default array is column-major, but we could switch it. **)
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
     extends Array2[\T, b0, s0, b1, s1\]
-  mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
+  mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
   put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put(i s1 + j, v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
@@ -1138,7 +1187,7 @@ end
 (* Default matrix should match default array in column vs row-major. *)
 object __DefaultMatrix[\T, nat s0, nat s1\]()
     extends Matrix[\T, s0, s1\]
-  mem:PrimitiveArray[\T,0, (s0 s1) \] = PrimitiveArray[\T,0, (s0 s1) \]()
+  mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
   put(t:(ZZ32,ZZ32), v:T) : () = do (i,j)=t; mem.put(i s1 + j, v) end
   get(t:(ZZ32,ZZ32)):T = do (i,j)=t; mem.get(i s1 + j) end
 end
@@ -1308,8 +1357,12 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     end
   shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1,o2)=t
-      __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\], reflect(o2),N[\s2\],
-                 N[\b0\],N[\b1\],N[\b2\])
+      if o0=0 AND o1=0 AND o2=0 then
+          self
+      else
+          __subarray(reflect(o0),N[\s0\], reflect(o1),N[\s1\],
+                     reflect(o2),N[\s2\], N[\b0\],N[\b1\],N[\b2\])
+      end
     end
 
   (** 2-D subarray given static subarray parameters.
@@ -1346,7 +1399,7 @@ end
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
-  mem:PrimitiveArray[\T,0,(s0 (s1 s2))\] = PrimitiveArray[\T,0,(s0 (s1 s2))\]()
+  mem:PrimitiveArray[\T,(s0 (s1 s2))\] = PrimitiveArray[\T,(s0 (s1 s2))\]()
 
   ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
 
@@ -1456,29 +1509,92 @@ end
 trait MappedGenerator[\E,F\] extends Generator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
-    getter size(): ZZ32 = g().size()
-    getter toString(): String
+    getter toString(): String = g() ".map(f)"
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         g().generate[\R\](r, m COMPOSE f())
     reduce(r: Reduction[\F\]): F =
         g().generate[\F\](r, f())
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
+    seq() = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
 end
 
 object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
         extends MappedGenerator[\E,F\]
     getter g() = g0
     getter f() = f0
-    getter toString() = g ".map(f)"
-    seq(self) = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
 end
 
-object SimpleMappedSeqGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
+object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E\], f0: E->F)
+        extends { MappedGenerator[\E,F\], Indexed[\F,I\] }
+    getter size(): ZZ32 = g().size()
+    getter g() = g0
+    getter f() = f0
+    getter bounds(): Range[\I\] = g().bounds()
+    getter indexValuePairs(): Indexed[\(I,F),I\] =
+        g().indexValuePairs().map[\(I,F)\](fn (i:I, e:E): F => (i,(f())(e)))
+    getter indices(): Indexed[\I,I\] = g().indices()
+    opr[i:I] : F = (f())(g()[i])
+    opr[r:Range[\I\]] : Indexed[\F,I\] =
+        SimpleMappedIndexed[\E,F,I\](g()[r],f())
+
+    ivmap[\R\](ff:(I,E)->R): SimpleMappedIndexed[\E,R,I\] =
+        g0().ivmap[\R\](fn (i:I, e:E) => ff(i, (f())(e)))
+    map[\G\](f': F->G): SimpleMappedIndexed[\E,G,I\] =
+        SimpleMappedIndexed[\E,G,I\](g(), f' COMPOSE f())
+end
+
+object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
         extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
     getter toString() = "seq(" g ".map(f))"
+    seq(): SimpleMappedSeqGenerator[\E,F\] = self
+end
+
+trait NestedGenerator[\E,F\] extends Generator[\F\]
+    getter g(): Generator[\E\]
+    getter f(): E -> Generator[\F\]
+    getter toString(): String
+    generate[\R\](r: Reduction[\R\], m: F->R): R =
+        g().generate[\R\](r,fn (e:E):R => (f())(e).generate[\R\](r,m))
+    mapReduce[\R\](body: F->R, join:(R,R)->R, zero:R): R =
+        g().mapReduce[\R\](
+            fn (e:E): R => (f())(e).mapReduce[\R\](body,join,zero),
+            join, zero)
+    reduce(r: Reduction[\F\]): F =
+        g().generate[\F\](r,fn (e:E):F => (f())(e).reduce(r))
+    reduce(j:(F,F)->F, z:F):F =
+        g().mapReduce[\R\](fn (e:E): F => (f())(e).reduce(j,z), j, z)
+    loop(body:F->()): () =
+        g().loop(fn (e:E) => (f())(e).loop(body))
+    map[\G\](h:F->G): Generator[\G\] =
+        g().nest[\G\](fn (e:E): G => (f())(e).map[\G\](h))
+    nest[\G\](h:F->Generator[\G\]): Generator[\G\] =
+        g().nest[\G\](fn (e:E):Generator[\G\] => (f())(e).nest[\G\](h))
+end
+
+object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
+        extends { NestedGenerator[\E,F\] }
+    getter g() = g0
+    getter f() = f0
+    getter toString() = g() ".nest(f)"
+    seq() =
+        typecase ff = f() of
+            (E -> SequentialGenerator[\F\]) =>
+                SimpleNestedSeqGenerator[\E,F\](sequential(g()),ff)
+            else =>
+                SimpleNestedSeqGenerator[\E,F\](sequential(g()),
+                     fn (e:E): SequentialGenerator[\F\] => sequential(f()(e)))
+        end
+end
+
+object SimpleNestedSeqGenerator[\E,F\]
+        (g0: SequentialGenerator[\E\], f0: E->SequentialGenerator[\F\])
+        extends { NestedGenerator[\E,F\], SequentialGenerator[\F\] }
+    getter g() = g0
+    getter f() = f0
+    getter toString() = "seq(" g() ".nest(f))"
 end
 
 trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
@@ -1497,7 +1613,7 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
     getter e() = e0
     getter f() = f0
     getter toString()=(e ".cross(" f ")" )
-    seq(self) = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
+    seq() = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
 end
 
 object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
@@ -1592,9 +1708,7 @@ trait FullRange[\T\]
         extends { RangeWithLower[\T\], RangeWithUpper[\T\],
                   RangeWithExtent[\T\], Indexed[\T,T\] }
         comprises { ScalarRange[\T\], TupleRange[\T\] }
-    getter indexValuePairs(): Indexed[\(T,T),T\] =
-        self.map[\(T,T)\](fn (t:T):(T,T) => (t,t))
-    getter indices(): FullRange[\T\] = self
+    getter indices(): FullRange[\T\] = bounds()
 
     map[\G\](f: T->G): Generator[\G\] = SimpleMappedGenerator[\T,G\](self,f)
     opr[r:Range[\T\]]: FullRange[\T\] = fail("Unrecognized Range " r)
@@ -1608,29 +1722,33 @@ trait FullRange[\T\]
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
     opr[r:LowerRange[\T\]]: FullRange[\T\] =
-        if r.lower() IN self then
+        if r.lower() = lower() then
+            (* Important, also handles empty range case. *)
+            self
+        elif r.lower() IN self then
             r.lower():upper()
         else
             fail(self "[" r "] does not contain lower bound")
         end
     opr[r:UpperRange[\T\]]: FullRange[\T\] =
-        if r.upper() IN self then
+        if r.upper() = upper() then
+            (* Important, also handles empty range case. *)
+            self
+        elif r.upper() IN self then
             lower():r.upper()
         else
             fail(self "[" r "] does not contain upper bound")
         end
-    opr[r:ExtentRange[\T\]]: FullRange[\T\] = do
-        res = lower()#r.extent()
-        if res.upper() IN self then
-            res
+    opr[r:ExtentRange[\T\]]: FullRange[\T\] =
+        if r.extent() <= extent() then
+            lower()#r.extent()
         else
             fail(self "[" r "] is not sufficiently large in some dimension")
         end
-      end
     opr[r:FullRange[\T\]]: FullRange[\T\] =
-        if r.lower() NOTIN self then
+        if r.lower() < lower() then
             fail(self "[" r "] does not contain lower bound")
-        elif r.upper() NOTIN self then
+        elif r.upper() > upper() then
             fail(self "[" r "] does not contain upper bound")
         else
             r
@@ -1666,8 +1784,10 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
         extends ScalarRange[\N\]
     getter extent() = ex
     getter lower() = lo
+    getter indexValuePairs() =
+        ParRange[\N\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
 
-    seq(self) = SeqRange[\N\](lo,ex)
+    seq() = SeqRange[\N\](lo,ex)
     generate[\R\](r: Reduction[\R\], m: N->R): R =
         if size() < 1 then
             r.empty()
@@ -1737,6 +1857,8 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
     getter extent() = ex
     getter lower() = lo
     getter toString() = "seq(" lo "#" ex ")"
+    getter indexValuePairs() =
+        SeqRange[\N\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
     generate[\R\](r: Reduction[\R\], m: N->R): R = do
         h = lo + ex
         l : N := lo
@@ -1773,6 +1895,9 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
     getter size():(N,M) = (l1#x1).size() (l2#x2).size()
     getter generator():Generator[\(N,M)\] = (l1#x1).cross[\M\](l2#x2)
     getter toString(): String = "(" l1 "," l2 ")#(" x1 "," x2 ")"
+    getter indexValuePairs() =
+        Tuple2Range[\N\](0,0,x1,x2).map[\((N,M),(N,M))\](
+            fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
         if i1 IN (0#x1) AND i2 IN (0#x2) then
@@ -1799,6 +1924,10 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
         (l1#x1).cross(l2#x2).cross(l3#x3).map[\(N1,N2,N3)\](
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
     getter toString(): String = "(" l1 "," l2 "," l3 ")#(" x1 "," x2 "," x3 ")"
+    getter indexValuePairs() =
+        (0#x1).cross(0#x2).cross(0#x3).map[\((N1,N2,N3),(N1,N2,N3))\](
+            fn (t:(N1,N2),n3:N3):((N1,N2,N3),(N1,N2,N3)) =>
+                do (n1,n2)=t; ((n1,n2,n3),(n1+l1,n2+l2,n3+l3)) end)
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
         if i1 IN (0#x1) AND i2 IN (0#x2) AND i3 IN (0#x3) then

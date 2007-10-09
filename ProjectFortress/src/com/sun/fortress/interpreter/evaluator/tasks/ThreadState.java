@@ -28,7 +28,7 @@ import java.util.Set;
 public class ThreadState {
 
     int depth = 0;
-    ContentionManager manager;
+    final ContentionManager manager;
   
     long committed = 0;        // number of committed transactions
     long total = 0;            // total number of transactions

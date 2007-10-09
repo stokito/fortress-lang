@@ -30,8 +30,8 @@ import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
 public abstract class BaseTask extends RecursiveAction {
     Throwable err;
     boolean causedException;
-    ThreadState threadState;
-    BaseTask parent;
+    final ThreadState threadState;
+    final BaseTask parent;
 
     public BaseTask() {
         causedException = false;

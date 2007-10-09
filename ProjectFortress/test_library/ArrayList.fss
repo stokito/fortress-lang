@@ -79,8 +79,6 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  map[\G\](f: E->G): List[\G\] =
-      concatMap[\G\](fn (e:E):G => singleton[\G\](f(e)))
   append(f:List[\E\]): List[\E\]
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
@@ -95,8 +93,8 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
   zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
       ZipGenerator[\E,F\](self,other)
   filter(p: E -> Boolean): List[\E\] =
-      concatMap[\E\](fn (x)=> if p(x) then singleton[\E\](x)
-                                      else emptyList[\E\]() end)
+      concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
+                                              else emptyList[\E\]() end)
   eq(other: List[\E\]): Boolean = do
       println("In List =")
       if self.size() = other.size() then
@@ -112,21 +110,38 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
                                                    fn (e:E) => ", " e)) "|>"
   concatMap[\G\](f: E->List[\G\]): List[\G\] =
       generate[\List[\G\]\](Concat[\G\](),f)
+  map[\G\](f: E->G): List[\G\] =
+      concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
+  ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
+      indexValuePairs().generate[\List[\G\]\](Concat[\G\](),
+                fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 
 fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
-    Alr[\E,n\]( PrimitiveArray[\E,0,n\]().assign(f), 0, n, cantExtend )
+    fromArray( PrimitiveArray[\E,n\]().assign(f) )
+fromArray[\E, nat n\](f: PrimitiveArray[\E,n\]): Alr[\E,n\] =
+    Alr[\E,n\]( f, 0, n, cantExtend )
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
-    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+    typecase g of
+        Indexed[\E,ZZ32\] =>
+            sz = g.size()
+            a = primitiveArray(reflect(sz),__Proxy[\E\]())
+            for (i,v) <- g[#].indexValuePairs() do
+                a[i]:=v
+            end
+            alr(a,0,sz,cantExtend)
+        else =>
+            g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+    end
 
 (** Flatten a list of lists *)
-concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.reduce(Concat[\E\]())
+concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
 object Concat[\E\]() extends Reduction[\ List[\E\] \]
@@ -148,6 +163,7 @@ end
 
 trait ArrayList[\E\] extends { List[\E\], DelegatedIndexed[\E,ZZ32\] }
     append0(f: List[\E\]): ArrayList[\E\]
+    get(i:ZZ32): E
 end
 
 object CanExtend( settable canExtend : Boolean )
@@ -157,7 +173,7 @@ end
 
 cantExtend : CanExtend = CanExtend(false)
 
-value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
+value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32,
                                  canExtend : CanExtend)
       extends ArrayList[\E\]
@@ -184,10 +200,11 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       end
   getter indices(): Generator[\ZZ32\] = 0#size()
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
-      indices().map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) =>
-                                   (i,underlying.get(firstUsed+i)))
+      indices().map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) => (i,get(i)))
   getter generator(): Generator[\E\] =
       (firstUsed#size()).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+
+  get(i:ZZ32): E = underlying.get(firstUsed+i)
 
   (* Internal: fill blindly from f; assume enough space *)
   appendFrom(f:List[\E\]): ArrayList[\E\] = do
@@ -197,10 +214,8 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       self
     end
   appendFrom(f:ArrayList[\E\]): ArrayList[\E\] = do
-      fSize = f.size()
-      fFU = f.firstUsed
-      for i <- 0#fSize do
-          underlying.put(firstUnused + i, f.underlying.get(i+fFU))
+      for i <- 0#f.size() do
+          underlying.put(firstUnused + i, f.get(i))
       end
       self
     end
@@ -208,16 +223,6 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       appendFrom(f)
       Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(),
                       cantExtend )
-    end
-
-  revAppendFrom(f:ArrayList[\E\]): ArrayList[\E\] = do
-      fSize = f.size()
-      fLU = f.firstUnused-1
-      for i <- 0#fSize do
-          underlying.put(firstUnused+i, f.underlying.get(fLU-i))
-      end
-      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+fSize,
-                      CanExtend(true))
     end
 
   append(f:List[\E\]): ArrayList[\E\] =
@@ -276,7 +281,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       elif n >= size() then
           fail("ArrayList[" n "] of size " size() " index too large")
       else
-          underlying.get(n+firstUsed)
+          get(n)
       end
   split(n:ZZ32): (ArrayList[\E\], ArrayList[\E\]) =
       if n <= 0 then
@@ -293,10 +298,34 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
       else
           split(partitionL(size()))
       end
-  reverse(): ArrayList[\E\] = do
-      rfl = reflect(expansion(maxUn, size()))
-      mkEmptyLike(self,rfl).revAppendFrom(self)
+
+  reverse(): ArrayList[\E\] =
+      makeClosedList(reflect(size()),
+                     fn (i:ZZ32):E => underlying.get(firstUnused-1-i))
+  concatMap[\G\](f: E->List[\G\]): List[\G\] = do
+      mf = map[\List[\G\]\](f)
+      ml = mf.map[\ZZ32\](fn (xs):ZZ32 => xs.size())
+      mlU = ml.underlying
+      (* This is a prefix computation, replace it when we get real
+         prefixes. *)
+      sz = prefixAdd(ml.underlying, ml.firstUsed # ml.size())
+      r = makeListForConcat(reflect(sz),f)
+      rU = r.underlying
+      rFU = r.firstUsed
+      for i <- ml.indices() do
+          ofs = rFU + ml.get(i)
+          for (j,v) <- mf.get(i).indexValuePairs() do
+              rU.put(ofs+j,v)
+          end
+      end
+      r
     end
+  map[\G\](f: E->G): ArrayList[\G\] =
+      makeClosedList(reflect(size()),
+                     fn (i:ZZ32):G => f(get(i)))
+  ivmap[\G\](f: (ZZ32,E)->G): ArrayList[\G\] =
+      makeClosedList(reflect(size()),
+                     fn (i:ZZ32):G => f(i,get(i)))
 
   increaseTo(newSize: ZZ32):ArrayList[\E\] = do
       rfl = reflect(expansion(maxUn, newSize))
@@ -304,8 +333,33 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,0,maxUn\],
     end
 end
 
-mkEmptyLike[\E, nat maxUn\](_:ArrayList[\E\], _:N[\maxUn\]): ArrayList[\E\] =
-    Alr[\E, maxUn\](PrimitiveArray[\E,0,maxUn\](),0,0,cantExtend)
+primitiveArray[\E, nat sz\](_:N[\sz\], e:__Proxy[\E\]): PrimitiveArray[\E,sz\] =
+    PrimitiveArray[\E,sz\]()
+
+alr[\E, nat sz\]( underlying : PrimitiveArray[\E,sz\],
+                  firstUsed:ZZ32, firstUnused:ZZ32,
+                  canExtend : CanExtend): Alr[\E,sz\] =
+    Alr[\E,sz\](underlying, firstUsed, firstUnused, canExtend)
+
+mkEmptyLike[\E, nat maxUn\](_:ArrayList[\E\], _:N[\maxUn\]): Alr[\E,maxUn\] =
+    Alr[\E, maxUn\](PrimitiveArray[\E,maxUn\](),0,0,cantExtend)
+
+makeClosedList[\E, nat sz\](_:N[\sz\], f: ZZ32 -> E): Alr[\E,sz\] =
+    Alr[\E,sz\](PrimitiveArray[\E,sz\]().fill(f),0,sz,cantExtend)
+
+(* makeListForConcat doesn't fill its array with anything. *)
+makeListForConcat[\A, E, nat sz\](_:N[\sz\], f: A->List[\E\]): Alr[\E,sz\] =
+    Alr[\E,sz\](PrimitiveArray[\E,sz\](),0,sz,cantExtend)
+
+prefixAdd[\nat n\](a:Array1[\ZZ32,0,n\],r:FullRange[\ZZ32\]): ZZ32 = do
+    res : ZZ32 := 0
+    for i <- seq(r) do
+        v = a.get(i)
+        a.put(i,res)
+        res += v
+    end
+    res
+  end
 
 (* The ZipGenerator works by first chopping the lists so that they are
 the same size, then successively splitting them.  The first argument
@@ -318,47 +372,23 @@ value object ZipGenerator[\A,B\](transient x0: ArrayList[\A\],
     xs = x0.take(sz)
     ys = y0.take(sz)
     getter size() = sz
-    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
-    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
-        zgen(a: ArrayList[\A\], b: ArrayList[\B\]): R =
-          if a.size() > 1 then
-              (al,ar) = a.split()
-              (bl,br) = b.split(al.size())
-              r.join(zgen(al,bl),zgen(ar,br))
-          elif a.isEmpty() then
-              r.empty()
-          else
-              body(a[0],b[0])
-          end
-        zgen(xs,ys)
-      end
+    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
+        (0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs[i],ys[i]))
 end
 
 value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\])
         extends { SequentialGenerator[\E\] }
     getter size() = sz
-    generate[\R\](r: Reduction[\R\], body: E->R): R = do
-        zgen(a: ArrayList[\A\], b: ArrayList[\B\]): R =
-          if a.size() > 1 then
-              (al,ar) = a.split()
-              (bl,br) = b.split(al.size())
-              zgl = zgen(al,bl)
-              zgr = zgen(ar,br)
-              r.join(zgl,zgr)
-          elif a.isEmpty() then
-              r.empty()
-          else
-              body(a[0],b[0])
-          end
-        zgen(xs,ys)
-      end
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        sequential(0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs[i],ys[i]))
 end
 
 emptyList[\E\](): List[\E\] =
-    Alr[\E,0\](PrimitiveArray[\E,0,0\](),0,0,cantExtend)
+    Alr[\E,0\](PrimitiveArray[\E,0\](),0,0,cantExtend)
 
 singleton[\E\](e:E): List[\E\] = do
-    u = PrimitiveArray[\E,0,1\]()
+    u = PrimitiveArray[\E,1\]()
     u.put(0,e)
     Alr[\E,1\](u,0,1,cantExtend)
   end
