@@ -155,8 +155,6 @@ public class NodeFactory {
     public static DottedName makeDottedName(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
-        System.out.println(file);
-        System.out.println(file.substring(0, file.length()-4));
         if (file.length() <= 4) {
             return error(new Id(span, "_"), "Invalid file name.");
         }

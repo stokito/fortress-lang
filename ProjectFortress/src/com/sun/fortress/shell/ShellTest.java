@@ -30,14 +30,16 @@ public class ShellTest extends TestCase {
 
    public void testSelfUpgrade() throws UserError, InterruptedException {
       Shell shell = new Shell(".");
-      shell.selfUpgrade("fortress_mock_upgrade.jar");
+      CommandInterpreter interpreter = shell.getInterpreter();
+      interpreter.selfUpgrade("fortress_mock_upgrade.jar");
       assert(new File(".java/fortress_mock_upgrade.jar").exists());
    }
 
    public void testCompile() throws UserError, InterruptedException {
       //assert(! Component.exists("TestComponent.fss"));
       Shell shell = new Shell(".");
-      shell.compile("TestComponent.fss");
+      CommandInterpreter interpreter = shell.getInterpreter();
+      interpreter.compile("TestComponent.fss");
       //assert(Component.exists("TestComponent.fss"));
    }
 

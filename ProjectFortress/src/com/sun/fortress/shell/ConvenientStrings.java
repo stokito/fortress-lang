@@ -18,6 +18,6 @@
 package com.sun.fortress.shell;
 import java.io.*;
 
-public abstract class ShellObject {
-   protected static final String SEP = File.separator;
+public interface ConvenientStrings {
+   public static final String SEP = File.separator;
 }

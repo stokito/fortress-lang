@@ -27,7 +27,9 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 
-public final class Shell extends ShellObject {
+import static com.sun.fortress.shell.ConvenientStrings.*;
+
+public final class Shell {
     /* Patterns for parsing shell messages.*/
     private static final String NAME =                   "[\\S]+";
     private static final String COMPILE_PATTERN =        "compile " + NAME + "(.fss)|(.fsi)";
@@ -40,15 +42,21 @@ public final class Shell extends ShellObject {
     private static final String EXISTS_PATTERN =         "exists " + NAME;
     
     private String pwd;
-       /* Relative location of the resident fortress to the jar file this class is packaged into. */
+    /* Relative location of the resident fortress to the jar file this class is packaged into. */
     private String components;
+    
+    private CommandInterpreter interpreter;
     
     public Shell(String _pwd) { 
         pwd = _pwd; 
-        
         // For now, assume compiled components and APIs are in pwd.
         components = pwd;
+        interpreter = new CommandInterpreter(this);
     }
+    
+    String getPwd() { return pwd; }
+    String getComponents() { return components; }
+    CommandInterpreter getInterpreter() { return interpreter; }
     
     private static String fortressLocation() {
         try {
@@ -71,27 +79,7 @@ public final class Shell extends ShellObject {
         System.err.println("  " + UPGRADE_PATTERN);
         System.err.println("  " + EXISTS_PATTERN);
     }
-    
-    /* Helper method that creates a CompilationUnit from a Fortress source file name.*/
-    private Option<CompilationUnit> makeCompilationUnit(String fileName) throws UserError {
-        File sourceFile = new File(fileName);
         
-        if (! sourceFile.exists()) {
-            throw new UserError("Error: File " + fileName + " does not exist.");
-        }   
-        try {
-            return Driver.parseToJavaAst(fileName);
-        }
-        catch (IOException e) {
-            throw new ShellException(e);
-        }
-    }
-    
-    /* Helper method that returns true if a component of the given name is installed.*/
-    private boolean isInstalled(String componentName) {
-        return new File(components + SEP + "components" + SEP + componentName + SEP + ".jst").exists();
-    }
-    
     /* Main entry point for the fortress shell.*/
     public void execute(String[] tokens) throws InterruptedException {
         // First argument is supplied by the fss script and always present; it's simple $PWD.
@@ -111,14 +99,14 @@ public final class Shell extends ShellObject {
         
         // Now match the assembled string.
         try {
-            if      (msg.matches(COMPILE_PATTERN)) { compile(tokens[2]); }
-            else if (msg.matches(SELF_UPGRADE_PATTERN)) { selfUpgrade(tokens[2]); }
-            else if (msg.matches(SCRIPT_PATTERN)) { script(tokens[2]); }
-            else if (msg.matches(RUN_PATTERN)) { run(tokens[2]); }
-            else if (msg.matches(API_PATTERN)) { api(tokens[2]); }
-            else if (msg.matches(LINK_PATTERN)) { link(tokens[2], tokens[4], tokens[6]); }
-            else if (msg.matches(UPGRADE_PATTERN)) { upgrade(tokens[2], tokens[4], tokens[6]); }
-            else if (msg.matches(EXISTS_PATTERN)) { exists(tokens[2]); }
+            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(tokens[2]); }
+            else if (msg.matches(SELF_UPGRADE_PATTERN)) { interpreter.selfUpgrade(tokens[2]); }
+            else if (msg.matches(SCRIPT_PATTERN)) { interpreter.script(tokens[2]); }
+            else if (msg.matches(RUN_PATTERN)) { interpreter.run(tokens[2]); }
+            else if (msg.matches(API_PATTERN)) { interpreter.api(tokens[2]); }
+            else if (msg.matches(LINK_PATTERN)) { interpreter.link(tokens[2], tokens[4], tokens[6]); }
+            else if (msg.matches(UPGRADE_PATTERN)) { interpreter.upgrade(tokens[2], tokens[4], tokens[6]); }
+            else if (msg.matches(EXISTS_PATTERN)) { interpreter.exists(tokens[2]); }
             else { printUsageMessage(); }
         }
         catch (UserError error) {
@@ -128,68 +116,7 @@ public final class Shell extends ShellObject {
             System.err.println(error.getMessage());
         }
     }
-    
-    /* Call the Ant compile target, passing in the fileName relative to the user's directory,
-     * along with the name of the component to store the result into.
-     */
-    void compile(String fileName) throws UserError, InterruptedException {
-        Option<CompilationUnit> prog = makeCompilationUnit(fileName);
-        
-        if (prog.isNone()) { 
-            throw new UserError("Error: File " + fileName + " is not a well-formed Fortress file."); 
-        }
-        try {
-            CompilationUnit _prog = Option.unwrap(prog);
-            Driver.writeJavaAst(_prog, pwd + SEP + _prog.getName() + fs.JAVA_AST_SUFFIX);
-            
-        } catch (IOException e) {
-            throw new ShellException(e);
-        }
-    }
-    
-    /* Upgrade the internal files of the resident fortress with the contents of the given tar file.*/
-    void selfUpgrade(String fileName) throws UserError, InterruptedException {
-        //Ant.run("selfupgrade", "-Dtarfile=" + fileName);
-    }
-    
-    /* Convenience method for calling selfUpgrade directly with a file.*/
-    void selfUpgrade(File file) throws UserError, InterruptedException { selfUpgrade(file.getPath()); }
-    
-    /* Checks whether a component or API has been installed in the resident fortress.*/
-    void exists(String componentName) throws UserError {
-        if (isInstalled(componentName)) {
-            System.out.println("Yes, component " + componentName + " is installed in this fortress.");
-        }
-        else if (new File(components + SEP + "apis" + SEP + componentName + SEP + ".jst").exists()) {
-            System.out.println("Yes, API " + componentName + " is installed in this fortress.");
-        }
-        else {
-            System.out.println("No, there is no component or API with name " + componentName + " installed in this fortress.");
-        }
-    }
-    
-    /* Runs a fortress source file directly.*/
-    void script(String fileName) throws UserError, IOException { Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName))); }
-    
-    void run(String componentName) throws UserError {
-        try {
-            if (isInstalled(componentName)) {
-                Driver.evalComponent(Option.unwrap(Driver.readJavaAst(components + SEP + "components" + SEP + componentName + SEP + ".jst")));
-            }
-            else {
-                throw new UserError("Error: There is no component with name " + componentName + " installed in this fortress.");
-            }
-        }
-        catch (IOException e) {
-            throw new ShellException(e);
-        }
-    }
-    
-    void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
-    void upgrade(String result, String left, String right) throws UserError { throw new UserError("Error: Upgrade not yet implemented!"); }
-    
-    void api(String fileName) throws UserError { throw new UserError("Error: Automatic API generation not yet implemented.");  }
-    
+
     public static void main(String[] args) throws InterruptedException { 
         // First argument is supplied by the fss script and always present; it's simple $PWD.
         new Shell(args[0]).execute(args); 
