@@ -46,7 +46,9 @@ public class FObject extends FConstructedValue implements Selectable {
       return lexicalEnv;
   }
 
-public String getString() { return getClass().getSimpleName() + " " + type().toString(); }
+  public String getString() { return type().toString(); }
 
-
+  public String toString() {
+    return getString() + getClass().getSimpleName();
+  }
 }

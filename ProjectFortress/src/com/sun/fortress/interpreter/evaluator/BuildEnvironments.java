@@ -669,8 +669,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty() ?
-                  new FTypeObject(fname, e, x, x.getDecls())
-                : new FTypeGeneric(e, x, x.getDecls());
+                  new FTypeObject(fname, e, x, x.getDecls(), x)
+                : new FTypeGeneric(e, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
 
@@ -733,6 +733,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     public void scanForFunctionalMethodNames(FTraitOrObjectOrGeneric x,
             List<? extends AbsDeclOrDecl> defs, boolean bogus) {
+        // This is probably going away.
         BetterEnv topLevel = containing;
         if (pass == 1) {
             x.initializeFunctionalMethods();
@@ -742,84 +743,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     }
 
-    private void initializeFunctionalMethods(FTraitOrObjectOrGeneric x,
-            List<? extends AbsDeclOrDecl> defs, BetterEnv topLevel) {
-        for (AbsDeclOrDecl dod : defs) {
-            // Filter out non-functions.
-            if (dod instanceof FnAbsDeclOrDecl) {
-                int spi = NodeUtil
-                        .selfParameterIndex((FnAbsDeclOrDecl) dod);
-                if (spi >= 0) {
-                    // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
-                    // System.err.println("Functional method " + dod + "
-                    // pass
-                    // "+pass);
-                    String fndodname = NodeUtil.nameString(fndod.getName());
-                    {
-                        Fcn cl;
-                        // If the container is generic, then we create an
-                        // empty top-level overloading, to be filled in as
-                        // the container is instantiated.
-                        
-                        // if (x.getStaticParams().isPresent()) {
-                        if (x instanceof FTypeGeneric) {
-                            cl = new OverloadedFunction(fndod.getName(),
-                                    topLevel);
-                        } else {
-                            // Note that the instantiation of a generic
-                            // comes
-                            // here too
-                            cl = new FunctionalMethod(topLevel, fndod,
-                                    spi, x);
-                        }
-
-                        // TODO test and other modifiers
-
-                        
-                        topLevel.putValueNoShadowFn(fndodname, cl);
-                    }
-                }
-            }
-        }
-    }
-
-    private void finishFunctionalMethods(List<? extends AbsDeclOrDecl> defs,
-            BetterEnv topLevel) {
-        for (AbsDeclOrDecl dod : defs) {
-            // Filter out non-functions.
-            if (dod instanceof FnAbsDeclOrDecl) {
-                int spi = NodeUtil
-                        .selfParameterIndex((FnAbsDeclOrDecl) dod);
-                if (spi >= 0) {
-                    // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
-                    // System.err.println("Functional method " + dod + "
-                    // pass
-                    // "+pass);
-                    String fndodname = NodeUtil.nameString(fndod.getName());
-                    {
-                        Fcn fcn = (Fcn) topLevel.getValue(fndodname);
-
-                        if (fcn instanceof Closure) {
-                            Closure cl = (Closure) fcn;
-                            cl.finishInitializing();
-                        } else if (fcn instanceof OverloadedFunction) {
-                            // TODO it is correct to do this here, though it
-                            // won't work yet.
-                            OverloadedFunction og = (OverloadedFunction) fcn;
-                            og.finishInitializing();
-
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void forObjectDecl2(ObjectDecl x) {
+ 
+     private void forObjectDecl2(ObjectDecl x) {
 
         BetterEnv e = containing;
         IdName name = x.getName();
@@ -1095,14 +1020,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         if (!staticParams.isEmpty()) {
 
-                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
+                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
                 guardedPutType(fname, ftg, x);
                 // scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
-                FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls());
+                FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls(), x);
                 guardedPutType(fname, ftt, x);
                 // scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
            ft = ftt;
@@ -1170,14 +1095,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
         if (!staticParams.isEmpty()) {
 
-                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls());
+                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
             guardedPutType(fname, ftg, x);
                 //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
            ft = ftg;
         } else {
 
                 BetterEnv interior = containing; // new BetterEnv(containing, x);
-            FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls());
+            FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls(), x);
             guardedPutType(fname, ftt, x);
                 //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
            ft = ftt;
@@ -1258,7 +1183,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     // List<Type> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
                     if (ft == null) {
-                        ft = new SymbolicWhereType(string_name, interior);
+                        ft = new SymbolicWhereType(string_name, interior, we);
                         interior.putType(string_name, ft);
                     }
                 } else if (w instanceof TypeAlias) {
@@ -1559,8 +1484,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
-        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls())
-                : new FTypeGeneric(e, x, x.getDecls());
+        ft = staticParams.isEmpty() ? new FTypeObject(fname, e, x, x.getDecls(), x)
+                : new FTypeGeneric(e, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
 

@@ -93,11 +93,11 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                       Visitor2<String, Number> vi,
                       Visitor2<String, FValue> vv,
                       Visitor2<String, Boolean> vb) {
-        if (type_env != null) type_env.visit(vt);
-        if (nat_env != null) nat_env.visit(vn);
-        if (int_env != null) int_env.visit(vi);
-        if (var_env != null) var_env.visit(vv);
-        if (bool_env != null) bool_env.visit(vb);
+        if (type_env != null && vt != null) type_env.visit(vt);
+        if (nat_env != null && vn != null) nat_env.visit(vn);
+        if (int_env != null && vi != null) int_env.visit(vi);
+        if (var_env != null && vv != null) var_env.visit(vv);
+        if (bool_env != null && bool_env != null) bool_env.visit(vb);
 
     }
 

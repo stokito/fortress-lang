@@ -175,6 +175,7 @@ testNotPassing, testOnly interpreter"/>
             <fileset dir="src" includes="**/*.class" />
             <fileset dir="test_library" includes="**/*.tfi" />
             <fileset dir="test_library" includes="**/*.tfs" />
+            <fileset dir="test_library_native" includes="**/*.tfs" />
         </delete>
     </target>
 

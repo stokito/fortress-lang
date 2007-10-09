@@ -391,7 +391,7 @@ public class Desugarer extends Rewrite {
             List<StaticParam> params = oe.getStaticParams();
             if (params.isEmpty()) {
                 // Regular constructor
-                FTypeObject fto = new FTypeObject(name, env, oe, oe.getDecls());
+                FTypeObject fto = new FTypeObject(name, env, oe, oe.getDecls(), oe);
                 env.putType(name, fto);
                 BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
                                                     null, null, fto, env, oe);
@@ -403,7 +403,7 @@ public class Desugarer extends Rewrite {
                 con.finishInitializing();
             } else {
                 // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls());
+                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls(), oe);
                 env.putType(name, fto);
                 GenericConstructor con = new GenericConstructor(env, oe);
                 env.putValue(name, con);

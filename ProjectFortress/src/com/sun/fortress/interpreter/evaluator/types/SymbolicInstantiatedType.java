@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 
 public class SymbolicInstantiatedType extends SymbolicType {
 
@@ -29,8 +31,8 @@ public class SymbolicInstantiatedType extends SymbolicType {
      * @param name
      * @param interior
      */
-    public SymbolicInstantiatedType(String name, BetterEnv interior) {
-        super(name, interior, Collections.<AbsDeclOrDecl>emptyList());
+    public SymbolicInstantiatedType(String name, BetterEnv interior, AbstractNode decl) {
+        super(name, interior, Collections.<AbsDeclOrDecl>emptyList(), decl);
         isSymbolic = true;
     }
 

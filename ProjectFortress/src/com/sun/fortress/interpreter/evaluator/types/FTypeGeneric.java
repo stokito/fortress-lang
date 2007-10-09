@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OperatorParam;
@@ -55,23 +56,22 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
      * and that is not known until, say, a generic constructor is returned.
      * 
      */
-    static ThreadLocal<List<FTypeTrait>> pendingFunctionalMethodFinishes = new ThreadLocal<List<FTypeTrait>>() {
-        protected synchronized List<FTypeTrait> initialValue() {
-            return new ArrayList<FTypeTrait>();
+    static ThreadLocal<List<FTraitOrObjectOrGeneric>> pendingFunctionalMethodFinishes = new ThreadLocal<List<FTraitOrObjectOrGeneric>>() {
+        protected synchronized List<FTraitOrObjectOrGeneric> initialValue() {
+            return new ArrayList<FTraitOrObjectOrGeneric>();
         }
     };
     
     static public void flushPendingTraitFMs() {
         for (int i = 0; i < pendingFunctionalMethodFinishes.get().size(); i++) {
-            FTypeTrait tt = pendingFunctionalMethodFinishes.get().get(i);
+            FTraitOrObjectOrGeneric tt = pendingFunctionalMethodFinishes.get().get(i);
             tt.finishFunctionalMethods();
         }
         pendingFunctionalMethodFinishes.get().clear();
     }
     
-    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members) {
-        super(NodeUtil.stringName(d));
-        env = e;
+    public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+        super(NodeUtil.stringName(d), e, decl);
         def = d;
         params = d.getStaticParams();
         genericAt = d;
@@ -79,8 +79,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     }
 
     public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
-        super(orig.getName());
-        env = orig.getEnv();
+        super(orig.getName(), orig.getEnv(), orig.getDecl());
         genericAt = orig.getDef();
         def = new_def;
         params = new_def.getStaticParams();

@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATree;
@@ -76,7 +77,7 @@ public class FGenericFunction extends SingleFcn
                          */
                         symbolic_static_args =
                             symbolicStaticsByPartition.syncPutIfMissing(this,
-                                    createSymbolicInstantiation(getEnv(), fndef, fndef));
+                                    createSymbolicInstantiation(getEnv(), getStaticParams(), getWhere(), fndef));
                     }
                     symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
                 }
@@ -96,11 +97,11 @@ public class FGenericFunction extends SingleFcn
 
     @Override
     public String toString() {
-        return getString();
+        return getString() + fndef.at();
     }
 
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
-        Closure cl = anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
+        Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
         return cl.finishInitializing();
     }
 
@@ -111,7 +112,7 @@ public class FGenericFunction extends SingleFcn
 
         public Simple_fcn make(List<FType> args, HasAt location) {
             BetterEnv clenv = new BetterEnv(getEnv(), location);
-            List<StaticParam> params = fndef.getStaticParams();
+            List<StaticParam> params = getStaticParams();
             EvalType.bindGenericParameters(params, args, clenv, location, fndef);
 
             return newClosure(clenv, args);
@@ -161,7 +162,7 @@ public class FGenericFunction extends SingleFcn
      * @throws ProgramError
      */
     Simple_fcn typeApply(BetterEnv e, HasAt location, List<FType> argValues) throws ProgramError {
-        List<StaticParam> params = fndef.getStaticParams();
+        List<StaticParam> params = getStaticParams();
 
         // Evaluate each of the args in e, inject into clenv.
         if (argValues.size() != params.size() ) {
@@ -175,6 +176,14 @@ public class FGenericFunction extends SingleFcn
 
     Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
         return make(argValues, location);
+    }
+    
+    protected  List<StaticParam> getStaticParams() {
+        return  fndef.getStaticParams();
+    }
+    
+    protected List<WhereClause> getWhere() {
+        return fndef.getWhere();
     }
 
     @Override
@@ -205,8 +214,8 @@ public class FGenericFunction extends SingleFcn
             if (x != 0)
                 return x;
 
-            List<StaticParam> oltp0 = a0.getStaticParams();
-            List<StaticParam> oltp1 = a1.getStaticParams();
+            List<StaticParam> oltp0 = arg0.getStaticParams();
+            List<StaticParam> oltp1 = arg1.getStaticParams();
 
             return NodeComparator.compare(oltp0, oltp1);
 

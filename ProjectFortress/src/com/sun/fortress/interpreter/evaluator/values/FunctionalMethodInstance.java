@@ -14,30 +14,29 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-
-package com.sun.fortress.interpreter.evaluator.types;
+package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.nodes.Applicable;
 
+public class FunctionalMethodInstance extends FunctionalMethod {
 
-public class FTypeObject extends FTraitOrObject {
-
-    public FTypeObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
-        super(name, env, at, members, def);
-        cannotBeExtended = true;
+    public FunctionalMethodInstance(BetterEnv e, Applicable fndef,
+            List<FType> args, FGenericFunction generator,
+            int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+        super(e, fndef, args, self_parameter_index, self_parameter_type);
+        this.generator = generator;
     }
 
-    @Override
-    protected void finishInitializing() {
-        // TODO Auto-generated method stub
+    FGenericFunction generator;
 
+    public FGenericFunction getGenerator() {
+        return generator;
     }
 
+    
 }

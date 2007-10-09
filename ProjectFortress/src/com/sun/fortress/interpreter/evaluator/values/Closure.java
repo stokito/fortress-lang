@@ -94,10 +94,28 @@ public class Closure extends NonPrimitive implements Scope {
         def = NativeApp.checkAndLoadNative(fndef);
     }
 
-    public Closure(BetterEnv e, Applicable fndef, List<FType> args) {
+    protected Closure(BetterEnv e, Applicable fndef, List<FType> args) {
         super(e);
         def = NativeApp.checkAndLoadNative(fndef);
         instArgs = args;
+    }
+    
+    public int hashCode() {
+        return def.hashCode() +
+        System.identityHashCode(getEnv()) +
+        (instArgs == null ? 0 : instArgs.hashCode());
+    }
+    
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o.getClass().equals(this.getClass())) {
+            Closure oc = (Closure) o;
+            return def == oc.def &&
+            getEnv() == oc.getEnv() &&
+            (instArgs == null ? (oc.instArgs == null) :
+                oc.instArgs == null ? false : instArgs.equals(oc.instArgs));
+        }
+        return false;
     }
 
     /*

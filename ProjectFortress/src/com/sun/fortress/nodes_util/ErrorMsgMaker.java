@@ -34,7 +34,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     private ErrorMsgMaker() {}
 
-    private final List<String> mapSelf(List<? extends AbstractNode> that) {
+    public final List<String> mapSelf(List<? extends AbstractNode> that) {
         LinkedList<String> result = new LinkedList<String>();
         for (AbstractNode elt : that) {
             result.add(elt.accept(this));
@@ -77,7 +77,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
         return NodeUtil.nameString(node.getName())
-                + Useful.listInOxfords(mapSelf(node.getStaticParams()))
+                + (node.getStaticParams().size() > 0 ? Useful.listInOxfords(mapSelf(node.getStaticParams())) : "")
                 + Useful.listInParens(mapSelf(node.getParams()))
                 + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(this)) : "")
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());

@@ -18,7 +18,11 @@
 package com.sun.fortress.interpreter.glue;
 
 import com.sun.fortress.nodes_util.NodeUtil;
+
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -33,6 +37,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -136,11 +141,17 @@ public abstract class NativeApp implements Applicable {
         if (name.getApi().isSome()) return defn;
         if (!name.getName().getId().getText().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteral)arg).getText();
+        Pair<String, Applicable> key = new Pair<String, Applicable>(str, defn);
+        synchronized(cache) {
+            NativeApp res = cache.get(key);
+            if (res != null)
+                return res;
         try {
             // System.err.println("Loading primitive class "+str);
             Class nativeAct = Class.forName(str);
-            NativeApp res = (NativeApp)nativeAct.newInstance();
+            res = (NativeApp)nativeAct.newInstance();
             res.init(defn);
+            cache.put(key, res);
             return res;
         } catch (java.lang.ClassNotFoundException x) {
             return bug(defn,"Native class "+str +" not found.",x);
@@ -152,5 +163,10 @@ public abstract class NativeApp implements Applicable {
             return bug(defn,"Native class "+str +" is not a NativeApp.",x);
                                     
         }
+        }
     }
+    static public void reset() {
+        cache = new Hashtable<Pair<String, Applicable>, NativeApp>();
+    }
+    static Map<Pair<String, Applicable>, NativeApp> cache;
 }

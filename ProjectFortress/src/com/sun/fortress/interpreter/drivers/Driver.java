@@ -43,6 +43,8 @@ import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.RedefinitionError;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
@@ -266,6 +268,8 @@ public class Driver {
     public static BetterEnv evalComponent(CompilationUnit p) throws IOException {
         return evalComponent(p, false);
     }
+    
+    public static ArrayList<ComponentWrapper> components;
 
     public static BetterEnv evalComponent(CompilationUnit p,
                                           boolean woLibrary) throws IOException {
@@ -280,7 +284,8 @@ public class Driver {
         HashMap<String, ComponentWrapper> linker = new HashMap<String, ComponentWrapper>();
 
         Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
-        ArrayList<ComponentWrapper> components = new ArrayList<ComponentWrapper>();
+        // ArrayList<ComponentWrapper>
+        components = new ArrayList<ComponentWrapper>();
 
         ComponentWrapper comp = new ComponentWrapper((Component) p, false);
 
@@ -388,8 +393,15 @@ public class Driver {
             cw.initTypes();
         }
         for (ComponentWrapper cw : components) {
+            scanAllFunctionalMethods(cw.getEnvironment());
+        }
+        for (ComponentWrapper cw : components) {
             cw.initFuncs();
         }
+        for (ComponentWrapper cw : components) {
+            finishAllFunctionalMethods(cw.getEnvironment());
+        }
+        
         for (ComponentWrapper cw : components) {
             cw.initVars();
         }
@@ -558,6 +570,43 @@ public class Driver {
         return change;
     }
 
+    private static void scanAllFunctionalMethods(final BetterEnv e) {
+        Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+            public void visit(String s, FType o) {
+                if (o instanceof FTraitOrObjectOrGeneric) {
+                    FTraitOrObjectOrGeneric tooog = (FTraitOrObjectOrGeneric) o;
+                    tooog.initializeFunctionalMethods(e);
+                    if (tooog instanceof FTraitOrObject) {
+                        for (FType t : ((FTraitOrObject)tooog).getProperTransitiveExtends())
+                            if (t instanceof FTraitOrObjectOrGeneric)
+                                ((FTraitOrObject)t).initializeFunctionalMethods(e);
+                    } else {
+                        
+                    }
+                }
+            }
+        };
+        e.visit(vt, null, null, null, null);
+    }
+    
+    private static void finishAllFunctionalMethods(final BetterEnv e) {
+        Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+            public void visit(String s, FType o) {
+                if (o instanceof FTraitOrObjectOrGeneric) {
+                    FTraitOrObjectOrGeneric tooog = (FTraitOrObjectOrGeneric) o;
+                    tooog.finishFunctionalMethods(e);
+                    if (tooog instanceof FTraitOrObject) {
+                        for (FType t : ((FTraitOrObject)tooog).getProperTransitiveExtends())
+                            if (t instanceof FTraitOrObjectOrGeneric)
+                                ((FTraitOrObject)t).finishFunctionalMethods(e);
+                    }
+                }
+            }
+        };
+        e.visit(vt, null, null, null, null);
+    }
+
+    
     /**
      * @param into_e
      * @param from_e
@@ -572,9 +621,11 @@ public class Driver {
      * here and silently ignore them.  This is a stopgap measure that
      * should go away.
      */
-    private static void importAllExcept(final BetterEnv into_e,
+    private static boolean importAllExcept(final BetterEnv into_e,
             BetterEnv api_e, final BetterEnv from_e,
             final List<String> except_names, final String a, final String c) {
+        
+        final boolean[] flag = new boolean[1];
 
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
@@ -682,6 +733,7 @@ public class Driver {
         };
 
         api_e.visit(vt, vn, vi, vv, vb);
+        return flag[0];
     }
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,

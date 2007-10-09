@@ -27,9 +27,13 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Fn;
@@ -37,9 +41,10 @@ import com.sun.fortress.useful.Useful;
 
 public abstract class FTraitOrObjectOrGeneric extends FType {
 
-    public FTraitOrObjectOrGeneric(String s) {
+    protected FTraitOrObjectOrGeneric(String s, BetterEnv env, AbstractNode def) {
         super(s);
-        // TODO Auto-generated constructor stub
+        this.env = env;
+        this.decl = def;
     }
 
     List<? extends AbsDeclOrDecl> members;
@@ -47,72 +52,103 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     BetterEnv env;
     
     boolean functionalMethodsFinished;
+    
+    final private AbstractNode decl;
 
     public List<? extends AbsDeclOrDecl> getASTmembers() {
         return members;
     }
 
     @Override
-    public BetterEnv getEnv() {
+    final public BetterEnv getEnv() {
         return env;
     }
+    
+    public  AbstractNode getDecl() {
+        return decl;
+    }
 
-   public void initializeFunctionalMethods() {
+    public void initializeFunctionalMethods() {
+        initializeFunctionalMethods(getEnv());
+        
+    }
+    public void initializeFunctionalMethods(BetterEnv topLevel) {
+        if (isSymbolic)
+            return;
         FTraitOrObjectOrGeneric x = this;
-        BetterEnv topLevel = getEnv();
         // List<? extends AbsDeclOrDecl> defs = members;
-        
-        SortedSet<FnAbsDeclOrDecl> defs = Useful.<AbsDeclOrDecl, FnAbsDeclOrDecl>filteredSortedSet(members,
-                new Fn<AbsDeclOrDecl, FnAbsDeclOrDecl>() {
-                    @Override
-                    public FnAbsDeclOrDecl apply(AbsDeclOrDecl x) {
-                        if (x instanceof FnAbsDeclOrDecl) return (FnAbsDeclOrDecl) x;
-                        return null;
-                    }},
-                NodeComparator.fnAbsDeclOrDeclComparer);
-        
-        for (FnAbsDeclOrDecl dod : defs) {
 
-            int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
-            if (spi >= 0) {
-                // If it is a functional method, it is definitely a
-                // FnAbsDeclOrDecl
-                FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
-                String fndodname = NodeUtil.nameString(fndod.getName());
-                {
-                    Fcn cl;
-                    // If the container is generic, then we create an
-                    // empty top-level overloading, to be filled in as
-                    // the container is instantiated.
+        SortedSet<FnAbsDeclOrDecl> defs = Useful
+                .<AbsDeclOrDecl, FnAbsDeclOrDecl> filteredSortedSet(members,
+                        new Fn<AbsDeclOrDecl, FnAbsDeclOrDecl>() {
+                            @Override
+                            public FnAbsDeclOrDecl apply(AbsDeclOrDecl x) {
+                                if (x instanceof FnAbsDeclOrDecl)
+                                    return (FnAbsDeclOrDecl) x;
+                                return null;
+                            }
+                        }, NodeComparator.fnAbsDeclOrDeclComparer);
 
-                    // if (x.getStaticParams().isPresent()) {
-                    if (x instanceof FTypeGeneric) {
-                        
-                           cl = new OverloadedFunction(fndod.getName(), topLevel);
-                           topLevel.putValueNoShadowFn(fndodname, cl);
-                        
-                    } else {
-                        // Note that the instantiation of a generic
-                        // comes
-                        // here too
-                        cl = new FunctionalMethod(topLevel, fndod, spi, x);
+        if (x instanceof FTypeGeneric) {
+            
+            for (FnAbsDeclOrDecl dod : defs) {
+
+                int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+                if (spi >= 0) {
+                    // If it is a functional method, it is definitely a
+                    // FnAbsDeclOrDecl
+                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    String fndodname = NodeUtil.nameString(fndod.getName());
+                    {
+                        // cl = new OverloadedFunction(fndod.getName(),
+                        // getEnv());
+
+                        // If the container is generic, then we create an
+                        // empty top-level overloading, to be filled in as
+                        // the container is instantiated.
+                        Fcn cl = new GenericFunctionalMethod(getEnv(), fndod,
+                                spi, (FTypeGeneric)x);
+
                         topLevel.putValueNoShadowFn(fndodname, cl);
+
+                        // TODO test and other modifiers
+
                     }
-
-                    // TODO test and other modifiers
-
-                    
                 }
             }
+        } else {
 
+            for (FnAbsDeclOrDecl dod : defs) {
+
+                int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+                if (spi >= 0) {
+                    // If it is a functional method, it is definitely a
+                    // FnAbsDeclOrDecl
+                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    String fndodname = NodeUtil.nameString(fndod.getName());
+
+                    Fcn cl = new FunctionalMethod(getEnv(), fndod, spi, x);
+                    topLevel.putValueNoShadowFn(fndodname, cl);
+                }
+            }
         }
     }
+
 
     public void finishFunctionalMethods() {
         if (functionalMethodsFinished)
             return;
-        List<? extends AbsDeclOrDecl> defs = members;
         BetterEnv topLevel = getEnv();
+        finishFunctionalMethods(topLevel);
+        functionalMethodsFinished = true;
+    }
+    
+    public void finishFunctionalMethods(BetterEnv topLevel) {
+        if (isSymbolic)
+            return;
+        
+        List<? extends AbsDeclOrDecl> defs = members;
+        
         for (AbsDeclOrDecl dod : defs) {
             // Filter out non-functions.
             if (dod instanceof FnAbsDeclOrDecl) {
@@ -143,8 +179,6 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                 }
             }
         }
-        functionalMethodsFinished = true;
     }
-
-    
+ 
 }

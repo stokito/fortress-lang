@@ -14,30 +14,13 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
+package com.sun.fortress.interpreter.evaluator.values;
 
-package com.sun.fortress.interpreter.evaluator.types;
+import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 
-import java.util.List;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
-import com.sun.fortress.useful.HasAt;
-
-
-public class FTypeObject extends FTraitOrObject {
-
-    public FTypeObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
-        super(name, env, at, members, def);
-        cannotBeExtended = true;
-    }
-
-    @Override
-    protected void finishInitializing() {
-        // TODO Auto-generated method stub
-
-    }
+public interface HasSelfParameter {
+    public int getSelfParameterIndex();
+    public FTraitOrObjectOrGeneric getSelfParameterType();
 
 }

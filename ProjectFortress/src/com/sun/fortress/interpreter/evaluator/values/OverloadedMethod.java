@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,6 +59,11 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
         return ((Method)overloads.get(best).getFn()).applyMethod(args, selfValue, loc, envForInference);
     }
 
+       public void bless() {
+           overloads = pendingOverloads;
+           pendingOverloads = new ArrayList<Overload>();
+           super.bless();
+       }
 
 
 }

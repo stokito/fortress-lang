@@ -69,7 +69,7 @@ public class GenericMethod extends MethodClosure implements
 
     protected MethodClosure newClosure(BetterEnv clenv, List<FType> args) {
         MethodClosure cl;
-        if (anyAreSymbolic(args))
+        if (FType.anyAreSymbolic(args))
             cl = isTraitMethod ? new PartiallyDefinedMethodInstance(getEnv(),
                     clenv, getDef(), args, this)
                     : new MethodClosureInstance(getEnv(), clenv, getDef(),

@@ -692,7 +692,7 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (** A repository for tons of default array functionality. **)
-trait StandardArrayType[\T extends StandardArrayType[\E,I\],E,I\]
+trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
       extends { Array[\E,I\], MutableIndexed[\T,E,I\], DelegatedIndexed[\E,I\] }
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods

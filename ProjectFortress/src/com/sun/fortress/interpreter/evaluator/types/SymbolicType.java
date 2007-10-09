@@ -23,6 +23,8 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -38,8 +40,8 @@ abstract public class SymbolicType extends FTypeTrait {
         return super.typeMatch(val);
     }
 
-    public SymbolicType(String name, BetterEnv interior, List<? extends AbsDeclOrDecl> members) {
-        super(name, interior, interior.getAt(), members);
+    public SymbolicType(String name, BetterEnv interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+        super(name, interior, interior.getAt(), members, decl);
         membersInitialized = true;
     }
 

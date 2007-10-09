@@ -28,10 +28,12 @@ import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
@@ -132,6 +134,10 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         return traitsSortedBySpecificity();
     }
 
+    /**
+     * Transitive closure of extends, not including self
+     * @return
+     */
     public List<FType> getProperTransitiveExtends() {
         if (properTransitiveExtends == null) {
             List<FType> tmp = getTransitiveExtends();
@@ -156,9 +162,8 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         }
     }
 
-    public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members) {
-        super(name);
-        this.env = env;
+    public FTraitOrObject(String name, BetterEnv env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
+        super(name, env, def);
         this.members = members;
         this.at = at;
     }

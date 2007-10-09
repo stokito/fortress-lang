@@ -116,7 +116,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty() ? new FTypeObject(fname, containing, x, x
-                .getDecls()) : new FTypeGeneric(containing, x, x.getDecls());
+                .getDecls(), x) : new FTypeGeneric(containing, x, x.getDecls(), x);
 
         // Need to check for overloaded constructor.
 

@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
+import com.sun.fortress.interpreter.glue.NativeApp;
 
 
 /*
@@ -76,6 +77,8 @@ public class Init {
         FTypeIntLiteral.ONLY.resetState();
         FTypeFloatLiteral.ONLY.resetState();
         FTypeStringLiteral.ONLY.resetState();
+        
+        NativeApp.reset();
 
     }
 

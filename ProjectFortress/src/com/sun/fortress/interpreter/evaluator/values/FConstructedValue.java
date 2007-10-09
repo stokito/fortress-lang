@@ -23,8 +23,9 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 public abstract class FConstructedValue extends FValue {
     /**
      * Stores its ftype explicitly.
+     * Overloaded functions change their type, hence not final, and volatile.
      */
-    private FType ftype;
+    private volatile FType ftype;
 
     /**
      * Getter for ftype.  Should always be non-null, but right now

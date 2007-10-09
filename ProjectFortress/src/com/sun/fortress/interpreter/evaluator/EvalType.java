@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
+import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
@@ -281,6 +282,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
             } else if (p instanceof OperatorParam) {
                 if (a instanceof FTypeOpr) {
+                    guardedPutType(NodeUtil.getName(p), a, what, clenv);
+                } else if (a instanceof SymbolicOprType) { 
                     guardedPutType(NodeUtil.getName(p), a, what, clenv);
                 } else {
                     error(within, clenv,

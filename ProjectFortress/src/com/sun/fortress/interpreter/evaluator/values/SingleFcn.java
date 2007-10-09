@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
+import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.IntParam;
@@ -130,6 +131,9 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return instantiationTypes;
     }
 
+    static public List<FType> createSymbolicInstantiation(BetterEnv bte, List<StaticParam> tpl, List<WhereClause> wcl, HasAt location) throws Error {
+        return createSymbolicInstantiation(tpl, wcl, new BetterEnv(bte, location));
+    }
     /**
      * @param tpl
      * @param wcl
@@ -156,11 +160,14 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 a.add(sn);
             } else if (tp instanceof OperatorParam) {
                 OperatorParam op = (OperatorParam) tp;
-                NI.nyi();
+                String sot_name = NodeUtil.getName(tp);
+                SymbolicOprType sot = new SymbolicOprType(sot_name, ge, op);
+                ge.putType(sot_name, sot);
+                a.add(sot);
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
-                SymbolicInstantiatedType st = new SymbolicInstantiatedType(stp_name, ge);
+                SymbolicInstantiatedType st = new SymbolicInstantiatedType(stp_name, ge, tp);
                 ge.putType(stp_name, st);
                 a.add(st);
             } else {
@@ -179,7 +186,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 // List<Type> we_supers = we.getSupers();
                 if (ge.getTypeNull(we_name) == null) {
                     // Add name
-                    SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge);
+                    SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge, we);
                     ge.putType(we_name, st);
                 }
             }
@@ -202,7 +209,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
             } else if (tp instanceof OperatorParam) {
                 OperatorParam op = (OperatorParam) tp;
-                NI.nyi();
+                
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);

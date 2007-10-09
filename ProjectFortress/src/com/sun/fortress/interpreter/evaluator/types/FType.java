@@ -297,9 +297,10 @@ abstract public class FType implements Comparable<FType> {
     }
 
     public boolean equals(Object other) {
-        if (this == other) return true;
-        if (! (other instanceof FType)) return false;
-        return this.getClass().equals(other.getClass());
+        return this == other;
+//        if (this == other) return true;
+//        if (! (other instanceof FType)) return false;
+//        return this.getClass().equals(other.getClass());
     }
 
     /* Sadly, meet needs an iteration similar to join below, but lacks
@@ -519,5 +520,12 @@ abstract public class FType implements Comparable<FType> {
                 error(failures);
         }
         mustExtend = null;
+    }
+
+    public static boolean anyAreSymbolic(List<FType> args) {
+        for (FType t : args)
+            if (t.isSymbolic())
+                return true;
+        return false;
     }
 }

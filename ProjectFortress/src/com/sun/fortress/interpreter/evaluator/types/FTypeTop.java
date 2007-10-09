@@ -35,7 +35,7 @@ public class FTypeTop extends FTypeTrait {
 
     private FTypeTop() {
         super("Any",BetterEnv.blessedEmpty(),new HasAt.FromString("Built in"),
-                Collections.<AbsDeclOrDecl>emptyList());
+                Collections.<AbsDeclOrDecl>emptyList(), null); // HACK need a token here.
         membersInitialized = true;
     }
 

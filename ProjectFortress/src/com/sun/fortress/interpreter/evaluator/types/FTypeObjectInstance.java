@@ -32,7 +32,7 @@ public class FTypeObjectInstance extends FTypeObject implements
 
     public FTypeObjectInstance(String name, BetterEnv interior,
             FTypeGeneric generic, List<FType> bind_args, List<FType> name_args, List<? extends AbsDeclOrDecl> members) {
-        super(name, interior, interior.getAt(), members);
+        super(name, interior, interior.getAt(), members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
         this.name_args = name_args;
