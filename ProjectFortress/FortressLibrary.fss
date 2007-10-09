@@ -218,12 +218,14 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq() = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
+    (* TODO: make overloaded *)
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
         typecase f of
             E -> SequentialGenerator[\G\] =>
                 SimpleNestedSeqGenerator[\E,G\](self,f)
             else => SimpleNestedGenerator[\E,G\](self,f)
         end
+    (* TODO: make overloaded *)
     cross[\F\](g:Generator[\F\]): Generator[\(E,F)\] =
         typecase g of
             SequentialGenerator[\F\] =>
@@ -934,6 +936,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
     end
   end
 
+(* TODO: fix when Number is covariant. *)
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
     typecase _ = __Proxy[\T\]() of
         __Proxy[\ZZ32\] => vector[\T,s0\]()
@@ -1219,6 +1222,7 @@ __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
     end
 
 (* array2 is a factory for 0-based 2-D arrays. *)
+(* TODO: fix when Number is covariant. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
     typecase _ = __Proxy[\T\]() of
         __Proxy[\ZZ32\] => matrix[\T,s0,s1\]()

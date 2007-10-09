@@ -128,8 +128,8 @@ end
 
 concat[\alpha\](xs: List[\List[\alpha\]\]) =
   typecase xs of
-    Empty[\alpha\] => Empty[\alpha\]()
-    Cons[\alpha\]  => concat(xs.tl()).append(xs.hd())
+    Empty[\List[\alpha\]\] => Empty[\alpha\]()
+    Cons[\List[\alpha\]\]  => concat(xs.tl()).append(xs.hd())
   end
 
 end

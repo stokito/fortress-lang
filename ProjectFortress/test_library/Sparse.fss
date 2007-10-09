@@ -60,6 +60,7 @@ export Sparse
         end
         res
       end
+    (* TODO: make overloaded *)
     pmul(v: Vector[\T,n\]): SparseVector[\T,n\] =
         typecase v of
             SparseVector[\T,n\] =>
@@ -128,6 +129,7 @@ end
         rows.indexValuePairs().mapReduce[\()\](row,j,())
         res
       end
+    (* TODO: make overloaded *)
     mul[\nat p\](other: Matrix[\N,m,p\]) =
       typecase other of
         Csc[\N,m,p\] => do
