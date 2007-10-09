@@ -22,12 +22,16 @@ import java.util.regex.Pattern;
 import java.util.Arrays;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.*;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 
 import static com.sun.fortress.shell.ConvenientStrings.*; 
+
+import java.io.*;
 
 public class CommandInterpreter {
     private Shell shell;
@@ -36,22 +40,14 @@ public class CommandInterpreter {
         shell = _shell;
     }
         
-    /* Call the Ant compile target, passing in the fileName relative to the user's directory,
-     * along with the name of the component to store the result into.
-     */
     void compile(String fileName) throws UserError, InterruptedException {
-        Option<CompilationUnit> prog = makeCompilationUnit(fileName);
+        FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+        Fortress fortress = new Fortress(fileBasedRepository);
         
-        if (prog.isNone()) { 
-            throw new UserError("Error: File " + fileName + " is not a well-formed Fortress file."); 
-        }
-        try {
-            CompilationUnit _prog = Option.unwrap(prog);
-            Driver.writeJavaAst(_prog, shell.getPwd() + SEP + _prog.getName() + fs.JAVA_AST_SUFFIX);
-            
-        } catch (IOException e) {
-            throw new ShellException(e);
-        }
+        Iterable<? extends StaticError> errors = fortress.compile(new File(fileName));
+        
+        for (StaticError error: errors) { System.err.println(error); }
+        // If there are no errors, all components will have been written to disk by the FileBasedRepository.
     }
     
     /* Upgrade the internal files of the resident fortress with the contents of the given tar file.*/

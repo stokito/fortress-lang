@@ -19,15 +19,22 @@ package com.sun.fortress.shell;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.interpreter.drivers.*;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.DottedName;
 
 import java.io.*;
 import java.util.*;
 
+import static com.sun.fortress.shell.ConvenientStrings.*; 
+
+
 public class FileBasedRepository implements FortressRepository {
 
     private final Map<DottedName, ApiIndex> apis = 
- new HashMap<DottedName, ApiIndex>(); 
+        new HashMap<DottedName, ApiIndex>(); 
+    private final Map<DottedName, ComponentIndex> components = 
+        new HashMap<DottedName, ComponentIndex>();
     private final String home;
     
     public FileBasedRepository(String _home) {
@@ -41,10 +48,17 @@ public class FileBasedRepository implements FortressRepository {
     public Map<DottedName, ApiIndex> apis() { return apis; }
 
     public void addApi(DottedName name, ApiIndex def) {
- apis.put(name, def);
+        apis.put(name, def);
     }
-    
     public void addComponent(DottedName name, ComponentIndex def) {
- // write component file to pwd.
+        // Cache component for quick retrieval.
+        components.put(name, def);
+        
+        try {
+            CompilationUnit ast = def.ast();
+            Driver.writeJavaAst(ast, home + SEP + ast.getName() + fs.JAVA_AST_SUFFIX);
+        } catch (IOException e) {
+            throw new ShellException(e);
+        }
     }
 }
