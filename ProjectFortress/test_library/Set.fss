@@ -20,7 +20,7 @@ export Set
 
 weight:ZZ32 = 4
 
-trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
+trait TreeSet[\E\] extends Indexed[\E,ZZ32\] comprises {NodeSet[\E\], EmptySet[\E\]}
    seqgen[\R\](r: Reduction[\R\], body: E->R): R
    seq(): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
    getVal():E
@@ -49,6 +49,9 @@ trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]
    intersection(t2:TreeSet[\E\]):TreeSet[\E\]
    difference(t2:TreeSet[\E\]):TreeSet[\E\]
    concat(t2:TreeSet[\E\]):TreeSet[\E\]
+   (** Split at index x, meaning left result has size = x or
+       left result has size < x and right result is empty. **)
+   splitIndex(x:ZZ32):(TreeSet[\E\],TreeSet[\E\])
    splitAt(x:E):(TreeSet[\E\],Boolean,TreeSet[\E\])
    concat3(v:E, t2:TreeSet[\E\])
 end
@@ -58,12 +61,13 @@ singleton[\E\](x:E): TreeSet[\E\] = do
    NodeSet[\E\](x,e,e)
 end
 
+set[\E\](): TreeSet[\E\] = EmptySet[\E\]()
 set[\E\](g: Generator[\E\]): TreeSet[\E\] =
-   g.generate[\TreeSet[\E\]\](Union[\E\](), singleton[\E\])
+    g.generate[\TreeSet[\E\]\](Union[\E\](), singleton[\E\])
 
 opr [\E\]{ es: E... }: TreeSet[\E\] =
-    (0#es.size()).generate[\TreeSet[\E\]\](Union[\E\](),
-                          fn (i:ZZ32): TreeSet[\E\] => singleton[\E\](es.get(i)))
+    es.generate[\TreeSet[\E\]\](Union[\E\](),
+                                fn (e:E): TreeSet[\E\] => singleton[\E\](e))
 
 object Union[\E\]() extends Reduction[\TreeSet[\E\]\]
    e = EmptySet[\E\]()
@@ -81,7 +85,13 @@ end
 
 object EmptySet[\E\]() extends TreeSet[\E\]
    getter size():ZZ32 = 0
+   getter bounds():Range[\ZZ32\] = 0#0
    getter isEmpty():Boolean = true
+   opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
+   opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
+      r' = bounds()[r]
+      self
+   end
    generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
    getVal():E = fail("Empty set: cannot getVal()")
@@ -103,6 +113,7 @@ object EmptySet[\E\]() extends TreeSet[\E\]
    difference(t2:TreeSet[\E\]):TreeSet[\E\] = self
    concat(t2:TreeSet[\E\]):TreeSet[\E\] = t2
    splitAt(x:E):(TreeSet[\E\],Boolean,TreeSet[\E\]) = (self, false, self)
+   splitIndex(x:ZZ32):(TreeSet[\E\],TreeSet[\E\]) = (self,self)
    concat3(v:E, t2:TreeSet[\E\]) = t2.add(v)
 end
 
@@ -110,6 +121,18 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
    sz:ZZ32 = 1 + left.size() + right.size()
    getter size():ZZ32 = sz
    getter isEmpty():Boolean = false
+   getter bounds():Range[\ZZ32\] = 0 # sz
+   subscript(i:ZZ32):E = if i < left.size() then left.subscript(i)
+      elif i = left.size() then val
+      else right.subscript(i - left.size() - 1) end
+   opr[i:ZZ32]:E = if i < 0 OR i >= sz then fail(self "[" i "] is out of bounds.")
+      else subscript(i) end
+   opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
+      r' = bounds()[r]
+      (lside,rside) = splitIndex( r'.lower() )
+      (lside',rside') = rside.splitIndex( r'.size())
+      lside'
+   end
    generate[\R\](r: Reduction[\R\], body: E->R): R =
       r.join(r.join(left.generate[\R\](r,body),body(val)),
              right.generate[\R\](r,body))
@@ -146,6 +169,7 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
       end
    end
 
+   add(z:()): TreeSet[\E\] = self
    add(z:E):TreeSet[\E\] =
       if   (z = val) then self
       elif (z < val) then balancedAdd(val,left.add(z),right)
@@ -215,6 +239,17 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
       concat3(min, delmin)
    end
    concat(t2:TreeSet[\E\]):TreeSet[\E\] = self
+
+   splitIndex(x:ZZ32):(TreeSet[\E\],TreeSet[\E\]) =
+      if x < left.size() then
+        (ll,rl) = left.splitIndex(x)
+        (ll,rl.concat3(val,right))
+      elif left.size() < x then
+        (lr,rr) = right.splitIndex(x - left.size() - 1)
+        (left.concat3(val,lr),rr)
+      else
+        (left,right.add(val))
+      end
 
    splitAt(x:E):(TreeSet[\E\],Boolean,TreeSet[\E\]) =
       if x < val then

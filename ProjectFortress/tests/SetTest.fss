@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component SetTest
+import * from Set
+export Executable
+
+  assertStr(a: TreeSet[\ZZ32\], b:TreeSet[\ZZ32\], s:String) =
+  if a.toString() =/= b.toString() then
+    fail(a "=/=" b ": " s)
+  end
+
+
+  run(args:String...):() = do
+    a: TreeSet[\ZZ32\] = set[\ZZ32\]()
+    b: TreeSet[\ZZ32\] = set[\ZZ32\](1#10)
+  
+    assertStr(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
+    assertStr(b[:], b, "subscript operator[:] incorrect for tree set")
+    assertStr(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")
+    assertStr(b[9:9], singleton[\ZZ32\](10), "subscript operator[y:y] incorrect for tree set")
+  end
+
+end
