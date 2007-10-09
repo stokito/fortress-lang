@@ -622,7 +622,8 @@ public class  OverloadedFunction extends Fcn
                 FGenericFunction gsfn = (FGenericFunction) sfn;
                 try {
                     sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
-                    System.err.println("Inferred from " + gsfn + " to " + sfn);
+                    if (debugMatch)
+                        System.err.println("Inferred from " + gsfn + " to " + sfn);
                 } catch (FortressError pe) {
                     continue; // No match, means no dice.
                 }
