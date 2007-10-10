@@ -20,8 +20,8 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
-// import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
+// import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
+import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
@@ -47,25 +47,25 @@ public class PrimitiveArray extends Constructor {
     }
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        return new Vec(selfType, lex_env, self_env);
-        // return new AtomicFTypeArray(selfType, lex_env, self_env);
+        // return new Vec(selfType, lex_env, self_env);
+        return new AtomicFTypeArray(selfType, lex_env, self_env);
     }
 
-    private static final class Vec extends FObject {
-        AtomicArray<FValue> a;
+    // private static final class Vec extends FObject {
+    //     AtomicArray<FValue> a;
 
-        public Vec(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
-            long n = self_dot_env.getValue("s0").getLong();
-            this.a = new AtomicArray<FValue>(FValue.class, (int) n);
-        }
-    }
+    //     public Vec(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+    //         super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
+    //         long n = self_dot_env.getValue("s0").getLong();
+    //         this.a = new AtomicArray<FValue>(FValue.class, (int) n);
+    //     }
+    // }
 
     public static final class get extends NativeMeth1 {
         public FValue act(FObject self, FValue ii) {
             // System.out.println(self+".get("+ii+")");
-            // AtomicFTypeArray v = (AtomicFTypeArray) self;
-            AtomicArray<FValue> v = ((Vec)self).a;
+            AtomicFTypeArray v = (AtomicFTypeArray) self;
+            // AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
             FValue r = v.get(i);
             if (r==null) {
@@ -79,8 +79,8 @@ public class PrimitiveArray extends Constructor {
     public static final class put extends NativeMeth2 {
         public FValue act(FObject self, FValue ii, FValue x) {
             // System.out.println(self+".put("+ii+","+x+")");
-            // AtomicFTypeArray v = (AtomicFTypeArray) self;
-            AtomicArray<FValue> v = ((Vec)self).a;
+            AtomicFTypeArray v = (AtomicFTypeArray) self;
+            // AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
             v.set(i,x);
             return FVoid.V;
@@ -90,8 +90,8 @@ public class PrimitiveArray extends Constructor {
     public static final class init0 extends NativeMeth2 {
         public FValue act(FObject self, FValue ii, FValue x) {
             // System.out.println(self+".init0("+ii+","+x+")");
-            // AtomicFTypeArray v = (AtomicFTypeArray) self;
-            AtomicArray<FValue> v = ((Vec)self).a;
+            AtomicFTypeArray v = (AtomicFTypeArray) self;
+            // AtomicArray<FValue> v = ((Vec)self).a;
             int i = ii.getInt();
             return FBool.make(v.init(i,x));
         }

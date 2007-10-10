@@ -29,7 +29,7 @@ import java.util.Collection;
  */
 public class FortressManager extends BaseManager {
 
-  public FortressManager() { 
+  public FortressManager() {
   }
 
   public void openSucceeded() {
@@ -38,19 +38,29 @@ public class FortressManager extends BaseManager {
 
   public void resolveConflict(Transaction me, Transaction other) {
       if (other != me) {
-	  if (Math.random() > 0.5)
-	      other.abort();
-	  else me.abort();
+          if (me==null || me==Transaction.COMMITTED_TRANS ||
+              Math.random() > 0.5) {
+              other.abort();
+          } else {
+              me.abort();
+          }
       }
   }
 
   public void resolveConflict(Transaction me, Collection<Transaction> others) {
-      me.abort();
+      if (me==null || me==Transaction.COMMITTED_TRANS) {
+          for (Transaction t : others) {
+              if (t != null && t != Transaction.COMMITTED_TRANS) t.abort();
+              return;
+          }
+      } else {
+          me.abort();
+      }
   }
 
   public void waitToRestart() {
     int waitTime = (int) (Math.random() * 65536);
-    sleep(waitTime);   
+    sleep(waitTime);
   }
 
   public void committed() {

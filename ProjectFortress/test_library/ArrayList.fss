@@ -133,7 +133,7 @@ list[\E\](g:Generator[\E\]):List[\E\] =
             sz = g.size()
             a = primitiveArray(reflect(sz),__Proxy[\E\]())
             for (i,v) <- g[#].indexValuePairs() do
-                a[i]:=v
+                a.init(i,v)
             end
             alr(a,0,sz,cantExtend)
         else =>
@@ -209,13 +209,13 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
   (* Internal: fill blindly from f; assume enough space *)
   appendFrom(f:List[\E\]): ArrayList[\E\] = do
       for (i,v) <- f.indexValuePairs() do
-          underlying.put(firstUnused + i, v)
+          underlying.init(firstUnused + i, v)
       end
       self
     end
   appendFrom(f:ArrayList[\E\]): ArrayList[\E\] = do
       for i <- 0#f.size() do
-          underlying.put(firstUnused + i, f.get(i))
+          underlying.init(firstUnused + i, f.get(i))
       end
       self
     end
@@ -256,7 +256,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
     end
   addRight0(e:E): ArrayList[\E\] = do
       assert(NOT canExtend.tryToExtend(), "addRight0 of extensible list!")
-      underlying.put(firstUnused,e)
+      underlying.init(firstUnused,e)
       Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+1, CanExtend(true))
     end
   take(n:ZZ32): ArrayList[\E\] =
@@ -315,7 +315,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
       for i <- ml.indices() do
           ofs = rFU + ml.get(i)
           for (j,v) <- mf.get(i).indexValuePairs() do
-              rU.put(ofs+j,v)
+              rU.init(ofs+j,v)
           end
       end
       r
@@ -369,19 +369,17 @@ value object ZipGenerator[\A,B\](transient x0: ArrayList[\A\],
                                  transient y0: ArrayList[\B\])
         extends { Generator[\(A,B)\] }
     sz = (x0.size() MIN y0.size())
-    xs = x0.take(sz)
-    ys = y0.take(sz)
     getter size() = sz
-    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,x0,y0)
     generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
-        (0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs[i],ys[i]))
+        (0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(x0.get(i),y0.get(i)))
 end
 
 value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\])
         extends { SequentialGenerator[\E\] }
     getter size() = sz
     generate[\R\](r: Reduction[\R\], body: E->R): R =
-        sequential(0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs[i],ys[i]))
+        sequential(0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs.get(i),ys.get(i)))
 end
 
 emptyList[\E\](): List[\E\] =
@@ -389,7 +387,7 @@ emptyList[\E\](): List[\E\] =
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimitiveArray[\E,1\]()
-    u.put(0,e)
+    u.init(0,e)
     Alr[\E,1\](u,0,1,cantExtend)
   end
 
