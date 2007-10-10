@@ -100,6 +100,9 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
         return selfParameterType;
     }
 
+    public String toString() {
+        return selfParameterType.toString() + "." + super.toString();
+    }
 
 
 }

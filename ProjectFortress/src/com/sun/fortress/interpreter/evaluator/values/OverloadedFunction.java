@@ -332,12 +332,6 @@ public class  OverloadedFunction extends Fcn
 
                     allObjInstance1 &= p1 instanceof FTypeObject;
                     allObjInstance2 &= p2 instanceof FTypeObject;
-                    
-                    if (p1.isSymbolic() )
-                        sawSymbolic1 = true;
-
-                    if (p2.isSymbolic() )
-                        sawSymbolic2 = true;
 
                     unequal = true;
 
@@ -352,11 +346,16 @@ public class  OverloadedFunction extends Fcn
                             p1better = k;
                             local_unrelated = false;
                             exclDumpln(" left better.");
-                        }
-                        if (p2subp1 && !p1subp2) {
+                        } else if (p2subp1 && !p1subp2) {
                             p2better = k;
                             local_unrelated = false;
                             exclDumpln(" right better.");
+                        } else {
+                            if (p1.isSymbolic() )
+                                sawSymbolic1 = true;
+
+                            if (p2.isSymbolic() )
+                                sawSymbolic2 = true;
                         }
                         if (local_unrelated && unrelated == -1) {
                             // Here we check for self parameters!

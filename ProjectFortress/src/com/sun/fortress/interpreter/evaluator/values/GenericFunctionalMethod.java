@@ -85,8 +85,8 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     public String toString() {
         FnAbsDeclOrDecl node = fndef;
         // Code lifted from ErrorMsgMaker.forFnAbsDeclOrDecl
-        return NodeUtil.nameString(node.getName())
-        + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
+        return selfParameterType.toString() + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) + "." + NodeUtil.nameString(node.getName())
+        //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
         + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(node.getParams()))
         + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(ErrorMsgMaker.ONLY)) : "");
     }
