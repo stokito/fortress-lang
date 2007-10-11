@@ -337,11 +337,10 @@ object FailCalled(s:String) extends UncheckedException
   toString(): String = "FAIL: " s
 end
 
-(* also referred to as DivideByZeroException *)
 object DivisionByZero extends UncheckedException
 end
 
-object UnpastingException extends UncheckedException
+object UnpastingError extends UncheckedException
 end
 
 object CallerViolation extends UncheckedException
@@ -369,20 +368,19 @@ end
 object NotFound extends UncheckedException
 end
 
-(* Drop "Exception" from these? *)
-object IndexOutOfBoundsException extends UncheckedException
+object IndexOutOfBounds extends UncheckedException
 end
 
-object NegativeLengthException extends UncheckedException
+object NegativeLength extends UncheckedException
 end
 
-object IntegerOverflowException extends UncheckedException
+object IntegerOverflow extends UncheckedException
 end
 
-object RationalComparisonException extends UncheckedException
+object RationalComparisonError extends UncheckedException
 end
 
-object FloatingComparisonException extends UncheckedException
+object FloatingComparisonError extends UncheckedException
 end
 
 (* Checked Exceptions *)
@@ -390,10 +388,10 @@ end
 trait CheckedException extends Exception excludes UncheckedException
 end
 
-object CastException extends CheckedException
+object CastError extends CheckedException
 end
 
-object IOException extends CheckedException
+object IOFailure extends CheckedException
 end
 
 object MatchFailure extends CheckedException
@@ -403,7 +401,7 @@ object UnJustNothing extends CheckedException
 end
 
 (* SetsNotDisjoint? *)
-object DisjointUnionException extends CheckedException
+object DisjointUnionError extends CheckedException
 end
 
 object APIMissing extends CheckedException
@@ -418,14 +416,14 @@ end
 object HiddenAPIMissing extends CheckedException
 end
 
-trait TryAtomicException extends {CheckedException}
+trait TryAtomicFailure extends {CheckedException}
   comprises {AtomicAborted, AtomicConflict}
 end
 
-object AtomicAborted extends TryAtomicException
+object AtomicAborted extends TryAtomicFailure
 end
 
-object AtomicConflict extends TryAtomicException
+object AtomicConflict extends TryAtomicFailure
 end
 
 (* Should take a spawned thread as an argument *)
@@ -437,7 +435,7 @@ end
 cast[\T extends Any\](x:Any):T =
   typecase x of
     T => x
-    else => printTaskTrace(); throw CastException
+    else => printTaskTrace(); throw CastError
   end
 
 instanceOf[\T extends Any\](x:Any):Boolean =
