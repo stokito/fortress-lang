@@ -40,14 +40,19 @@ public class CommandInterpreter {
         shell = _shell;
     }
         
-    void compile(String fileName) throws UserError, InterruptedException {
-        FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
-        Fortress fortress = new Fortress(fileBasedRepository);
+    void compile(String fileName) throws UserError, InterruptedException, IOException {
+        try {
+            FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            Fortress fortress = new Fortress(fileBasedRepository);
         
-        Iterable<? extends StaticError> errors = fortress.compile(new File(fileName));
+            Iterable<? extends StaticError> errors = fortress.compile(new File(fileName));
         
-        for (StaticError error: errors) { System.err.println(error); }
-        // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+            for (StaticError error: errors) { System.err.println(error); }
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+        }
+        catch (RepositoryError error) {
+            System.err.println(error); 
+        }
     }
     
     /* Upgrade the internal files of the resident fortress with the contents of the given tar file.*/

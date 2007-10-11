@@ -17,6 +17,7 @@
 
 package com.sun.fortress.shell;
 
+import java.io.IOException;
 import java.io.File;
 import junit.framework.TestCase;
 // import org.apache.tools.ant.launch.Launcher;
@@ -28,14 +29,14 @@ import junit.framework.TestCase;
  */
 public class ShellTest extends TestCase {
 
-   public void testSelfUpgrade() throws UserError, InterruptedException {
+   public void testSelfUpgrade() throws UserError, InterruptedException, IOException {
       Shell shell = new Shell(".");
       CommandInterpreter interpreter = shell.getInterpreter();
       interpreter.selfUpgrade("fortress_mock_upgrade.jar");
       assert(new File(".java/fortress_mock_upgrade.jar").exists());
    }
 
-   public void testCompile() throws UserError, InterruptedException {
+   public void testCompile() throws UserError, InterruptedException, IOException {
       //assert(! Component.exists("TestComponent.fss"));
       Shell shell = new Shell(".");
       CommandInterpreter interpreter = shell.getInterpreter();

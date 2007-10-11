@@ -58,7 +58,7 @@ public final class Shell {
     String getComponents() { return components; }
     CommandInterpreter getInterpreter() { return interpreter; }
     
-    private static String fortressLocation() {
+    public static String fortressLocation() {
         try {
             return new File(System.getenv("FORTRESS_PATH")).getCanonicalPath();
         }
