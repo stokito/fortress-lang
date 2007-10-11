@@ -127,89 +127,92 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
-        QualifiedIdName name = that.getVar();
-        ConsList<? extends Id> fields = IterUtil.asConsList(NodeUtil.getIds(name));
+        QualifiedIdName qname = that.getVar();
+        Option<DottedName> api = qname.getApi();
+        IdName entity = qname.getName();
+        ConsList<IdName> fields = ConsList.empty();
         Expr result = null;
-        IdName entity = NodeFactory.makeIdName(ConsList.first(fields));
-        fields = ConsList.rest(fields);
         
-        // Treat it as an unqualified name
-        Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
-        Set<QualifiedIdName> fns = _env.explicitFunctionNames(entity);
-        if (vars.isEmpty() && fns.isEmpty()) {
-            vars = _env.onDemandVariableNames(entity);
-            fns = _env.onDemandFunctionNames(entity);
-            _onDemandImports.add(entity);
+        // First, try to interpret it as a qualified name
+        while (result == null && api.isSome()) {
+            DottedName givenApiName = Option.unwrap(api);
+            Option<DottedName> realApiNameOpt = _env.apiName(givenApiName);
+            
+            if (realApiNameOpt.isSome()) {
+                DottedName realApiName = Option.unwrap(realApiNameOpt);
+                QualifiedIdName newName =
+                    NodeFactory.makeQualifiedIdName(realApiName, entity);
+                if (_env.hasQualifiedVariable(newName)) {
+                    if (ConsList.isEmpty(fields) && givenApiName == realApiName) {
+                        // no change -- no need to recreate the VarRef
+                        return that;
+                    }
+                    else { result = new VarRef(newName.getSpan(), newName); }
+                }
+                else if (_env.hasQualifiedFunction(newName)) {
+                    result = ExprFactory.makeFnRef(newName);
+                    // TODO: insert correct number of to-infer arguments?
+                }
+                else {
+                    error("Unrecognized name: " + NodeUtil.nameString(qname), that);
+                    return that;
+                }
+            }
+            
+            else {
+                // shift all names to the right, and try a smaller api name
+                List<Id> ids = givenApiName.getIds();
+                fields = ConsList.cons(entity, fields);
+                entity = NodeFactory.makeIdName(IterUtil.last(ids));
+                Iterable<Id> prefix = IterUtil.skipLast(ids);
+                if (IterUtil.isEmpty(prefix)) { api = Option.none(); }
+                else { api = Option.some(NodeFactory.makeDottedName(prefix)); }
+            }
         }
         
-        if (vars.size() == 1 && fns.isEmpty()) {
-            QualifiedIdName newName = IterUtil.first(vars);
-            if (newName.getApi().isNone() && newName.getName() == entity &&
-                ConsList.isEmpty(fields)) {
-                // no change -- no need to recreate the VarRef
+        // Second, try to interpret it as an unqualified name
+        if (result == null) {
+            // api.isNone() must be true
+            Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
+            Set<QualifiedIdName> fns = _env.explicitFunctionNames(entity);
+            if (vars.isEmpty() && fns.isEmpty()) {
+                vars = _env.onDemandVariableNames(entity);
+                fns = _env.onDemandFunctionNames(entity);
+                _onDemandImports.add(entity);
+            }
+            
+            if (vars.size() == 1 && fns.isEmpty()) {
+                QualifiedIdName newName = IterUtil.first(vars);
+                if (newName.getApi().isNone() && newName.getName() == entity &&
+                    ConsList.isEmpty(fields)) {
+                    // no change -- no need to recreate the VarRef
+                    return that;
+                }
+                else { result = new VarRef(newName.getSpan(), newName); }
+            }
+            else if (vars.isEmpty() && !fns.isEmpty()) {
+                result = new FnRef(entity.getSpan(), IterUtil.asList(fns));
+                // TODO: insert correct number of to-infer arguments?
+            }
+            else if (!vars.isEmpty() || !fns.isEmpty()) {
+                Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, fns);
+                error("Name may refer to: " + NodeUtil.namesString(varsAndFns), entity);
                 return that;
             }
-            else { result = new VarRef(newName.getSpan(), newName); }
-        }
-        else if (vars.isEmpty() && !fns.isEmpty()) {
-            result = new FnRef(entity.getSpan(), IterUtil.asList(fns));
-            // TODO: insert correct number of to-infer arguments?
-        }
-        else if (!vars.isEmpty() || !fns.isEmpty()) {
-            Set<QualifiedIdName> varsAndFns = CollectUtil.union(vars, fns);
-            error("Name may refer to: " + NodeUtil.namesString(varsAndFns), name);
-            return that;
-        }
-        // otherwise, leave result uninitialized
-        
-        
-        // Treat it as a qualified name
-        // TODO: This is probably not the correct strategy for resolving ambiguities
-        //       between API names and other entity names (the specification is not
-        //       yet clear on this)
-        if (result == null) {
-            List<Id> api = new ArrayList<Id>();
-            while (result == null && !ConsList.isEmpty(fields)) {
-                api.add(entity.getId());
-                entity = NodeFactory.makeIdName(ConsList.first(fields));
-                fields = ConsList.rest(fields);
-
-                DottedName apiName = NodeFactory.makeDottedName(api);
-                Option<DottedName> realApiNameOpt = _env.apiName(apiName);
-                if (realApiNameOpt.isSome()) {
-                    DottedName realApiName = Option.unwrap(realApiNameOpt);
-                    QualifiedIdName newName =
-                        NodeFactory.makeQualifiedIdName(realApiName, entity);
-                    if (_env.hasQualifiedVariable(newName)) {
-                        if (ConsList.isEmpty(fields) && apiName == realApiName) {
-                            // no change -- no need to recreate the VarRef
-                            return that;
-                        }
-                        else { result = new VarRef(newName.getSpan(), newName); }
-                    }
-                    else if (_env.hasQualifiedFunction(newName)) {
-                        result = ExprFactory.makeFnRef(newName);
-                        // TODO: insert correct number of to-infer arguments?
-                    }
-                    // otherwise, leave result uninitialized and loop
-                }
-                // otherwise, leave result uninitialized and loop
+            else {
+                error("Unrecognized name: " + NodeUtil.nameString(qname), that);
+                return that;
             }
         }
-        
-        if (result != null) {
-            for (Id field : fields) {
-                result = ExprFactory.makeFieldRef(result, field);
-            }
-            if (that.isParenthesized()) {
-                result = ExprFactory.makeInParentheses(result);
-            }
-            return result;
+            
+        // result is now non-null
+        for (IdName field : fields) {
+            result = new FieldRef(result, field);
         }
-        else {
-            error("Unrecognized name: " + NodeUtil.nameString(that.getVar()), that);
-            return that;
+        if (that.isParenthesized()) {
+            result = ExprFactory.makeInParentheses(result);
         }
+        return result;
     }
        
 }
