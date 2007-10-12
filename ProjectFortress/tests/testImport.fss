@@ -18,6 +18,8 @@
 component testImport
 
 import * except z from Foo
+import { TNFoo as MyFoo } from TestNative
+
 export Executable
 
 y:ZZ32 = 17
@@ -28,6 +30,7 @@ run(args:String...) = do
     println("x = " x)
     println("y = " y)
     println("z = " z)
+    assert("PASS! PASS! PASS! PASS!",MyFoo[\2\]("PASS!").bar(),"MyFoo[\\2\\]")
 end
 
 end
