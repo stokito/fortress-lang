@@ -1,17 +1,17 @@
 /********************************************************************************
-    Copyright 2007 Sun Microsystems, Inc., 
-    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software. 
-    Government users are subject to the Sun Microsystems, Inc. standard 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************/
 
@@ -26,15 +26,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ThreadState {
+  // We increment depth when we enter a transaction.  We decrement depth when we end a transaction which happens after
+  // commit.
 
     int depth = 0;
     final ContentionManager manager;
-  
+
     long committed = 0;        // number of committed transactions
     long total = 0;            // total number of transactions
     long committedMemRefs = 0; // number of committed reads and writes
     long totalMemRefs = 0;     // total number of reads and writes
-  
+
     Set<Callable<Boolean>> onValidate = new HashSet<Callable<Boolean>>();
     Set<Runnable>          onCommit   = new HashSet<Runnable>();
     Set<Runnable>          onBegin    = new HashSet<Runnable>();
@@ -43,50 +45,51 @@ public class ThreadState {
     Set<Runnable>          onBeginOnce    = new HashSet<Runnable>();
     Set<Runnable>          onCommitOnce   = new HashSet<Runnable>();
     Set<Runnable>          onAbortOnce    = new HashSet<Runnable>();
-  
+
     Transaction transaction = null;
-  
+
     /**
      * Creates new ThreadState
      */
     public ThreadState() {
-	try {
-	    manager = (ContentionManager)FortressTaskRunner.contentionManagerClass.newInstance();
-	} catch (NullPointerException e) {
-	    throw new PanicException("No default contention manager class set.");
-	} catch (Exception e) {  // Some problem with instantiation
-	    throw new PanicException(e);
-	}
+        try {
+            manager = (ContentionManager)FortressTaskRunner.contentionManagerClass.newInstance();
+        } catch (NullPointerException e) {
+            throw new PanicException("No default contention manager class set.");
+        } catch (Exception e) {  // Some problem with instantiation
+            throw new PanicException(e);
+        }
     }
 
     /* Are we in a transaction? */
     public int transactionNesting() { return depth;}
-  
+
     /**
      * Resets any metering information (commits/aborts, etc).
      */
     public void reset() {
-	committed = 0;        // number of committed transactions
-	total = 0;            // total number of transactions
-	committedMemRefs = 0; // number of committed reads and writes
-	totalMemRefs = 0;     // total number of reads and writes
+        committed = 0;        // number of committed transactions
+        total = 0;            // total number of transactions
+        committedMemRefs = 0; // number of committed reads and writes
+        totalMemRefs = 0;     // total number of reads and writes
     }
 
     public void incCommitted(int num) { committed += num;}
     public void incTotal(int num) {total+= num;}
     public void incCommittedMemRefs(int num) { committedMemRefs += num;}
     public void incTotalMemRefs(int num) {totalMemRefs += num;}
-  
+
     /**
      * used for debugging
      * @return string representation of thread state
      */
     public String toString() {
-	return
-	    "Thread" + hashCode() + "["+
-	    "committed: " + committed + "," +
-	    "aborted: " + ( total -  committed) +
-	    "]";
+        return
+            "Thread" + Thread.currentThread().getName() + "["+
+            "committed: " + committed + "," +
+            "aborted: " + ( total -  committed) +
+            "depth: " + depth +
+            "]";
     }
 
     public Transaction transaction() { return transaction;}
@@ -105,80 +108,80 @@ public class ThreadState {
      * @return true iff transaction might still commit
      */
     public boolean validate() {
-	try {
-	    // permanent
-	    for (Callable<Boolean> v : onValidate) {
-		if (!v.call()) {
-		    return false;
-		}
-	    }
-	    // temporary
-	    for (Callable<Boolean> v : onValidateOnce) {
-		if (!v.call()) {
-		    return false;
-		}
-	    }
-	    onValidateOnce.clear();
-	    return transaction.validate();
-	} catch (Exception ex) {
-	    return false;
-	}
+        try {
+            // permanent
+            for (Callable<Boolean> v : onValidate) {
+                if (!v.call()) {
+                    return false;
+                }
+            }
+            // temporary
+            for (Callable<Boolean> v : onValidateOnce) {
+                if (!v.call()) {
+                    return false;
+                }
+            }
+            onValidateOnce.clear();
+            return transaction.validate();
+        } catch (Exception ex) {
+            return false;
+        }
     }
-  
+
     /**
      * Call methods registered to be called on transaction begin.
      */
     public void runBeginHandlers() {
-	try {
-	    // permanent
-	    for (Runnable r: onBegin) {
-		r.run();
-	    }
-	    // temporary
-	    for (Runnable r: onBeginOnce) {
-		r.run();
-	    }
-	    onBeginOnce.clear();
-	} catch (Exception ex) {
-	    throw new PanicException(ex);
-	}
+        try {
+            // permanent
+            for (Runnable r: onBegin) {
+                r.run();
+            }
+            // temporary
+            for (Runnable r: onBeginOnce) {
+                r.run();
+            }
+            onBeginOnce.clear();
+        } catch (Exception ex) {
+            throw new PanicException(ex);
+        }
     }
     /**
      * Call methods registered to be called on commit.
      */
     public void runCommitHandlers() {
-	try {
-	    // permanent
-	    for (Runnable r: onCommit) {
-		r.run();
-	    }
-	    // temporary
-	    for (Runnable r: onCommitOnce) {
-		r.run();
-	    }
-	    onCommitOnce.clear();
-	} catch (Exception ex) {
-	    throw new PanicException(ex);
-	}
+        try {
+            // permanent
+            for (Runnable r: onCommit) {
+                r.run();
+            }
+            // temporary
+            for (Runnable r: onCommitOnce) {
+                r.run();
+            }
+            onCommitOnce.clear();
+        } catch (Exception ex) {
+            throw new PanicException(ex);
+        }
     }
-  
+
     /**
      * Starts a new transaction.  Cannot nest transactions deeper than
      * <code>Thread.MAX_NESTING_DEPTH.</code> The contention manager of the
      * invoking thread is notified when a transaction is begun.
      */
     public void beginTransaction() {
-	transaction = new Transaction();
-	if (depth == 0) {
-	    total++;
-	}
-	// first thing to fix if we allow nested transactions
-	if (depth >= 1) {
-	    throw new PanicException("beginTransaction: attempting to nest transactions too deeply.");
-	}
-	depth++;
+        transaction = new Transaction();
+        if (depth == 0) {
+            total++;
+        }
+        // first thing to fix if we allow nested transactions
+        if (depth >= 1) {
+            throw new PanicException("beginTransaction: attempting to nest transactions too deeply.");
+        }
+        depth++;
     }
-  
+
     /**
      * Attempts to commit the current transaction of the invoking
      * <code>Thread</code>.  Always succeeds for nested
@@ -192,52 +195,61 @@ public class ThreadState {
      * @return whether commit succeeded.
      */
     public boolean commitTransaction() {
-	depth--;
-	if (depth < 0) {
-	    throw new PanicException("commitTransaction invoked when no transaction active.");
-	}
-	if (depth > 0) {
-	    throw new PanicException("commitTransaction invoked on nested transaction.");
-	}
-	if (depth == 0) {
-	    if (validate() && transaction.commit()) {
-		committed++;
-		runCommitHandlers();
-		return true;
-	    }
-	    abortTransaction();
-	    return false;
-	} else {
-	    return true;
-	}
+        if (depth < 1) {
+            throw new PanicException(Thread.currentThread().getName() + " commitTransaction invoked when no transaction active.");
+        } else if (depth > 1) {
+            throw new PanicException("commitTransaction invoked on nested transaction.");
+        } else  {
+            if (validate() && transaction.commit()) {
+                committed++;
+                runCommitHandlers();
+                transaction = null;
+                return true;
+            }
+            abortTransaction();
+            return false;
+        }
     }
-  
+
     /**
      * Aborts the current transaction of the invoking <code>Thread</code>.
      * Does not end transaction, but ensures it will never commit.
      */
     public void abortTransaction() {
-	runAbortHandlers();
-	transaction.abort();
+        runAbortHandlers();
+        transaction.abort();
     }
-  
+
+    public void endTransaction() {
+        depth--;
+        if (transaction != null) {
+            if (transaction.isActive()) {
+                abortTransaction();
+                transaction = null;
+            } else if (transaction.isAborted()) {
+                transaction = null;
+            }
+        }
+    }
+
     /**
      * Call methods registered to be called on commit.
      */
     public void runAbortHandlers() {
-	try {
-	    // permanent
-	    for (Runnable r: onAbort) {
-		r.run();
-	    }
-	    // temporary
-	    for (Runnable r: onAbortOnce) {
-		r.run();
-	    }
-	    onAbortOnce.clear();
-	} catch (Exception ex) {
-	    throw new PanicException(ex);
-	}
+        try {
+            // permanent
+            for (Runnable r: onAbort) {
+                r.run();
+            }
+            // temporary
+            for (Runnable r: onAbortOnce) {
+                r.run();
+            }
+            onAbortOnce.clear();
+        } catch (Exception ex) {
+            throw new PanicException(ex);
+        }
     }
 }
-    
+
+

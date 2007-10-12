@@ -18,14 +18,13 @@
 package com.sun.fortress.interpreter.evaluator.tasks;
 
 import jsr166y.forkjoin.*;
-
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-
+import com.sun.fortress.interpreter.evaluator.FortressException;
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 
@@ -60,11 +59,11 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public BaseTask getCurrentTask() {return currentTask;}
 
     public void setCurrentTask(BaseTask task) {
-	currentTask = task;
+        currentTask = task;
     }
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
-	super(group);
+        super(group);
         try {
             Class managerClass = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager");
             setContentionManagerClass(managerClass);
@@ -83,18 +82,18 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @param theClass class of desired contention manager.
      */
     public static void setContentionManagerClass(Class theClass) {
-	Class cm;
-	try {
-	    cm = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
-	} catch (ClassNotFoundException e) {
-	    throw new PanicException(e);
-	}
-	try {
-	    contentionManagerClass = theClass;
-	} catch (Exception e) {
-	    throw new PanicException("The class " + theClass
-				     + " does not implement com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
-	}
+        Class cm;
+        try {
+            cm = Class.forName("com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
+        } catch (ClassNotFoundException e) {
+            throw new PanicException(e);
+        }
+        try {
+            contentionManagerClass = theClass;
+        } catch (Exception e) {
+            throw new PanicException("The class " + theClass
+                                     + " does not implement com.sun.fortress.interpreter.evaluator.transactions.ContentionManager");
+        }
     }
 
     /**
@@ -107,8 +106,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return whether the current transaction may commit successfully.
      */
     static public boolean validate() {
-	ThreadState threadState = BaseTask.getThreadState();
-	return threadState.validate();
+        ThreadState threadState = BaseTask.getThreadState();
+        return threadState.validate();
     }
 
     /**
@@ -118,8 +117,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      *         there is no current transaction.
      */
     static public Transaction getTransaction() {
-	ThreadState threadState = BaseTask.getThreadState();	
-	return threadState.transaction();
+        ThreadState threadState = BaseTask.getThreadState();
+        return threadState.transaction();
     }
 
     /**
@@ -128,8 +127,32 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return the invoking thread's contention manager
      */
     static public ContentionManager getContentionManager() {
-	ThreadState threadState = BaseTask.getThreadState();	
-	return threadState.manager();
+        ThreadState threadState = BaseTask.getThreadState();
+        return threadState.manager();
+    }
+
+    public static <T> T doItOnce(Callable<T> xaction) {
+        ThreadState threadState = BaseTask.getThreadState();
+        ContentionManager manager = threadState.manager();
+        T result = null;
+        threadState.beginTransaction();
+        try {
+            result = xaction.call();
+            if (threadState.commitTransaction()) {
+                threadState.addToCommittedMemRefs(threadState.memRefs());
+                return result;
+            } else {
+                throw new AbortedException();
+            }
+        } catch (AbortedException e) {
+            throw e;
+        } catch (FortressError e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PanicException(e);
+        } finally {
+            threadState.endTransaction();
+        }
     }
 
     /**
@@ -137,53 +160,28 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @param xaction execute this object's <CODE>call()</CODE> method.
      * @return result of <CODE>call()</CODE> method
      */
+
     public static <T> T doIt(Callable<T> xaction) {
-	ThreadState threadState = BaseTask.getThreadState();
-	ContentionManager manager = threadState.manager();
-	T result = null;
-	int count = 0;
-	try {
-	    while (true) {
-		threadState.beginTransaction();
-		try {
-		    result = xaction.call();
-		} catch (AbortedException e) {
-		} catch (SnapshotException e) {
-		    threadState.abortTransaction();
-		} catch (FortressError e) {
-                    e.printStackTrace(System.out);
-                    throw new PanicException("Unhandled exception " + e);
-		} catch (Exception e) {
-		    e.printStackTrace();
-		    throw new PanicException("Unhandled exception " + e);
-		} catch (Error e) {
-		    e.printStackTrace();
-		    throw new PanicException("Error " + e);
-		}
-		threadState.addToTotalMemRefs(threadState.memRefs());
-		if (threadState.commitTransaction()) {
-		    threadState.addToCommittedMemRefs(threadState.memRefs());
-		    return result;
-		} 
-		// transaction aborted
-		threadState.incAttempts();
-                manager.waitToRestart();
-	    }
-	} finally {
-	    threadState.transaction = null;
-	}
+        while (true) {
+            try {
+                T result = doItOnce(xaction);
+                return result;
+            } catch (AbortedException e) {
+            }
+        }
     }
+
     /**
      * Execute transaction
      * @param xaction call this object's <CODE>run()</CODE> method
      */
     public static void doIt(final Runnable xaction) {
-	doIt(new Callable<Boolean>() {
-		 public Boolean call() {
-		     xaction.run();
-		     return false;
-		 };
-	     });
+        doIt(new Callable<Boolean>() {
+                 public Boolean call() {
+                     xaction.run();
+                     return false;
+                 };
+             });
     }
 
     /**
@@ -191,7 +189,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return number of transactions committed by this thread
      */
     public static long getCommitted() {
-	return totalCommitted;
+        return totalCommitted;
     }
 
     /**
@@ -199,7 +197,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return number of aborted transactions
      */
     public static long getAborted() {
-	return totalTotal -  totalCommitted;
+        return totalTotal -  totalCommitted;
     }
 
     /**
@@ -207,7 +205,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return number of transactions
      */
     public static long getTotal() {
-	return totalTotal;
+        return totalTotal;
     }
 
     /**
@@ -215,82 +213,82 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @param c abort if this object's <CODE>call()</CODE> method returns false
      */
     public static void onValidate(Callable<Boolean> c) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onValidate.add(c);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onValidate.add(c);
     }
     /**
      * Register a method to be called every time the current transaction is validated.
      * @param c abort if this object's <CODE>call()</CODE> method returns false
      */
     public static void onValidateOnce(Callable<Boolean> c) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onValidateOnce.add(c);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onValidateOnce.add(c);
     }
     /**
      * Register a method to be called every time this thread begins a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onBegin(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onBegin.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onBegin.add(r);
     }
     /**
      * Register a method to be called the next time this thread begins a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onBeginOnce(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onBeginOnce.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onBeginOnce.add(r);
     }
     /**
      * Register a method to be called every time this thread commits a transaction.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onCommit(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onCommit.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onCommit.add(r);
     }
     /**
      * Register a method to be called once if the current transaction commits.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onCommitOnce(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onCommitOnce.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onCommitOnce.add(r);
     }
     /**
      * Register a method to be called every time this thread aborts a transaction.
      * @param r call this objec't <CODE>run()</CODE> method
      */
     public static void onAbort(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onAbort.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onAbort.add(r);
     }
     /**
      * Register a method to be called once if the current transaction aborts.
      * @param r call this object's <CODE>run()</CODE> method
      */
     public static void onAbortOnce(Runnable r) {
-	ThreadState threadState = BaseTask.getThreadState();
-	threadState.onAbortOnce.add(r);
+        ThreadState threadState = BaseTask.getThreadState();
+        threadState.onAbortOnce.add(r);
     }
     /**
      * get thread ID for debugging
      * @return unique id
      */
     public static int getID() {
-	ThreadState threadState = BaseTask.getThreadState();
-	return threadState.hashCode();
+        ThreadState threadState = BaseTask.getThreadState();
+        return threadState.hashCode();
     }
 
     /**
      * reset thread statistics
      */
     public static void clear() {
-	totalTotal = 0;
-	totalCommitted = 0;
-	totalCommittedMemRefs = 0;
-	totalTotalMemRefs = 0;
+        totalTotal = 0;
+        totalCommitted = 0;
+        totalCommittedMemRefs = 0;
+        totalTotalMemRefs = 0;
     }
 
 }

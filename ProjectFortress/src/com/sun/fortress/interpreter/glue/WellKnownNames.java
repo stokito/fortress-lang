@@ -40,4 +40,5 @@ public class WellKnownNames {
     public static String generatorCross = "cross";
 
     public static String forbiddenException = "ForbiddenException";
+    public static String atomicConflictException = "AtomicConflict";
 }

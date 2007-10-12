@@ -23,7 +23,6 @@ import jsr166y.forkjoin.*;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.GracefulException;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.PanicException;
-import com.sun.fortress.interpreter.evaluator.transactions.exceptions.SnapshotException;
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.tasks.ThreadState;
 
@@ -35,28 +34,28 @@ public abstract class BaseTask extends RecursiveAction {
 
     public BaseTask() {
         causedException = false;
-	threadState = new ThreadState();
-	parent = getCurrentTask();
-    }	
+        threadState = new ThreadState();
+        parent = getCurrentTask();
+    }
 
-    public void recordException(Throwable t) { 
-	causedException = true;
-	err = t;
+    public void recordException(Throwable t) {
+        causedException = true;
+        err = t;
     }
 
     public boolean causedException() {return causedException;}
     public Throwable taskException() {return err;}
 
     public static BaseTask getCurrentTask() {
-	/* This may get called before we've started our FortressTaskGroup so in 
-	   that case we have no current task and need to return null */
-	Thread t = Thread.currentThread();
-	BaseTask result = null;
-	if (t instanceof FortressTaskRunner) {
-	    FortressTaskRunner taskrunner = (FortressTaskRunner) t;
-	    result = (BaseTask) taskrunner.getCurrentTask();
-	}
-	return result;
+        /* This may get called before we've started our FortressTaskGroup so in
+           that case we have no current task and need to return null */
+        Thread t = Thread.currentThread();
+        BaseTask result = null;
+        if (t instanceof FortressTaskRunner) {
+            FortressTaskRunner taskrunner = (FortressTaskRunner) t;
+            result = (BaseTask) taskrunner.getCurrentTask();
+        }
+        return result;
     }
 
     public static void setCurrentTask(BaseTask task) {
@@ -76,10 +75,10 @@ public abstract class BaseTask extends RecursiveAction {
 
     public ThreadState threadState() { return threadState();}
 
-    public static ThreadState getThreadState() { 
-	BaseTask task = getCurrentTask();
-	if (task == null) 
-	    throw new RuntimeException("Not in a task!");
-	return task.threadState;
+    public static ThreadState getThreadState() {
+        BaseTask task = getCurrentTask();
+        if (task == null)
+            throw new RuntimeException("Not in a task!");
+        return task.threadState;
     }
 }

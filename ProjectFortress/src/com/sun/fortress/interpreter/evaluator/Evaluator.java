@@ -41,6 +41,7 @@ import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FGenerator;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
+import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FRange;
@@ -323,7 +324,25 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTryAtomicExpr(TryAtomicExpr x) {
-        return NI("forTryAtomicExpr");
+        final Expr expr = x.getExpr();
+        final Evaluator current = new Evaluator(this);
+        FValue res = FVoid.V;
+        try {
+            res = FortressTaskRunner.doItOnce(
+                new Callable<FValue>() {
+                    public FValue call() {
+                        Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+                        FValue res1 = expr.accept(ev);
+                        return res1;
+                    }
+                }
+            );
+        } catch (AbortedException ae) {
+            FObject f = (FObject) e.getValue(WellKnownNames.atomicConflictException);
+            FortressException f_exc = new FortressException(f);
+            throw f_exc;
+        }
+        return res;
     }
 
     public FValue forBinding(Binding x) {
@@ -413,10 +432,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
      /* If we are already in a transaction, don't evaluate in parallel */
- } else if (BaseTask.getThreadState().transactionNesting() > 0) {
-     for (Expr exp : exprs) {
-  resList.add(exp.accept(this));
-     }
+        } else if (BaseTask.getThreadState().transactionNesting() > 0) {
+            for (Expr exp : exprs) {
+            resList.add(exp.accept(this));
+            }
         } else if (sz > 1) {
             TupleTask[] tasks = new TupleTask[exprs.size()];
             int count = 0;
@@ -426,7 +445,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
             TupleTask.coInvoke(tasks);
-     runner.setCurrentTask(currentTask);
+            runner.setCurrentTask(currentTask);
 
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {

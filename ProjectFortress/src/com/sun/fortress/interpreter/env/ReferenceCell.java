@@ -52,53 +52,53 @@ public class ReferenceCell extends IndirectionCell {
     ReferenceCell(FType t, FValue v) {
         super();
         theType = t;
-	node = new FNode(v);
-	rnode = (Recoverable)node;
-	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED_TRANS;
-	readers = new ReadSet();
+        node = new FNode(v);
+        rnode = (Recoverable)node;
+        manager = FortressTaskRunner.getContentionManager();
+        writer = Transaction.COMMITTED_TRANS;
+        readers = new ReadSet();
     }
 
     ReferenceCell(FType t) {
         super();
         theType = t;
-	node = new FNode();
-	rnode = (Recoverable)node;
-	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED_TRANS;
-	readers = new ReadSet();
+        node = new FNode();
+        rnode = (Recoverable)node;
+        manager = FortressTaskRunner.getContentionManager();
+        writer = Transaction.COMMITTED_TRANS;
+        readers = new ReadSet();
     }
 
     ReferenceCell() {
         super();
-	node = new FNode();
-	rnode = (Recoverable)node;
-	manager = FortressTaskRunner.getContentionManager();
-	writer = Transaction.COMMITTED_TRANS;
-	readers = new ReadSet();
+        node = new FNode();
+        rnode = (Recoverable)node;
+        manager = FortressTaskRunner.getContentionManager();
+        writer = Transaction.COMMITTED_TRANS;
+        readers = new ReadSet();
     }
 
     public void assignValue(FValue f2) {
-	Transaction me  = FortressTaskRunner.getTransaction();
-	Transaction other = null;
-	Set<Transaction> others = null;
-	while (true) {
-	    synchronized (this) {
-		others = readWriteConflict(me);
-		if (others == null) {
-		    other = openWrite(me);
-		    if (other == null) {
-			node.setValue(f2);
-			return;
-		    }
-		}
-	    }
-	    if (others != null) {
-		manager.resolveConflict(me, others);
-	    } else if (other != null) {
-		manager.resolveConflict(me, other);
-	    }
-	}
+        Transaction me  = FortressTaskRunner.getTransaction();
+        Transaction other = null;
+        Set<Transaction> others = null;
+        while (true) {
+            synchronized (this) {
+                others = readWriteConflict(me);
+                if (others == null) {
+                    other = openWrite(me);
+                    if (other == null) {
+                        node.setValue(f2);
+                        return;
+                    }
+                }
+            }
+            if (others != null) {
+                manager.resolveConflict(me, others);
+            } else if (other != null) {
+                manager.resolveConflict(me, other);
+            }
+        }
     }
 
     public FType getType() {
@@ -106,16 +106,16 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     class FNode implements Recoverable {
-	FValue val;
-	FValue oldVal;
+        FValue val;
+        FValue oldVal;
 
-	void setValue(FValue value) { val = value;};
-	FNode(FValue value) {val = value;}
-	FNode() {}
-	FValue getValue() { return val;}
+        void setValue(FValue value) { val = value;};
+        FNode(FValue value) {val = value;}
+        FNode() {}
+        FValue getValue() { return val;}
 
-	public void backup() { oldVal = val; }
-	public void recover() { val = oldVal; }
+        public void backup() { oldVal = val; }
+        public void recover() { val = oldVal; }
     }
 
     public void storeValue(FValue f2) {
@@ -135,22 +135,22 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     public FValue getValue() {
-	Transaction me  = FortressTaskRunner.getTransaction();
-	Transaction other = null;
-	while (true) {
-	    synchronized (this) {
-		other = openRead(me);
-		//other = openWrite(me);
-		if (other == null) {
-		    FValue the_value = node.getValue();
-		    if (the_value == null) {
-			return error("Attempt to read uninitialized variable");
-		    }
-		    return the_value;
-		}
-	    }
-	    manager.resolveConflict(me, other);
-	}
+        Transaction me  = FortressTaskRunner.getTransaction();
+        Transaction other = null;
+        while (true) {
+            synchronized (this) {
+                other = openRead(me);
+                //other = openWrite(me);
+                if (other == null) {
+                    FValue the_value = node.getValue();
+                    if (the_value == null) {
+                        return error("Attempt to read uninitialized variable");
+                    }
+                    return the_value;
+                }
+            }
+            manager.resolveConflict(me, other);
+        }
     }
 
   /**
@@ -158,7 +158,7 @@ public class ReferenceCell extends IndirectionCell {
    **/
   public Transaction openRead(Transaction me) {
     // don't try read sharing if contention seems high
-    if (me == null) {	// restore object if latest writer aborted
+    if (me == null) {   // restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
         writer = Transaction.COMMITTED_TRANS;
@@ -200,7 +200,7 @@ public class ReferenceCell extends IndirectionCell {
   Transaction openWrite(Transaction me) {
     boolean cacheHit = false;  // already open for read?
     // not in a transaction
-    if (me == null) {	// restore object if latest writer aborted
+    if (me == null) {   // restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
         writer = Transaction.COMMITTED_TRANS;

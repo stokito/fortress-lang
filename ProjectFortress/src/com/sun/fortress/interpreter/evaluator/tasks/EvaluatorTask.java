@@ -47,16 +47,16 @@ public class EvaluatorTask extends BaseTask {
     }
 
     public void compute() {
-	FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-	runner.setCurrentTask(this);
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.setCurrentTask(this);
         try {
             Driver.runProgramTask(p, runTests, woLibrary, args);
         }
-        catch (Throwable e) {
+        catch (IOException e) {
             causedException = true;
             err = e;
-	    e.printStackTrace();
-	    throw new RuntimeException(e);
+            //            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

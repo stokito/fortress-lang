@@ -27,7 +27,7 @@ public class AbortedException extends java.lang.RuntimeException {
    * Creates a new <code>DeniedException</code> instance with no detail message.
    */
   public AbortedException() {
-    super();
+    super(Thread.currentThread().getName());
   }
 
 
@@ -36,6 +36,6 @@ public class AbortedException extends java.lang.RuntimeException {
    * @param msg the detail message.
    */
   public AbortedException(String msg) {
-    super(msg);
+    super(Thread.currentThread().getName() + " " + msg);
   }
 }
