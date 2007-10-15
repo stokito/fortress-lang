@@ -771,10 +771,6 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
         for i <- zeroIndices() do put(i,v.get(i)) end
         self
       end
-    assign(e:E):T = do
-        for i <- zeroIndices() do put(i,e) end
-        self
-      end
     assign(f:I->E):T = do
         for i <- zeroIndices() do put(i,f(toIndex(i))) end
         self
