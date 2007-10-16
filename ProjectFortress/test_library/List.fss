@@ -18,6 +18,11 @@
 component List
 export List
 
+(** DEPRACATED.  Please use PureList or ArrayList instead.
+    Those offer a Generator implementation and indexability.
+    If you are using union/intersection/difference use Set instead.
+ **)
+
 trait List[\alpha\] comprises {Cons[\alpha\], Empty[\alpha\]}
    length(): ZZ32
    cons(x: alpha): List[\alpha\] = Cons[\alpha\](x, self)
@@ -53,7 +58,7 @@ object Empty[\alpha\]() extends List[\alpha\]
    containsAll(xs: List[\alpha\]) = xs.isEmpty()
    isEmpty() = true
    filter(p: alpha -> Boolean) = self
-   map[\beta\](f: alpha -> beta): List[\beta\] = self
+   map[\beta\](f: alpha -> beta): List[\beta\] = Empty[\beta\]()
    process(proc: alpha -> ()) = ()
    foldL[\beta\](start: beta,f: (beta, alpha) -> beta): beta = start
    foldR[\beta\](f: (alpha, beta) -> beta,start: beta): beta = start
@@ -90,7 +95,7 @@ object Cons[\alpha\](hd',tl') extends List[\alpha\]
   isEmpty() = false
   filter(p: alpha -> Boolean): List[\alpha\] =
     if p hd' then tl'.filter(p).cons(hd') else tl'.filter(p) end
-  map[\beta\](f: alpha -> beta): List[\beta\] = tl'.map(f).cons(f hd')
+  map[\beta\](f: alpha -> beta): List[\beta\] = tl'.map[\beta\](f).cons(f hd')
   process(proc: alpha -> ()) = do
     proc hd'
     tl'.process(proc)

@@ -35,7 +35,7 @@ run(args:String...):() = do
   println("indexOf(8) = " l.indexOf(8))
   println("lastIndexOf(8) = " l.lastIndexOf(8))
   println("Is an odd list empty? " list.isEmpty())
-  l.filter(fiveOrMore).map(fn x => 10 x).process(prElt); println ""
+  l.filter(fiveOrMore).map[\ZZ32\](fn x => 10 x).process(prElt); println ""
   println(l.foldL[\ZZ32\](0, fn (res, i) => 10 res + i))
   println(l.foldR[\ZZ32\](fn (i, res) => 10 res + i, 0))
   l.remove(7).process(prElt); println ""
