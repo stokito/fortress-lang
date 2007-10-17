@@ -23,7 +23,7 @@ public class NamedLabelException extends LabelException {
     String name;
 
     public String toString() {
-      return "RuhRohRaggy, Should never be called";
+      return "Should never be called";
     }
 
     public String getName() {return name;}
