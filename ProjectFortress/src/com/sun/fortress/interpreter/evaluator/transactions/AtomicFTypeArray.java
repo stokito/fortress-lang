@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * AtomicArray adapted to FValue
  *
  * Originally based on Christine's AtomicArray, in turn based on
- * Maurice's code.  But now modified beyond all recognition.
+ * Maurice's code.  Now modified beyond all recognition.
  */
 public class AtomicFTypeArray extends FObject {
     // We always synchronize with any writer of the following array:
@@ -56,6 +56,63 @@ public class AtomicFTypeArray extends FObject {
     }
 
     public FValue get(int i) {
+        Transaction me = FortressTaskRunner.getTransaction();
+
+        if (me==null) {
+            // In the common case of contention-free non-transactional
+            // read, we want to just look at the data and return it
+            // without allocating a ReadRecord.
+            TransactorRecord orig = trans.get(i);
+            // Volatile read happens before regular read.
+            FValue res = array[i];
+            if (orig==null || orig instanceof ReadRecord) {
+                // Must re-check trans.get(i); in order to guarantee
+                // that this happens after res is read, we must also
+                // write.  Thus we CAS.  Want to use weakCAS to keep
+                // this code loop-free, but it doesn't provide
+                // ordering guarantees.
+                if (trans.compareAndSet(i,orig,orig)) {
+                    return res;
+                } // else there was contention on the TransactorRecord.
+            } // else there is an outstanding write operation; clean it up.
+            return getSlowNT(i);
+        } // else we need to do a full transctional read.
+        return getSlow(i);
+    }
+
+    private FValue getSlowNT(int i) {
+        while (true) {
+            if (TRACE_ARRAY) System.out.println("Slow get("+i+")");
+            TransactorRecord orig = trans.get(i);
+            TransactorRecord newRec = orig;
+            FValue res = array[i];
+            if (orig==null) {
+                // Momentary hiccup in fast path; retry it.
+            } else if (orig instanceof ReadRecord) {
+                // Try to clean up outstanding reads.
+                newRec = ((ReadRecord)orig).clean();
+            } else if (orig instanceof WriteRecord) {
+                WriteRecord writeRec = (WriteRecord) orig;
+                Transaction writer = writeRec.getTransaction();
+                if (writerCompleted(writeRec,writer,i)) {
+                    // Have now cleaned up after completed write, so
+                    // get rid of it.
+                    newRec = null;
+                } else {
+                    // serialize *before* outstanding writer!
+                    res = writeRec.getOldValue();
+                }
+            } else {
+                throw new PanicException(FORMAT2, orig);
+            }
+            if (trans.compareAndSet(i,orig,newRec)) {
+                return res;
+            }
+        }
+    }
+
+    private FValue getSlow(int i) {
+        if (TRACE_ARRAY) System.out.println("Transactional get("+i+")");
         while (true) {
             TransactorRecord orig = trans.get(i);
             TransactorRecord readRec;
@@ -90,22 +147,33 @@ public class AtomicFTypeArray extends FObject {
         }
     }
 
+    /** init must only be used to initialize an element, and ought to
+     * be the first thing that touches the element.  We take advantage
+     * of this to avoid jumping through the usual transactional hoops
+     * here.  The price is that we may see violations of the usual
+     * transactional semantics if we are racing with an (erroneous)
+     * second write or initialization.
+     *
+     * Thus, we return "true" if we *believe* we successfully wrote to
+     * [i] for the first time.  We return "false" if we *know* that
+     * our write was not the first successful write to [i].  The
+     * resulting operation is *cheap* (especially compared to either
+     * get or set).
+     *
+     * This operation also disrupts racing reads or writes to the
+     * array; they are no longer guaranteed to obey the atomicity
+     * semantics.  Again, the program is wrong if such reads or writes
+     * exist.
+     **/
     public boolean init(int i, FValue v) {
-        while (true) {
-            if (TRACE_ARRAY) System.out.println("Trying init("+i+")");
-            TransactorRecord orig = trans.get(i);
-            if (orig==null || potentialWriteContention(orig,i)) {
-                WriteRecord writeRec = new WriteRecord();
-                if (trans.compareAndSet(i,orig,writeRec)) {
-                    FValue old = array[i];
-                    writeRec.setOldValue(old);
-                    array[i] = v;
-                    writeRec.completed();
-                    return (old==null);
-                }
-            }
-            if (TRACE_ARRAY) System.out.println("Retrying init("+i+")");
-        }
+        FValue old = array[i];
+        array[i] = v;
+        /* Ensure subsequent reads see our write.  Also destroys
+         * atomicity of anything that was trying to concurrently
+         * access this element.  Those accesses ought not to exist
+         * anyhow, and ought to fail if they do exist. */
+        trans.set(i,null);
+        return (old==null);
     }
 
     private boolean potentialWriteContention(TransactorRecord orig, int i) {
