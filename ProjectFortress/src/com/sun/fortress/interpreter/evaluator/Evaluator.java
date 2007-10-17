@@ -676,7 +676,23 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forExit(Exit x) {
-        return NI("forExit");
+        Option<IdName> target = x.getTarget();
+        Option<Expr> returnExpr = x.getReturnExpr();
+        FValue res;
+        LabelException e;
+
+        if (returnExpr.isSome()) {
+            res = Option.unwrap(returnExpr).accept(new Evaluator(this));
+        } else {
+            res = evVoid;
+        }
+
+        if (target.isSome()) {
+            e = new NamedLabelException(Option.unwrap(target).getId().getText(), res);
+        } else {
+            e = new LabelException(res);
+        }
+        throw e;
     }
 
     // No need to evaluate this; it's not an expression. -- Eric
@@ -853,8 +869,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLabel(Label x) {
-        /* Don't forget to use a new evaluator/environment for the inner block. */
-        return bug(x,"label construct not yet implemented.");
+        IdName name = x.getName();
+        Block body  = x.getBody();
+        FValue res = FVoid.V;
+        try {
+            Evaluator ev = new Evaluator(new BetterEnv(e,body));
+            res = ev.forBlock(body);
+        } catch (NamedLabelException e) {
+            if (e.match(name.getId().getText())) {
+                return e.res();
+            } else throw e;
+        } catch (LabelException e) {
+            return e.res();
+        }
+        return res;
     }
 
     public FValue forLetFn(LetFn x) {
