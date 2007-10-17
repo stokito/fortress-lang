@@ -37,14 +37,16 @@ public class FortressManager extends BaseManager {
   }
 
   public void resolveConflict(Transaction me, Transaction other) {
-      if (other != me) {
-          if (me==null || me==Transaction.COMMITTED_TRANS ||
-              Math.random() > 0.5) {
-              other.abort();
-          } else {
-              me.abort();
-          }
+      if (other == me) {
+          return;
+      } else if (other==null) {
+          if (me==Transaction.COMMITTED_TRANS) return;
+          // otherwise fall through and abort me.
+      } else if (me==null || me==Transaction.COMMITTED_TRANS ||
+                 Math.random() > 0.5) {
+          other.abort();
       }
+      me.abort();
   }
 
   public void resolveConflict(Transaction me, Collection<Transaction> others) {

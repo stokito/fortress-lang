@@ -37,7 +37,8 @@ export Sparse
       else 0.0 0.0 end
     end
     indexValuePairs(): Generator[\(ZZ32,T)\] = mem
-    put(i:ZZ32, v:T) = fail("SparseVector is immutable")
+    put(i:ZZ32, v:T) = fail("put: SparseVector is immutable")
+    init0(i:ZZ32, v:T) = fail("init: SparseVector is immutable")
     scale(x:T):SparseVector[\T,n\] = do
       elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; (j, x y) end
       SparseVector[\T,n\](mem.map(elt))
@@ -113,7 +114,8 @@ end
                  (rows:Array1[\SparseVector[\N,m\],0,n\])
   extends Matrix[\N,n,m\]
     get(t:(ZZ32,ZZ32)):N = do (i,j)=t; (rows[i])[j] end
-    put(t:(ZZ32,ZZ32), v:N) = fail("Csr is immutable")
+    put(t:(ZZ32,ZZ32), v:N) = fail("put: Csr is immutable")
+    init0(t:(ZZ32,ZZ32), v:N) = fail("init: Csr is immutable")
     replica[\U\]() = fail("Csr replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](rows,
@@ -159,7 +161,8 @@ end
                  (cols:Array1[\SparseVector[\N,n\],0,m\])
   extends Matrix[\N,n,m\]
     get(t:(ZZ32,ZZ32)) = do (i,j)=t;  (cols[j])[i] end
-    put(t:(ZZ32,ZZ32), v:N) = fail("Csc is immutable")
+    put(t:(ZZ32,ZZ32), v:N) = fail("put: Csc is immutable")
+    init0(t:(ZZ32,ZZ32), v:N) = fail("init: Csc is immutable")
     replica[\U\]() = fail("Csc replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](rows,

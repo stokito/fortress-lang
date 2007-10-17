@@ -45,6 +45,7 @@ public class AtomicFTypeArray extends FObject {
 
     private static final String FORMAT = "Unexpected transaction state: %s";
     private static final String FORMAT2 = "Unexpected TransactorRecord: %s";
+    public static final boolean TRACE_ARRAY = false;
 
     public AtomicFTypeArray
             (FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
@@ -68,12 +69,13 @@ public class AtomicFTypeArray extends FObject {
                 readRec.completed();
                 return res;
             }
-            System.out.println("Retrying get("+i+")");
+            if (TRACE_ARRAY) System.out.println("Retrying get("+i+")");
         }
     }
 
     public void set(int i, FValue v) {
         while (true) {
+            if (TRACE_ARRAY) System.out.println("Trying set("+i+")");
             TransactorRecord orig = trans.get(i);
             if (orig==null || potentialWriteContention(orig,i)) {
                 WriteRecord writeRec = new WriteRecord();
@@ -84,11 +86,13 @@ public class AtomicFTypeArray extends FObject {
                     return;
                 }
             }
+            if (TRACE_ARRAY) System.out.println("Retrying set("+i+")");
         }
     }
 
     public boolean init(int i, FValue v) {
         while (true) {
+            if (TRACE_ARRAY) System.out.println("Trying init("+i+")");
             TransactorRecord orig = trans.get(i);
             if (orig==null || potentialWriteContention(orig,i)) {
                 WriteRecord writeRec = new WriteRecord();
@@ -100,6 +104,7 @@ public class AtomicFTypeArray extends FObject {
                     return (old==null);
                 }
             }
+            if (TRACE_ARRAY) System.out.println("Retrying init("+i+")");
         }
     }
 
@@ -175,6 +180,7 @@ public class AtomicFTypeArray extends FObject {
         synchronized(writeRec) {
             if (writeRec.mustRestore()) {
                 array[i] = writeRec.getOldValue();
+                if (TRACE_ARRAY) System.out.println("Restored "+i);
                 writeRec.restored();
             }
         }
@@ -182,16 +188,19 @@ public class AtomicFTypeArray extends FObject {
 
     private TransactorRecord readWriteContention(Transaction me,
                                                  Transaction writer) {
+        if (TRACE_ARRAY) System.out.println("readWriteContention "+me+" and "+writer);
         resolveConflict(me,writer);
         return null;
     }
 
     private boolean writeReadContention(Transaction me, Transaction reader) {
+        if (TRACE_ARRAY) System.out.println("writeReadContention "+me+" and "+reader);
         resolveConflict(me,reader);
         return false;
     }
 
     private boolean writeWriteContention(Transaction me, Transaction writer) {
+        if (TRACE_ARRAY) System.out.println("writeWriteContention "+me+" and "+writer);
         resolveConflict(me,writer);
         return false;
     }

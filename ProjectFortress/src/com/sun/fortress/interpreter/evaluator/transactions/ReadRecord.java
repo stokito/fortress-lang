@@ -17,6 +17,8 @@
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
+import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
+
 final class ReadRecord extends TransactorRecord {
     private volatile ReadRecord next;
 
@@ -31,13 +33,13 @@ final class ReadRecord extends TransactorRecord {
 
     public ReadRecord clean() {
         ReadRecord it = this;
-        while (it != null) {
-            if (it.isActive()) return it;
-            synchronized(it) {
-                if (it.isActive()) return it;
-            }
+        int n=0;
+        while (it != null && !it.isActive()) {
+            n++;
             it = it.getNext();
         }
-        return null;
+        if (AtomicFTypeArray.TRACE_ARRAY && n > 0)
+            System.out.println("Cleaned "+n);
+        return it;
     }
 }

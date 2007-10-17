@@ -49,5 +49,17 @@ public class PanicException extends java.lang.RuntimeException {
      */
     public PanicException(Throwable cause) {
         super(cause);
+        StackTraceElement [] t0,t1, t;
+        t0 = cause.getStackTrace();
+        if (t0==null) return;
+        t1 = getStackTrace();
+        if (t1==null) {
+            setStackTrace(t0);
+            return;
+        }
+        t = new StackTraceElement[t0.length+t1.length];
+        System.arraycopy(t0,0,t,0,t0.length);
+        System.arraycopy(t1,0,t,t0.length,t1.length);
+        setStackTrace(t);
     }
 }

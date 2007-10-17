@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component TransactionalArrayShakedown
+export Executable
+
+job1(a:Array[\ZZ32,ZZ32\]):() = atomic do
+    for i <- seq(1#999) do
+        a[1000-i] -= a[999-i]
+    end
+    for i <- seq(0#999) do
+        a[i+1] := 2 a[i+1] + a[i]
+    end
+  end
+
+job2(a:Array[\ZZ32,ZZ32\]):() = do
+    body(i:ZZ32,v:ZZ32):ZZ32 =
+        if v=i then
+            1
+        elif v = 2 i then
+            0
+        else
+            fail(i " !!! " v)
+        end
+    pre = a.indexValuePairs().generate[\ZZ32\](SumReduction[\ZZ32\](), body)
+    println(pre " pre and " (1000-pre) " post")
+  end
+
+run(args:String...):() = do
+    a = toArray(0#1000)
+    (job2(a),job1(a),job2(a))
+    ()
+end
+
+end
