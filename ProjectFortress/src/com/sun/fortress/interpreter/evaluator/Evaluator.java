@@ -688,9 +688,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
 
         if (target.isSome()) {
-            e = new NamedLabelException(Option.unwrap(target).getId().getText(), res);
+            String t = Option.unwrap(target).getId().getText();
+            e = new NamedLabelException(x, t, res);
         } else {
-            e = new LabelException(res);
+            e = new LabelException(x,res);
         }
         throw e;
     }

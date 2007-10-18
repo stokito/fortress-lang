@@ -17,13 +17,21 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-public class LabelException extends RuntimeException {
-    FValue res;
 
-    public LabelException(FValue r) {
+public class LabelException extends RuntimeException {
+    final FValue res;
+    final HasAt loc;
+
+    public String toString() {
+        return (loc.at()+": exit without enclosing label block");
+    }
+
+    public LabelException(HasAt loc, FValue r) {
         super();
+        this.loc = loc;
         res = r;
     }
-    public FValue res() { return res;}
+    public FValue res() { return res; }
 }

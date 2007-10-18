@@ -17,13 +17,14 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class NamedLabelException extends LabelException {
-    String name;
+    final String name;
 
     public String toString() {
-      return "Should never be called";
+        return (loc.at()+": exit from nonexistent label block "+name);
     }
 
     public String getName() {return name;}
@@ -32,8 +33,8 @@ public class NamedLabelException extends LabelException {
       return name.equals(n2);
     }
 
-    public NamedLabelException(String n, FValue r) {
-        super(r);
+    public NamedLabelException(HasAt loc, String n, FValue r) {
+        super(loc,r);
         name = n;
     }
 }
