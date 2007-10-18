@@ -39,6 +39,7 @@ object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
     extends Matrix[\N,n,n\]
   replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
   put(t:(ZZ32,ZZ32),n:N) : () = fail("Lower triangular matrices are immutable.")
+  init0(t:(ZZ32,ZZ32),n:N) : () = fail("Lower triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
       (i,j) = t
       if i=j then 1 elif i>=j then mem.get(i,j) else 0 mem.get(i,j) end
@@ -51,6 +52,7 @@ object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
     extends Matrix[\N,n,n\]
   replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
   put(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
+  init0(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
       (i,j) = t
       if i<=j then mem.get(i,j) else 0 mem.get(i,j) end
@@ -110,8 +112,9 @@ run(args:String...):() = do
   a : RR64[6,6] = matrix[\RR64,6,6\]()
   a.fill(fn (i,j) => if j <= i then 7.0-i else 7 6 5 2.0 end)
   mtest(a)
-  a.fill(fn (i,j) => if j >= i then 7.0-j else 7 6 5 2.0 end)
-  mtest(a)
+  b : RR64[6,6] = matrix[\RR64,6,6\]()
+  b.fill(fn (i,j) => if j >= i then 7.0-j else 7 6 5 2.0 end)
+  mtest(b)
 end
 
 end
