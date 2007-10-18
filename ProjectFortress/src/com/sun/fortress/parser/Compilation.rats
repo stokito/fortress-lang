@@ -33,8 +33,8 @@ import Spacing;
    | w Imports (w AbsDecls)? w
  */
 public CompilationUnit File =
-     w CompilationUnit w
-   / a1:(w Imports)? w a2:Exports a3:(w Decls)? w
+     w CompilationUnit w EndOfFile
+   / a1:(w Imports)? w a2:Exports a3:(w Decls)? w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -42,14 +42,14 @@ public CompilationUnit File =
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
-   / a1:(w Imports)? w a2:AbsDecls w
+   / a1:(w Imports)? w a2:AbsDecls w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      }
-   / w a1:Imports a2:(w AbsDecls)? w
+   / w a1:Imports a2:(w AbsDecls)? w EndOfFile
      { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
