@@ -15,13 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api NativeThread
+component Collection
+export Collection
 
-object PrimitiveThread[\T\](fcn:()->T)
-    getter val():T
-    getter ready():Boolean
-    wait():()
-    stop():()
+(* Proposed convention for dotted vs functional methods:
+   If it updates or is a getter or setter (including indexing), dotted.
+   Otherwise it should be a functional method.
+*)
+
+trait Collection[\alpha\] extends Generator[\alpha\]
+  opr DOUBLE_PLUS(self, other: Collection[\alpha\]): Collection[\alpha\]
+  addIfNeeded(a:alpha, self): (Boolean, Collection[\alpha\])
+  add(a:alpha, self): Collection[\alpha\] = fst
+  remove(a:alpha, Collection[\alpha\]): Boolean
 end
 
 end

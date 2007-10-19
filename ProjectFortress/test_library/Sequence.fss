@@ -15,13 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api NativeThread
+component Sequence
+export Sequence
+import Collection
 
-object PrimitiveThread[\T\](fcn:()->T)
-    getter val():T
-    getter ready():Boolean
-    wait():()
-    stop():()
-end
-
-end
+trait Sequence[\alpha\] extends Generator[\alpha\]
+  opr DOUBLE_PLUS(self, other: Sequence[\alpha\]): Sequence[\alpha\]
+  addFront(a:alpha, self): Sequence[\alpha\]
+  addBack(self, a:alpha): Sequence[\alpha\]
+  removeFront(self): Maybe[\(alpha,Sequence[\alpha\])\]
+  removeBack(self): Maybe[\(Sequence[\alpha\],alpha)\]
+  

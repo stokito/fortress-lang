@@ -124,7 +124,6 @@ assert(x:Any, y:Any, failMsg: Any...): () =
  *
  * Minimal complete definition of a Generator is the generate(...) method.
  *)
-
 trait Generator[\E\]
     excludes { Number }
     (** generate is the core of Generator.  It generates elements of

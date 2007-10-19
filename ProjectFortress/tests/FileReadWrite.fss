@@ -16,16 +16,79 @@
  ******************************************************************************)
 
 component FileReadWrite
+import * from NativeFile
 export Executable
 
+same(a:String, b:String, diag:String):() =
+   if a =/= b then
+       println("FAIL: " diag)
+       println("--------expected--------------------------------------------")
+       println(a)
+       println("--------got-------------------------------------------------")
+       println(b)
+       println("------------------------------------------------------------")
+   end
+
+streamTest(s:String, inter:String, op: ReadStream -> String, desc:String) = do
+    println("*************************")
+    rs = ReadStream("testFile.txt")
+    res : String := op(rs)
+    while NOT (rs.eof()) do
+        res := res inter op(rs)
+    end
+    rs.close()
+    same(s,res,"ReadStream using " desc)
+  end
+
+genTest(s:String, inter:String, gen: ReadStream -> Generator[\String\],
+        desc: String) = do
+    println("*************************")
+    rs = ReadStream("testFile.txt")
+    res = gen(rs).generate[\String\](StringReduction, fn (l) => l inter)
+    rs.close()
+    same(s,res,"Generated using " desc)
+    println("*************************")
+    rss = ReadStream("testFile.txt")
+    ress : String := ""
+    for l <- seq(gen(rss)) do
+        ress := ress l inter
+    end
+    rss.close()
+    same(s,ress,"Generated sequentially using " desc)
+  end
+
 run(args:String...) = do
+  s0 = "Writing into a file...\n"
+  s1 = "Writing again...\n"
+  s2 = "And an unterminated line."
+  s = s0 s1 s2
   fout: BufferedWriter = outFileOpen("testFile.txt")
-  outFileWrite(fout, "Writing into a file...\n")
+  outFileWrite(fout, s0)
+  outFileWrite(fout, s1)
+  outFileWrite(fout, s2)
   outFileClose(fout)
 
   fin: BufferedReader = inFileOpen("testFile.txt")
-  println(inFileRead(fin))
+  r0 = inFileRead(fin)
+  r1 = inFileRead(fin)
+  r2 = inFileRead(fin)
   inFileClose(fin)
+  r = r0 "\n" r1 "\n" r2
+  same(s,r,"BufferedReader")
+
+  (* Note that we can't distinguish the non-terminated final line when
+     we use readLine.  We'll always get a final empty line. *)
+  streamTest(s "\n", "\n", fn (rs) => rs.readLine(),"readLine")
+  streamTest(s, "", fn (rs) => rs.readChar(),"readChar")
+  streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
+  streamTest(s, "", fn (rs) => rs.read(),"read()")
+
+(***** BROKEN!!!
+  genTest(s "-\n", "\n", fn (rs) => rs.lines(), "lines")
+  genTest(s, "-", fn (rs) => rs.lines(), "characters")
+  genTest(s, "-", fn (rs) => rs.chunks(16), "chunks(16)")
+  genTest(s, "-", fn (rs) => rs.chunks(), "chunks()")
+ *****)
 end
 
 end

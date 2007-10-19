@@ -1,0 +1,135 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component File
+import * from NativeFile
+export File
+
+(***********************************************************
+ * Types to support file input and output                  *)
+
+trait Closeable
+    close():()
+end
+
+trait FileStream extends Closeable
+    getter fileName():String
+    getter toString():String
+end
+
+fileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S, upper:ZZ32):
+                  Generator[\S\] =
+    FileGenerator[\S\](reader,readOne,upper)
+
+(** A FileGenerator generates values from the contents of a
+    ReadStream.  Unlike other generators its contents can be consumed
+    exactly once.
+
+    A FileGenerator generates file contents in parallel in chunks.
+    These chunks get larger as we proceed through the file, until we
+    reach some upper bound on the number of chunks being consumed at
+    once.  This upper bound is specified by upper, except that
+    meaningless values of upper <= 0 are replaced by the default value
+    of 1024.
+ **)
+object FileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S,
+                          upper:ZZ32)
+        extends { Generator[\String\] }
+    consumed : Boolean = false
+    getter up():ZZ32 = if upper <= 0 then 1024 else upper end
+    consume():() =
+        if consumed then
+            fail("Duplicate consumption of generator for " reader)
+        else
+            consumed = true
+        end
+    generate[\R\](r: Reduction[\R\], body: String->R): R = do
+        consume()
+        u = up()
+        bu: Array[\String,ZZ32\] = array[\String,ZZ32\](u)
+        go(n:ZZ32): R =
+            if reader.eof() then r.empty()
+            else
+                bu[0] := readOne(reader)
+                i : ZZ32 := 1
+                while (NOT reader.eof() AND reader.ready() AND i<n) do
+                    bu[i] := readOne(reader)
+                    i += 1
+                end
+                r.join(bu[0#i].generate[\R\](r,body),go((2 n) MAX u))
+            end
+        a = go(8 MIN u)
+        reader.close()
+        a
+      end
+
+    seq(self): SequentialGenerator[\String\] =
+        SeqFileGenerator[\String\](reader, readOne)
+
+    loop(f:String->()): () = do
+        consume()
+        u = up()
+        bu: Array[\String,ZZ32\] = array[\String,ZZ32\](u)
+        go(n:ZZ32): () =
+            if reader.eof() then ()
+            else
+                bu[0] := readOne(reader)
+                i : ZZ32 := 1
+                while (NOT reader.eof() AND reader.ready() AND i<n) do
+                    bu[i] := readOne(reader)
+                    i += 1
+                end
+                (bu[0#i].loop(body),go((2 n) MAX u))
+                ()
+            end
+        go(8 MIN u)
+        reader.close()
+      end
+end
+
+object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S,
+                             upper:ZZ32)
+        extends { SequentialGenerator[\String\] }
+    consumed : Boolean = false
+    consume():() =
+        if consumed then
+            fail("Duplicate consumption of generator for " reader)
+        else
+            consumed = true
+        end
+    generate[\R\](r: Reduction[\R\], body: String->R): R = do
+        consume()
+        a:R = body.empty()
+        while (NOT reader.eof()) do
+            v = body(readOne(reader))
+            a := r.join(a,v)
+        end
+        reader.close()
+        a
+      end
+
+    seq(self): SequentialGenerator[\String\] = self
+
+    loop(f:String->()): () = do
+        consume()
+        while (NOT reader.eof()) do
+            body(readOne(reader))
+        end
+      end
+end
+
+end
