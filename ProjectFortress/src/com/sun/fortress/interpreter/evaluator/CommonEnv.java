@@ -160,7 +160,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
         FType x = getTypeNull(q);
         if (x == null)
             {
-                System.err.println(this.toString());
+                // System.err.println(this.toString());
                 return error(errorMsg("Missing type ", q));
             }
         else

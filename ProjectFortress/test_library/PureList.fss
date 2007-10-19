@@ -131,7 +131,7 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       IndexValuePairs[\E\](it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
-  seq(): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
+  seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](it)
   append(f:List[\E\]): PureList[\E\] =
       append(f.generate[\PureList[\E\]\](PLConcat[\E\](),singleton[\E\]))
   append(f:PureList[\E\]): PureList[\E\] =
@@ -216,7 +216,7 @@ value object ZipGenerator[\A,B\](transient x0: PureList[\A\],
     xs = x0.take(sz)
     ys = y0.take(sz)
     getter size() = sz
-    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
+    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
     generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
         zgen(a: PureList[\A\], b: PureList[\B\]): R =
           if a.size() > 1 then
@@ -280,7 +280,7 @@ object IndexValuePairs[\E\](it: FingerTree[\E\]) extends Generator[\(ZZ32,E)\]
     getter size(): ZZ32 = it.size()
     generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
         it.ivgen[\R\](0,r,body)
-    seq(): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
+    seq(self): SequentialGenerator[\E\] = SequentialIndexValuePairs[\E\](it)
 end
 
 object SequentialIndexValuePairs[\E\](it: FingerTree[\E\])

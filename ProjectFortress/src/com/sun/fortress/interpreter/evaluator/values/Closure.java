@@ -125,7 +125,7 @@ public class Closure extends NonPrimitive implements Scope {
         super(environment);
         def = NativeApp.checkAndLoadNative(method.def);
         instArgs = method.instArgs;
-        setParamsAndReturnType(method.getParams(), method.returnType);
+        setParamsAndReturnType(method.getParameters(), method.returnType);
     }
 
 //    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,

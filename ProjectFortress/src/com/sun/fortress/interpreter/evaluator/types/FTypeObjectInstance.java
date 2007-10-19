@@ -30,8 +30,21 @@ import com.sun.fortress.useful.BoundingMap;
 public class FTypeObjectInstance extends FTypeObject implements
         GenericTypeInstance {
 
+    /**
+    @deprecated
+    */
     public FTypeObjectInstance(String name, BetterEnv interior,
-            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args, List<? extends AbsDeclOrDecl> members) {
+            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
+            List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
+        super(name, interior, interior.getAt(), members, generic.getDecl());
+        this.generic = generic;
+        this.bind_args = bind_args;
+        this.name_args = name_args;
+    }
+
+    public FTypeObjectInstance(String name, BetterEnv interior,
+            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
+            List<? extends AbsDeclOrDecl> members) {
         super(name, interior, interior.getAt(), members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
@@ -39,7 +52,6 @@ public class FTypeObjectInstance extends FTypeObject implements
     }
 
     final private FTypeGeneric generic;
-
     final private List<FType> bind_args;
     final private List<FType> name_args;
 
@@ -68,4 +80,5 @@ public class FTypeObjectInstance extends FTypeObject implements
         return unifyNonVarGeneric(unify_env,tp_set,abm,val);
     }
 
+  
 }

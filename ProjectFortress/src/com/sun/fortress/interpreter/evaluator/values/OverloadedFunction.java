@@ -335,10 +335,20 @@ public class  OverloadedFunction extends Fcn
 
                     unequal = true;
 
+                    if (f1 instanceof HasSelfParameter &&
+                            f2 instanceof HasSelfParameter &&
+                            ((HasSelfParameter)f1).getSelfParameterIndex() == ((HasSelfParameter)f2).getSelfParameterIndex() &&
+                            ((HasSelfParameter)f1).getSelfParameterIndex() == k) {
+                            exclDumpln("self params.");
+                            // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
+                            selfIndex = k;
+                    }
+                    
                     if (p1.excludesOther(p2)) {
                         exclDumpln("distinct.");
                         distinct = true;
                     } else {
+                        
                         boolean local_unrelated = true;
                         boolean p1subp2 = p1.subtypeOf(p2);
                         boolean p2subp1 = p2.subtypeOf(p1);
@@ -350,7 +360,7 @@ public class  OverloadedFunction extends Fcn
                             p2better = k;
                             local_unrelated = false;
                             exclDumpln(" right better.");
-                        } else {
+                        } else if (selfIndex != k) {
                             if (p1.isSymbolic() )
                                 sawSymbolic1 = true;
 
@@ -359,14 +369,7 @@ public class  OverloadedFunction extends Fcn
                         }
                         if (local_unrelated && unrelated == -1) {
                             // Here we check for self parameters!
-                            if (f1 instanceof HasSelfParameter &&
-                                f2 instanceof HasSelfParameter &&
-                                ((HasSelfParameter)f1).getSelfParameterIndex() == ((HasSelfParameter)f2).getSelfParameterIndex() &&
-                                ((HasSelfParameter)f1).getSelfParameterIndex() == k) {
-                                exclDumpln("self params.");
-                                // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
-                                selfIndex = k;
-                            } else {
+                            if (selfIndex != k) {
                                 unrelated = k;
                                 exclDumpln("Unrelated.");
                             }
@@ -460,7 +463,7 @@ public class  OverloadedFunction extends Fcn
         String s1;
         if (f1 instanceof NonPrimitive) {
             NonPrimitive np = (NonPrimitive) f1;
-            s1 = np.getParams().get(i).getName();
+            s1 = np.getParameters().get(i).getName();
         } else {
             s1 = "parameter " + (i+1);
         }
@@ -578,6 +581,10 @@ public class  OverloadedFunction extends Fcn
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
+//            if (getFnName().toString().equals("seq")) {
+//                System.err.println("Resolving seq from " + this );
+//            }
+            
             int best = bestMatchIndex(args, loc, envForInference);
 
             if (best == -1) {

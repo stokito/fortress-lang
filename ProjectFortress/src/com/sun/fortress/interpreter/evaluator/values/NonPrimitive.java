@@ -100,7 +100,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     /**
      * @return Returns the params.
      */
-    public List<Parameter> getParams() {
+    public List<Parameter> getParameters() {
         if (params==null)
             return bug(getAt(),errorMsg("getParams of NonPrimitive ",this));
         return params;
@@ -111,7 +111,11 @@ public abstract class NonPrimitive extends Simple_fcn {
         if (cachedDomain == null) {
             synchronized (this) {
                 if (cachedDomain == null) {
-                    List<FType> l = typeListFromParameters(getParams());
+//                    if (this instanceof FunctionalMethod
+//                            && ((FunctionalMethod) this).getSelfParameterType()
+//                                    .toString().contains("ParRange"))
+//                        System.err.println("getDomain of " + this);
+                    List<FType> l = typeListFromParameters(getParameters());
                     cachedDomain = l;
                 }
             }

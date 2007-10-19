@@ -26,46 +26,80 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 
-
 /**
- * An FTypeTraitInstance is exactly like an FTypeTrait,
- * except that it was created by instantiating a generic
- * type, and it knows how it was instantiated.  This is
- * helpful in the implementation of one-sided unification
- * of generic operators/functions with their parameter
- * lists.
+ * An FTypeTraitInstance is exactly like an FTypeTrait, except that it was
+ * created by instantiating a generic type, and it knows how it was
+ * instantiated. This is helpful in the implementation of one-sided unification
+ * of generic operators/functions with their parameter lists.
  */
-public class FTypeTraitInstance extends FTypeTrait implements GenericTypeInstance {
+public class FTypeTraitInstance extends FTypeTrait implements
+        GenericTypeInstance {
 
-    public FTypeTraitInstance(String name, BetterEnv interior, FTypeGeneric generic, List<FType> bind_args, List<FType> name_args, List<? extends AbsDeclOrDecl> members) {
+    
+    /**
+     * @deprecated
+     * @param name
+     * @param interior
+     * @param generic
+     * @param bind_args
+     * @param name_args
+     * @param members
+     * @param instantiation_type
+     */
+    public FTypeTraitInstance(String name, BetterEnv interior,
+            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
+            List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
         super(name, interior, interior.getAt(), members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
         this.name_args = name_args;
         if (anyAreSymbolic(name_args))
             isSymbolic = true;
-   }
+    }
 
+    public FTypeTraitInstance(String name, BetterEnv interior,
+            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
+            List<? extends AbsDeclOrDecl> members) {
+        super(name, interior, interior.getAt(), members, generic.getDecl());
+        this.generic = generic;
+        this.bind_args = bind_args;
+        this.name_args = name_args;
+        if (anyAreSymbolic(name_args))
+            isSymbolic = true;
+    }
+
+    
     final private FTypeGeneric generic;
+
     final private List<FType> bind_args;
+
     final private List<FType> name_args;
 
     @Override
-    public FTypeGeneric getGeneric() { return generic; }
+    public FTypeGeneric getGeneric() {
+        return generic;
+    }
 
     @Override
-    public List<FType> getTypeParams() { return bind_args; }
+    public List<FType> getTypeParams() {
+        return bind_args;
+    }
 
     @Override
-    public List<FType> getTypeParamsForName() { return name_args; }
-/*
-     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set, com.sun.fortress.interpreter.useful.ABoundingMap,
+    public List<FType> getTypeParamsForName() {
+        return name_args;
+    }
+
+    /*
+     * @see com.sun.fortress.interpreter.evaluator.types.FType#unifyNonVar(java.util.Set,
+     *      com.sun.fortress.interpreter.useful.ABoundingMap,
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
     protected boolean unifyNonVar(BetterEnv unify_env, Set<StaticParam> tp_set,
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        return unifyNonVarGeneric(unify_env,tp_set,abm,val);
+        return unifyNonVarGeneric(unify_env, tp_set, abm, val);
     }
+
 
 }

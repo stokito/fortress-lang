@@ -29,26 +29,39 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
+import com.sun.fortress.useful.Factory2P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Memo1PCL;
+import com.sun.fortress.useful.Memo2PCL;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class GenericConstructor extends FConstructedValue implements Factory1P<List<FType>, Simple_fcn, HasAt> {
-    private class Factory implements Factory1P<List<FType>, Constructor, HasAt> {
+public class GenericConstructor extends FConstructedValue implements Factory2P<List<FType>, List<StaticArg>, Simple_fcn, HasAt> {
+    private class Factory implements Factory2P<List<FType>, List<StaticArg>, Constructor, HasAt> {
 
-        public Constructor make(List<FType> args, HasAt within) {
+        public Constructor make(List<FType> args, List<StaticArg>statics, HasAt within) {
             // Use the generic type to make the specific type
-            FTypeGeneric gt = (FTypeGeneric) env.getType(odefOrDecl.stringName());
-            FTypeObject ft = (FTypeObject) gt.make(args, within);
+            String name = odefOrDecl.stringName();
+            FTypeGeneric gt = (FTypeGeneric) env.getType(name);
+            
+            /*
+             * Necessary to fake an instantiation expression.
+             */
+            QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
+            InstantiatedType inst_type = new InstantiatedType(qin, statics);
+            FTypeObject ft = (FTypeObject) gt.make(args, inst_type);
 
             // Use the augmented environment from the specific type.
             BetterEnv clenv = ft.getEnv();
@@ -65,11 +78,11 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
 
     }
 
-     Memo1PCL<List<FType>, Constructor, HasAt> memo =
-         new Memo1PCL<List<FType>, Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
+     Memo2PCL<List<FType>, List<StaticArg>, Constructor, HasAt> memo =
+         new Memo2PCL<List<FType>, List<StaticArg>, Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
 
-     public Constructor make(List<FType> l, HasAt within) {
-        return memo.make(l, within);
+     public Constructor make(List<FType> l, List<StaticArg>statics, HasAt within) {
+        return memo.make(l, statics, within);
     }
 
     public GenericConstructor(Environment env, GenericWithParams odefOrDecl) {
@@ -114,7 +127,7 @@ public class GenericConstructor extends FConstructedValue implements Factory1P<L
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);
-    return make(argValues, x);
+    return make(argValues, args, x);
 }
 
 }

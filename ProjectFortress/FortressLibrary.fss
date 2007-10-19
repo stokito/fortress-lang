@@ -152,7 +152,7 @@ trait Generator[\E\]
     map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
     (** seq produces a sequential version of the same generator, in
         which elements are produced in the generator's natural order. *)
-    seq(): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+    seq(self): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
 
     (** Nesting of two generators; the innermost is data-dependent
         upon the outer one.  This is specifically designed to be
@@ -216,7 +216,7 @@ trait Generator[\E\]
 end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    seq() = self
+    seq(self) = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
     (* TODO: make overloaded *)
@@ -245,7 +245,7 @@ end
 opr IN[\E\](x: E, this: Generator[\E\]): Boolean = this.contains(x)
 opr NOTIN[\E\](x: E, this: Generator[\E\]): Boolean = NOT (x IN this)
 
-seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq()
+(* seq[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = g.seq() *)
 sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 
@@ -655,7 +655,7 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
         generator().generate[\R\](r,body)
     map[\G\](f: E->G): Generator[\G\] =
         generator().map[\G\](f)
-    seq(): SequentialGenerator[\E\] = sequential(generator())
+    seq(self): SequentialGenerator[\E\] = sequential(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
@@ -776,7 +776,7 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
         generator().generate[\R\](r,body)
     map[\G\](f: E->G): Indexed[\G,I\]
     ivmap[\G\](f: (I,E)->G): Indexed[\G,I\]
-    seq(): SequentialGenerator[\E\] = sequential(generator())
+    seq(self): SequentialGenerator[\E\] = sequential(generator())
 
     assign(v:T):T = do
         for i <- zeroIndices() do put(i,v.get(i)) end
@@ -1534,7 +1534,7 @@ trait MappedGenerator[\E,F\] extends Generator[\F\]
         g().generate[\F\](r, f())
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
-    seq() = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
+    seq(self) = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
 end
 
 object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
@@ -1567,7 +1567,7 @@ object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
     getter g() = g0
     getter f() = f0
     getter toString() = "seq(" g ".map(f))"
-    seq(): SimpleMappedSeqGenerator[\E,F\] = self
+    seq(self): SimpleMappedSeqGenerator[\E,F\] = self
 end
 
 trait NestedGenerator[\E,F\] extends Generator[\F\]
@@ -1597,7 +1597,7 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
     getter g() = g0
     getter f() = f0
     getter toString() = g() ".nest(f)"
-    seq() =
+    seq(self) =
         typecase ff = f() of
             (E -> SequentialGenerator[\F\]) =>
                 SimpleNestedSeqGenerator[\E,F\](sequential(g()),ff)
@@ -1631,7 +1631,7 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
     getter e() = e0
     getter f() = f0
     getter toString()=(e ".cross(" f ")" )
-    seq() = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
+    seq(self) = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
 end
 
 object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
@@ -1805,7 +1805,7 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
     getter indexValuePairs() =
         ParRange[\N\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
 
-    seq() = SeqRange[\N\](lo,ex)
+    seq(self) = SeqRange[\N\](lo,ex)
     generate[\R\](r: Reduction[\R\], m: N->R): R =
         if size() < 1 then
             r.empty()

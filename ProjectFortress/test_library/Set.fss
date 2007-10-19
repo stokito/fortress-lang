@@ -22,7 +22,7 @@ weight:ZZ32 = 4
 
 trait TreeSet[\E\] extends Indexed[\E,ZZ32\] comprises {NodeSet[\E\], EmptySet[\E\]}
    seqgen[\R\](r: Reduction[\R\], body: E->R): R
-   seq(): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
+   seq(self): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
    getVal():E
    getLeftChild():TreeSet[\E\]
    getRightChild():TreeSet[\E\]

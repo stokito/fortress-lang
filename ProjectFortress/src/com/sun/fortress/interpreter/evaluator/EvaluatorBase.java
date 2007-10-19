@@ -27,17 +27,15 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.GenericTypeInstance;
 import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.ABoundingMap;
 import com.sun.fortress.useful.BoundingMap;
@@ -102,14 +100,23 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         if (DUMP_INFERENCE)
             System.err.println("IAIGF " + appliedThing + " with " + args);
 
+        if (appliedThing instanceof GenericFunctionalMethod) {
+            FValue selfArg = args.get(((GenericFunctionalMethod) appliedThing).getSelfParameterIndex());
+            FType selfType = selfArg.type();
+            if (selfType instanceof GenericTypeInstance)
+                e = ((GenericTypeInstance) selfArg.type()).getEnv();
+            else
+                return error(loc, errorMsg("Non-generic-instance type for self argument ", selfArg, " to generic functional method ",appliedThing));
+          
+        }
+        
         FGenericFunction bar = (FGenericFunction) appliedThing;
         FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
-        List<StaticParam> tparams = fndod.getStaticParams();
-        List<Param> params = bar.getFnDefOrDecl().getParams();
+        List<StaticParam> tparams = bar.getStaticParams();
+        List<Param> params = bar.getParams();
         EvalType et = new EvalType(e);
         // The types of the actual parameters ought to unify with the
         // types of the formal parameters.
-        // TODO WE MUST MOVE TO THE FULL LATTICE INTERVAL MAP
         BoundingMap<String, FType, TypeLatticeOps> abm = new
           //ABoundingMap
           LatticeIntervalMap
@@ -123,7 +130,12 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                     String stp_name = stp.getName().getId().getText();
                     for (Type tr : stp.getExtendsClause()) {
                         // Preinstall bounds in the boundingmap
-                        abm.meetPut(stp_name, et.evalType(tr));
+                        try {
+                            abm.meetPut(stp_name, et.evalType(tr));
+                        } catch (FortressError pe) {
+                            // TODO This is an experiment; some inferences are failing to run
+                            // because the bounds cannot be evaluated early.
+                        }
                     }
             }
         }
@@ -144,9 +156,20 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 if (p instanceof NormalParam) {
                     Option<Type> t = ((NormalParam)p).getType();
                     // why can't we just skip if missing?
-                    if (t.isNone())
-                        error(loc,"Parameter needs type for generic resolution");
-                    at.unify(e, tp_set, abm, Option.unwrap(t));
+                    if (t.isNone()) {
+                        /*
+                         * Fake the type for a generic functional method invocation.
+                         */
+                        if (p.getName().toString().equals("self") && bar instanceof GenericFunctionalMethod) {
+                            GenericTypeInstance gi = (GenericTypeInstance) at;
+                            
+                            at.unify(e, tp_set, abm, gi.getGeneric().getInstantiationForFunctionalMethodInference());// instantiationAST());
+                        } else {
+                            error(loc,"Parameter needs type for generic resolution");
+                        }
+                    } else {
+                        at.unify(e, tp_set, abm, Option.unwrap(t));
+                    }
                 }
                 else { // p instanceof VarargsParam
                     at.unify(e, tp_set, abm, ((VarargsParam)p).getVarargsType());

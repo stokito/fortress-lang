@@ -70,9 +70,10 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
     }
 
     
-    public List<Parameter> getParams() {
+    @Override
+    public List<Parameter> getParameters() {
         Parameter selfParam = new Parameter("self", selfParameterType, false);
-        return new AssignedList<Parameter>(super.getParams(), selfParameterIndex, selfParam);
+        return new AssignedList<Parameter>(super.getParameters(), selfParameterIndex, selfParam);
      }
     
     public int hashCode() {

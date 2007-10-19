@@ -33,14 +33,29 @@ import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.BoolParam;
+import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.Generic;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.IdType;
+import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.IntParam;
+import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OperatorParam;
+import com.sun.fortress.nodes.OprArg;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SimpleTypeParam;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
@@ -97,8 +112,80 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     public Generic getDef() {
         return def;
     }
+    
+    public List<StaticParam> getParams() {
+        return params;
+    }
+    
+    public Type getInstantiationForFunctionalMethodInference() {
+        List<StaticArg> statics = paramsToArgs();
+        QualifiedIdName qin = NodeFactory.makeQualifiedIdName(def.getSpan(), name);
+        InstantiatedType inst_type = new InstantiatedType(qin, statics);
+        return inst_type;
+    }
 
-     List<StaticParam> params;
+     private List<StaticArg> paramsToArgs() {
+         List<StaticArg> args = new ArrayList<StaticArg>(params.size());
+         for (StaticParam p : params) {
+             args.add(paramToArg(p));
+         }
+        // TODO Auto-generated method stub
+        return args;
+    }
+
+     static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
+
+         private TypeArg idNameToTypeArg(IdName idn) {
+             return new TypeArg(idn.getSpan(),
+                     new IdType(idn.getSpan(),
+                             NodeFactory.makeQualifiedIdName(idn)));
+         }
+
+         @Override
+        public StaticArg forBoolParam(BoolParam that) {
+            return idNameToTypeArg(that.getName());
+        }
+
+ 
+        @Override
+        public StaticArg forDimensionParam(DimensionParam that) {
+            return idNameToTypeArg(that.getName());
+        }
+
+        @Override
+        public StaticArg forIntParam(IntParam that) {
+            return idNameToTypeArg(that.getName());
+       }
+
+        @Override
+        public StaticArg forNatParam(NatParam that) {
+            return idNameToTypeArg(that.getName());
+        }
+
+        @Override
+        public StaticArg forOperatorParam(OperatorParam that) {
+            return new OprArg(that.getName());
+       }
+
+        @Override
+        public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
+            return idNameToTypeArg(that.getName());
+         }
+
+        @Override
+        public StaticArg forUnitParam(UnitParam that) {
+            return idNameToTypeArg(that.getName());
+       }
+     }
+     
+     private final static ParamToArg paramToArg = new ParamToArg();
+     
+   private StaticArg paramToArg(StaticParam p) {
+       return p.accept(paramToArg);
+    }
+
+
+ List<StaticParam> params;
 
     HasAt genericAt;
 
@@ -123,9 +210,15 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 for (StaticParam param : params) {
                     FType arg = args.get(i);
                     if (param instanceof OperatorParam) {
-                        FTypeOpr fto = (FTypeOpr) arg;
-                        String s = NodeUtil.nameString(((OperatorParam)param).getName());
-                        substitutions.put(s, fto.getName());
+                        if (arg instanceof FTypeOpr) {
+                            FTypeOpr fto = (FTypeOpr) arg;
+                            String s = NodeUtil.nameString(((OperatorParam)param).getName());
+                            substitutions.put(s, fto.getName());
+                        } else if (arg instanceof SymbolicOprType) {
+                            SymbolicOprType fto = (SymbolicOprType) arg;
+                            String s = NodeUtil.nameString(((OperatorParam)param).getName());
+                            substitutions.put(s, fto.getName());
+                        }
                     } else {
                         thinned_args.add(arg);
                     }

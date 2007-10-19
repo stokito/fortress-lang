@@ -128,17 +128,14 @@ fromArray[\E, nat n\](f: PrimitiveArray[\E,n\]): Alr[\E,n\] =
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
-    typecase g of
-        Indexed[\E,ZZ32\] =>
-            sz = g.size()
+            g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do            sz = g.size()
             a = primitiveArray(reflect(sz),__Proxy[\E\]())
             for (i,v) <- g[#].indexValuePairs() do
                 a.init(i,v)
             end
             alr(a,0,sz,cantExtend)
-        else =>
-            g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
-    end
+end
 
 (** Flatten a list of lists *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
@@ -370,7 +367,7 @@ value object ZipGenerator[\A,B\](transient x0: ArrayList[\A\],
         extends { Generator[\(A,B)\] }
     sz = (x0.size() MIN y0.size())
     getter size() = sz
-    seq(): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,x0,y0)
+    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,x0,y0)
     generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
         (0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(x0.get(i),y0.get(i)))
 end

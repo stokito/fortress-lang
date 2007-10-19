@@ -96,6 +96,14 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getName().accept(this);
     }
 
+    public String forIntArg(IntArg node) {
+        return node.getVal().toString();
+    }
+
+    public String forIntRef(IntRef node) {
+        return node.getName().toString();
+    }
+
     public String forIntLiteral(IntLiteral node) {
         return node.getVal().toString();
     }

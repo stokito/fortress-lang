@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -178,9 +179,14 @@ public class FGenericFunction extends SingleFcn
         return make(argValues, location);
     }
     
-    protected  List<StaticParam> getStaticParams() {
+    public  List<StaticParam> getStaticParams() {
         return  fndef.getStaticParams();
     }
+    
+    public List<Param> getParams() {
+        return fndef.getParams();
+    }
+
     
     protected List<WhereClause> getWhere() {
         return fndef.getWhere();

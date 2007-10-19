@@ -24,10 +24,13 @@ import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.NormalParam;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -45,12 +48,18 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     }
     
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
-        FunctionalMethod cl = FType.anyAreSymbolic(args) ? new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, selfParameterType) :
-            new FunctionalMethod(clenv, fndef, args, selfParameterIndex, selfParameterType);
+        // BUG IS HERE, NEED TO instantiate the selfParameterType! ;
+            
+        FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDefOrDecl());
+        
+        FunctionalMethod cl = FType.anyAreSymbolic(args) ?
+                new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :
+            new FunctionalMethod(clenv, fndef, args, selfParameterIndex, instantiatedSelfType);
         return cl.finishInitializing();
     }
     
-    protected  List<StaticParam> getStaticParams() {
+    @Override
+    public  List<StaticParam> getStaticParams() {
         return selfParameterType.getDef().getStaticParams();
     }
     
@@ -88,7 +97,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
         return selfParameterType.toString() + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) + "." + NodeUtil.nameString(node.getName())
         //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
         + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(node.getParams()))
-        + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(ErrorMsgMaker.ONLY)) : "");
+        + (node.getReturnType().isSome() ? (":" + Option.unwrap(node.getReturnType()).accept(ErrorMsgMaker.ONLY)) : "") + fndef.at();
     }
 
 }

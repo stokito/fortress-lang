@@ -22,8 +22,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -31,6 +33,10 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class OverloadedMethod extends OverloadedFunction implements Method {
 
+    BATreeEC<List<FValue>, List<FType>, Method> mcache =
+        new BATreeEC<List<FValue>, List<FType>, Method>(FValue.asTypesList);
+
+    
     public OverloadedMethod(String fnName, BetterEnv within) {
         super(NodeFactory.makeIdName(fnName), within);
         // TODO Auto-generated constructor stub
@@ -46,6 +52,9 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc, BetterEnv envForInference) {
 
+       Method best_f = mcache.get(args);
+       if (best_f == null) {
+       
         int best = bestMatchIndex(args, loc, envForInference);
         lastBest = best;
 
@@ -56,7 +65,10 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
                   Useful.listInParens(args) + ", overload = " + this);
         }
 
-        return ((Method)overloads.get(best).getFn()).applyMethod(args, selfValue, loc, envForInference);
+        best_f = ((Method)overloads.get(best).getFn());
+        mcache.syncPut(args, best_f);
+       }
+       return best_f.applyMethod(args, selfValue, loc, envForInference);
     }
 
        public void bless() {
