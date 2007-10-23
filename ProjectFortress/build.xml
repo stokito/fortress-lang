@@ -49,6 +49,7 @@
  <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
  <!-- parser -->
  <property name="parser"  location="${src}/${packagePrefix}/parser"/>
+ <property name="preparser"  location="${src}/${packagePrefix}/parser/preparser"/>
  <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
  <property name="precedence" location="${parserUtil}/precedence"/>
  <property name="precedenceResolver" location="${parserUtil}/precedence_resolver"/>
@@ -166,6 +167,7 @@ testNotPassing, testOnly interpreter"/>
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
+        <delete file="${preparser}/PreFortress.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
         <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="FortressLibrary.ast"/>
@@ -469,19 +471,50 @@ testNotPassing, testOnly interpreter"/>
        This is a conservative test; a more precise test would perform a
        dependency analysis over Rats! code.-->
     <target name="checkParserUptodate" depends="init">
-        <uptodate property="parser.uptodate" targetfile="${parser}/Fortress.java">
+        <condition property="parser.uptodate">
+            <and>
+                <uptodate targetfile="${parser}/Fortress.java">
+                    <srcfiles dir="${parser}" includes="**/*.rats"/>
+                </uptodate>
+                <uptodate targetfile="${preparser}/PreFortress.java">
+                    <srcfiles dir="${preparser}" includes="**/*.rats"/>
+                </uptodate>
+            </and>
+        </condition>
+        <echo>Parser up to date? ${parser.uptodate}</echo>
+    </target>
+
+    <target name="checkFortressParserUptodate" depends="init">
+        <uptodate property="fortressparser.uptodate" targetfile="${parser}/Fortress.java">
             <srcfiles dir="${parser}" includes="**/*.rats"/>
         </uptodate>
-        <echo message="Parser up to date? ${parser.uptodate}"/>
+        <echo>Parser up to date? ${parser.uptodate}</echo>
     </target>
-    
-    <target name="parser" unless="parser.uptodate"
-            depends="checkParserUptodate"
+
+    <target name="fortressparser" unless="fortreeparser.uptodate"
+            depends="checkFortressParserUptodate"
             description="Fortress Parser">
         <echo message="Rebuilding parser..."/>
-        <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
+       <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
+            <arg value="rats"/>
+	    <arg value="-html"/>
+	    <arg value="-instantiated"/>
+            <arg value="Fortress.rats"/>
+        </java>
+    </target>    
+
+    <target name="parser" unless="parser.uptodate"
+            depends="checkParserUptodate"
+            description="Fortress Parser and Preparser">
+        <echo message="Rebuilding parser..."/>
+       <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
             <arg value="rats"/>
             <arg value="Fortress.rats"/>
+        </java>
+        <echo message="Rebuilding the preparser..."/>
+        <java jar="${xtc}/xtc.jar" fork="yes" dir="${preparser}">
+            <arg value="rats"/>
+            <arg value="PreFortress.rats"/>
         </java>
     </target>
 

@@ -636,4 +636,13 @@ public class NodeFactory {
             }
         });
     }
+
+    public static SyntaxDef makeSyntaxDef(Span s, SimpleName name) {
+        return new SyntaxDef(s, name);
+    }
+    
+    public static SyntaxDef makeSyntaxDefBody(Span s, SimpleName name, Expr body) {
+        return new SyntaxDefBody(s, name, body);
+    }
+
 }

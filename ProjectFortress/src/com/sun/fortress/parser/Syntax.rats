@@ -1,0 +1,51 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress macro language.
+ */
+module Syntax(Identifier, Keyword, Spacing, Symbols, Expr);
+
+import Identifier;
+import Keyword;
+import Spacing;
+import Symbols;
+import Expr;
+
+
+/* MacroDecl ::= macro id (br SyntaxDef)* */
+public MacroDecl MacroDecl =
+     macro w a1:id a2s:(w SyntaxDefs)? w end
+     { if (a2s == null) a2s = Collections.<SyntaxDef>emptyList();
+       yyValue = new MacroDecl(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2s);
+     };
+
+
+/* SyntaxDefs ::= SyntaxDef (br SyntaxDef)* */
+List<SyntaxDef> SyntaxDefs = a1:SyntaxDef a2s:(br SyntaxDef)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* SyntaxDef ::= SyntaxHeaderFront w = w NoNewlineExpr */
+SyntaxDef SyntaxDef =    
+     a1:SyntaxHeaderFront w equals w a2:Expr
+     { yyValue = FortressUtil.mkSyntaxDef(createSpan(yyStart,yyCount), a1, a2); };
+     
+SyntaxHeaderFront SyntaxHeaderFront =
+     a1:Id
+     { yyValue = new SyntaxHeaderFront(NodeFactory.makeIdName(a1));};
+     
+

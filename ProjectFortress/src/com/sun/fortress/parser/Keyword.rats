@@ -52,7 +52,7 @@ body {
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
         "var",          "where",        "while",        "widens",
-        "with",         "wrapped"
+        "with",         "wrapped",        "macro"
     });
   }
 }
@@ -129,6 +129,7 @@ transient void typecase = "typecase" !(idrest);
 transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);
+transient void macro = "macro" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
 String BIG = "BIG" !(idrest);

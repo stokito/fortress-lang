@@ -763,4 +763,12 @@ public final class FortressUtil {
                                          javaList.size()), false, javaList);
         }
     }
+
+    public static SyntaxDef mkSyntaxDef(Span span, SyntaxHeaderFront shf, Expr expr) {
+    	return NodeFactory.makeSyntaxDefBody(span, shf.getName(), expr);
+    }
+    
+    public static SyntaxDef mkSyntaxDef(Span span, SyntaxHeaderFront shf) {
+    	return NodeFactory.makeSyntaxDef(span, shf.getName());
+    }
 }

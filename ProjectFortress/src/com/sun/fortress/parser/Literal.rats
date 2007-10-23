@@ -18,12 +18,13 @@
 /*
  * Definition of Fortress literals.
  */
-module Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
+module Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing, Keyword);
 
 import DelimitedExpr;
 import NoSpaceExpr;
 import Symbol;
 import Spacing;
+import Keyword;
 
 /* Literal ::=
      ( w )
@@ -32,11 +33,11 @@ import Spacing;
    | StringLiteral
  */
 Expr Literal =
-     openparen w closeparen
+     <VOID> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteral(createSpan(yyStart,yyCount)); }
-   / NumericLiteral
-   / CharLiteral
-   / StringLiteral
+   / <NUMERICAL> NumericLiteral
+   / <CHAR>CharLiteral
+   / <STRING> StringLiteral
    ;
 
 /* Aggregate ::=
