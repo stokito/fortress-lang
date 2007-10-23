@@ -31,13 +31,13 @@ private String Whitespace = Space / Newline ;
 private String Space      = " " / "\f" / NoNewlineComment ;
 private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment   ;
 private String Comment    =
-     a1:"(*" a2s:(b1:wValue b2:CommentContent {yyValue = b1+b2;})* a3:wValue
-     a4:"*)"
-     { yyValue = a1;
-       for (Object s : a2s.list()) {
+     a1:"(*" a2:CommentContents a3:"*)" { yyValue = a1 + a2 + a3; } ;
+private String CommentContents =
+     a1s:CommentContent*
+     { yyValue = "";
+       for (Object s : a1s.list()) {
          yyValue += s;
        }
-       yyValue = yyValue + a3 + a4;
      } ;
 private String CommentContent =
      Comment
