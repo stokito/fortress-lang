@@ -1,0 +1,220 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress symbols and operators.
+ */
+module Symbol(DelimitedExpr, NoNewlineExpr, Type, Identifier, Spacing, Keyword);
+
+import DelimitedExpr;
+import NoNewlineExpr;
+import Type;
+import Identifier;
+import Spacing;
+import Keyword;
+
+option setOfString(FORTRESS_KEYWORDS);
+
+Op Encloser = a1:encloser
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+Op LeftEncloser = a1:leftEncloser
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+Op RightEncloser = a1:rightEncloser
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+Op ExponentOp = a1:exponentOp
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+transient void bar = &("|" wr GeneratorList closingComprehension) "|";
+private transient void closingComprehension =
+     w closecurly
+   / w closeangle
+   / br ArrayComprehensionClause
+   / w closesquare
+   ;
+private transient String sd = [*.]? ;
+private String bars = "|" (sd "|")* ;
+private String slashes = "/" (sd "/")*
+                       / "\\" (sd "\\")* ;
+private String lesses = "<" (sd "<")*;
+private String greaters = ">" (sd ">")*;
+
+private String encloser = !(bar) bars !([*.>/\\] / "->") ;
+
+private String leftEncloser =
+      leftEncloserMulti &{ PrecedenceMap.ONLY.isLeft(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)} { yyValue = ""+c; }
+   ;
+
+private String leftEncloserMulti =
+     "(" ("/"+ / "\\"+)
+   / "[/\\/\\/" / "[/\\/"
+   / "[" (sd slashes)
+   / "{" (sd slashes)
+   / lesses sd (slashes / bars)
+   / bars sd slashes
+   / "{*" /  "[*"
+   / "((>" / "(<"
+   ;
+
+private String rightEncloser =
+      rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)} { yyValue = ""+c; }
+   ;
+
+private String rightEncloserMulti =
+     "/"+ ")"
+   / "\\"+ ")"
+   / slashes sd (greaters / bars / [\]}])
+   / bars sd greaters
+   / "*]" / "*}"
+   / "]" / "}"
+   / ">)" / "<))"
+   / "/\\/\\/]" / "/\\/]"
+   ;
+
+private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
+
+/* Finally, a nonreserved word that is made up of a mixture of uppercase
+ * letters and underscores (but no digits), does not begin or end with an
+ * underscore, and contains at least two distinct letters is also an
+ * operator.  For example: MAX MIN SQRT TIMES
+ *
+ * Note that FortressUtil.validOp just checks whether the string is
+ * all-caps with underscores; it doesn't look it up anywhere, and
+ * shouldn't since this set of operators is open-ended.
+ */
+private String OpName =
+     !(cross) opn:id &{FortressUtil.validOp(opn) } ;
+
+Op Op =
+     a1:(condOp / op !(equalsOp) / compOp)
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
+
+private String compOp =
+     "==="
+   / "=/="
+   / "<="
+   / ">=" ;
+
+private String condOp =
+     a1:":" a2:op a3:colon { yyValue = a1+a2+a3; }
+   / a1:op a2:colon        { yyValue = a1+a2; };
+
+private String multiOp =
+     "-/->"
+   / "<-/-"
+   / "-->"
+   / "==>"
+   / ">>>"
+   / mapstoOp
+   / "<<<"
+   / "<->"
+   / leftarrow
+   / "<=>"
+   / "->"
+   / doublerightarrow
+   / ">>"
+   / "<<"
+   / "**"
+   / "!!"
+   / !(rightEncloserMulti) "///"
+   / !(rightEncloserMulti) "//"
+   ;
+
+private String singleOp =
+     !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
+     a1:_ &{ PrecedenceMap.ONLY.isOperator("" + a1) }
+     { yyValue = "" + a1; } ;
+
+String op =
+     OpName
+   / multiOp
+   / singleOp ;
+
+Op CompoundOp =
+     a1:op equalsOp
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
+
+/* The operator "=>" should not be in the left-hand sides of
+   case/typecase expressions. */
+String doublerightarrow = "=>" &(w NoNewlineExpr w match);
+
+/* The operator "BY" should not be used with ExtentRange. */
+String crossOp = "BY":OpName &(w ExtentRange);
+
+String leftarrow = "<-";
+
+String caret = "^";
+String colonequals = ":=";
+String equals = "=" (!op);
+String equalsOp = "=":singleOp;
+String semicolon = ";";
+String one = "1";
+
+String colon = ":" (!op);
+String colonOp = ":":singleOp;
+String closesquare = "]";
+String opensquare = "[":leftEncloser;
+
+transient void closecurly = "}";
+transient void closeangle = "|>";
+transient void closedoublesquare = "\\]";
+transient void closeparen = ")";
+transient void cross = "BY";
+transient void DOT = "DOT":OpName;
+transient void ellipses = "...";
+transient void mapsto = "|->";
+transient void match = "=>";
+transient void minus = "-":singleOp;
+transient void opencurly = "{":leftEncloser;
+transient void openangle = "<|":leftEncloser;
+transient void opendoublesquare = "[\\";
+transient void openparen = !(leftEncloser) "(";
+transient void plus = "+":singleOp;
+transient void pound = "#":singleOp;
+transient void slash = "/":singleOp;
+transient void star = "*":singleOp;
+transient void rightarrow = "->";
+transient void underscore = "_";
+
+transient void comma = ",";
+transient void dot   = ".";
+
+/* AssignOp ::= := | Op= */
+Option<Opr> AssignOp =
+     colonequals   { yyValue = Option.none(); }
+   / a1:CompoundOp { yyValue = Option.some(NodeFactory.makeOpr(a1)); };
+
+transient String accumulator = "SUM" / "PROD" ;
+
+/* Accumulator ::= SUM | PROD | BIG w Op */
+Op Accumulator =
+     "SUM":accumulator
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "+"); }
+   / "PROD":accumulator
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "DOT"); }
+   / void:BIG w Op ;
+
+/* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
+ArrayComprehensionClause ArrayComprehensionClause =
+     a1:ArrayComprehensionLeft wr bar wr a2:GeneratorList
+     { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
+                                              a1.getA(), a1.getB(), a2);
+     };

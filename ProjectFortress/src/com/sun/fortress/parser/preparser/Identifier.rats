@@ -1,0 +1,88 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress identifiers.
+ */
+module Identifier(Keyword, Symbol, Unicode, Spacing);
+
+import Keyword;
+import Symbol;
+import Unicode;
+import Spacing;
+
+option setOfString(FORTRESS_KEYWORDS);
+
+/* A word is an identifier if it begins with a letter and is not a reserved
+   word, an operator, or all or part of a numeral.
+ */
+        String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
+private String idstart = UnicodeIdStart / [_] ;
+        String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
+private String IdText  = a1:id &{ !FortressUtil.validOp(a1) && !a1.equals("_") } ;
+
+Id Id = a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
+
+/* BindId ::= Id / _ */
+Id BindId =
+     Id
+   / a1:"_" { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
+
+/* IdList ::= Id (w , w Id)* */
+List<Id> IdList = a1:Id a2s:(w comma w Id)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* BindIdList ::= BindId (w , w BindId)* */
+List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* BindIdOrBindIdTuple ::=
+     BindId
+   | "(" w BindId w "," w BindIdList w ")"
+ */
+List<Id> BindIdOrBindIdTuple =
+     a1:BindId
+     { yyValue = FortressUtil.mkList(a1); }
+   / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s); };
+
+/* Name ::= Id | opr w Op */
+SimpleName Name =
+     a1:Id
+     { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
+   / opr w a1:Op
+     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
+
+/* DottedName ::= (Id.)*Id */
+/* This says that if we find ellipses, the dot doesn't count */
+DottedName DottedName =
+     a1:Id &(w ellipses)
+     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount), a1); }
+   / a1s:(Id dot)* a2:Id
+     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
+                                            IterUtil.compose(a1s.list(), a2));
+     };
+
+/* QualifiedName ::= (Id.)*Id */
+/* This says that if we find ellipses, the dot doesn't count */
+QualifiedIdName QualifiedName =
+     a1:Id &(w ellipses)
+     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount), a1); }
+   / a1s:(Id dot)* a2:Id
+     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
+                                                 a1s.list(), a2);
+     };

@@ -1,0 +1,213 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress local declarations.
+ */
+module LocalDecl(Variable, Function, Param, Header, Type, NoNewlineExpr,
+                 DelimitedExpr, Identifier, Keyword, Symbol, Spacing);
+modify Variable;
+import Function;
+import Param;
+import Header;
+import Type;
+import NoNewlineExpr;
+import DelimitedExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* BlockElems ::=
+     BlockElem br BlockElems
+   | BlockElem (w ;)?
+ */
+Block BlockElems =
+     a1:BlockElem br a2:BlockElems
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1, a2)); }
+   / a1:BlockElem
+     &(w Elifs / w Else / br CaseClause / br TypecaseTypes / br CaseElse
+     / w end / w Catch / w forbid / w finally / w closeparen)
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); }
+   / a1:BlockElem w semicolon
+     &(w Elifs / w Else / w CaseClause / w TypecaseTypes / w CaseElse
+     / w end / w Catch / w forbid / w finally / w closeparen)
+     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); };
+
+/* BlockElem ::=
+     LocalVarFnDecl
+   | NoNewlineExpr (s , w NoNewlineGeneratorList)?
+ */
+private Expr BlockElem =
+     LocalVarFnDecl
+   / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorList)?
+     { if (a2 == null) yyValue = a1;
+       else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), false,
+                                        a1, a2);
+     };
+
+/* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
+private LetExpr LocalVarFnDecl =
+     a1:LocalFnDecl a2s:(br LocalFnDecl)*
+     { List<FnDef> fns = FortressUtil.mkList(a1, a2s.list());
+       yyValue = new LetFn(createSpan(yyStart,yyCount), false,
+                           FortressUtil.emptyExprs(), fns);
+     }
+   / LocalVarDecl ;
+
+/* LocalFnDecl ::=
+     LocalFnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+ */
+private FnDef LocalFnDecl =
+     a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w
+     a4:NoNewlineExpr
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
+     };
+
+/* LocalVarDecl ::=
+     (var w)? LocalVarWTypes s InitVal
+   | (var w)? LocalVarWTypes
+   | (var w)? LocalVarWoTypes s = s NoNewlineExpr
+   | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
+   | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
+   LocalVarWTypes ::=
+     LocalVarWType
+   | ( w LocalVarWType (w , w LocalVarWType)+ w )
+   LocalVarWType ::= BindId s : s Type
+   LocalVarWoTypes ::=
+     LocalVarWoType
+   | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
+   LocalVarWoType ::=
+     BindId
+   | Unpasting
+ */
+LocalVarDecl LocalVarDecl =
+     a1:(var w)? a2:VarWTypes s a3:InitVal
+     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
+                                             FortressUtil.toLValueList(a2),
+                                             a3.getA());
+     }
+   / a1:(var w)? a2:VarWTypes
+     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
+                                             FortressUtil.toLValueList(a2));
+     }
+   / a1:(var w)? a2:VarWoTypes s equals s a3:NoNewlineExpr
+     { if (a1 != null) a2 = FortressUtil.setMutableLValue(a2,
+                                                          createSpan(yyStart,3));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
+     }
+   / a1:(var w)? a2:VarWoTypes s colon s a3:Type s ellipses a4:(s InitVal)?
+     { Option<Expr> init;
+       if (a1 != null) {
+           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
+           if (a4 == null) init = Option.none();
+           else            init = Option.some(a4.getA());
+       } else {
+           if (a4 == null) {
+               init = Option.none();
+               a2 = FortressUtil.setType(a2, a3);
+           } else {
+               init = Option.some(a4.getA());
+               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, a3);
+               else a2 = FortressUtil.setType(a2, a3);
+           }
+       }
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
+                                             init);
+     }
+   / a1:(var w)? a2:VarWoTypes s colon s a3:SimpleTupleType a4:(s InitVal)?
+     { Span span = createSpan(yyStart,yyCount);
+       List<Type> tys = a3.getElements();
+       Option<Expr> init;
+       if (a2.size() != tys.size())
+           error(new Id(span,"_"),"Mismatched numbers of variables and types.");
+       if (a1 != null) {
+           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
+           if (a4 == null) init = Option.none();
+           else            init = Option.some(a4.getA());
+       } else {
+           if (a4 == null) {
+               init = Option.none();
+               a2 = FortressUtil.setType(a2, tys);
+           } else {
+               init = Option.some(a4.getA());
+               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, tys);
+               else a2 = FortressUtil.setType(a2, tys);
+           }
+       }
+       yyValue = FortressUtil.mkLocalVarDecl(span, a2, init);
+     };
+
+LValueBind VarWType := a1:BindId s colon s a2:Type
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
+
+/* VarWoTypes ::=
+     VarWoType
+   | ( w VarWoType (w , w VarWoType)+ w )
+ */
+List<LValue> VarWoTypes =
+     a1:VarWoType
+     { yyValue = FortressUtil.mkList(a1); }
+   / openparen w a1:VarWoType a2s:(w comma w VarWoType)+ w closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+LValue VarWoType =
+     a1:BindId
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount), a1); }
+   / Unpasting ;
+
+/* Unpasting ::= [ w UnpastingElems w ] */
+private Unpasting Unpasting =
+     void:opensquare w UnpastingElems w void:closesquare ;
+
+/* UnpastingElems ::=
+     UnpastingElem
+   | UnpastingElem RectSeparator UnpastingElems
+ */
+private Unpasting UnpastingElems =
+     a1:UnpastingElem a2:RectSeparator a3:UnpastingElems
+     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount),a1,a2,a3); }
+   / UnpastingElem ;
+
+/* UnpastingElem ::=
+     BindId (w [ w UnpastingDim w ])?
+   | Unpasting
+ */
+private Unpasting UnpastingElem =
+     a1:BindId a2:(void:opensquare w UnpastingDim w void:closesquare)?
+     { if (a2 == null)
+           yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeIdName(a1),
+                                       Collections.<ExtentRange>emptyList());
+       else
+           yyValue = new UnpastingBind(createSpan(yyStart,yyCount),
+                                       NodeFactory.makeIdName(a1), a2);
+     }
+   / Unpasting ;
+
+/* UnpastingDim ::= ExtentRange (w BY w ExtentRange)+  */
+private List<ExtentRange> UnpastingDim =
+     a1:ExtentRange a2s:(w cross w ExtentRange)+
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* CaseClause ::= NoNewlineExpr w => w BlockElems */
+CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems
+     { yyValue = new CaseClause(createSpan(yyStart,yyCount), a1, a2); };

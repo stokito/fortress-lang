@@ -1,0 +1,194 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress components and APIs.
+ */
+module Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+
+import Decl;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* File ::=
+     w CompilationUnit w
+   | (w Imports)? w Exports (w Decls)? w
+   | (w Imports)? w AbsDecls w
+   | w Imports (w AbsDecls)? w
+ */
+public CompilationUnit File =
+     w CompilationUnit w
+   / a1:(w Imports)? w
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
+       List<Export> a3 = Collections.<Export>emptyList();
+       List<Decl> a4 = Collections.<Decl>emptyList();
+       yyValue = new Component(span, name, a1, a3, a4);
+     };
+
+//transient void EndOfFile = !_ ;
+
+/* CompilationUnit ::=
+     Component
+ */
+private CompilationUnit CompilationUnit =
+     Component  ;
+
+/* Component ::= component w DottedName (w Imports)? w Exports (w Decls)? w end */
+private Component Component =
+     component w  a1:DottedName a2:(w Imports)? w (_)*
+     {  if (a2 == null) a2 = Collections.<Import>emptyList();
+        List<Export> a3 = Collections.<Export>emptyList();
+        List<Decl> a4 = Collections.<Decl>emptyList();
+        yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);};
+
+/* Imports ::= Import (br Import)* */
+private List<Import> Imports = a1:Import a2s:(br Import)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Import ::=
+     import w ImportFrom
+   | import w AliasedDottedNames
+ */
+private Import Import =
+     import w ImportFrom
+   / import w a1:AliasedDottedNames
+     { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
+
+/* ImportFrom ::=
+     * (w except w Names)? w from w DottedName
+   | AliasedNames w from w DottedName
+ */
+private ImportFrom ImportFrom =
+     star a1:(w except w Names)? w from w a2:DottedName
+     { if (a1 == null) a1 = Collections.<SimpleName>emptyList();
+       yyValue = new ImportStar(createSpan(yyStart,yyCount), a2, a1);
+     }
+   / a1:AliasedNames w from w a2:DottedName
+     { yyValue = new ImportNames(createSpan(yyStart,yyCount), a2, a1); };
+
+/* Names ::= Name | { w NameList w } */
+private List<SimpleName> Names =
+     a1:Name
+     { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w NameList w closecurly ;
+
+/* NameList ::= Name (w , w Name)* */
+private List<SimpleName> NameList = a1:Name a2s:(w comma w Name)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* AliasedNames ::=
+     AliasedName
+   | { w AliasedNameList w }
+ */
+private List<AliasedName> AliasedNames =
+     a1:AliasedName
+     { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w AliasedNameList w closecurly ;
+
+/* AliasedName ::=
+     Id (w as w Id)?
+   | opr w Op (w as w Op)?
+   | opr w EncloserPair (w as w EncloserPair)?
+ */
+private AliasedName AliasedName =
+     a1:Id a2:(w as w Id)?
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1);
+       else
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1, a2);
+     }
+   / opr w a1:Op a2:(w as w Op)?
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
+                                                 new Opr(a1.getSpan(), a1));
+       else
+           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
+                                                 new Opr(a1.getSpan(), a1),
+                                                 new Opr(a2.getSpan(), a2));
+     }
+   / opr w a1:EncloserPair a2:(w as w EncloserPair)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedName(span, a1);
+       else
+           yyValue = NodeFactory.makeAliasedName(span, a1, a2);
+     };
+
+/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+private Bracketing EncloserPair =
+     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
+           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
+       else
+           yyValue = error(a2, "Mismatched Enclosers.");
+     };
+
+/* AliasedNameList ::= AliasedName (w , w AliasedName)* */
+private List<AliasedName> AliasedNameList =
+     a1:AliasedName a2s:(w comma w AliasedName)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Exports ::= Export (br Export)* */
+private List<Export> Exports = a1:Export a2s:(br Export)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Export ::= export w DottedNames */
+private Export Export = export w a1:DottedNames
+     { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
+
+/* AliasedDottedNames ::=
+     AliasedDottedName
+   | { w AliasedDottedNameList w }
+ */
+private List<AliasedDottedName> AliasedDottedNames =
+     a1:AliasedDottedName
+     { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w AliasedDottedNameList w closecurly ;
+
+/* AliasedDottedName ::= DottedName (w as w DottedName)? */
+private AliasedDottedName AliasedDottedName =
+     a1:DottedName a2:(w as w DottedName)?
+     { if (a2 == null)
+           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
+                                           Option.<DottedName>none());
+       else
+           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
+                                           Option.some(a2));
+     };
+
+/* AliasedDottedNameList ::= AliasedDottedName (w , w AliasedDottedName)* */
+private List<AliasedDottedName> AliasedDottedNameList =
+     a1:AliasedDottedName a2s:(w comma w AliasedDottedName)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* DottedNames ::=
+     DottedName
+   | { w DottedNameList w }
+ */
+List<DottedName> DottedNames =
+     a1:DottedName
+     { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w DottedNameList w closecurly ;
+
+/* DottedNameList ::= DottedName (w , w DottedName)* */
+private List<DottedName> DottedNameList = a1:DottedName a2s:(w comma w DottedName)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };

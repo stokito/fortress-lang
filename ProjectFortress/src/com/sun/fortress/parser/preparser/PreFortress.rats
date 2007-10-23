@@ -1,0 +1,100 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * A PreFortress grammar which can parse the name and imports of a Fortress component.
+ */
+module      PreFortress;
+modify      Compilation  (Declaration, Identifier, Keyword, Symbol, Spacing);
+instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing);
+instantiate TraitObject  (Method, Field, AbsField, Parameter, OtherDecl, Header,
+                          Identifier, Keyword, Spacing);
+instantiate Function     (Parameter, Header, Type, NoNewlineExpr, Identifier,
+                          Keyword, Symbol, Spacing);
+instantiate Parameter    (Header, Type, Expression, Identifier, Keyword, Symbol,
+                          Spacing);
+instantiate Method       (MethodParam, Header, Type, NoNewlineExpr, Identifier,
+                          Keyword, Symbol, Spacing);
+instantiate MethodParam  (Parameter, Keyword);
+instantiate Variable     (Header, Type, NoNewlineExpr, Identifier, Keyword,
+                          Symbol, Spacing);
+instantiate Field        (Variable, Header, Type, Identifier, Spacing);
+instantiate AbsField     (Variable, Header, Type, Identifier, Spacing);
+instantiate Header       (OtherDecl, Type, Expression, DelimitedExpr, Identifier,
+                          Keyword, Symbol, Spacing);
+instantiate OtherDecl    (Parameter, Header, Type, NoNewlineExpr, Identifier,
+                          Keyword, Symbol, Spacing);
+instantiate Type         (Header, Expression, Literal, Identifier, Keyword,
+                          Symbol, Spacing);
+instantiate Expression   (Parameter, Header, Type, DelimitedExpr, Identifier,
+                          Keyword, Symbol, Spacing);
+instantiate DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,
+                          Literal, Identifier, Keyword, Symbol, Spacing) as DelimitedExpr;
+instantiate NoNewlineExpr(Expression, Keyword, Symbol, Spacing);
+instantiate NoSpaceExpr  (Expression, Keyword, Symbol, Spacing);
+instantiate Literal      (DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
+instantiate LocalDecl    (Variable, Function, Parameter, Header, Type,
+                          NoNewlineExpr, DelimitedExpr, Identifier, Keyword,
+                          Symbol, Spacing);
+instantiate Identifier   (Keyword, Symbol, Unicode, Spacing);
+instantiate Symbol       (DelimitedExpr, NoNewlineExpr, Type, Identifier,
+                          Spacing, Keyword);
+instantiate Spacing      (Symbol);
+instantiate Keyword      (Identifier);
+instantiate Unicode;
+
+header {
+import com.sun.fortress.interpreter.evaluator.ProgramError;
+import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
+import com.sun.fortress.parser_util.precedence_opexpr.Left;
+import com.sun.fortress.parser_util.precedence_opexpr.Right;
+import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
+import com.sun.fortress.parser_util.precedence_opexpr.TightInfix;
+import com.sun.fortress.parser_util.precedence_opexpr.LooseInfix;
+import com.sun.fortress.parser_util.precedence_opexpr.Prefix;
+import com.sun.fortress.parser_util.precedence_opexpr.Postfix;
+import com.sun.fortress.parser_util.precedence_resolver.*;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.parser_util.*;
+import com.sun.fortress.useful.PureList;
+import com.sun.fortress.useful.Empty;
+import com.sun.fortress.useful.Cons;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.iter.IterUtil;
+import xtc.util.Action;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+}
+
+body {
+
+   Span createSpan(int start, int end) {
+        Column s = column(start);
+        Column e = column(end-1);
+        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column);
+        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column);
+        return new Span(slStart, slEnd);
+   }
+}
+
+option parser(com.sun.fortress.parser.preparser.PreFortress);

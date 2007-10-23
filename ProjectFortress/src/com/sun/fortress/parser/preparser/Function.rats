@@ -1,0 +1,95 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress function declarations.
+ */
+module Function(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
+                Spacing);
+
+import Param;
+import Header;
+import Type;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* FnDecl ::=
+   FnMods? FnHeaderFront FnHeaderClause (w = w NoNewlineExpr)?
+ | FnSig
+ */
+Decl FnDecl =
+     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause a4:(w void:equals w NoNewlineExpr)?
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       Span span = createSpan(yyStart,yyCount);
+       if (a4 == null) yyValue = FortressUtil.mkAbsFnDecl(span, a1, a2, a3);
+       else            yyValue = FortressUtil.mkFnDecl(span, a1, a2, a3, a4);
+     }
+   / FnSig ;
+
+/* FnSig ::= Name w : w ArrowType */
+AbsFnDecl FnSig =
+     a1:Name w colon w a2:ArrowType
+     { final List<Modifier> mods = FortressUtil.emptyModifiers();
+       final List<Param>  params = FortressUtil.emptyParams();
+
+       a2.getDomain().accept(new NodeAbstractVisitor_void() {
+           public void forType(Type that) {
+               IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
+               params.add(NodeFactory.makeParam(that.getSpan(), mods, name, that));
+           }
+           public void forVarargsType(VarargsType that) {
+               IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
+               params.add(NodeFactory.makeVarargsParam(that.getSpan(), mods,
+                                                       name, that));
+           }
+           public void forTupleType(TupleType that) {
+               for (AbstractNode i : that.getElements()) { i.accept(this); }
+               if (that.getVarargs().isSome()) { Option.unwrap(that.getVarargs()).accept(this); }
+               assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
+           }
+           public void defaultCase(Node that) {
+               bug(errorMsg("Node expected to be a Type; was: ", that));
+           }
+       });
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
+                                          a1, params, a2.getRange());
+     };
+
+/* AbsFnDecl ::=
+     AbsFnMods? FnHeaderFront FnHeaderClause
+   | FnSig
+ */
+AbsFnDecl AbsFnDecl =
+     a1:AbsFnMods? a2:FnHeaderFront a3:FnHeaderClause
+     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+     }
+   / FnSig ;
+
+/* FnHeaderFront ::=
+     Id (w StaticParams)? w ValParam
+   | OpHeaderFront
+ */
+FnHeaderFront FnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(NodeFactory.makeIdName(a1),a2,a3);
+     }
+   / OpHeaderFront ;

@@ -1,0 +1,21 @@
+module DelimitedExprExt(TraitObject, Header, Type, Expr, LocalDecl, Literal,
+                     Identifier, Keyword, Symbol, Spacing);
+import TraitObject;
+import Header;
+import Type;
+import Expr;
+import LocalDecl;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+modify DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,
+                          Literal, Identifier, Keyword, Symbol, Spacing);
+
+Expr DelimitedExpr += <DO>... / <FOO> foo w a1:Expression.Expr w bar
+                                    { yyValue = a1; };
+
+transient void foo = "foo";
+transient void bar = "bar";

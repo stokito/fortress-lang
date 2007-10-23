@@ -1,0 +1,107 @@
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals.
+ */
+module Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
+
+import DelimitedExpr;
+import NoSpaceExpr;
+import Symbol;
+import Spacing;
+
+/* Literal ::=
+     ( w )
+   | NumericLiteral
+   | CharLiteral
+   | StringLiteral
+ */
+Expr Literal =
+     openparen w closeparen
+     { yyValue = ExprFactory.makeVoidLiteral(createSpan(yyStart,yyCount)); }
+   / NumericLiteral
+   / CharLiteral
+   / StringLiteral
+   ;
+
+/* Aggregate ::=
+     { w Entry (w , w Entry)* w }
+   | [ w RectElements w ]
+ */
+Expr Aggregate =
+     opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
+     { List<Entry> elements = new ArrayList<Entry>();
+       elements.add(a1);
+       elements.addAll(a2s.list());
+       yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
+     }
+   / void:opensquare w RectElements w void:closesquare ;
+
+/* RectElements ::= NoSpaceExpr MultiDimCons* */
+private ArrayExpr RectElements =
+     a1:NoSpaceExpr a2s:MultiDimCons*
+     { if (a2s == null || a2s.isEmpty())
+           yyValue = new ArrayElement(a1.getSpan(), false, a1);
+       else
+           yyValue = FortressUtil.multiDimCons(a1, a2s.list());
+     };
+
+/* MultiDimCons ::= RectSeparator NoSpaceExpr */
+com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
+     a1:RectSeparator a2:NoSpaceExpr
+     { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
+
+NumberLiteral NumericLiteral =
+     FloatLiteral
+   / IntLiteral ;
+
+transient FloatLiteral FloatLiteral = a1:DigitString dot a2:DigitString
+     { yyValue = ExprFactory.makeFloatLiteral(createSpan(yyStart,yyCount), a1 + "." + a2); };
+
+transient IntLiteral IntLiteral = a1:DigitString
+     { yyValue = ExprFactory.makeIntLiteral(createSpan(yyStart,yyCount), a1); };
+
+private transient String DigitString = [0-9]+;
+
+CharLiteral CharLiteral = "'" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteral(createSpan(yyStart,yyCount), a1); };
+
+StringLiteral StringLiteral = ["] a1:StringLiteralContent* ["]
+     { String str = "";
+       for (String s : (List<String>)a1.list()) {
+           str = str.concat(s);
+       }
+       yyValue = new StringLiteral(createSpan(yyStart,yyCount), false, str);
+     };
+private String StringLiteralContent =
+     EscapeSequence
+   / a1:(!["\\] _)     { yyValue = String.valueOf(a1); };
+private String EscapeSequence = '\\' a1:[btnfr"\\]
+     { switch (a1) {
+           case 'b': { yyValue = "\b"; break; }
+           case 't': { yyValue = "\t"; break; }
+           case 'n': { yyValue = "\n"; break; }
+           case 'f': { yyValue = "\f"; break; }
+           case 'r': { yyValue = "\r"; break; }
+           case '"': { yyValue = "\""; break; }
+           case '\\': { yyValue = "\\"; break; }
+           default:   { yyValue = ""; }
+       }
+     };
+
+private transient String CharLiteralContent   = '\\' [btnfr"\\] / (!"'" _);
