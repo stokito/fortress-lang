@@ -13,8 +13,8 @@ Fortify: The Fortify tool for converting Fortress code into LaTeX,
 both interactively and in batch mode.
 
 ProjectFortress: The Fortress interpreter.  You need to build the
-interpreter in order to have a complete Fortress installation.  See the
-README in this directory for instructions on building the
+interpreter in order to have a complete Fortress installation.
+See the README in this directory for instructions on building the
 interpreter.
 
 SpecData: Machine-readable files used by the Fortress Language
