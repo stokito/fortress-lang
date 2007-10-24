@@ -45,7 +45,7 @@ NameList ::= Name(, Name)*
     AST does not define such productions but use "List<NONTERMINAL>" instead.
     For example, "List<Name>" is used instead of "NameList".
 
- 2) CSG provides productions for componet and API declarations that do not
+ 2) CSG provides productions for component and API declarations that do not
     include their "component DottedId/end" and "api DottedId/end" reserved
     words:
 
