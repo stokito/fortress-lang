@@ -292,17 +292,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             ObjectDecl(List<Decl> decls)
                       implements GenericDeclWithParams;
     /**
-     * macro declaration in components or APIs
-     */
-    MacroDecl(Span s, SimpleName name, List<SyntaxDef> syntaxDefs) implements AbsDecl;
-    
-    /**
-     * syntax definitions in macro declarations
-     */
-    SyntaxDef(Span s, SimpleName name);
-        SyntaxDefBody(Expr body);    
-    
-    /**
      * variable declaration in components or APIs
      */
     abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements AbsDeclOrDecl;
@@ -481,6 +470,18 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) syntax sql e end = parseSQL(e)
          */
         ExternalSyntax(Expr expr) implements Decl;
+    /**
+     * macro declaration in components or APIs
+     */
+    MacroDecl(SimpleName name, List<SyntaxDef> syntaxDefs) implements AbsDecl;
+    /**
+     * syntax declaration in macro declarations
+     */
+    abstract SyntaxDecl(SimpleName name);
+        /**
+         * syntax definition in macro declarations
+         */
+        SyntaxDef(Expr body);
     /**
      * expression
      */

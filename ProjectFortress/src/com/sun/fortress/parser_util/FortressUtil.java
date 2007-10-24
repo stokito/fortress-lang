@@ -765,10 +765,6 @@ public final class FortressUtil {
     }
 
     public static SyntaxDef mkSyntaxDef(Span span, SyntaxHeaderFront shf, Expr expr) {
-    	return NodeFactory.makeSyntaxDefBody(span, shf.getName(), expr);
-    }
-    
-    public static SyntaxDef mkSyntaxDef(Span span, SyntaxHeaderFront shf) {
-    	return NodeFactory.makeSyntaxDef(span, shf.getName());
+    	return NodeFactory.makeSyntaxDef(span, shf.getName(), expr);
     }
 }

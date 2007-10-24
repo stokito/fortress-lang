@@ -20,8 +20,9 @@
  */
 module      Fortress;
 modify      Compilation  (Declaration, Identifier, Keyword, Symbol, Spacing);
-instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing, Syntax);
-instantiate Syntax(Identifier, Keyword, Spacing, Symbol, Expression);
+instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing,
+                          Syntax);
+instantiate Syntax       (Identifier, Keyword, Spacing, Symbol, Expression);
 instantiate TraitObject  (Method, Field, AbsField, Parameter, OtherDecl, Header,
                           Identifier, Keyword, Spacing);
 instantiate Function     (Parameter, Header, Type, NoNewlineExpr, Identifier,
@@ -47,7 +48,7 @@ instantiate DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,
                           Literal, Identifier, Keyword, Symbol, Spacing);
 instantiate NoNewlineExpr(Expression, Keyword, Symbol, Spacing);
 instantiate NoSpaceExpr  (Expression, Keyword, Symbol, Spacing);
-instantiate Literal      (DelimitedExpr, NoSpaceExpr, Symbol, Spacing, Keyword);
+instantiate Literal      (DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
 instantiate LocalDecl    (Variable, Function, Parameter, Header, Type,
                           NoNewlineExpr, DelimitedExpr, Identifier, Keyword,
                           Symbol, Spacing);

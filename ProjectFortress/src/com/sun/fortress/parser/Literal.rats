@@ -18,13 +18,12 @@
 /*
  * Definition of Fortress literals.
  */
-module Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing, Keyword);
+module Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
 
 import DelimitedExpr;
 import NoSpaceExpr;
 import Symbol;
 import Spacing;
-import Keyword;
 
 /* Literal ::=
      ( w )

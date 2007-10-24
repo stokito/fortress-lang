@@ -1,3 +1,22 @@
+CHECK: value trait / value object / value type
+
+* Not yet implemented features
+ - lexical structure
+  = ASCII conversion
+  = digit-group separator
+ - coercions
+ - operators
+  = conditional operators
+  = BIG operators
+ - keyword parameters
+ - dimensions and units
+ - where clauses
+ - conditional extensions
+ - syntax expanders
+ - component system
+ - static checking
+  = acyclic type hierarchy
+
 * Constraints that should be checked by the static checker
  1) Operator Declarations
   - An infix/multifix operator declaration must not have any keyword parameters,
