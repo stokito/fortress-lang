@@ -26,7 +26,6 @@ import Spacing;
 import Symbols;
 import Expr;
 
-
 /* MacroDecl ::= macro id (br SyntaxDef)* */
 public MacroDecl MacroDecl =
      macro w a1:id a2s:(w SyntaxDefs)? w end
@@ -40,12 +39,10 @@ List<SyntaxDef> SyntaxDefs = a1:SyntaxDef a2s:(br SyntaxDef)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* SyntaxDef ::= SyntaxHeaderFront w = w NoNewlineExpr */
-SyntaxDef SyntaxDef =    
+SyntaxDef SyntaxDef =
      a1:SyntaxHeaderFront w equals w a2:Expr
      { yyValue = FortressUtil.mkSyntaxDef(createSpan(yyStart,yyCount), a1, a2); };
-     
+
 SyntaxHeaderFront SyntaxHeaderFront =
      a1:Id
      { yyValue = new SyntaxHeaderFront(NodeFactory.makeIdName(a1));};
-     
-

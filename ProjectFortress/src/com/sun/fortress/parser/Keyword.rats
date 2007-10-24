@@ -52,7 +52,7 @@ body {
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
         "var",          "where",        "while",        "widens",
-        "with",         "wrapped",        "macro"
+        "with",         "wrapped",      "macro"
     });
   }
 }
