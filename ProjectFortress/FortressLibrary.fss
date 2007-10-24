@@ -269,6 +269,7 @@ value trait Maybe[\T\]
         extends { MaybeType, SequentialGenerator[\T\], ZeroIndexed[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
     getter unJust() : T throws UnJustNothing
+    unJust(t:T): T
     maybe[\R\](nothingAction: ()->R, justAction: T->R): R
 end
 
@@ -277,6 +278,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     getter toString():String = "Just(" x ")"
     getter isJust() = true
     getter unJust() = x
+    unJust(_:T): T = x
     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
     opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
     opr[r:Range[\ZZ32\]]:Maybe[\T\] = do
@@ -304,6 +306,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     getter isJust() = false
     getter unJust() = throw UnJustNothing
     getter toString():String = "Nothing"
+    unJust(t:T):T = t
     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
     opr[_:ZZ32]: T = fail("Cannot index Nothing")
     opr[r:Range[\ZZ32\]]: Nothing[\T\] = do

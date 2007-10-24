@@ -1,0 +1,169 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+component Lambda
+import * from Map
+import * from ArrayList
+(*
+import * from File
+import * from NativeFile
+*)
+export Executable
+
+emptyMap = EmptyMap[\String,Def\]()
+
+globalEnv: TreeMap[\String, Def\] := emptyMap
+
+parens(gp:ZZ32, p:ZZ32, s:String):String =
+    if gp <= p then "(" s ")" else s end
+
+trait Term extends Equality
+        comprises { Lambda, App, Var, Const }
+    getter toString(): String = pretty(0)
+    getter inst(): Term = self
+    pretty(p:ZZ32): String = ugly()
+    ugly(): String
+    plambda(): String = ". " pretty(0)
+    eq(x:Term): Boolean = false
+end
+
+object Const(n:ZZ32) extends Term
+    ugly(): String = "" n
+    eq(x:Const) = self.n = x.n
+end
+
+uidNum : ZZ32 := 0
+getUid(): ZZ32 = do
+    var r : ZZ32
+    atomic do
+        r := uidNum
+        uidNum := r+1
+    end
+    r
+  end
+
+object App(rator:Term, rand:Term) extends Term
+    uniqId = getUid()
+    pretty(p:ZZ32): String = parens(2, p, rator.pretty(1) " " rand.pretty(2))
+    ugly(): String = "(" uniqId "@ " rator.ugly() " " rand.ugly() ")"
+    eq(a:App): Boolean = self.uniqId = a.uniqId
+end
+
+app(rator:Term, rand:Term): App = do
+    r = App(rator, rand)
+    r
+  end
+
+object Var(def: Def) extends Term
+    uniqId = getUid()
+    instantiated : Boolean := false
+    getter inst(): Term = if instantiated then def.definition() else self end
+    pretty(p:ZZ32): String =
+        if instantiated then def.definition().pretty(p) else def.toString() end
+    ugly(): String = do
+        n = uniqId ":" def.ugly()
+        if instantiated then n "=" def.definition().ugly() else n end
+      end
+    instantiate(): () = do self.instantiated := true end
+    eq(x:Var): Boolean = self.uniqId = x.uniqId
+end
+
+v(def: Def): Var = do
+    r = Var(def)
+    def.addOccurrence(r)
+    r
+  end
+
+object Lambda(def: Def, body: Term) extends { Term }
+    pretty(p:ZZ32): String = parens(1, p, "\\" plambda())
+    ugly(): String = "(\\" def.ugly() " . " body.ugly() ")"
+    plambda(): String = " " def body.plambda()
+    eq(x:Lambda): Boolean = self.uniqId = x.uniqId
+end
+
+lambda(name:String, body: Def->Term): Lambda = do
+    d = Def(name, false)
+    bod = body(d)
+    r = Lambda(d,bod)
+    r
+  end
+
+object Def(name:String, topLevel:Boolean) extends Equality
+    uniqId = getUid()
+    occs : List[\Var\] := emptyList[\Var\]()
+    def : Maybe[\Term\] := Nothing[\Term\]()
+    getter toString(): String = name
+    getter occurrences(): List[\Var\] = occs
+    getter definition(): Term =
+        def.maybe[\Term\](
+            fn ()=> Var(self),
+            fn (t:Term):Term => do
+                u = t.inst()
+                define(u)
+                u
+              end)
+    getter defined(): Boolean = def.isJust()
+    ugly(): String = name "." uniqId
+    addOccurrence(v:Var): () = (* atomic *) do
+        occs := occs.addRight(v)
+      end
+    define(x:Term): () = do def := Just[\Term\](x) end
+    eq(x:Def): Boolean = self.uniqId = x.uniqId
+end
+
+getFree(name:String): Def = (* atomic *) do
+    globalEnv.member(name).maybe[\Def\](
+        fn () => do
+            d = Def(name, true)
+            globalEnv := globalEnv.add(name, d)
+            d
+          end,
+        identity[\Def\])
+  end
+
+freeVar(name:String): Var = v(getFree(name))
+
+lookup(rho: TreeMap[\String,Def\], name:String): Var =
+    rho.member(name).maybe[\Var\](fn () => freeVar(name), v)
+
+freeDef(name:String, defn:Term): () = getFree(name).define(defn)
+
+subst(name:String):() = getFree(name).subst()
+
+dumpGlobals():() =
+    for (k,v) <- globalEnv do
+        println(k " = " v.definition() )
+    end
+
+uglyGlobals():() =
+    for (k,v) <- globalEnv do
+        println(v.ugly() " = " v.definition().ugly())
+    end
+
+run(args:String...):() = do
+    freeDef("S", lambda("x", fn(x:Def) =>
+                     lambda("y", fn(y:Def) =>
+                         lambda("z", fn(z:Def) => do vx = v(x); vy = v(y); vz = v(z)
+                             app(app(vx,vz),app(vy,v(z))) end))))
+    freeDef("I", lambda("x", fn(x:Def) => v(x)))
+    freeDef("main", app(app(freeVar("S"), freeVar("K")),
+                        app(freeVar("K"), freeVar("I"))))
+    freeDef("K", lambda("x", fn(x:Def) => lambda("y", fn(y:Def) => v(x))))
+    dumpGlobals()
+    uglyGlobals()
+  end
+
+end
