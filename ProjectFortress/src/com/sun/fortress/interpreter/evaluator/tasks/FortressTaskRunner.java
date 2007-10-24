@@ -167,6 +167,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
                 T result = doItOnce(xaction);
                 return result;
             } catch (AbortedException e) {
+                if (BaseTask.getThreadState().transactionNesting() > 0) {
+                    throw e;  // to be handled by outermost transaction.
+                }
             }
         }
     }
