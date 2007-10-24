@@ -1543,52 +1543,56 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * static parameter
      */
     abstract StaticParam();
-       /**
-         * bool parameter
-         * StaticParam ::= bool Id
-         * e.g.) bool nan
-         */
-        BoolParam(IdName name);
-       /**
-         * dimension parameter
-         * StaticParam ::= dim Id
-         * e.g.) dim D
-         */
-        DimensionParam(IdName name);
-       /**
-         * int parameter
-         * StaticParam ::= int Id
-         * e.g.) int i
-         */
-        IntParam(IdName name);
-       /**
-         * nat parameter
-         * StaticParam ::= nat Id
-         * e.g.) nat len
-         */
-        NatParam(IdName name);
-       /**
+        /**
          * operator parameter
          * StaticParam ::= opr Op
          * e.g.) opr ODOT
          */
         OperatorParam(OpName name);
-       /**
-         * type parameter
-         * StaticParam ::= Id Extends? (absorbs unit)?
-         * e.g.) EltType extends Number absorbs unit
+        /**
+         * static parameter with a name field
+         * of type IdName
          */
-        SimpleTypeParam(IdName name,
-                        List<TraitType> extendsClause =
-                            Collections.<TraitType>emptyList(),
-                        boolean absorbs = false);
-       /**
-         * unit parameter
-         * StaticParam ::= unit Id (: DimExpr)? (absorbs unit)?
-         * e.g.) unit U absrbs unit
-         */
-        UnitParam(IdName name, Option<DimExpr> dim = Option.<DimExpr>none(),
-                  boolean absorbs = false);
+        abstract IdStaticParam(IdName name);
+           /**
+            * bool parameter
+            * StaticParam ::= bool Id
+            * e.g.) bool nan
+            */
+            BoolParam();
+           /**
+            * dimension parameter
+            * StaticParam ::= dim Id
+            * e.g.) dim D
+            */
+            DimensionParam();
+           /**
+            * int parameter
+            * StaticParam ::= int Id
+            * e.g.) int i
+            */
+            IntParam();
+           /**
+            * nat parameter
+            * StaticParam ::= nat Id
+            * e.g.) nat len
+            */
+            NatParam();
+           /**
+            * type parameter
+            * StaticParam ::= Id Extends? (absorbs unit)?
+            * e.g.) EltType extends Number absorbs unit
+            */
+            SimpleTypeParam(List<TraitType> extendsClause =
+                                Collections.<TraitType>emptyList(),
+                            boolean absorbs = false);
+           /**
+            * unit parameter
+            * StaticParam ::= unit Id (: DimExpr)? (absorbs unit)?
+            * e.g.) unit U absrbs unit
+            */
+            UnitParam(Option<DimExpr> dim = Option.<DimExpr>none(),
+                      boolean absorbs = false);
     /**
      * Names used in declarations and references.
      */
