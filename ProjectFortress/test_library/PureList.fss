@@ -116,8 +116,8 @@ object PLConcat[\E\]() extends Reduction[\ PureList[\E\] \]
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a.append(b)
 end
 
-(* We must wrap the FingerTree, since we need also wrap the elements
-   in order compute the nested monoidal computation (here the size of
+(* We must wrap the FingerTree, since we need to also wrap the elements
+   in order to compute the nested monoidal computation (here the size of
    each sublist) systematically. *)
 value object PureList[\E\]( it: FingerTree[\E\] )
       extends { List[\E\] }
