@@ -311,7 +311,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
-
         FValue res = FortressTaskRunner.doIt (
             new Callable<FValue>() {
                 public FValue call() {
@@ -327,6 +326,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
         FValue res = FVoid.V;
+        // Inside a transaction tryAtomic is a noop
+        if (BaseTask.getThreadState().transactionNesting() > 1) {
+            Evaluator ev = new Evaluator(new BetterEnv(current.e, expr));
+            return expr.accept(current);
+        }
         try {
             res = FortressTaskRunner.doItOnce(
                 new Callable<FValue>() {

@@ -170,7 +170,7 @@ public class ReferenceCell extends IndirectionCell {
     }
     // Am I still active?
     if (!me.isActive()) {
-      throw new AbortedException();
+        throw new AbortedException();
     }
     // Have I already opened this object?
     if (writer == me) {

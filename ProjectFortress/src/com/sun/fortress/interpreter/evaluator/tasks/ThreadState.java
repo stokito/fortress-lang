@@ -48,6 +48,14 @@ public class ThreadState {
 
     Transaction transaction = null;
 
+    private void incDepth() {
+        depth++;
+    }
+
+    private void decDepth() {
+        depth--;
+    }
+
     /**
      * Creates new ThreadState
      */
@@ -171,15 +179,16 @@ public class ThreadState {
      * invoking thread is notified when a transaction is begun.
      */
     public void beginTransaction() {
-        transaction = new Transaction();
         if (depth == 0) {
+            transaction = new Transaction();
             total++;
         }
         // first thing to fix if we allow nested transactions
-        if (depth >= 1) {
-            throw new PanicException("beginTransaction: attempting to nest transactions too deeply.");
-        }
-        depth++;
+        //        if (depth >= 1) {
+        //            throw new PanicException("beginTransaction: attempting to nest transactions too deeply.");
+        //        }
+
+        incDepth();
     }
 
     /**
@@ -197,8 +206,10 @@ public class ThreadState {
     public boolean commitTransaction() {
         if (depth < 1) {
             throw new PanicException(Thread.currentThread().getName() + " commitTransaction invoked when no transaction active.");
+            //        } else if (depth > 1) {
+            //            throw new PanicException("commitTransaction invoked on nested transaction.");
         } else if (depth > 1) {
-            throw new PanicException("commitTransaction invoked on nested transaction.");
+            return validate();
         } else  {
             if (validate() && transaction.commit()) {
                 committed++;
@@ -221,8 +232,8 @@ public class ThreadState {
     }
 
     public void endTransaction() {
-        depth--;
-        if (transaction != null) {
+        decDepth();
+        if (depth == 0 && transaction != null) {
             if (transaction.isActive()) {
                 abortTransaction();
                 transaction = null;
@@ -251,5 +262,6 @@ public class ThreadState {
         }
     }
 }
+
 
 
