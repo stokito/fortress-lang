@@ -21,7 +21,7 @@
  * @see{com.sun.fortress.parser.NameAndImportCollector}.
  */
 
-package com.sun.fortress.parser.preparser;
+package com.sun.fortress.parser_util;
 
 import java.util.LinkedList;
 import java.util.List;

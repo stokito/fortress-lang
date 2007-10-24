@@ -20,7 +20,7 @@
  * Used in the Fortress com.sun.fortress.compiler.Fortress.
  */
 
-package com.sun.fortress.parser.preparser;
+package com.sun.fortress.parser_util;
 
 import java.util.LinkedList;
 import java.util.List;
