@@ -28,6 +28,8 @@ import com.sun.fortress.interpreter.evaluator.FortressException;
 import java.util.concurrent.Callable;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+
 public class FortressTaskRunner extends ForkJoinWorkerThread {
  /**
  * Contention manager class.
@@ -135,7 +137,11 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         ThreadState threadState = BaseTask.getThreadState();
         ContentionManager manager = threadState.manager();
         T result = null;
+        try {
         threadState.beginTransaction();
+        } catch (PanicException p) {
+            bug("Cannot yet nest transactions.");
+        }
         try {
             result = xaction.call();
             if (threadState.commitTransaction()) {

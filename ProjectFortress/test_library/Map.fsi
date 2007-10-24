@@ -41,7 +41,9 @@ trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
   balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
 end
 
+(*
 singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\]
+*)
 
 mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\]
 

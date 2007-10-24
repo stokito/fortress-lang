@@ -245,10 +245,10 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
       mkEmptyLike(self,rfl).addRight(e).append(self)
     end
   addRight(e:E):ArrayList[\E\] = do
-      newSize = f.size() + 1
+      newSize = size() + 1
       if newSize <= maxUn AND canExtend.tryToExtend() then
           addRight0(e)
-      else increaseTo(newSize).addRight(e)
+      else increaseTo(newSize).addRight0(e)
       end
     end
   addRight0(e:E): ArrayList[\E\] = do
