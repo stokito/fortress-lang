@@ -35,18 +35,21 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.DottedName;
 
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 public class CompilerTopLevelJUTest extends TestCase {
     
     private static final boolean VERBOSE = false;
     private static final boolean SKIP_NOT_PASSING = true;
     
     // relative to the top ProjectFortress directory
+    private static String baseDir = ProjectProperties.BASEDIR;
+
     private static final List<String> NOT_PASSING = Arrays.asList(
-        "static_tests/SimpleProgram.fss",
-        "static_tests/SimpleApi.fss",
-        "static_tests/LocalFnRef.fss",
-        "static_tests/LocalVarRef.fss",
-        "static_tests/stub to eliminate comma trouble"
+        baseDir + "static_tests/SimpleProgram.fss",
+        baseDir + "static_tests/SimpleApi.fss",
+        baseDir + "static_tests/LocalFnRef.fss",
+        baseDir + "static_tests/LocalVarRef.fss",
+        baseDir + "static_tests/stub to eliminate comma trouble"
     );
     
     private static final Set<File> NOT_PASSING_FILES =
@@ -57,7 +60,7 @@ public class CompilerTopLevelJUTest extends TestCase {
     public void testStaticTests() {
         boolean foundAFile = false;
         Predicate<File> filter = IOUtil.extensionFilePredicate("fss", IOUtil.IS_FILE);
-        for (File f : IOUtil.listFilesRecursively(new File("static_tests"), filter)) {
+        for (File f : IOUtil.listFilesRecursively(new File(baseDir + "static_tests"), filter)) {
             foundAFile = true;
             if (SKIP_NOT_PASSING && NOT_PASSING_FILES.contains(f)) { continue; }
             else if (f.getName().contains("XXX")) { assertMalformedProgram(f); }
