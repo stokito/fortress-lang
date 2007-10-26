@@ -16,42 +16,37 @@
  ******************************************************************************)
 
 api File
-import * from NativeFile
+import * from FileSupport
 
-trait Closeable
-    close():()
-end
-
-trait FileStream extends Closeable
+object FileReadStream(transient filename:String) extends { FileStream, ReadStream }
     getter fileName():String
     getter toString():String
-end
 
-(*********************
-object ReadStream(filename:String) extends FileStream
-    (** Returns the name of the file, as passed in during construction. **)
-    getter fileName():String
-    getter toString():String
     (** eof returns true if an end-of-file condition has been
         encountered on the stream. **)
     getter eof():Boolean
+
     (** ready returns true if there is currently input from the stream
         available to be consumed. **)
     getter ready():Boolean
 
+    (** close the stream **)
+    close():()
+
     (** Returns the next available line from the stream, discarding
-        line termination characters.  Returns empty string on eof. **)
+        line termination characters.  Returns "" on eof. **)
     readLine():String
+
     (** Returns the next available character from the stream, or "" on eof. **)
     readChar():Char
+
     (** Returns the next k characters from the stream.  It will block
         until at least one character is available, and will then
         return as many characters as are ready.  Will return "" on end
         of file.  If k<=0 or absent a default value is chosen. **)
     read(k:ZZ32):String
-    read():String
 
-    close():()
+    read():String
 
     (** All file generators yield file contents in parallel by
         default, with a natural ordering corresponding to the order
@@ -78,13 +73,14 @@ object ReadStream(filename:String) extends FileStream
         Once the ReadStream has been completely consumed it is closed.
      **)
 
+
     (** lines yields the lines found in the file a la readLine(). **)
-    lines(n:ZZ32):FileGenerator[\String\]
-    lines():FileGenerator[\String\]
+    lines(n:ZZ32):Generator[\String\]
+    lines():Generator[\String\]
 
     (** characters yields the characters found in the file a la readChar(). **)
-    lines(n:ZZ32):FileGenerator[\String\]
-    lines():FileGenerator[\String\]
+    characters(n:ZZ32):Generator[\String\]
+    characters():Generator[\String\]
 
     (** chunks returns chunks of characters found in the file, in the
         sense of read().  The first argument is equivalent to the
@@ -92,12 +88,8 @@ object ReadStream(filename:String) extends FileStream
         chunks at a time.
      **)
     chunks(n:ZZ32,m:ZZ32):Generator[\String\]
-    chunks(n:ZZ32):Generator[\String\]
+    chunks(n:ZZ32): Generator[\String\]
     chunks(): Generator[\String\]
 end
-*************)
-
-fileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S, upper:ZZ32):
-        Generator[\String\]
 
 end

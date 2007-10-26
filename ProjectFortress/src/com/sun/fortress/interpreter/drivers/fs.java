@@ -49,7 +49,7 @@ public class fs {
     private static boolean test = false;
     private static boolean pause = false;
     private static List<String> listArgs = new ArrayList<String>();
-
+    private static boolean verboseExceptions = false;
 
     private static String basename(String s) {
         String filename = new File(s).getName();
@@ -86,6 +86,8 @@ public class fs {
                     verbose = true;
                 } else if ("-t".equalsIgnoreCase(s)) {
                     test = true;
+                } else if ("-debug".equalsIgnoreCase(s)) {
+                    verboseExceptions = true;
                 } else {
                     System.err.println("Unexpected option " + s);
                     usage();
@@ -181,9 +183,14 @@ public class fs {
         catch (FortressError e) {
 //            keepTemp = true;
             System.err.println("\n--------Fortress error appears below--------\n");
-            e.printInterpreterStackTrace(System.err);
-            System.err.println();
-            System.err.println(e.getMessage());
+            if (verboseExceptions) {
+                e.printStackTrace();
+            } else {
+                e.printInterpreterStackTrace(System.err);
+                System.err.println();
+                System.err.println(e.getMessage());
+                System.err.println("Turn on -debug for Java-level error dump.");
+            }
             System.exit(1);
         }
 //        catch (Throwable th) {
@@ -196,12 +203,15 @@ public class fs {
     }
 
     static void usage() {
-        System.err.println("Usage: java fs  [-v] [-ast] [-pause] [-parseOnly] filename run-args");
-        System.err.println("Iteratively parses and executes a Fortress source file.");
-        System.err.println("The -ast option writes out the ast.");
-        System.err.println("The -pause option performs a reset and gc after running the program, and then waits for input.");
-        System.err.println("The -parseOnly option parses but does not evaluate the program.");
-        System.err.println("The -v option is more verbose.");
+        System.err.println("Usage: java fs flags* filename run-args");
+        System.err.println("Iteratively parses the Fortress source file found in filename and executes it using run-args.");
+        System.err.println("Flag summary:");
+        System.err.println(" -ast   writes out the ast.");
+        System.err.println(" -pause   performs a reset and gc after running the program, and then waits for input.");
+        System.err.println(" -parseOnly   parses but does not evaluate the program.");
+        System.err.println(" -keep   keeps some intermediate files.");
+        System.err.println(" -v   verbose parsing.");
+        System.err.println(" -debug   show a full Java stack trace if execution fails.");
     }
 
 }

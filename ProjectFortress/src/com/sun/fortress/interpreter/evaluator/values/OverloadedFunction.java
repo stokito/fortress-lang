@@ -743,7 +743,8 @@ public class  OverloadedFunction extends Fcn
                return of;
            }
            if (f != null) return f;
-           return error(errorMsg("No matches for instantiation of overloaded ",
+           return error(location,
+                   errorMsg("No matches for instantiation of overloaded ",
                    OverloadedFunction.this, " with ", Useful.listInParens(args)));
         }
     }

@@ -206,10 +206,10 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     public void testReadSpan() throws IOException {
         Lex l = new Lex(bs(
-            "@\"f1\",1:2~\"f2\",3:4 "+
-            "@\"f3\",5:6~7:8 "+
-            "@\"f4\",9:10~11 "+
-            "@\"f5\",12:13 "+
+            "@\"f1\":1:2~\"f2\":3:4 "+
+            "@\"f3\":5:6~7:8 "+
+            "@\"f4\":9:10~11 "+
+            "@\"f5\":12:13 "+
             "@14:15~16:17 "+
             "@18:19~20 "+
             "@21:22 @"));

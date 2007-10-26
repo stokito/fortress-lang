@@ -1,0 +1,67 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component File
+import * from FileSupport
+export File
+
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
+
+object FileReadStream(transient filename:String)
+        extends { ReadStream, FileStream}
+    getter fileName():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$fileName")
+
+    getter toString():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$toString")
+
+    getter eof():Boolean =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$eof")
+
+    getter ready():Boolean =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$ready")
+
+    whenUnconsumed():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$whenUnconsumed")
+    consume():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$consume")
+
+    uncheckedReadLine():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readLine")
+
+    uncheckedReadChar():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readChar")
+
+    uncheckedRead(k:ZZ32):String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readk")
+
+    close():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$close")
+end
+
+end

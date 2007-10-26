@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component ArrayList
+import * from OneShotFlag
 export ArrayList
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
@@ -123,7 +124,7 @@ opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
     fromArray( PrimitiveArray[\E,n\]().assign(f) )
 fromArray[\E, nat n\](f: PrimitiveArray[\E,n\]): Alr[\E,n\] =
-    Alr[\E,n\]( f, 0, n, cantExtend )
+    Alr[\E,n\]( f, 0, n, noShot )
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
@@ -134,7 +135,7 @@ list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do            sz = g.size()
             for (i,v) <- g[#].indexValuePairs() do
                 a.init(i,v)
             end
-            alr(a,0,sz,cantExtend)
+            alr(a,0,sz,noShot)
 end
 
 (** Flatten a list of lists *)
@@ -172,7 +173,7 @@ cantExtend : CanExtend = CanExtend(false)
 
 value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32,
-                                 canExtend : CanExtend)
+                                 canExtend : OneShot)
       extends ArrayList[\E\]
   getter size(): ZZ32 = firstUnused - firstUsed
   getter isEmpty(): Boolean = firstUnused <= firstUsed
@@ -192,7 +193,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
       if isEmpty() then Nothing[\(ArrayList[\E\],E)\]()
       else Just[\(ArrayList[\E\],E)\](
                      Alr[\E, maxUn\](underlying, firstUsed,
-                                     firstUnused-1, cantExtend),
+                                     firstUnused-1, noShot),
                      underlying.get(firstUnused-1))
       end
   getter indices(): Generator[\ZZ32\] = 0#size()
@@ -218,8 +219,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
     end
   appendClosed(f:List[\E\]): ArrayList[\E\] = do
       appendFrom(f)
-      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(),
-                      cantExtend )
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(), noShot )
     end
 
   append(f:List[\E\]): ArrayList[\E\] =
@@ -227,17 +227,16 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
           f
       else
           newUnused = f.size() + firstUnused
-          if newUnused <= maxUn AND canExtend.tryToExtend() then
+          if newUnused <= maxUn AND canExtend.tryOnce() then
               append0(f)
           else
               increaseTo(newUnused-firstUsed).append0(f)
           end
       end
   append0(f:List[\E\]): ArrayList[\E\] = do
-      assert(NOT canExtend.tryToExtend(), "append0 of extensible list!")
+      assert(NOT canExtend.canTry(), "append0 of extensible list!")
       appendFrom(f)
-      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(),
-                      CanExtend(true))
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+f.size(), oneShot())
     end
   (* addLeft is O(n) *)
   addLeft(e:E):ArrayList[\E\] = do
@@ -246,21 +245,21 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
     end
   addRight(e:E):ArrayList[\E\] = do
       newSize = size() + 1
-      if newSize <= maxUn AND canExtend.tryToExtend() then
+      if newSize <= maxUn AND canExtend.tryOnce() then
           addRight0(e)
       else increaseTo(newSize).addRight0(e)
       end
     end
   addRight0(e:E): ArrayList[\E\] = do
-      assert(NOT canExtend.tryToExtend(), "addRight0 of extensible list!")
+      assert(NOT canExtend.canTry(), "addRight0 of extensible list!")
       underlying.init(firstUnused,e)
-      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+1, CanExtend(true))
+      Alr[\E,maxUn\]( underlying, firstUsed, firstUnused+1, oneShot())
     end
   take(n:ZZ32): ArrayList[\E\] =
       if n <= 0 then
           emptyList[\E\]()
       elif n < size() then
-          Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,cantExtend)
+          Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,noShot)
       else
           self
       end
@@ -284,7 +283,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
       if n <= 0 then
           (emptyList[\E\](), self)
       elif n < size() then
-          (Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,cantExtend),
+          (Alr[\E,maxUn\](underlying,firstUsed,firstUsed+n,noShot),
            Alr[\E,maxUn\](underlying, firstUsed+n, firstUnused, canExtend))
       else
           (self, emptyList[\E\]())
@@ -335,18 +334,18 @@ primitiveArray[\E, nat sz\](_:N[\sz\], e:__Proxy[\E\]): PrimitiveArray[\E,sz\] =
 
 alr[\E, nat sz\]( underlying : PrimitiveArray[\E,sz\],
                   firstUsed:ZZ32, firstUnused:ZZ32,
-                  canExtend : CanExtend): Alr[\E,sz\] =
+                  canExtend : OneShot): Alr[\E,sz\] =
     Alr[\E,sz\](underlying, firstUsed, firstUnused, canExtend)
 
 mkEmptyLike[\E, nat maxUn\](_:ArrayList[\E\], _:N[\maxUn\]): Alr[\E,maxUn\] =
-    Alr[\E, maxUn\](PrimitiveArray[\E,maxUn\](),0,0,cantExtend)
+    Alr[\E, maxUn\](PrimitiveArray[\E,maxUn\](),0,0,noShot)
 
 makeClosedList[\E, nat sz\](_:N[\sz\], f: ZZ32 -> E): Alr[\E,sz\] =
-    Alr[\E,sz\](PrimitiveArray[\E,sz\]().fill(f),0,sz,cantExtend)
+    Alr[\E,sz\](PrimitiveArray[\E,sz\]().fill(f),0,sz,noShot)
 
 (* makeListForConcat doesn't fill its array with anything. *)
 makeListForConcat[\A, E, nat sz\](_:N[\sz\], f: A->List[\E\]): Alr[\E,sz\] =
-    Alr[\E,sz\](PrimitiveArray[\E,sz\](),0,sz,cantExtend)
+    Alr[\E,sz\](PrimitiveArray[\E,sz\](),0,sz,noShot)
 
 prefixAdd[\nat n\](a:Array1[\ZZ32,0,n\],r:FullRange[\ZZ32\]): ZZ32 = do
     res : ZZ32 := 0
@@ -380,12 +379,12 @@ value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\
 end
 
 emptyList[\E\](): List[\E\] =
-    Alr[\E,0\](PrimitiveArray[\E,0\](),0,0,cantExtend)
+    Alr[\E,0\](PrimitiveArray[\E,0\](),0,0,noShot)
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimitiveArray[\E,1\]()
     u.init(0,e)
-    Alr[\E,1\](u,0,1,cantExtend)
+    Alr[\E,1\](u,0,1,noShot)
   end
 
 end

@@ -15,37 +15,54 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component NativeFile
-import * from File
-export NativeFile
+api FileSupport
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+(***********************************************************
+ * Types to support file input and output                  *)
 
-object ReadStream(filename:String) extends FileStream
-    (** Returns the name of the file, as passed in during construction. **)
-    getter fileName():String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$fileName")
-    getter toString():String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$toString")
+trait Closeable
+    close():()
+end
+
+trait FileStream extends Closeable
+    getter fileName():String
+    getter toString():String
+end
+
+trait Consumable
+    consume(desc: String):()
+    whenUnconsumed(desc: String):()
+end
+
+trait ReadStream extends { Closeable, Consumable }
     (** eof returns true if an end-of-file condition has been
         encountered on the stream. **)
-    getter eof():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$eof")
+    getter eof():Boolean
+
     (** ready returns true if there is currently input from the stream
         available to be consumed. **)
-    getter ready():Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$ready")
+    getter ready():Boolean
 
     (** Returns the next available line from the stream, discarding
-        line termination characters.  Returns empty string on eof. **)
-    readLine():String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$readLine")
+        line termination characters.  Returns "" on eof. **)
+    readLine():String
+
     (** Returns the next available character from the stream, or "" on eof. **)
-    readChar():String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$readChar")
+    readChar():String
+
     (** Returns the next k characters from the stream.  It will block
         until at least one character is available, and will then
         return as many characters as are ready.  Will return "" on end
         of file.  If k<=0 or absent a default value is chosen. **)
-    read(k:ZZ32):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$readk")
-    read():String = read(0)
+    read(k:ZZ32):String
 
-    close():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReadStream$close")
+    read():String
+
+    uncheckedReadLine():String
+
+    uncheckedReadChar():String
+
+    uncheckedRead(k:ZZ32):String
 
     (** All file generators yield file contents in parallel by
         default, with a natural ordering corresponding to the order
@@ -72,25 +89,23 @@ object ReadStream(filename:String) extends FileStream
         Once the ReadStream has been completely consumed it is closed.
      **)
 
+
     (** lines yields the lines found in the file a la readLine(). **)
-    lines(n:ZZ32):Generator[\String\] =
-      fileGenerator[\String\](self, fn (r:ReadSteam): String => r.readLine(), n)
-    lines():Generator[\String\] = lines(0)
+    lines(n:ZZ32):Generator[\String\]
+    lines():Generator[\String\]
 
     (** characters yields the characters found in the file a la readChar(). **)
-    characters(n:ZZ32):Generator[\String\] =
-      fileGenerator[\String\](self, fn (r:ReadSteam): String => r.readChar(), n)
-    characters():Generator[\String\] = lines(0)
+    characters(n:ZZ32):Generator[\String\]
+    characters():Generator[\String\]
 
     (** chunks returns chunks of characters found in the file, in the
         sense of read().  The first argument is equivalent to the
         argument k to read, the second (if present) is the number of
         chunks at a time.
      **)
-    chunks(n:ZZ32,m:ZZ32):Generator[\String\] =
-        fileGenerator[\String\](self, fn (r:ReadSteam): String => r.read(n), m)
-    chunks(n:ZZ32):Generator[\String\] = chunks(n,0)
-    chunks(): Generator[\String\] = chunks(0,0)
+    chunks(n:ZZ32,m:ZZ32):Generator[\String\]
+    chunks(n:ZZ32): Generator[\String\]
+    chunks(): Generator[\String\]
 end
 
 end

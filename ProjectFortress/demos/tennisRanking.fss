@@ -20,6 +20,7 @@ import * from Set
 import * from Map
 import * from List
 import * from QuickSort
+import * from File
 export Executable
 
 (* Tennis Ranking System
@@ -231,17 +232,17 @@ end
 init(name:String, ranking:ZZ32, wonGames:ZZ32, lostGames:ZZ32, points:ZZ32) =
   database := database.add(name, Player(name,ranking,wonGames,lostGames,points))
 
-initialize(fin: BufferedReader) =
+initialize(fin: FileReadStream) =
   do
     toSortInit:Array[\(String,ZZ32,ZZ32,ZZ32,ZZ32),ZZ32\] :=
                array[\(String,ZZ32,ZZ32,ZZ32,ZZ32)\](maxPlayers)
     indexInit: ZZ32 := 0
-    line: String := inFileRead(fin)
+    line: String := fin.readLine()
     (* read an old ranking result in the order of ranking *)
     while (line =/= tableBegin) do
-      line := inFileRead(fin)
+      line := fin.readLine()
     end
-    line := inFileRead(fin)
+    line := fin.readLine()
 
 (* each line includes the following:
      ranking  name  totalWon / totalLost (thisWon / thisLost)  totalgames (thisGames)  totalPoints (thisPoints)
@@ -260,7 +261,7 @@ initialize(fin: BufferedReader) =
       (s, line) := readWord line; points    = str2int s
       toSortInit[indexInit] := (name, ranking, wonGames, lostGames, points)
       indexInit += 1
-      line := inFileRead(fin)
+      line := fin.readLine()
     end
     (* initialize a database in the order of names instead of any order
        due to the current status of the interpreter; the StackOverflow
@@ -280,13 +281,13 @@ initialize(fin: BufferedReader) =
 
 (* Add games ******************************************************************)
 (* Read games in this term *)
-addGames(fin: BufferedReader, fout: BufferedWriter) =
+addGames(fin: FileReadStream, fout: BufferedWriter) =
   do
-    line: String := inFileRead(fin)
+    line: String := fin.readLine()
     while (line =/= gamesBegin) do
-      line := inFileRead(fin)
+      line := fin.readLine()
     end
-    line := inFileRead(fin)
+    line := fin.readLine()
     while (line =/= gamesEnd) do
       var (player1, player2): String...
       (player1, line) := readWord line
@@ -314,7 +315,7 @@ addGames(fin: BufferedReader, fout: BufferedWriter) =
                 addGame(fout, player1, player2, player3, player4)
            end
       end
-      line := inFileRead(fin)
+      line := fin.readLine()
     end
   end
 
@@ -648,16 +649,16 @@ run(args:String...) = do
        previous = args[0]
        today    = args[1]
        games    = args[2]
-       fin : BufferedReader := inFileOpen previous
+       fin : FileReadStream := FileReadStream previous
        fout: BufferedWriter = outFileOpen today
        initialize(fin)
-       inFileClose(fin)
+       fin.close()
        numPlayers := database.size()
 
        (* add this term's games *)
-       fin := inFileOpen games
+       fin := FileReadStream games
        addGames(fin, fout)
-       inFileClose(fin)
+       fin.close()
 
        (* finalize *)
        printResult(fout, previous, today)

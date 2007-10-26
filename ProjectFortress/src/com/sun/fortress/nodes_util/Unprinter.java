@@ -58,7 +58,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * <pre>
  * (Component
  *
- * &#064;"../samples/let_fn.fss",7:3 name=(DottedName
+ * &#064;"../samples/let_fn.fss":7:3 name=(DottedName
  * &#064;1:24 names=["samples" "let_fn"]) defs=[ (VarDecl
  * &#064;6:11 init=(Block exprs=[ (LetFn
  * &#064;4:21 body=[ (TightJuxt
@@ -128,9 +128,9 @@ public class Unprinter extends NodeReflection {
         String next = l.name(false);
         if (next.startsWith("\"") && next.endsWith("\"")) {
             fname = deQuote(next);
-            String comma = l.name(false);
-            if (!",".equals(comma)) {
-                bug("Expected comma, got " + comma);
+            String colon = l.name(false);
+            if (!":".equals(colon)) {
+                bug("Expected colon, got " + colon);
             }
             next = l.name(false);
         }
@@ -152,9 +152,9 @@ public class Unprinter extends NodeReflection {
             boolean sawFile = false;
             if (next.startsWith("\"") && next.endsWith("\"")) {
                 fname = deQuote(next);
-                String comma = l.name(false);
-                if (!",".equals(comma)) {
-                    bug("Expected comma, got " + comma);
+                colon = l.name(false);
+                if (!":".equals(colon)) {
+                    bug("Expected colon, got " + colon);
                 }
                 next = l.name(false);
                 sawFile = true;
@@ -166,7 +166,7 @@ public class Unprinter extends NodeReflection {
                 c1 = l.name(false);
                 next = l.name();
             } else if (sawFile) {
-                next = bug("Saw f,l:c~f,l with no following colon");
+                next = bug("Saw f:l:c~f:l with no following colon");
             } else {
                 c1 = l_or_c;
                 if (")".equals(colon)) {
