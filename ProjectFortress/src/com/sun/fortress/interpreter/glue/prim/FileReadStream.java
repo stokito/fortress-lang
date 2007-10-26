@@ -39,9 +39,9 @@ import com.sun.fortress.nodes.GenericWithParams;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class ReadStream extends Constructor {
+public class FileReadStream extends Constructor {
 
-    public ReadStream(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
+    public FileReadStream(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }
@@ -60,6 +60,7 @@ public class ReadStream extends Constructor {
         protected final BufferedReader reader;
         protected final String name;
         protected boolean eof = false;
+        protected boolean consumed = false;
 
         public PrimReader(String name, BufferedReader reader,
                           FType selfType, BetterEnv self_dot_env) {
@@ -70,6 +71,12 @@ public class ReadStream extends Constructor {
 
         public String getString() {
             return "<Handle to \""+name+"\">";
+        }
+
+        public void whenUnconsumed() {
+            if (consumed) {
+                error(errorMsg("Performed operation on consumed FileReadStream ",name));
+            }
         }
     }
 
@@ -170,6 +177,25 @@ public class ReadStream extends Constructor {
             } catch (IOException e) {
                 return error("Close IOException on "+x.getString());
             }
+        }
+    }
+
+    public static final class whenUnconsumed extends NativeMeth0 {
+        synchronized protected final FValue act(FObject self) {
+            PrimReader r = (PrimReader) self;
+            r.whenUnconsumed();
+            return FVoid.V;
+        }
+    }
+
+    public static final class consume extends NativeMeth0 {
+        protected final FValue act(FObject self) {
+            PrimReader r = (PrimReader) self;
+            synchronized (r) {
+                r.whenUnconsumed();
+                r.consumed = true;
+            }
+            return FVoid.V;
         }
     }
 }

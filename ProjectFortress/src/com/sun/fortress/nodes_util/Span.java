@@ -97,19 +97,24 @@ public class Span {
 
     public Appendable appendTo(Appendable w, boolean do_files)
             throws IOException {
+        return appendTo(w,do_files,false);
+    }
+
+    public Appendable appendTo(Appendable w, boolean do_files, boolean printer)
+            throws IOException {
         int left_col = begin.column();
         int right_col = end.column();
         boolean file_names_differ = !(begin.getFileName().equals(end
                 .getFileName()));
         do_files |= file_names_differ;
 
-        w.append(" @");
+        if (printer) w.append(" @");
         if (do_files) {
-            w.append("\"");
+            if (printer) w.append("\"");
             // Need to add escapes to the file name
             w.append(begin.getFileName());
-            w.append("\"");
-            w.append(",");
+            if (printer) w.append("\"");
+            w.append(":");
         }
         w.append(String.valueOf(begin.getLine()));
         w.append(":");
@@ -118,11 +123,11 @@ public class Span {
                 || left_col != right_col) {
             w.append(Printer.tilde);
             if (file_names_differ) {
-                w.append("\"");
+                if (printer) w.append("\"");
                 // Need to add escapes to the file name
                 w.append(end.getFileName());
-                w.append("\"");
-                w.append(",");
+                if (printer) w.append("\"");
+                w.append(":");
             }
             if (begin.getLine() != end.getLine()) {
                 w.append(String.valueOf(end.getLine()));

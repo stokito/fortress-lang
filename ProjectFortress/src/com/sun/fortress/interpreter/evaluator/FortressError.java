@@ -132,10 +132,10 @@ public abstract class FortressError extends RuntimeException {
             if (where.size() > 1) {
                 /* If additional location information was provided while
                    unwinding from an error, print it. */
-                res.append("\nContext:");
+                res.append("\nContext:\n");
                 for (HasAt loc : where) {
-                    res.append("\n\t");
                     res.append(loc.at());
+                    res.append("\n");
                 }
             }
             return res.toString();

@@ -76,7 +76,7 @@ public class Printer extends NodeReflection {
             return;
         }
         if (lastSpan == null) {
-            span.appendTo(w, true);
+            span.appendTo(w, true, true);
             lastSpan = span;
             return;
         }
@@ -89,7 +89,7 @@ public class Printer extends NodeReflection {
                 || lastSpan.end.column() != span.end.column()
                 || lastSpan.begin.getLine() != span.begin.getLine()
                 || lastSpan.end.getLine() != span.end.getLine() || do_file) {
-            span.appendTo(w, do_file);
+            span.appendTo(w, do_file, true);
         }
         lastSpan = span;
     }
