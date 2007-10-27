@@ -18,11 +18,8 @@
 /*
  * Definition of Fortress symbols and operators.
  */
-module Symbol(DelimitedExpr, NoNewlineExpr, Type, Identifier, Spacing, Keyword);
+module Symbol(Identifier, Spacing, Keyword);
 
-import DelimitedExpr;
-import NoNewlineExpr;
-import Type;
 import Identifier;
 import Spacing;
 import Keyword;
@@ -38,16 +35,12 @@ Op LeftEncloser = a1:leftEncloser
 Op RightEncloser = a1:rightEncloser
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
+/*
 Op ExponentOp = a1:exponentOp
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+*/
 
-transient void bar = &("|" wr GeneratorList closingComprehension) "|";
-private transient void closingComprehension =
-     w closecurly
-   / w closeangle
-   / br ArrayComprehensionClause
-   / w closesquare
-   ;
+transient void bar = "|";
 private transient String sd = [*.]? ;
 private String bars = "|" (sd "|")* ;
 private String slashes = "/" (sd "/")*
@@ -148,16 +141,9 @@ String op =
    / multiOp
    / singleOp ;
 
-Op CompoundOp =
-     a1:op equalsOp
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
-
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
-String doublerightarrow = "=>" &(w NoNewlineExpr w match);
-
-/* The operator "BY" should not be used with ExtentRange. */
-String crossOp = "BY":OpName &(w ExtentRange);
+String doublerightarrow = "=>"; /* &(w NoNewlineExpr w match); */
 
 String leftarrow = "<-";
 
@@ -197,24 +183,6 @@ transient void underscore = "_";
 transient void comma = ",";
 transient void dot   = ".";
 
-/* AssignOp ::= := | Op= */
-Option<Opr> AssignOp =
-     colonequals   { yyValue = Option.none(); }
-   / a1:CompoundOp { yyValue = Option.some(NodeFactory.makeOpr(a1)); };
+/* from Delimited expr */
 
-transient String accumulator = "SUM" / "PROD" ;
-
-/* Accumulator ::= SUM | PROD | BIG w Op */
-Op Accumulator =
-     "SUM":accumulator
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "+"); }
-   / "PROD":accumulator
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "DOT"); }
-   / void:BIG w Op ;
-
-/* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
-ArrayComprehensionClause ArrayComprehensionClause =
-     a1:ArrayComprehensionLeft wr bar wr a2:GeneratorList
-     { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
-                                              a1.getA(), a1.getB(), a2);
-     };
+String mapstoOp = "|->" ;

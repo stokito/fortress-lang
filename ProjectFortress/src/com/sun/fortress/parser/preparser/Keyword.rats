@@ -52,7 +52,7 @@ body {
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
         "var",          "where",        "while",        "widens",
-        "with",         "wrapped",		"macro",		"foo", "barrr"
+        "with",         "wrapped",      "macro"
     });
   }
 }
@@ -108,7 +108,6 @@ transient void in = "in" !(idrest);
 transient void int = "int" !(idrest);
 transient void invariant = "invariant" !(idrest);
 transient void label = "label" !(idrest);
-transient void macro = "macro" !(idrest);
 transient void nat = "nat" !(idrest);
 transient void object = "object" !(idrest);
 transient void of = "of" !(idrest);
@@ -130,8 +129,7 @@ transient void typecase = "typecase" !(idrest);
 transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);
-transient void foo = "foo" !(idrest);
-transient void barrr = "bar" !(idrest);
+transient void macro = "macro" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
 String BIG = "BIG" !(idrest);

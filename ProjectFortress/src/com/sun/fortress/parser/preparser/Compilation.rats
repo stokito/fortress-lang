@@ -18,9 +18,8 @@
 /*
  * Definition of Fortress components and APIs.
  */
-module Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+module Compilation(Identifier, Keyword, Symbol, Spacing);
 
-import Decl;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -52,7 +51,7 @@ public CompilationUnit File =
 private CompilationUnit CompilationUnit =
      Component  ;
 
-/* Component ::= component w DottedName (w Imports)? w Exports (w Decls)? w end */
+/* Component ::= component w DottedName (w Imports)? w  end */
 private Component Component =
      component w  a1:DottedName a2:(w Imports)? w (_)*
      {  if (a2 == null) a2 = Collections.<Import>emptyList();
@@ -146,14 +145,6 @@ private Bracketing EncloserPair =
 private List<AliasedName> AliasedNameList =
      a1:AliasedName a2s:(w comma w AliasedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* Exports ::= Export (br Export)* */
-private List<Export> Exports = a1:Export a2s:(br Export)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* Export ::= export w DottedNames */
-private Export Export = export w a1:DottedNames
-     { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
 
 /* AliasedDottedNames ::=
      AliasedDottedName
