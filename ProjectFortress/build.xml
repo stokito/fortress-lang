@@ -488,7 +488,14 @@ testNotPassing, testOnly interpreter"/>
         <uptodate property="fortressparser.uptodate" targetfile="${parser}/Fortress.java">
             <srcfiles dir="${parser}" includes="**/*.rats"/>
         </uptodate>
-        <echo>Parser up to date? ${parser.uptodate}</echo>
+        <echo>Fortress parser up to date? ${parser.uptodate}</echo>
+    </target>
+
+    <target name="checkPreparserUptodate" depends="init">
+        <uptodate property="preparser.uptodate" targetfile="${preparser}/PreFortress.java">
+            <srcfiles dir="${preparser}" includes="**/*.rats"/>
+        </uptodate>
+        <echo>Preparser up to date? ${parser.uptodate}</echo>
     </target>
 
     <target name="fortressparser" unless="fortreeparser.uptodate"
@@ -500,6 +507,18 @@ testNotPassing, testOnly interpreter"/>
 	    <arg value="-html"/>
 	    <arg value="-instantiated"/>
             <arg value="Fortress.rats"/>
+        </java>
+    </target>    
+
+    <target name="preparser" unless="preparser.uptodate"
+            depends="checkPreparserUptodate"
+            description="Preparser">
+        <echo message="Rebuilding preparser..."/>
+       <java jar="${xtc}/xtc.jar" fork="yes" dir="${preparser}">
+            <arg value="rats"/>
+	    <arg value="-html"/>
+	    <arg value="-instantiated"/>
+            <arg value="PreFortress.rats"/>
         </java>
     </target>    
 
