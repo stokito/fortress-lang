@@ -19,40 +19,9 @@
  * A PreFortress grammar which can parse the name and imports of a Fortress component.
  */
 module      PreFortress;
-modify      Compilation  (Declaration, Identifier, Keyword, Symbol, Spacing);
-instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing);
-instantiate TraitObject  (Method, Field, AbsField, Parameter, OtherDecl, Header,
-                          Identifier, Keyword, Spacing);
-instantiate Function     (Parameter, Header, Type, NoNewlineExpr, Identifier,
-                          Keyword, Symbol, Spacing);
-instantiate Parameter    (Header, Type, Expression, Identifier, Keyword, Symbol,
-                          Spacing);
-instantiate Method       (MethodParam, Header, Type, NoNewlineExpr, Identifier,
-                          Keyword, Symbol, Spacing);
-instantiate MethodParam  (Parameter, Keyword);
-instantiate Variable     (Header, Type, NoNewlineExpr, Identifier, Keyword,
-                          Symbol, Spacing);
-instantiate Field        (Variable, Header, Type, Identifier, Spacing);
-instantiate AbsField     (Variable, Header, Type, Identifier, Spacing);
-instantiate Header       (OtherDecl, Type, Expression, DelimitedExpr, Identifier,
-                          Keyword, Symbol, Spacing);
-instantiate OtherDecl    (Parameter, Header, Type, NoNewlineExpr, Identifier,
-                          Keyword, Symbol, Spacing);
-instantiate Type         (Header, Expression, Literal, Identifier, Keyword,
-                          Symbol, Spacing);
-instantiate Expression   (Parameter, Header, Type, DelimitedExpr, Identifier,
-                          Keyword, Symbol, Spacing);
-instantiate DelimitedExpr(TraitObject, Header, Type, Expression, LocalDecl,
-                          Literal, Identifier, Keyword, Symbol, Spacing) as DelimitedExpr;
-instantiate NoNewlineExpr(Expression, Keyword, Symbol, Spacing);
-instantiate NoSpaceExpr  (Expression, Keyword, Symbol, Spacing);
-instantiate Literal      (DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
-instantiate LocalDecl    (Variable, Function, Parameter, Header, Type,
-                          NoNewlineExpr, DelimitedExpr, Identifier, Keyword,
-                          Symbol, Spacing);
+modify      Compilation  (Identifier, Keyword, Symbol, Spacing);
 instantiate Identifier   (Keyword, Symbol, Unicode, Spacing);
-instantiate Symbol       (DelimitedExpr, NoNewlineExpr, Type, Identifier,
-                          Spacing, Keyword);
+instantiate Symbol       (Identifier, Spacing, Keyword);
 instantiate Spacing      (Symbol);
 instantiate Keyword      (Identifier);
 instantiate Unicode;

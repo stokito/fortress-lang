@@ -39,33 +39,6 @@ Expr Literal =
    / StringLiteral
    ;
 
-/* Aggregate ::=
-     { w Entry (w , w Entry)* w }
-   | [ w RectElements w ]
- */
-Expr Aggregate =
-     opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
-     { List<Entry> elements = new ArrayList<Entry>();
-       elements.add(a1);
-       elements.addAll(a2s.list());
-       yyValue = new MapExpr(createSpan(yyStart,yyCount), false, elements);
-     }
-   / void:opensquare w RectElements w void:closesquare ;
-
-/* RectElements ::= NoSpaceExpr MultiDimCons* */
-private ArrayExpr RectElements =
-     a1:NoSpaceExpr a2s:MultiDimCons*
-     { if (a2s == null || a2s.isEmpty())
-           yyValue = new ArrayElement(a1.getSpan(), false, a1);
-       else
-           yyValue = FortressUtil.multiDimCons(a1, a2s.list());
-     };
-
-/* MultiDimCons ::= RectSeparator NoSpaceExpr */
-com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
-     a1:RectSeparator a2:NoSpaceExpr
-     { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
-
 NumberLiteral NumericLiteral =
      FloatLiteral
    / IntLiteral ;
