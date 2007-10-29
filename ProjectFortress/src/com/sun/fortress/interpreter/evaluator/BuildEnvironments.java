@@ -96,8 +96,10 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
@@ -181,7 +183,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     BetterEnv containing;
 
     BetterEnv bindInto;
-
+    
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
@@ -697,7 +699,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(e, x);
-                guardedPutValue(containing, obfuscated(fname), gen, x);
+                guardedPutValue(containing, obfuscatedConstructorName(fname), gen, x);
 
             } else {
                 // It is a singleton; do not expose the constructor, do
@@ -708,11 +710,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
                 Constructor cl = new Constructor(containing, (FTypeObject) ft,
                         x);
-                guardedPutValue(containing, obfuscated(fname), cl, x);
+                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
 
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
-                      ExprFactory.makeVarRef(x.getSpan(), obfuscated(fname)),
+                      ExprFactory.makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x)),
                       ExprFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
@@ -803,7 +805,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             // TODO -  Blindly assuming a non-generic singleton.
 
             Constructor cl = (Constructor) containing
-                    .getValue(obfuscated(fname));
+                    .getValue(obfuscatedSingletonConstructorName(fname, x));
             cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
          }
@@ -836,7 +838,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
 
-    protected String obfuscated(String fname) {
+    protected String obfuscatedSingletonConstructorName(String fname, HasAt x) {
+        // TODO Auto-generated method stub
+        return "*1_" + fname;
+    }
+
+    private String obfuscatedConstructorName(String fname) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
     }
@@ -1512,7 +1519,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(e, x);
-                guardedPutValue(containing, obfuscated(fname), gen, x);
+                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {
                 // It is a singleton; do not expose the constructor, do
@@ -1521,12 +1528,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // BetterEnv interior = new SpineEnv(e, x);
 
                 // TODO - binding into "containing", or "bindInto"?
+//
+//                Constructor cl = new Constructor(containing, (FTypeObject) ft,
+//                        x);
+//                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
 
-                Constructor cl = new Constructor(containing, (FTypeObject) ft,
-                        x);
-                guardedPutValue(containing, obfuscated(fname), cl, x);
-
-                // doDefs(interior, defs);
+              
             }
         }
 

@@ -30,12 +30,13 @@ public class SystemJUTests {
     public static Test suite() {
         String testDir = ProjectProperties.BASEDIR + "tests";
         String s = System.getProperty("tests");
+        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
         if (s != null) {
             testDir = s;
         }
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, true, false));
+        suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
         return suite;
     }

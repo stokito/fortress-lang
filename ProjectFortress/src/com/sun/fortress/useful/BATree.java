@@ -29,12 +29,11 @@ import java.util.Set;
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
  *
- * Does not yet support item removal; does not yet support all the SortedMap
- * methods that it could in principle support.
+ * Does not yet support all the SortedMap methods that it could in principle support.
  */
 public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
 
-    static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
+     static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
 
         BATreeNode<T,U> root;
         Comparator<T> comp;
@@ -197,6 +196,19 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
     }
     public BATree<T,U> copy() {
          return new BATree<T,U>(root, comp);
+    }
+
+    @Override
+    public U remove(Object arg0) {
+        T k = (T) arg0;
+        if (root == null)
+            return null;
+        BATreeNode<T, U> old = root;
+        root = root.delete(k, comp);
+        if (root == null || root.weight < old.weight) {
+            return old.getObject(k, comp).data;
+        }
+        return null;
     }
 
     /*

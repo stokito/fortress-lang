@@ -17,6 +17,8 @@
 
 package com.sun.fortress.useful;
 
+import java.util.Random;
+
 import junit.framework.TestCase;
 
 public class BATJUTest extends com.sun.fortress.useful.TcWrapper  {
@@ -27,6 +29,84 @@ public class BATJUTest extends com.sun.fortress.useful.TcWrapper  {
 
     BATree<String, String> t = new BATree<String, String> (String.CASE_INSENSITIVE_ORDER);
     int pcount;
+    
+    String[] animals = {
+            "alpaca",
+            "ant",
+            "auk",
+            "bat",
+            "beetle",
+            "bison",
+            "buffalo",
+            "camel",
+            "cat",
+            "cavy",
+            "crab",
+            "deer",
+            "dingo",
+            "dodo",
+            "dog",
+            "dove",
+            "eagle",
+            "eel",
+            "eland",
+            "elephant",
+            "elk",
+            "emu",
+            "finch",
+            "gar",
+            "giraffe",
+            "gnu",
+            "guanaco",
+            "gull",
+            "hawk",
+            "hedgehog",
+            "hyena",
+            "ibis",
+            "iguana",
+            "jackal",
+            "jaguar",
+            "kangaroo",
+            "koala",
+            "lemur",
+            "leopard",
+            "llama",
+            "manatee",
+            "mule",
+            "narwhal",
+            "nutria",
+            "octopus",
+            "osprey",
+            "ostrich",
+            "owl",
+            "penguin",
+            "pigeon",
+            "piranha",
+            "puffin",
+            "quagga",
+            "quail",
+            "quokka",
+            "rat",
+            "ray",
+            "seal",
+            "shark",
+            "snake",
+            "spider",
+            "tern",
+            "tiger",
+            "turtle",
+            "unicorn",
+            "vicuna",
+            "vole",
+            "vulture",
+            "walrus",
+            "warthog",
+            "worm",
+            "xiphias",
+            "yak",
+            "zebra"
+       };
+       
 
     public void testEmpty() {
         assertEquals(t.size(), 0);
@@ -70,19 +150,20 @@ public class BATJUTest extends com.sun.fortress.useful.TcWrapper  {
         System.err.println();
     }
 
-    public void test8() {
-        String[] a = {"01", "02", "03", "04", "05",
-                      "06", "07", "08"
-                      };
-        foreachPermutation(a, 0);
-    }
-
-    public void test8Dupes() {
-        String[] a = {"01", "03", "05",
-                      "06", "07", "06", "05", "01"
-                      };
-        foreachPermutation(a, 0);
-    }
+    // Too dadgum slow
+//    public void test8() {
+//        String[] a = {"01", "02", "03", "04", "05",
+//                      "06", "07", "08"
+//                      };
+//        foreachPermutation(a, 0);
+//    }
+//
+//    public void test8Dupes() {
+//        String[] a = {"01", "03", "05",
+//                      "06", "07", "06", "05", "01"
+//                      };
+//        foreachPermutation(a, 0);
+//    }
 
     public void foreachPermutation(String[] a, int i) {
         if (i == a.length) {
@@ -120,5 +201,38 @@ public class BATJUTest extends com.sun.fortress.useful.TcWrapper  {
             }
         }
     }
+    
+    public void testAddsDescending() {
+        int l = animals.length;
+        
+        for (int i = 0; i < l; i++) {
+            int j = l - 1 - i;
+            t.put(animals[j], animals[j]);
+            assertEquals(t.size(), i+1);
+            assertEquals(t.min(), animals[j]);
+            assertEquals(t.max(), animals[l-1]);
+            t.ok();     
+        }
+        t.ok();       
+    }
+    
+   public void testAddsDeletesRandom() {
+        
+        Random r = new Random(0x12345555);
+        
+        for (int k = 0; k < 1000; k++) {
+
+            testAddsDescending();
+            int l = animals.length;
+            for (int i = 0; i < l; i++) {
+                int j = r.nextInt(l - i);
+                String s = t.getKey(j);
+                t.remove(s);
+                assertEquals(t.size(), l - i - 1);
+                t.ok();
+            }
+        }
+    }
+
 
 }

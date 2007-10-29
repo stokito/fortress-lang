@@ -32,7 +32,7 @@ import java.util.SortedSet;
  */
 public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
-    static class BASnode<T> {
+     static class BASnode<T> {
 
         public String toString() {
             return toStringBuffer(new StringBuffer()).toString();
@@ -84,9 +84,9 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             }
             if (weight != 1 + lw + rw)
                 throw new Error("Weight wrong");
-            if (lw >> 1 > rw)
+            if (lw >> 2 > rw)
                 throw new Error("Left too heavy");
-            if (rw >> 1 > lw)
+            if (rw >> 2 > lw)
                 throw new Error("Right too heavy");
 
         }
@@ -109,7 +109,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             key = k;
             left = l;
             right = r;
-            weight = leftWeight() + rightWeight() + 1;
+            combine(l, r);
         }
 
         BASnode(T k) {
@@ -121,7 +121,19 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             key = n.key;
             left = l;
             right = r;
-            weight = leftWeight() + rightWeight() + 1;
+            combine(l, r);
+        }
+
+        private void combine(BASnode<T> l, BASnode<T> r) {
+            
+            int lw = weight(l);
+            int rw = weight(r);
+            if (lw >> 2 > rw)
+                throw new Error("Left too heavy " + lw + " " + rw);
+            if (rw >> 2 > lw)
+                throw new Error("Right too heavy "+ lw + " " + rw);
+
+            weight = lw + rw + 1;
         }
 
         // Index 0 is leftmost.
@@ -191,49 +203,128 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 // left
                 if (l == null) {
                     l = new BASnode<T>(k);
-
+                    return new BASnode<T>(this,l,r);
                 } else {
                     l = l.add(k, comp);
-                    // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
-                    if (weight(l) >> 1 > weight(r)) {
-                        // Must rotate.
-                        if (l.leftWeight() >= l.rightWeight()) {
-                            // L to root
-                            return assembleLeft(l.left, l, l.right, this, r);
-                        } else {
-                            // LR to root
-                            BASnode<T> lr = l.right;
-                            return assemble(l.left, l, lr.left, lr, lr.right, this, r);
-                        }
-                    }
+                    return leftWeightIncreased(l, r);
                 }
-                return new BASnode<T>(this,l,r);
             } else if (c > 0) {
                 // right
                 if (r == null) {
                     r = new BASnode<T>(k);
+                    return new BASnode<T>(this,l,r);
                 } else {
                     r = r.add(k, comp);
-//                  Worst-case balance: 2^(n-1) vs 2^(n+1)-1
-                    if (weight(r) >> 1 > weight(l)) {
-                        // Must rotate.
-                        if (r.rightWeight() >= r.leftWeight()) {
-                            // R to root
-                            return assembleRight(l, this, r.left, r, r.right);
-
-                        } else {
-                            // RL to root
-                            BASnode<T> rl = r.left;
-                            return assemble(l, this, rl.left, rl, rl.right, r, r.right);
-                        }
-                    }
+                    return rightWeightIncreased(l, r);
                 }
-                return new BASnode<T>(this,l,r);
             } else {
                 // Update value.
                 return new BASnode<T>(k,l,r);
             }
         }
+
+        private BASnode<T> leftWeightIncreased(BASnode<T> l, BASnode<T> r) {
+            // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
+            int rw = weight(r);
+            int lw = weight(l);
+            if (lw  > rw << 1) {
+                // Must rotate.
+                int lrw = l.rightWeight();
+                int llw = l.leftWeight();
+                BASnode<T> lr = l.right;
+                if (llw >= lrw) {
+                    // L to root
+                    return assembleLeft(l.left, l, l.right, this, r);
+                } else {
+                    // LR to root
+                    
+                    return assemble(l.left, l, lr.left, lr, lr.right, this, r);
+                }
+            }
+            return new BASnode<T>(this,l,r);
+        }
+
+        private BASnode<T> rightWeightIncreased(BASnode<T> l, BASnode<T> r) {
+           // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
+            int rw = weight(r);
+            int lw = weight(l);
+           if (rw > lw << 1) {
+                // Must rotate.
+                int rrw = r.rightWeight();
+                int rlw = r.leftWeight();
+                BASnode<T> rl = r.left;
+                if (rrw >= rlw) {
+                    // R to root
+                    return assembleRight(l, this, r.left, r, r.right);
+
+                } else {
+                    // RL to root
+                    
+                    return assemble(l, this, rl.left, rl, rl.right, r, r.right);
+                }
+            } else {
+                return new BASnode<T>(this,l,r);
+            }
+        }
+        
+        BASnode<T> deleteMin(BASnode<T>[] deleted) {
+            BASnode<T> l = left;
+            if (l == null) {
+                deleted[0] = this;
+                return right;
+            } else {
+                l = l.deleteMin(deleted);
+                BASnode<T> r = right;
+                return rightWeightIncreased(l, r);
+            }
+        }
+        
+        BASnode<T> deleteMax(BASnode<T>[] deleted) {
+            BASnode<T> r = right;
+            if (r == null) {
+                deleted[0] = this;
+                return left;
+            } else {
+                r = r.deleteMax(deleted);
+                BASnode<T> l = left;
+                return leftWeightIncreased(l, r);
+            }
+        }
+        
+        BASnode<T> delete(T k, Comparator<T> comp) {
+            int c = comp.compare(k,key);
+            BASnode<T> l = left;
+            BASnode<T> r = right;
+           if (c == 0) {
+               int lw = weight(left);
+               int rw = weight(right);
+               BASnode<T>[] newthis = new BASnode[1];
+               if (lw > rw) {
+                   l = l.deleteMax(newthis);
+               } else {
+                   if (rw > 0)
+                       r = r.deleteMin(newthis);
+                   else
+                       return null;
+               }
+               return new BASnode(newthis[0], l, r);
+            } else if (c < 0) {
+                if (l == null)
+                    return this;
+                BASnode<T> nl = l.delete(k, comp);
+                if (nl == l)
+                    return this;
+                return rightWeightIncreased(nl, r);
+            } else {
+                if (r == null)
+                    return this;
+                BASnode<T> nr = r.delete(k, comp);
+                if (nr == r)
+                    return this;
+                return leftWeightIncreased(l, nr);
+            }
+        }
+        
         private BASnode<T> assembleLeft(BASnode<T> ll, BASnode<T> l, BASnode<T> lr, BASnode<T> old, BASnode<T> r) {
             return new BASnode<T>(l,
                     ll,
@@ -378,6 +469,20 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         return false;
     }
 
+    @Override
+    public boolean remove(Object k) {
+        if (root == null)
+            return false;
+        
+        BASnode<T> old = root;
+        root = root.delete((T)k, comp);
+
+        if (root == null || old.weight > root.weight)
+            return true;
+
+        return false;
+    }
+    
     public void clear() {
         root = null;
     }
