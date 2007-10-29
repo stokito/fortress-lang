@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -348,9 +349,10 @@ public class Driver {
                 change |= injectTraitMembersForDesugaring(linker, cw);
             }
 
-            for (String s : lib.dis.getTopLevelRewriteNames()) {
-                for (ComponentWrapper cw : components) {
-                    change |= cw.dis.injectAtTopLevel(s, s, lib.dis);
+            for (ComponentWrapper cw : components) {
+                for (String s : lib.dis.getTopLevelRewriteNames()) {
+                    if (!cw.isOwnNonFunctionName(s))
+                        change |= cw.dis.injectAtTopLevel(s, s, lib.dis);
                 }
             }
         }
@@ -383,8 +385,9 @@ public class Driver {
 
             if (cw != lib && !woLibrary)
                 importAllExcept(cw.getEnvironment(), lib.getEnvironment(), lib.getEnvironment(),
-                        Collections.<String> emptyList(), "FortressLibrary",
-                        "FortressLibrary");
+                        cw.ownNonFunctionNames, // Collections.<String> emptyList(),
+                        "FortressLibrary",
+                        NodeUtil.nameString(cw.getComponent().getName()));
 
             injectExplicitImports(linker, cw);
         }
@@ -474,15 +477,19 @@ public class Driver {
                     }
 
                 } else if (ix instanceof ImportStar) {
-                    /* All names BUT excepts, as they are listed. */
+                    /* All names BUT excepts, as they are listed.
+                     * Include all names defined locally in the "except" list,
+                     * because local definitions block import-* imports.
+                     */
                     final List<SimpleName> excepts = ((ImportStar) ix)
                             .getExcept();
-                    final List<String> except_names = Useful.applyToAll(
+                    final Collection<String> except_names = Useful.applyToAllInserting(
                             excepts, new Fn<SimpleName, String>() {
                                 public String apply(SimpleName n) {
                                     return NodeUtil.nameString(n);
                                 }
-                            });
+                            },
+                            cw.ownNonFunctionNames.copy());
 
                     importAllExcept(e, api_e, from_e, except_names,
                                     from_apiname,
@@ -554,9 +561,9 @@ public class Driver {
                                 }
                             },
                             new HashSet<String>());
-
+                    
                     for (String s : api_cw.dis.getTopLevelRewriteNames()) {
-                        if (! except_names.contains(s)) {
+                        if (! except_names.contains(s) && !cw.isOwnNonFunctionName(s)) {
                             change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis);
                         }
                     }
@@ -607,6 +614,10 @@ public class Driver {
     }
 
     
+    private static void notImport(String s, Object o, String api, String component) {
+//        System.err.println("Not importing from " + api + " into " + component + " name " + s + ", value " + o);
+    }
+    
     /**
      * @param into_e
      * @param from_e
@@ -623,7 +634,7 @@ public class Driver {
      */
     private static boolean importAllExcept(final BetterEnv into_e,
             BetterEnv api_e, final BetterEnv from_e,
-            final List<String> except_names, final String a, final String c) {
+            final Collection<String> except_names, final String a, final String c) {
         
         final boolean[] flag = new boolean[1];
 
@@ -632,6 +643,8 @@ public class Driver {
                 try {
                     if (!except_names.contains(s)) {
                         into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
+                    } else {
+                        notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
@@ -656,6 +669,8 @@ public class Driver {
                 try {
                     if (!except_names.contains(s)) {
                         into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
+                    } else {
+                        notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
@@ -676,6 +691,8 @@ public class Driver {
                 try {
                     if (!except_names.contains(s)) {
                         into_e.putInt(s, NI.cnnf(from_e.getIntNull(s)));
+                    } else {
+                        notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
@@ -696,6 +713,8 @@ public class Driver {
                 try {
                     if (!except_names.contains(s)) {
                         into_e.putNat(s, NI.cnnf(from_e.getNat(s)));
+                    } else {
+                        notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a
@@ -716,6 +735,8 @@ public class Driver {
                 try {
                     if (!except_names.contains(s)) {
                         into_e.putBool(s, NI.cnnf(from_e.getBool(s)));
+                    } else {
+                        notImport(s, o, a, c);
                     }
                 } catch (CheckedNullPointerException ex) {
                     error("Import of " + s + " from api " + a

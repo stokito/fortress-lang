@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.drivers;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,13 +27,17 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Visitor2;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -44,11 +49,26 @@ public class ComponentWrapper {
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
 
     BuildEnvironments be;
+    
+    BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    
     Desugarer dis;
     boolean isNative; 
 
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
+
+    Visitor2<String, Object> nameCollector = new Visitor2<String, Object>() {
+
+        @Override
+        public void visit(String t, Object u) {
+            if (! (u instanceof Fcn) && ! (u instanceof GenericConstructor)) {
+                if (t.equals(":"))
+                    System.err.println(": import of " + u);
+                ownNonFunctionNames.add(t);
+            }
+        }
+    };
 
     public ComponentWrapper(CompilationUnit comp, boolean is_native) {
         if (comp == null)
@@ -104,13 +124,18 @@ public class ComponentWrapper {
     public void preloadTopLevel() {
         
         dis.preloadTopLevel(p);
+        /* Need to capture these names early so that rewriter
+         * name injection will follow the same no-duplicates
+         * rules as other name visibility.
+         */
+        ownNonFunctionNames.addAll(dis.getTopLevelRewriteNames());
         for (ComponentWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
         
     }
     
-    /**
+     /**
      *
      */
     public CompilationUnit populateOne() {
@@ -125,7 +150,9 @@ public class ComponentWrapper {
         cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
-        
+        // Reset the non-function names from the disambiguator.
+        ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+        be.getEnvironment().visit(nameCollector);
         p = cu;
         
         for (ComponentWrapper api: exports.values()) {
@@ -190,7 +217,10 @@ public class ComponentWrapper {
     public ComponentWrapper getExportedCW(String apiname) {
         return exports.get(apiname);
     }
+    
+    public boolean isOwnNonFunctionName(String s) {
+        return ownNonFunctionNames.contains(s);
+    }
 
- 
 
 }

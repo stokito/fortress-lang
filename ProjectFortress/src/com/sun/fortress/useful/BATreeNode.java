@@ -20,6 +20,8 @@ package com.sun.fortress.useful;
 import java.util.Comparator;
 import java.util.Map;
 
+import com.sun.fortress.useful.BASet.BASnode;
+
 public final class BATreeNode<T, U> implements Map.Entry<T, U> {
 
         public String toString() {
@@ -82,9 +84,9 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
             if (weight != 1 + lw + rw)
                 throw new Error("Weight wrong");
-            if (lw >> 1 > rw)
+            if (lw >> 2 > rw)
                 throw new Error("Left too heavy");
-            if (rw >> 1 > lw)
+            if (rw >> 2 > lw)
                 throw new Error("Right too heavy");
 
         }
@@ -193,49 +195,133 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
                 // left
                 if (l == null) {
                     l = new BATreeNode<T,U>(k,d);
-
+                    return new BATreeNode<T,U>(this,l,r);
                 } else {
-                    l = l.add(k,d, comp);
-                    // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
-                    if (weight(l) >> 1 > weight(r)) {
-                        // Must rotate.
-                        if (l.leftWeight() >= l.rightWeight()) {
-                            // L to root
-                            return assembleLeft(l.left, l, l.right, this, r);
-                        } else {
-                            // LR to root
-                            BATreeNode<T,U> lr = l.right;
-                            return assemble(l.left, l, lr.left, lr, lr.right, this, r);
-                        }
-                    }
+                    BATreeNode<T,U> nl = l.add(k,d, comp);
+                    return leftWeightIncreased(nl, r);
                 }
-                return new BATreeNode<T,U>(this,l,r);
+                
             } else if (c > 0) {
                 // right
                 if (r == null) {
                     r = new BATreeNode<T,U>(k,d);
+                    return new BATreeNode<T,U>(this,l,r);
                 } else {
-                    r = r.add(k,d, comp);
-//                  Worst-case balance: 2^(n-1) vs 2^(n+1)-1
-                    if (weight(r) >> 1 > weight(l)) {
-                        // Must rotate.
-                        if (r.rightWeight() >= r.leftWeight()) {
-                            // R to root
-                            return assembleRight(l, this, r.left, r, r.right);
-
-                        } else {
-                            // RL to root
-                            BATreeNode<T,U> rl = r.left;
-                            return assemble(l, this, rl.left, rl, rl.right, r, r.right);
-                        }
-                    }
+                    BATreeNode<T,U> nr = r.add(k,d, comp);
+                    return rightWeightIncreased(l, nr);
                 }
-                return new BATreeNode<T,U>(this,l,r);
+                
             } else {
                 // Update value.
                 return new BATreeNode<T,U>(k,d,l,r);
             }
         }
+        
+        
+        private BATreeNode<T,U> leftWeightIncreased(BATreeNode<T,U> l, BATreeNode<T,U> r) {
+            // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
+            int rw = weight(r);
+            int lw = weight(l);
+            if (lw  > rw << 1) {
+                // Must rotate.
+                int lrw = l.rightWeight();
+                int llw = l.leftWeight();
+                BATreeNode<T,U> lr = l.right;
+                if (llw >= lrw) {
+                    // L to root
+                    return assembleLeft(l.left, l, l.right, this, r);
+                } else {
+                    // LR to root
+                    
+                    return assemble(l.left, l, lr.left, lr, lr.right, this, r);
+                }
+            }
+            return new BATreeNode<T,U>(this,l,r);
+        }
+
+        private BATreeNode<T,U> rightWeightIncreased(BATreeNode<T,U> l, BATreeNode<T,U> r) {
+           // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
+            int rw = weight(r);
+            int lw = weight(l);
+           if (rw > lw << 1) {
+                // Must rotate.
+                int rrw = r.rightWeight();
+                int rlw = r.leftWeight();
+                BATreeNode<T,U> rl = r.left;
+                if (rrw >= rlw) {
+                    // R to root
+                    return assembleRight(l, this, r.left, r, r.right);
+
+                } else {
+                    // RL to root
+                    return assemble(l, this, rl.left, rl, rl.right, r, r.right);
+                }
+            } else {
+                return new BATreeNode<T,U>(this,l,r);
+            }
+        }
+        
+        BATreeNode<T,U> deleteMin(BATreeNode<T,U>[] deleted) {
+            BATreeNode<T,U> l = left;
+            if (l == null) {
+                deleted[0] = this;
+                return right;
+            } else {
+                l = l.deleteMin(deleted);
+                BATreeNode<T,U> r = right;
+                return rightWeightIncreased(l, r);
+            }
+        }
+        
+        BATreeNode<T,U> deleteMax(BATreeNode<T,U>[] deleted) {
+            BATreeNode<T,U> r = right;
+            if (r == null) {
+                deleted[0] = this;
+                return left;
+            } else {
+                r = r.deleteMax(deleted);
+                BATreeNode<T,U> l = left;
+                return leftWeightIncreased(l, r);
+            }
+        }
+        
+        BATreeNode<T,U> delete(T k, Comparator<T> comp) {
+            int c = comp.compare(k,key);
+            BATreeNode<T,U> l = left;
+            BATreeNode<T,U> r = right;
+           if (c == 0) {
+               int lw = weight(left);
+               int rw = weight(right);
+               BATreeNode<T,U>[] newthis = new BATreeNode[1];
+               if (lw > rw) {
+                   l = l.deleteMax(newthis);
+               } else {
+                   if (rw > 0)
+                       r = r.deleteMin(newthis);
+                   else
+                       return null;
+               }
+               return new BATreeNode<T,U>(newthis[0], l, r);
+            } else if (c < 0) {
+                if (l == null)
+                    return this;
+                BATreeNode<T,U> nl = l.delete(k, comp);
+                if (nl == l)
+                    return this;
+                return rightWeightIncreased(nl, r);
+            } else {
+                if (r == null)
+                    return this;
+                BATreeNode<T,U> nr = r.delete(k, comp);
+                if (nr == r)
+                    return this;
+                return leftWeightIncreased(l, nr);
+            }
+        }
+        
+
+        
+        
         private BATreeNode<T,U> assembleLeft(BATreeNode<T, U> ll, BATreeNode<T, U> l, BATreeNode<T, U> lr, BATreeNode<T, U> old, BATreeNode<T, U> r) {
             return new BATreeNode<T,U>(l,
                     ll,

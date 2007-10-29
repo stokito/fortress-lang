@@ -143,7 +143,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Native generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(containing, x);
-                guardedPutValue(containing, obfuscated(fname), gen, x);
+                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {
                 // It is a singleton; do not expose the constructor, do
@@ -154,11 +154,11 @@ public class BuildNativeEnvironment extends BuildEnvironments {
 
                 Constructor cl = nativeConstructor(containing,
                         (FTypeObject) ft, x, fname);
-                guardedPutValue(containing, obfuscated(fname), cl, x);
+                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
 
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(), ExprFactory
-                        .makeVarRef(x.getSpan(), obfuscated(fname)),
+                        .makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x)),
                         ExprFactory.makeVoidLiteral(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);

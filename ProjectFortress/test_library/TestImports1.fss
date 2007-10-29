@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component TestImports1
+export TestImports1
+
+trait S
+  myname():String
+  s():String = "s from TestImports1.S object " myname()
+end
+
+trait T extends S
+  t():String = "t from TestImports1.T " myname()
+end
+
+trait U extends T
+  u():String = "u from TestImports1.U " myname()
+end
+
+object V extends U
+  myname():String = "TestImports1.V"
+end
+
+object W extends U
+  myname():String = "TestImports1.W"
+end
+
+end
