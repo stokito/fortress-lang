@@ -69,6 +69,7 @@
 <!-- other setting -->
  <property name="junitMem" value="512m"/>
  <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
+ <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>
  
  <property name="blahblahblah" value="com/sun/fortress"/>
@@ -78,7 +79,7 @@
 checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
 compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
 parser, reportNotPassing, systemProperties, test, testAll, testDemos,
-testNotPassing, testOnly interpreter"/>
+testNotPassing, testOnly testCruiseControl interpreter"/>
     </target>
 
     <condition property="correct.environment">
@@ -158,12 +159,15 @@ testNotPassing, testOnly interpreter"/>
         <tstamp/>
         <!-- Create the build directory structure used by compile. -->
         <mkdir dir="${build}"/>
+        <mkdir dir="${junit.dir}"/>
     </target>
 
     <target name="clean"
             description="Delete the ${build} directory tree and generated files.">
         <delete dir="${build}"/>
         <delete dir="${nodes}"/>
+        <delete dir="${junit.dir}"/>
+
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${parser}/Fortress.java"/>
@@ -388,6 +392,38 @@ testNotPassing, testOnly interpreter"/>
             </classpath>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
+                <fileset dir="${build}">
+                    <include name="**/*JUTest.class"/>
+                    <include name="**/*JUTests.class"/>
+                    <exclude name="**/*$*.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+    </target>
+
+    <target name="testCruiseControl" depends="compile"
+            description="Run all unit and system tests expected to pass.">
+        <mkdir dir="${test.results}"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               fork="true"
+               maxmemory="${junitMem}"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath>
+             <pathelement location="${build}"/>
+             <pathelement location="${xtc}/xtc.jar"/>
+             <pathelement location="${jsr166y}/jsr166y.jar"/>
+             <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
+            </classpath>
+            <formatter type="plain" usefile="true"/>
+            <batchtest fork="true" todir="${junit.dir}">
+                <formatter type="brief" usefile="false" />
+                <formatter type="xml" />
                 <fileset dir="${build}">
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
