@@ -585,7 +585,9 @@ public class  OverloadedFunction extends Fcn
 //                System.err.println("Resolving seq from " + this );
 //            }
             
-            int best = bestMatchIndex(args, loc, envForInference);
+            List<Overload>  someOverloads = overloads;
+            
+            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
 
             if (best == -1) {
                 // TODO add checks for COERCE, right here.
@@ -594,7 +596,7 @@ public class  OverloadedFunction extends Fcn
                              Useful.listInParens(args), ", overload = ", this));
             }
 
-            best_f = overloads.get(best).getFn();
+            best_f = someOverloads.get(best).getFn();
             if (debugMatch)
                 System.err.println("Choosing " + best_f + " for args " + args);
             cache.syncPut(args, best_f);
@@ -607,7 +609,7 @@ public class  OverloadedFunction extends Fcn
      * Returns index of best match for args among the overloaded functions.
      * @throws Error
      */
-    public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference) throws Error {
+     public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference, List<Overload> someOverloads) throws Error {
       
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
@@ -615,8 +617,8 @@ public class  OverloadedFunction extends Fcn
         int best = -1;
         SingleFcn best_sfn = null;
 
-        for (int i = 0; i < overloads.size(); i++) {
-            Overload o = overloads.get(i);
+        for (int i = 0; i < someOverloads.size(); i++) {
+            Overload o = someOverloads.get(i);
             if (o.getParams() == null) {
                 bug(loc, errorMsg("Unfinished overloaded function ", this));
             }
