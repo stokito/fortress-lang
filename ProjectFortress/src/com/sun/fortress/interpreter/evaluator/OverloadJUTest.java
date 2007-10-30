@@ -82,7 +82,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TcWrapper  {
         List<FValue> vals = new ArrayList<FValue>();
         for(FType t: dynamic_types)
             vals.add(new DummyValue(t));
-        return fcn.bestMatchIndex(vals, null, null);
+        return fcn.bestMatchIndex(vals, null, null, fcn.getOverloads());
     }
 
     private <T> List<T> l(T... args) { return Arrays.asList(args); }

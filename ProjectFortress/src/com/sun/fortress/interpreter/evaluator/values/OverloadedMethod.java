@@ -55,7 +55,8 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
        Method best_f = mcache.get(args);
        if (best_f == null) {
        
-        int best = bestMatchIndex(args, loc, envForInference);
+           List<Overload>  someOverloads = overloads;
+           int best = bestMatchIndex(args, loc, envForInference, someOverloads);
         lastBest = best;
 
         if (best == -1) {
@@ -65,7 +66,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
                   Useful.listInParens(args) + ", overload = " + this);
         }
 
-        best_f = ((Method)overloads.get(best).getFn());
+        best_f = ((Method)someOverloads.get(best).getFn());
         mcache.syncPut(args, best_f);
        }
        return best_f.applyMethod(args, selfValue, loc, envForInference);
