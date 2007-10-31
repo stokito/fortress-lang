@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
 abstract public class SymbolicType extends FTypeTrait {
 
@@ -36,8 +37,8 @@ abstract public class SymbolicType extends FTypeTrait {
      */
     @Override
     public boolean typeMatch(FValue val) {
-        NI.nyi("Symbolic types never do this, do they?");
-        return super.typeMatch(val);
+        bug(errorMsg("Symbolic type ",this," is being matched to value ",val));
+        return false;
     }
 
     public SymbolicType(String name, BetterEnv interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {

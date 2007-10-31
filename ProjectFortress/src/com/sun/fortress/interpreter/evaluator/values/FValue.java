@@ -46,7 +46,7 @@ public abstract class FValue {
     }
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
-    public BufferedReader getBufferedReader() { return bug("getBufferedReader not implemented for " + getClass().getSimpleName()); }
+
     public BufferedWriter getBufferedWriter() { return bug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
