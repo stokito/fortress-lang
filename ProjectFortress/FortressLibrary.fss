@@ -2139,6 +2139,8 @@ opr |/a:Number\|:ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 truncate(a:Number):ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
 random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
 
+opr =(a:Char, b:Char):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Eq")
+
 opr DOT(a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition
      (a:String, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
@@ -2154,6 +2156,12 @@ opr juxtaposition
 opr DOT(a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr juxtaposition
      (a:String, b:Boolean):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+oprDOT(a:String, c:Char):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
+     (a:String, c:Char):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+oprDOT(c:Char, a:String):String =builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
+opr juxtaposition
+     (c:Char, a:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$App")
 opr DOT(a:String, b:()):String = a "()"
 opr juxtaposition(a:String, b:()):String = a "()"
 opr DOT(a:String, b:(Any,Any)):String = do (i,j) = b; a "(" i "," j ")" end
@@ -2185,6 +2193,7 @@ print(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.St
 println(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 print(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a:Boolean):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+println(a:Char):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
