@@ -137,11 +137,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         ThreadState threadState = BaseTask.getThreadState();
         ContentionManager manager = threadState.manager();
         T result = null;
-        try {
         threadState.beginTransaction();
-        } catch (PanicException p) {
-            bug("Cannot yet nest transactions.");
-        }
         try {
             result = xaction.call();
             if (threadState.commitTransaction()) {

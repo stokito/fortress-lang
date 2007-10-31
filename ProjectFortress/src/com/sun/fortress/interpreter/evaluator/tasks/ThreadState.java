@@ -183,11 +183,6 @@ public class ThreadState {
             transaction = new Transaction();
             total++;
         }
-        // first thing to fix if we allow nested transactions
-        //        if (depth >= 1) {
-        //            throw new PanicException("beginTransaction: attempting to nest transactions too deeply.");
-        //        }
-
         incDepth();
     }
 
@@ -206,8 +201,6 @@ public class ThreadState {
     public boolean commitTransaction() {
         if (depth < 1) {
             throw new PanicException(Thread.currentThread().getName() + " commitTransaction invoked when no transaction active.");
-            //        } else if (depth > 1) {
-            //            throw new PanicException("commitTransaction invoked on nested transaction.");
         } else if (depth > 1) {
             return validate();
         } else  {
