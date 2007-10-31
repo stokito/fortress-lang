@@ -850,10 +850,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<IfClause> clause = x.getClauses();
         for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
             IfClause ifclause = i.next();
-            FBool fbool = (FBool) ifclause.getTest().accept(this);
-            if (fbool.getBool())
+            FValue clauseVal = ifclause.getTest().accept(this);
+            if (!(clauseVal instanceof FBool)) {
+                return error(ifclause,
+                             errorMsg("If clause did not return boolean, but ",
+                                      clauseVal));
+            }
+            FBool fbool = (FBool) clauseVal;
+            if (fbool.getBool()) {
                 return ifclause.getBody().accept(this);
-            ;
+            }
         }
         Option<Block> else_ = x.getElseClause();
         if (else_.isSome()) {

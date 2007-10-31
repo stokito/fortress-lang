@@ -30,37 +30,6 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
  */
 public class File {
 
-public static final class InFileOpen extends Util.S2Fr {
-    protected BufferedReader f(String fileName) {
-        try {
-            BufferedReader fin = Useful.utf8BufferedFileReader(fileName);
-            return fin;
-        } catch (FileNotFoundException ex) {
-            return error("FileNotFound: " + fileName);
-        }
-    }
-}
-
-public static final class InFileRead extends Util.Fr2S {
-    protected String f(BufferedReader fin) {
-        try {
-            return fin.readLine();
-        } catch (IOException ex) {
-            return error("FileReadException!");
-        }
-    }
-}
-
-public static final class InFileClose extends Util.Fr2V {
-    protected void f(BufferedReader fin) {
-        try {
-            if (fin != null) fin.close();
-        } catch (IOException ex) {
-            error("FileCloseException!");
-        }
-    }
-}
-
 public static final class OutFileOpen extends Util.S2Fw {
     protected BufferedWriter f(String fileName) {
         try {

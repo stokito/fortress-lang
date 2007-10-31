@@ -69,14 +69,6 @@ run(args:String...) = do
   outFileWrite(fout, s2)
   outFileClose(fout)
 
-  fin: BufferedReader = inFileOpen("testFile.txt")
-  r0 = inFileRead(fin)
-  r1 = inFileRead(fin)
-  r2 = inFileRead(fin)
-  inFileClose(fin)
-  r = r0 "\n" r1 "\n" r2
-  same(s,r,"BufferedReader","")
-
   (* Note that we can't distinguish the non-terminated final line when
      we use readLine.  We'll always get a final empty line. *)
   streamTest(s "\n", "\n", fn (rs) => rs.readLine(),"readLine")
