@@ -38,6 +38,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FChar;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FGenerator;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
@@ -1552,7 +1553,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forCharLiteral(CharLiteral x) {
-        return NI("forCharLiteral");
+        return FChar.make(x.getVal());
     }
 
     public FValue forFloatLiteral(FloatLiteral x) {

@@ -51,6 +51,7 @@ public abstract class FValue {
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
     public double getFloat() { throw new InterpreterBug("getFloat not implemented for "  + getClass().getSimpleName());}
+    public char getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}
     /**
      * @param ftype The ftype to set.
      */
