@@ -20,23 +20,17 @@ import * from SkipList
 export Executable
 
 
-database:SkipList[\String,ZZ32,32,2\] = EmptyList[\String,ZZ32,32,2\]()
+database:SkipList[\String,ZZ32,2\] := NewList[\String,ZZ32,2\]()
+
+init(name:String, ranking: ZZ32) = database := database.add(name, ranking)
 
 run(args:String...):() = do
-  database.insert("David", 3)
-  database.insert("Emily", 2)
-  database.insert("Nathi", 5)
-  database.insert("Peter", 1)
-  database.insert("Elias", 4)
-  database.insert("Michael", 0)
-  println database.toString()
-  database.printStringLines()
-  println database.search("Michael").unJust()
-  println database.search("Nathi").unJust()
-  database.delete("Michael")
-  database.delete("David")
-  database.delete("Peter")
-  println database.toString()
+  init("David", 3)
+  init("Emily", 2)
+  init("Nathi", 5)
+  init("Peter", 1)
+  init("Elias", 4)
+  println(database.toString())
 end
 
 end

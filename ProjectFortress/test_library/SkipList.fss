@@ -21,237 +21,355 @@ export SkipList
 (*****************************************************************************
    An implementation of Skip Lists, based on Pugh, William (June 1990).
    "Skip lists: a probabilistic alternative to balanced trees". Communications
-   of the ACM 33: 668-676. The Search(), Insert(), and Delete() operations
-   are based off "A Skip List Cookbook" by William Pugh. University of Maryland,
-   Deptartment of Computer Science, Technical Report CS-TR-2286.1. The expected
-   time for searching, inserting, or deleting a key-element pair is O(log n).
+   of the ACM 33: 668-676. The expected time for searching, inserting, or deleting
+   a key-element pair is O(log n). Skip Lists are represented here in a tree
+   structure, based on Xavier Messeguer (1997). "Skip Trees, an Alternative Data
+   Structure to Skip Lists in a Concurrent Approach". ITA 31(3): 251-269.
 
-   This collection is a mutable container type. The simplest synchronization
-   scheme has been implemented: all the methods on the skip lists have been
-   declared atomic. For a more sophisticated implementation look at
-   "A Provably Correct Scalable Concurrent Skip List" by Maurice Herlihy,
-   Yossi Lev, Victor Luchangco, and Nir Shavit. On Principles Of Distributed
-   Systems Conference (OPODIS) 2006.
-
-   From http://en.wikipedia.org/wiki/Skip_list
-   "A skip list is a probabilistic data structure. Underlying the skip list is
-   an augmentation of an ordered linked list with additional forward links,
-   added in a randomized way with a geometric/negative binomial distribution,
-   so that a search in the list may quickly skip parts of the list."
-
-   "A skip list is built in layers. The bottom layer is an ordinary ordered
-   linked list. Each higher layer acts as an "express lane" for the lists below,
-   where an element in layer i appears in layer i+1 with some fixed probability p.
-   On average, each element appears in 1/(1-p) lists."
+   A skip tree is a variant of a B-tree.  It shares the B-tree property that
+   every path from the root to a leaf has the same length.  Every node contains
+   some number of keys (n) and exactly n + 1 children nodes. Skip trees do not
+   share the B-tree property of a minimum or a maximum number of keys per node.
+   All leaves live in level 0 of the tree, and values are stored only in the leaf
+   nodes.
 
 ***************************************************************************)
 
-(* A Node is the basic type for the Skip List data structure. Nodes instances
-  contain a (key, value) pair that stores data along with an array of forward
-  pointers. Each node has a level which corresponds to the highest forward pointer
-  of a node (level = forward.size - 1). The ith foward pointer points to the next
-  node of level i or higher.
-*)
-trait Node[\Key,Val\] comprises {HeadNode[\Key,Val\],FullNode[\Key,Val\],NilNode[\Key,Val\]}
+trait SkipList[\Key,Val,nat pInverse\] comprises {EmptyList[\Key,Val,pInverse\],
+  FullList[\Key,Val,pInverse\]}
 
-  getPair():(Key, Val)
-  getKey():Key
-  getVal():Val
-
-  (* return the level of this Node. level = forward.size - 1 *)
-  getLevel():ZZ32
-
-  (* The generate method for (Key,Val)->R reductions. *)
-  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
-
-  (* The generate method for ZZ32->R reductions.
-     FIXME: My attempt to overload the generate() method
-     throw some errors in the interpreter *)
-  generate2[\R\](r: Reduction[\R\], body: ZZ32->R): R
-
-  (* returns a (key, value) String representation of this node
-     and all downstream nodes *)
   toString():String
+  (* toGraphViz():String   wait until hashCode() is implemented*)
+  search(k:Key):Maybe[\Val\]
+  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\]
 
-  (* returns a pictoral representation of the ith level
-     of forward pointers of this node and all downstream nodes *)
-  toStringLine(line:ZZ32):String
-
-  (* use these methods in place of < and = operations on the node
-     key to avoid giving the nil node a dummy key of positive infinity. *)
-  isLessCompare(searchKey:Key):Boolean
-  isEqualCompare(searchKey:Key):Boolean
 end
 
-(* The HeadNode is the head of the skip list data structure. The head node
-   does not contain a (key,value) pair. The forward array is always of size
-   maxLevel, where maxLevel is a static parameter of the SkipNode type.
+(* A Node is the basic type for the Skip List data structure.
+   There are four types of Nodes:
+    i) Empty Nodes - represents an empty tree.
+    ii) Leaf Nodes - stores a (key,val) pair. Lives at the bottom of the tree.
+    iii) Internal Nodes - stores N keys and N+1 children for N > 0.
+    iv) White Nodes - stores exactly zero keys and one child.
 *)
-object HeadNode[\Key,Val\](settable forward:Array[\Node[\Key,Val\],ZZ32\]) extends Node[\Key,Val\]
-  getPair():(Key, Val) = fail("Head node: cannot get (key,value) pair")
-  getKey():Key = fail("Head node: cannot get key")
-  getVal():Val = fail("Head node: cannot get value")
-  getLevel():ZZ32 = fail("Head node: cannot get level")
-  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = forward[0].generate[\R\](r,body)
-  generate2[\R\](r: Reduction[\R\], body: ZZ32->R): R = forward[0].generate[\R\](r,body)
-  toString():String = forward[0].toString()
-  toStringLine(line:ZZ32):String = forward[0].toStringLine(line)
-  printStringLines(level:ZZ32):() = do
-    for j <- seq(0:level) do
-      i = level - j
-      println toStringLine(i)
+trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
+  InternalNode[\Key,Val\], WhiteNode[\Key,Val\]}
+
+  getHeight():ZZ32
+
+  isLeaf():Boolean
+  isTreeEmpty():Boolean
+  isNodeEmpty():Boolean
+
+  search(k:Key):Maybe[\Val\]
+
+  toString():String
+  (* toGraphViz():String   wait until hashCode() is implemented*)
+
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+
+  (* splits the new child in half and sucks the split key up to this level *)
+  split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\]
+
+  (* breaks the keys of this node into two new nodes *)
+  break():(Node[\Key,Val\],Node[\Key,Val\],Key)
+
+end
+
+
+generate_tail[\Key,Val\](node:Node[\Key,Val\], length:ZZ32):Node[\Key,Val\] =
+if length > 0 then
+  generate_tail[\Key,Val\](WhiteNode[\Key,Val\](node,node.getHeight() + 1), length - 1)
+else
+  node
+end
+
+
+(* A white node stores exactly zero keys and contains one child. White nodes are
+   used as placeholders to keep the height of all branches identical. A white node
+   has a height > 0 *)
+object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Key,Val\]
+
+  getHeight():ZZ32 = height
+
+  isLeaf():Boolean = false
+  isTreeEmpty():Boolean = false
+  isNodeEmpty():Boolean = true
+
+  search(k:Key):Maybe[\Val\] = child.search(k)
+
+  toString():String = "{ [], [" child.toString() "] }"
+
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] =
+  if height = 1 then
+    height1_add(k,v)
+  else
+    heightn_add(k,v,level)
+  end
+
+  (* splits the new child in half and sucks the split key up to this level *)
+  split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = do
+    keys:Array[\Key,ZZ32\] = array[\Key\](1)
+    children:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
+    (left,right,key') = heir.break()
+    keys[0] := key'
+    children[0] := left
+    children[1] := right
+    InternalNode[\Key,Val\](keys,children,height)
+  end
+
+  break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a white node")
+
+  (* perform the add operation when the height is one *)
+  height1_add(k:Key, v:Val):Node[\Key,Val\] = do
+    other:LeafNode[\Key,Val\] = LeafNode[\Key,Val\]((k,v))
+    k':Key = child.key
+    keys:Array[\Key,ZZ32\] = array[\Key\](1)
+    children:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
+    (smaller,larger,lkey) = if k > k' then (child,other,k) else (other,child,k') end
+    keys[0] := lkey
+    children[0] := smaller
+    children[1] := larger
+    InternalNode[\Key,Val\](keys,children,height)
+  end
+
+  (* perform the add operation when the height is greater than one *)
+  heightn_add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    child':Node[\Key,Val\] = child.add(k,v,level)
+    if level < height then
+      WhiteNode[\Key,Val\](child', height)
+    else
+      split(0, child')
     end
   end
-  isLessCompare(searchKey:Key):Boolean = fail("Head node: cannot perform less-than comparison")
-  isEqualCompare(searchKey:Key):Boolean = fail("Head node: cannot perform equals comparison")
+
+
 end
 
-(* The NilNode is the tail of the skip list data structure. The nil node
-   does not contain a (key,value) pair. The nil node does not contain
-   a forward array.
-*)
-object NilNode[\Key,Val\]() extends Node[\Key,Val\]
-  getPair():(Key, Val) = fail("Nil node: cannot get (key,value) pair")
-  getKey():Key = fail("Nil node: cannot get key")
-  getVal():Val = fail("Nil node: cannot get value")
-  getLevel():ZZ32 = fail("Nil node: cannot get level")
-  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
-  generate2[\R\](r: Reduction[\R\], body: ZZ32->R): R = r.empty()
+(* An internal node stores N keys and N + 1 children where N > 0.
+   An internal nodes has a height > 0. *)
+object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
+  children:Array[\Node[\Key,Val\],ZZ32\], height:ZZ32) extends Node[\Key,Val\]
+
+  getHeight():ZZ32 = height
+
+  isLeaf():Boolean = false
+  isTreeEmpty():Boolean = false
+  isNodeEmpty():Boolean = false
+
+  search(k:Key):Maybe[\Val\] = do
+    index:ZZ32 := 0
+    while (index < keys.size() AND: k > keys[index]) do
+      index += 1
+    end
+    children[index].search(k)
+  end
+
+  toString():String = "{" keys.toString() ", " children.toString() "}"
+
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    index:ZZ32 := 0
+    (* FIXME: replace with AND: *)
+    flag:Boolean := false
+    if index < keys.size() then flag := k > keys[index] end
+    while (flag) do
+      index += 1
+      flag := false
+      if index < keys.size() then flag := k > keys[index] end
+    end
+    if height = 1 then
+      height1_add(k,v,index)
+    else
+      heightn_add(k,v,index,level)
+    end
+  end
+
+  (* splits the new child in half and sucks the split key up to this level *)
+  split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = do
+    keysplit:ZZ32 = keys.size() - index
+    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
+    children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
+    (left,right,key') = heir.break()
+    keys'[0 # index] := keys[0 # index]
+    children'[0 # index] := children[0 # index]
+    keys'[index] := key'
+    children'[index] := left
+    children'[index + 1] := right
+    keys'[(index + 1) # keysplit] := keys[index # keysplit]
+    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
+    InternalNode[\Key,Val\](keys',children',height)
+  end
+
+  break():(Node[\Key,Val\],Node[\Key,Val\],Key) =
+  if keys.size() = 1 then
+    onekey_break()
+  elif keys.size() = 2 then
+    twokeys_break()
+  else
+    nkeys_break()
+  end
+
+  (* perform the add operation when the height is one *)
+  height1_add(k:Key, v:Val, index:ZZ32):Node[\Key,Val\] = do
+    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
+    children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
+    keysplit:ZZ32 = keys.size() - index
+    keys'[0 # index] := keys[0 # index]
+    children'[0 : index] := children[0 : index]
+    children'[index + 1] := LeafNode[\Key,Val\]((k,v))
+    keys'[index] := k
+    keys'[(index + 1) # keysplit] := keys[index # keysplit]
+    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
+    InternalNode[\Key,Val\](keys',children',height)
+  end
+
+  (* perform the add operation when the height is greater than one *)
+  heightn_add(k:Key, v:Val, level:ZZ32, index:ZZ32):Node[\Key,Val\] = do
+    child':Node[\Key,Val\] = children[index].add(k,v,level)
+    if level < height then
+      children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
+      children'[0 # (children.size())] := children[0 # (children.size())]
+      children'[index] := child'
+      InternalNode[\Key,Val\](keys,children',height)
+    else
+      split(index, child')
+    end
+  end
+
+  (* perform the break operation when we have exactly one key *)
+  onekey_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
+    smaller:Node[\Key,Val\] = children[0]
+    larger:Node[\Key,Val\] = children[1]
+    key':Key = keys[0]
+    left:Node[\Key,Val\] = WhiteNode[\Key,Val\](smaller,height)
+    right:Node[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
+    (left, right, key')
+  end
+
+  (* perform the break operation when we have exactly two keys *)
+  twokeys_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
+    smaller:Node[\Key,Val\] = children[0]
+    larger:Node[\Key,Val\] = children[1]
+    key':Key = keys[0]
+    left:Node[\Key,Val\] = WhiteNode[\Key,Val\](smaller,height)
+    right:Node[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
+    (left, right, key')
+  end
+
+  (* perform the break operation when we have three or more key *)
+  nkeys_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
+    half:ZZ32 = keys.size() DIV 2
+    keysplit:ZZ32 = keys.size() - half - 1
+    key':Key = keys[half]
+    lkeys:Array[\Key,ZZ32\] = array[\Key\](half)
+    lchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](half + 1)
+    rkeys:Array[\Key,ZZ32\] = array[\Key\](keysplit)
+    rchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](keysplit + 1)
+    lkeys[0 # half] := keys[0 # half]
+    lchildren[0 # half] := children[0 # half]
+    lchildren[half] := children[half]
+    rkeys[0 # keysplit] := keys[(half + 1) # keysplit]
+    rchildren[0 # keysplit] := children[(half + 1) # keysplit]
+    rchildren[rchildren.size() - 1] := children[children.size() - 1]
+    left:Node[\Key,Val\] = InternalNode[\Key,Val\](lkeys,lchildren,height)
+    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren,height)
+    (left, right, key')
+  end
+
+end
+
+(* The empty node represents an empty tree. It is neither a leaf node nor
+   an internal node, and the empty node does not have a height. *)
+object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
+
+  getHeight():ZZ32 = fail("Empty node does not have a height")
+
+  isLeaf():Boolean = fail("Empty node is neither a leaf nor an internal node")
+  isTreeEmpty():Boolean = true
+  isNodeEmpty():Boolean = fail("Empty node cannot check for emptiness on keys")
+
+  search(k:Key):Maybe[\Val\] = Nothing[\Val\]()
+
   toString():String = "{}"
-  toStringLine(line:ZZ32):String = ""
-  isLessCompare(searchKey:Key):Boolean = false
-  isEqualCompare(searchKey:Key):Boolean = false
+
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    leaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\]((k, v))
+    parent:WhiteNode[\Key,Val\] = WhiteNode[\Key,Val\](leaf,1)
+    parent
+  end
+
+  split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = fail("Cannot split an empty node.")
+  break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break an empty node.")
+
+
 end
 
-(* SkipNodes comprise the bulk of the skip list data structure. They
-   consist of a (key, value) pair and a forward array that points
-   to downstream Nodes.
-*)
-object SkipNode[\Key,Val\](pair:(Key,Val),settable forward:Array[\Node[\Key,Val\],ZZ32\])
-  extends Node[\Key,Val\]
+(* Leaf nodes are the only nodes that store values.  All leaf
+   nodes live at the bottom of the tree, and they all have height 0. *)
+object LeafNode[\Key,Val\](pair: (Key, Val)) extends Node[\Key,Val\]
+
   (key, val) = pair
   getPair():(Key, Val) = pair
   getKey():Key = key
   getVal():Val = val
-  getLevel():ZZ32 = forward.size() - 1
-  generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R =
-    r.join(body(key,val),forward[0].generate[\R\](r,body))
-  generate2[\R\](r: Reduction[\R\], body: ZZ32->R): R =
-    r.join(body(forward.size()),forward[0].generate2[\R\](r,body))
-  toString():String = "{" key "|->" val forward[0].generate[\String\](StringReduction,
-    fn (k:Key, v:Val):String=> ", " k "|->" v) "}"
-  toStringLine(line:ZZ32):String = if line < forward.size() then
-    "| " forward[0].generate2[\String\](StringReduction,
-    fn (i:ZZ32):String=> if line < i then "| " else "  " end)
-  else
-    "  " forward[0].generate2[\String\](StringReduction,
-    fn (i:ZZ32):String=> if line < i then "| " else "  " end)
-  end
-  isLessCompare(searchKey:Key):Boolean = key < searchKey
-  isEqualCompare(searchKey:Key):Boolean = key = searchKey
+  getHeight():ZZ32 = 0
+
+  isLeaf():Boolean = true
+  isTreeEmpty():Boolean = false
+  isNodeEmpty():Boolean = false
+
+  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](val) else Nothing[\Val\]() end
+
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+
+  split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = fail("Cannot split a leaf node.")
+  break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a leaf node.")
+
+  toString():String = "<<" key ">>"
+
 end
 
-(* A SkipList type consists of a HeadNode and an integer to keep track of the
-   current level of the skip list. The level of a skip list is the level of its
-   highest node (excluding the header). MaxLevel is a constant that caps the
-   level of the list. pInverse = 1/p, where the fraction p of the nodes with
-   level i pointers also have level i+1 pointers. MaxLevel and pInverse should
-   be selected such that MaxLevel = log_1/p (N), where N is an upper bound on
-   the number of elements in the skip list.  If pInverse = 2 and MaxLevel = 32,
-   then N = 2 ^ 32.
+
+object EmptyList[\Key,Val,nat pInverse\](root:EmptyNode[\Key,Val\]) extends SkipList[\Key,Val,pInverse\]
+
+  toString():String = root.toString()
+
+  search(k:Key):Maybe[\Val\] = root.search(k)
+
+  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
+    FullList[\Key,Val,pInverse\](root.add(k,v,1))
+  end
+
+end
+
+(* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
+   p is used in the negative binomial distribution to select random levels for insertion.
 *)
-object SkipList[\Key,Val,nat maxLevel,nat pInverse\](settable header:HeadNode[\Key,Val\],settable level:ZZ32)
+object FullList[\Key,Val,nat pInverse\](root:Node[\Key,Val\]) extends SkipList[\Key,Val,pInverse\]
 
   p:RR64 = 1.0 / pInverse
-  atomic toString():String = header.toString()
-  atomic printStringLines():() = header.printStringLines(level)
 
-  atomic search(searchKey:Key):Maybe[\Val\] = do
-    x:Node[\Key,Val\] := header
-    for j <- seq(0:level) do
-      i = level - j
-      while x.forward[i].isLessCompare(searchKey) do
-        x := x.forward[i]
-      end
-    end
-    x := x.forward[0]
-    if x.isEqualCompare(searchKey) then
-      Just[\Val\](x.getVal())
-    else
-      Nothing[\Val\]()
-    end
-  end
+  toString():String = root.toString()
 
-  atomic insert(searchKey:Key,newValue:Val):() = do
-    update:Array1[\Node[\Key,Val\],0,maxLevel\] := array1[\Node[\Key,Val\], maxLevel\]()
-    x:Node[\Key,Val\] := header
-    for j <- seq(0:level) do
-      i = level - j
-      while x.forward[i].isLessCompare(searchKey) do
-        x := x.forward[i]
-      end
-      update[i] := x
-    end
-    newLevel:ZZ32 = randomLevel()
-    if newLevel > level then
-      for i <- (level + 1):newLevel do
-        update[i] := header
-      end
-      level := newLevel
-    end
-    x := SkipNode[\Key,Val\]((searchKey,newValue),array[\Node[\Key,Val\]\](newLevel + 1))
-    for i <- 0:newLevel do
-      x.forward[i] := update[i].forward[i]
-      update[i].forward[i] := x
-    end
-  end
+  search(k:Key):Maybe[\Val\] = root.search(k)
 
-  atomic delete(searchKey:Key):() = do
-    update:Array1[\Node[\Key,Val\],0,maxLevel\] := array1[\Node[\Key,Val\], maxLevel\]()
-    x:Node[\Key,Val\] := header
-    for j <- seq(0:level) do
-      i = level - j
-      while x.forward[i].isLessCompare(searchKey) do
-        x := x.forward[i]
-      end
-      update[i] := x
-    end
-    x := x.forward[0]
-    if x.isEqualCompare(searchKey) then
-      for i <- 0:level do
-        (* FIXME: This should actually be (update[i].forward[i] = x)
-          but equality has not yet been implemented *)
-        if update[i].forward[i].isEqualCompare(searchKey) then
-          update[i].forward[i] := x.forward[i]
-        end
-      end
-      while level > 0 AND instanceOf[\NilNode[\Key,Val\]\](header.forward[level]) do
-        level -= 1
-      end
-    end
+  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
+    level:ZZ32 = randomLevel()
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](root, level - root.getHeight())
+    FullList[\Key,Val,pInverse\](tail.add(k,v,level))
   end
 
   randomLevel():ZZ32 = do
-    level':ZZ32 := 0
+    level':ZZ32 := 1
     while random(1.0) < p do
       level' += 1
     end
-    if level' >= maxLevel then
-      maxLevel - 1
-    else
-      level'
-    end
+    level'
   end
+
 end
 
-(* The EmptyList() function creates an empty skip list with given
-   maxLevel and pInverse values.
-*)
-EmptyList[\Key,Val,nat maxLevel,nat pInverse\]():SkipList[\Key,Val,maxLevel,pInverse\] = do
-  tail:NilNode[\Key,Val\] = NilNode[\Key,Val\]()
-  head:HeadNode[\Key,Val\] = HeadNode[\Key,Val\](array1[\Node[\Key,Val\],maxLevel\]().fill(tail))
-  empty:SkipList[\Key,Val,maxLevel,pInverse\] = SkipList[\Key,Val,maxLevel,pInverse\](head,0)
-  empty
-end
+NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
+  EmptyList[\Key,Val,pInverse\](EmptyNode[\Key,Val\]())
 
 end
