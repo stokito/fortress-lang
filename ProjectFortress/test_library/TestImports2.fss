@@ -15,26 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ImportLocalCollision
-import * from TestImports1
-export Executable
+component TestImports2
+export TestImports2
 
-trait U
-  s():String = "s from ImportLocalCollision.U"
+trait S
+  myname():String
+  s():String = "s from TestImports2.S object " myname()
+end
+
+trait T extends S
+  t():String = "t from TestImports2.T " myname()
+end
+
+trait U extends T
+  u():String = "u from TestImports2.U " myname()
 end
 
 object V extends U
+  myname():String = "TestImports2.V"
 end
 
-object W extends T
-  myname():String = "ImportLocalCollision.W"
-end
-
-run(args:String...):()=do
-  println V.s()
-  println W.s()
-  println W.t()
+object W extends U
+  myname():String = "TestImports2.W"
 end
 
 end
-

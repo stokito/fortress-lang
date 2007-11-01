@@ -51,6 +51,9 @@ public class ComponentWrapper {
     BuildEnvironments be;
     
     BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     
     Desugarer dis;
     boolean isNative; 
@@ -62,11 +65,12 @@ public class ComponentWrapper {
 
         @Override
         public void visit(String t, Object u) {
-            if (! (u instanceof Fcn) && ! (u instanceof GenericConstructor)) {
+            if (! overloadable(u)) {
                 if (t.equals(":"))
                     System.err.println(": import of " + u);
                 ownNonFunctionNames.add(t);
             }
+            ownNames.add(t);
         }
     };
 
@@ -91,6 +95,10 @@ public class ComponentWrapper {
         exports.put(NodeUtil.nameString(api.getComponent().getName()), api);
     }
 
+    public static boolean overloadable(Object u) {
+        return u instanceof Fcn || u instanceof GenericConstructor;
+    }
+    
     @Override
     public String toString() {
         return ("Wrapper for "+p.toString()+" exports: "+exports);
@@ -128,7 +136,7 @@ public class ComponentWrapper {
          * name injection will follow the same no-duplicates
          * rules as other name visibility.
          */
-        ownNonFunctionNames.addAll(dis.getTopLevelRewriteNames());
+        ownNames.addAll(dis.getTopLevelRewriteNames());
         for (ComponentWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
@@ -152,6 +160,7 @@ public class ComponentWrapper {
         be.visit(cu);
         // Reset the non-function names from the disambiguator.
         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+        excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
         be.getEnvironment().visit(nameCollector);
         p = cu;
         
@@ -218,8 +227,8 @@ public class ComponentWrapper {
         return exports.get(apiname);
     }
     
-    public boolean isOwnNonFunctionName(String s) {
-        return ownNonFunctionNames.contains(s);
+    public boolean isOwnName(String s) {
+        return ownNames.contains(s);
     }
 
 
