@@ -17,16 +17,16 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.aggregate.d
+component Var.Local
 
 export Executable
 
 run(args:String...) = do
-  theta:RR64 = 0
 (** EXAMPLE **)
-  d:RR64[2,2] = [(cos theta) (- (sin theta))
-                 (sin theta) (cos theta)]
+  pi: RR64
+  pi = 3.141592653589793238462643383279502884197169399375108209749445923078
 (** END EXAMPLE **)
+  println pi
 end
 
 end

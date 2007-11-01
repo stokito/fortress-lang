@@ -17,16 +17,26 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.aggregate.d
+component Expr.Label
 
 export Executable
 
-run(args:String...) = do
-  theta:RR64 = 0
+Sun  = "Sun"
+Home = "Home"
+goingTo(x) = x = Sun
+x32A = "x32A"
+x32B = "x32B"
+sunExit() = do
 (** EXAMPLE **)
-  d:RR64[2,2] = [(cos theta) (- (sin theta))
-                 (sin theta) (cos theta)]
+  label I95
+    if goingTo(Sun)
+    then exit I95 with x32B
+    else x32A
+    end
+  end I95
 (** END EXAMPLE **)
 end
+
+run(args:String...) = println sunExit()
 
 end
