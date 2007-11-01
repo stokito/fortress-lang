@@ -17,16 +17,21 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.aggregate.d
+component Types.Arrow
 
 export Executable
 
+ff(x: RR64, y: RR64) = x + y
+gg(x: ZZ32) = (x, x)
+
 run(args:String...) = do
-  theta:RR64 = 0
 (** EXAMPLE **)
-  d:RR64[2,2] = [(cos theta) (- (sin theta))
-                 (sin theta) (cos theta)]
+  f: (RR64, RR64) -> RR64
+  g: ZZ32 -> (ZZ32, ZZ32) throws IOFailure
 (** END EXAMPLE **)
+  f = ff
+  g = gg
+  println (f(g 3))
 end
 
 end

@@ -17,16 +17,14 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.aggregate.d
+component Var.Top.d
 
 export Executable
 
-run(args:String...) = do
-  theta:RR64 = 0
 (** EXAMPLE **)
-  d:RR64[2,2] = [(cos theta) (- (sin theta))
-                 (sin theta) (cos theta)]
+(x, y, z): (ZZ64, ZZ64, ZZ64) = (0, 1, 2)
 (** END EXAMPLE **)
-end
+
+run(args:String...) = println (x + y + z)
 
 end
