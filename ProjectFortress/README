@@ -111,9 +111,9 @@ this demo doesn't quite work.
 COMPONENTS
 
 Fortress currently lacks a full-blown component system.  All the code
-in your Fortress program will reside in one of two places: in the
-library file, FortressLibrary.fss, or in the (single) program file you
-have written.
+in your Fortress program should reside in one of two places: in api
+and compponent file pairs in test_library, or in the (single) program
+file you have written.
 
 If you take a look at all the Fortress programs in tests/ and demos/
 you'll see that they have the same overall structure:
@@ -130,14 +130,9 @@ run(args:String...):() = ...
 end
 
 
-Your program and the libraries are run in a single common namespace.
-This means that you will not be able to reuse names which are defined
-by the libraries (except by overloading).  It also means that you can
-use functionality which is conceptually library-internal.  Remember
-that the libraries you see here are preliminary and certain to change;
-even the type hierarchy you see defined is different than the one we
-actually want, due to missing features in the language.
-
+Remember that the libraries you see here are preliminary and certain
+to change; even the type hierarchy you see defined is different than
+the one we actually want, due to missing features in the language.
 
 LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
@@ -151,9 +146,6 @@ LANGUAGE FEATURES THAT ARE IMPLEMENTED
 
 * Polymorphic top-level functions and methods, so long as the methods
   are not overloaded.
-
-* Top-level operator functions.  Functional methods are not supported
-  yet.
 
 * Checking and inference of argument types to functions, methods, and
   operators.  These checks use the dynamic types of the arguments.
@@ -205,8 +197,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Unicode names
 
-* Apis
-
 * Dimensions and units
 
 * Static arguments: nat (using minus), int, bool, dimension, and unit
@@ -224,13 +214,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 * Coercion
 
 * Constraint solving for nat parameters
-
-* opr parameters
-
-* Functional methods
-
-* Overloaded parametric methods.  You can have one or the other, but
-  not both.
 
 * throw and catch.  Because of this lack we do not yet perform
   arithmetic range checks.
