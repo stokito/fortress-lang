@@ -68,10 +68,12 @@ Param Keyword = a1:Param w equals w a2:Expr
 
 /* Param ::= BindId (w IsType)? | Type */
 NormalParam PlainParam =
-     a1:BindId a2:(w IsType)?
-     { if (a2 == null) yyValue = NodeFactory.makeParam(a1);
-       else            yyValue = NodeFactory.makeParam(a1, a2);
-     }
+     a1:BindId w a2:IsType
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / !(BindId (w closedoublesquare / w closesquare /
+               w opendoublesquare / w opensquare / w rightarrow))
+     a1:BindId
+     { yyValue = NodeFactory.makeParam(a1); }
    / a1:Type
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount), "_"),
                                        a1); };
