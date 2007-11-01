@@ -426,7 +426,9 @@ public class Driver {
 
         final BetterEnv e = cw.getEnvironment();
 
-        for (Import i : imports) {
+        /* First handle all imports that name the things they introduce. */
+        
+        for (Import i : imports){
             if (i instanceof ImportApi) {
                 ImportApi ix = (ImportApi) i;
                 List<AliasedDottedName> apis = ix.getApis();
@@ -478,10 +480,37 @@ public class Driver {
                          */
 
                         inject(e, api_e, from_e, name, alias, from_apiname,
-                               NodeUtil.nameString(from_cw.getComponent().getName()));
+                               NodeUtil.nameString(from_cw.getComponent().getName()), cw);
                     }
 
-                } else if (ix instanceof ImportStar) {
+                } else if (ix instanceof ImportStar) { /* Do nothing */}
+            } else {
+
+            }
+        
+            
+        }
+        
+        /* Next handle import-*. When two of these try to introduce the same
+         * name (implicitly), the name remains undefined, except for functions.
+         * 
+         * When one of these tries to introduce a name previously defined locally
+         * or in a non-* import, the new (import-*) definition is ignored.
+         */
+        for (Import i : imports) {
+            if (i instanceof ImportFrom) {
+                ImportFrom ix = (ImportFrom) i;
+                DottedName source = ix.getApi();
+                String from_apiname = NodeUtil.nameString(source);
+
+                ComponentWrapper from_cw = linker.get(from_apiname);
+                BetterEnv from_e = from_cw.getEnvironment();
+                BetterEnv api_e = from_cw.getExportedCW(from_apiname)
+                        .getEnvironment();
+
+                /* Pull in names, UNqualified */
+
+                if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed.
                      * Include all names defined locally in the "except" list,
                      * because local definitions block import-* imports.
@@ -795,13 +824,18 @@ public class Driver {
     }
 
     private static void inject(BetterEnv e, BetterEnv api_e, BetterEnv from_e,
-            SimpleName name, Option<SimpleName> alias, String a, String c) {
+            SimpleName name, Option<SimpleName> alias, String a, String c,
+            ComponentWrapper importer) {
         String s = NodeUtil.nameString(name);
         String add_as = s;
         if (alias.isSome()) {
             add_as = NodeUtil.nameString(Option.unwrap(alias));
         }
+        
+        importer.ownNames.add(add_as);
+        
         try {
+            boolean isOverloadable = false;
             if (api_e.getNatNull(s) != null) {
                 e.putNat(add_as, NI.cnnf(from_e.getNatNull(s)));
             }
@@ -815,8 +849,12 @@ public class Driver {
                 e.putType(add_as, NI.cnnf(from_e.getTypeNull(s)));
             }
             if (api_e.getValueRaw(s) != null) {
+                FValue fv = api_e.getValueRaw(s);
+                isOverloadable = ComponentWrapper.overloadable(fv);
                 e.putValue(add_as, NI.cnnf(from_e.getValueRaw(s)));
             }
+            if (! isOverloadable)
+                importer.ownNonFunctionNames.add(add_as);
         } catch (CheckedNullPointerException ex) {
             error(errorMsg("Import of ", name, " from api ", a,
                            " not found in implementing component ", c));
