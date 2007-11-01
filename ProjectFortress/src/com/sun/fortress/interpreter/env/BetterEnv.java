@@ -736,6 +736,14 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         namesPut[namesPutCount++] = s;
     }
 
+    public void removeType(String s) {
+        if (type_env == null)
+            return;
+        type_env = type_env.delete(s, comparator);
+    }
+
+  
+
 
 
 

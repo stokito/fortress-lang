@@ -55,6 +55,8 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.AliasedName;
@@ -71,11 +73,13 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -351,8 +355,8 @@ public class Driver {
 
             for (ComponentWrapper cw : components) {
                 for (String s : lib.dis.getTopLevelRewriteNames()) {
-                    if (!cw.isOwnNonFunctionName(s))
-                        change |= cw.dis.injectAtTopLevel(s, s, lib.dis);
+                    if (!cw.isOwnName(s))
+                        change |= cw.dis.injectAtTopLevel(s, s, lib.dis, cw.excludedImportNames);
                 }
             }
         }
@@ -385,9 +389,10 @@ public class Driver {
 
             if (cw != lib && !woLibrary)
                 importAllExcept(cw.getEnvironment(), lib.getEnvironment(), lib.getEnvironment(),
-                        cw.ownNonFunctionNames, // Collections.<String> emptyList(),
+                        Collections.<String> emptyList(),
                         "FortressLibrary",
-                        NodeUtil.nameString(cw.getComponent().getName()));
+                        "FortressLibrary",
+                        cw);
 
             injectExplicitImports(linker, cw);
         }
@@ -489,11 +494,12 @@ public class Driver {
                                     return NodeUtil.nameString(n);
                                 }
                             },
-                            cw.ownNonFunctionNames.copy());
+                            new BASet<String>(StringComparer.V));// cw.ownNonFunctionNames.copy());
 
                     importAllExcept(e, api_e, from_e, except_names,
                                     from_apiname,
-                                    NodeUtil.nameString(from_cw.getComponent().getName()));
+                                    NodeUtil.nameString(from_cw.getComponent().getName()),
+                                    cw);
 
                 }
             } else {
@@ -545,7 +551,11 @@ public class Driver {
                          * component_wrapper with alias, otherwise associate
                          * it with plain old name.
                          */
-                        change |= cw.dis.injectAtTopLevel(Option.unwrap(alias, name).stringName(), name.stringName(), api_cw.dis);
+                        /* probable bug: need to insert into ownNonFunction names */
+                        change |= cw.dis.injectAtTopLevel(Option.unwrap(alias, name).stringName(),
+                                name.stringName(),
+                                api_cw.dis,
+                                cw.excludedImportNames);
 
                     }
 
@@ -563,17 +573,19 @@ public class Driver {
                             new HashSet<String>());
                     
                     for (String s : api_cw.dis.getTopLevelRewriteNames()) {
-                        if (! except_names.contains(s) && !cw.isOwnNonFunctionName(s)) {
-                            change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis);
+                        if (! except_names.contains(s) &&
+                                !cw.isOwnName(s) &&
+                                !cw.excludedImportNames.contains(s)) {
+                            change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis, cw.excludedImportNames);
                         }
                     }
-
-
                 }
             } else {
                 bug(errorMsg("NYI Import " + i));
             }
         }
+        
+        
         return change;
     }
 
@@ -634,15 +646,26 @@ public class Driver {
      */
     private static boolean importAllExcept(final BetterEnv into_e,
             BetterEnv api_e, final BetterEnv from_e,
-            final Collection<String> except_names, final String a, final String c) {
+            final Collection<String> except_names,
+            final String a,
+            final String c,
+            final ComponentWrapper importer) {
         
         final boolean[] flag = new boolean[1];
 
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
                 try {
-                    if (!except_names.contains(s)) {
-                        into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
+                    if (!except_names.contains(s) &&
+                            !importer.excludedImportNames.contains(s) &&
+                            !importer.ownNames.contains(s)) {
+                        FType old = into_e.getTypeNull(s);
+                        if (old == null) {
+                            into_e.putType(s, NI.cnnf(from_e.getTypeNull(s)));
+                        } else {
+                            importer.excludedImportNames.add(s);
+                            into_e.removeType(s); // Safe to remove, because explcitly defined names are excluded already.
+                        }
                     } else {
                         notImport(s, o, a, c);
                     }
@@ -667,7 +690,20 @@ public class Driver {
         Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
             public void visit(String s, FValue o) {
                 try {
-                    if (!except_names.contains(s)) {
+                    boolean do_import = false;
+                    if (!except_names.contains(s) &&
+                            !importer.excludedImportNames.contains(s)) {
+                        if (ComponentWrapper.overloadable(o)) {
+                            if (!importer.ownNonFunctionNames.contains(s)) {
+                                do_import = true;
+                            }
+                        } else {
+                            if (!importer.ownNames.contains(s)) {
+                                do_import = true;
+                            }
+                        }
+                    }
+                    if (do_import) {
                         into_e.putValue(s, NI.cnnf(from_e.getValueRaw(s)));
                     } else {
                         notImport(s, o, a, c);
@@ -689,7 +725,8 @@ public class Driver {
         Visitor2<String, Number> vi = new Visitor2<String, Number>() {
             public void visit(String s, Number o) {
                 try {
-                    if (!except_names.contains(s)) {
+                    if (!except_names.contains(s) &&
+                            !importer.excludedImportNames.contains(s)) {
                         into_e.putInt(s, NI.cnnf(from_e.getIntNull(s)));
                     } else {
                         notImport(s, o, a, c);
@@ -711,7 +748,7 @@ public class Driver {
         Visitor2<String, Number> vn = new Visitor2<String, Number>() {
             public void visit(String s, Number o) {
                 try {
-                    if (!except_names.contains(s)) {
+                    if (!except_names.contains(s) && !importer.excludedImportNames.contains(s)) {
                         into_e.putNat(s, NI.cnnf(from_e.getNat(s)));
                     } else {
                         notImport(s, o, a, c);
@@ -733,7 +770,7 @@ public class Driver {
         Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
             public void visit(String s, Boolean o) {
                 try {
-                    if (!except_names.contains(s)) {
+                    if (!except_names.contains(s) && !importer.excludedImportNames.contains(s)) {
                         into_e.putBool(s, NI.cnnf(from_e.getBool(s)));
                     } else {
                         notImport(s, o, a, c);

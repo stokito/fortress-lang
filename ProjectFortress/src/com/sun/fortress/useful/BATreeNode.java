@@ -285,7 +285,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             }
         }
         
-        BATreeNode<T,U> delete(T k, Comparator<T> comp) {
+        public BATreeNode<T,U> delete(T k, Comparator<T> comp) {
             int c = comp.compare(k,key);
             BATreeNode<T,U> l = left;
             BATreeNode<T,U> r = right;

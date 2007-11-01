@@ -472,11 +472,20 @@ public class Desugarer extends Rewrite {
         
     }
     
-    public boolean injectAtTopLevel(String putName, String getName, Desugarer getFrom) {
+    public boolean injectAtTopLevel(String putName, String getName, Desugarer getFrom, Set<String>excluded) {
         Thing th = getFrom.rewrites.get(getName);
-        if (rewrites.get(putName) == th)
+        Thing old = rewrites.get(putName);
+        /* Equal means no change */
+        if (old == th)
             return false;
-        rewrites.put(putName, th);
+        /* Empty means do  add */
+        if (old == null) {
+            rewrites.put(putName, th);
+            return true;
+        }
+        excluded.add(putName);
+        rewrites.remove(putName);
+        
         return true;
         
     }
