@@ -224,7 +224,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   end
 
   (* perform the add operation when the height is greater than one *)
-  heightn_add(k:Key, v:Val, level:ZZ32, index:ZZ32):Node[\Key,Val\] = do
+  heightn_add(k:Key, v:Val, index:ZZ32, level:ZZ32):Node[\Key,Val\] = do
     child':Node[\Key,Val\] = children[index].add(k,v,level)
     if level < height then
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
@@ -241,7 +241,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     smaller:Node[\Key,Val\] = children[0]
     larger:Node[\Key,Val\] = children[1]
     key':Key = keys[0]
-    left:Node[\Key,Val\] = WhiteNode[\Key,Val\](smaller,height)
+    left:Node[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
     right:Node[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
     (left, right, key')
   end
@@ -249,28 +249,30 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   (* perform the break operation when we have exactly two keys *)
   twokeys_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
     smaller:Node[\Key,Val\] = children[0]
-    larger:Node[\Key,Val\] = children[1]
+    rkeys:Array[\Key,ZZ32\] = array[\Key\](1)
+    rchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
     key':Key = keys[0]
-    left:Node[\Key,Val\] = WhiteNode[\Key,Val\](smaller,height)
-    right:Node[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
+    rkeys[0] := keys[1]
+    rchildren[0#2] := children[1#2]
+    left:Node[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
+    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren,height)
     (left, right, key')
   end
 
   (* perform the break operation when we have three or more key *)
   nkeys_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
     half:ZZ32 = keys.size() DIV 2
-    keysplit:ZZ32 = keys.size() - half - 1
+    rsize:ZZ32 = keys.size() - half - 1
+    lsize:ZZ32 = keys.size() - rsize - 1
     key':Key = keys[half]
-    lkeys:Array[\Key,ZZ32\] = array[\Key\](half)
-    lchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](half + 1)
-    rkeys:Array[\Key,ZZ32\] = array[\Key\](keysplit)
-    rchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](keysplit + 1)
-    lkeys[0 # half] := keys[0 # half]
-    lchildren[0 # half] := children[0 # half]
-    lchildren[half] := children[half]
-    rkeys[0 # keysplit] := keys[(half + 1) # keysplit]
-    rchildren[0 # keysplit] := children[(half + 1) # keysplit]
-    rchildren[rchildren.size() - 1] := children[children.size() - 1]
+    lkeys:Array[\Key,ZZ32\] = array[\Key\](lsize)
+    lchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](lsize + 1)
+    rkeys:Array[\Key,ZZ32\] = array[\Key\](rsize)
+    rchildren:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](rsize + 1)
+    lkeys[0 # lsize] := keys[0 # lsize]
+    lchildren[0 # (lsize + 1)] := children[0 # (lsize + 1)]
+    rkeys[0 # rsize] := keys[(half + 1) # rsize]
+    rchildren[0 # (rsize + 1)] := children[(half + 1) # (rsize + 1)]
     left:Node[\Key,Val\] = InternalNode[\Key,Val\](lkeys,lchildren,height)
     right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren,height)
     (left, right, key')
