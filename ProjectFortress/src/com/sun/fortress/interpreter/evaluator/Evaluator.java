@@ -1278,10 +1278,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (fn instanceof AbstractFieldRef) {
                 AbstractFieldRef arf = (AbstractFieldRef) fn;
                 FValue fobj = arf.getObj().accept(this);
-                try {
-                    return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
-                } catch (FortressError ex) {
-                    throw ex.setContext(x,e);
+                if (fobj instanceof FObject) {
+                    try {
+                        return invokeGenericMethod((FObject) fobj, fldName(arf), args, exprs, x);
+                    } catch (FortressError ex) {
+                        throw ex.setContext(x,e);
+                    }
+                } else {
+                    error(x,errorMsg("Non-Object target ",fobj," of method call ",x));
                 }
             } else if (fn instanceof VarRef) {
                 // FALL OUT TO REGULAR FUNCTION CASE!

@@ -119,24 +119,22 @@ trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
 end
 
 (** Vararg factory for lists; provides aggregate list constants **)
-opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
-
-fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
-    fromArray( PrimitiveArray[\E,n\]().assign(f) )
-fromArray[\E, nat n\](f: PrimitiveArray[\E,n\]): Alr[\E,n\] =
-    Alr[\E,n\]( f, 0, n, noShot )
+opr [\E\]<| xs: E... |>: List[\E\] = list(xs)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
-            g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
-list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do            sz = g.size()
-            a = primitiveArray(reflect(sz),__Proxy[\E\]())
-            for (i,v) <- g[#].indexValuePairs() do
-                a.init(i,v)
-            end
-            alr(a,0,sz,noShot)
-end
+    g.generate[\List[\E\]\](Concat[\E\](), singleton[\E\])
+list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do
+    sz = g.size()
+    a = primitiveArray[\E\](sz)
+    for (i,v) <- g[#].indexValuePairs() do
+        a.init(i,v)
+    end
+    alr(a,0,sz,noShot)
+  end
+list[\E, nat n\](f: PrimitiveArray[\E,n\]): Alr[\E,n\] =
+    Alr[\E,n\]( f, 0, n, noShot )
 
 (** Flatten a list of lists *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
@@ -329,9 +327,6 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
     end
 end
 
-primitiveArray[\E, nat sz\](_:N[\sz\], e:__Proxy[\E\]): PrimitiveArray[\E,sz\] =
-    PrimitiveArray[\E,sz\]()
-
 alr[\E, nat sz\]( underlying : PrimitiveArray[\E,sz\],
                   firstUsed:ZZ32, firstUnused:ZZ32,
                   canExtend : OneShot): Alr[\E,sz\] =
@@ -380,6 +375,11 @@ end
 
 emptyList[\E\](): List[\E\] =
     Alr[\E,0\](PrimitiveArray[\E,0\](),0,0,noShot)
+
+emptyList[\E\](n:ZZ32): List[\E\] =
+    if n<=0 then emptyList[\E\]() else
+        alr(primitiveArray[\E\](n),0,0,oneShot())
+    end
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimitiveArray[\E,1\]()

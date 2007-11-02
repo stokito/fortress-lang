@@ -1,0 +1,158 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component HeapShakedown
+import * from Heap
+import * from ArrayList
+export Executable
+
+checkFull[\H extends Heap[\ZZ32,ZZ32\]\](h0: H, n:ZZ32): () =
+    if h0.isEmpty() then
+        if NOT (n=0) then fail("empty with n=/=0") end
+    else
+        flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
+        (k:ZZ32, v:ZZ32, h:H) := h0.extractMin()
+        k_prev : ZZ32 := k
+        expected: ZZ32 := 1
+        flags[v] := true
+        failed : Boolean := false
+        while NOT h.isEmpty() AND expected <= n do
+            (k,v,h) := h.extractMin()
+            if k < k_prev then
+                println("FAIL: Keys " k_prev " and " k " out of order.")
+                failed := true
+            end
+            if flags[v] then
+                println("FAIL: Duplicate value " v " found.")
+                failed := true
+            end
+            (k_prev, flags[v]) := (k,true)
+            expected += 1
+        end
+        if NOT h.isEmpty() then
+            println("FAIL: Too many elements.")
+            failed := true
+        elif expected < n then
+            println("FAIL: Not enough elements.")
+            failed := true
+        end
+        if failed then
+            h := h0
+            expected := 0
+            println(h.dump())
+            while NOT h.isEmpty() AND expected <= n do
+                (k,v,h) := h.extractMin()
+                println(expected ": min = (" k "," v ")")
+                println(h.dump())
+                expected += 1
+            end
+        end
+    end
+
+tre = Nothing[\(ZZ32,ZZ32,ZZ32)\]()
+
+unj(_:Nothing[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = (0,0,0)
+unj(j:Just[\(ZZ32,ZZ32,ZZ32)\]): (ZZ32,ZZ32,ZZ32) = j.unJust()
+
+object TestReduction extends Reduction[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\]
+    empty() = tre
+    join(a:Maybe[\(ZZ32,ZZ32,ZZ32)\], b:Maybe[\(ZZ32,ZZ32,ZZ32)\]) =
+        fail("join: no applicable case.")
+    join(a:Nothing[\(ZZ32,ZZ32,ZZ32)\], b:Maybe[\(ZZ32,ZZ32,ZZ32)\]) = b
+    join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Nothing[\(ZZ32,ZZ32,ZZ32)\]) = a
+    join(a:Just[\(ZZ32,ZZ32,ZZ32)\], b:Just[\(ZZ32,ZZ32,ZZ32)\]) = do
+        (mn_a,sz_a,mx_a) = a.unJust()
+        (mn_b,sz_b,mx_b) = b.unJust()
+        assert(mx_a <= mn_b, "Left max " mx_a " larger than right min " mn_b)
+        Just[\(ZZ32,ZZ32,ZZ32)\](mn_a,sz_a+sz_b,mx_a)
+      end
+end
+
+checkGen[\H extends Heap[\ZZ32,ZZ32\]\](h:H, n:ZZ32): () = do
+    flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
+    sing(k:ZZ32,v:ZZ32): Maybe[\(ZZ32,ZZ32,ZZ32)\] = do
+        dup = atomic do d = flags[v]; flags[v] := true; d end
+        if dup then
+            println("FAIL: dup of " k "," v)
+        end
+        Just[\(ZZ32,ZZ32,ZZ32)\](k,1,k)
+      end
+    (mn,sz,mx) = unj(h.generate[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\](TestReduction, sing))
+    assert(n,sz," size versus computed size")
+    if (sz > 0) then
+        (mn_k, mn_v) = h.minimum()
+        assert(mn,mn_k," computed minimum versus .minimum()")
+    end
+  end
+
+timeDiffMS(start:ZZ64, fin:ZZ64): RR64 =
+    (fin-start) / 10^6
+
+lg(n:ZZ32):ZZ32 =
+    if n <= 1 then 0
+    else 1 + lg(n DIV 2) end
+
+spread(n:ZZ32):(ZZ32,ZZ32) = do
+    c1 : ZZ32 = -761155213
+    c2 : ZZ32 = -412293886
+    (c1 n + c2, n)
+  end
+
+timeHdr(desc:String) = print("\t" desc "\t" desc "/n\t" desc "/nlgn")
+
+timeDump(s,slgs,t) = print("\t" t "\t" (t/s) "\t" (t/slgs))
+
+testHeap[\H extends Heap[\H,ZZ32,ZZ32\]\]
+        (s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->H,g:Generator[\(ZZ32,ZZ32)\]):() = do
+    slgs = s lg s
+    startTime = nanoTime()
+    println("\nbuilding")
+    h = c(g)
+    build = nanoTime()
+    println("checking")
+    checkFull[\H\](h,s)
+    consume=nanoTime()
+    println("generating")
+    checkGen[\H\](h,s)
+    gen=nanoTime()
+    timeDump(s,slgs,timeDiffMS(startTime,build))
+    timeDump(s,slgs,timeDiffMS(build,consume))
+    timeDump(s,slgs,timeDiffMS(consume,gen))
+  end
+
+run(args:String...):() = do
+    samples : List[\ZZ32\] = <|0,1,2,7,11|>
+    print("n\tn lg n")
+    timeHdr("lbuild")
+    timeHdr("lconsume")
+    timeHdr("lgen")
+    timeHdr("build")
+    timeHdr("consume")
+    timeHdr("gen")
+    println()
+    for s <- samples do
+        slgs = s lg s
+        print(s "\t" slgs)
+        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs())
+        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
+        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs())
+        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
+        println()
+    end
+  end
+
+end

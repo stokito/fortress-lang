@@ -68,6 +68,11 @@ list[\E\](g:Generator[\E\]):List[\E\]
 concat[\E\](x:List[\List[\E\]\]):List[\E\]
 
 emptyList[\E\](): List[\E\]
+
+(** emptyList[\E\](n) allocates an empty list that can accept n
+    insertions without reallocating the underlying storage. **)
+emptyList[\E\](n:ZZ32): List[\E\]
+
 singleton[\E\](e:E): List[\E\]
 
 object Concat[\E\]() extends Reduction[\ List[\E\] \]
