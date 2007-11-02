@@ -32,7 +32,7 @@ import static com.sun.fortress.shell.ConvenientStrings.*;
 public final class Shell {
     /* Patterns for parsing shell messages.*/
     private static final String NAME =                   "[\\S]+";
-    private static final String COMPILE_PATTERN =        "compile " + NAME + "(.fss)|(.fsi)";
+    private static final String COMPILE_PATTERN =        "compile " + NAME + "((.fss)|(.fsi))";
     private static final String SELF_UPGRADE_PATTERN =   "selfupgrade " + NAME + ".tar";
     private static final String SCRIPT_PATTERN =         "script " + NAME + ".fsx";
     private static final String RUN_PATTERN =            "run " + NAME;

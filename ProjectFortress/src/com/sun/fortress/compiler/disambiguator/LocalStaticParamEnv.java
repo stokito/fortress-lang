@@ -15,26 +15,29 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.index;
+package com.sun.fortress.compiler.disambiguator;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Collections;
-import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.StaticParam;
 
-import com.sun.fortress.useful.NI;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeFactory;
 
-/**
- * Represents a possibly-parameterized type declaration.  Comprises
- * {@link TraitIndex} and {@link TypeAliasIndex}.
- */
-public abstract class TypeConsIndex {
+public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
+    private List<StaticParam> _staticParams;
     
-    public TypeConsIndex() {}
-
-    public Map<IdName, StaticParam> staticParameters() {
-        // TODO: implement correctly
-        return Collections.emptyMap();
+    public LocalStaticParamEnv(TypeNameEnv parent, List<StaticParam> staticParams) {
+        super(parent);
+        _staticParams = staticParams;
     }
     
+    @Override public boolean hasTypeParam(IdName name) {
+        for (StaticParam typeVar : _staticParams) {
+            if (typeVar instanceof IdStaticParam &&
+                ((IdStaticParam)typeVar).getName().equals(name)) {
+                return true;
+            }
+        }
+        return super.hasTypeParam(name);
+    }
 }

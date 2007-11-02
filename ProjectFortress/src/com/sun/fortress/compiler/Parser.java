@@ -152,7 +152,7 @@ public class Parser {
     }
 
     /** Parses a single file. */
-    private static Result parse(File f) {
+    public static Result parse(File f) {
         try {
             BufferedReader in = Useful.utf8BufferedFileReader(f);
             try {

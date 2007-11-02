@@ -4,7 +4,11 @@ This is the top-level directory for all Fortress projects.  If you have
 Subversion installed, it can be checked out by going to the directory
 in which you want to check it out and issuing the following command:
 
-svn checkout https://projectfortress.sun.com/svn/Community/trunk Fortress
+svn checkout https://projectfortress.sun.com/svn/Community/trunk PFC
+
+(The name "PFC" merely specifies the name of the directory you want
+to check the code into. Feel free to substitute another directory
+name if you prefer.)
 
 You'll now have a subdirectory named 'Fortress'.  Go into that
 subdirectory and you'll see several subprojects:
@@ -39,6 +43,9 @@ environment variables are set in your startup script:
 
 JAVA_HOME
 ANT_HOME
+
+(Although our scripts are sometimes able to guess these location of 
+JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
 
 Once all of these environment variables are set, you can build the
 interpreter by going to directory $FORTRESS_HOME/ProjectFortress and

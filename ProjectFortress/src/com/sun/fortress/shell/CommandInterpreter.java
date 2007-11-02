@@ -19,7 +19,7 @@ package com.sun.fortress.shell;
 
 import java.io.*;
 import java.util.regex.Pattern;
-import java.util.Arrays;
+import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.*;
@@ -96,9 +96,35 @@ public class CommandInterpreter {
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
     void upgrade(String result, String left, String right) throws UserError { throw new UserError("Error: Upgrade not yet implemented!"); }
     
-    void api(String fileName) throws UserError { throw new UserError("Error: Automatic API generation not yet implemented.");  }
+    void api(String fileName) throws IOException, UserError { 
+        FileBasedRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+        Fortress fortress = new Fortress(fileBasedRepository);
+        
+        File file = new File(fileName);
+        Iterable<Component> _components = Parser.parse(file).components();
+        
+        // Compile to ensure there are no static errors.
+        Iterable<? extends StaticError> errors = fortress.compile(file);
+        
+        if (errors.iterator().hasNext()) {
+            for (StaticError error: errors) { System.err.println(error); }
+        } else {
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+            // We also need to write the corresponding APIs.
+            for (Component component: _components) {
+                Api corresponding = (Api)component.accept(ApiMaker.ONLY);
+                IndexBuilder.ApiResult result = IndexBuilder.buildApis(corresponding);
+                
+                if (result.isSuccessful()) {
+                    fileBasedRepository.addApis(result.apis());
+                } else {
+                    for (StaticError error: result.errors()) { System.err.println(error); }
+                }
+            }
+        }
+    }
     
-        /* Helper method that creates a CompilationUnit from a Fortress source file name.*/
+    /* Helper method that creates a CompilationUnit from a Fortress source file name.*/
     private Option<CompilationUnit> makeCompilationUnit(String fileName) throws UserError {
         File sourceFile = new File(fileName);
         

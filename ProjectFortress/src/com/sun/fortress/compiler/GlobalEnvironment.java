@@ -27,6 +27,8 @@ public class GlobalEnvironment {
     
     public GlobalEnvironment(Map<DottedName, ApiIndex> apis) { _apis = apis; }
     
+    public Map<DottedName, ApiIndex> apis() { return _apis; }
+    
     public boolean definesApi(DottedName name) { return _apis.containsKey(name); }
     
     public ApiIndex api(DottedName name) {
