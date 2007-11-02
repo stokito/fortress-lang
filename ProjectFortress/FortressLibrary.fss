@@ -535,7 +535,7 @@ fail(s:String) = do
 end
 
 oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
-   fail("For subscript " s " wanted " l "#" sz " but got " got);
+   fail("Index of dimension " s " out of bounds; got " got " which is not in " l "#" sz);
 end
 
 trait Equality excludes { Number }
@@ -731,6 +731,10 @@ __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
 __arr'[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
+
+primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__Proxy[\E\](),reflect(x))
+__parr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimitiveArray[\E,n\] =
+    PrimitiveArray[\E,n\]()
 
 (** A repository for tons of default array functionality. **)
 trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
@@ -1487,6 +1491,18 @@ object SumReduction[\N extends Number\]() extends Reduction[\N\]
     getter toString() = "SumReduction"
     empty(): N = 0
     join(a: N, b: N): N = a+b
+end
+
+object MinReduction[\N extends Number\]() extends Reduction[\N\]
+    getter toString() = "MinReduction"
+    empty(): N = 0
+    join(a: N, b: N): N = a MIN b
+end
+
+object MaxReduction[\N extends Number\]() extends Reduction[\N\]
+    getter toString() = "MaxReduction"
+    empty(): N = 0
+    join(a: N, b: N): N = a MAX b
 end
 
 (** TODO: AndReduction and OrReduction have natural zeros, and could

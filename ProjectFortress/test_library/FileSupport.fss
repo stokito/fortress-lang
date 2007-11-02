@@ -152,14 +152,14 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
                 s0 : String = readOne(reader)
                 i : ZZ32 := 0
                 if NOT (s0="" AND reader.eof()) then
-                    bu[0] := s0
+                    bu.init(0,s0)
                     i := 1
                 end
                 (* Subsequent reads contingent on reader.ready() *)
                 while (i<n AND NOT reader.eof() AND reader.ready()) do
                     s = readOne(reader)
                     if NOT (s="" AND reader.eof()) then
-                        bu[i] := s
+                        bu.init(i,s)
                         i += 1
                     end
                 end
@@ -184,14 +184,14 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
                 bu: Array[\String,ZZ32\] = array[\String,ZZ32\](n)
                 s0 : String = readOne(reader)
                 if NOT (s0="" AND reader.eof()) then
-                    bu[0] := s0
+                    bu.init(0,s0)
                 end
                 i : ZZ32 := 1
                 (* Subsequent reads contingent on reader.ready() *)
                 while (i<n AND NOT reader.eof() AND reader.ready()) do
                     s = readOne(reader)
                     if NOT (s="" AND reader.eof()) then
-                        bu[i] := s
+                        bu.init(i,s)
                     end
                     i += 1
                 end
