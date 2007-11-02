@@ -48,8 +48,10 @@ public class FileBasedRepository implements FortressRepository {
         List<File> files = Arrays.asList(Files.ls(path));
         
         for (File file: files) {
+            System.err.println("Loading " + file);
+            
             Option<CompilationUnit> candidate = 
-                Driver.readJavaAst(file.getName());
+                Driver.readJavaAst(file.getCanonicalPath());
             
             if (candidate.isNone()) {
                 throw new RepositoryError ("Compilation aborted. " +
@@ -66,7 +68,13 @@ public class FileBasedRepository implements FortressRepository {
                 } else if (_candidate instanceof Component) {
                     ArrayList<Component> _candidates = new ArrayList<Component>();
                     _candidates.add((Component)_candidate);
+                    
                     components.putAll(IndexBuilder.buildComponents(_candidates).components());
+        
+                    ArrayList<Id> _ids = new ArrayList<Id>();
+                    for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
+        
+                    
                 } else {
                     throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
                 }   
@@ -76,6 +84,9 @@ public class FileBasedRepository implements FortressRepository {
              
 
     public Map<DottedName, ApiIndex> apis() { return apis; }
+    
+    public ApiIndex getApi(DottedName name) { return apis.get(name); }
+    public ComponentIndex getComponent(DottedName name) { return components.get(name); }
 
     public void addApi(DottedName name, ApiIndex def) {
         apis.put(name, def);
@@ -85,6 +96,12 @@ public class FileBasedRepository implements FortressRepository {
             Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + fs.JAVA_AST_SUFFIX);
         } catch (IOException e) {
             throw new ShellException(e);
+        }
+    }
+    
+    public void addApis(Map<DottedName, ApiIndex> newApis) {
+        for (Map.Entry<DottedName, ApiIndex> entry: newApis.entrySet()) {
+            addApi(entry.getKey(), entry.getValue());
         }
     }
     

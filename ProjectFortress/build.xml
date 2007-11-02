@@ -17,7 +17,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries. -->
 
 
-<project name="Fortress" default="compile">
+<project name="Fortress" default="help">
     <description>
         The Fortress interpreter, implemented in Java.
     </description>

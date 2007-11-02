@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
@@ -56,6 +57,13 @@ public class IndexBuilder {
         Map<DottedName, ApiIndex> apis = new HashMap<DottedName, ApiIndex>();
         for (Api ast : asts) { builder.buildApi(ast, apis); }
         return new ApiResult(apis, builder.errors());
+    }
+    
+    /** Convenience function that takes apis as varargs and builds an ApiResult. */
+    public static ApiResult buildApis(Api... asts) {
+        ArrayList<Api> apiList = new ArrayList<Api>();
+        for (Api ast: asts) { apiList.add(ast); }
+        return buildApis(apiList);
     }
 
 

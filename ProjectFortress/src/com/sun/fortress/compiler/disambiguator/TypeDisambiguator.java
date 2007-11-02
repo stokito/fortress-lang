@@ -72,12 +72,135 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         _errors.add(StaticError.make(msg, loc));
     }
     
+    /**
+     * Return a new TypeDisambiguator
+     * that includes the given type variables in its environment.
+     */
+    private TypeDisambiguator extend(List<StaticParam> typeVars) {
+        TypeNameEnv newEnv = new LocalStaticParamEnv(_env, typeVars);
+        return new TypeDisambiguator(newEnv, _onDemandImports, _errors);
+    }
+    
+    /** 
+     * When recurring on an AbsTraitDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+        
+        return forAbsTraitDeclOnly(that, 
+                                   v.recurOnListOfModifier(that.getMods()),
+                                   (IdName) that.getName().accept(v),
+                                   v.recurOnListOfStaticParam(that.getStaticParams()),
+                                   v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+                                   v.recurOnListOfWhereClause(that.getWhere()),
+                                   v.recurOnListOfTraitType(that.getExcludes()),
+                                   v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                                   v.recurOnListOfAbsDecl(that.getDecls()));
+    }
+
+    /** 
+     * When recurring on a TraitDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forTraitDecl(final TraitDecl that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+        
+        return forTraitDeclOnly(that, 
+                                v.recurOnListOfModifier(that.getMods()),
+                                (IdName) that.getName().accept(v),
+                                v.recurOnListOfStaticParam(that.getStaticParams()),
+                                v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+                                v.recurOnListOfWhereClause(that.getWhere()),
+                                v.recurOnListOfTraitType(that.getExcludes()),
+                                v.recurOnOptionOfListOfTraitType(that.getComprises()),
+                                v.recurOnListOfDecl(that.getDecls()));
+    }
+    
+    
+    /** 
+     * When recurring on an AbsObjectDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+        
+        return forAbsObjectDeclOnly(that, 
+                                   v.recurOnListOfModifier(that.getMods()),
+                                   (IdName) that.getName().accept(v),
+                                   v.recurOnListOfStaticParam(that.getStaticParams()),
+                                   v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+                                   v.recurOnListOfWhereClause(that.getWhere()),
+                                   v.recurOnOptionOfListOfParam(that.getParams()),
+                                   v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                   (Contract) that.getContract().accept(v),
+                                   v.recurOnListOfAbsDecl(that.getDecls()));
+    }
+    
+    /** 
+     * When recurring on an ObjectDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forObjectDecl(final ObjectDecl that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+        
+        return forObjectDeclOnly(that, 
+                                   v.recurOnListOfModifier(that.getMods()),
+                                   (IdName) that.getName().accept(v),
+                                   v.recurOnListOfStaticParam(that.getStaticParams()),
+                                   v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+                                   v.recurOnListOfWhereClause(that.getWhere()),
+                                   v.recurOnOptionOfListOfParam(that.getParams()),
+                                   v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                   (Contract) that.getContract().accept(v),
+                                   v.recurOnListOfDecl(that.getDecls()));
+    }
+        
+    
+    /** 
+     * When recurring on an AbsFnDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forAbsFnDecl(final AbsFnDecl that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+
+        return forAbsFnDeclOnly(that, 
+                                v.recurOnListOfModifier(that.getMods()),
+                                (SimpleName) that.getName().accept(v), 
+                                v.recurOnListOfStaticParam(that.getStaticParams()),
+                                v.recurOnListOfParam(that.getParams()),
+                                v.recurOnOptionOfType(that.getReturnType()),
+                                v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                                v.recurOnListOfWhereClause(that.getWhere()),
+                                (Contract) that.getContract().accept(v));
+    }
+    
+    /** 
+     * When recurring on a FnDecl, we first need to extend the 
+     * environment with all the newly bound static parameters.
+     */
+    @Override public Node forFnDef(final FnDef that) {
+        TypeDisambiguator v = this.extend(that.getStaticParams());
+
+        return forFnDefOnly(that, 
+                            v.recurOnListOfModifier(that.getMods()),
+                            (SimpleName) that.getName().accept(v), 
+                            v.recurOnListOfStaticParam(that.getStaticParams()),
+                            v.recurOnListOfParam(that.getParams()),
+                            v.recurOnOptionOfType(that.getReturnType()),
+                            v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+                            v.recurOnListOfWhereClause(that.getWhere()),
+                            (Contract) that.getContract().accept(v),
+                            (Expr) that.getBody().accept(v));
+    }
+    
     @Override public Node forIdType(final IdType that) {
         Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
         Lambda<QualifiedIdName, Type> typeConsHandler =
             new Lambda<QualifiedIdName, Type>() {
             public Type value(QualifiedIdName n) {
                 TypeConsIndex typeCons = _env.typeConsIndex(n);
+
                 if (!typeCons.staticParameters().isEmpty()) {
                     error("Type requires static arguments: " + NodeUtil.nameString(n),
                           n);

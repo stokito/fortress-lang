@@ -68,7 +68,7 @@ public class Disambiguator {
         private final Iterable<Api> _apis;
             
         public ApiResult(Iterable<Api> apis, 
-			 Iterable<? extends StaticError> errors) {
+    Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -90,18 +90,18 @@ public class Disambiguator {
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
-		new TypeDisambiguator(env, onDemandImports, newErrs);
+                new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
-		    new ExprDisambiguator(env, onDemandImports, newErrs);
+                    new ExprDisambiguator(env, onDemandImports, newErrs);
                 Api edResult = (Api) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
             if (!newErrs.isEmpty()) { 
-		errors = IterUtil.compose(errors, newErrs); 
-	    }
+                errors = IterUtil.compose(errors, newErrs); 
+            }
         }
         return new ApiResult(results, errors);
     }
@@ -134,18 +134,18 @@ public class Disambiguator {
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
-		new TypeDisambiguator(env, onDemandImports, newErrs);
+  new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) comp.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
-		    new ExprDisambiguator(env, onDemandImports, newErrs);
+      new ExprDisambiguator(env, onDemandImports, newErrs);
                 Component edResult = (Component) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
             if (!newErrs.isEmpty()) { 
-		errors = IterUtil.compose(errors, newErrs); 
-	    }
+  errors = IterUtil.compose(errors, newErrs); 
+     }
         }
         return new ComponentResult(results, errors);
     }
