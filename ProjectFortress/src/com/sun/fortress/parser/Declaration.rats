@@ -18,14 +18,13 @@
 /*
  * Definition of Fortress top-level declarations.
  */
-module Declaration(TraitObject, Function, Variable, Other, Spacing, Syntax);
+module Declaration(TraitObject, Function, Variable, Other, Spacing);
 
 import TraitObject;
 import Function;
 import Variable;
 import Other;
 import Spacing;
-import Syntax;
 
 /* Decls ::= Decl (br Decl)* */
 List<Decl> Decls = a1:Decl a2s:(br Decl)*
@@ -77,5 +76,4 @@ private AbsDecl AbsDecl =
    / TypeAlias
    / TestDecl
    / PropertyDecl
-   / AbsExternalSyntax
-   / MacroDecl ;
+   / AbsExternalSyntax ;

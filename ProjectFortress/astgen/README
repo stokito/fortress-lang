@@ -18,7 +18,10 @@ CHECK: value trait / value object / value type
   = acyclic type hierarchy
 
 * Constraints that should be checked by the static checker
- 1) Operator Declarations
+ 1) Functions
+  - A throws clause does not include naked type variables.
+  - Every element in a throws clause is a subtype of CheckedException.
+ 2) Operator Declarations
   - An infix/multifix operator declaration must not have any keyword parameters,
     and must be capable of accepting at least two arguments.  It is permissible
     to use a varargs parameter.
