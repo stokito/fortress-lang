@@ -71,7 +71,7 @@
  <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>
- 
+
  <property name="blahblahblah" value="com/sun/fortress"/>
 
     <target name="help">
@@ -187,7 +187,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
 
     <!-- Generation of Operators.java depends only on the files listed below.
          Note that there are class files it depends on; if these class files are
-         not up to date with respect to their sources, they are themselves 
+         not up to date with respect to their sources, they are themselves
 	 recompiled by the compileCommon target.-->
     <target name="checkOperatorsUptodate" depends="init, compileCommon">
         <condition property="operators.uptodate">
@@ -205,11 +205,11 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
         <echo message="Operators up to date? ${operators.uptodate}"/>
     </target>
 
-    <target name="operatorsGen"  unless="operators.uptodate" 
+    <target name="operatorsGen"  unless="operators.uptodate"
 	    depends="init, compileCommon, checkOperatorsUptodate"
      description="Automatically generate visitors for AST nodes.">
         <echo message="Regenerating operators"/>
-        <java classname="${package.prefix}.unicode.OperatorStuffGenerator" 
+        <java classname="${package.prefix}.unicode.OperatorStuffGenerator"
 	      fork="true">
             <classpath>
                 <pathelement location="${build}"/>
@@ -228,7 +228,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
         <echo message="Nodes up to date? ${nodes.uptodate}"/>
     </target>
 
-    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar" 
+    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar"
 	     classname="edu.rice.cs.astgen.AntTask" />
 
     <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
@@ -257,7 +257,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             classpath="${compile.classpath}">
             <!-- Uncomment the following line to print unchecked warnings
                  (here and in the 'compileCommon' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/> --> 
+            <!-- <compilerarg value="-Xlint:unchecked"/> -->
             <include name="**/*.java"/>
             <exclude name="${usefulPackage}/*.java"/>
             <exclude name="${unicodePackage}/*.java"/>
@@ -496,8 +496,8 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             description="Run tests and demos.">
     </target>
 
-    <target name="reportNotPassing" 
-	    if="not.passing.yet" 
+    <target name="reportNotPassing"
+	    if="not.passing.yet"
 	    depends="test,testNotPassing">
         <echo message="Some tests expected to fail still aren't passing."/>
     </target>
@@ -512,9 +512,11 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
                 <uptodate targetfile="${parser}/Fortress.java">
                     <srcfiles dir="${parser}" includes="**/*.rats"/>
                 </uptodate>
+<!--
                 <uptodate targetfile="${preparser}/PreFortress.java">
                     <srcfiles dir="${preparser}" includes="**/*.rats"/>
                 </uptodate>
+-->
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>
@@ -544,7 +546,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
 	    <arg value="-instantiated"/>
             <arg value="Fortress.rats"/>
         </java>
-    </target>    
+    </target>
 
     <target name="preparser" unless="preparser.uptodate"
             depends="checkPreparserUptodate"
@@ -556,21 +558,23 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
 	    <arg value="-instantiated"/>
             <arg value="PreFortress.rats"/>
         </java>
-    </target>    
+    </target>
 
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate"
-            description="Fortress Parser and Preparser">
+            description="Fortress Parser">
         <echo message="Rebuilding parser..."/>
        <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
             <arg value="rats"/>
             <arg value="Fortress.rats"/>
         </java>
+<!--
         <echo message="Rebuilding the preparser..."/>
         <java jar="${xtc}/xtc.jar" fork="yes" dir="${preparser}">
             <arg value="rats"/>
             <arg value="PreFortress.rats"/>
         </java>
+-->
     </target>
 
     <target name="doc" depends="compile">
@@ -581,19 +585,19 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
 
  <header><![CDATA[Fortress Interpreter]]></header>
  <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
- <group title="Evaluator Packages" 
+ <group title="Evaluator Packages"
 	packages="com.sun.fortress.interpreter.evaluator.*"/>
- 
+
  <link href="http://junit.org/junit/javadoc/3.8.1/"/>
  <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
  <link href="http://drjava.org/javadoc/plt/"/>
       </javadoc>
 
     </target>
-    
+
     <target name="interpreter" depends="compile">
       <echo message="fortressArgs: ${fortressArgs}"/>
-      <java fork="yes" 
+      <java fork="yes"
 	    classname="com.sun.fortress.interpreter.drivers.fs"
 	    classpath="${compile.classpath}">
 	<arg line="${fortressArgs}"/>

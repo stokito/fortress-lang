@@ -20,9 +20,7 @@
  */
 module      Fortress;
 modify      Compilation  (Declaration, Identifier, Keyword, Symbol, Spacing);
-instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing,
-                          Syntax);
-instantiate Syntax       (Identifier, Keyword, Spacing, Symbol, Expression);
+instantiate Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing);
 instantiate TraitObject  (Method, Field, AbsField, Parameter, OtherDecl, Header,
                           Identifier, Keyword, Spacing);
 instantiate Function     (Parameter, Header, Type, NoNewlineExpr, Identifier,
