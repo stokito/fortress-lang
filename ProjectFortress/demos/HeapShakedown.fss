@@ -20,51 +20,26 @@ import * from Heap
 import * from ArrayList
 export Executable
 
-object Data
-    tags : List[\String\] := emptyList[\String\](8)
-    data : List[\List[\RR64\]\] := emptyList[\List[\RR64\]\](8)
-    currData : List[\RR64\] := emptyList[\RR64\](8)
-    tag(s:String): () = do
-        if NOT tags.isEmpty() then
-            print("\t")
+appending[\T\](xs: List[\T\]...): List[\T\] =
+    xs.generate[\List[\T\]\](Concat[\T\](), identity[\List[\T\]\])
+
+showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
+    n = headers.size()
+    for one <- data do
+        sz = one.size()
+        if (sz < n) then
+            fail("FAIL: only " sz " data points, expected " n)
+        elif (n < sz) then
+            println("FAIL: too many!  Expected " n " data points, got " sz)
+            println("  and will discard the extras.")
         end
-        print(s)
-        tags := tags.addRight(s)
-      end
-    allTags(): () = do
-        println()
-      end
-    datum(d:RR64): () = do
-        if NOT currData.isEmpty() then
-            print("\t")
-        end
-        print(d)
-        currData := currData.addRight(d)
-      end
-    allData():() = do
-        println()
-        if currData.size() > tags.size() then
-            println("Untagged data!  It won't be printed.")
-        elif currData.size() < tags.size() then
-            println("Adding padding")
-            currData := currData.append(list(currData.size():tags.size()))
-        end
-        data := data.addRight(currData)
-        currData := emptyList[\RR64\](tags.size())
-      end
-    showData(): () = do
-        if NOT currData.isEmpty() then
-            allData()
-        end
-        for (i,l) <- tags.indexValuePairs() do
-            print(l)
-            for row <- data do
-                print("," row[i])
-            end
-            println()
-        end
-      end
-end
+    end
+    println(
+        headers.indexValuePairs().generate[\String\](StringReduction,
+            fn (i:ZZ32, l:String): String =>
+                "\n" l data.generate[\String\](StringReduction,
+                           fn (row: List[\RR64\]):String => "," row[i])))
+  end
 
 checkFull[\H extends Heap[\ZZ32,ZZ32\]\](h0: H, n:ZZ32): () =
     if h0.isEmpty() then
@@ -158,64 +133,63 @@ spread(n:ZZ32):(ZZ32,ZZ32) = do
     (c1 n + c2, n)
   end
 
-timeHdr(desc:String) = do
-    Data.tag(desc)
-    Data.tag(desc "/n")
-    Data.tag(desc "/nlgn")
+timeHdr(desc:String): List[\String\] = do
+    print(".")
+    res : List[\String\] = <| desc, desc "/n", desc "/nlgn" |>
+    res
   end
 
-timeDump(s,slgs,t) = do
-    Data.datum(t)
-    Data.datum(t/s)
-    Data.datum(t/slgs)
+timeDump(s,slgs,t): List[\RR64\] = do
+    print(".")
+    <| t, t/s, t/slgs |>
   end
 
 testHeap[\H extends Heap[\H,ZZ32,ZZ32\]\]
         (s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->H,g:Generator[\(ZZ32,ZZ32)\]):() = do
     slgs = s lg s
+    print(".")
     startTime = nanoTime()
-    (* println("\nbuilding") *)
     h = c(g)
     build = nanoTime()
-    (* println("checking") *)
     checkFull[\H\](h,s)
     consume=nanoTime()
-    (* println("generating") *)
     checkGen[\H\](h,s)
     gen=nanoTime()
-    timeDump(s,slgs,timeDiffMS(startTime,build))
-    timeDump(s,slgs,timeDiffMS(build,consume))
-    timeDump(s,slgs,timeDiffMS(consume,gen))
+    print(".")
+    appending[\RR64\](
+        timeDump(s,slgs,timeDiffMS(startTime,build)),
+        timeDump(s,slgs,timeDiffMS(build,consume)),
+        timeDump(s,slgs,timeDiffMS(consume,gen)))
   end
 
 run(args:String...):() = do
     samples : List[\ZZ32\] = <|0,1,2,4,16,64,256,1024,4096|>
-    Data.tag("n")
-    Data.tag("n lg n")
-    timeHdr("lbuild")
-    timeHdr("lconsume")
-    timeHdr("lgen")
-    timeHdr("ulbuild")
-    timeHdr("ulconsume")
-    timeHdr("ulgen")
-    timeHdr("build")
-    timeHdr("consume")
-    timeHdr("gen")
-    timeHdr("ubuild")
-    timeHdr("uconsume")
-    timeHdr("ugen")
-    Data.allTags()
-    for s <- samples do
-        slgs = s lg s
-        Data.datum(s)
-        Data.datum(slgs)
-        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs())
-        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
-        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs())
-        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
-        Data.allData()
-    end
-    Data.showData()
+    headers: List[\String\] = appending[\String\](
+            <|"" "n","n lg n"|>,
+            timeHdr("lbuild"),
+            timeHdr("lconsume"),
+            timeHdr("lgen"),
+            timeHdr("ulbuild"),
+            timeHdr("ulconsume"),
+            timeHdr("ulgen"),
+            timeHdr("build"),
+            timeHdr("consume"),
+            timeHdr("gen"),
+            timeHdr("ubuild"),
+            timeHdr("uconsume"),
+            timeHdr("ugen") )
+    table: List[\List[\RR64\]\] = samples.generate[\List[\List[\RR64\]\]\](
+        Concat[\List[\RR64\]\](),
+        fn (s: ZZ32): List[\List[\RR64\]\] =>
+          singleton[\List[\RR64\]\](
+            appending[\RR64\](
+              <| 1.0 s, s lg s |>,
+              testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs()),
+              testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread)),
+              testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs()),
+              testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
+        )))
+    showData(headers,table)
   end
 
 end
