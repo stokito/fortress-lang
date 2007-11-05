@@ -79,18 +79,8 @@ public class CommandInterpreter {
     /* Runs a fortress source file directly.*/
     void script(String fileName) throws UserError, IOException { Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName))); }
     
-    void run(String componentName) throws UserError {
-        try {
-            if (isInstalled(componentName)) {
-                Driver.evalComponent(Option.unwrap(Driver.readJavaAst(shell.getComponents() + SEP + "components" + SEP + componentName + SEP + ".jst")));
-            }
-            else {
-                throw new UserError("Error: There is no component with name " + componentName + " installed in this fortress.");
-            }
-        }
-        catch (IOException e) {
-            throw new ShellException(e);
-        }
+    void run(String fileName) throws UserError, IOException {
+        Driver.evalComponent(Option.unwrap(Driver.readJavaAst(fileName)));
     }
     
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
@@ -104,11 +94,12 @@ public class CommandInterpreter {
         Iterable<Component> _components = Parser.parse(file).components();
         
         // Compile to ensure there are no static errors.
-        Iterable<? extends StaticError> errors = fortress.compile(file);
+        // Disable until static checking is actually working.
+        // Iterable<? extends StaticError> errors = fortress.compile(file);
         
-        if (errors.iterator().hasNext()) {
-            for (StaticError error: errors) { System.err.println(error); }
-        } else {
+//        if (errors.iterator().hasNext()) {
+//            for (StaticError error: errors) { System.err.println(error); }
+//        } else {
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
             // We also need to write the corresponding APIs.
             for (Component component: _components) {
@@ -121,7 +112,7 @@ public class CommandInterpreter {
                     for (StaticError error: result.errors()) { System.err.println(error); }
                 }
             }
-        }
+//        }
     }
     
     /* Helper method that creates a CompilationUnit from a Fortress source file name.*/
