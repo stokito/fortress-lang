@@ -23,13 +23,27 @@ export Executable
 database:SkipList[\String,ZZ32,2\] := NewList[\String,ZZ32,2\]()
 
 init(name:String, ranking: ZZ32) = database := database.add(name, ranking)
+remove(name:String) = database := database.remove(name)
 
 run(args:String...):() = do
   init("David", 3)
   init("Emily", 2)
   init("Nathi", 5)
-  init("Peter", 1)
-  init("Elias", 4)
+  init("Michael", 0)
+  init("Aaron", 13)
+  init("Jacob", 7)
+  println(database.toString())
+  remove("Emily")
+  println(database.toString())
+  remove("David")
+  println(database.toString())
+  remove("Nathi")
+  println(database.toString())
+  remove("Michael")
+  println(database.toString())
+  remove("Jacob")
+  println(database.toString())
+  remove("Aaron")
   println(database.toString())
 end
 
