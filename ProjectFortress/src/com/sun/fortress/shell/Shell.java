@@ -36,7 +36,7 @@ public final class Shell {
     private static final String SELF_UPGRADE_PATTERN =   "selfupgrade " + NAME + ".tar";
     private static final String SCRIPT_PATTERN =         "script " + NAME + ".fsx";
     private static final String RUN_PATTERN =            "run " + NAME;
-    private static final String API_PATTERN =            "api " + NAME + ".fsi";
+    private static final String API_PATTERN =            "api " + NAME + ".fss";
     private static final String LINK_PATTERN =           "link " + NAME + " from " + NAME + " with " + NAME;
     private static final String UPGRADE_PATTERN =        "upgrade " + NAME + " from " + NAME + " with " + NAME;
     private static final String EXISTS_PATTERN =         "exists " + NAME;
