@@ -18,13 +18,15 @@
 /*
  * A PreFortress grammar which can parse the name and imports of a Fortress component.
  */
-module      PreFortress;
-modify      Compilation  (Identifier, Keyword, Symbol, Spacing);
-instantiate Identifier   (Keyword, Symbol, Unicode, Spacing);
-instantiate Symbol       (Identifier, Spacing, Keyword);
-instantiate Spacing      (Symbol);
-instantiate Keyword      (Identifier);
-instantiate Unicode;
+module      com.sun.fortress.parser.preparser.PreFortress;
+modify      com.sun.fortress.parser.preparser.PreCompilation (Identifier, Keyword, PreSymbol, Spacing);
+
+instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
+instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing) as Identifier;
+instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
+instantiate com.sun.fortress.parser.Unicode as Unicode;
+
+instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
 
 header {
 import com.sun.fortress.interpreter.evaluator.ProgramError;
