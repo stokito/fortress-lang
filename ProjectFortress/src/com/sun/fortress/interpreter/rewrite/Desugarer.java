@@ -406,7 +406,7 @@ public class Desugarer extends Rewrite {
                 // Generic constructor
                 FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls(), oe);
                 env.putType(name, fto);
-                GenericConstructor con = new GenericConstructor(env, oe);
+                GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeIdName(name));
                 env.putValue(name, con);
             }
         }

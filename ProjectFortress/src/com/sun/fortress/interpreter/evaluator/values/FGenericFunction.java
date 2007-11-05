@@ -176,7 +176,7 @@ public class FGenericFunction extends SingleFcn
         return make(argValues, location);
     }
 
-    Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
+    public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
         return make(argValues, location);
     }
     
@@ -205,24 +205,26 @@ public class FGenericFunction extends SingleFcn
         return fndef.getName();
     }
 
+    public SimpleName getName() {
+        return fndef.getName();
+    }
+
     public Applicable getDef() {
         return fndef;
     }
 
-    static class GenericComparer implements Comparator<FGenericFunction> {
+    static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
 
-        public int compare(FGenericFunction arg0, FGenericFunction arg1) {
-            Applicable a0 = arg0.getDef();
-            Applicable a1 = arg1.getDef();
-
+        public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
+           
             SimpleName fn0 = a0.getName();
             SimpleName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
 
-            List<StaticParam> oltp0 = arg0.getStaticParams();
-            List<StaticParam> oltp1 = arg1.getStaticParams();
+            List<StaticParam> oltp0 = a0.getStaticParams();
+            List<StaticParam> oltp1 = a1.getStaticParams();
 
             return NodeComparator.compare(oltp0, oltp1);
 
@@ -230,7 +232,7 @@ public class FGenericFunction extends SingleFcn
 
     }
 
-    static final GenericComparer genComparer = new GenericComparer();
+    // static final GenericComparer genComparer = new GenericComparer();
 
     static class GenericFullComparer implements Comparator<FGenericFunction> {
 
@@ -241,7 +243,5 @@ public class FGenericFunction extends SingleFcn
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
-    volatile static BATree<FGenericFunction, List<FType>>
-    symbolicStaticsByPartition = new BATree<FGenericFunction, List<FType>>(genComparer);
 
 }

@@ -171,6 +171,11 @@ public class Printer extends NodeReflection {
             dumpFields(w, indent, o, true, fields, false);
             w.append(")");
 
+        } else if (o instanceof Null) {
+            w.append("(");
+            w.append("Null");
+            w.append(")");
+
         } else if (o instanceof AbstractNode) {
             AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();

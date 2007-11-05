@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -33,9 +34,9 @@ public class GenericNativeConstructor extends GenericConstructor {
 
     private String name;
 
-    public GenericNativeConstructor(Environment env,
+    public GenericNativeConstructor(BetterEnv env,
             GenericWithParams odefOrDecl, String name) {
-        super(env, odefOrDecl);
+        super(env, odefOrDecl, NodeFactory.makeIdName(name));
         this.name = name;
     }
 

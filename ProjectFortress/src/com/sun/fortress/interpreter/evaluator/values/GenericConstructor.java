@@ -18,6 +18,8 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -25,16 +27,22 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.values.FGenericFunction.GenericComparer;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
@@ -48,10 +56,12 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class GenericConstructor extends FConstructedValue implements Factory2P<List<FType>, List<StaticArg>, Simple_fcn, HasAt> {
-    private class Factory implements Factory2P<List<FType>, List<StaticArg>, Constructor, HasAt> {
+public class GenericConstructor 
+extends SingleFcn
+implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
+    private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
 
-        public Constructor make(List<FType> args, List<StaticArg>statics, HasAt within) {
+        public Constructor make(List<FType> args, HasAt within) {
             // Use the generic type to make the specific type
             String name = odefOrDecl.stringName();
             FTypeGeneric gt = (FTypeGeneric) env.getType(name);
@@ -59,9 +69,9 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
             /*
              * Necessary to fake an instantiation expression.
              */
-            QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
-            InstantiatedType inst_type = new InstantiatedType(qin, statics);
-            FTypeObject ft = (FTypeObject) gt.make(args, inst_type);
+            //QualifiedIdName qin = NodeFactory.makeQualifiedIdName(odefOrDecl.getSpan(), name);
+            //InstantiatedType inst_type = new InstantiatedType(qin, statics);
+            FTypeObject ft = (FTypeObject) gt.make(args, odefOrDecl);
 
             // Use the augmented environment from the specific type.
             BetterEnv clenv = ft.getEnv();
@@ -78,21 +88,25 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
 
     }
 
-     Memo2PCL<List<FType>, List<StaticArg>, Constructor, HasAt> memo =
-         new Memo2PCL<List<FType>, List<StaticArg>, Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
+     Memo1PCL<List<FType>,  Constructor, HasAt> memo =
+         new Memo1PCL<List<FType>,  Constructor, HasAt>(new Factory(), FType.listComparer, InstantiationLock.L);
 
-     public Constructor make(List<FType> l, List<StaticArg>statics, HasAt within) {
-        return memo.make(l, statics, within);
+     public Constructor make(List<FType> l,  HasAt within) {
+        return memo.make(l,  within);
     }
 
-    public GenericConstructor(Environment env, GenericWithParams odefOrDecl) {
+    public GenericConstructor(BetterEnv env, GenericWithParams odefOrDecl, SimpleName cfn) {
+        super(env);
         this.env = env;
         this.odefOrDecl = odefOrDecl;
-
+        this.cfn = cfn;
     }
 
   Environment env;
   GenericWithParams odefOrDecl;
+  SimpleName cfn;
+  volatile Simple_fcn symbolicInstantiation;
+
 
   public GenericWithParams getDefOrDecl() {
       return odefOrDecl;
@@ -115,7 +129,11 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
       return cl;
   }
 
-  public FValue typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
+  public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
+      return make(argValues, location);
+  }
+  
+  public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
     List<StaticParam> params = odefOrDecl.getStaticParams();
 
     // Evaluate each of the args in e, inject into clenv.
@@ -127,7 +145,71 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);
-    return make(argValues, args, x);
+    return make(argValues, x);
+}
+
+@Override
+public String at() {
+    // TODO Auto-generated method stub
+    return odefOrDecl.at();
+}
+
+@Override
+public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
+    // TODO Auto-generated method stub
+    return null;
+}
+
+@Override
+public SimpleName getFnName() {
+    // TODO Auto-generated method stub
+    return cfn;
+}
+
+public String stringName() {
+    // TODO Auto-generated method stub
+    return cfn.stringName();
+}
+
+/* (non-Javadoc)
+ * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
+ * 
+ * Cut and paste from FGenericFunction
+ */
+@Override
+public List<FType> getDomain() {
+    if (symbolicInstantiation == null) {
+        synchronized (this) {
+            if (symbolicInstantiation == null) {
+                List<FType> symbolic_static_args = FGenericFunction.symbolicStaticsByPartition.get(this);
+                if (symbolic_static_args == null) {
+                    /* TODO This is not quite right, because we risk
+                     * identifying two functions whose where clauses are
+                     * interpreted differently in two different environments.
+                     */
+                    symbolic_static_args =
+                        FGenericFunction.symbolicStaticsByPartition.syncPutIfMissing(this,
+                                createSymbolicInstantiation(getWithin(),
+                                        odefOrDecl.getStaticParams(),
+                                        Collections.<WhereClause>emptyList(),
+                                        odefOrDecl));
+                }
+                symbolicInstantiation = make(symbolic_static_args, odefOrDecl);
+            }
+        }
+    }
+    return symbolicInstantiation.getDomain();
+
+}
+
+public SimpleName getName() {
+    // TODO Auto-generated method stub
+    return cfn;
+}
+
+public List<StaticParam> getStaticParams() {
+    // TODO Auto-generated method stub
+    return odefOrDecl.getStaticParams();
 }
 
 }
