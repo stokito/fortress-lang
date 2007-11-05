@@ -81,7 +81,7 @@ public final class Shell {
     }
         
     /* Main entry point for the fortress shell.*/
-    public void execute(String[] tokens) throws InterruptedException {
+    public void execute(String[] tokens) throws InterruptedException, Throwable {
         // First argument is supplied by the fss script and always present; it's simple $PWD.
         
         if (tokens.length == 1) {
@@ -117,7 +117,7 @@ public final class Shell {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException { 
+    public static void main(String[] args) throws InterruptedException, Throwable { 
         // First argument is supplied by the fss script and always present; it's simple $PWD.
         new Shell(args[0]).execute(args); 
     }

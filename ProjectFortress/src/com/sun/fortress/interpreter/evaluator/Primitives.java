@@ -52,7 +52,7 @@ public class Primitives {
     public static void install_type(BetterEnv env, String name, FType t) {
         env.putType(name, t);
     }
-
+   
     public static void install_value(BetterEnv env, String name, FValue v) {
         env.putValue(name, v);
     }
@@ -81,6 +81,31 @@ public class Primitives {
 
         install_type(env, "Any", FTypeTop.ONLY);
 
+        
+        install_type(env, "FortressBuiltin.ZZ32", FTypeInt.ONLY);
+        install_type(env, "FortressBuiltin.ZZ64", FTypeLong.ONLY);
+        install_type(env, "FortressBuiltin.Integral", FTypeIntegral.ONLY);
+        install_type(env, "FortressBuiltin.String", FTypeString.ONLY);
+        install_type(env, "FortressBuiltin.Boolean", FTypeBool.ONLY);
+        install_type(env, "FortressBuiltin.Char", FTypeChar.ONLY);
+        install_type(env, "FortressBuiltin.RR64", FTypeFloat.ONLY);
+        install_type(env, "FortressBuiltin.Number", FTypeNumber.ONLY);
+        // install_type(env, "ZZ32Range", FTypeRange.ONLY);
+        install_type(env, "FortressBuiltin.BufferedWriter", FTypeBufferedWriter.ONLY);
+
+        install_type(env, "FortressBuiltin.IntLiteral", FTypeIntLiteral.ONLY);
+        install_type(env, "FortressBuiltin.FloatLiteral", FTypeFloatLiteral.ONLY);
+
+        install_value(env, "FortressBuiltin.true", FBool.TRUE);
+        install_value(env, "FortressBuiltin.false", FBool.FALSE);
+
+        // Dual identity of true/false
+        install_type(env, "FortressBuiltin.true", new Bool("true", FBool.TRUE));
+        install_type(env, "FortressBuiltin.false", new Bool("false", FBool.FALSE));
+
+        install_type(env, "FortressBuiltin.Any", FTypeTop.ONLY);
+        
+        
         FTypeNumber.ONLY.addExclude(FTypeString.ONLY);
         FTypeNumber.ONLY.addExclude(FTypeChar.ONLY);
         FTypeNumber.ONLY.addExclude(FTypeBool.ONLY);
@@ -111,5 +136,10 @@ public class Primitives {
         FTypeChar.ONLY.addExclude(FTypeBool.ONLY);
         FTypeChar.ONLY.addExclude(FTypeString.ONLY);
         FTypeChar.ONLY.addExclude(FTypeNumber.ONLY);
+        
+        
+        
+
+
     }
 }

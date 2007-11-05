@@ -1017,6 +1017,11 @@ public class Driver {
             List<String> args) throws Throwable {
         runProgram(p, runTests, false, false, args);
     }
+    
+    
+    public static void runProgram(CompilationUnit p, List<String> args) throws Throwable {
+        runProgram(p, false, false, false, args);
+    }
 
     private static class Toplevel implements HasAt {
         public String at() {
