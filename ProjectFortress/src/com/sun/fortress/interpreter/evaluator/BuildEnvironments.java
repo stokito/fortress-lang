@@ -682,7 +682,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericConstructor(e, x, name);
                 guardedPutValue(containing, fname, gen, x);
             } else {
                 // TODO need to deal with constructor overloading.
@@ -699,7 +699,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Generic singleton objects not yet implemented");
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericConstructor(e, x, name);
                 guardedPutValue(containing, obfuscatedConstructorName(fname), gen, x);
 
             } else {
@@ -1502,7 +1502,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         if (params.isSome()) {
             if (!staticParams.isEmpty()) {
                 // A generic, not yet a constructor
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericConstructor(e, x, name);
                 guardedPutValue(containing, fname, gen, x);
             } else {
                 // TODO need to deal with constructor overloading.
@@ -1519,7 +1519,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Generic singleton objects not yet implemented");
-                GenericConstructor gen = new GenericConstructor(e, x);
+                GenericConstructor gen = new GenericConstructor(e, x, name);
                 guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {

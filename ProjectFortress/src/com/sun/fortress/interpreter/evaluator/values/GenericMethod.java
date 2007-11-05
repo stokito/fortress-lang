@@ -143,6 +143,10 @@ public class GenericMethod extends MethodClosure implements
         ArrayList<FType> argValues = et.forStaticArgList(args);
         return make(argValues, location);
     }
+    
+    public Simple_fcn typeApply(HasAt location, List<FType> argValues) {
+        return make(argValues, location);
+    }
 
     public void finishInitializing() {
         Applicable x = getDef();
@@ -232,4 +236,14 @@ public class GenericMethod extends MethodClosure implements
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
+    public SimpleName getName() {
+        return getDef().getName();
+    }
+
+    public List<StaticParam> getStaticParams() {
+        return getDef().getStaticParams();
+    }
+
+    
+    
 }

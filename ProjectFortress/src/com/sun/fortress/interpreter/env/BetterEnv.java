@@ -332,6 +332,8 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                  * generic and non-generic overloading).
                  */
 
+                if (!(fvo instanceof Fcn))
+                    System.err.println("Eek!");
                 Fcn fcn_fvo = (Fcn) fvo;
                 if (! shadowIfDifferent && // true for functional methods
                     fcn_fvo.getWithin() != value.getWithin() &&

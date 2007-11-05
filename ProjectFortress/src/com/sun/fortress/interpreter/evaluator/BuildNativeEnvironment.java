@@ -142,7 +142,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
             if (!staticParams.isEmpty()) {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Native generic singleton objects not yet implemented");
-                GenericConstructor gen = new GenericConstructor(containing, x);
+                GenericConstructor gen = new GenericConstructor(containing, x, name);
                 guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {

@@ -20,21 +20,25 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.Comparator;
 import java.util.List;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.HasAt;
 
 
 public interface  GenericFunctionOrMethod {
 
-    abstract public Applicable getDef();
+    SimpleName getName();
+    List<StaticParam> getStaticParams();
+    public Simple_fcn typeApply(HasAt location, List<FType> argValues);
 
     static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
 
-        public int compare(GenericFunctionOrMethod arg0, GenericFunctionOrMethod arg1) {
-            Applicable a0 = arg0.getDef();
-            Applicable a1 = arg1.getDef();
+        public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
+            
 
             SimpleName fn0 = a0.getName();
             SimpleName fn1 = a1.getName();
@@ -53,5 +57,7 @@ public interface  GenericFunctionOrMethod {
     }
 
     static final GenericComparer genComparer = new GenericComparer();
+    public static final BATree<GenericFunctionOrMethod, List<FType>>
+    symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
 
 }

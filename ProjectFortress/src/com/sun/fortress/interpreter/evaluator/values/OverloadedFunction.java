@@ -164,6 +164,11 @@ public class  OverloadedFunction extends Fcn
                     System.err.println("Overload " + ps  + cl);
                 }
 
+            } else if (sfcn instanceof GenericConstructor)  {
+                if (debug) {
+                    System.err.println("Overload " + ps  + sfcn);
+                }
+
             } else if (sfcn instanceof Dummy_fcn) {
                 if (debug)
                     System.err.println("Overload primitive " + ps  + sfcn);
@@ -727,13 +732,13 @@ public class  OverloadedFunction extends Fcn
 
             for (Overload ol : getOverloads()) {
                 SingleFcn sfcn = ol.getFn();
-                if (sfcn instanceof FGenericFunction) {
-                    FGenericFunction gf = (FGenericFunction) sfcn;
+                if (sfcn instanceof GenericFunctionOrMethod) {
+                    GenericFunctionOrMethod gf = (GenericFunctionOrMethod) sfcn;
 
                     // Check that args matches the static parameters of the generic function
                     // TODO -- can a generic instantiation result in an unfulfillable overloading?
 
-                    if (compatible(args, gf.getFnDefOrDecl().getStaticParams())) {
+                    if (compatible(args, gf.getStaticParams())) {
 
                         SingleFcn tf = gf.typeApply(location, args);
                         if (f == null) {
