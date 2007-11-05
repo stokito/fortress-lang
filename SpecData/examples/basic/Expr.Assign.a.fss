@@ -1,0 +1,44 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Assign.a
+
+export Executable
+
+object b
+  var x: ZZ32 = 0
+end
+var c = 0
+
+f(x,y,z) = (x,y,z)
+f(x,y) = (x,y)
+opr UPD(x) = x
+g() = do
+a = array1[\ZZ32,2\](1)
+i = 1
+(t,u,v) = (2,3,4)
+(a[i],b.x,c) UPD= f(t,u,v)
+(** EXAMPLE **)
+(a[i],c) UPD= f(t,u)
+(** END EXAMPLE **)
+end
+
+run(args:String...) = ()
+
+end
