@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
+import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -57,17 +59,18 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
-public class Constructor extends AnonymousConstructor {
+public class Constructor extends AnonymousConstructor implements HasFinishInitializing {
 
     // TODO need to be more organized about all the names
     // that get rewritten.
-    public HashSet<String> parameterNames = new HashSet<String>();
+ //   public HashSet<String> parameterNames = new HashSet<String>();
 
     boolean finished = false;
 
     SimpleName cfn;
     List<? extends AbsDeclOrDecl> defs;
-
+    Option<List<Param>> params;
+    
     MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
         new MultiMap<FTraitOrObject, SingleFcn>();
 
@@ -92,58 +95,80 @@ public class Constructor extends AnonymousConstructor {
     public Constructor(BetterEnv env,
             FTypeObject selfType,
             GenericWithParams def) {
-        this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def),
-                def.getDecls());
-        addParamsToCollection(def, parameterNames);
+        this(env,
+                selfType,
+                (HasAt) def,
+                NodeFactory.makeConstructorFnName(def),
+                def.getDecls(),
+                def.getParams()
+                );
+ //       addParamsToCollection(def, parameterNames);
     }
 
+    public Constructor(BetterEnv env,
+            FTypeObject selfType,
+            GenericWithParams def,
+            Option<List<Param>> params) {
+        this(env,
+                selfType,
+                (HasAt) def,
+                NodeFactory.makeConstructorFnName(def),
+                def.getDecls(),
+                params
+                );
+ //       addParamsToCollection(def, parameterNames);
+    }
+
+    
     /**
      * @param def
      */
-    static public void addParamsToCollection(
-          HasParams def, Collection<String> parameterNames) {
-        addParamsToCollection(def.getParams(), parameterNames);
-
-    }
-    static public void addParamsToCollection(
-          Option<List<Param>> opt_params, Collection<String> parameterNames) {
-        if (opt_params.isSome()) {
-            addParamsToCollection(Option.unwrap(opt_params), parameterNames);
-        }
-    }
-    static public void addParamsToCollection(
-          List<Param> params, Collection<String> parameterNames) {
-        for (Param p : params) {
-                if (!NodeUtil.isTransient(p))
-                    parameterNames.add(p.getName().getId().getText());
-       }
-    }
-    static public void removeParamsFromCollection(
-          ObjectDecl def, Collection<String> parameterNames) {
-        removeParamsFromCollection(def.getParams(), parameterNames);
-
-    }
-    static public void removeParamsFromCollection(
-          Option<List<Param>> opt_params, Collection<String> parameterNames) {
-        if (opt_params.isSome()) {
-            removeParamsFromCollection(Option.unwrap(opt_params), parameterNames);
-        }
-    }
-    static public void removeParamsFromCollection(
-          List<Param> params,Collection<String> parameterNames) {
-        for (Param p : params) {
-            if (!NodeUtil.isTransient(p))
-                parameterNames.remove(p.getName().getId().getText());
-   }
-}
+//    static public void addParamsToCollection(
+//          HasParams def, Collection<String> parameterNames) {
+//        addParamsToCollection(def.getParams(), parameterNames);
+//
+//    }
+//    static public void addParamsToCollection(
+//          Option<List<Param>> opt_params, Collection<String> parameterNames) {
+//        if (opt_params.isSome()) {
+//            addParamsToCollection(Option.unwrap(opt_params), parameterNames);
+//        }
+//    }
+//    static public void addParamsToCollection(
+//          List<Param> params, Collection<String> parameterNames) {
+//        for (Param p : params) {
+//                if (!NodeUtil.isTransient(p))
+//                    parameterNames.add(p.getName().getId().getText());
+//       }
+//    }
+//    static public void removeParamsFromCollection(
+//          ObjectDecl def, Collection<String> parameterNames) {
+//        removeParamsFromCollection(def.getParams(), parameterNames);
+//
+//    }
+//    static public void removeParamsFromCollection(
+//          Option<List<Param>> opt_params, Collection<String> parameterNames) {
+//        if (opt_params.isSome()) {
+//            removeParamsFromCollection(Option.unwrap(opt_params), parameterNames);
+//        }
+//    }
+//    static public void removeParamsFromCollection(
+//          List<Param> params,Collection<String> parameterNames) {
+//        for (Param p : params) {
+//            if (!NodeUtil.isTransient(p))
+//                parameterNames.remove(p.getName().getId().getText());
+//   }
+//}
 
     // TODO need to copy the field names
 
     public Constructor(BetterEnv env, FTypeObject selfType, HasAt def,
-                SimpleName name, List<? extends AbsDeclOrDecl> defs) {
+                SimpleName name, List<? extends AbsDeclOrDecl> defs,
+                Option<List<Param>> params) {
         super(env, selfType, def); // TODO verify that this is the proper env.
         this.cfn = name;
         this.defs = defs;
+        this.params = params;
     }
 
     /**
@@ -152,11 +177,19 @@ public class Constructor extends AnonymousConstructor {
     public void finishInitializing() {
         // Next build a bogus environment to help us figure out
         // overloading, shadowing, etc.  First puts win.
+        if (params.isSome()) {
+            List<Parameter> fparams = EvalType.paramsToParameters(
+                    getWithin(), Option.unwrap(params));
+            setParams(fparams);
+        } else {
+            setParams(Collections.<Parameter> emptyList());
+        }
+        
         BetterEnv bte = new BetterEnv(getWithin(), getAt());
         finishInitializing(bte);
     }
 
-    public void finishInitializing(BetterEnv bte) {
+    private void finishInitializing(BetterEnv bte) {
 
         GHashMap<SingleFcn, FTraitOrObject>
             signaturesToTraitsContainingMethods =

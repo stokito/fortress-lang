@@ -52,7 +52,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 /**
  * A Closure value is a function, plus some environment information.
  */
-public class Closure extends NonPrimitive implements Scope {
+public class Closure extends NonPrimitive implements Scope, HasFinishInitializing {
     protected FType returnType;
     protected List<FType> instArgs;
     protected Applicable def;
@@ -215,7 +215,7 @@ public class Closure extends NonPrimitive implements Scope {
         setFtype(FTypeArrow.make(getDomain(), returnType));
     }
 
-    public Closure finishInitializing() {
+    public void finishInitializing() {
         // This needs to be done right with a generic.
         Applicable x = getDef();
         List<Param> params = x.getParams();
@@ -230,7 +230,7 @@ public class Closure extends NonPrimitive implements Scope {
 
         setParamsAndReturnType(fparams, ft);
         
-        return this;
+        return; //  this;
     }
 
     @Override

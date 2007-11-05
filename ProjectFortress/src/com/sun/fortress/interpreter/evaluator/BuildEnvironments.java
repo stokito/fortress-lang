@@ -45,6 +45,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
+import com.sun.fortress.interpreter.evaluator.values.HasFinishInitializing;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
@@ -763,7 +764,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             } else {
                 FTypeObject fto = (FTypeObject) containing.getType(fname);
                 FValue xxx = containing.getValue(fname);
-                Constructor cl = (Constructor) containing.getValue(fname);
+                //Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
             }
         } else {
@@ -793,10 +794,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) ft;
-                Constructor cl = (Constructor) containing.getValue(fname);
-                List<Parameter> fparams = EvalType.paramsToParameters(
-                        containing, Option.unwrap(params));
-                cl.setParams(fparams);
+                HasFinishInitializing cl = (HasFinishInitializing) containing.getValue(fname);
+//                List<Parameter> fparams = EvalType.paramsToParameters(
+//                        containing, Option.unwrap(params));
+//                cl.setParams(fparams);
                 cl.finishInitializing();
             }
 
@@ -806,7 +807,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
             Constructor cl = (Constructor) containing
                     .getValue(obfuscatedSingletonConstructorName(fname, x));
-            cl.setParams(Collections.<Parameter> emptyList());
+          //  cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
          }
         scanForFunctionalMethodNames(ft, x.getDecls());

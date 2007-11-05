@@ -67,11 +67,11 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
             BetterEnv clenv = ft.getEnv();
 
             // Build the constructor
-            Option<List<Param>> params = odefOrDecl.getParams();
-            List<Parameter> fparams =
-                EvalType.paramsToParameters(clenv, Option.unwrap(params));
+//            Option<List<Param>> params = odefOrDecl.getParams();
+//            List<Parameter> fparams =
+//                EvalType.paramsToParameters(clenv, Option.unwrap(params));
 
-            Constructor cl = makeAConstructor(clenv, ft, fparams);
+            Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
             return cl;
         }
 
@@ -103,13 +103,13 @@ public class GenericConstructor extends FConstructedValue implements Factory2P<L
   }
 
   protected Constructor constructAConstructor(BetterEnv clenv,
-                                              FTypeObject objectType) {
-    return new Constructor(clenv, objectType, odefOrDecl);
+                                              FTypeObject objectType,
+                                              Option<List<Param>> objectParams) {
+    return new Constructor(clenv, objectType, odefOrDecl, objectParams);
   }
   
-  private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, List<Parameter> objectParams) {
-      Constructor cl = constructAConstructor(clenv, objectType);
-      cl.setParams(objectParams);
+  private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
+      Constructor cl = constructAConstructor(clenv, objectType, objectParams);
       cl.finishInitializing();
       FTypeGeneric.flushPendingTraitFMs();
       return cl;

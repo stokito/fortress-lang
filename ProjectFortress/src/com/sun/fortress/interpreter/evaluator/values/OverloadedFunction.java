@@ -57,7 +57,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class  OverloadedFunction extends Fcn
-    implements Factory1P<List<FType>, Fcn, HasAt>{
+    implements Factory1P<List<FType>, Fcn, HasAt>, HasFinishInitializing {
 
     private final boolean debug = false;
     private final boolean debugMatch = false;
@@ -121,9 +121,10 @@ public class  OverloadedFunction extends Fcn
         return false;
     }
 
-    public boolean finishInitializing() {
+    public void finishInitializing() {
         finishInitializingFirstPart();
-        return finishInitializingSecondPart();
+        finishInitializingSecondPart();
+        return;
     }
 
     /**
@@ -147,6 +148,15 @@ public class  OverloadedFunction extends Fcn
             
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
+                if (! cl.getFinished())
+                    cl.finishInitializing();
+                
+                if (debug) {
+                    System.err.println("Overload " + ps  + cl);
+                }
+
+            } else if (sfcn instanceof Constructor)  {
+                Constructor cl = (Constructor) sfcn;
                 if (! cl.getFinished())
                     cl.finishInitializing();
                 

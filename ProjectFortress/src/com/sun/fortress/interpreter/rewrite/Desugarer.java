@@ -397,8 +397,9 @@ public class Desugarer extends Rewrite {
                                                     null, null, fto, env, oe);
                 Constructor con = new Constructor(env, fto, oe,
                                                   NodeFactory.makeIdName(name),
-                                                  oe.getDecls());
-                con.setParams(Collections.<Parameter> emptyList());
+                                                  oe.getDecls(),
+                                                  Option.<List<Param>>none());
+                
                 env.putValue(name, con);
                 con.finishInitializing();
             } else {

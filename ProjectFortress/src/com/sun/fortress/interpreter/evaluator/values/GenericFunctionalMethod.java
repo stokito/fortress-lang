@@ -55,7 +55,8 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
         FunctionalMethod cl = FType.anyAreSymbolic(args) ?
                 new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :
             new FunctionalMethod(clenv, fndef, args, selfParameterIndex, instantiatedSelfType);
-        return cl.finishInitializing();
+         cl.finishInitializing();
+         return cl;
     }
     
     @Override
