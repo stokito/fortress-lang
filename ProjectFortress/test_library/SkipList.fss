@@ -35,22 +35,47 @@ export SkipList
 
 ***************************************************************************)
 
-trait SkipList[\Key,Val,nat pInverse\] comprises {EmptyList[\Key,Val,pInverse\],
-  FullList[\Key,Val,pInverse\]}
+(* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
+   p is used in the negative binomial distribution to select random levels for insertion.
+*)
+object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
-  toString():String
-  (* toGraphViz():String   wait until hashCode() is implemented*)
-  search(k:Key):Maybe[\Val\]
-  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\]
+  p:RR64 = 1.0 / pInverse
+
+  toString():String = root.toString()
+
+  search(k:Key):Maybe[\Val\] = root.search(k)
+
+  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
+    level:ZZ32 = randomLevel()
+    SkipList[\Key,Val,pInverse\](root.add(k,v,level))
+  end
+
+  remove(k:Key):SkipList[\Key,Val,pInverse\] = do
+    SkipList[\Key,Val,pInverse\](root.remove(k))
+  end
+
+  randomLevel():ZZ32 = do
+    level':ZZ32 := 1
+    while random(1.0) < p do
+      level' += 1
+    end
+    level'
+  end
 
 end
 
+(* Construct an empty skip list *)
+NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
+  SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\]())
+
+
 (* A Node is the basic type for the Skip List data structure.
    There are four types of Nodes:
-    i) Empty Nodes - represents an empty tree.
-    ii) Leaf Nodes - stores a (key,val) pair. Lives at the bottom of the tree.
+    i)   Empty Nodes - represents an empty tree.
+    ii)  Leaf Nodes - stores a (key,val) pair. Lives at the bottom of the tree.
     iii) Internal Nodes - stores N keys and N+1 children for N > 0.
-    iv) White Nodes - stores exactly zero keys and one child.
+    iv)  White Nodes - stores exactly zero keys and one child.
 *)
 trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   InternalNode[\Key,Val\], WhiteNode[\Key,Val\]}
@@ -66,7 +91,13 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   toString():String
   (* toGraphViz():String   wait until hashCode() is implemented*)
 
+  (* the add method can grow the tree if level > root height *)
   add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+
+  (* the add_helper method is only invoked if level <= root height *)
+  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+
+  remove(k:Key):Node[\Key,Val\]
 
   (* splits the new child in half and sucks the split key up to this level *)
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\]
@@ -100,11 +131,24 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
 
   toString():String = "{ [], [" child.toString() "] }"
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] =
+  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - getHeight())
+    tail.add_helper(k,v,level)
+  end
+
+  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] =
   if height = 1 then
     height1_add(k,v)
   else
     heightn_add(k,v,level)
+  end
+
+  remove(k:Key):Node[\Key,Val\] = do
+    if height = 1 then
+      height1_remove(k)
+    else
+      heightn_remove(k)
+    end
   end
 
   (* splits the new child in half and sucks the split key up to this level *)
@@ -135,7 +179,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
 
   (* perform the add operation when the height is greater than one *)
   heightn_add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = child.add(k,v,level)
+    child':Node[\Key,Val\] = child.add_helper(k,v,level)
     if level < height then
       WhiteNode[\Key,Val\](child', height)
     else
@@ -143,6 +187,24 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
     end
   end
 
+  (* perform the remove operation when the height is one *)
+  height1_remove(k:Key):Node[\Key,Val\] = do
+    if child.getKey() = k then
+      EmptyNode[\Key,Val\]()
+    else
+      self
+    end
+  end
+
+  (* perform the remove operation when the height is greater than one *)
+  heightn_remove(k:Key):Node[\Key,Val\] = do
+    child':Node[\Key,Val\] = child.remove(k)
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      child'
+    else
+      WhiteNode[\Key,Val\](child', height)
+    end
+  end
 
 end
 
@@ -157,30 +219,47 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   isTreeEmpty():Boolean = false
   isNodeEmpty():Boolean = false
 
-  search(k:Key):Maybe[\Val\] = do
+  find_index(k:Key):ZZ32 = do
     index:ZZ32 := 0
-    while (index < keys.size() AND: k > keys[index]) do
+    (* FIXME: replace with AND: *)
+    (* OR BETTER YET: replace with a reduction *)
+    flag:Boolean := false
+    if index < keys.size() then flag := k >= keys[index] end
+    while (flag) do
       index += 1
+      flag := false
+      if index < keys.size() then flag := k >= keys[index] end
     end
+    index
+  end
+
+  search(k:Key):Maybe[\Val\] = do
+    index:ZZ32 = find_index(k)
     children[index].search(k)
   end
 
   toString():String = "{" keys.toString() ", " children.toString() "}"
 
   add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    index:ZZ32 := 0
-    (* FIXME: replace with AND: *)
-    flag:Boolean := false
-    if index < keys.size() then flag := k > keys[index] end
-    while (flag) do
-      index += 1
-      flag := false
-      if index < keys.size() then flag := k > keys[index] end
-    end
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - getHeight())
+    tail.add_helper(k,v,level)
+  end
+
+  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    index:ZZ32 = find_index(k)
     if height = 1 then
       height1_add(k,v,index)
     else
       heightn_add(k,v,index,level)
+    end
+  end
+
+  remove(k:Key):Node[\Key,Val\] = do
+    index:ZZ32 = find_index(k)
+    if height = 1 then
+      height1_remove(k,index)
+    else
+      heightn_remove(k,index)
     end
   end
 
@@ -225,7 +304,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* perform the add operation when the height is greater than one *)
   heightn_add(k:Key, v:Val, index:ZZ32, level:ZZ32):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = children[index].add(k,v,level)
+    child':Node[\Key,Val\] = children[index].add_helper(k,v,level)
     if level < height then
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
       children'[0 # (children.size())] := children[0 # (children.size())]
@@ -234,6 +313,74 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     else
       split(index, child')
     end
+  end
+
+  (* perform the remove operation when the height is one *)
+  height1_remove(k:Key, index:ZZ32):Node[\Key,Val\] = do
+    if children[index].getKey() = k then
+      height1_remove_helper(index)
+    else
+      self
+    end
+  end
+
+  height1_remove_helper(index:ZZ32):Node[\Key,Val\] = do
+    if keys.size() = 1 then
+      WhiteNode[\Key,Val\](children[(index + 1) MOD 2], height)
+    else
+      index_remove(index)
+    end
+  end
+
+  (* perform the remove operation when the height is greater than one *)
+  heightn_remove(k:Key, index:ZZ32):Node[\Key,Val\] = do
+    child':Node[\Key,Val\] = children[index].remove(k)
+    if keys.size() = 1 then
+      heightn_remove_1key(index,child')
+    else
+      heightn_remove_nkeys(index,child')
+    end
+  end
+
+  (* perform the remove operation when height > 1 and keys = 1 *)
+  heightn_remove_1key(index:ZZ32, child':Node[\Key,Val\]):Node[\Key,Val\] = do
+    other:ZZ32 = (index + 1) MOD 2
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      WhiteNode[\Key,Val\](children[other], height)
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](1)
+      children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
+      keys'[0] := keys[0]
+      children'[index] := child'
+      children'[other] := children[other]
+      InternalNode[\Key,Val\](keys', children', height)
+    end
+  end
+
+  (* perform the remove operation when height > 1 and keys > 1 *)
+  heightn_remove_nkeys(index:ZZ32, child':Node[\Key,Val\]):Node[\Key,Val\] = do
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      index_remove(index)
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](keys.size())
+      children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
+      keys'[0 # keys.size()] := keys[0 # keys.size()]
+      children'[0 # children.size()] := children[0 # children.size()]
+      children'[index] = child'
+      InternalNode[\Key,Val\](keys', children', height)
+    end
+  end
+
+  (* return a new internal node that has children[index] and keys[index - 1] missing *)
+  index_remove(index:ZZ32):Node[\Key,Val\] = do
+    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() - 1)
+    children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() - 1)
+    replace:ZZ32 = MAX(0, index - 1)
+    keys'[0 # replace] := keys[0 # replace]
+    keys'[replace # (keys'.size() - replace)] := keys[(replace + 1) # (keys'.size() - replace)]
+    children'[0 # index] := children[0 # index]
+    children'[index # (children'.size() - index)] := children[(index + 1) # (children'.size() - index)]
+    InternalNode[\Key,Val\](keys', children', height)
   end
 
   (* perform the break operation when we have exactly one key *)
@@ -259,7 +406,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     (left, right, key')
   end
 
-  (* perform the break operation when we have three or more key *)
+  (* perform the break operation when we have three or more keys *)
   nkeys_break():(Node[\Key,Val\],Node[\Key,Val\],Key) = do
     half:ZZ32 = keys.size() DIV 2
     rsize:ZZ32 = keys.size() - half - 1
@@ -284,7 +431,7 @@ end
    an internal node, and the empty node does not have a height. *)
 object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
 
-  getHeight():ZZ32 = fail("Empty node does not have a height")
+  getHeight():ZZ32 = fail("Cannot get height of an empty tree")
 
   isLeaf():Boolean = fail("Empty node is neither a leaf nor an internal node")
   isTreeEmpty():Boolean = true
@@ -294,7 +441,13 @@ object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
 
   toString():String = "{}"
 
+  remove(k:Key):Node[\Key,Val\] = self
+
   add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+    add_helper(k,v,level)
+  end
+
+  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
     leaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\]((k, v))
     parent:WhiteNode[\Key,Val\] = WhiteNode[\Key,Val\](leaf,1)
     parent
@@ -323,6 +476,8 @@ object LeafNode[\Key,Val\](pair: (Key, Val)) extends Node[\Key,Val\]
   search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](val) else Nothing[\Val\]() end
 
   add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  remove(k:Key):Node[\Key,Val\] = fail("Cannot remove a key from a leaf node.")
 
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = fail("Cannot split a leaf node.")
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a leaf node.")
@@ -331,47 +486,5 @@ object LeafNode[\Key,Val\](pair: (Key, Val)) extends Node[\Key,Val\]
 
 end
 
-
-object EmptyList[\Key,Val,nat pInverse\](root:EmptyNode[\Key,Val\]) extends SkipList[\Key,Val,pInverse\]
-
-  toString():String = root.toString()
-
-  search(k:Key):Maybe[\Val\] = root.search(k)
-
-  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
-    FullList[\Key,Val,pInverse\](root.add(k,v,1))
-  end
-
-end
-
-(* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
-   p is used in the negative binomial distribution to select random levels for insertion.
-*)
-object FullList[\Key,Val,nat pInverse\](root:Node[\Key,Val\]) extends SkipList[\Key,Val,pInverse\]
-
-  p:RR64 = 1.0 / pInverse
-
-  toString():String = root.toString()
-
-  search(k:Key):Maybe[\Val\] = root.search(k)
-
-  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
-    level:ZZ32 = randomLevel()
-    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](root, level - root.getHeight())
-    FullList[\Key,Val,pInverse\](tail.add(k,v,level))
-  end
-
-  randomLevel():ZZ32 = do
-    level':ZZ32 := 1
-    while random(1.0) < p do
-      level' += 1
-    end
-    level'
-  end
-
-end
-
-NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
-  EmptyList[\Key,Val,pInverse\](EmptyNode[\Key,Val\]())
 
 end
