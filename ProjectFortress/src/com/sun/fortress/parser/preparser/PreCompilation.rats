@@ -16,9 +16,9 @@
  ******************************************************************************/
 
 /*
- * Definition of Fortress components and APIs.
+ * Definition of Fortress precomponents which also accepts APIs.
  */
-module Compilation(Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.preparser.PreCompilation(Identifier, Keyword, Symbol, Spacing);
 
 import Identifier;
 import Keyword;
