@@ -30,7 +30,7 @@ import edu.rice.cs.plt.tuple.Option;
 /** 
  * A visitor that makes an api from a component.
  */
-public class ApiMaker extends NodeUpdateVisitor {
+public final class ApiMaker extends NodeUpdateVisitor {
     public static final ApiMaker ONLY = new ApiMaker();
     
     private ApiMaker() {}
@@ -45,23 +45,24 @@ public class ApiMaker extends NodeUpdateVisitor {
         return result;
     }
     
-    public Node forComponentOnly(Component that, 
-                                 DottedName name_result, 
-                                 List<Import> imports_result, 
-                                 List<Export> exports_result, 
-                                 List<Decl> decls_result) {
-        return new Api(that.getSpan(), name_result, imports_result, declsToAbsDecls(decls_result));
+    public Node forComponent(Component that) {
+        DottedName name_result = (DottedName) that.getName().accept(this);
+        List<Import> imports_result = recurOnListOfImport(that.getImports());
+        List<Export> exports_result = recurOnListOfExport(that.getExports());
+        List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
+        return new Api(that.getSpan(), name_result, imports_result, decls_result);
     }
+    
+    public Node forTraitDecl(TraitDecl that) {
+        List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
+        IdName name_result = (IdName) that.getName().accept(this);
+        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
+        List<TraitType> excludes_result = recurOnListOfTraitType(that.getExcludes());
+        Option<List<TraitType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
+        List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
 
-    public Node forTraitDeclOnly(TraitDecl that, 
-                                 List<Modifier> mods_result, 
-                                 IdName name_result, 
-                                 List<StaticParam> staticParams_result, 
-                                 List<TraitTypeWhere> extendsClause_result, 
-                                 List<WhereClause> where_result, 
-                                 List<TraitType> excludes_result, 
-                                 Option<List<TraitType>> comprises_result, 
-                                 List<Decl> decls_result) {
         return new AbsTraitDecl(that.getSpan(), 
                                 mods_result, 
                                 name_result, 
@@ -70,20 +71,21 @@ public class ApiMaker extends NodeUpdateVisitor {
                                 where_result, 
                                 excludes_result, 
                                 comprises_result, 
-                                declsToAbsDecls(decls_result));
+                                decls_result);
     }
 
-    public Node forObjectDeclOnly(ObjectDecl that, 
-                                  List<Modifier> mods_result, 
-                                  IdName name_result, 
-                                  List<StaticParam> staticParams_result, 
-                                  List<TraitTypeWhere> extendsClause_result, 
-                                  List<WhereClause> where_result, 
-                                  Option<List<Param>> params_result, 
-                                  Option<List<TraitType>> throwsClause_result, 
-                                  Contract contract_result, 
-                                  List<Decl> decls_result) {
-        return new AbsObjectDecl(that.getSpan(), 
+    public Node forObjectDecl(ObjectDecl that) {
+        List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
+        IdName name_result = (IdName) that.getName().accept(this);
+        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
+        Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
+        Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
+        Contract contract_result = (Contract) that.getContract().accept(this);
+        List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
+
+                return new AbsObjectDecl(that.getSpan(), 
                                  mods_result, 
                                  name_result, 
                                  staticParams_result, 
@@ -92,7 +94,7 @@ public class ApiMaker extends NodeUpdateVisitor {
                                  params_result, 
                                  throwsClause_result, 
                                  contract_result, 
-                                 declsToAbsDecls(decls_result));
+                                 decls_result);
     }
 
     public Node forVarDeclOnly(VarDecl that, List<LValueBind> lhs_result, Expr init_result) {

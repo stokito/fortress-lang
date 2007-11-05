@@ -394,7 +394,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             }
             public FType defaultCase(Node x) {
                 return bug(x, "EvalType: " + x.getClass() +
-			      " is not a subtype of IntExpr.");
+         " is not a subtype of IntExpr.");
             }
         });
     }
@@ -459,8 +459,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
-            return error(x, env, errorMsg("Expected generic type, got ", ft1,
-                                          " instead"));
+            // It isn't necessarily an error if an InstantiatedType doesn't refer
+            // to an FTypeGeneric. After disambiguation, all trait type references are
+            // InstantiatedTypes (possibly with zero arguments). EricAllen 11/5/2007
+            return ft1;
+//            return error(x, env, errorMsg("Expected generic type, got ", ft1,
+//                                          " instead"));
         }
     }
 
