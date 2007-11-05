@@ -85,7 +85,8 @@ public class GenericMethod extends MethodClosure implements
                     : new MethodClosureInstance(getEnv(), clenv, getDef(),
                             args, this);
         }
-        return (MethodClosure) cl.finishInitializing();
+        cl.finishInitializing();
+        return (MethodClosure) cl;
     }
 
     private class Factory implements
@@ -143,7 +144,7 @@ public class GenericMethod extends MethodClosure implements
         return make(argValues, location);
     }
 
-    public Closure finishInitializing() {
+    public void finishInitializing() {
         Applicable x = getDef();
         List<Param> params = x.getParams();
         Option<Type> rt = x.getReturnType();
@@ -170,7 +171,7 @@ public class GenericMethod extends MethodClosure implements
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
         setParamsAndReturnType(fparams, ft);
-        return this;
+        return;
     }
 
     static class GenericComparer implements Comparator<GenericMethod> {

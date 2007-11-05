@@ -103,7 +103,8 @@ public class FGenericFunction extends SingleFcn
 
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
         Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
-        return cl.finishInitializing();
+         cl.finishInitializing();
+        return cl;
     }
 
 //    public BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =

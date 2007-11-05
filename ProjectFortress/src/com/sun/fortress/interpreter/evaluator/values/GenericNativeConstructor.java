@@ -25,6 +25,9 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.Param;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class GenericNativeConstructor extends GenericConstructor {
 
@@ -36,8 +39,10 @@ public class GenericNativeConstructor extends GenericConstructor {
         this.name = name;
     }
 
+    @Override
     protected Constructor constructAConstructor(BetterEnv clenv,
-            FTypeObject objectType) {
+            FTypeObject objectType,
+            Option<List<Param>> params) {
         return BuildNativeEnvironment.nativeConstructor(clenv, objectType, odefOrDecl, name);
       }
 
