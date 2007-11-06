@@ -1,0 +1,71 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.executable
+export Executable
+
+fib(x)=do
+    var res:ZZ32 := 1
+    n1:ZZ32
+    n2:ZZ32
+
+    if x > 1 then 
+        do
+            n1 = fib(x-1)
+        also do
+            n2 = fib(x-2)
+        end
+        res := n1 + n2
+    end
+    res
+end
+
+testAtomicAlso() = do
+    x:ZZ32 := 0
+    y:ZZ32 := 0
+    z:ZZ32 := 0
+    atomic do
+        x += 1
+        y += 1
+    also do
+        z := x + y
+    end
+    assert(z =/= 1, "testAtomicAlso got impossible result")
+end
+
+testManyClauses() = do
+    res:ZZ32 := 0
+    atomic do
+        res += 1
+    also atomic do
+        res += 10
+    also atomic do
+        res += 100
+    also atomic do
+        res += 1000
+    also atomic do
+        res += 10000
+    end
+    assert(res, 11111, "Many atomic clauses failed")
+end
+
+run(args:String...):()=do
+    assert(fib(5), 8, "fib(5)=8")
+    testAtomicAlso()
+    testManyClauses()
+end
+end

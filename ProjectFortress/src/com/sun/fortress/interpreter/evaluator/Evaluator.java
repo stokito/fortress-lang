@@ -355,19 +355,44 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forDo(Do x) {
-        // debugPrint("forDo " + x);
-        if (x.getFronts().size() == 0)
-            return evVoid;
-        else if (x.getFronts().size() > 1)
-            return NI("forParallelDo");
-        else { // (x.getFronts().size() == 1)
+        int s = x.getFronts().size();
+        if (s == 0) return evVoid;
+        if (s == 1) {
             DoFront f = x.getFronts().get(0);
+                if (f.getLoc().isSome()) return NI("forAtDo");
+                if (f.isAtomic())
+                    return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
+                                                        f.getExpr()));
+             return f.getExpr().accept(this);
+       }
+
+       TupleTask[] tasks = new TupleTask[s];
+       for (int i = 0; i < s; i++) {
+            DoFront f = x.getFronts().get(i);
             if (f.getLoc().isSome()) return NI("forAtDo");
             if (f.isAtomic())
-                return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
-                                                    f.getExpr()));
-            return f.getExpr().accept(this);
+                tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
+                                                        f.getExpr()), this);
+            else
+                tasks[i] = new TupleTask(f.getExpr(), this);
         }
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        BaseTask currentTask = runner.getCurrentTask();
+        TupleTask.coInvoke(tasks);
+        runner.setCurrentTask(currentTask);
+        for (int i = 0; i < s; i++) {
+            if (tasks[i].causedException()) {
+                Throwable t = tasks[i].taskException();
+                if (t instanceof Error) {
+                    throw (Error)t;
+                } else if (t instanceof RuntimeException) {
+                    throw (RuntimeException)t;
+                } else {
+                    error(x.getFronts().get(i), errorMsg("Wrapped Exception",t));
+                }
+            }
+        }
+        return evVoid;
     }
 
     public FValue forBlock(Block x) {
