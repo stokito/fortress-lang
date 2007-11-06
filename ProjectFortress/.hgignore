@@ -31,4 +31,4 @@ src/com/sun/fortress/parser/Fortress.java
 FortressLibrary.ast
 FortressLibrary.jst
 src/com/sun/fortress/parser_util/precedence_resolver/Operators.java
-
+testSerializationScratch/
