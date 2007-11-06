@@ -27,7 +27,7 @@ end
 object Cons[\T\](first:T, rest:List[\T\])
   extends List[\T\]
   cons(x) = Cons(x,self)
-  append(xs) = Cons(first,rest.append(xs))
+  append(xs:List[\T\]):List[\T\] = Cons(first,rest.append(xs))
 end
 (** EXAMPLE **)
 Cons[\T\](first:T) = Cons(first,Empty)
