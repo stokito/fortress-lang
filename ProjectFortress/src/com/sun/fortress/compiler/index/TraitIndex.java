@@ -47,6 +47,7 @@ public abstract class TraitIndex extends TypeConsIndex {
                       Set<Function> coercions,
                       Relation<SimpleName, Method> dottedMethods,
                       Relation<SimpleName, FunctionalMethod> functionalMethods) {
+        super(ast.getStaticParams());
         _ast = ast;
         _getters = getters;
         _setters = setters;

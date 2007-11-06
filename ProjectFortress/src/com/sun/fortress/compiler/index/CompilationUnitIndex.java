@@ -17,15 +17,11 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Collections;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.SimpleName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.*;
 
 import com.sun.fortress.useful.NI;
 
@@ -54,7 +50,15 @@ public class CompilationUnitIndex {
     }
     
     public Set<DottedName> imports() {
-        return NI.nyi();
+        final Set<DottedName> result = new HashSet<DottedName>();
+        for (Import _import : ast().getImports()) {
+            _import.accept(new NodeAbstractVisitor_void() {
+                public void forImportFrom(ImportFrom that) {
+                    result.add(that.getApi());
+                }
+            });
+        }
+        return result;
     }
     
     public Map<IdName, Variable> variables() { return _variables; }

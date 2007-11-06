@@ -25,6 +25,9 @@ object String extends { Any }
     (* excludes { IntLiteral, FloatLiteral, Boolean } *)
 end
 
+object Char extends { Any }
+end
+
 trait  Number extends { Any } 
     (* excludes { String, Boolean } *)
 end

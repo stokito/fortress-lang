@@ -17,8 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.Map;
-import java.util.Collections;
+import java.util.*;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.StaticParam;
 
@@ -29,12 +28,14 @@ import com.sun.fortress.useful.NI;
  * {@link TraitIndex} and {@link TypeAliasIndex}.
  */
 public abstract class TypeConsIndex {
+    private List<StaticParam> _staticParams;
     
-    public TypeConsIndex() {}
+    public TypeConsIndex(List<StaticParam> staticParams) {
+        _staticParams = staticParams;
+    }
 
-    public Map<IdName, StaticParam> staticParameters() {
-        // TODO: implement correctly
-        return Collections.emptyMap();
+    public List<StaticParam> staticParameters() {
+        return _staticParams;
     }
     
 }

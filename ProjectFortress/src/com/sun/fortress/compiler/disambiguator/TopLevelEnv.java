@@ -25,6 +25,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -35,6 +36,9 @@ public class TopLevelEnv extends NameEnv {
     private CompilationUnitIndex _current;
     
     private Map<IdName, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<IdName, Set<QualifiedIdName>>();
+    private Map<IdName, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<IdName, Set<QualifiedIdName>>();
+    private Map<IdName, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<IdName, Set<QualifiedIdName>>();
+    private Map<OpName, Set<QualifiedOpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<QualifiedOpName>>();
     
     private static class TypeIndex {
         private DottedName _api;
@@ -52,45 +56,77 @@ public class TopLevelEnv extends NameEnv {
         _globalEnv = globalEnv;
         _current = current;
         initializeOnDemandTypeConsNames();
+        initializeOnDemandVariableNames();
+        initializeOnDemandFunctionNames();
     }
     
+    private <T> void initializeEntry(Map.Entry<DottedName, ApiIndex> apiEntry,
+                                     Map.Entry<IdName, T> entry, 
+                                     Map<IdName, Set<QualifiedIdName>> table) {
+        IdName key = entry.getKey();
+        if (table.containsKey(key)) {
+            table.get(key).add(new QualifiedIdName(key.getSpan(),
+                                                   Option.some(apiEntry.getKey()),
+                                                   key));
+            
+        } else {
+            Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
+            matches.add(new QualifiedIdName(key.getSpan(),
+                                            Option.some(apiEntry.getKey()),
+                                            key));
+            table.put(key, matches);
+        }
+    }
+        
     private void initializeOnDemandTypeConsNames() {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports.
         
-        //initializeAny();
-        
         for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
             for (Map.Entry<IdName, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
-                IdName key = typeEntry.getKey();
-                if (_onDemandTypeConsNames.containsKey(key)) {
-                    _onDemandTypeConsNames.get(key).add(new QualifiedIdName(key.getSpan(),
-                                                                            Option.some(apiEntry.getKey()),
-                                                                            key));
-                                                                            
-                } else {
-                    Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
-                    matches.add(new QualifiedIdName(key.getSpan(),
-                                                    Option.some(apiEntry.getKey()),
-                                                    key));
-                    _onDemandTypeConsNames.put(key, matches);
-                }
+                initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
+            } 
+        }
+    }
+    
+    private void initializeOnDemandVariableNames() {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
+            for (Map.Entry<IdName, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
+                initializeEntry(apiEntry, varEntry, _onDemandVariableNames);
             }
         } 
     }
     
-    private void initializeAny() {
-        // Type Any exists only as a type tag in the table.
-        Set<QualifiedIdName> homeOfAny = new HashSet<QualifiedIdName>();
-        List<Id> fortressBuiltin = new ArrayList<Id>();
-        fortressBuiltin.add(new Id("FortressBuiltin"));
-        
-        homeOfAny.add
-            (new QualifiedIdName
-                 (Option.some
-                      (new DottedName(fortressBuiltin)), 
-                  new IdName(new Id("Any"))));
-        _onDemandTypeConsNames.put(new IdName(new Id("Any")), homeOfAny);
+    private void initializeOnDemandFunctionNames() {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
+            for (SimpleName fnName: apiEntry.getValue().functions().firstSet()) {
+                if (fnName instanceof IdName) {
+                    IdName _fnName = (IdName)fnName;
+                    QualifiedIdName name = new QualifiedIdName(_fnName.getSpan(),
+                                                               Option.some(apiEntry.getKey()),
+                                                               _fnName);
+                    if (_onDemandFunctionIdNames.containsKey(_fnName)) {
+                        _onDemandFunctionIdNames.get(_fnName).add(name);
+                    } else {
+                        Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
+                        matches.add(name);
+                        _onDemandFunctionIdNames.put(_fnName, matches);
+                    }
+                } else { // fnName instanceof OpName
+                    OpName _fnName = (OpName)fnName;
+                    QualifiedOpName name = new QualifiedOpName(_fnName.getSpan(),
+                                                             Option.some(apiEntry.getKey()),
+                                                             _fnName);
+                    if (_onDemandFunctionOpNames.containsKey(_fnName)) {
+                        _onDemandFunctionOpNames.get(_fnName).add(name);                        
+                    } else {
+                        Set<QualifiedOpName> matches = new HashSet<QualifiedOpName>();
+                        matches.add(name);
+                        _onDemandFunctionOpNames.put(_fnName, matches);
+                    }
+                }                
+            } 
+        }
     }
     
     public Option<DottedName> apiName(DottedName name) {
@@ -133,29 +169,38 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
+    private Set<QualifiedIdName> onDemandNames(IdName name, Map<IdName, Set<QualifiedIdName>> table) 
+    {
+        if (table.containsKey(name)) {
+            return table.get(name);
+        } else {
+            return new HashSet<QualifiedIdName>();
+        }
+    }
+        
     public Set<QualifiedIdName> onDemandTypeConsNames(IdName name) {
-        if (_onDemandTypeConsNames.containsKey(name)) {
-            return _onDemandTypeConsNames.get(name);
+        return onDemandNames(name, _onDemandTypeConsNames);
+    }
+    
+    public Set<QualifiedIdName> onDemandVariableNames(IdName name) {
+        return onDemandNames(name, _onDemandVariableNames);
+    }
+    
+    public Set<QualifiedIdName> onDemandFunctionNames(IdName name) {
+        if (_onDemandFunctionIdNames.containsKey(name)) {
+            return _onDemandFunctionIdNames.get(name);
         } else {
             return new HashSet<QualifiedIdName>();
         }
     }
     
-    public Set<QualifiedIdName> onDemandVariableNames(IdName name) {
-        // TODO: imports
-        return Collections.emptySet();
-    }
-    
-    public Set<QualifiedIdName> onDemandFunctionNames(IdName name) {
-        // TODO: imports
-        return Collections.emptySet();
-    }
-    
     public Set<QualifiedOpName> onDemandFunctionNames(OpName name) {
-        // TODO: imports
-        return Collections.emptySet();
+        if (_onDemandFunctionOpNames.containsKey(name)) {
+            return _onDemandFunctionOpNames.get(name);
+        } else {
+            return new HashSet<QualifiedOpName>();
+        }
     }
-    
     
     public boolean hasQualifiedTypeCons(QualifiedIdName name) {
         DottedName api = Option.unwrap(name.getApi());

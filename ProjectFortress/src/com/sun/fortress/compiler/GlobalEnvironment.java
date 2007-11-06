@@ -40,4 +40,9 @@ public class GlobalEnvironment {
         else { return result; }
     }
     
+    public void print() {
+        for (DottedName name : apis().keySet()) {
+            System.out.println(name);
+        }
+    }
 }
