@@ -82,7 +82,7 @@ private FnDef LocalFnDecl =
 /* LocalVarDecl ::=
      (var w)? LocalVarWTypes s InitVal
    | (var w)? LocalVarWTypes
-   | (var w)? LocalVarWoTypes s = s NoNewlineExpr
+   | (var w)? LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
    | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
    LocalVarWTypes ::=
@@ -109,7 +109,7 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
                                              FortressUtil.toLValueList(a2));
      }
-   / a1:(var w)? a2:VarWoTypes s equals s a3:NoNewlineExpr
+   / a1:(var w)? a2:VarWoTypes s equals w a3:NoNewlineExpr
      { if (a1 != null) a2 = FortressUtil.setMutableLValue(a2,
                                                           createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a2,a3);
