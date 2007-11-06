@@ -22,19 +22,26 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.HasAt;
+
+import edu.rice.cs.plt.tuple.Option;
 
 
 public interface  GenericFunctionOrMethod {
 
     SimpleName getName();
     List<StaticParam> getStaticParams();
-    public Simple_fcn typeApply(HasAt location, List<FType> argValues);
+    List<Param> getParams();
+    Option<Type> getReturnType();
 
+    Simple_fcn typeApply(HasAt location, List<FType> argValues);
+    
     static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
 
         public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {

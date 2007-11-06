@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -40,6 +41,8 @@ import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 import com.sun.fortress.useful.Useful;
+
+import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -242,6 +245,10 @@ public class FGenericFunction extends SingleFcn
         }
     }
     static final GenericFullComparer genFullComparer = new GenericFullComparer();
+
+    public Option<Type> getReturnType() {
+         return fndef.getReturnType();
+    }
 
 
 }
