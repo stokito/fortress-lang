@@ -32,6 +32,7 @@ import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 
@@ -95,7 +96,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      * @throws ProgramError
      */
     public  static Simple_fcn inferAndInstantiateGenericFunction(List<FValue> args,
-            FGenericFunction appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
+            GenericFunctionOrMethod appliedThing, HasAt loc, BetterEnv e) throws ProgramError {
 
         if (DUMP_INFERENCE)
             System.err.println("IAIGF " + appliedThing + " with " + args);
@@ -110,8 +111,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
           
         }
         
-        FGenericFunction bar = (FGenericFunction) appliedThing;
-        FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
+        GenericFunctionOrMethod bar = (GenericFunctionOrMethod) appliedThing;
+       // FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
         List<StaticParam> tparams = bar.getStaticParams();
         List<Param> params = bar.getParams();
         EvalType et = new EvalType(e);
@@ -200,7 +201,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 //        if (DUMP_INFERENCE)
 //            System.err.println("ABM 1={" + abm + "}");
 
-        Option<Type> opt_rt = fndod.getReturnType();
+        Option<Type> opt_rt = bar.getReturnType();
 
         if (opt_rt.isSome())
            Option.unwrap(opt_rt).accept(mis);
@@ -219,7 +220,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 t = BottomType.ONLY;
             tl.add(t);
         }
-        Simple_fcn sfcn = bar.make(tl, loc);
+        Simple_fcn sfcn = bar.typeApply(loc, tl);
         if (DUMP_INFERENCE)
             System.err.println("Result " + sfcn);
         return sfcn;

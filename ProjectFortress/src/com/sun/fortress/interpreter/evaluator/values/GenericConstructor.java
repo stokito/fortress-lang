@@ -26,6 +26,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -156,8 +157,9 @@ public String at() {
 
 @Override
 public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-    // TODO Auto-generated method stub
-    return null;
+   // TODO Auto-generated method stub
+    Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
+    return foo.apply(args, loc, envForInference);
 }
 
 @Override
@@ -210,6 +212,17 @@ public SimpleName getName() {
 public List<StaticParam> getStaticParams() {
     // TODO Auto-generated method stub
     return odefOrDecl.getStaticParams();
+}
+
+public List<Param> getParams() {
+    // TODO Auto-generated method stub
+    return Option.unwrap(odefOrDecl.getParams());
+}
+
+public Option<Type> getReturnType() {
+    // TODO Auto-generated method stub
+    // TODO this will probably not be good enough.
+    return Option.<Type>none();
 }
 
 }

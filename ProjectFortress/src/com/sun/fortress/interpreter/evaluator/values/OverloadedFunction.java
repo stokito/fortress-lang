@@ -254,16 +254,16 @@ public class  OverloadedFunction extends Fcn
 
                 // Spot the case where two generics have equal static parameter lists
                 if (f1 instanceof ClosureInstance && f2 instanceof ClosureInstance) {
-                    FGenericFunction g1 = ((ClosureInstance) f1).getGenerator();
-                    FGenericFunction g2 = ((ClosureInstance) f2).getGenerator();
+                    GenericFunctionOrMethod g1 = ((ClosureInstance) f1).getGenerator();
+                    GenericFunctionOrMethod g2 = ((ClosureInstance) f2).getGenerator();
                     if (FGenericFunction.genComparer.compare(g1, g2) == 0) {
                         samePartition = true;
                     }
                 }
                 // Yutch, we need to fix that type hierarchy
                 if (f1 instanceof FunctionalMethodInstance && f2 instanceof FunctionalMethodInstance) {
-                    FGenericFunction g1 = ((FunctionalMethodInstance) f1).getGenerator();
-                    FGenericFunction g2 = ((FunctionalMethodInstance) f2).getGenerator();
+                    GenericFunctionOrMethod g1 = ((FunctionalMethodInstance) f1).getGenerator();
+                    GenericFunctionOrMethod g2 = ((FunctionalMethodInstance) f2).getGenerator();
                     if (FGenericFunction.genComparer.compare(g1, g2) == 0) {
                         samePartition = true;
                     }
@@ -641,8 +641,8 @@ public class  OverloadedFunction extends Fcn
 
             List<FValue> oargs = args;
 
-            if (sfn instanceof FGenericFunction) {
-                FGenericFunction gsfn = (FGenericFunction) sfn;
+            if (sfn instanceof GenericFunctionOrMethod) {
+                GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) sfn;
                 try {
                     sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
                     if (debugMatch)

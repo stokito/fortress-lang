@@ -244,6 +244,14 @@ public class GenericMethod extends MethodClosure implements
         return getDef().getStaticParams();
     }
 
+    public List<Param> getParams() {
+        return getDef().getParams();
+    }
+
+    public Option<Type> getReturnType() {
+        return getDef().getReturnType();
+    }
+
     
     
 }
