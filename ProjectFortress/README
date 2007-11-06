@@ -331,6 +331,7 @@ object ZZ32Range     extends { Any }
 object ZZ64          extends { Integral }    excludes { String, Boolean, RR64, FloatLiteral }
 object RR64          extends { Number }      excludes { String, Boolean }
 object String        extends { Any }         excludes { IntLiteral, FloatLiteral, Boolean }
+object Char          extends { Any }
 object IntLiteral    extends { ZZ32, ZZ64, RR64 }
 object FloatLiteral  extends { RR64 }
 object Boolean       extends { Any }

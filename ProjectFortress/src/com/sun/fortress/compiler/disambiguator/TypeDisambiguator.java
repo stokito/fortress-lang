@@ -224,7 +224,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             new Lambda<QualifiedIdName, Type>() {
             public InstantiatedType value(QualifiedIdName n) {
                 TypeConsIndex typeCons = _env.typeConsIndex(n);
-                Map<IdName, StaticParam> params = typeCons.staticParameters();
+                List<StaticParam> params = typeCons.staticParameters();
                 List<StaticArg> args = that.getArgs();
                 if (params.size() != args.size()) {
                     error("Incorrect number of static arguments for type '" +
@@ -235,7 +235,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 boolean changed = false;
                 List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
                 for (Pair<StaticParam, StaticArg> pair :
-                         IterUtil.zip(params.values(), args)) {
+                         IterUtil.zip(params, args)) {
                     StaticArg updated = updateStaticArg(pair.second(), pair.first());
                     if (updated != pair.second()) { changed = true; }
                     newArgs.add(updated);

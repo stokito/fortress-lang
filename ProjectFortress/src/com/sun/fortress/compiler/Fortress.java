@@ -48,6 +48,7 @@ public class Fortress {
      */
     public Iterable<? extends StaticError> compile(Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
+        env.print();
         
         Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
@@ -84,6 +85,9 @@ public class Fortress {
             new GlobalEnvironment(CollectUtil.compose(_repository.apis(),
                                                       apiIR.apis()));
         
+        // DEBUG
+        apiEnv.print();
+        
         // Do all type checking and other static checks on APIs.
         StaticChecker.ApiResult apiSR =
             StaticChecker.checkApis(apiIR.apis(), apiEnv);
@@ -114,6 +118,9 @@ public class Fortress {
         IndexBuilder.ComponentResult componentIR =
             IndexBuilder.buildComponents(componentDR.components());
         if (!componentIR.isSuccessful()) { return componentIR.errors(); }
+        
+        // DEBUG
+        env.print();
         
         StaticChecker.ComponentResult componentSR =
             StaticChecker.checkComponents(componentIR.components(), env);

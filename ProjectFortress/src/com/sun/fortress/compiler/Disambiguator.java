@@ -132,9 +132,10 @@ public class Disambiguator {
             }
             NameEnv env = new TopLevelEnv(globalEnv, index);
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
+            
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
-  new TypeDisambiguator(env, onDemandImports, newErrs);
+                new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) comp.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
