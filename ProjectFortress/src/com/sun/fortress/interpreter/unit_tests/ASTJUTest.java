@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -34,6 +35,10 @@ import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+
+import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -309,6 +314,91 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         assertEquals(l.get(1), l2.get(1));
         }
 
+    public void testWriteOptionList() throws IOException {
+        StringBuffer sb = new StringBuffer();
+        List<Option<String> > l = new ArrayList<Option<String>>();
+        Option<String> oc = Option.some("cat");
+        Option<String> none = Option.<String>none();
+        Option<String> od = Option.some("cat");
+        
+        l.add(oc);
+        l.add(none);
+        l.add(od);
+        
+        Printer p = new Printer(false, true, true);
+        p.dump(l, sb, 0);
+        String s = sb.toString();
+        out.println(s);
+
+        Lex lex = new Lex(bs(s));
+        Unprinter up = new Unprinter(lex);
+        up.expectPrefix("[");
+        List l2 = up.readList();
+        assertEquals(3, l2.size());
+        assertEquals(l.get(0), l2.get(0));
+        assertEquals(l.get(1), l2.get(1));
+        assertEquals(l.get(2), l2.get(2));
+    }
+
+    public void testWriteMess() throws IOException {
+        StringBuffer sb = new StringBuffer();
+        List<Option<Pair<Option<String>, Option<String>>>> l =
+            new ArrayList<Option<Pair<Option<String>, Option<String>>>>();
+        Option<Pair<Option<String>, Option<String>>> oc =
+            Option.some(new Pair<Option<String>, Option<String>>(Option.some("cat"), Option.some("cat")));
+        Option<Pair<Option<String>, Option<String>>> none = Option.<Pair<Option<String>, Option<String>>>none();
+        Option<Pair<Option<String>, Option<String>>> od =
+            Option.some(new Pair<Option<String>, Option<String>>(Option.some("dog"), Option.<String>none()));
+        
+        l.add(oc);
+        l.add(none);
+        l.add(od);
+        
+        Printer p = new Printer(false, true, true);
+        p.dump(l, sb, 0);
+        String s = sb.toString();
+        out.println(s);
+
+        Lex lex = new Lex(bs(s));
+        Unprinter up = new Unprinter(lex);
+        up.expectPrefix("[");
+        List l2 = up.readList();
+        assertEquals(3, l2.size());
+        assertEquals(l.get(0), l2.get(0));
+        assertEquals(l.get(1), l2.get(1));
+        assertEquals(l.get(2), l2.get(2));
+    }
+
+    public void testWriteBigMess() throws IOException {
+        StringBuffer sb = new StringBuffer();
+        List<Option<Pair<Option<String>, List<String>>>> l =
+            new ArrayList<Option<Pair<Option<String>, List<String>>>>();
+        Option<Pair<Option<String>, List<String>>> oc =
+            Option.some(new Pair<Option<String>, List<String>>(Option.some("cat"), Useful.list("cat")));
+        Option<Pair<Option<String>, List<String>>> none = Option.<Pair<Option<String>, List<String>>>none();
+        Option<Pair<Option<String>, List<String>>> od =
+            Option.some(new Pair<Option<String>, List<String>>(Option.<String>none(), Collections.<String>emptyList()));
+        
+        l.add(oc);
+        l.add(none);
+        l.add(od);
+        
+        Printer p = new Printer(false, true, true);
+        p.dump(l, sb, 0);
+        String s = sb.toString();
+        out.println(s);
+
+        Lex lex = new Lex(bs(s));
+        Unprinter up = new Unprinter(lex);
+        up.expectPrefix("[");
+        List l2 = up.readList();
+        assertEquals(3, l2.size());
+        assertEquals(l.get(0), l2.get(0));
+        assertEquals(l.get(1), l2.get(1));
+        assertEquals(l.get(2), l2.get(2));
+    }
+
+    
     public void testEnquote() {
         out.println("testEnquote");
         Assert.assertEquals("cat", Unprinter.enQuote("cat"));

@@ -173,7 +173,7 @@ public class Printer extends NodeReflection {
 
         } else if (o instanceof Null) {
             w.append("(");
-            w.append("Null");
+            w.append("Some");
             w.append(")");
 
         } else if (o instanceof AbstractNode) {

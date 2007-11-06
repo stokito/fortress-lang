@@ -517,24 +517,38 @@ public class Unprinter extends NodeReflection {
     }
 
     private Pair<Object, Object> readPair() throws IOException {
-        String a = l.name();
         Object x, y;
-        if ("(".equals(a)) {
-            x = readNode(l.name());
-            expectPrefix("(");
-            y = readNode(l.name());
+//        if ("(".equals(a)) {
+//            x = readThing();
+//            expectPrefix("(");
+//            y = readThing();
+//        } else if ("[".equals(a)) {
+//            x = readList();
+//            expectPrefix("[");
+//            y = readList();
+//        } else if (a.startsWith("\"")) {
+//            x = deQuote(a).intern(); // Internal form is quoted
+//            y = deQuote(l.name()).intern(); // Internal form is quoted
+//        } else {
+//            return bug("Pair of unknown stuff beginning " + a);
+//        }
+        x = readElement();
+        y = readElement();
+        expectPrefix(")");
+        return new Pair<Object, Object>(x, y);
+    }
+
+    private Object readElement() throws IOException {
+        String a = l.name();
+         if ("(".equals(a)) {
+            return readThing();
         } else if ("[".equals(a)) {
-            x = readList();
-            expectPrefix("[");
-            y = readList();
+            return readList();
         } else if (a.startsWith("\"")) {
-            x = deQuote(a).intern(); // Internal form is quoted
-            y = deQuote(l.name()).intern(); // Internal form is quoted
+            return deQuote(a).intern(); // Internal form is quoted   
         } else {
             return bug("Pair of unknown stuff beginning " + a);
         }
-        expectPrefix(")");
-        return new Pair<Object, Object>(x, y);
     }
 
     int readInt(String s) throws IOException {
@@ -561,12 +575,7 @@ public class Unprinter extends NodeReflection {
         Object x;
         while (true) {
             if ("(".equals(s)) {
-                s = l.name();
-                if ("Pair".equals(s)) {
-                    x = readPair();
-                } else {
-                    x = readNode(s);
-                }
+                x = readThing();
             } else if ("[".equals(s)) {
                 x = readList();
             } else if (s.startsWith("\"")) {
@@ -581,12 +590,29 @@ public class Unprinter extends NodeReflection {
         }
     }
 
+    private Object readThing() throws IOException {
+        Object x;
+        String s2 = l.name();
+        if ("Pair".equals(s2)) {
+            x = readPair();
+        } else if ("Some".equals(s2)) {
+            x = readOptionTail();
+        } else {
+            x = readNode(s2);
+        }
+        return x;
+    }
+
     public Option<Object> readOption() throws IOException {
         // Reading options is slightly different because
         // there is no detailed reflection information for
         // generics in Java. This code simply chooses to
         // believes the types in the input.
         expectPrefix("(Some");
+        return readOptionTail();
+    }
+
+    private Option<Object> readOptionTail() throws IOException {
         String s = l.name();
         if (")".equals(s)) { return Option.none(); }
         else if (!"_value".equals(s)) {
@@ -596,12 +622,7 @@ public class Unprinter extends NodeReflection {
         Object x;
         s = l.name();
         if ("(".equals(s)) {
-            s = l.name();
-            if ("Pair".equals(s)) {
-                x = readPair();
-            } else {
-                x = readNode(s);
-            }
+            x = readThing();
         } else if ("[".equals(s)) {
             x = readList();
         } else if (s.startsWith("\"")) {
