@@ -292,13 +292,16 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   height1_add(k:Key, v:Val, index:ZZ32):Node[\Key,Val\] = do
     keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
     children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
+    newnode:Node[\Key,Val\] = LeafNode[\Key,Val\]((k,v))
     keysplit:ZZ32 = keys.size() - index
+    (smaller,larger) = if k > children[index].getKey() then (children[index], newnode) else (newnode, children[index]) end
+    children'[index] := smaller
+    children'[index + 1] := larger
+    children'[0 # index] := children[0 # index]
+    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]    
+    keys'[index] := larger.getKey()
     keys'[0 # index] := keys[0 # index]
-    children'[0 : index] := children[0 : index]
-    children'[index + 1] := LeafNode[\Key,Val\]((k,v))
-    keys'[index] := k
     keys'[(index + 1) # keysplit] := keys[index # keysplit]
-    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
     InternalNode[\Key,Val\](keys',children',height)
   end
 
@@ -366,7 +369,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
       keys'[0 # keys.size()] := keys[0 # keys.size()]
       children'[0 # children.size()] := children[0 # children.size()]
-      children'[index] = child'
+      children'[index] := child'
       InternalNode[\Key,Val\](keys', children', height)
     end
   end

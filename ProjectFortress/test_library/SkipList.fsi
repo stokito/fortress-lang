@@ -37,6 +37,8 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
   add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
 
+  remove(k:Key):(Node[\Key,Val\], Boolean)
+
   (* splits the new child in half and sucks the split key up to this level *)
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\]
 
