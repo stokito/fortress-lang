@@ -65,7 +65,7 @@ end
 
 run(args:String...):()=do
     assert(fib(5), 8, "fib(5)=8")
-    testAtomicAlso()
+ (*   testAtomicAlso() *)
     testManyClauses()
 end
 end
