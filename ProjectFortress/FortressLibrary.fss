@@ -1440,7 +1440,7 @@ end
 **)
 object SubArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
                      nat bu0, nat su0, nat bu1, nat su1, nat bu2, nat su2\]
-                (mem: Array2[\T,bu0,su0,bu1,su1,bu2,su2\],
+                (mem: Array3[\T,bu0,su0,bu1,su1,bu2,su2\],
                  m0:ZZ32,o0:ZZ32, m1:ZZ32,o1:ZZ32, m2:ZZ32, o2:ZZ32)
         extends Array3[\T,b0,s0,b1,s1,b2,s2\]
     index(a0:ZZ32, a1:ZZ32, a2:ZZ32): (ZZ32,ZZ32,ZZ32) =
@@ -1562,7 +1562,7 @@ object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
     getter f() = f0
 end
 
-object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E\], f0: E->F)
+object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
         extends { MappedGenerator[\E,F\], Indexed[\F,I\] }
     getter size(): ZZ32 = g().size()
     getter g() = g0
@@ -1602,7 +1602,7 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     reduce(r: Reduction[\F\]): F =
         g().generate[\F\](r,fn (e:E):F => (f())(e).reduce(r))
     reduce(j:(F,F)->F, z:F):F =
-        g().mapReduce[\R\](fn (e:E): F => (f())(e).reduce(j,z), j, z)
+        g().mapReduce[\F\](fn (e:E): F => (f())(e).reduce(j,z), j, z)
     loop(body:F->()): () =
         g().loop(fn (e:E) => (f())(e).loop(body))
     map[\G\](h:F->G): Generator[\G\] =
@@ -1731,7 +1731,7 @@ object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
 end
 
 trait RangeWithExtent[\T\] extends Range[\T\]
-        comprises { SizeRange[\T\], FullRange[\T\] }
+        comprises { ExtentRange[\T\], FullRange[\T\] }
     getter extent():T
     toString():String = "#" extent()
 end
@@ -1953,11 +1953,12 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
                   (l1:N1,l2:N2,l3:N3,x1:N1,x2:N2,x3:N3)
         extends { TupleRange[\(N1,N2,N3)\],
                   DelegatedIndexed[\(N1,N2,N3),(N1,N2,N3)\] }
-    getter extent():(N,M) = (x1,x2,x3)
-    getter lower():(N,M) = (l1,l2,l3)
-    getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
-    getter size():(N,M) = (l1#x1).size() (l2#x2).size() (l3#x3).size()
-    getter generator():Generator[\(N,M)\] =
+    getter extent():(N1,N2,N3) = (x1,x2,x3)
+    getter lower():(N1,N2,N3) = (l1,l2,l3)
+    getter upper():(N1,N2,N3) =
+        ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
+    getter size():(N1,N2,N3) = (l1#x1).size() (l2#x2).size() (l3#x3).size()
+    getter generator():Generator[\(N1,N2,N3)\] =
         (l1#x1).cross(l2#x2).cross(l3#x3).map[\(N1,N2,N3)\](
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
     getter toString(): String = "(" l1 "," l2 "," l3 ")#(" x1 "," x2 "," x3 ")"
@@ -1970,7 +1971,7 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
         if i1 IN (0#x1) AND i2 IN (0#x2) AND i3 IN (0#x3) then
             (i1+l1,i2+l2, i3+l3)
         else
-            rangeIndexFailure[\(N,M)\](self,i)
+            rangeIndexFailure[\(N1,N2,N3)\](self,i)
         end
       end
     contains(v1:N1, v2:N2, v3:N3): Boolean =
