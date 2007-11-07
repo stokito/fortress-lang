@@ -1331,24 +1331,26 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
-    row(i,j) =
-        for k <- sequential(0#s2) do
-          r := r " " get(i,j,k)
+    row(i,k) =
+        for j <- sequential(0#s1) do
+          r := r " " self[b0+i,b1+j,b2+k]
         end
-    plane(i) =
+    plane(k) =
       if s1 > 0 then
-        for j <- sequential(0#(s1-1)) do
-          row(i,j)
+        row(0,k)
+        for i <- sequential(1#(s0-1)) do
+          r := r "\n "
+          row(i,k)
         end
       end
     if s0=0 then
       r " []"
     else
-      r := r "\n[ "
+      r := r "\n["
       plane(0)
-      for i <- sequential(1#(s0-1)) do
-        r := r ";;\n  "
-        plane(i)
+      for k <- sequential(1#(s2-1)) do
+        r := r " ;;\n "
+        plane(k)
       end
       r " ]"
     end
@@ -1925,7 +1927,7 @@ end
 object Tuple2Range[\N extends Integral, M extends Integral\]
                   (l1:N,l2:M,x1:N,x2:M)
         extends { TupleRange[\(N,M)\], DelegatedIndexed[\(N,M),(N,M)\] }
-    getter bounds():(N,M) = (0,0)#(x1,x2)
+    getter bounds():Tuple2Range[\N,M\] = (0,0)#(x1,x2)
     getter extent():(N,M) = (x1,x2)
     getter lower():(N,M) = (l1,l2)
     getter upper():(N,M) = ((l1#x1).upper(), (l2#x2).upper())
@@ -1953,13 +1955,14 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
                   (l1:N1,l2:N2,l3:N3,x1:N1,x2:N2,x3:N3)
         extends { TupleRange[\(N1,N2,N3)\],
                   DelegatedIndexed[\(N1,N2,N3),(N1,N2,N3)\] }
+    getter bounds():Tuple3Range[\N1,N2,N3\] = (0,0,0)#(x1,x2,x3)
     getter extent():(N1,N2,N3) = (x1,x2,x3)
     getter lower():(N1,N2,N3) = (l1,l2,l3)
     getter upper():(N1,N2,N3) =
         ((l1#x1).upper(), (l2#x2).upper(), (l3#x3).upper())
     getter size():(N1,N2,N3) = (l1#x1).size() (l2#x2).size() (l3#x3).size()
     getter generator():Generator[\(N1,N2,N3)\] =
-        (l1#x1).cross(l2#x2).cross(l3#x3).map[\(N1,N2,N3)\](
+        (l1#x1).cross[\N2\](l2#x2).cross[\N3\](l3#x3).map[\(N1,N2,N3)\](
             fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
     getter toString(): String = "(" l1 "," l2 "," l3 ")#(" x1 "," x2 "," x3 ")"
     getter indexValuePairs() =
