@@ -21,7 +21,21 @@ CHECK: value trait / value object / value type
  1) Functions
   - A throws clause does not include naked type variables.
   - Every element in a throws clause is a subtype of CheckedException.
- 2) Operator Declarations
+ 2) Label Expressions
+  - It is a static error if the identifier after \KWD{end} of a labeled block
+    is not the name of the block.
+  - It is a static error if the target is not in scope
+    in the label namespace at the \KWD{exit} expression.
+    That is, the target must be the name of a statically enclosing \KWD{label}
+    expression, and the \KWD{exit} expression must not be within a \KWD{spawn}
+    expression that is contained in the \KWD{label} expression.
+    If no target is specified, the target is implicitly the name
+    of the smallest statically enclosing \KWD{label} expression;
+    it is a static error if there is no such expression.
+ 3) Case Expressions
+  - It is a static error if the specified operator is not defined for these types
+    or if the operator's return type is not \TYP{Boolean}.
+ 4) Operator Declarations
   - An infix/multifix operator declaration must not have any keyword parameters,
     and must be capable of accepting at least two arguments.  It is permissible
     to use a varargs parameter.
