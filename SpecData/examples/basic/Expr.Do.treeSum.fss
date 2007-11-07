@@ -1,0 +1,45 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Do.treeSum
+
+export Executable
+
+trait Tree end
+object TreeLeaf extends Tree end
+object TreeNode(left: Tree, right: Tree, datum: ZZ32) extends Tree end
+
+(** EXAMPLE **)
+treeSum(t: TreeLeaf) = 0
+treeSum(t: TreeNode) = do
+  var accum:ZZ32 := 0
+  do
+    accum += treeSum(t.left)
+  also do
+    accum += treeSum(t.right)
+  also do
+    accum += t.datum
+  end
+  accum
+end
+(** END EXAMPLE **)
+
+run(args:String...) = println treeSum(TreeLeaf)
+
+end
