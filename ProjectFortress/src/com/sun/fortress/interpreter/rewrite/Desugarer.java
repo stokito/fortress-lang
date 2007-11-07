@@ -66,12 +66,14 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
+import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
+import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.IdType;
@@ -792,13 +794,11 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof For) {
                     For f = (For)node;
                     DoFront df = f.getBody();
-                    if (df.isAtomic()) {
-                        return NI.nyi("forAtomicDo");
-                    }
-                    if (df.getLoc().isSome()) {
-                        return NI.nyi("forAtDo");
-                    }
-                    return visitGeneratorList(f, f.getGens(), LOOP_NAME, df.getExpr());
+                    Do doBlock = new Do(df.getSpan(),Useful.list(df));
+                    return visitGeneratorList(f, f.getGens(), LOOP_NAME, doBlock);
+                } else if (node instanceof GeneratedExpr) {
+                    GeneratedExpr ge = (GeneratedExpr)node;
+                    return visitGeneratorList(ge, ge.getGens(), LOOP_NAME, ge.getExpr());
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
                 } else {

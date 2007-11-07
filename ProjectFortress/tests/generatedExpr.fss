@@ -22,6 +22,13 @@ run(args:String...):() =
   do
     print (i " "), i <- 0#10
     println "OK"
+    a = array[\Boolean\](10).fill(true)
+    a[i] := false, i <- 0#10
+    failure : ZZ32 := -1
+    if a[i] then failure := i end, i <- 0#10
+    if failure >= 0 then
+        println("FAIL on " failure ", " a)
+    end
   end
 
 end
