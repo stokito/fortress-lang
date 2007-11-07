@@ -59,13 +59,6 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
         lastBest = best;
 
-        if (best == -1) {
-            // TODO add checks for COERCE, right here.
-            error(loc,  within,
-                  "Failed to find matching method overload, args = " +
-                  Useful.listInParens(args) + ", overload = " + this);
-        }
-
         best_f = ((Method)someOverloads.get(best).getFn());
         mcache.syncPut(args, best_f);
        }

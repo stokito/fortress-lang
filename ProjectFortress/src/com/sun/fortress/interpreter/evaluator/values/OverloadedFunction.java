@@ -604,13 +604,6 @@ public class  OverloadedFunction extends Fcn
             
             int best = bestMatchIndex(args, loc, envForInference, someOverloads);
 
-            if (best == -1) {
-                // TODO add checks for COERCE, right here.
-                error(loc,  within,
-                             errorMsg("Failed to find matching overload, args = ",
-                             Useful.listInParens(args), ", overload = ", this));
-            }
-
             best_f = someOverloads.get(best).getFn();
             if (debugMatch)
                 System.err.println("Choosing " + best_f + " for args " + args);
@@ -668,7 +661,7 @@ public class  OverloadedFunction extends Fcn
         }
         if (best == -1) {
             // TODO add checks for COERCE, right here.
-            error(loc,errorMsg("Failed to find best matching overload, args = ",
+            error(loc,errorMsg("Failed to find any matching overload, args = ",
                     Useful.listInParens(args), ", overload = ", this));
         }
         return best;
