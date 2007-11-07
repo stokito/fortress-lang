@@ -147,6 +147,10 @@ public class NodeFactory {
         return new DottedName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
     }
 
+    public static DottedName makeDottedName(Id id, Iterable<Id> ids) {
+        return makeDottedName(IterUtil.asList(IterUtil.compose(id, ids)));
+    }
+
     public static DottedName makeDottedName(Span span, Iterable<Id> ids) {
         return new DottedName(span, IterUtil.asList(ids));
     }
@@ -205,6 +209,17 @@ public class NodeFactory {
         if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
         else { api = Option.some(makeDottedName(apiIds)); }
         return new QualifiedIdName(span, api, makeIdName(id));
+    }
+
+    public static QualifiedIdName makeQualifiedIdName(Span span, Id id,
+                                                      Iterable<Id> ids) {
+        Option<DottedName> api;
+        Id last;
+        if (IterUtil.isEmpty(ids)) { api = Option.none(); last = id; }
+        else { api = Option.some(makeDottedName(id, IterUtil.skipLast(ids)));
+               last = IterUtil.last(ids);
+             }
+        return new QualifiedIdName(span, api, makeIdName(last));
     }
 
     /** Assumes {@code ids} is nonempty. */

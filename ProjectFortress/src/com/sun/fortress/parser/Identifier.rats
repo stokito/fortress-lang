@@ -67,22 +67,30 @@ SimpleName Name =
    / opr w a1:Op
      { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
 
-/* DottedName ::= (Id.)*Id */
+/* DottedName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
 DottedName DottedName =
      a1:Id &(w ellipses)
      { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount), a1); }
-   / a1s:(Id dot)* a2:Id
+   / a1:Id a2s:(dot Id)* &(w ellipses)
      { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
-                                            IterUtil.compose(a1s.list(), a2));
+                                            IterUtil.compose(a1, a2s.list()));
+     }
+   / a1:Id a2s:(dot Id)*
+     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
+                                            IterUtil.compose(a1, a2s.list()));
      };
 
-/* QualifiedName ::= (Id.)*Id */
+/* QualifiedName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
 QualifiedIdName QualifiedName =
      a1:Id &(w ellipses)
      { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount), a1); }
-   / a1s:(Id dot)* a2:Id
+   / a1:Id a2s:(dot Id)* &(w ellipses)
      { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
-                                                 a1s.list(), a2);
+                                                 a1, a2s.list());
+     }
+   / a1:Id a2s:(dot Id)*
+     { yyValue = NodeFactory.makeQualifiedIdName(createSpan(yyStart,yyCount),
+                                                 a1, a2s.list());
      };
