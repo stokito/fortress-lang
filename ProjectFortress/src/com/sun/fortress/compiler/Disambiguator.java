@@ -1,19 +1,19 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
-
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
-
-    Use is subject to license terms.
-
-    This distribution may include materials developed by third parties.
-
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+  Copyright 2007 Sun Microsystems, Inc.,
+  4150 Network Circle, Santa Clara, California 95054, U.S.A.
+  All rights reserved.
+  
+  U.S. Government Rights - Commercial software.
+  Government users are subject to the Sun Microsystems, Inc. standard
+  license agreement and applicable provisions of the FAR and its supplements.
+  
+  Use is subject to license terms.
+  
+  This distribution may include materials developed by third parties.
+  
+  Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+  ******************************************************************************/
 
 package com.sun.fortress.compiler;
 
@@ -66,9 +66,9 @@ public class Disambiguator {
     /** Result of {@link #disambiguateApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Iterable<Api> _apis;
-            
+        
         public ApiResult(Iterable<Api> apis, 
-    Iterable<? extends StaticError> errors) {
+                         Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -83,10 +83,10 @@ public class Disambiguator {
     public static ApiResult disambiguateApis(Iterable<Api> apis,
                                              GlobalEnvironment globalEnv) {
         List<Api> results = new ArrayList<Api>();
-        Iterable<StaticError> errors = IterUtil.empty();
+        List<StaticError> errors = new ArrayList<StaticError>();
         for (Api api : apis) {
             ApiIndex index = globalEnv.api(api.getName());
-            NameEnv env = new TopLevelEnv(globalEnv, index);
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td = 
@@ -100,7 +100,7 @@ public class Disambiguator {
             }
             
             if (!newErrs.isEmpty()) { 
-                errors = IterUtil.compose(errors, newErrs); 
+                errors.addAll(newErrs); 
             }
         }
         return new ApiResult(results, errors);
@@ -124,13 +124,13 @@ public class Disambiguator {
                                GlobalEnvironment globalEnv,
                                Map<DottedName, ComponentIndex> indices) {
         List<Component> results = new ArrayList<Component>();
-        Iterable<StaticError> errors = IterUtil.empty();
+        List<StaticError> errors = new ArrayList<StaticError>();
         for (Component comp : components) {
             ComponentIndex index = indices.get(comp.getName());
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-            NameEnv env = new TopLevelEnv(globalEnv, index);
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<SimpleName> onDemandImports = new HashSet<SimpleName>();
             
             List<StaticError> newErrs = new ArrayList<StaticError>();
@@ -139,14 +139,14 @@ public class Disambiguator {
             Component tdResult = (Component) comp.accept(td);
             if (newErrs.isEmpty()) {
                 ExprDisambiguator ed = 
-      new ExprDisambiguator(env, onDemandImports, newErrs);
+                    new ExprDisambiguator(env, onDemandImports, newErrs);
                 Component edResult = (Component) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
             if (!newErrs.isEmpty()) { 
-  errors = IterUtil.compose(errors, newErrs); 
-     }
+                errors.addAll(newErrs); 
+            }
         }
         return new ComponentResult(results, errors);
     }

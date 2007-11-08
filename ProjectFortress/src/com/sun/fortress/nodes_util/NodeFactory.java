@@ -142,6 +142,10 @@ public class NodeFactory {
     public static DottedName makeDottedName(Id s) {
         return new DottedName(s.getSpan(), Useful.list(s));
     }
+    
+    public static DottedName makeDottedName(String s) {
+        return makeDottedName(makeId(s));
+    }
 
     public static DottedName makeDottedName(Iterable<Id> ids) {
         return new DottedName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
