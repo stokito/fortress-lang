@@ -71,9 +71,8 @@ see here.
 
 (** Equality *)
 
-(* Ideally equality will become a more ubiquitous functional method.
-   Right now bugs mean equality is not a functional method. *)
 opr =(a:Any, b:Any):Boolean = false
+
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
 (** Assertion *)
@@ -253,7 +252,7 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 (* This makes excludes work without where clauses, and allows opr =()
    to remain non-parametric. *)
-value trait MaybeType extends { Equality } excludes { Number }
+value trait MaybeType excludes { Number }
         (* comprises Maybe[\T\] where [\T\] *)
     getter isJust() : Boolean
 end
@@ -297,7 +296,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
     loop(f:T->()): () = f(x)
     maybe[\R\](_: ()->R, justAction: T->R): R = justAction(x)
     contains(y:T): Boolean = x=y
-    eq(o:Just[\T\]): Boolean = x=o.unJust()
+    opr =(self,o:Just[\T\]): Boolean = x=o.unJust()
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
@@ -324,7 +323,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
     loop(f:T->()): () = ()
     maybe[\R\](nothingAction: ()->R, _: T->R): R = nothingAction()
     contains(x:T): Boolean = false
-    eq(_:Nothing[\T\]) = true
+    opr =(self,_:Nothing[\T\]) = true
 end
 
 (** Exception hierarchy *)
@@ -539,13 +538,7 @@ oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
    fail("Index of dimension " s " out of bounds; got " got " which is not in " l "#" sz);
 end
 
-trait Equality excludes { Number }
-  eq(o:Equality):Boolean = false
-end
-
-opr =(a:Equality, b:Equality):Boolean = a.eq(b)
-
-trait HasRank extends Equality excludes { Number, MaybeType }
+trait HasRank excludes { Number, MaybeType }
   (* comprises Array[\T,E,I\] where [\T,E,I\]{ T extends Array[\T,E,I\] } *)
   rank():ZZ32
 end
@@ -739,6 +732,12 @@ trait Array[\E,I\] extends { HasRank, MutableIndexed[\Array[\E,I\],E,I\] }
         other. **)
     shift(newOrigin:I):Array[\E,I\]
     toArray(): Array[\E,I\] = self
+    opr =(self, other:HasRank): Boolean =
+        typecase other of
+            Array[\E,I\] => indices().generate[\Boolean\](AndReduction,
+                                 fn (i:I):Boolean => self[i]=other[i])
+            else => false
+end
 end
 
 (* Factory for arrays which returns an empty 0-indexed array of a given
@@ -827,9 +826,6 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
         self
       end
     copy():T
-    eq(other: T): Boolean =
-      zeroIndices().generate[\Boolean\](AndReduction,
-                                 fn (i:I):Boolean => get(i)=other.get(i))
 end
 
 (* Canonical partitioning of a positive number x into two pieces.  If
@@ -1718,7 +1714,7 @@ end
 
 (** Ranges in general represent uses of the # and : operators.
     It's mostly subtypes of Range that are interesting.  **)
-trait Range[\T\] extends { Equality }
+trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
@@ -1743,7 +1739,7 @@ end
 object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
     getter lower():T = lo
     toString():String = lower() "#"
-    eq(x:LowerRange[\T\]): Boolean = lower() = x.lower()
+    opr =(self, x:LowerRange[\T\]): Boolean = lower() = x.lower()
 end
 
 trait RangeWithUpper[\T\] extends Range[\T\]
@@ -1914,7 +1910,7 @@ value object ParRange[\N extends Integral\](lo:N, ex:N)
                        end
             gen(lo,size())
         end
-    eq(x:ParRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
+    opr =(self,x:ParRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
 end
 value object SeqRange[\N extends Integral\](lo:N, ex:N)
         extends { ScalarRange[\N\], SequentialGenerator[\N\] }
@@ -1943,7 +1939,7 @@ value object SeqRange[\N extends Integral\](lo:N, ex:N)
             l += 1
         end
       end
-    eq(x:SeqRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
+    opr =(self,x:SeqRange[\N\]): Boolean = lower()=x.lower() AND size()=x.size()
 end
 
 trait TupleRange[\T\] extends FullRange[\T\]

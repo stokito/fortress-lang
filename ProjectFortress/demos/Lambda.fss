@@ -30,19 +30,17 @@ globalEnv: TreeMap[\String, Def\] := emptyMap
 parens(gp:ZZ32, p:ZZ32, s:String):String =
     if gp <= p then "(" s ")" else s end
 
-trait Term extends Equality
-        comprises { Lambda, App, Var, Const }
+trait Term comprises { Lambda, App, Var, Const }
     getter toString(): String = pretty(0)
     getter inst(): Term = self
     pretty(p:ZZ32): String = ugly()
     ugly(): String
     plambda(): String = ". " pretty(0)
-    eq(x:Term): Boolean = false
 end
 
 object Const(n:ZZ32) extends Term
     ugly(): String = "" n
-    eq(x:Const) = self.n = x.n
+    opr =(self, x:Const) = self.n = x.n
 end
 
 uidNum : ZZ32 := 0
@@ -59,7 +57,7 @@ object App(rator:Term, rand:Term) extends Term
     uniqId = getUid()
     pretty(p:ZZ32): String = parens(2, p, rator.pretty(1) " " rand.pretty(2))
     ugly(): String = "(" uniqId "@ " rator.ugly() " " rand.ugly() ")"
-    eq(a:App): Boolean = self.uniqId = a.uniqId
+    opr =(self, a:App): Boolean = self.uniqId = a.uniqId
 end
 
 app(rator:Term, rand:Term): App = do
@@ -78,7 +76,7 @@ object Var(def: Def) extends Term
         if instantiated then n "=" def.definition().ugly() else n end
       end
     instantiate(): () = do self.instantiated := true end
-    eq(x:Var): Boolean = self.uniqId = x.uniqId
+    opr =(self,x:Var): Boolean = self.uniqId = x.uniqId
 end
 
 v(def: Def): Var = do
@@ -91,7 +89,7 @@ object Lambda(def: Def, body: Term) extends { Term }
     pretty(p:ZZ32): String = parens(1, p, "\\" plambda())
     ugly(): String = "(\\" def.ugly() " . " body.ugly() ")"
     plambda(): String = " " def body.plambda()
-    eq(x:Lambda): Boolean = self.uniqId = x.uniqId
+    opr =(self,x:Lambda): Boolean = self.uniqId = x.uniqId
 end
 
 lambda(name:String, body: Def->Term): Lambda = do
@@ -101,7 +99,7 @@ lambda(name:String, body: Def->Term): Lambda = do
     r
   end
 
-object Def(name:String, topLevel:Boolean) extends Equality
+object Def(name:String, topLevel:Boolean)
     uniqId = getUid()
     occs : List[\Var\] := emptyList[\Var\]()
     def : Maybe[\Term\] := Nothing[\Term\]()
@@ -121,7 +119,7 @@ object Def(name:String, topLevel:Boolean) extends Equality
         occs := occs.addRight(v)
       end
     define(x:Term): () = do def := Just[\Term\](x) end
-    eq(x:Def): Boolean = self.uniqId = x.uniqId
+    opr =(self,x:Def): Boolean = self.uniqId = x.uniqId
 end
 
 getFree(name:String): Def = (* atomic *) do

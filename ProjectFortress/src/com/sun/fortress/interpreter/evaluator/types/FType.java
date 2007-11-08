@@ -438,16 +438,16 @@ abstract public class FType implements Comparable<FType> {
         if (val instanceof IdType) {
             IdType id_val = (IdType) val;
             String nm = NodeUtil.nameString(id_val.getName());
-            for (StaticParam tp : tp_set) {
-                String k = NodeUtil.getName(tp);
-                if (k.equals(nm)) {
-                    if (DUMP_UNIFY) System.out.print("Trying "+k+"="+this);
+//            for (StaticParam tp : tp_set) {
+//                String k = NodeUtil.getName(tp);
+//                if (k.equals(nm)) {
+                    if (DUMP_UNIFY) System.out.print("Trying "+nm+"="+this);
                     try {
-                       abm.joinPut(k, this);
+                       abm.joinPut(nm, this);
                     } catch (EmptyLatticeIntervalError el) {
                         if (DUMP_UNIFY) System.out.println("Out of bounds");
                         error(errorMsg("Actual type ",this,
-                                       " out of bounds for variable ",k));
+                                       " out of bounds for variable ",nm));
                         return;
                     } catch (Error th) {
                         if (DUMP_UNIFY) System.out.println(" fail " + th.getMessage());
@@ -458,8 +458,8 @@ abstract public class FType implements Comparable<FType> {
                     }
                     if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
                     return;
-                }
-            }
+//                }
+//            }
         }
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();

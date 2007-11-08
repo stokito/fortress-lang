@@ -79,6 +79,7 @@ run(args:String...):() = do
       print(li)
       chkPop(li,i)
       chkExtract(li,i)
+      assert(li,li,"Lists unequal")
       (ll,lr) = li.split()
       lii = ll.append(lr)
       chkPop(lii,i)

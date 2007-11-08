@@ -357,6 +357,12 @@ public class  OverloadedFunction extends Fcn
                             exclDumpln("self params.");
                             // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
                             selfIndex = k;
+                            /*
+                             * Somebody Else's Problem -- if self parameters are different,
+                             * any problems will be flagged at the object level.
+                             */
+                            if (! p1.equals(p2))
+                                distinct = true;
                     }
                     
                     if (p1.excludesOther(p2)) {
@@ -601,6 +607,7 @@ public class  OverloadedFunction extends Fcn
 //            }
             
             List<Overload>  someOverloads = overloads;
+            // System.err.println("Overloaded " + fnName + " cache.size = " + cache.size());
             
             int best = bestMatchIndex(args, loc, envForInference, someOverloads);
 
