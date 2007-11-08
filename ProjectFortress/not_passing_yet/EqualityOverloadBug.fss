@@ -32,10 +32,10 @@ object Bar
 end
 
 run(args:String...):() = do
+  assert(Bar,Bar,"Bar")
   assert(17,17,"ZZ32")
   assert(18.5,18.5,"RR64")
   assert("Howdy","Howdy","String")
-  assert(Bar,Bar,"Bar")
 (*
   assert(Baz,Baz,"Baz")
 *)
