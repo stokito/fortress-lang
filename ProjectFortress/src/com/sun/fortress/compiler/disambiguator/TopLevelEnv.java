@@ -22,6 +22,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
@@ -34,7 +35,9 @@ import com.sun.fortress.useful.NI;
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
     private CompilationUnitIndex _current;
+    private List<StaticError> _errors;
     
+    private Map<DottedName, ApiIndex> _onDemandImportedApis = new HashMap<DottedName, ApiIndex>();
     private Map<IdName, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<IdName, Set<QualifiedIdName>>();
     private Map<IdName, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<IdName, Set<QualifiedIdName>>();
     private Map<IdName, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<IdName, Set<QualifiedIdName>>();
@@ -52,12 +55,48 @@ public class TopLevelEnv extends NameEnv {
         public TypeConsIndex typeCons() { return _typeCons; }
     }
     
-    public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current) {
+    public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
         _globalEnv = globalEnv;
         _current = current;
+        _errors = errors;
+        initializeOnDemandImportedApis();
         initializeOnDemandTypeConsNames();
         initializeOnDemandVariableNames();
         initializeOnDemandFunctionNames();
+    }
+    
+    /**
+     * Initializes the map of imported API names to ApiIndices.
+     * For now, all imports are assumed to be on-demand imports.
+     */
+    private void initializeOnDemandImportedApis() {
+        // TODO: Fix to support other kinds of imports.        
+        Set<DottedName> imports = _current.imports();
+
+
+        // The following APIs are always imported, provided they exist. 
+        DottedName FortressBuiltin = NodeFactory.makeDottedName("FortressBuiltin");
+        DottedName FortressLibrary = NodeFactory.makeDottedName("FortressLibrary");
+        
+        addIfAvailableApi(FortressBuiltin, false);
+        addIfAvailableApi(FortressLibrary, false);
+        
+        for (DottedName name: imports) {
+            addIfAvailableApi(name, true);
+        }
+    }
+    
+    private void addIfAvailableApi(DottedName name, boolean errorIfUnavailable) {
+        Map<DottedName, ApiIndex> availableApis = _globalEnv.apis();
+        
+        if (availableApis.containsKey(name)) {
+            _onDemandImportedApis.put(name, availableApis.get(name));   
+        }
+        else if (errorIfUnavailable) {
+            _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name.getIds(),
+                                        name.getSpan().toString()));
+        }
+            
     }
     
     private <T> void initializeEntry(Map.Entry<DottedName, ApiIndex> apiEntry,
@@ -82,7 +121,7 @@ public class TopLevelEnv extends NameEnv {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports.
         
-        for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<IdName, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
                 initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
             } 
@@ -90,7 +129,7 @@ public class TopLevelEnv extends NameEnv {
     }
     
     private void initializeOnDemandVariableNames() {
-        for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<IdName, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
                 initializeEntry(apiEntry, varEntry, _onDemandVariableNames);
             }
@@ -98,7 +137,7 @@ public class TopLevelEnv extends NameEnv {
     }
     
     private void initializeOnDemandFunctionNames() {
-        for (Map.Entry<DottedName, ApiIndex> apiEntry: _globalEnv.apis().entrySet()) {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (SimpleName fnName: apiEntry.getValue().functions().firstSet()) {
                 if (fnName instanceof IdName) {
                     IdName _fnName = (IdName)fnName;
@@ -130,7 +169,12 @@ public class TopLevelEnv extends NameEnv {
     }
     
     public Option<DottedName> apiName(DottedName name) {
-        return NI.nyi();
+        // TODO: Handle aliases.
+        if (_onDemandImportedApis.containsKey(name)) {
+            return Option.some(name);
+        } else {
+            return Option.none();
+        }
     }
     
     public boolean hasTypeParam(IdName name) {
