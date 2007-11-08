@@ -57,6 +57,7 @@ import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
+import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 
 /*
  * This class implements the functionality for resolving operator precedence during parsing.
@@ -87,16 +88,8 @@ public class Resolver {
   //         | Some (`Higher | `Lower | `Equal as prec) -> prec
   //         | None -> `None
   private static Precedence precedence(Op op1, Op op2) {
-      String op1name = op1.getText();
-      String op2name = op2.getText();
-      if (op1name.length()>1 && op1name.charAt(0)==':')
-          op1name = op1name.substring(1);
-      if (op2name.length()>1 && op2name.charAt(0)==':')
-          op2name = op2name.substring(1);
-      if (op1name.length()>1 && op1name.charAt(op1name.length()-1)==':')
-          op1name = op1name.substring(0,op1name.length()-1);
-      if (op2name.length()>1 && op2name.charAt(op2name.length()-1)==':')
-          op2name = op2name.substring(0,op2name.length()-1);
+      String op1name = noColonText(op1);
+      String op2name = noColonText(op2);
       return PrecedenceMap.ONLY.get(op1name, op2name);
   }
 

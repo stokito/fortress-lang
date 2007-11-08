@@ -1139,7 +1139,7 @@ object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
     get(t:(ZZ32,ZZ32)): T = mem.get(index(t))
 end
 
-trait Matrix[\T, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
+trait Matrix[\T extends Number, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1\]
     add(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
         ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
     subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
@@ -2228,9 +2228,12 @@ throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.pr
 
 opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
 opr NOT(a:Boolean):Boolean = if a then false else true end
 opr =(a:Boolean, b:Boolean):Boolean = if a then b else NOT b end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
+opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
 opr <->(a: Boolean, b:Boolean):Boolean = a=b
 opr +[\T extends Number\](x:T):T = x
 

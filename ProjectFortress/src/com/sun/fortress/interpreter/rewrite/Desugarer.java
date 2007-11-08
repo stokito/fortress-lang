@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.AbsFnDecl;
@@ -84,6 +86,8 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarargsParam;
@@ -97,6 +101,7 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
@@ -158,8 +163,8 @@ public class Desugarer extends Rewrite {
 
     public final static IdName LOOP_NAME =
         NodeFactory.makeIdName(WellKnownNames.loopMethod);
-    
-    private boolean isLibrary; 
+
+    private boolean isLibrary;
     private final static boolean debug = false;
 
     private class Thing {
@@ -187,7 +192,7 @@ public class Desugarer extends Rewrite {
         public String toString() { return "Trait="+defOrDecl; }
     }
 
-    
+
     static IdName filterQID(QualifiedIdName qid) {
         if (qid.getApi().isNone())
             return qid.getName();
@@ -204,7 +209,7 @@ public class Desugarer extends Rewrite {
                                 objectNestingDepth - nestedness), filterQID(original.getVar()));
         return fs;
         }
-        
+
         public String toString() { return "Member@"+nestedness; }
     }
 
@@ -218,8 +223,8 @@ public class Desugarer extends Rewrite {
         }
         public String toString() { return "Self("+s+")@"+nestedness; }
     }
-    
-    
+
+
     private static class IsAnArrowName extends NodeAbstractVisitor<Boolean> {
 
         /* (non-Javadoc)
@@ -275,7 +280,7 @@ public class Desugarer extends Rewrite {
             return Boolean.FALSE;
         }
 
-        
+
 
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forNormalParam(com.sun.fortress.nodes.NormalParam)
@@ -292,29 +297,29 @@ public class Desugarer extends Rewrite {
         public Boolean forVarargsParam(VarargsParam that) {
             return Boolean.FALSE;
         }
-        
+
         private Boolean optionTypeIsArrow(Option<Type> ot) {
             return (ot.isSome() && Option.unwrap(ot) instanceof ArrowType);
         }
-        
+
     }
-    
+
     /**
-     * Visitor, returning true if something's name is an "arrow" -- that is, it 
+     * Visitor, returning true if something's name is an "arrow" -- that is, it
      * can be invoked, but is not an object.
      */
-    final static IsAnArrowName isAnArrowName = new IsAnArrowName(); 
+    final static IsAnArrowName isAnArrowName = new IsAnArrowName();
 
     /**
      * Rewritings in scope.
      */
     private BATree<String, Thing> rewrites;
-    
+
     /**
      * Things that are arrow-typed (used to avoid method-invoking self fields)
      */
     private BASet<String> arrows;
-    
+
     /**
      * Generic parameters currently in scope.
      */
@@ -401,7 +406,7 @@ public class Desugarer extends Rewrite {
                                                   NodeFactory.makeIdName(name),
                                                   oe.getDecls(),
                                                   Option.<List<Param>>none());
-                
+
                 env.putValue(name, con);
                 con.finishInitializing();
             } else {
@@ -472,9 +477,9 @@ public class Desugarer extends Rewrite {
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
         }
-        
+
     }
-    
+
     public boolean injectAtTopLevel(String putName, String getName, Desugarer getFrom, Set<String>excluded) {
         Thing th = getFrom.rewrites.get(getName);
         Thing old = rewrites.get(putName);
@@ -488,11 +493,11 @@ public class Desugarer extends Rewrite {
         }
         excluded.add(putName);
         rewrites.remove(putName);
-        
+
         return true;
-        
+
     }
-    
+
     /**
      * Performs an object-reference-disambiguating com.sun.fortress.interpreter.rewrite of the AST. Any
      * effects on the environment from the toplevel remain visible, otherwise
@@ -508,19 +513,19 @@ public class Desugarer extends Rewrite {
 
         BATree<String, Thing> savedE = rewrites;
         rewrites = rewrites.copy();
-        
+
         BASet<String> savedA = arrows;
         arrows = arrows.copy();
-        
+
         BATree<String, StaticParam> savedVisibleGenerics = visibleGenericParameters;
         visibleGenericParameters = visibleGenericParameters.copy();
-        
+
         BATree<String, StaticParam> savedUsedGenerics = usedGenericParameters;
         usedGenericParameters = usedGenericParameters.copy();
-        
+
         BATree<String, Boolean> immediateDef = null;
 
-        
+
         boolean savedFnDefIsMethod = atTopLevelInsideTraitOrObject;
         int savedObjectNestingDepth = objectNestingDepth;
         String savedSelfName = currentSelfName;
@@ -533,7 +538,7 @@ public class Desugarer extends Rewrite {
             Component com = (Component) node;
             List<? extends AbsDeclOrDecl> defs = com.getDecls();
             defsToLocals(defs);
-            
+
             // This next bit is not going to be used.
 //            List<Import> imports = com.getImports();
 //            for (Import imp : imports) {
@@ -548,16 +553,16 @@ public class Desugarer extends Rewrite {
 //                    }
 //                }
 //            }
-            
+
             if (debug && ! isLibrary)
                 System.err.println("BEFORE\n" + NodeUtil.dump(node));
-            
+
             AbstractNode nn = visitNode(node);
-            
+
             if (debug && ! isLibrary)
                 System.err.println("AFTER\n" + NodeUtil.dump(nn));
-            
-            
+
+
             return nn;
 
         } else if (node instanceof Api) {
@@ -589,8 +594,8 @@ public class Desugarer extends Rewrite {
                  */
 
                 if (node instanceof VarRef) {
-                    VarRef vre = (VarRef) node;    
-                    
+                    VarRef vre = (VarRef) node;
+
                     String s = vrToString(vre);
                     StaticParam tp = visibleGenericParameters.get(s);
                     if (tp != null) {
@@ -598,18 +603,19 @@ public class Desugarer extends Rewrite {
                     }
                     Expr update = newName(vre, s);
                     return update;
-
+                } else if (node instanceof OprExpr) {
+                    node = cleanupOprExpr((OprExpr)node);
                 } else if (node instanceof _RewriteFnRef) {
-                    
+
                     _RewriteFnRef fr = (_RewriteFnRef) node;
-                    
+
                 } else if (node instanceof TightJuxt&& looksLikeMethodInvocation((Juxt) node)) {
                     return translateJuxtOfDotted((Juxt) node);
-                    
+
                   // This is a duplicate of the rewriting that occurs
                   // in RewriteInAbsenceOfTypeInfo
-                   
-                    
+
+
                 }
                 else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
@@ -638,10 +644,10 @@ public class Desugarer extends Rewrite {
                     // However, since the LHS of a field selection might
                     // be a method invocation, we DO need to check that.
                     FieldRef fs = (FieldRef) node;
-                    
+
                     // Rewrite this to a getter?
                 } else if ( node instanceof Assignment) {
-                    
+
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
                     VarDecl vd = (VarDecl) node;
@@ -857,6 +863,41 @@ public class Desugarer extends Rewrite {
         return (Expr)visitNode(body);
     }
 
+    /** Given expr e, return (fn () => e) */
+    Expr thunk(Expr e) {
+        return ExprFactory.makeFnExpr(e.getSpan(), Collections.EMPTY_LIST, e);
+    }
+
+    private Expr cleanupOprExpr(OprExpr opExp) {
+        if (opExp.getOps().size() != 1) {
+            return bug(opExp,
+                errorMsg("OprExpr with multiple operators ",opExp));
+        }
+        List<Expr> args = opExp.getArgs();
+        if (args.size() <= 1) return opExp;
+        QualifiedOpName qop = opExp.getOps().get(0);
+        if (!OprUtil.isInfixOrPrefix(qop)) return opExp;
+        boolean prefix = OprUtil.hasPrefixColon(qop);
+        boolean suffix = OprUtil.hasSuffixColon(qop);
+        if (!prefix && !suffix) return opExp;
+        qop = OprUtil.noColon(qop);
+        Iterator<Expr> i = args.iterator();
+        Expr res = i.next();
+        Span sp = opExp.getSpan();
+        while (i.hasNext()) {
+            Expr arg = (Expr)i.next();
+            if (prefix) {
+                res = thunk(res);
+            }
+            if (suffix) {
+                arg = thunk(arg);
+            }
+            res = ExprFactory.makeOprExpr(sp,qop,res,arg);
+        }
+        return res;
+    }
+
+
     /**
      * @param td
      */
@@ -920,7 +961,7 @@ public class Desugarer extends Rewrite {
             // "self" is not a local.
             if (! s.equals(currentSelfName)) {
                 rewrites.put(s, new Local());
-                
+
             }
         }
     }
@@ -977,8 +1018,8 @@ public class Desugarer extends Rewrite {
             }
     }
 
-    
-    
+
+
     /**
      * @param params
      */
@@ -1088,18 +1129,18 @@ public class Desugarer extends Rewrite {
                 }
             }
     }
-    
+
     private AbstractNode translateJuxtOfDotted(Juxt node) {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
         QualifiedIdName qidn = first.getVar();
-        
+
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
         // Recursive visits here
         _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
         List<Expr> visitedArgs = visitList(exprs.subList(1, exprs.size()));
-        
+
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 selfDotSomething.getObj(), // this will rewrite in the future.
@@ -1114,16 +1155,16 @@ public class Desugarer extends Rewrite {
         Span sp   = s.getSpan();
         // If the user writes Spawn(foo) instead of Spawn(foo()) we get an inexplicable error
         // message.  We might want to put in a check for that someday.
-	AbstractNode rewrittenExpr =  visit(body);
+        AbstractNode rewrittenExpr =  visit(body);
         Expr in_fn = new VarRef(sp, new QualifiedIdName(new IdName(sp, new Id("PrimitiveThread"))));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new IdName(sp, new Id("Any"))))));
-	_RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
+        _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
         List<Param> params = new ArrayList<Param>();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
         List<Expr> exprs = new ArrayList<Expr>();
         exprs.add(fn);
-	exprs.add(fnExpr);
+        exprs.add(fnExpr);
         TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
         return juxt;
     }

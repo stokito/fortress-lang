@@ -1077,8 +1077,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return getOp(x);
     }
 
-    /** Assumes {@code x.getOps()} is a list of length 1. */
+    /** Assumes {@code x.getOps()} is a list of length 1.  At the
+     * moment it appears that this is true for every OprExpr node that
+     * is ever created. */
     public FValue forOprExpr(OprExpr x) {
+        if (x.getOps().size() != 1) {
+            return bug(x, errorMsg("OprExpr with multiple operators ",x));
+        }
         // debugPrint("forOprExpr " + x);
         QualifiedOpName op = x.getOps().get(0);
         List<Expr> args = x.getArgs();
