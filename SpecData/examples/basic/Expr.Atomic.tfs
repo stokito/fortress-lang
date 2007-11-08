@@ -1,0 +1,127 @@
+(Component @"Expr.Atomic.fss":20:0~37:3
+ _name=(DottedName @20:10~22:0 _ids=[(Id @20:10~14 _text="Expr") (Id @20:15~21 _text="Atomic")])
+ _decls=[
+  (VarDecl @25:0~26:0
+   _init=(IntLiteral @25:13~14 _text="0" _val=0)
+   _lhs=[
+    (LValueBind @25:0~10
+     _mutable=true
+     _name=(IdName @25:0~3
+      _id=(Id _text="sum"))
+     _type=(Some _value=(IdType @25:5~10 _name=(QualifiedIdName
+        _name=(IdName @25:5~9
+         _id=(Id _text="ZZ32"))))))])
+  (FnDef @26:0~29:5
+   _body=(For @27:2~29:5
+    _body=(DoFront @27:23~29:5
+     _expr=(Block @28:4~29:2
+      _exprs=[
+       (AtomicExpr
+        _expr=(Assignment @28:11~29:2
+         _opr=(Some _value=(Opr @28:15~17 _op=(Op _text="+")))
+         _rhs=(SubscriptExpr @28:19~29:2
+          _obj=(VarRef @28:18~20 _var=(QualifiedIdName @28:18~19 _name=(IdName _id=(Id _text="a"))))
+          _op=(Some _value=(SubscriptOp @28:19~29:2
+            _close=(Op @29:2~1:0 _text="]")
+            _open=(Op @28:19 _text="[")))
+          _subs=[
+           (VarRef @28:20~21 _var=(QualifiedIdName _name=(IdName _id=(Id _text="i"))))])
+         _lhs=[
+          (VarRef @28:11~15 _var=(QualifiedIdName _name=(IdName @28:11~14 _id=(Id _text="sum"))))]))]))
+    _gens=[
+     (Generator @27:6~25
+      _init=(TightJuxt @27:11~24
+       _exprs=[
+        (VarRef @27:11~21 _var=(QualifiedIdName _api=(Some _value=(DottedName @27:11~12 _ids=[(Id _text="a")])) _name=(IdName @27:13~20 _id=(Id _text="indices"))))
+        (VoidLiteral @27:20~24 _text="")])
+      _bind=[
+       (IdName @27:6~7
+        _id=(Id _text="i"))])])
+   _contract=(Contract @"":0:0)
+   _name=(IdName @"Expr.Atomic.fss":26:0~10
+    _id=(Id _text="accumArray"))
+   _returnType=(Some _value=(VoidType @26:59~60))
+   _selfName="self"
+   _params=[
+    (NormalParam @26:38~39
+     _name=(IdName
+      _id=(Id _text="a"))
+     _type=(Some _value=(InstantiatedType @26:41~55
+       _name=(QualifiedIdName @26:41~47
+        _name=(IdName
+         _id=(Id _text="Array1")))
+       _args=[
+        (TypeArg @26:49~50
+         _type=(IdType _name=(QualifiedIdName
+           _name=(IdName
+            _id=(Id _text="N")))))
+        (IntArg @26:51~52
+         _val=(NumberConstraint
+          _val=(IntLiteral _text="0" _val=0)))
+        (TypeArg @26:53~55
+         _type=(IdType _name=(QualifiedIdName @26:53~54
+           _name=(IdName
+            _id=(Id _text="x")))))])))]
+   _staticParams=[
+    (SimpleTypeParam @26:12~28
+     _name=(IdName @26:12~13
+      _id=(Id _text="N"))
+     _extendsClause=[
+      (IdType @26:22~28 _name=(QualifiedIdName
+        _name=(IdName
+         _id=(Id _text="Number"))))])
+    (NatParam @26:30~35
+     _name=(IdName @26:34~35
+      _id=(Id _text="x")))])
+  (FnDef @32:0~35:3
+   _body=(Do @32:22~35:3
+    _fronts=[
+     (DoFront
+      _expr=(Block @33:2~35:2
+       _exprs=[
+        (TightJuxt @33:2~38
+         _exprs=[
+          (VarRef @33:2~30 _var=(QualifiedIdName _name=(IdName @33:2~12 _id=(Id _text="accumArray"))))
+          (MethodInvocation @33:13~38
+           _arg=(IntLiteral @33:37~38 _parenthesized=true _text="5" _val=5)
+           _method=(IdName @33:32~36
+            _id=(Id _text="fill"))
+           _obj=(TightJuxt @33:13~39
+            _exprs=[
+             (FnRef @33:13~30
+              _fns=[
+               (QualifiedIdName @33:13~20
+                _name=(IdName @33:13~19
+                 _id=(Id _text="array1")))]
+              _staticArgs=[
+               (TypeArg @33:21~25
+                _type=(IdType _name=(QualifiedIdName
+                  _name=(IdName
+                   _id=(Id _text="ZZ32")))))
+               (IntArg @33:26~28
+                _val=(NumberConstraint @33:26~27
+                 _val=(IntLiteral _text="3" _val=3)))])
+             (VoidLiteral @33:29~39 _text="")])
+           _parenthesized=true)])
+        (Block @34:2~35:2
+         _exprs=[
+          (LooseJuxt
+           _exprs=[
+            (VarRef _var=(QualifiedIdName _name=(IdName @34:2~9 _id=(Id _text="println"))))
+            (VarRef @34:10~35:2 _var=(QualifiedIdName _name=(IdName @34:10~13 _id=(Id _text="sum"))))])])]))])
+   _contract=(Contract @"":0:0)
+   _name=(IdName @"Expr.Atomic.fss":32:0~3
+    _id=(Id _text="run"))
+   _selfName="self"
+   _params=[
+    (VarargsParam @32:4~8
+     _name=(IdName
+      _id=(Id _text="args"))
+     _varargsType=(VarargsType @32:9~17
+      _type=(IdType _name=(QualifiedIdName
+        _name=(IdName @32:9~15
+         _id=(Id _text="String"))))))])]
+ _exports=[
+  (Export @22:0~25:0
+   _apis=[
+    (DottedName @22:7~25:0 _ids=[(Id @22:7~17 _text="Executable")])])])
