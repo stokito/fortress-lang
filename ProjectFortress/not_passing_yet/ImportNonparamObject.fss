@@ -21,7 +21,6 @@ export Executable
 
 run(args:String...):()=do
   println V.myname()
-  println W.myname()
 end
 
 end
