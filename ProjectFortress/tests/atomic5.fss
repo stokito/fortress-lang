@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.executable
+export Executable
+
+testNonAtomicsWithAtomics() = do
+    var x:ZZ32 := 0
+    var y:ZZ32 := 0
+    var z:ZZ32 := 0
+    var i:ZZ32 := 0
+
+    do
+        atomic do 
+            x := 1
+            while i < 1000 do i := i + 1 end
+            y := 1 
+        end
+    also do
+       if x = 1 then z := y else z := 2 end
+       if z = 0 then printThreadInfo(" x = " x " y = " y " z = " z) end
+       assert(z =/= 0, "testNonAtomicsWithAtomics: Impossible result")
+    end
+end
+
+
+run(args:String...):()=do
+    for i <- 1#300 do
+       testNonAtomicsWithAtomics()
+    end
+end
+end

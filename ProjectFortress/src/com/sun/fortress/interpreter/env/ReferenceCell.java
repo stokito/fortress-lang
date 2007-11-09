@@ -113,6 +113,7 @@ public class ReferenceCell extends IndirectionCell {
         FNode(FValue value) {val = value;}
         FNode() {}
         FValue getValue() { return val;}
+        FValue getOldValue() { return oldVal;}
 
         public void backup() { oldVal = val; }
         public void recover() { val = oldVal; }
@@ -142,7 +143,15 @@ public class ReferenceCell extends IndirectionCell {
                 other = openRead(me);
                 //other = openWrite(me);
                 if (other == null) {
-                    FValue the_value = node.getValue();
+		    FValue the_value;
+		    // If I'm not in a current transaction and there is a transaction
+                    // writing this value.  I want the old value instead of the newly
+		    // written value.  This is different from DSTM2 semantics.
+                    if (me == null && writer.isActive()) 
+                        the_value = node.getOldValue();
+                     else 
+                        the_value = node.getValue();
+
                     if (the_value == null) {
                         return error("Attempt to read uninitialized variable");
                     }
