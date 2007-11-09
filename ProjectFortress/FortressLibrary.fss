@@ -286,7 +286,7 @@ value object Just[\T\](x:T) extends {Maybe[\T\]}
         if r'.extent()=0 then Nothing[\T\]() else self end
       end
 
-    map[\G\](f: T->G): Generator[\G\] = Just[\G\](f(x))
+    map[\G\](f: T->G): Just[\G\] = Just[\G\](f(x))
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
         g.map[\(T,G)\](fn (e:G):(T,G) => (x,e))
 
@@ -314,7 +314,7 @@ value object Nothing[\T\]() extends { Maybe[\T\] }
         self
       end
 
-    map[\G\](f: T->G): Generator[\G\] = Nothing[\G\]()
+    map[\G\](f: T->G): Nothing[\G\] = Nothing[\G\]()
     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]()
 
     mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
@@ -674,8 +674,6 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter size(): ZZ32 = generator().size()
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
-    map[\G\](f: E->G): Generator[\G\] =
-        generator().map[\G\](f)
     seq(self): SequentialGenerator[\E\] = sequential(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
@@ -805,8 +803,6 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
 
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
-    map[\G\](f: E->G): Indexed[\G,I\]
-    ivmap[\G\](f: (I,E)->G): Indexed[\G,I\]
     seq(self): SequentialGenerator[\E\] = sequential(generator())
 
     assign(v:T):T = do
@@ -1598,7 +1594,7 @@ object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
     opr[r:Range[\I\]] : Indexed[\F,I\] =
         SimpleMappedIndexed[\E,F,I\](g()[r],f())
 
-    ivmap[\R\](ff:(I,E)->R): SimpleMappedIndexed[\E,R,I\] =
+    ivmap[\R\](ff:(I,F)->R): Indexed[\R,I\] =
         g0().ivmap[\R\](fn (i:I, e:E) => ff(i, (f())(e)))
     map[\G\](f': F->G): SimpleMappedIndexed[\E,G,I\] =
         SimpleMappedIndexed[\E,G,I\](g(), f' COMPOSE f())
@@ -1770,7 +1766,6 @@ trait FullRange[\T\]
         comprises { ScalarRange[\T\], TupleRange[\T\] }
     getter indices(): FullRange[\T\] = bounds()
 
-    map[\G\](f: T->G): Generator[\G\] = SimpleMappedGenerator[\T,G\](self,f)
     opr[r:Range[\T\]]: FullRange[\T\] = fail("Unrecognized Range " r)
     opr[_:OpenRange[\T\]]: FullRange[\T\] = self
     (** Square-bracket indexing on a FullRange restricts that range to
