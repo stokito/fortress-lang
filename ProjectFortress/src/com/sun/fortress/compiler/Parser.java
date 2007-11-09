@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.interpreter.drivers.Driver;
 
 import com.sun.fortress.useful.NI;
 
@@ -162,16 +163,29 @@ public class Parser {
                 if (parseResult.hasValue()) {
                     Object cu = ((SemanticValue) parseResult).value;
                     if (cu instanceof Api) {
-                        return new Result((Api) cu);
-                    }
-                    else if (cu instanceof Component) {
-                        return new Result((Component) cu);
-                    }
-                    else {
+                        Api _cu = (Api) cu;
+                        
+                        if (f.toString().endsWith(Driver.API_SOURCE_SUFFIX)) {
+                            return new Result(_cu);
+                        } else {
+                            return new Result(StaticError.make
+                                ("Api files must have suffix " + Driver.API_SOURCE_SUFFIX,
+                                 _cu));
+                        }
+                    } else if (cu instanceof Component) {
+                        Component _cu = (Component) cu;
+                        
+                        if (f.toString().endsWith(Driver.COMP_SOURCE_SUFFIX)) {
+                            return new Result(_cu);
+                        } else {
+                            return new Result(StaticError.make
+                                ("Component files must have suffix " + Driver.COMP_SOURCE_SUFFIX,
+                                 _cu));
+                        }
+                    } else {
                         throw new RuntimeException("Unexpected parse result: " + cu);
                     }
-                }
-                else {
+                } else {
                     return new Result(new Parser.Error((ParseError) parseResult, p));
                 }
             }

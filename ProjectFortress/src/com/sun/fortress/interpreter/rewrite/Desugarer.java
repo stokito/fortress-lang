@@ -119,6 +119,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 /**
@@ -1110,7 +1111,10 @@ public class Desugarer extends Rewrite {
                                                        arrow_names, not_arrow_names,
                                                        visited);
                         }
-                    } else if (th==null) {
+                    } else if (th instanceof Object) {
+                        error(t, errorMsg("Attempt to extend object type ", s));
+                    }
+                    else if (th==null) {
                         /* This was missing the "throw" for a long
                          * time, and adding it back in actually
                          * broke tests/extendAny.fss.  Oddly it
@@ -1122,7 +1126,7 @@ public class Desugarer extends Rewrite {
                          */
                         // error(t,"Type extends non-visible entity " + s);
                     } else {
-                        bug(errorMsg("Type extends something unknown ", s, " = ", th));
+                        error(t, errorMsg("Attempt to extend type ", s, " (which maps to the following Thing: ", th, ")"));
                     }
                 } else {
                     NI.nyi("General qualified name");
@@ -1155,16 +1159,22 @@ public class Desugarer extends Rewrite {
         Span sp   = s.getSpan();
         // If the user writes Spawn(foo) instead of Spawn(foo()) we get an inexplicable error
         // message.  We might want to put in a check for that someday.
+
         AbstractNode rewrittenExpr =  visit(body);
+
         Expr in_fn = new VarRef(sp, new QualifiedIdName(new IdName(sp, new Id("PrimitiveThread"))));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new IdName(sp, new Id("Any"))))));
+
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
+
         List<Param> params = new ArrayList<Param>();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
         List<Expr> exprs = new ArrayList<Expr>();
         exprs.add(fn);
+
         exprs.add(fnExpr);
+
         TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
         return juxt;
     }

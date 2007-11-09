@@ -305,7 +305,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                           n);
                     return that;
                 }
-                return typeConsHandler.value(IterUtil.first(typeConses));
+                QualifiedIdName qname = IterUtil.first(typeConses);
+                Type result = typeConsHandler.value(qname);
+                
+                return result;
             }
         }
     }

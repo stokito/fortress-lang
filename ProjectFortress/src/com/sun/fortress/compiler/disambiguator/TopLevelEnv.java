@@ -75,12 +75,10 @@ public class TopLevelEnv extends NameEnv {
 
 
         // The following APIs are always imported, provided they exist. 
-        DottedName FortressBuiltin = NodeFactory.makeDottedName("FortressBuiltin");
-        DottedName FortressLibrary = NodeFactory.makeDottedName("FortressLibrary");
-        
-        addIfAvailableApi(FortressBuiltin, false);
-        addIfAvailableApi(FortressLibrary, false);
-        
+        for (DottedName api : implicitlyImportedApis()) {
+            addIfAvailableApi(api, false);
+        }
+
         for (DottedName name: imports) {
             addIfAvailableApi(name, true);
         }
