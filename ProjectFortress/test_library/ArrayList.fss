@@ -97,9 +97,7 @@ trait List[\E\] extends { ZeroIndexed[\E\] }
       concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
                                               else emptyList[\E\]() end)
   opr =(self, other: List[\E\]): Boolean = do
-      println("In List =")
       if self.size() = other.size() then
-          println("Sizes match")
           self.zip[\E\](other).generate[\Boolean\](AndReduction,
                                                    fn(a,b) => a=b)
       else println("Sizes don't match"); false end
@@ -162,13 +160,6 @@ trait ArrayList[\E\] extends { List[\E\], DelegatedIndexed[\E,ZZ32\] }
     get(i:ZZ32): E
 end
 
-object CanExtend( settable canExtend : Boolean )
-  tryToExtend() : Boolean =
-    atomic if canExtend then canExtend := false; true else false end
-end
-
-cantExtend : CanExtend = CanExtend(false)
-
 value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32,
                                  canExtend : OneShot)
@@ -225,7 +216,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
           f
       else
           newUnused = f.size() + firstUnused
-          if newUnused <= maxUn AND canExtend.tryOnce() then
+          if newUnused <= maxUn AND: canExtend.tryOnce() then
               append0(f)
           else
               increaseTo(newUnused-firstUsed).append0(f)
@@ -243,7 +234,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
     end
   addRight(e:E):ArrayList[\E\] = do
       newSize = size() + 1
-      if newSize <= maxUn AND canExtend.tryOnce() then
+      if newSize <= maxUn AND: canExtend.tryOnce() then
           addRight0(e)
       else increaseTo(newSize).addRight0(e)
       end

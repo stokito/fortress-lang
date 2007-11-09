@@ -86,10 +86,10 @@ object Cons[\alpha\](hd',tl') extends List[\alpha\]
   append(n:ZZ32, xs: List[\alpha\]): List[\alpha\] =
     if n = 0 then xs.append(self)
     else tl'.append(n-1,xs).cons(hd') end
-  contains(x: alpha) = (x = hd') OR tl'.contains(x)
+  contains(x: alpha) = (x = hd') OR: tl'.contains(x)
   containsAll(xs: List[\alpha\]) =
      if xs.isEmpty() then true
-     else self.contains(xs.hd()) AND self.containsAll(xs.tl()) end
+     else self.contains(xs.hd()) AND: self.containsAll(xs.tl()) end
   indexOf(x: alpha) = if x = hd' then 0 else 1 + tl'.indexOf(x) end
   lastIndexOf(x: alpha) = len - 1 - self.reverse().indexOf(x)
   isEmpty() = false
@@ -118,8 +118,8 @@ object Cons[\alpha\](hd',tl') extends List[\alpha\]
     else tl'.difference(xs).cons(hd') end
   zip[\beta,gamma\](f: (alpha,beta) -> gamma, xs: List[\beta\]): List[\gamma\] =
     tl'.zip[\beta,gamma\](f,xs.tl()).cons(f(hd',xs.hd()))
-  forAll(p: alpha -> Boolean) = (p hd') AND tl'.forAll(p)
-  exists(p: alpha -> Boolean) = (p hd') OR tl'.exists(p)
+  forAll(p: alpha -> Boolean) = (p hd') AND: tl'.forAll(p)
+  exists(p: alpha -> Boolean) = (p hd') OR: tl'.exists(p)
   updateHd(x: alpha): List[\alpha\] = Cons[\alpha\](x,tl')
   updateTl(xs: List[\alpha\]): List[\alpha\] = Cons[\alpha\](hd',xs)
   subList(m: ZZ32, n: ZZ32): List[\alpha\] =

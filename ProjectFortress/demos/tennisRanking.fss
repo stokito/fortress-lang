@@ -292,7 +292,7 @@ addGames(fin: FileReadStream, fout: BufferedWriter) =
       var (player1, player2): String...
       (player1, line) := readWord line
       (player2, line) := readWord line
-      if player2 = "false" OR player2 = "true" (* exists a new player *)
+      if player2 = "false" OR: player2 = "true" (* exists a new player *)
       then player1Old = player2
            var player2Old: String
            (player2   , line) := readWord line

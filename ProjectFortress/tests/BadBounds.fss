@@ -17,15 +17,26 @@
 
 component BadBounds
 export Executable
-
-run(args:String...):() = do
+run(args:String...) :() = do
   b:ZZ32[3,2] = [1 2
                  3 4
                  5 6]
+  println ("b lower bounds " b.bounds().lower() )
+  println ("b upper bounds " b.bounds().upper() )
+  println ("b.bounds = " b.bounds())
 
-  for (i,j) <- b.bounds() do
-     println ("b[" i "," j "]=" b[i,j])
+  c :ZZ32[3,4,2] = [ 1  2  3  4
+                     5  6  7  8
+                     9 10 11 12;; 13 14 15 16
+                                  17 18 19 20
+                                  21 22 23 24 ]
+  for (i,j,k) <- c.indices() do
+            println ("c[" i "," j "," k "] = " c[i,j,k] )
   end
+  println ("c lower bounds " c.bounds().lower() )
+  println ("c upper bounds " c.bounds().upper() )
+  println ("c.bounds = " c.bounds())
+
 end
 
 end

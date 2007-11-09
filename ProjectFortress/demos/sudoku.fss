@@ -64,7 +64,7 @@ end
 propagate(board:TreeSet[\ZZ32\][9,9]):() = do
    prevUnsolved : ZZ32 := 82
    unsolved : ZZ32 := 81
-   while unsolved > 0 AND unsolved < prevUnsolved do
+   while 0 < unsolved < prevUnsolved do
       (* Fixed point iteration.  This will tolerate data race in
          propagateSingleton, though we'd be just as happy without it. *)
       prevUnsolved := unsolved

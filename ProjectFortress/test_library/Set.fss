@@ -125,8 +125,8 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
    subscript(i:ZZ32):E = if i < left.size() then left.subscript(i)
       elif i = left.size() then val
       else right.subscript(i - left.size() - 1) end
-   opr[i:ZZ32]:E = if i < 0 OR i >= sz then fail(self "[" i "] is out of bounds.")
-      else subscript(i) end
+   opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
+                   else fail(self "[" i "] is out of bounds.") end
    opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
       r' = bounds()[r]
       (lside,rside) = splitIndex( r'.lower() )
