@@ -17,12 +17,13 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
-import java.util.Set;
+import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class TypeNameEnv {
@@ -63,4 +64,24 @@ public abstract class TypeNameEnv {
      * provide the corresponding TypeConsIndex (assumed to exist).
      */
     public abstract TypeConsIndex typeConsIndex(QualifiedIdName name);
+    /** 
+     * Returns a list of implicitly imported APIS.
+     */
+    public List<DottedName> implicitlyImportedApis() {
+        List<DottedName> result = new ArrayList<DottedName>();
+        result.add(NodeFactory.makeDottedName("FortressBuiltin"));
+        result.add(NodeFactory.makeDottedName("FortressLibrary"));
+        return result;
+    }
+    /**
+     * Returns true iff the given api is implicitly imported.
+     */
+    public boolean isImplicitlyImportedApi(DottedName api) {
+        for (DottedName imported : implicitlyImportedApis()) {
+            if (api.equals(imported)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

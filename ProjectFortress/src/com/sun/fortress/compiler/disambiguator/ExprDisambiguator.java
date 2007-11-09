@@ -392,7 +392,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
         }
         
-        // Second, try to interpret it as an unqualified name
+        // Second, try to interpret it as an unqualified name.
         if (result == null) {
             // api.isNone() must be true
             Set<QualifiedIdName> vars = _env.explicitVariableNames(entity);
@@ -405,6 +405,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             
             if (vars.size() == 1 && fns.isEmpty()) {
                 QualifiedIdName newName = IterUtil.first(vars);
+
                 if (newName.getApi().isNone() && newName.getName() == entity &&
                     ConsList.isEmpty(fields)) {
                     // no change -- no need to recreate the VarRef
@@ -422,10 +423,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 return that;
             }
             else {
-                // Turn off this error message until we can ensure that the VarRef
-                // doesn't resolve to an inherited method.
+                // Turn off error message on this branch until we can ensure
+                // that the VarRef doesn't resolve to an inherited method. 
+                // For now, assume it does refer to an inherited method.
+                if (ConsList.isEmpty(fields)) {
+                    // no change -- no need to recreate the VarRef
+                    return that;
+                }
+                else { 
+                    QualifiedIdName newName = NodeFactory.makeQualifiedIdName(entity);
+                    result = new VarRef(newName.getSpan(), newName); 
+                }                
                 // error("Unrecognized name: " + NodeUtil.nameString(qname), that);
-                return that;
+                // return that;
             }
         }
             

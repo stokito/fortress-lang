@@ -93,7 +93,12 @@ public class FileBasedRepository implements FortressRepository {
         
         try {
             CompilationUnit ast = def.ast();
-            Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + fs.JAVA_AST_SUFFIX);
+            if (ast instanceof Component) {
+                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + Driver.COMP_TREE_SUFFIX);
+            }
+            else { // ast instanceof Api
+                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + Driver.API_TREE_SUFFIX);
+            }
         } catch (IOException e) {
             throw new ShellException(e);
         }
