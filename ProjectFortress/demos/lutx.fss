@@ -42,7 +42,8 @@ object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
   init0(t:(ZZ32,ZZ32),n:N) : () = fail("Lower triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
       (i,j) = t
-      if i=j then 1 elif i>=j then mem.get(i,j) else 0 mem.get(i,j) end
+      e = mem.get(t)
+      if i=j then 1 elif i>=j then e else 0 e end
     end
 end
 
@@ -54,8 +55,8 @@ object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
   put(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
   init0(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
-      (i,j) = t
-      if i<=j then mem.get(i,j) else 0 mem.get(i,j) end
+      e = mem.get(t)
+      if i<=j then e else 0 e end
     end
 end
 

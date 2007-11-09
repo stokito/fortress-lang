@@ -41,7 +41,7 @@ end
 object aSet[\T\](x:T, s:Set[\T\]) extends Set[\T\]
   add(y:T):Set[\T\] = if contains(y) then self else aSet[\T\](y, self) end
   size():ZZ32 = 1 + s.size()
-  contains(y:T):Boolean = x = y OR s.contains(y)
+  contains(y:T):Boolean = x = y OR: s.contains(y)
 end
 
 opr[\T\] {x:T...} = do

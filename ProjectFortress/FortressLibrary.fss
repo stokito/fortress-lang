@@ -864,7 +864,7 @@ trait Array1[\T, nat b0, nat s0\]
      bounds checking en route *)
   offset(i:ZZ32):ZZ32 = do
     r = i - b0
-    if r >= s0 OR r < 0 then oops(1, b0, s0, i) end
+    if NOT (0 <= r < s0) then oops(1, b0, s0, i) end
     r
   end
   toIndex(i:ZZ32):ZZ32 = i + b0
@@ -1059,14 +1059,13 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     (a0,a1) = t
     c0 = a0 - b0
     c1 = a1 - b1
-    if c0 < 0 OR c0 >= s0 OR c1 < 0 OR c1 >= s1 then
-      if c0 < 0 OR c0 >= s0 then
+    if NOT (0 <= c0 < s0) then
         oops(1,b0,s0,a0)
-      else
+    elif NOT (0 <= c1 < s1) then
         oops(2,b1,s1,a1)
-      end
+    else
+        (c0,c1)
     end
-    (c0,c1)
   end
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
@@ -1377,9 +1376,9 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
     (a0,a1,a2)=t
     c0 = a0 - b0; c1 = a1 - b1; c2 = a2 - b2
-    if c0 >= s0 OR c0 < 0 then oops(1, b0, s0, a0); end
-    if c1 >= s1 OR c1 < 0 then oops(2, b1, s1, a1); end
-    if c2 >= s2 OR c2 < 0 then oops(3, b2, s2, a2); end
+    if NOT (0 <= c0 < s0) then oops(1, b0, s0, a0); end
+    if NOT (0 <= c1 < s1) then oops(2, b1, s1, a1); end
+    if NOT (0 <= c2 < s2) then oops(3, b2, s2, a2); end
     (c0,c1,c2)
   end
   toIndex(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) =
@@ -1746,7 +1745,7 @@ end
 object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     getter upper():T = up
     toString():String = ":" upper()
-    eq(x:UpperRange[\T\]): Boolean = upper() = x.upper()
+    opr =(self,x:UpperRange[\T\]): Boolean = upper() = x.upper()
 end
 
 trait RangeWithExtent[\T\] extends Range[\T\]
@@ -1757,7 +1756,7 @@ end
 
 object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
     getter extent():T = ex
-    eq(x:ExtentRange[\T\]): Boolean = extent() = x.extent()
+    opr =(self,x:ExtentRange[\T\]): Boolean = extent() = x.extent()
 end
 
 trait FullRange[\T\]
@@ -1824,14 +1823,14 @@ trait ScalarRange[\N extends Integral\]
     getter upper():N = lower() + extent() - 1
     getter size():ZZ32 = narrow(|\extent()/|)
     opr[i:N]: N =
-        if i >= 0 AND i < extent() then
+        if 0 <= i < extent() then
             i + lower()
         else
             rangeIndexFailure[\N\](self,i)
         end
     contains(a:N): Boolean = do
         t = a - lower()
-        t >= 0 AND t < size()
+        0 <= t < size()
       end
 end
 
@@ -1955,16 +1954,16 @@ object Tuple2Range[\N extends Integral, M extends Integral\]
             fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
     opr[i:(N,M)]: (N,M) = do
         (i1,i2) = i
-        if i1 IN (0#x1) AND i2 IN (0#x2) then
+        if 0 <= i1 < x1 AND 0 <= i2 < x2 then
             (i1+l1,i2+l2)
         else
             rangeIndexFailure[\(N,M)\](self,i)
         end
       end
     contains(v1:N, v2:M): Boolean =
-        v1 IN (l1#x1) AND v2 IN (l2#x2)
-    eq(r:Tuple2Range[\N,M\]): Boolean =
-        l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2)
+        0 <= v1-l1 < x1 AND 0 <= v2-l2 < x2
+    opr =(self,r:Tuple2Range[\N,M\]): Boolean =
+        l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2
 end
 
 object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integral\]
@@ -1987,17 +1986,16 @@ object Tuple3Range[\N1 extends Integral, N2 extends Integral, N3 extends Integra
                 do (n1,n2)=t; ((n1,n2,n3),(n1+l1,n2+l2,n3+l3)) end)
     opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
         (i1,i2,i3) = i
-        if i1 IN (0#x1) AND i2 IN (0#x2) AND i3 IN (0#x3) then
+        if 0 <= i1 < x1 AND 0 <= i2 < x2 AND 0 <= i3 < x3 then
             (i1+l1,i2+l2, i3+l3)
         else
             rangeIndexFailure[\(N1,N2,N3)\](self,i)
         end
       end
     contains(v1:N1, v2:N2, v3:N3): Boolean =
-        v1 IN (l1#x1) AND v2 IN (l2#x2) AND v3 IN (l3#x3)
-    eq(r:Tuple3Range[\N1,N2,N3\]): Boolean =
-        l1.eq(r.l1) AND l2.eq(r.l2) AND x1.eq(r.x1) AND x2.eq(r.x2) AND
-        l3.eq(r.l3) AND x3.eq(r.x3)
+        0 <= v1-l1 < x1 AND 0 <= v2-l2 < x2 AND 0 <= v3-l3 < x3
+    opr =(self,r:Tuple3Range[\N1,N2,N3\]): Boolean =
+        l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2 AND l3=r.l3 AND x3=r.x3
 end
 
 (** The # and : operators serve as factories for parallel ranges. **)
@@ -2204,10 +2202,12 @@ opr juxtaposition(a:String, b:()):String = a "()"
 opr DOT(a:String, b:(Any,Any)):String = do (i,j) = b; a "(" i "," j ")" end
 opr juxtaposition(a:String, b:(Any,Any)):String =
     do (i,j) = b; a "(" i "," j ")" end
+opr juxtaposition(a:String, b:(Any,Any,Any)):String =
+    do (i,j,k) = b; a "(" i "," j "," k ")" end
 opr DOT(a:(), b:String):String = "()" b
 opr juxtaposition(a:(), b:String):String = "()" b
-opr DOT(a:Any, b:String):String = a.toString() b
-opr juxtaposition(a:Any, b:String):String = a.toString() b
+opr DOT(a:Any, b:String):String = ("" a) b
+opr juxtaposition(a:Any, b:String):String = ("" a) b
 opr DOT(a:String, b:Any):String = a b.toString()
 opr juxtaposition(a:String, b:Any):String = a b.toString()
 
