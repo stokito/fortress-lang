@@ -41,6 +41,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
@@ -1523,18 +1524,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {
-                // It is a singleton; do not expose the constructor, do
-                // visit
-                // the interior environment.
-                // BetterEnv interior = new SpineEnv(e, x);
-
-                // TODO - binding into "containing", or "bindInto"?
-//
-//                Constructor cl = new Constructor(containing, (FTypeObject) ft,
-//                        x);
-//                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
-
-              
+                // Simply need to create a named value so that imports will work.
+                FValue init_value = FVoid.V;
+                putValue(bindInto, fname, init_value);
             }
         }
 
@@ -1577,7 +1569,21 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
     private void forAbsObjectDecl4(AbsObjectDecl x) {
-    }
+        BetterEnv e = containing;
+        IdName name = x.getName();
+
+        List<StaticParam> staticParams = x.getStaticParams();
+        Option<List<Param>> params = x.getParams();
+
+        String fname = NodeUtil.nameString(name);
+        FType ft;
+
+        if (params.isSome()) {
+           
+        } else {
+
+        }
+        }
 
     public BetterEnv getBindingEnv() {
         return bindInto;
