@@ -20,7 +20,7 @@ import * from TestImports1
 export Executable
 
 run(args:String...):()=do
-  println V.myname()
+  assert(V.myname(),"TestImports1.V","V.myname() looks wrong.")
 end
 
 end
