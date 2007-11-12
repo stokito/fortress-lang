@@ -620,7 +620,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue exprVal = link.getB().accept(this);
             vargs.set(0, idVal);
             vargs.set(1, exprVal);
-            boolres = (FBool) functionInvocation(vargs, fcn, x);
+            FValue invoke = functionInvocation(vargs, fcn, x);
+            if (!(invoke instanceof FBool)) {
+                return error(x,errorMsg("Non-boolean result ",invoke,
+                                        " in chain, args ", vargs));
+            }
+            boolres = (FBool)invoke;
             idVal = exprVal;
         }
         return boolres;

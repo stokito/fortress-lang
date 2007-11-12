@@ -674,7 +674,7 @@ trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter size(): ZZ32 = generator().size()
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
-    seq(self): SequentialGenerator[\E\] = sequential(generator())
+    seq(self): SequentialGenerator[\E\] = seq(generator())
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
         generator().cross[\G\](g)
     mapReduce[\R\](body: E->R, join:(R,R)->R, zero:R): R =
@@ -803,7 +803,7 @@ trait StandardArrayType[\T extends StandardArrayType[\T,E,I\],E,I\]
 
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         generator().generate[\R\](r,body)
-    seq(self): SequentialGenerator[\E\] = sequential(generator())
+    seq(self): SequentialGenerator[\E\] = seq(generator())
 
     assign(v:T):T = do
         for i <- zeroIndices() do put(i,v.get(i)) end
@@ -1039,7 +1039,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
     row(i) =
-      for j <- sequential(0#s1) do
+      for j <- seq(0#s1) do
          r := r " " get(i,j)
       end
     if s0 = 0 then
@@ -1047,7 +1047,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     else
       r := r "\n["
       row(0)
-      for i <- sequential(1#(s0-1)) do
+      for i <- seq(1#(s0-1)) do
         r := r "\n "
         row(i)
       end
@@ -1348,13 +1348,13 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
   getter toString():String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
     row(i,k) =
-        for j <- sequential(0#s1) do
+        for j <- seq(0#s1) do
           r := r " " self[b0+i,b1+j,b2+k]
         end
     plane(k) =
       if s1 > 0 then
         row(0,k)
-        for i <- sequential(1#(s0-1)) do
+        for i <- seq(1#(s0-1)) do
           r := r "\n "
           row(i,k)
         end
@@ -1364,7 +1364,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     else
       r := r "\n["
       plane(0)
-      for k <- sequential(1#(s2-1)) do
+      for k <- seq(1#(s2-1)) do
         r := r " ;;\n "
         plane(k)
       end
@@ -1571,7 +1571,7 @@ trait MappedGenerator[\E,F\] extends Generator[\F\]
         g().generate[\F\](r, f())
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
-    seq(self) = SimpleMappedSeqGenerator[\E,F\](sequential(g()),f())
+    seq(self) = SimpleMappedSeqGenerator[\E,F\](seq(g()),f())
 end
 
 object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
@@ -1637,10 +1637,10 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
     seq(self) =
         typecase ff = f() of
             (E -> SequentialGenerator[\F\]) =>
-                SimpleNestedSeqGenerator[\E,F\](sequential(g()),ff)
+                SimpleNestedSeqGenerator[\E,F\](seq(g()),ff)
             else =>
-                SimpleNestedSeqGenerator[\E,F\](sequential(g()),
-                     fn (e:E): SequentialGenerator[\F\] => sequential(f()(e)))
+                SimpleNestedSeqGenerator[\E,F\](seq(g()),
+                     fn (e:E): SequentialGenerator[\F\] => seq(f()(e)))
         end
 end
 
@@ -1667,8 +1667,8 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
         extends PairGenerator[\E,F\]
     getter e() = e0
     getter f() = f0
-    getter toString()=(e ".cross(" f ")" )
-    seq(self) = SimplePairSeqGenerator[\E,F\](sequential(e),sequential(f))
+    getter toString()=(e0 ".cross(" f0 ")" )
+    seq(self) = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
 end
 
 object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
@@ -1696,7 +1696,7 @@ end
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     size() = g.size()
-    toString() = "sequential(" g.toString() ")"
+    toString() = "seq(" g.toString() ")"
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
       id(x:R):R = x
