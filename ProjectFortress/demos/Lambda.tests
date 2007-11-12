@@ -1,0 +1,12 @@
+K = \x y . x
+S = \f a x . f x (a x)
+I = \x . x
+T = K
+F = \x y . y
+if = \b t e . b t e
+z = \f x . x
+s = \n f x . n (f x)
+
+main = S K (K I)
+main
+
