@@ -45,7 +45,7 @@ trait Term comprises { Lambda, App, Var, FreeVar, Const } excludes Number
       end
     whnf(): Term = self
     cbv(): Term = self
-    apply(rand): Term = app(self, rand)
+    apply(rand, post: Term -> Term): Term = app(self, rand)
     nf(): Term = whnf().nf2()
     nf2(): Term = self
 end
@@ -75,8 +75,8 @@ object App(rator:Term, rand:Term) extends Term
     opr =(self, t:App) = rator = t.rator AND: rand = t.rand
     subst(v:Var, val:Term): Term = app(rator.subst(v,val),rand.subst(v,val))
     hasFreeVar(v:Var): Boolean = rator.hasFreeVar(v) OR: rand.hasFreeVar(v)
-    whnf(): Term = rator.whnf().apply(rand)
-    cbv(): Term = rator.whnf().apply(rand.whnf())
+    whnf(): Term = rator.whnf().apply(rand, fn (r:Term) => r.whnf())
+    cbv(): Term = rator.cbv().apply(rand.cbv(), fn (r:Term) => r.cbv())
     nf2(): Term = app(rator.nf2(),rand.nf())
 end
 
@@ -107,10 +107,10 @@ object FreeVar(nm:String) extends Var
         else
             final
         end
-    apply(rand:Term): Term =
+    apply(rand:Term, post: Term -> Term): Term =
         globalEnv.member(nm).maybe[\Term\](
             fn () => app(self,rand),
-            fn (d:Term) => d.apply(rand))
+            fn (d:Term) => d.apply(rand, post))
     whnf(): Term =
         globalEnv.member(nm).maybe[\Term\](
             fn () => self,
@@ -138,7 +138,7 @@ object Lambda(def: BoundVar, body: Term) extends { Term }
             body' = body.subst(def,def')
             Lambda(def', body'.subst(v,val))
         end
-    apply(rand:Term): Term = body.subst(def,rand)
+    apply(rand:Term, post: Term -> Term): Term = post(body.subst(def,rand))
     nf2(): Term = Lambda(def, body.nf())
 end
 
@@ -170,8 +170,9 @@ lookup(global:String):Term =
 
 forms(t:Term): () = do
     println(t " -->>")
-    println(t.whnf() " -->>>")
-    println(t.nf())
+    w = t.whnf()
+    println(w " -->>>")
+    println(w.nf())
   end
 
 digits : List[\String\] =
@@ -242,8 +243,8 @@ object Parser(f:FileReadStream)
         getNonSpace(true)
         case curr of
             "." => mkLambda(id, parseReqTerm(newlineOK))
-            "" => fail "unexpected eof in arg list"
-            ")" => fail "unexpected ')' in arg list"
+            "" => fail ("unexpected eof in arg list, last arg " id)
+            ")" => fail ("unexpected ')' in arg list, last arg " id)
             else => if curr IN digits then
                         fail ("unexpected digit '" c2 "' in arg list")
                     else
@@ -296,6 +297,10 @@ object Parser(f:FileReadStream)
         skip(true)
         if curr="" then
             fail "unexpected eof in term"
+        elif curr="." then
+            fail "unexpected '.' in term"
+        elif curr=")" then
+            fail "unexpected ')' in term"
         elif curr="\\" then
             parseLambda(newlineOK)
         elif curr="(" then
@@ -322,6 +327,8 @@ object Parser(f:FileReadStream)
             "\\" => forms(parseLambda(false))
             "(" => forms(parseParensOrApp(false))
             "" => ()
+            "." => fail("Error: misplaced '.' at top level.")
+            ")" => fail("Error: misplaced ')' at top level.")
             else =>
                 if curr IN digits then
                     forms(parseNumberOrApp(false))
@@ -337,6 +344,7 @@ run(args:String...):() = do
     while NOT rs.eof() do
         p.parseTop()
     end
+    rs.close()
   end
 
 end
