@@ -55,6 +55,7 @@ object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
   put(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
   init0(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
+      (i,j) = t
       e = mem.get(t)
       if i<=j then e else 0 e end
     end
