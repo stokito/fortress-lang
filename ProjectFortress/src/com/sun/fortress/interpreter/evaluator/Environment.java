@@ -94,7 +94,7 @@ public interface Environment  {
 
     public abstract Boolean casValue(FValue f1, FValue old_value, FValue new_value);
 
-    public abstract Closure getRunMethod();
+    public abstract Closure getRunClosure();
 
     public abstract FType getType(String str);
 

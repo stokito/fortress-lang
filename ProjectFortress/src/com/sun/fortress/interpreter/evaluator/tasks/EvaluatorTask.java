@@ -23,6 +23,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class EvaluatorTask extends BaseTask {
 
@@ -33,13 +34,18 @@ public class EvaluatorTask extends BaseTask {
     boolean woLibrary = false;
 
     List<String> args;
+    
+    FValue theResult;
+    
+    String functionToRun;
 
     public EvaluatorTask(CompilationUnit prog, boolean tests, boolean library,
-                         List<String> args_) {
+            String toRun, List<String> args_) {
         p = prog;
         runTests = tests;
         woLibrary = library;
         args = args_;
+        functionToRun = toRun;
     }
 
     public void print() {
@@ -50,7 +56,7 @@ public class EvaluatorTask extends BaseTask {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.setCurrentTask(this);
         try {
-            Driver.runProgramTask(p, runTests, woLibrary, args);
+            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun);
         }
         catch (IOException e) {
             causedException = true;
@@ -58,5 +64,9 @@ public class EvaluatorTask extends BaseTask {
             //            e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+    
+    public FValue result() {
+        return theResult;
     }
 }

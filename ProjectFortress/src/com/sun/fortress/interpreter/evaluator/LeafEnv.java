@@ -194,7 +194,7 @@ class LeafEnv extends CommonEnv {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.Environment#getRunMethod()
      */
-    public Closure getRunMethod() {
+    public Closure getRunClosure() {
         return (Closure) getValue("run");
     }
 

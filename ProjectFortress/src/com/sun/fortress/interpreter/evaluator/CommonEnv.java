@@ -82,7 +82,7 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
 
     abstract public  Boolean casValue(String str, FValue old_value, FValue new_value) ;
 
-    abstract public  Closure getRunMethod() ;
+    abstract public  Closure getRunClosure() ;
 
     abstract public  FType getTypeNull(String str) ;
     final public  FType getType(String str)  {
