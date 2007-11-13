@@ -947,16 +947,16 @@ public class Driver {
     }
 
     // This runs the program from inside a task.
-    public static void
+    public static FValue
         runProgramTask(CompilationUnit p, boolean runTests, boolean woLibrary,
-                       List<String> args)
+                       List<String> args, String toBeRun)
         throws IOException
     {
 
         FortressTests.reset();
         BetterEnv e = evalComponent(p, woLibrary);
 
-        Closure run_fn = e.getRunMethod();
+        Closure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
         if (runTests) {
             List<Closure> testClosures = FortressTests.get();
@@ -977,9 +977,7 @@ public class Driver {
         // } catch (IOException ioe) {
         // System.out.println("io exception" + ioe);
         // }
-        if (!(ret instanceof FVoid))
-            error("run method returned non-void value");
-        System.out.println("finish runProgram");
+       return ret;
     }
 
     static FortressTaskRunnerGroup group;
@@ -1001,7 +999,7 @@ public class Driver {
 
            group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(p, runTests, woLibrary, args);
+        EvaluatorTask evTask = new EvaluatorTask(p, runTests, woLibrary, "run", args);
         try {
             group.invoke(evTask);
         }

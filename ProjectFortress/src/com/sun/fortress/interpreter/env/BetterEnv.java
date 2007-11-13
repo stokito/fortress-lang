@@ -527,8 +527,12 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return v;
     }
 
-    public Closure getRunMethod() {
+    public Closure getRunClosure() {
         return (Closure) getValue("run");
+    }
+
+    public Closure getClosure(String s) {
+        return (Closure) getValue(s);
     }
 
     public FType getTypeNull(String name) {

@@ -91,7 +91,7 @@ public class EmptyEnv extends CommonEnv {
      * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getRunMethod()
      */
     @Override
-    public Closure getRunMethod() {
+    public Closure getRunClosure() {
         return bug("Empty environment does not have run method");
    }
 
