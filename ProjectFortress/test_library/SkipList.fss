@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component SkipList
+import * from PureList
 export SkipList
 
 (*****************************************************************************
@@ -44,17 +45,31 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
   toString():String = root.toString()
 
+  getSize():ZZ32 = root.getSize()
+  getRoot():Node[\Key,Val\] = root
+
   search(k:Key):Maybe[\Val\] = root.search(k)
 
   add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
     level:ZZ32 = randomLevel()
-    SkipList[\Key,Val,pInverse\](root.add(k,v,level))
+    values:Array[\Val,ZZ32\] = array[\Val\](1)
+    values[0] := v
+    leaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
+    SkipList[\Key,Val,pInverse\](root.add(leaf, level))
   end
 
   remove(k:Key):SkipList[\Key,Val,pInverse\] = do
-    SkipList[\Key,Val,pInverse\](root.remove(k))
+    (root', maybe) = root.remove(k)
+    SkipList[\Key,Val,pInverse\](root')
   end
 
+  merge(other:SkipList[\Key,Val,pInverse\]):SkipList[\Key,Val,pInverse\] = do
+    (larger, smaller) = if self.getSize() > other.getSize() then (self, other) else (other, self) end
+    smallList = singleton[\Node[\Key,Val\]\](smaller.getRoot())
+    SkipList[\Key,Val,pInverse\](larger.getRoot().merge(smallList))
+  end
+
+  (* return a random level >= 1 with a negative binomial distribution *)
   randomLevel():ZZ32 = do
     level':ZZ32 := 1
     while random(1.0) < p do
@@ -68,6 +83,7 @@ end
 (* Construct an empty skip list *)
 NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
   SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\]())
+  
 
 
 (* A Node is the basic type for the Skip List data structure.
@@ -81,7 +97,9 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   InternalNode[\Key,Val\], WhiteNode[\Key,Val\]}
 
   getHeight():ZZ32
-
+  getSize():ZZ32
+  
+  
   isLeaf():Boolean
   isTreeEmpty():Boolean
   isNodeEmpty():Boolean
@@ -91,13 +109,20 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   toString():String
   (* toGraphViz():String   wait until hashCode() is implemented*)
 
-  (* the add method can grow the tree if level > root height *)
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+  (* the add method will grow the tree if level > root height *)
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\]
 
   (* the add_helper method is only invoked if level <= root height *)
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+  (* returns the new node and whether a new key was inserted *)
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean)
 
-  remove(k:Key):Node[\Key,Val\]
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\])
+
+  (* merge must always be invoked with at least one element in the merge list *)
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\]
+  
+  (* return the list of leaves that are under the current subtree *)
+  getLeaves():List[\LeafNode[\Key,Val\]\]
 
   (* splits the new child in half and sucks the split key up to this level *)
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\]
@@ -121,7 +146,9 @@ end
    has a height > 0 *)
 object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Key,Val\]
 
+  size:ZZ32 = child.getSize()
   getHeight():ZZ32 = height
+  getSize():ZZ32 = size
 
   isLeaf():Boolean = false
   isTreeEmpty():Boolean = false
@@ -131,19 +158,20 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
 
   toString():String = "{ [], [" child.toString() "] }"
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
     tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - getHeight())
-    tail.add_helper(k,v,level)
+    (newNode, newKey) = tail.add_helper(leaf, level)
+    newNode
   end
 
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] =
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) =
   if height = 1 then
-    height1_add(k,v)
+    height1_add(leaf)
   else
-    heightn_add(k,v,level)
+    heightn_add(leaf, level)
   end
 
-  remove(k:Key):Node[\Key,Val\] = do
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
     if height = 1 then
       height1_remove(k)
     else
@@ -164,47 +192,93 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
 
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a white node")
 
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = 
+  if height = 1 then  
+    height1_merge(nodes)
+  else
+    heightn_merge(nodes)
+  end
+
   (* perform the add operation when the height is one *)
-  height1_add(k:Key, v:Val):Node[\Key,Val\] = do
-    other:LeafNode[\Key,Val\] = LeafNode[\Key,Val\]((k,v))
+  height1_add(leaf:LeafNode[\Key,Val\]):(Node[\Key,Val\], Boolean) = do
+    k:Key = leaf.key
     k':Key = child.key
-    keys:Array[\Key,ZZ32\] = array[\Key\](1)
-    children:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
-    (smaller,larger,lkey) = if k > k' then (child,other,k) else (other,child,k') end
-    keys[0] := lkey
-    children[0] := smaller
-    children[1] := larger
-    InternalNode[\Key,Val\](keys,children,height)
+    if k = k' then
+      values:Array[\Val,ZZ32\] = array[\Val\](leaf.values.size() + child.values.size())
+      values[0 # leaf.values.size()] := leaf.values[0 # leaf.values.size()]
+      values[leaf.values.size() # child.values.size()] := child.values[0 # child.values.size()]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
+      (WhiteNode[\Key,Val\](newleaf, height), false)
+    else
+      keys:Array[\Key,ZZ32\] = array[\Key\](1)
+      children:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
+      (smaller,larger,lkey) = if k > k' then (child,leaf,k) else (leaf,child,k') end
+      keys[0] := lkey
+      children[0] := smaller
+      children[1] := larger
+      (InternalNode[\Key,Val\](keys,children,height), true)
+    end
   end
 
   (* perform the add operation when the height is greater than one *)
-  heightn_add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = child.add_helper(k,v,level)
-    if level < height then
-      WhiteNode[\Key,Val\](child', height)
+  heightn_add(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
+    (child':Node[\Key,Val\], newKey:Boolean) = child.add_helper(leaf,level)
+    if level < height OR newKey = false then
+      (WhiteNode[\Key,Val\](child', height), newKey)
     else
-      split(0, child')
+      (split(0, child'), newKey)
     end
   end
 
   (* perform the remove operation when the height is one *)
-  height1_remove(k:Key):Node[\Key,Val\] = do
+  height1_remove(k:Key):(Node[\Key,Val\], Maybe[\Val\])  = do
     if child.getKey() = k then
-      EmptyNode[\Key,Val\]()
+      if child.values.size() = 1 then
+        (EmptyNode[\Key,Val\](), Just[\Val\](child.values[0]))
+      else
+        values:Array[\Val,ZZ32\] = array[\Val\](child.values.size() - 1)
+        values[0 # values.size()] := child.values[0 # values.size()]
+        newLeaf = LeafNode[\Key,Val\](k, values)
+        (WhiteNode[\Key,Val\](newLeaf, height), Just[\Val\](child.values[values.size()]))
+      end
     else
-      self
+      (self, Nothing[\Val\]())
     end
   end
 
   (* perform the remove operation when the height is greater than one *)
-  heightn_remove(k:Key):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = child.remove(k)
+  heightn_remove(k:Key):(Node[\Key,Val\], Maybe[\Val\])  = do
+    (child':Node[\Key,Val\], maybe:Maybe[\Val\]) = child.remove(k)
     if instanceOf[\EmptyNode[\Key,Val\]\](child') then
-      child'
+      (child', maybe)
     else
-      WhiteNode[\Key,Val\](child', height)
+      (WhiteNode[\Key,Val\](child', height), maybe)
     end
   end
+ 
+  (* perform the merge operation when the height is equal to one *)
+  height1_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
+    height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
+      Concat[\LeafNode[\Key,Val\]\](),
+      fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
+  end
+
+  (* helper function for height1_merge where nodes is a list of all leaves *)  
+  height1_merge_leaves(nodes:List[\LeafNode[\Key,Val\]\]):Node[\Key,Val\] = do
+    (* TODO: A bulk insert could be implemented that does not used serialized single inserts *)
+    newNode:Node[\Key,Val\] := self
+    for leaf <- seq(nodes) do
+      (tempNode, newKey) = newNode.add_helper(leaf, 1)
+      newNode := tempNode
+    end 
+    newNode
+  end
+
+  (* perform the merge operation when the height is greater than one *) 
+  heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = WhiteNode[\Key,Val\](child.merge(nodes), height)
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] = child.getLeaves()
 
 end
 
@@ -213,7 +287,10 @@ end
 object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   children:Array[\Node[\Key,Val\],ZZ32\], height:ZZ32) extends Node[\Key,Val\]
 
+  size:ZZ32 = children.generate[\ZZ32\](SumReduction[\ZZ32\](),
+                                        fn (node:Node[\Key,Val\]):ZZ32 => node.getSize())
   getHeight():ZZ32 = height
+  getSize():ZZ32 = size
 
   isLeaf():Boolean = false
   isTreeEmpty():Boolean = false
@@ -221,14 +298,8 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   find_index(k:Key):ZZ32 = do
     index:ZZ32 := 0
-    (* FIXME: replace with AND: *)
-    (* OR BETTER YET: replace with a reduction *)
-    flag:Boolean := false
-    if index < keys.size() then flag := k >= keys[index] end
-    while (flag) do
+    while (index < keys.size() AND: k >= keys[index]) do
       index += 1
-      flag := false
-      if index < keys.size() then flag := k >= keys[index] end
     end
     index
   end
@@ -240,21 +311,22 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   toString():String = "{" keys.toString() ", " children.toString() "}"
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
     tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - getHeight())
-    tail.add_helper(k,v,level)
+    (newNode, newKey) = tail.add_helper(leaf, level)
+    newNode
   end
 
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    index:ZZ32 = find_index(k)
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\],Boolean) = do
+    index:ZZ32 = find_index(leaf.getKey())
     if height = 1 then
-      height1_add(k,v,index)
+      height1_add(leaf, index)
     else
-      heightn_add(k,v,index,level)
+      heightn_add(leaf, index, level)
     end
   end
 
-  remove(k:Key):Node[\Key,Val\] = do
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
     index:ZZ32 = find_index(k)
     if height = 1 then
       height1_remove(k,index)
@@ -288,60 +360,85 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     nkeys_break()
   end
 
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = 
+  if height = 1 then  
+    height1_merge(nodes)
+  else
+    heightn_merge(nodes)
+  end
+
   (* perform the add operation when the height is one *)
-  height1_add(k:Key, v:Val, index:ZZ32):Node[\Key,Val\] = do
-    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
-    children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
-    newnode:Node[\Key,Val\] = LeafNode[\Key,Val\]((k,v))
-    keysplit:ZZ32 = keys.size() - index
-    (smaller,larger) = if k > children[index].getKey() then (children[index], newnode) else (newnode, children[index]) end
-    children'[index] := smaller
-    children'[index + 1] := larger
-    children'[0 # index] := children[0 # index]
-    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]    
-    keys'[index] := larger.getKey()
-    keys'[0 # index] := keys[0 # index]
-    keys'[(index + 1) # keysplit] := keys[index # keysplit]
-    InternalNode[\Key,Val\](keys',children',height)
+  height1_add(leaf:LeafNode[\Key,Val\], index:ZZ32):(Node[\Key,Val\], Boolean) = do
+    if children[index].getKey() = leaf.getKey() then
+      values:Array[\Val,ZZ32\] = array[\Val\](leaf.values.size() + children[index].values.size())
+      values[0 # leaf.values.size()] := leaf.values[0 # leaf.values.size()]
+      values[leaf.values.size() # children[index].values.size()] := children[index].values[0 # children[index].values.size()]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](leaf.getKey(), values)
+      children':Array[\Node[\Key,Val\],ZZ32\] = children.copy()
+      children'[index] := newleaf
+      (InternalNode[\Key,Val\](keys,children',height), false)
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
+      children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
+      keysplit:ZZ32 = keys.size() - index
+      (smaller,larger) = if leaf.getKey() > children[index].getKey() then (children[index], leaf) else (leaf, children[index]) end
+      children'[index] := smaller
+      children'[index + 1] := larger
+      children'[0 # index] := children[0 # index]
+      children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]    
+      keys'[index] := larger.getKey()
+      keys'[0 # index] := keys[0 # index]
+      keys'[(index + 1) # keysplit] := keys[index # keysplit]
+      (InternalNode[\Key,Val\](keys',children',height), true)
+    end
   end
 
   (* perform the add operation when the height is greater than one *)
-  heightn_add(k:Key, v:Val, index:ZZ32, level:ZZ32):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = children[index].add_helper(k,v,level)
-    if level < height then
+  heightn_add(leaf:LeafNode[\Key,Val\], index:ZZ32, level:ZZ32):(Node[\Key,Val\], Boolean) = do
+    (child':Node[\Key,Val\], newKey:Boolean) = children[index].add_helper(leaf, level)
+    if level < height OR newKey = false then
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
       children'[0 # (children.size())] := children[0 # (children.size())]
       children'[index] := child'
-      InternalNode[\Key,Val\](keys,children',height)
+      (InternalNode[\Key,Val\](keys,children',height), newKey)
     else
-      split(index, child')
+      (split(index, child'), newKey)
     end
   end
 
   (* perform the remove operation when the height is one *)
-  height1_remove(k:Key, index:ZZ32):Node[\Key,Val\] = do
+  height1_remove(k:Key, index:ZZ32):(Node[\Key,Val\],Maybe[\Val\]) = do
     if children[index].getKey() = k then
-      height1_remove_helper(index)
+      height1_remove_helper(k, index)
     else
-      self
+      (self, Nothing[\Val\]())
     end
   end
 
-  height1_remove_helper(index:ZZ32):Node[\Key,Val\] = do
-    if keys.size() = 1 then
-      WhiteNode[\Key,Val\](children[(index + 1) MOD 2], height)
+  height1_remove_helper(k:Key, index:ZZ32):(Node[\Key,Val\], Maybe[\Val\]) = do
+    values:Array[\Val,ZZ32\] = children[index].values
+    val:Val = values[values.size() - 1]
+    if values.size() > 1 then
+      values':Array[\Val,ZZ32\] = array[\Val\](values.size() - 1)
+      values'[0 # values'.size()] := values[0 # values'.size()]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values')
+      children':Array[\Node[\Key,Val\],ZZ32\] = children.copy()
+      children'[index] := newleaf
+      InternalNode[\Key,Val\](keys,children',height)
+    elif keys.size() = 1 then
+      (WhiteNode[\Key,Val\](children[(index + 1) MOD 2], height), Just[\Val\](val))
     else
-      index_remove(index)
+      (index_remove(index), Just[\Val\](val))
     end
   end
 
   (* perform the remove operation when the height is greater than one *)
-  heightn_remove(k:Key, index:ZZ32):Node[\Key,Val\] = do
-    child':Node[\Key,Val\] = children[index].remove(k)
+  heightn_remove(k:Key, index:ZZ32):(Node[\Key,Val\],Maybe[\Val\]) = do
+    (child':Node[\Key,Val\], maybe:Maybe[\Val\]) = children[index].remove(k)
     if keys.size() = 1 then
-      heightn_remove_1key(index,child')
+      (heightn_remove_1key(index,child'), maybe)
     else
-      heightn_remove_nkeys(index,child')
+      (heightn_remove_nkeys(index,child'), maybe)
     end
   end
 
@@ -428,6 +525,131 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     (left, right, key')
   end
 
+  (* perform the merge operation when the height is equal to one *)
+  height1_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
+    height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
+      Concat[\LeafNode[\Key,Val\]\](),
+      fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
+  end
+
+  (* helper function for height1_merge where nodes is a list of all leaves *)  
+  height1_merge_leaves(nodes:List[\LeafNode[\Key,Val\]\]):Node[\Key,Val\] = do
+    (* TODO: A bulk insert could be implemented that does not used serialized single inserts *)
+    newNode:Node[\Key,Val\] := self
+    for leaf <- seq(nodes) do
+      (tempNode, newKey) = newNode.add_helper(leaf, 1)
+      newNode := tempNode    
+    end 
+    newNode
+  end
+
+  (* perform the merge operation when the height is greater than one *)
+  heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
+    destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\] = array[\List[\Node[\Key,Val\]\]\](children.size())
+    empty:List[\Node[\Key,Val\]\] = emptyList[\Node[\Key,Val\]\]()
+    destinations.fill(empty)
+    for node <- nodes do
+      merge_destination_insert(node, destinations)
+    end
+    keys':Array[\Key,ZZ32\] = keys.copy()
+    children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
+    for index <- 0 # children.size() do
+      if destinations[index].isEmpty() then
+        children'[index] := children[index]
+      else
+        children'[index] := children[index].merge(destinations[index])
+      end
+    end
+    InternalNode[\Key,Val\](keys',children',height)
+  end
+
+  (* The following are a set of helper function for heightn_merge.  
+     They try to unambiguously merge a target node into one of the children
+     of this node.  If an ambiguity occurs, then look at the children of the target node
+     and recursively repeat this process. *)
+
+  (* helper function for heightn_merge on EmptyNodes *)     
+  merge_destination_insert(node:EmptyNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = ()
+
+  (* helper function for heightn_merge on LeafNodes *)
+  merge_destination_insert(node:LeafNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    index:ZZ32 = find_index(node.getKey())
+    atomic do
+      destinations[index] := destinations[index].addLeft(node)
+    end
+  end
+
+  (* helper function for heightn_merge on WhiteNodes *)
+  merge_destination_insert(node:WhiteNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    merge_destination_insert(node.child, destinations)    
+  end
+  
+  (* helper function for heightn_merge on InternalNodes *)
+  merge_destination_insert(node:InternalNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    for index <- 0 # (node.children.size()) do  
+      merge_destination_insert_helper(node, index, destinations)
+    end
+  end
+
+  (* these method should be rewritten once intervals are implemened *)
+  merge_destination_insert_helper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if index = 0 then
+    merge_destination_lower(node, index, destinations)       
+  elif index = node.keys.size() then
+    merge_destination_upper(node, index, destinations)
+  else
+    merge_destination_middle(node, index, destinations)
+  end
+
+  (* take care of intervals of the form (-INFINITY, x] *)
+  merge_destination_lower(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if node.keys[index] <= keys[0] then
+    atomic do
+      destinations[0] := destinations[0].addLeft(node.children[index])
+    end
+  else
+    merge_destination_insert(node.children[index], destinations)
+  end   
+
+  (* take care of intervals of the form [x, INFINITY) *)  
+  merge_destination_upper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if node.keys[index - 1] >= keys[keys.size() - 1] then
+    atomic do
+      destinations[keys.size()] := destinations[keys.size()].addLeft(node.children[index])
+    end
+  else
+    merge_destination_insert(node.children[index], destinations)
+  end
+
+  (* take care of all other intervals *)  
+  merge_destination_middle(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    index':ZZ32 = find_unique(node, index)
+    if index' >= 0 then
+      atomic do      
+        destinations[index'] := destinations[index'].addLeft(node.children[index])
+      end
+    else
+      merge_destination_insert(node.children[index], destinations)
+    end
+  end
+    
+  (* find the unique interval in self that encompasses node.children[index], or return -1 *)
+  find_unique(node:InternalNode[\Key,Val\], index:ZZ32):ZZ32 = do
+    index':ZZ32 := -1
+    lower:Key = node.keys[index - 1]
+    upper:Key = node.keys[index]
+    for i <- 0 # (keys.size() - 1) do
+      if (keys[i] <= lower AND keys[i + 1] >= upper) then
+        index' := (i + 1)
+      end
+    end
+    index'
+  end
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] = children.generate[\List[\LeafNode[\Key,Val\]\]\](
+    Concat[\LeafNode[\Key,Val\]\](),
+    fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves())
+
 end
 
 (* The empty node represents an empty tree. It is neither a leaf node nor
@@ -435,6 +657,7 @@ end
 object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
 
   getHeight():ZZ32 = fail("Cannot get height of an empty tree")
+  getSize():ZZ32 = 0
 
   isLeaf():Boolean = fail("Empty node is neither a leaf nor an internal node")
   isTreeEmpty():Boolean = true
@@ -446,47 +669,53 @@ object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
 
   remove(k:Key):Node[\Key,Val\] = self
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    add_helper(k,v,level)
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
+    (newNode, newKey) = add_helper(leaf, level)
+    newNode
   end
 
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = do
-    leaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\]((k, v))
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
     parent:WhiteNode[\Key,Val\] = WhiteNode[\Key,Val\](leaf,1)
-    parent
+    (parent, true)
   end
 
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = fail("Cannot split an empty node.")
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break an empty node.")
 
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = nodes[0]
+  
+  getLeaves():List[\LeafNode[\Key,Val\]\] =  emptyList[\LeafNode[\Key,Val\]\]()
 
 end
 
 (* Leaf nodes are the only nodes that store values.  All leaf
    nodes live at the bottom of the tree, and they all have height 0. *)
-object LeafNode[\Key,Val\](pair: (Key, Val)) extends Node[\Key,Val\]
+object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Key,Val\]
 
-  (key, val) = pair
-  getPair():(Key, Val) = pair
   getKey():Key = key
-  getVal():Val = val
+  getValues():Array[\Val,ZZ32\] = values
   getHeight():ZZ32 = 0
+  getSize():ZZ32 = values.size()  
 
   isLeaf():Boolean = true
   isTreeEmpty():Boolean = false
   isNodeEmpty():Boolean = false
 
-  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](val) else Nothing[\Val\]() end
+  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](values[0]) else Nothing[\Val\]() end
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
   remove(k:Key):Node[\Key,Val\] = fail("Cannot remove a key from a leaf node.")
 
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\] = fail("Cannot split a leaf node.")
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a leaf node.")
 
-  toString():String = "<<" key ">>"
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = fail("Cannot merge into a leaf node.")
 
+  getLeaves():List[\LeafNode[\Key,Val\]\] = singleton[\LeafNode[\Key,Val\]\](self)
+
+  toString():String = "<<" key ">>"
+  
 end
 
 

@@ -25,6 +25,7 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   InternalNode[\Key,Val\], WhiteNode[\Key,Val,height\]}
 
   getHeight():ZZ32
+  getSize():ZZ32
 
   isLeaf():Boolean
   isTreeEmpty():Boolean
@@ -34,10 +35,16 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
 
   toString():String
 
-  add(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
-  add_helper(k:Key, v:Val, level:ZZ32):Node[\Key,Val\]
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\]
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean)
 
-  remove(k:Key):(Node[\Key,Val\], Boolean)
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\])
+
+  (* merge must always be invoked with at least one element in the merge list *)
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\]
+
+  (* return the list of leaves that are under the current subtree *)
+  getLeaves():List[\LeafNode[\Key,Val\]\]
 
   (* splits the new child in half and sucks the split key up to this level *)
   split(index:ZZ32, heir:Node[\Key,Val\]):InternalNode[\Key,Val\]
