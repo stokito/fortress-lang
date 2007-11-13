@@ -22,7 +22,7 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\]) end
 NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\]
 
 trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
-  InternalNode[\Key,Val\], WhiteNode[\Key,Val,height\]}
+  InternalNode[\Key,Val\], WhiteNode[\Key,Val\]}
 
   getHeight():ZZ32
   getSize():ZZ32
