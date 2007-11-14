@@ -22,6 +22,11 @@ export Executable
 tuple = ("test", 8)
 (key, val):(String, ZZ32) = tuple
 
-run(args:String...) = println key
+run(args:String...) = do
+   println("Key=" key)
+   println("Val=" val)
+   assert(key, "test", "Key not test")
+   assert(val, 8, "Val not 8")
+end
 
 end
