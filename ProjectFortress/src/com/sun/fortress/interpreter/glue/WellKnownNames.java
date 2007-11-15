@@ -27,13 +27,10 @@ public class WellKnownNames {
     public static String arrayMaker(int rank) {
         return "__builtinFactory"+rank;
     }
+    public static String varargsFactoryName = "__builtinFactory1";
     public static String arrayElementTypeName = "T";
     public static String arrayGetter = "get";
-    public static String arrayPutter = "put";
-
-    public static String setTrait = "Set";
-    public static String setMaker = "SetMaker";
-    public static String setElementTypeName = "T";
+    public static String arrayPutter = "init";
 
     public static String loopMethod = "loop";
     public static String generateMethod = "generate";
