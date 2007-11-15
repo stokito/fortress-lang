@@ -196,7 +196,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 // parameter)
 
                 // Find and invoke array1[\ T, size1 \] ()
-                String genericName = WellKnownNames.arrayMaker(1);
+                String genericName = WellKnownNames.varargsFactoryName;
                 int[] natParams = new int[1];
                 natParams[0] = args.size() - i;
 
