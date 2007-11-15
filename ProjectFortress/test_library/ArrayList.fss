@@ -293,7 +293,7 @@ value object Alr[\E,nat maxUn\]( underlying : PrimImmutableArray[\E,maxUn\],
       (* This is a prefix computation, replace it when we get real
          prefixes. *)
       sz : ZZ32 := 0
-      for i <- mLen.indices() do
+      for i <- sequential(mLen.indices()) do
           mLen.init(i,sz)
           sz += mf.get(i).size()
       end
