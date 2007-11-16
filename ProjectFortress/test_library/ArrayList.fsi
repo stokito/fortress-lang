@@ -17,20 +17,38 @@
 
 api ArrayList
 
-(** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
-    16:2 2006.
+(** Array Lists, immutable style (not the mutable Java ArrayList style).
 
-    Why finger trees?  They're balanced and support nearly any
-    operation we care to think of in optimal asymptotic time and
-    space.  The code is niggly due to lots of cases, but fast in
-    practice.
+    An ArrayList is an immutable segment of a mutable array.  The rest
+    of the mutable array may contain elements of purelists in which
+    this list is contained, or may be free for future use.  Every
+    PureList includes a pointer to a flag canExtend; if this flag is
+    true we are permitted to add additional elements to the PureList
+    in place by writing into the mutable array.  At most one instance
+    sharing the same backing array will obtain permission to extend
+    the array in this way; we atomically check and update the flag to
+    guarantee this.  Having obtained permission to extend the list,
+    that permission may be extended to future attempts to extend.
 
-    It's also a trial for encoding type-based invariants in Fortress.
-    Can we represent "array of size at most n"?  Not yet, but we ought
-    to be able to do so.  This involves questions about the encoding
-    of existentials, especially constrained existentials.
+    Eventually the backing array fills and we must allocate a new
+    backing array to accept new elements.  At the moment we're not
+    particularly careful to avoid stealing permission to extend for
+    overflowing append operations.
 
-  *)
+    Note that because of this implementation, an ArrayList can be
+    efficiently extended on the right (addRight) and appended to
+    (append), but cannot be efficiently extended on the left
+    (addLeft).
+
+    Note also that the implementation hasn't yet been carefully
+    checked for amortization, so it is quite likely there are a number
+    of asymptotic infelicities in the implementation.
+
+    Finally, note that this is an efficient *amortized* structure.  An
+    individual operation may be quite slow due to copying work.
+
+    Baking these off vs PureLists, they look very good in practice.
+ **)
 
 (** Generic list trait.
     We return a Generator for non-List-specific operations for which
