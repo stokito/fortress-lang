@@ -422,5 +422,9 @@ public class FTypeTuple extends FType {
         exclDumpln(" No exclusion.");
         return false;
     }
+    
+    public List<FType> getTypes() {
+        return l;
+    }
 
 }
