@@ -508,7 +508,7 @@ end
 (* Actually convert a ZZ32 into a NatParam. *)
 reflect(z:ZZ32):NatParam = do
   if z < 0 then
-    fail("reflect(" z "): " negative argument)
+    fail("reflect(" z "): negative argument")
   else
     __refl'[\0,1\](z)
   end
@@ -838,6 +838,10 @@ trait ArrayTypeWith0[\E,I\]
     toIndex(i:I): I
 end
 
+(** NOTE: StandardImmutableArrayType is a parent of
+    StandardMutableArrayType.  It therefore doesn't extend
+    ImmutableArrayType as you might expect.  Other types that extend
+    it should also extend ImmutableArrayType explicitly. **)
 trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],E,I\]
         extends { ArrayTypeWith0[\E,I\] }
     (** CONCRETE GETTERS
@@ -947,8 +951,8 @@ trait ReadableArray1[\T, nat b0, nat s0\]
 end
 
 trait ImmutableArray1[\T, nat b0, nat s0\]
-    extends { ReadableArray1[\T,b0,s0\],
-              StandardImmutableArrayType[\ImmutableArray1[\T,b0,s0\],T,ZZ32\] }
+    extends { StandardImmutableArrayType[\ImmutableArray1[\T,b0,s0\],T,ZZ32\],
+              ImmutableArray[\T,ZZ32\], ReadableArray1[\T,b0,s0\] }
     getter mutability():String = "(immutable)"
     shift(o:ZZ32): ImmutableArray[\T,ZZ32\] =
         if o=0 then
@@ -1792,7 +1796,7 @@ object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
         extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = "seq(" g ".map(f))"
+    getter toString() = "seq(" g0 ".map(f))"
     seq(self): SimpleMappedSeqGenerator[\E,F\] = self
 end
 
@@ -1885,7 +1889,7 @@ end
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     size() = g.size()
-    toString() = "seq(" g.toString() ")"
+    toString() = "naive seq(" g.toString() ")"
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, g:R->R): R->R = fn (x:R):R => g(f(x))
       id(x:R):R = x
