@@ -26,6 +26,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
@@ -60,6 +61,23 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     abstract public String  at();
     abstract public List<FType> getDomain();
     
+    /**
+     * For now, prefer to unwrap tuples because that avoid creating
+     * new memo entries for tuple types.
+     * @return
+     */
+    public List<FType> getNormalizedDomain() {
+        List<FType> d = getDomain();
+        if (d.size() == 1) {
+            FType t = d.get(0);
+            if (t  instanceof FTypeTuple) {
+              d = ((FTypeTuple) t).getTypes();
+            }
+        }
+        return d;
+         
+    }
+    
     public List<FValue> fixupArgCount(List<FValue> args) {
         System.out.println("Naive fixupArgCount "+this+
                            "("+this.getClass()+")"+
@@ -76,7 +94,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         @Override
         public long hash(SingleFcn x) {
             long a = (long) x.getFnName().hashCode() * MagicNumbers.s;
-            long b =  (long) x.getDomain().hashCode() * MagicNumbers.l;
+            long b =  (long) x.getNormalizedDomain().hashCode() * MagicNumbers.l;
             // System.err.println("Hash of " + x + " yields " + a + " and " + b);
 
             return a + b;
@@ -84,8 +102,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
         @Override
         public boolean equiv(SingleFcn x, SingleFcn y) {
-            List<FType> dx = x.getDomain();
-            List<FType> dy = y.getDomain();
+            List<FType> dx = x.getNormalizedDomain();
+            List<FType> dy = y.getNormalizedDomain();
             if (dx.size() != dy.size())
                 return false;
             if (! x.getFnName().equals(y.getFnName()))
