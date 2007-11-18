@@ -66,7 +66,7 @@ public class Overload implements Comparable, HasAt {
      * @return Returns the params.
      */
     public List<FType> getParams() {
-        return fn.getDomain();
+        return fn.getNormalizedDomain();
     }
 
 
