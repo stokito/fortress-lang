@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component tupleTypeParams2
+export executable
+
+trait A[\T\]
+   f(x:T):ZZ32
+end
+
+object B extends A[\ (ZZ32, ZZ32) \]
+   f(a:ZZ32, b:ZZ32) = a+b
+end
+
+g(a:ZZ32, b:ZZ32) = "g untupled"
+g(t:(ZZ32, ZZ32)) = do
+  (a, b) = t
+  "g tupled"
+end
+
+h(a:ZZ32, b:ZZ32) = "h untupled"
+h(t:(ZZ32, ZZ32, ZZ32)) = do
+  (a, b, c) = t
+  "h tupled"
+end
+
+run(args:String...):() = do
+   println B.f(3, 4)
+   println g(10, 3)
+   println g((10, 3))
+   println h(10, 3)
+   println h((10, 3, 7))
+end
+
+end
