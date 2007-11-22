@@ -58,8 +58,8 @@ generate_tail[\Key,Val\](node:Node[\Key,Val\], length:ZZ32):Node[\Key,Val\]
 
 (* The four types of nodes: EmptyNode, WhiteNode, LeafNode, and InternalNode *)
 object EmptyNode[\Key,Val\]() extends Node[\Key,Val\] end
-object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Key,Val\] end
+object WhiteNode[\Key,Val\](child:Node[\Key,Val\]) extends Node[\Key,Val\] end
 object LeafNode[\Key,Val\](pair: (Key, Val)) extends Node[\Key,Val\] end
-object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\], children:Array[\Node[\Key,Val\],ZZ32\], height:ZZ32) extends Node[\Key,Val\] end
+object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\], children:Array[\Node[\Key,Val\],ZZ32\]) extends Node[\Key,Val\] end
 
 end

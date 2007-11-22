@@ -135,7 +135,7 @@ end
 
 generate_tail[\Key,Val\](node:Node[\Key,Val\], length:ZZ32):Node[\Key,Val\] =
 if length > 0 then
-  generate_tail[\Key,Val\](WhiteNode[\Key,Val\](node,node.getHeight() + 1), length - 1)
+  generate_tail[\Key,Val\](WhiteNode[\Key,Val\](node), length - 1)
 else
   node
 end
@@ -144,9 +144,10 @@ end
 (* A white node stores exactly zero keys and contains one child. White nodes are
    used as placeholders to keep the height of all branches identical. A white node
    has a height > 0 *)
-object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Key,Val\]
+object WhiteNode[\Key,Val\](child:Node[\Key,Val\]) extends Node[\Key,Val\]
 
   size:ZZ32 = child.getSize()
+  height:ZZ32 = child.getHeight() + 1
   getHeight():ZZ32 = height
   getSize():ZZ32 = size
 
@@ -187,7 +188,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
     keys[0] := key'
     children[0] := left
     children[1] := right
-    InternalNode[\Key,Val\](keys,children,height)
+    InternalNode[\Key,Val\](keys,children)
   end
 
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) = fail("Cannot break a white node")
@@ -209,7 +210,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
       values[0 # leaf.values.size()] := leaf.values[0 # leaf.values.size()]
       values[leaf.values.size() # child.values.size()] := child.values[0 # child.values.size()]
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
-      (WhiteNode[\Key,Val\](newleaf, height), false)
+      (WhiteNode[\Key,Val\](newleaf), false)
     else
       keys:Array[\Key,ZZ32\] = array[\Key\](1)
       children:Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
@@ -217,7 +218,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
       keys[0] := lkey
       children[0] := smaller
       children[1] := larger
-      (InternalNode[\Key,Val\](keys,children,height), true)
+      (InternalNode[\Key,Val\](keys,children), true)
     end
   end
 
@@ -225,7 +226,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
   heightn_add(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
     (child':Node[\Key,Val\], newKey:Boolean) = child.add_helper(leaf,level)
     if level < height OR newKey = false then
-      (WhiteNode[\Key,Val\](child', height), newKey)
+      (WhiteNode[\Key,Val\](child'), newKey)
     else
       (split(0, child'), newKey)
     end
@@ -240,7 +241,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
         values:Array[\Val,ZZ32\] = array[\Val\](child.values.size() - 1)
         values[0 # values.size()] := child.values[0 # values.size()]
         newLeaf = LeafNode[\Key,Val\](k, values)
-        (WhiteNode[\Key,Val\](newLeaf, height), Just[\Val\](child.values[values.size()]))
+        (WhiteNode[\Key,Val\](newLeaf), Just[\Val\](child.values[values.size()]))
       end
     else
       (self, Nothing[\Val\]())
@@ -253,7 +254,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
     if instanceOf[\EmptyNode[\Key,Val\]\](child') then
       (child', maybe)
     else
-      (WhiteNode[\Key,Val\](child', height), maybe)
+      (WhiteNode[\Key,Val\](child'), maybe)
     end
   end
  
@@ -276,7 +277,7 @@ object WhiteNode[\Key,Val\](child:Node[\Key,Val\], height:ZZ32) extends Node[\Ke
   end
 
   (* perform the merge operation when the height is greater than one *) 
-  heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = WhiteNode[\Key,Val\](child.merge(nodes), height)
+  heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = WhiteNode[\Key,Val\](child.merge(nodes))
 
   getLeaves():List[\LeafNode[\Key,Val\]\] = child.getLeaves()
 
@@ -285,10 +286,13 @@ end
 (* An internal node stores N keys and N + 1 children where N > 0.
    An internal nodes has a height > 0. *)
 object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
-  children:Array[\Node[\Key,Val\],ZZ32\], height:ZZ32) extends Node[\Key,Val\]
+  children:Array[\Node[\Key,Val\],ZZ32\]) extends Node[\Key,Val\]
 
   size:ZZ32 = children.generate[\ZZ32\](SumReduction[\ZZ32\](),
                                         fn (node:Node[\Key,Val\]):ZZ32 => node.getSize())
+                                        
+  height:ZZ32 = children[0].getHeight() + 1
+  
   getHeight():ZZ32 = height
   getSize():ZZ32 = size
 
@@ -348,7 +352,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     children'[index + 1] := right
     keys'[(index + 1) # keysplit] := keys[index # keysplit]
     children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
-    InternalNode[\Key,Val\](keys',children',height)
+    InternalNode[\Key,Val\](keys',children')
   end
 
   break():(Node[\Key,Val\],Node[\Key,Val\],Key) =
@@ -376,7 +380,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](leaf.getKey(), values)
       children':Array[\Node[\Key,Val\],ZZ32\] = children.copy()
       children'[index] := newleaf
-      (InternalNode[\Key,Val\](keys,children',height), false)
+      (InternalNode[\Key,Val\](keys,children'), false)
     else
       keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size() + 1)
@@ -389,7 +393,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       keys'[index] := larger.getKey()
       keys'[0 # index] := keys[0 # index]
       keys'[(index + 1) # keysplit] := keys[index # keysplit]
-      (InternalNode[\Key,Val\](keys',children',height), true)
+      (InternalNode[\Key,Val\](keys',children'), true)
     end
   end
 
@@ -400,7 +404,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](children.size())
       children'[0 # (children.size())] := children[0 # (children.size())]
       children'[index] := child'
-      (InternalNode[\Key,Val\](keys,children',height), newKey)
+      (InternalNode[\Key,Val\](keys,children'), newKey)
     else
       (split(index, child'), newKey)
     end
@@ -424,9 +428,9 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values')
       children':Array[\Node[\Key,Val\],ZZ32\] = children.copy()
       children'[index] := newleaf
-      InternalNode[\Key,Val\](keys,children',height)
+      InternalNode[\Key,Val\](keys,children')
     elif keys.size() = 1 then
-      (WhiteNode[\Key,Val\](children[(index + 1) MOD 2], height), Just[\Val\](val))
+      (WhiteNode[\Key,Val\](children[(index + 1) MOD 2]), Just[\Val\](val))
     else
       (index_remove(index), Just[\Val\](val))
     end
@@ -446,14 +450,14 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
   heightn_remove_1key(index:ZZ32, child':Node[\Key,Val\]):Node[\Key,Val\] = do
     other:ZZ32 = (index + 1) MOD 2
     if instanceOf[\EmptyNode[\Key,Val\]\](child') then
-      WhiteNode[\Key,Val\](children[other], height)
+      WhiteNode[\Key,Val\](children[other])
     else
       keys':Array[\Key,ZZ32\] = array[\Key\](1)
       children':Array[\Node[\Key,Val\],ZZ32\] = array[\Node[\Key,Val\]\](2)
       keys'[0] := keys[0]
       children'[index] := child'
       children'[other] := children[other]
-      InternalNode[\Key,Val\](keys', children', height)
+      InternalNode[\Key,Val\](keys', children')
     end
   end
 
@@ -467,7 +471,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
       keys'[0 # keys.size()] := keys[0 # keys.size()]
       children'[0 # children.size()] := children[0 # children.size()]
       children'[index] := child'
-      InternalNode[\Key,Val\](keys', children', height)
+      InternalNode[\Key,Val\](keys', children')
     end
   end
 
@@ -480,7 +484,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     keys'[replace # (keys'.size() - replace)] := keys[(replace + 1) # (keys'.size() - replace)]
     children'[0 # index] := children[0 # index]
     children'[index # (children'.size() - index)] := children[(index + 1) # (children'.size() - index)]
-    InternalNode[\Key,Val\](keys', children', height)
+    InternalNode[\Key,Val\](keys', children')
   end
 
   (* perform the break operation when we have exactly one key *)
@@ -502,7 +506,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     rkeys[0] := keys[1]
     rchildren[0#2] := children[1#2]
     left:Node[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
-    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren,height)
+    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren)
     (left, right, key')
   end
 
@@ -520,8 +524,8 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
     lchildren[0 # (lsize + 1)] := children[0 # (lsize + 1)]
     rkeys[0 # rsize] := keys[(half + 1) # rsize]
     rchildren[0 # (rsize + 1)] := children[(half + 1) # (rsize + 1)]
-    left:Node[\Key,Val\] = InternalNode[\Key,Val\](lkeys,lchildren,height)
-    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren,height)
+    left:Node[\Key,Val\] = InternalNode[\Key,Val\](lkeys,lchildren)
+    right:Node[\Key,Val\] = InternalNode[\Key,Val\](rkeys,rchildren)
     (left, right, key')
   end
 
@@ -560,7 +564,7 @@ object InternalNode[\Key,Val\](keys:Array[\Key,ZZ32\],
         children'[index] := children[index].merge(destinations[index])
       end
     end
-    InternalNode[\Key,Val\](keys',children',height)
+    InternalNode[\Key,Val\](keys',children')
   end
 
   (* The following are a set of helper function for heightn_merge.  
@@ -675,7 +679,7 @@ object EmptyNode[\Key,Val\]() extends Node[\Key,Val\]
   end
 
   add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
-    parent:WhiteNode[\Key,Val\] = WhiteNode[\Key,Val\](leaf,1)
+    parent:WhiteNode[\Key,Val\] = WhiteNode[\Key,Val\](leaf)
     (parent, true)
   end
 
