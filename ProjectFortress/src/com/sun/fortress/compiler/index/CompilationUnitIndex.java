@@ -26,7 +26,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.NI;
 
 /** Comprises {@link ApiIndex} and {@link CompilationUnit}. */
-public class CompilationUnitIndex {
+public abstract class CompilationUnitIndex {
     
     private final CompilationUnit _ast;
     private final Map<IdName, Variable> _variables;
