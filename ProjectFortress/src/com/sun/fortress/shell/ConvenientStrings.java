@@ -20,4 +20,5 @@ import java.io.*;
 
 public interface ConvenientStrings {
    public static final String SEP = File.separator;
+   public static final String DOT = ".";
 }
