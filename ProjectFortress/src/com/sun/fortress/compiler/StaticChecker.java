@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler;
 
-import java.util.Map;
+import java.util.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.DottedName;
@@ -65,12 +65,34 @@ public class StaticChecker {
         public Map<DottedName, ComponentIndex> components() { return _components; }
     }
     
-    /** Disambiguate the given components. */
+    /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<DottedName, ComponentIndex> components,
-                        GlobalEnvironment env) {
-        // TODO: implement
-        return new ComponentResult(components, IterUtil.<StaticError>empty());
+                        GlobalEnvironment env) 
+    {
+        Map<DottedName, ComponentIndex> checkedComponents = new HashMap<DottedName, ComponentIndex>();
+        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
+        
+//        for (DottedName componentName : components.keySet()) {
+//            ComponentResult checkedComponent = checkComponent(components.get(componentName), env);
+//            checkedComponents.put(componentName, checkedComponent.components().get(componentName));
+//            errors = IterUtil.compose(checkedComponent.errors(), errors);
+//        }
+        return new ComponentResult(components, errors);
+        //return new ComponentResult(checkedComponents, errors);
+    }
+    
+    public static ComponentResult checkComponent(ComponentIndex component, GlobalEnvironment env) {
+        //TypeEnv typeEnv = 
+        // Iterate over top-level variables, adding each to the component-level environment.
+        //Iterable<Variable> vars = component.variables();
+        
+        // Add all top-level function names to the component-level environment.
+        // Iterate over top-level functions, checking the body of each.
+        // Iterate over trait and object definitions.
+        //TypeChecker typeChecker = new TypeChecker(env);
+        //return component.ast().accept(typeChecker);
+        return null;
     }
     
 }
