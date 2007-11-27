@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler;
 
 import java.util.*;
+import com.sun.fortress.compiler.typechecker.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.DottedName;
