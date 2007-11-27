@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
  * Created on Feb 3, 2006
@@ -653,4 +656,47 @@ public class Useful {
         return a.getName().compareTo(b.getName());
     }
 
+    public final static Pattern envVar = Pattern
+            .compile("[$][{][-A-Za-z0-9_.]+[}]");
+
+    final static int INTRO_LEN = 2;
+
+    final static int OUTRO_LEN = 1;
+
+    public static String substituteVars(String e) {
+       return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN);
+    }
+ 
+    public static String substituteVars(String e,
+            Pattern varPat,
+            int intro_len,
+            int outro_len) {
+        Matcher m = varPat.matcher(e);
+
+        int lastMatchEnd = 0;
+        StringBuffer newE = null;
+        while (m.find()) {
+            if (newE == null)
+                newE = new StringBuffer();
+            MatchResult mr = m.toMatchResult();
+            newE.append(e.substring(lastMatchEnd, mr.start()));
+            lastMatchEnd = mr.end();
+            String toReplace = e.substring(mr.start() + intro_len, mr.end()
+                    - outro_len);
+            String candidate = System.getProperty(toReplace);
+            if (candidate == null) {
+                candidate = System.getenv(toReplace);
+                if (candidate == null) {
+                    candidate = "";
+                }
+            }
+            newE.append(candidate);
+        }
+        if (newE != null)
+            e = newE.toString();
+        return e;
+    }
+    
+
+    
 }
