@@ -118,7 +118,7 @@ public final class Shell {
     }
 
     public static void main(String[] args) throws InterruptedException, Throwable { 
-        // First argument is supplied by the fss script and always present; it's simple $PWD.
+        // First argument is supplied by the fss script and is always present; it's simply $PWD.
         new Shell(args[0]).execute(args); 
     }
     
