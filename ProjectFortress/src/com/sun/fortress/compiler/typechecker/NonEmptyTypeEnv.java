@@ -30,7 +30,15 @@ class NonEmptyTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
-    public Type type(IdName var) { return Option.unwrap(entries[0].getType()); }
+    public Type type(IdName var) { 
+        for (LValueBind entry : entries) {
+            if (var.equals(entry.getName())) { 
+                return Option.unwrap(entry.getType()); 
+            }
+        }
+        return parent.type(var);
+    }
+
     public List<Modifier> mods(IdName var) { return entries[0].getMods(); }
     public boolean mutable(IdName var) { return entries[0].isMutable(); }
 }

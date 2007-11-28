@@ -26,19 +26,25 @@ import com.sun.fortress.interpreter.evaluator.transactions.*;
 import com.sun.fortress.interpreter.evaluator.tasks.*;
 import com.sun.fortress.useful.TcWrapper;
 
-
-public class TransactionJUTest extends TcWrapper {
-    public TransactionJUTest(String testName) {
- super(testName);
+public class TestTask2 extends BaseTask {
+    ReadSet rs;
+    int count;
+    
+    TestTask2(ReadSet _rs, int c) {
+        rs = _rs;
+        count = c;
     }
-    public TransactionJUTest() {
- super("TransactionTest");
+    
+    public void print() {
+        System.out.println("TestTask");
     }
-
-    public void testReadSet() {
- int numThreads = Runtime.getRuntime().availableProcessors();
- FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(numThreads);
- TestTask task = new TestTask();
- group.invoke(task);
+    
+    public void compute() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.setCurrentTask(this);
+        for (int i = 0 ; i < count; i++) {
+            rs.add(new Transaction());
+        }
+        
     }
 }

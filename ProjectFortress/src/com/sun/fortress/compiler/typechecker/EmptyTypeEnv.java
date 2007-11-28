@@ -21,7 +21,7 @@ import com.sun.fortress.nodes.*;
 import java.util.*;
 
 class EmptyTypeEnv extends TypeEnv {
-    public static final EmptyTypeEnv ONLY = new EmptyTypeEnv();
+    public static final EmptyTypeEnv NIL = new EmptyTypeEnv();
     
     private EmptyTypeEnv() {}
     

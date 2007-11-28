@@ -20,8 +20,12 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.nodes.*;
 import java.util.*;
 
+import static com.sun.fortress.nodes_util.NodeFactory.makeIdName;
+
+
 public abstract class TypeEnv {
     public abstract Type type(IdName var);
+    public Type type(String var) { return type(makeIdName(var)); }
     public abstract List<Modifier> mods(IdName var);
     public abstract boolean mutable(IdName var);
     
