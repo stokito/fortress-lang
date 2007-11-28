@@ -661,7 +661,7 @@ public class Desugarer extends Rewrite {
                         init = (Expr) visitNode(init);
                         lhs = (List<LValueBind>) visitList(lhs);
                         ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
-                        String temp = "t$" + (++tempCount);
+                        String temp = gensym();
                         Span at = vd.getSpan();
                         VarDecl new_vd = NodeFactory.makeVarDecl(at, temp, init);
                         newdecls.add(new_vd);
@@ -834,6 +834,10 @@ public class Desugarer extends Rewrite {
                 currentSelfName = savedSelfName;
             }
 
+    }
+
+    public String gensym() {
+        return "t$" + (++tempCount);
     }
 
     private String vrToString(VarRef vre) {
