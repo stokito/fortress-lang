@@ -266,10 +266,22 @@ public class NodeFactory {
         return new Id(new Span(), string);
     }
 
+    public static IdType makeIdType(String string) {
+        return makeIdType(new Span(), makeId(string));
+    }
+    
     public static IdType makeIdType(Span span, Id id) {
         return new IdType(span, makeQualifiedIdName(id));
     }
 
+    public static LValueBind makeLValue(String name, String type) {
+        return makeLValue(name, makeIdType(type));
+    }
+    
+    public static LValueBind makeLValue(String name, Type type) {
+        return new LValueBind(new Span(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), true);
+    }
+    
     public static LValueBind makeLValue(LValueBind lvb, Id id) {
         IdName name = makeIdName(id);
         return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
