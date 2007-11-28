@@ -15,8 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler;
+package com.sun.fortress.compiler.typechecker;
 
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.nodes.*;
 import java.util.*;
 
