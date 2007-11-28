@@ -973,7 +973,7 @@ public class Resolver {
         }
       } else if (frame instanceof TightChain) {
         throw new ReadError(op.getSpan(),
-                            "Chaining with inconsistent spacing.");
+                            "Chaining with inconsistent spacing: TightChain in LooseChainStack");
       }
       else { // frame instanceof LooseChain
         PureList<ExprOpPair> links = ((LooseChain)frame).getLinks();
@@ -986,7 +986,7 @@ public class Resolver {
 
   // and tight_chain_stack (e : expr) (op : op) (stack : infix_stack) : infix_stack =
   //   match stack with
-  //     | [] -> [`LooseChain [(e,op)]]
+  //     | [] -> [`TightChain [(e,op)]]
   //     | (`Loose (op',es) as frame) :: rest ->
   //         (match precedence op op' with
   //            | `Higher -> `TightChain [(e,op)] :: stack
@@ -1012,7 +1012,7 @@ public class Resolver {
                           PureList<InfixFrame> stack)
     throws ReadError {
     if (stack.isEmpty()) {
-      InfixFrame frame = new LooseChain(PureList.make(new ExprOpPair(e,op)));
+      InfixFrame frame = new TightChain(PureList.make(new ExprOpPair(e,op)));
 
       return PureList.make(frame);
     }
@@ -1060,7 +1060,7 @@ public class Resolver {
       }
       else if (frame instanceof LooseChain) {
         throw new ReadError(op.getSpan(),
-                            "Chaining with inconsistent spacing.");
+                            "Chaining with inconsistent spacing:LooseChain in TightChainStack");
       }
       else { // frame instanceof TightChain
         PureList<ExprOpPair> links = ((TightChain)frame).getLinks();
