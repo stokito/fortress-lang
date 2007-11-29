@@ -18,17 +18,22 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeIdName;
 
 
 public abstract class TypeEnv {
-    public abstract Type type(IdName var);
-    public Type type(String var) { return type(makeIdName(var)); }
-    public abstract List<Modifier> mods(IdName var);
-    public abstract boolean mutable(IdName var);
+    public abstract Option<LValueBind> binding(IdName var);
+    public abstract Option<Option<Type>> type(IdName var);
+    public abstract Option<List<Modifier>> mods(IdName var);
+    public abstract Option<Boolean> mutable(IdName var);
     
+    public Option<Option<Type>> type(String var) { return type(makeIdName(var)); }
+    public Option<List<Modifier>> mods(String var) { return mods(makeIdName(var)); }
+    public Option<Boolean> mutable(String var) { return mutable(makeIdName(var)); }
+        
     public TypeEnv extend(LValueBind... _entries) {
         return new NonEmptyTypeEnv(_entries, this);
     }
