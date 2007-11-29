@@ -18,7 +18,10 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
+
+import static edu.rice.cs.plt.tuple.Option.*;
 
 class EmptyTypeEnv extends TypeEnv {
     public static final EmptyTypeEnv NIL = new EmptyTypeEnv();
@@ -26,7 +29,9 @@ class EmptyTypeEnv extends TypeEnv {
     private EmptyTypeEnv() {}
     
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
-    public Type type(IdName var) { throw error(); }
-    public List<Modifier> mods(IdName var) { throw error(); }
-    public boolean mutable(IdName var) { throw error(); }
+    
+    public Option<LValueBind> binding(IdName var) { return none(); }
+    public Option<Option<Type>> type(IdName var) { return none(); }
+    public Option<List<Modifier>> mods(IdName var) { return none(); }
+    public Option<Boolean> mutable(IdName var) { return none(); }
 }

@@ -279,7 +279,12 @@ public class NodeFactory {
     }
     
     public static LValueBind makeLValue(String name, Type type) {
-        return new LValueBind(new Span(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), true);
+        return new LValueBind(new Span(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), false);
+    }
+    
+    public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
+        LValueBind result = makeLValue(name, type);
+        return makeLValue(result, mods);
     }
     
     public static LValueBind makeLValue(LValueBind lvb, Id id) {

@@ -21,6 +21,8 @@ import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
+import static edu.rice.cs.plt.tuple.Option.*;
+
 class NonEmptyTypeEnv extends TypeEnv {
     private LValueBind[] entries;
     private TypeEnv parent;
@@ -30,15 +32,35 @@ class NonEmptyTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
-    public Type type(IdName var) { 
+    public Option<LValueBind> binding(IdName var) {
         for (LValueBind entry : entries) {
             if (var.equals(entry.getName())) { 
-                return Option.unwrap(entry.getType()); 
+                return wrap(entry);
             }
         }
-        return parent.type(var);
+        return parent.binding(var);
+    }
+    
+    public Option<Option<Type>> type(IdName var) { 
+        Option<LValueBind> binding = binding(var);
+        
+        if (binding.isSome()) { return wrap(unwrap(binding).getType()); }
+        else { return Option.none(); }
     }
 
-    public List<Modifier> mods(IdName var) { return entries[0].getMods(); }
-    public boolean mutable(IdName var) { return entries[0].isMutable(); }
+
+    public Option<List<Modifier>> mods(IdName var) { 
+        Option<LValueBind> binding = binding(var);
+        
+        if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
+        else { return Option.none(); }
+    }
+
+    public Option<Boolean> mutable(IdName var) { 
+        Option<LValueBind> binding = binding(var);
+        
+        if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
+        else { return Option.none(); }
+    }        
+
 }
