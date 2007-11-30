@@ -1,0 +1,110 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fortress.executable
+
+export Executable
+
+test1()=do
+    case 2 + 2 of
+        4 => ()
+        5#2 => fail("caseTest test1 failed")
+    end
+end
+
+test2()= do
+    case 2 + 4 of
+        4 => fail("caseTest test2 failed")
+        5#2 => ()
+    end
+end
+
+test3() = do
+    i = 7
+    j = 9
+    case largest of
+        i => fail("caseTest test3 failed")
+        j => ()
+    end
+end
+
+test4() = do
+    i = 7
+    j = 9
+    case largest of
+        i => fail("caseTest test4 failed")
+        j => ()
+    end
+end
+
+test5() = do
+    case 2+2 <=  of
+        3 => fail("caseTest test5 failed")
+        7 => ()
+    end
+end
+
+test6() = do
+    case 2+2  of
+        3 => fail("caseTest test6 failed")
+        7 => fail("caseTest test6 failed")
+        else => ()
+    end
+end
+
+test7() = do
+    i = 7
+    j = 9
+    case smallest of
+        7 => ()
+        9 => fail("caseTest test7 failed")
+    end
+end
+
+test8()=do
+    mile = 1.6
+    km   = 1
+    f() = do 
+        case largest of 
+            1 mile => "miles are larger"
+            1 km   => fail("caseTest test8 failed")
+        end
+    end
+    f()
+end
+
+test9()=do
+   case largest of
+      "hocuspocus"  => fail("caseTest test9 failed")
+      "abracadabra" => fail("caseTest test9 failed")
+      "shazam"      => ()
+   end
+end
+
+run(args:String...):()=do
+   test1();
+(*   test2();  Doesn't work yet *)
+   test3();
+   test4();
+   test5();
+   test6();
+   test7();
+   test8();
+   test9();
+end
+end
+

@@ -19,10 +19,14 @@ component fortress.executable
 
 export Executable
 
-run(args:String...):()=do
-case 2 + 2 of
-    4 => print("it really is 4 (pass)")
-    5#2 => print("we were wrong again (fail)")
+test1()=do
+    case 2 + 2 of
+        64 => ()
+        128  => ()
+    end
 end
+
+run(args:String...):()=do
+   test1()
 end
 end

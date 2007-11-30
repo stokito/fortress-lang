@@ -85,9 +85,12 @@ Expr DelimitedExpr =
        Option<Opr> compare;
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(NodeFactory.makeOpr(a2));
-       if (a4 == null) a4 = FortressUtil.doBlock(FortressUtil.emptyExprs());
+       Option<Block> _else;
+       if (a4 == null) 
+           _else = Option.none();
+       else _else = Option.some(a4);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, Option.some(a4));
+                              a3, _else);
      }
    / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
      { CaseParam e1;
