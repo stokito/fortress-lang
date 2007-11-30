@@ -498,34 +498,32 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forCaseClause");
     }
 
-    CaseClause findLargest(List<CaseClause> clauses) {
+    CaseClause findExtremum(CaseExpr x, Fcn fcn ) {
+        List<CaseClause> clauses = x.getClauses();
         Iterator<CaseClause> i = clauses.iterator();
+        Option<Opr> in_compare = x.getCompare();
+
+        if (in_compare.isSome())
+            bug(x, "Explicit comparison operators in extremum expressions aren't supported yet");
+
         CaseClause c = i.next();
-        FValue max = c.getMatch().accept(this);
+        FValue winner = c.getMatch().accept(this);
         CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
+            List<FValue> vargs = new ArrayList<FValue>(2);
             FValue current = c.getMatch().accept(this);
-            if (current.getInt() > max.getInt()) {
-                max = current;
-                res = c;
+            vargs.add(current);
+            vargs.add(winner);
+            FValue invoke = functionInvocation(vargs, fcn, x);
+            if (!(invoke instanceof FBool)) {
+                return error(x,errorMsg("Non-boolean result ",invoke,
+                                        " in chain, args ", vargs));
             }
-        }
-        return res;
-    }
-
-    CaseClause findSmallest(List<CaseClause> clauses) {
-        Iterator<CaseClause> i = clauses.iterator();
-        CaseClause c = i.next();
-        FValue min = c.getMatch().accept(this);
-        CaseClause res = c;
-
-        for (; i.hasNext();) {
-            c = i.next();
-            FValue current = c.getMatch().accept(this);
-            if (current.getInt() < min.getInt()) {
-                min = current;
+            FBool boolres = (FBool) invoke;
+            if (boolres.getBool()) {
+                winner = current;
                 res = c;
             }
         }
@@ -535,13 +533,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forCaseExpr(CaseExpr x) {
         List<CaseClause> clauses = x.getClauses();
         CaseParam param = x.getParam();
-
         if (param instanceof CaseParamLargest) {
-            CaseClause y = findLargest(clauses);
-            return forBlock(y.getBody());
+            return forBlock(findExtremum(x,(Fcn) e.getValue(">")).getBody());
         } else if (param instanceof CaseParamSmallest) {
-            CaseClause y = findSmallest(clauses);
-            return forBlock(y.getBody());
+            return forBlock(findExtremum(x,(Fcn) e.getValue("<")).getBody());
         } else {
             // Evaluate the parameter
             FValue paramValue = param.accept(this);
@@ -559,12 +554,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> vargs = new ArrayList<FValue>();
                 vargs.add(paramValue);
                 vargs.add(match);
-                // If it is a range, check that the param is in the range
-                // Otherwise use comparison operation
-                Fcn actual = (match instanceof FRange) ? (Fcn) e
-                        .getValue("elementOf") : fcn;
-
-                FBool success = (FBool) functionInvocation(vargs, actual, c);
+                FBool success = (FBool) functionInvocation(vargs, fcn, c);
                 if (success.getBool())
                     return forBlock(c.getBody());
             }
@@ -573,7 +563,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO need an Else node to hang a location on
                 return forBlock(Option.unwrap(_else));
             }
-            return evVoid;
+            FObject f = (FObject) e.getValue(WellKnownNames.matchFailureException);
+            FortressException f_exc = new FortressException(f);
+            throw f_exc;
         }
     }
 
