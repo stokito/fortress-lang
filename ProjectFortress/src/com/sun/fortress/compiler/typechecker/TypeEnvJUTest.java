@@ -21,7 +21,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Useful;
 import junit.framework.TestCase;
 
-import static com.sun.fortress.compiler.typechecker.EmptyTypeEnv.NIL;
+import com.sun.fortress.compiler.typechecker.EmptyTypeEnv;
+
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
@@ -30,9 +31,9 @@ public class TypeEnvJUTest extends TestCase {
     private final Type BAZ = makeIdType("Baz");
     private final Type BAR = makeIdType("Bar");
         
-    private final TypeEnv extended = NIL.extend(makeLValue("x", FOO), 
-                                                makeLValue("y", BAZ), 
-                                                makeLValue("z", BAR));
+    private final TypeEnv extended = TypeEnv.make(makeLValue("x", FOO), 
+                                                  makeLValue("y", BAZ), 
+                                                  makeLValue("z", BAR));
     
     private final TypeEnv moreExtended = 
         extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar())),
@@ -46,9 +47,9 @@ public class TypeEnvJUTest extends TestCase {
                                                          new ModifierSettable())));
             
     public void testEmptyTypeEnv() {
-        assertEquals(none(), NIL.type(makeIdName("x")));
-        assertEquals(none(), NIL.mods(makeIdName("x")));
-        assertEquals(none(), NIL.mutable(makeIdName("x")));
+        assertEquals(none(), TypeEnv.make().type(makeIdName("x")));
+        assertEquals(none(), TypeEnv.make().mods(makeIdName("x")));
+        assertEquals(none(), TypeEnv.make().mutable(makeIdName("x")));
     }
     
     public void testLookupType() {

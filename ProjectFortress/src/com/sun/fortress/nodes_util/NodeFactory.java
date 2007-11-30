@@ -353,6 +353,10 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
+    public static Opr makeOpr(String name) {
+        return new Opr(new Span(), makeOp(name));
+    }
+    
     public static IdName makeIdName(String text) {
         Span span = new Span();
         return new IdName(span, new Id(span, text));
@@ -378,11 +382,6 @@ public class NodeFactory {
         return new Opr(op.getSpan(), op);
     }
 
-    public static NatParam makeNatParam(String name) {
-        Span s = new Span();
-        return new NatParam(s, makeIdName(s, name));
-    }
-
     /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
@@ -395,6 +394,10 @@ public class NodeFactory {
                                             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
                               params, throws_, contract, defs2);
+    }
+
+    public static Op makeOp(String name) {
+        return new Op(new Span(), PrecedenceMap.ONLY.canon(name));
     }
 
     public static Op makeOp(Span span, String name) {
@@ -452,6 +455,35 @@ public class NodeFactory {
         return new SimpleTypeParam(s, makeIdName(s, name),
                                    Collections.<TraitType>emptyList(), false);
     }
+
+    public static OperatorParam makeOperatorParam(String name) {
+        return new OperatorParam(new Span(), makeOpr(name));
+    }
+    
+    public static BoolParam makeBoolParam(String name) {
+        Span s = new Span();
+        return new BoolParam(s, makeIdName(s, name));
+    }
+
+    public static DimensionParam makeDimensionParam(String name) {
+        Span s = new Span();
+        return new DimensionParam(s, makeIdName(s, name));
+    }
+    
+    public static UnitParam makeUnitParam(String name) {
+        Span s = new Span();
+        return new UnitParam(s, makeIdName(s, name));
+    }
+
+    public static IntParam makeIntParam(String name) {
+        Span s = new Span();
+        return new IntParam(s, makeIdName(s, name));
+    }    
+
+    public static NatParam makeNatParam(String name) {
+        Span s = new Span();
+        return new NatParam(s, makeIdName(s, name));
+    }    
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
     public static TupleType makeTupleType(Span span, List<Type> elements, Option<VarargsType> varargs) {

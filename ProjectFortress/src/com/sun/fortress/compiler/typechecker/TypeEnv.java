@@ -25,6 +25,10 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeIdName;
 
 
 public abstract class TypeEnv {
+    public static TypeEnv make(LValueBind... entries) {
+        return EmptyTypeEnv.ONLY.extend(entries);
+    }
+    
     public abstract Option<LValueBind> binding(IdName var);
     public abstract Option<Option<Type>> type(IdName var);
     public abstract Option<List<Modifier>> mods(IdName var);
@@ -34,7 +38,8 @@ public abstract class TypeEnv {
     public Option<List<Modifier>> mods(String var) { return mods(makeIdName(var)); }
     public Option<Boolean> mutable(String var) { return mutable(makeIdName(var)); }
         
-    public TypeEnv extend(LValueBind... _entries) {
-        return new NonEmptyTypeEnv(_entries, this);
+    public TypeEnv extend(LValueBind... entries) {
+        if (entries.length == 0) { return EmptyTypeEnv.ONLY; }
+        else { return new NonEmptyTypeEnv(entries, this); }
     }
 }
