@@ -19,19 +19,32 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
-import java.util.*;
 
 import static edu.rice.cs.plt.tuple.Option.*;
 
-class EmptyTypeEnv extends TypeEnv {
-    public static final EmptyTypeEnv ONLY = new EmptyTypeEnv();
+public class NonEmptyStaticParamEnv extends StaticParamEnv {
+    private StaticParam[] entries;
+    private StaticParamEnv parent;
     
-    private EmptyTypeEnv() {}
+    public NonEmptyStaticParamEnv(StaticParam[] _entries, StaticParamEnv _parent) {
+        entries = _entries;
+        parent = _parent;
+    }
     
-    private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
-    
-    public Option<LValueBind> binding(IdName var) { return none(); }
-    public Option<Option<Type>> type(IdName var) { return none(); }
-    public Option<List<Modifier>> mods(IdName var) { return none(); }
-    public Option<Boolean> mutable(IdName var) { return none(); }
+    private SimpleName paramName(StaticParam param) {
+        // Both OperatorParams and IdStaticParams have name fields, but they
+        // differ in the types of the fields. 
+        if (param instanceof OperatorParam) { 
+            return ((OperatorParam)param).getName(); 
+        } else { // param instanceof IdStaticParam
+            return ((IdStaticParam)param).getName(); 
+        }
+    }
+
+    public Option<StaticParam> binding(SimpleName name) {
+        for (StaticParam entry : entries) {
+            if (name.equals(paramName(entry))) { return wrap(entry); }
+        }
+        return parent.binding(name);
+    }
 }

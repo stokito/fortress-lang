@@ -17,23 +17,15 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.nodes.*;
-import java.util.*;
+import edu.rice.cs.plt.tuple.Option;
 
-public class TypeChecker extends NodeDepthFirstVisitor_void {
-    private GlobalEnvironment globals;
-    private StaticParamEnv staticParams;
-    private TypeEnv params; 
+public class EmptyStaticParamEnv extends StaticParamEnv {
+    public static final EmptyStaticParamEnv ONLY = new EmptyStaticParamEnv();
     
-    public TypeChecker(GlobalEnvironment _globals, 
-                       StaticParamEnv _staticParams, 
-                       TypeEnv _params) 
-    {
-        globals = _globals;
-        staticParams = _staticParams;
-        params = _params;
+    private EmptyStaticParamEnv() {}
+    
+    public Option<StaticParam> binding(SimpleName name) {
+        return Option.none();
     }
-    
-    public void forFnDecl(FnDecl that) {}
 }
