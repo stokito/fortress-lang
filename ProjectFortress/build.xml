@@ -540,11 +540,13 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             depends="checkFortressParserUptodate"
             description="Fortress Parser">
         <echo message="Rebuilding parser..."/>
-       <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
-            <arg value="rats"/>
+       <java fork="yes"
+             dir="${parser}"
+             classname="xtc.parser.Rats"
+             classpath="${xtc}/xtc.jar">
 	    <arg value="-html"/>
 	    <arg value="-instantiated"/>
-            <arg value="Fortress.rats"/>
+            <arg value="PreFortress.rats"/>
         </java>
     </target>
 
@@ -552,8 +554,10 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             depends="checkPreparserUptodate"
             description="Preparser">
         <echo message="Rebuilding preparser..."/>
-       <java jar="${xtc}/xtc.jar" fork="yes" dir="${preparser}">
-            <arg value="rats"/>
+       <java fork="yes"
+             dir="${preparser}"
+             classname="xtc.parser.Rats"
+             classpath="${xtc}/xtc.jar">
 	    <arg value="-html"/>
 	    <arg value="-instantiated"/>
             <arg value="PreFortress.rats"/>
@@ -564,17 +568,12 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             depends="checkParserUptodate"
             description="Fortress Parser">
         <echo message="Rebuilding parser..."/>
-       <java jar="${xtc}/xtc.jar" fork="yes" dir="${parser}">
-            <arg value="rats"/>
+       <java fork="yes"
+             dir="${parser}"
+             classname="xtc.parser.Rats"
+             classpath="${xtc}/xtc.jar">
             <arg value="Fortress.rats"/>
         </java>
-<!--
-        <echo message="Rebuilding the preparser..."/>
-        <java jar="${xtc}/xtc.jar" fork="yes" dir="${preparser}">
-            <arg value="rats"/>
-            <arg value="PreFortress.rats"/>
-        </java>
--->
     </target>
 
     <target name="doc" depends="compile">
