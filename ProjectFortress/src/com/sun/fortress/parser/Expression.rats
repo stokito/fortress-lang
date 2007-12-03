@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress expressions.
  */
-module Expression(Param, Header, Type, DelimitedExpr, Identifier, Keyword,
+module com.sun.fortress.parser.Expression(Param, Header, Type, DelimitedExpr, Identifier, Keyword,
                   Symbol, Spacing);
 
 import Param;

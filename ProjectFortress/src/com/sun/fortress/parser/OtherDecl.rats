@@ -19,7 +19,7 @@
  * Definition of Fortress dimension, unit, type alias, test, property, and
  * external syntax declarations.
  */
-module OtherDecl(Param, Header, Type, NoNewlineExpr, Identifier, Keyword,
+module com.sun.fortress.parser.OtherDecl(Param, Header, Type, NoNewlineExpr, Identifier, Keyword,
                  Symbol, Spacing);
 
 import Param;

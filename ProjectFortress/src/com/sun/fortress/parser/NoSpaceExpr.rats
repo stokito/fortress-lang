@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress expressions within array expressions.
  */
-module NoSpaceExpr(Expr, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.NoSpaceExpr(Expr, Keyword, Symbol, Spacing);
 
 modify Expr;
 import Keyword;

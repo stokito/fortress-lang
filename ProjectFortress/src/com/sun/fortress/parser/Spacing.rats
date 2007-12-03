@@ -22,7 +22,7 @@
  * Every production which can be empty "owns" its leading whitespace.
  * Exception: Modifiers own their trailing whitespace.
  */
-module Spacing(Symbol);
+module com.sun.fortress.parser.Spacing(Symbol);
 
 import Symbol;
 

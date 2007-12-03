@@ -18,31 +18,118 @@
 /*
  * Definition of Fortress macro language.
  */
-module Syntax(Identifier, Keyword, Spacing, Symbols, Expr);
+module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr, Unicode, Header);
 
 import Identifier;
 import Keyword;
 import Spacing;
-import Symbols;
+import Symbol;
 import Expr;
+import Unicode;
+import Header;
 
-/* MacroDecl ::= macro id (br SyntaxDef)* */
-public MacroDecl MacroDecl =
-     macro w a1:id a2s:(w SyntaxDefs)? w end
-     { if (a2s == null) a2s = Collections.<SyntaxDef>emptyList();
-       yyValue = new MacroDecl(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2s);
-     };
+/* GrammarDef ::= grammar w id w Extends? (br ProductionDef)* end */
+public GrammarDecl GrammarDef =
+     grammar w a1:Id a2:(w GrammarExtends)? a3s:(br ProductionDef)* w end
+     { if ( a2 == null) a2 = Collections.<QualifiedIdName>emptyList();
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2, a3s.list()); };
 
+/* GrammarExtends ::= extends w QualifiedNames */
+List<QualifiedIdName> GrammarExtends = extends w QualifiedNames ;
 
-/* SyntaxDefs ::= SyntaxDef (br SyntaxDef)* */
-List<SyntaxDef> SyntaxDefs = a1:SyntaxDef a2s:(br SyntaxDef)*
+/* QualifiedNames ::= QualifiedName | { w QualifiedNameList w } */
+List<QualifiedIdName> QualifiedNames =
+     a1:QualifiedName { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w QualifiedNameList w closecurly ;
+
+/* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
+private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* SyntaxDef ::= SyntaxHeaderFront w = w NoNewlineExpr */
-SyntaxDef SyntaxDef =
-     a1:SyntaxHeaderFront w equals w a2:Expr
-     { yyValue = FortressUtil.mkSyntaxDef(createSpan(yyStart,yyCount), a1, a2); };
+/* Extends ::= extends w IdName */
+Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
-SyntaxHeaderFront SyntaxHeaderFront =
-     a1:Id
-     { yyValue = new SyntaxHeaderFront(NodeFactory.makeIdName(a1));};
+private ProductionDef ProductionDef =
+       production w a1:Id w colon w a2:Id a3:(w Extends)? w end
+      { if ( a3 == null) a3 = Option.none();
+        List<SyntaxDef> a4 = Collections.<SyntaxDef>emptyList();
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), NodeFactory.makeIdName(a2), a3, a4); }
+    / production w a1:Id w colon w a2:Id a3:(w Extends)? w a4:SyntaxDef  a4s:(br SyntaxDefOr)* w end
+      { if ( a3 == null) a3 = Option.none();
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), NodeFactory.makeIdName(a2), a3, FortressUtil.mkList(a4, a4s.list())); };
+
+/* SyntaxDef ::= SyntaxSymbol*  --> w Expr **/
+SyntaxDef SyntaxDef =
+       a1s:SyntaxSymbols w doublerightarrow w a2:Expr
+       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+
+SyntaxDef SyntaxDefOr =
+       or a1s:SyntaxSymbols w doublerightarrow w a2:Expr
+       {yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+
+List<SyntaxSymbol> SyntaxSymbols =
+      a1:SyntaxSymbol a1s:(w SyntaxSymbol)* &(w doublerightarrow)
+      { yyValue = FortressUtil.mkList(a1, a1s.list()); };
+
+/*
+SyntaxSymbol SyntaxSymbol =
+         a1:SyntaxSymbol questionmark
+         {yyValue = new OptionalSymbol(a1); }
+      / a1:SyntaxSymbol star
+         {yyValue = new RepeatSymbol(a1); }
+      / a1:SyntaxSymbol plus
+         {yyValue = new RepeatOneOrMoreSymbol(a1); }
+      / a1:SyntaxSymbol comma
+         {yyValue = new WhitespaceSymbol(a1); }
+      / a1:Item 
+         {yyValue = new ItemSymbol(a1); };
+*/
+SyntaxSymbol SyntaxSymbol =
+      a1:Item list:SyntaxSymbolTail*
+      {yyValue = (SyntaxSymbol) apply(list, (SyntaxSymbol) a1); };
+
+Action<SyntaxSymbol> SyntaxSymbolTail =
+      questionmark rest:SyntaxSymbolTail?
+         { yyValue = new Action<SyntaxSymbol>() {
+            public SyntaxSymbol run(SyntaxSymbol base) {
+               return new OptionalSymbol(createSpan(yyStart,yyCount), base);
+            }}; }
+      / star SyntaxSymbolTail?
+         { yyValue = new Action<SyntaxSymbol>() {
+            public SyntaxSymbol run(SyntaxSymbol base) {
+               return new RepeatSymbol(createSpan(yyStart,yyCount), base);
+            }}; }
+      / plus SyntaxSymbolTail?
+         { yyValue = new Action<SyntaxSymbol>() {
+            public SyntaxSymbol run(SyntaxSymbol base) {
+               return new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), base);
+            }}; }
+      / comma SyntaxSymbolTail?
+         { yyValue = new Action<SyntaxSymbol>() {
+            public SyntaxSymbol run(SyntaxSymbol base) {
+               return new WhitespaceSymbol(createSpan(yyStart,yyCount), base);
+            }}; };
+
+/* Disambiguation of e.g. ??? is taken to mean a token of 3 consecutive
+    questionmarks. Because if you meant two consecutive questionmarks
+    which are optional then you can move them to another production
+    and make the non-terminal referencing that production optional.
+    Similar if you have a token which is abc?? then we take it to mean
+    the token "absc??" for the same reasons. */
+SyntaxSymbol Item = 
+       !(w doublerightarrow) s:ItemText
+       { yyValue = new ItemSymbol(s); }
+     / !(w doublerightarrow) s1:questionmark s2:questionmark*
+       { yyValue = new ItemSymbol(s1+s2); }
+     / !(w doublerightarrow) s1:"*" s2:"*"*
+       { yyValue = new ItemSymbol(s1+s2); }
+     / !(w doublerightarrow) s1:"+" s2:"+"*
+       { yyValue = new ItemSymbol(s1+s2); }
+     / !(w doublerightarrow) s1:"," s2:","*
+       { yyValue = new ItemSymbol(s1+s2); };
+
+String ItemText = s1:(Unicode Unicode*);
+String Unicode = UnicodeIdStart / "-" / ">" / "." / UnicodeIdRest;
+
+transient String questionmark = "?";
+transient void doublerightarrow = "-->";

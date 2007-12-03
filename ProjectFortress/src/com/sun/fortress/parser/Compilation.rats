@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress components and APIs.
  */
-module Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
 
 import Decl;
 import Identifier;

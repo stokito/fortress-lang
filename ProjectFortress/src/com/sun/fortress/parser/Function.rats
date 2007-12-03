@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress function declarations.
  */
-module Function(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
+module com.sun.fortress.parser.Function(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
                 Spacing);
 
 import Param;
