@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress method declarations.
  */
-module Method(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
+module com.sun.fortress.parser.Method(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
               Spacing);
 
 import Param;

@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress identifiers.
  */
-module Identifier(Keyword, Symbol, Unicode, Spacing);
+module com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode, Spacing);
 
 import Keyword;
 import Symbol;
@@ -31,7 +31,7 @@ option setOfString(FORTRESS_KEYWORDS);
    word, an operator, or all or part of a numeral.
  */
         String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
-private String idstart = UnicodeIdStart / [_] ;
+        String idstart = UnicodeIdStart / [_] ;
         String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
 private String IdText  = a1:id &{ !FortressUtil.validOp(a1) && !a1.equals("_") } ;
 

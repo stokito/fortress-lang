@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress local declarations.
  */
-module LocalDecl(Variable, Function, Param, Header, Type, NoNewlineExpr,
+module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header, Type, NoNewlineExpr,
                  DelimitedExpr, Identifier, Keyword, Symbol, Spacing);
 modify Variable;
 import Function;

@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress headers.
  */
-module Header(Other, Type, Expr, DelimitedExpr, Identifier, Keyword, Symbol,
+module com.sun.fortress.parser.Header(Other, Type, Expr, DelimitedExpr, Identifier, Keyword, Symbol,
               Spacing);
 
 import Other;

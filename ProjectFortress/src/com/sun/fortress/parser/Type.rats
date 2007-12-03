@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress types.
  */
-module Type(Header, Expression, Literal, Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Type(Header, Expression, Literal, Identifier, Keyword, Symbol, Spacing);
 
 import Header;
 import Expression;

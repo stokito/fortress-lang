@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress abstract field declarations.
  */
-module AbsField(Variable, Header, Type, Identifier, Spacing);
+module com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier, Spacing);
 
 modify Variable;
 import Header;

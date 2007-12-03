@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress keywords.
  */
-module Keyword(Identifier);
+module com.sun.fortress.parser.Keyword(Identifier);
 
 import Identifier;
 
@@ -52,7 +52,7 @@ body {
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
         "var",          "where",        "while",        "widens",
-        "with",         "wrapped",      "macro"
+        "with",         "wrapped",        "grammar",        "production"
     });
   }
 }
@@ -129,7 +129,6 @@ transient void typecase = "typecase" !(idrest);
 transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);
-transient void macro = "macro" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
 String BIG = "BIG" !(idrest);
@@ -154,3 +153,6 @@ String value = "value" !(idrest);
 String var = "var" !(idrest);
 String widens = "widens" !(idrest);
 String wrapped = "wrapped" !(idrest);
+String grammar = "grammar" !(idrest);
+String production = "production" !(idrest);
+

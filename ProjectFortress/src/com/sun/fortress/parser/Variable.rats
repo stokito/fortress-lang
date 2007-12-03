@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress variable declarations.
  */
-module Variable(Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
+module com.sun.fortress.parser.Variable(Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
                 Spacing);
 
 import Header;

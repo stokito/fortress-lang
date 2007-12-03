@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress method parameter declarations.
  */
-module MethodParam(Param, Keyword);
+module com.sun.fortress.parser.MethodParam(Param, Keyword);
 
 modify Param;
 import Keyword;

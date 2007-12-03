@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress expressions that are enclosed by keywords.
  */
-module DelimitedExpr(TraitObject, Header, Type, Expr, LocalDecl, Literal,
+module com.sun.fortress.parser.DelimitedExpr(TraitObject, Header, Type, Expr, LocalDecl, Literal,
                      Identifier, Keyword, Symbol, Spacing);
 import TraitObject;
 import Header;
@@ -109,14 +109,15 @@ Expr DelimitedExpr =
      { Option<Block> caseElse = Option.wrap(a3);
        yyValue = new Typecase(createSpan(yyStart,yyCount), false, a1, a2, caseElse);
      }
-   / try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
+   / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
      { Option<Catch> catch_ = Option.wrap(a2);
        if (a3 == null) a3 = FortressUtil.emptyTraitTypes();
        Option<Block> finally_ = Option.wrap(a4);
        yyValue = new Try(createSpan(yyStart,yyCount), false, a1, catch_, a3,
                          finally_);
-     };
+     }
+  ;
 
 /* Do ::= (DoFront w also w)* DoFront w end */
 Do Do = a1s:(DoFront w also w)* a2:DoFront w end
