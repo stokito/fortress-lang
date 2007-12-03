@@ -97,7 +97,7 @@ end
 
 run(args:String...):()=do
    test1();
-(*   test2();  Doesn't work yet *)
+   test2(); 
    test3();
    test4();
    test5();
