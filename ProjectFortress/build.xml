@@ -78,7 +78,7 @@
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
 checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
 compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
-parser, reportNotPassing, systemProperties, test, testAll, testDemos,
+fortressparser, preparser, parser, reportNotPassing, systemProperties, test, testAll, testDemos,
 testNotPassing, testOnly testCruiseControl interpreter"/>
     </target>
 
@@ -334,7 +334,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
      <target name="interpreter-jar" depends="compile"
             description="Package up the interpreter in a jar.">
         <jar
-            destfile="../components/fortress/FORTRESS/lib/interpreter.jar"
+            destfile="../bin/interpreter.jar"
             basedir="${build}"
             includes="**/*"/>
     </target>
@@ -512,11 +512,9 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
                 <uptodate targetfile="${parser}/Fortress.java">
                     <srcfiles dir="${parser}" includes="**/*.rats"/>
                 </uptodate>
-<!--
                 <uptodate targetfile="${preparser}/PreFortress.java">
                     <srcfiles dir="${preparser}" includes="**/*.rats"/>
                 </uptodate>
--->
             </and>
         </condition>
         <echo>Parser up to date? ${parser.uptodate}</echo>
@@ -544,9 +542,9 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
              dir="${parser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
-	    <arg value="-html"/>
-	    <arg value="-instantiated"/>
-            <arg value="PreFortress.rats"/>
+            <arg value="-in"/>
+            <arg value="${src}"/>
+            <arg value="Fortress.rats"/>
         </java>
     </target>
 
@@ -558,8 +556,8 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
              dir="${preparser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
-	    <arg value="-html"/>
-	    <arg value="-instantiated"/>
+            <arg value="-in"/>
+            <arg value="${src}"/>
             <arg value="PreFortress.rats"/>
         </java>
     </target>
@@ -567,12 +565,23 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
     <target name="parser" unless="parser.uptodate"
             depends="checkParserUptodate"
             description="Fortress Parser">
-        <echo message="Rebuilding parser..."/>
+       <echo message="Rebuilding parser..."/>
        <java fork="yes"
              dir="${parser}"
              classname="xtc.parser.Rats"
              classpath="${xtc}/xtc.jar">
+            <arg value="-in"/>
+            <arg value="${src}"/>
             <arg value="Fortress.rats"/>
+        </java>
+        <echo message="Rebuilding the preparser..."/>
+        <java fork="yes"
+            dir="${preparser}"
+            classname="xtc.parser.Rats"
+            classpath="${xtc}/xtc.jar">
+            <arg value="-in"/>
+            <arg value="${src}"/>
+            <arg value="PreFortress.rats"/>
         </java>
     </target>
 
