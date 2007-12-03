@@ -36,7 +36,7 @@ end
 test2():() = do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
-   spawn do x:=1; y := 1 end
+   spawn atomic do  x:=1; y := 1 end
    while (x = 0) do end
    assert(x=1,"test2 x=1")
    assert(y=1,"test2 y=1")
