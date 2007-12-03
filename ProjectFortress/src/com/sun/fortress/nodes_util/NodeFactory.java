@@ -705,8 +705,28 @@ public class NodeFactory {
         });
     }
 
-    public static SyntaxDef makeSyntaxDef(Span s, SimpleName name, Expr body) {
-        return new SyntaxDef(s, name, body);
+    public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, Expr transformationExpression) {
+        return new SyntaxDef(s, syntaxSymbols, transformationExpression);
     }
+
+	public static IntLiteral makeIntLiteral(int i) {
+		return new IntLiteral(BigInteger.valueOf(i));
+	}
+	
+	public static StringLiteral makeStringLiteral(String s) {
+		return new StringLiteral(s);
+	}
+	
+	public static CharLiteral makeCharLiteral(char c) {
+		return new CharLiteral(""+c);
+	}
+	
+	public static VoidLiteral makeVoidLiteral() {
+		return new VoidLiteral();
+	}
+	
+	public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
+		return new ImportStar(api, excepts);
+	}
 
 }
