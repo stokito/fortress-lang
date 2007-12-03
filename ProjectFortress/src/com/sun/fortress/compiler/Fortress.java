@@ -19,14 +19,15 @@ package com.sun.fortress.compiler;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Collections;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.iter.IterUtil;
+
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.DottedName;
-
+import com.sun.fortress.syntaxabstractions.parser.FortressParser;
 import com.sun.fortress.useful.NI;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
 
 public class Fortress {
     
@@ -48,9 +49,11 @@ public class Fortress {
      */
     public Iterable<? extends StaticError> compile(Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
-        
-        Parser.Result pr = Parser.parse(files, env);
+		
+        FortressParser.Result pr = FortressParser.parse(files, env);
+        // Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
+        System.out.println("parsing done.");
         
         // Handle APIs first
         
