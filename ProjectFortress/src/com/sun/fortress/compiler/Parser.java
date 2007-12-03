@@ -35,6 +35,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.SimpleBox;
 
+import xtc.parser.ParserBase;
 import xtc.parser.SemanticValue;
 import xtc.parser.ParseError;
 //import xtc.parser.Result; // Not imported to prevent name clash.
@@ -97,9 +98,9 @@ public class Parser {
 
     public static class Error extends StaticError {
         private final ParseError _parseError;
-        private final com.sun.fortress.parser.Fortress _parser;
+        private final ParserBase _parser;
 
-        public Error(ParseError parseError, com.sun.fortress.parser.Fortress parser) {
+        public Error(ParseError parseError, ParserBase parser) {
             _parseError = parseError;
             _parser = parser;
         }
