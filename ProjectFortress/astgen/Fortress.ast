@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.parser_util.*;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -471,17 +472,61 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         ExternalSyntax(Expr expr) implements Decl;
     /**
-     * macro declaration in components or APIs
+     * grammar declaration
      */
-    MacroDecl(SimpleName name, List<SyntaxDef> syntaxDefs) implements AbsDecl;
-    /**
-     * syntax declaration in macro declarations
-     */
-    abstract SyntaxDecl(SimpleName name);
+    abstract GrammarDecl(IdName name, List<? extends QualifiedName> extends) implements AbsDecl;
         /**
-         * syntax definition in macro declarations
+         * grammar definition in grammar declarations
          */
-        SyntaxDef(Expr body);
+        GrammarDef(List<ProductionDef> productions);
+    /**
+     * production declaration
+     */
+    abstract ProductionDecl(QualifiedName name, IdName type, Option<? extends QualifiedName> extends) implements AbsDecl;
+        /**
+         * production definition in production declarations
+         */
+        ProductionDef(List<SyntaxDef> syntaxDefs);
+    /**
+     * syntax declaration
+     */
+    abstract SyntaxDecl() implements AbsDecl;
+        /**
+         * syntax definition in syntax declarations
+         */
+        SyntaxDef(List<SyntaxSymbol> syntaxSymbols, Expr transformationExpression);
+    /**
+      * syntax symbol
+      */
+    SyntaxSymbol();
+        /**
+         * optional syntax symbol
+         */
+        OptionalSymbol(SyntaxSymbol symbol);
+        /**
+         * repeat zero-or-more syntax symbol
+         */
+        RepeatSymbol(SyntaxSymbol symbol);
+        /**
+         * repeat one-or-more syntax symbol
+         */
+        RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
+        /**
+         * whitespace syntax symbol
+         */
+        WhitespaceSymbol(SyntaxSymbol symbol);
+        /**
+         * item syntax symbol
+         */
+        ItemSymbol(String item);
+        /**
+         * token syntax symbol
+         */
+        TokenSymbol(String token);
+        /**
+         * non-terminal syntax symbol
+         */
+        NonterminalSymbol(QualifiedName nonterminal);
     /**
      * expression
      */
