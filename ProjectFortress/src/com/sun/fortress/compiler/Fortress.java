@@ -23,7 +23,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.DottedName;
-import com.sun.fortress.syntaxabstractions.parser.FortressParser;
+import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
