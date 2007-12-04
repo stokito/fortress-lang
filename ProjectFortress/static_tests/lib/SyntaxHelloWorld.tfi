@@ -1,0 +1,27 @@
+(Api @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/syntaxprototype/SyntaxHelloWorld.fsi":1:1~13:4
+ _name=(DottedName @1:5~5:3 _ids=[(Id @1:5~21 _text="SyntaxHelloWorld")])
+ _decls=[
+  (GrammarDef @5:3~11:6
+   _name=(IdName @5:11~21
+    _id=(Id _text="helloworld"))
+   _productions=[
+    (ProductionDef @8:18~10:10
+     _extends=(Some _value=(QualifiedIdName @8:58~9:10
+       _name=(IdName @8:58~65
+        _id=(Id _text="Literal"))))
+     _name=(QualifiedIdName @8:29~39
+      _name=(IdName
+       _id=(Id _text="helloworld")))
+     _type=(IdName @8:42~49
+      _id=(Id _text="Literal"))
+     _syntaxDefs=[
+      (SyntaxDef @9:10~10:10
+       _transformationExpression=(TightJuxt @9:26~52
+        _exprs=[
+         (VarRef @9:26~40 _var=(QualifiedIdName _name=(IdName @9:26~39 _id=(Id _text="StringLiteral"))))
+         (StringLiteral @9:40~52 _parenthesized=true _text="Hello world")])
+       _syntaxSymbols=[
+        (ItemSymbol @"":0:0
+         _item="hello")
+        (ItemSymbol
+         _item="world")])])])])

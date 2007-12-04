@@ -1,4 +1,4 @@
-component Fortress.Ast
+component FortressAst
   import * from ArrayList
 
   (* export Fortress.Ast *)

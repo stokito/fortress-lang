@@ -48,7 +48,8 @@ import xtc.util.Utilities;
 
 public class ActionCreater {
 
-	private static final String FORTRESS_AST = "Fortress.Ast";
+	private static final String PACKAGE = "com.sun.fortress.syntaxabstractions.util";
+	private static final String FORTRESS_AST = "FortressAst";
 
 	public class Result extends StaticPhaseResult {
 		private Action action;
@@ -130,7 +131,7 @@ public class ActionCreater {
 			code.add(s);
 		}
 		indents.add(3);
-		code.add("yyValue = (new com.sun.fortress.macro_util.FortressObjectASTVisitor<"+returnType+">()).dispatch((new com.sun.fortress.macro_util.InterpreterWrapper()).evalComponent(\""+productionName+"\", code).value());");
+		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(\""+productionName+"\", code).value());");
 		Action a = new Action(code, indents);
 
 		return ac.new Result(a, errors);

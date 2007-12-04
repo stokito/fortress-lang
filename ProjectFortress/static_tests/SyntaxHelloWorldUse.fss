@@ -1,0 +1,9 @@
+component SyntaxHelloWorldUse
+
+import helloworld from SyntaxHelloWorld
+
+export Executable
+
+run(args:String...) = print (hello world)
+
+end
