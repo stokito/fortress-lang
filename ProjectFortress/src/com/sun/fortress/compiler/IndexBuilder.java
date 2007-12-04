@@ -52,18 +52,18 @@ public class IndexBuilder {
     }
 
     /** Convert the given ASTs to ApiIndices. */
-    public static ApiResult buildApis(Iterable<Api> asts) {
+    public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
         IndexBuilder builder = new IndexBuilder();
         Map<DottedName, ApiIndex> apis = new HashMap<DottedName, ApiIndex>();
-        for (Api ast : asts) { builder.buildApi(ast, apis); }
+        for (Api ast : asts) { builder.buildApi(ast, apis, modifiedDate); }
         return new ApiResult(apis, builder.errors());
     }
     
     /** Convenience function that takes apis as varargs and builds an ApiResult. */
-    public static ApiResult buildApis(Api... asts) {
+    public static ApiResult buildApis(long modifiedDate, Api... asts) {
         ArrayList<Api> apiList = new ArrayList<Api>();
         for (Api ast: asts) { apiList.add(ast); }
-        return buildApis(apiList);
+        return buildApis(apiList, modifiedDate);
     }
 
 
@@ -81,18 +81,18 @@ public class IndexBuilder {
     }
 
     /** Convert the given ASTs to ComponentIndices. */
-    public static ComponentResult buildComponents(Iterable<Component> asts) {
+    public static ComponentResult buildComponents(Iterable<Component> asts, long modifiedDate) {
         IndexBuilder builder = new IndexBuilder();
         Map<DottedName, ComponentIndex> components =
           new HashMap<DottedName, ComponentIndex>();
-        for (Component ast : asts) { builder.buildComponent(ast, components); }
+        for (Component ast : asts) { builder.buildComponent(ast, components, modifiedDate); }
         return new ComponentResult(components, builder.errors());
     }
 
 
     private List<StaticError> _errors;
 
-    private IndexBuilder() { _errors = new LinkedList<StaticError>(); }
+    public IndexBuilder() { _errors = new LinkedList<StaticError>(); }
 
     private List<StaticError> errors() { return _errors; }
 
@@ -101,7 +101,12 @@ public class IndexBuilder {
     }
 
     /** Create an ApiIndex and add it to the given map. */
-    private void buildApi(Api ast, Map<DottedName, ApiIndex> apis) {
+    private void buildApi(Api ast, Map<DottedName, ApiIndex> apis, long modifiedDate) {
+        ApiIndex api = buildApiIndex(ast, modifiedDate);
+        apis.put(ast.getName(), api);
+    }
+
+    public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
         final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
         final Relation<SimpleName, Function> functions =
           new HashRelation<SimpleName, Function>(true, false);
@@ -139,13 +144,19 @@ public class IndexBuilder {
         for (AbsDecl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses);
-        apis.put(ast.getName(), api);
+        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, modifiedDate);
+        return api;
     }
 
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
-                                Map<DottedName, ComponentIndex> components) {
+                                Map<DottedName, ComponentIndex> components,
+                                long modifiedDate) {
+        ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
+        components.put(ast.getName(), comp);
+    }
+
+    public ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
         final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<SimpleName, Function> functions =
@@ -188,8 +199,8 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         ComponentIndex comp = new ComponentIndex(ast, variables, initializers,
-                                                 functions, typeConses);
-        components.put(ast.getName(), comp);
+                                                 functions, typeConses, modifiedDate);
+        return comp;
     }
 
 

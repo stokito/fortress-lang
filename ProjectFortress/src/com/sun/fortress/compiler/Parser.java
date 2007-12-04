@@ -64,20 +64,23 @@ public class Parser {
     public static class Result extends StaticPhaseResult {
         private final Iterable<Api> _apis;
         private final Iterable<Component> _components;
+        private long _lastModified;
 
         public Result() {
             _apis = IterUtil.empty();
             _components = IterUtil.empty();
         }
 
-        public Result(Api api) {
+        public Result(Api api, long lastModified) {
             _apis = IterUtil.singleton(api);
             _components = IterUtil.empty();
+            _lastModified = lastModified;
         }
 
-        public Result(Component component) {
+        public Result(Component component, long lastModified) {
             _components = IterUtil.singleton(component);
             _apis = IterUtil.empty();
+            _lastModified = lastModified;
         }
 
         public Result(StaticError error) {
@@ -90,10 +93,12 @@ public class Parser {
             super(r1, r2);
             _apis = IterUtil.compose(r1._apis, r2._apis);
             _components = IterUtil.compose(r1._components, r2._components);
+            _lastModified = Math.max(r1.lastModified(), r2.lastModified());
         }
 
         public Iterable<Api> apis() { return _apis; }
         public Iterable<Component> components() { return _components; }
+        public long lastModified() { return _lastModified; }
     }
 
     public static class Error extends StaticError {
@@ -167,7 +172,7 @@ public class Parser {
                         Api _cu = (Api) cu;
                         
                         if (f.toString().endsWith(Driver.API_SOURCE_SUFFIX)) {
-                            return new Result(_cu);
+                            return new Result(_cu, f.lastModified());
                         } else {
                             return new Result(StaticError.make
                                 ("Api files must have suffix " + Driver.API_SOURCE_SUFFIX,
@@ -177,7 +182,7 @@ public class Parser {
                         Component _cu = (Component) cu;
                         
                         if (f.toString().endsWith(Driver.COMP_SOURCE_SUFFIX)) {
-                            return new Result(_cu);
+                            return new Result(_cu, f.lastModified());
                         } else {
                             return new Result(StaticError.make
                                 ("Component files must have suffix " + Driver.COMP_SOURCE_SUFFIX,

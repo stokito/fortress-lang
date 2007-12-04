@@ -54,39 +54,39 @@ public class FileBasedRepository implements FortressRepository {
         
         for (File file: files) {
             if (! file.isDirectory()) {
-                System.err.println("Loading " + file);
-                
-                Option<CompilationUnit> candidate = 
-                    Driver.readJavaAst(file.getCanonicalPath());
-                
-                if (candidate.isNone()) {
-                    throw new RepositoryError ("Compilation aborted. " +
-                                               "There were problems reading back the compiled file " + 
-                                               file.getCanonicalPath());
-                }
-                else {
-                    CompilationUnit _candidate = Option.unwrap(candidate);
-                    
-                    if (_candidate instanceof Api) {
-                        ArrayList<Api> _candidates = new ArrayList<Api>();
-                        _candidates.add((Api)_candidate);
-                        apis.putAll(IndexBuilder.buildApis(_candidates).apis());
-                    } else if (_candidate instanceof Component) {
-                        ArrayList<Component> _candidates = new ArrayList<Component>();
-                        _candidates.add((Component)_candidate);
-                        
-                        components.putAll(IndexBuilder.buildComponents(_candidates).components());
-                        
-                        ArrayList<Id> _ids = new ArrayList<Id>();
-                        for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
-                        
-                        
-                    } else {
-                        throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
-                    }   
-                }                                 
+            System.err.println("Loading " + file);
+            
+            Option<CompilationUnit> candidate = 
+                Driver.readJavaAst(file.getCanonicalPath());
+            
+            if (candidate.isNone()) {
+                throw new RepositoryError ("Compilation aborted. " +
+                                           "There were problems reading back the compiled file " + 
+                                           file.getCanonicalPath());
             }
+            else {
+                CompilationUnit _candidate = Option.unwrap(candidate);
+                
+                if (_candidate instanceof Api) {
+                    ArrayList<Api> _candidates = new ArrayList<Api>();
+                    _candidates.add((Api)_candidate);
+                    apis.putAll(IndexBuilder.buildApis(_candidates, file.lastModified()).apis());
+                } else if (_candidate instanceof Component) {
+                    ArrayList<Component> _candidates = new ArrayList<Component>();
+                    _candidates.add((Component)_candidate);
+                    
+                    components.putAll(IndexBuilder.buildComponents(_candidates, file.lastModified()).components());
+        
+                    ArrayList<Id> _ids = new ArrayList<Id>();
+                    for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
+        
+                    
+                } else {
+                    throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
+                }   
+            }                                 
         }
+    }
     } 
 
     public Map<DottedName, ApiIndex> apis() { return apis; }
@@ -101,11 +101,11 @@ public class FileBasedRepository implements FortressRepository {
             CompilationUnit ast = def.ast();
             if (ast instanceof Component) {
                 Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-        DOT + Driver.COMP_TREE_SUFFIX);
+				    DOT + Driver.COMP_TREE_SUFFIX);
             }
             else { // ast instanceof Api
                 Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-        DOT + Driver.API_TREE_SUFFIX);
+				    DOT + Driver.API_TREE_SUFFIX);
             }
         } catch (IOException e) {
             throw new ShellException(e);
@@ -128,5 +128,14 @@ public class FileBasedRepository implements FortressRepository {
         } catch (IOException e) {
             throw new ShellException(e);
         }
+    }
+
+    public long getModifiedDateForApi(DottedName name) {
+        return apis.get(name).modifiedDate();
+       
+    }
+
+    public long getModifiedDateForComponent(DottedName name) {
+        return components.get(name).modifiedDate();
     }
 }

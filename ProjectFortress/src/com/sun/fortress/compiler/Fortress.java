@@ -49,7 +49,7 @@ public class Fortress {
      */
     public Iterable<? extends StaticError> compile(Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
-  
+        
         FortressParser.Result pr = FortressParser.parse(files, env);
         // Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
@@ -60,7 +60,7 @@ public class Fortress {
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
-        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(pr.apis());
+        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(pr.apis(), pr.lastModified());
         if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
         
         // Build a new GlobalEnvironment consisting of all APIs in a global
@@ -79,7 +79,7 @@ public class Fortress {
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
         
         // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis());
+        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return apiIR.errors(); }
         
         // Rebuild GlobalEnvironment.
@@ -106,7 +106,7 @@ public class Fortress {
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
         IndexBuilder.ComponentResult rawComponentIR =
-            IndexBuilder.buildComponents(pr.components());
+            IndexBuilder.buildComponents(pr.components(), pr.lastModified());
         if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
         
         Disambiguator.ComponentResult componentDR =
@@ -115,7 +115,7 @@ public class Fortress {
         if (!componentDR.isSuccessful()) { return componentDR.errors(); }
         
         IndexBuilder.ComponentResult componentIR =
-            IndexBuilder.buildComponents(componentDR.components());
+            IndexBuilder.buildComponents(componentDR.components(), System.currentTimeMillis());
         if (!componentIR.isSuccessful()) { return componentIR.errors(); }
         
         StaticChecker.ComponentResult componentSR =

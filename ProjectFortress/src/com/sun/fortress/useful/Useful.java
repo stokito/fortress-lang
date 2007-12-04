@@ -644,7 +644,16 @@ public class Useful {
         // res does not exist, OR res has a smaller birthday.
         if (!inp.exists())
             throw new FileNotFoundException(inputFile);
-        return !res.exists() || (res.lastModified() < inp.lastModified());
+        return  olderThanOrMissing(res, inp.lastModified());
+    }
+
+    static public boolean olderThanOrMissing(String resultFile, long inputFileDate) {
+        File res = new File(resultFile);        
+        return olderThanOrMissing(res, inputFileDate);
+    }
+
+    static public boolean olderThanOrMissing(File resultFile, long inputFileDate) {
+        return !resultFile.exists() || (resultFile.lastModified() < inputFileDate);
     }
 
     public static int compareClasses(Object x, Object y) {

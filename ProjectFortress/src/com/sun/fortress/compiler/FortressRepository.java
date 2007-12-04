@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -38,5 +40,14 @@ public interface FortressRepository {
     public void addApi(DottedName name, ApiIndex definition);
     
     public void addComponent(DottedName name, ComponentIndex definition);
+   
+    public ApiIndex getApi(DottedName name) throws FileNotFoundException, IOException;
+    
+    public ComponentIndex getComponent(DottedName name) throws FileNotFoundException, IOException;
+    
+    public long getModifiedDateForApi(DottedName name) throws FileNotFoundException ;
+    
+    public long getModifiedDateForComponent(DottedName name) throws FileNotFoundException ;
+
     
 }

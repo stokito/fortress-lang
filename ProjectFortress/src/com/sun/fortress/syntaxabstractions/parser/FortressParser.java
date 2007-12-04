@@ -43,15 +43,17 @@ public class FortressParser {
     public static class Result extends StaticPhaseResult {
         private final Iterable<Api> _apis;
         private final Iterable<Component> _components;
+        private long _lastModified;
 
         public Result() {
             _apis = IterUtil.empty();
             _components = IterUtil.empty();
         }
 
-        public Result(Api api) {
+        public Result(Api api, long lastModified) {
             _apis = IterUtil.singleton(api);
             _components = IterUtil.empty();
+            _lastModified = lastModified;
         }
 
         public Result(Iterable<? extends StaticError> errors) {
@@ -60,9 +62,10 @@ public class FortressParser {
             _components = IterUtil.empty();
   }
 
-  public Result(Component component) {
+  public Result(Component component, long lastModified) {
             _components = IterUtil.singleton(component);
             _apis = IterUtil.empty();
+            _lastModified = lastModified;
         }
 
         public Result(StaticError error) {
@@ -75,10 +78,12 @@ public class FortressParser {
             super(r1, r2);
             _apis = IterUtil.compose(r1._apis, r2._apis);
             _components = IterUtil.compose(r1._components, r2._components);
+            _lastModified = Math.max(r1.lastModified(), r2.lastModified());
         }
 
         public Iterable<Api> apis() { return _apis; }
         public Iterable<Component> components() { return _components; }
+        public long lastModified() { return _lastModified; }
     }
 
     public static class Error extends StaticError {
@@ -178,10 +183,10 @@ public class FortressParser {
                 if (parseResult.hasValue()) {
                     Object cu = ((SemanticValue) parseResult).value;
                     if (cu instanceof Api) {
-                        return new Result((Api) cu);
+                        return new Result((Api) cu, f.lastModified());
                     }
                     else if (cu instanceof Component) {
-                        return new Result((Component) cu);
+                        return new Result((Component) cu, f.lastModified());
                     }
                     else {
                         throw new RuntimeException("Unexpected parse result: " + cu);
