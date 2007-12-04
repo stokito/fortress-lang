@@ -49,11 +49,11 @@ public class Fortress {
      */
     public Iterable<? extends StaticError> compile(Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
-		
+  
         FortressParser.Result pr = FortressParser.parse(files, env);
         // Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
-        System.out.println("parsing done.");
+        System.out.println("Parsing done.");
         
         // Handle APIs first
         

@@ -23,21 +23,27 @@ import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.makeIdName;
 
-
+/** 
+ * This class is used by the type checker to represent static type environments,
+ * mapping bound variables to their types. 
+ */
 public abstract class TypeEnv {
     public static TypeEnv make(LValueBind... entries) {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
     
     public abstract Option<LValueBind> binding(IdName var);
-    public abstract Option<Option<Type>> type(IdName var);
+    public abstract Option<Type> type(IdName var);
     public abstract Option<List<Modifier>> mods(IdName var);
     public abstract Option<Boolean> mutable(IdName var);
     
-    public Option<Option<Type>> type(String var) { return type(makeIdName(var)); }
+    public Option<Type> type(String var) { return type(makeIdName(var)); }
     public Option<List<Modifier>> mods(String var) { return mods(makeIdName(var)); }
     public Option<Boolean> mutable(String var) { return mutable(makeIdName(var)); }
         
+    /**
+     * Produce a new type environment extending this with the given variable bindings.
+     */
     public TypeEnv extend(LValueBind... entries) {
         if (entries.length == 0) { return EmptyTypeEnv.ONLY; }
         else { return new NonEmptyTypeEnv(entries, this); }

@@ -1,0 +1,51 @@
+(Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":18:0~26:3
+ _name=(DottedName @18:4~20:0 _ids=[(Id @18:4~16 _text="NativeThread")])
+ _decls=[
+  (AbsObjectDecl @20:0~25:3
+   _contract=(Contract @"":0:0)
+   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":20:7~22
+    _id=(Id _text="PrimitiveThread"))
+   _params=(Some _value=[
+     (NormalParam @20:29~32
+      _name=(IdName
+       _id=(Id _text="fcn"))
+      _type=(Some _value=(ArrowType @20:33~38
+        _domain=(VoidType @20:33~34)
+        _range=(IdType @20:37~38 _name=(QualifiedIdName
+          _name=(IdName
+           _id=(Id _text="T")))))))])
+   _decls=[
+    (AbsFnDecl @21:2~22:3
+     _contract=(Contract @"":0:0)
+     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":21:2~5
+      _id=(Id _text="val"))
+     _returnType=(Some _value=(IdType @21:8~22:2 _name=(QualifiedIdName
+        _name=(IdName @21:8~9
+         _id=(Id _text="T")))))
+     _selfName="self")
+    (AbsFnDecl @22:2~23:4
+     _contract=(Contract @"":0:0)
+     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":22:2~6
+      _id=(Id _text="wait"))
+     _returnType=(Some _value=(VoidType @22:9~10))
+     _selfName="self")
+    (AbsFnDecl @23:2~24:2
+     _contract=(Contract @"":0:0)
+     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":23:2~7
+      _id=(Id _text="ready"))
+     _returnType=(Some _value=(InstantiatedType @"":0:0
+       _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
+        _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+        _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
+         _id=(Id _text="Boolean")))))
+     _selfName="self")
+    (AbsFnDecl @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":24:2~25:2
+     _contract=(Contract @"":0:0)
+     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":24:2~6
+      _id=(Id _text="stop"))
+     _returnType=(Some _value=(VoidType @24:9~10))
+     _selfName="self")]
+   _staticParams=[
+    (SimpleTypeParam @20:24~25
+     _name=(IdName
+      _id=(Id _text="T")))])])

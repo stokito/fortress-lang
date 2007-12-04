@@ -1184,6 +1184,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) dimensionless
              */
             UnitArg(UnitExpr unit);
+        _RewriteImplicitType();    
     /**
      * static expression
      */

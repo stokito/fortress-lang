@@ -53,11 +53,11 @@ public class TypeEnvJUTest extends TestCase {
     }
     
     public void testLookupType() {
-        assertEquals(FOO, unwrap(unwrap(extended.type("x"))));
-        assertEquals(BAZ, unwrap(unwrap(extended.type("y"))));
-        assertEquals(BAR, unwrap(unwrap(extended.type("z"))));
+        assertEquals(FOO, unwrap(extended.type("x")));
+        assertEquals(BAZ, unwrap(extended.type("y")));
+        assertEquals(BAR, unwrap(extended.type("z")));
         
-        assert(! (BAR.equals(unwrap(unwrap(extended.type("x"))))));
+        assert(! (BAR.equals(unwrap(extended.type("x")))));
     }
     
     public void testLookupMods() {
