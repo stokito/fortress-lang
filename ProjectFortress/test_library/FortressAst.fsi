@@ -1,4 +1,4 @@
-api Fortress.Ast
+api FortressAst
 
    (* Fortress representation of Fortress AST nodes *)
    trait Node 
