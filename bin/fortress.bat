@@ -1,3 +1,4 @@
+@ECHO OFF
 REM ################################################################################
 REM #    Copyright 2007 Sun Microsystems, Inc.,
 REM #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -14,7 +15,7 @@ REM #
 REM #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 REM #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 REM ################################################################################
-
+ECHO ON
 
 java -cp "build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar" com.sun.fortress.interpreter.drivers.fs %1 %2 %3 %4 %5 %6 %7 %8 %9
 
