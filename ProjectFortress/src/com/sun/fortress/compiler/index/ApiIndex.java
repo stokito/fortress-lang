@@ -28,8 +28,9 @@ public class ApiIndex extends CompilationUnitIndex {
     public ApiIndex(Api ast,
                     Map<IdName, Variable> variables,
                     Relation<SimpleName, Function> functions,
-                    Map<IdName, TypeConsIndex> typeConses) {
-        super(ast, variables, functions, typeConses);
+                    Map<IdName, TypeConsIndex> typeConses,
+                    long modifiedDate) {
+        super(ast, variables, functions, typeConses, modifiedDate);
     }
     
 }

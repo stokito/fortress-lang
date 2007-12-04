@@ -106,7 +106,7 @@ public class CommandInterpreter {
             // We also need to write the corresponding APIs.
             for (Component component: _components) {
                 Api corresponding = (Api)component.accept(ApiMaker.ONLY);
-                IndexBuilder.ApiResult result = IndexBuilder.buildApis(corresponding);
+                IndexBuilder.ApiResult result = IndexBuilder.buildApis(file.lastModified(), corresponding);
                 
                 if (result.isSuccessful()) {
                     fileBasedRepository.addApis(result.apis());

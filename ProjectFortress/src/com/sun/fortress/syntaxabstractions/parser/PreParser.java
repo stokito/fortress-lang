@@ -131,10 +131,10 @@ public class PreParser {
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;
 					if (cu instanceof Api) {
-						return new Parser.Result((Api) cu);
+						return new Parser.Result((Api) cu, f.lastModified());
 					}
 					else if (cu instanceof Component) {
-						return new Parser.Result((Component) cu);
+						return new Parser.Result((Component) cu, f.lastModified());
 					}
 					else {
 						throw new RuntimeException("Unexpected parse result: " + cu);
