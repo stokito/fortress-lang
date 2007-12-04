@@ -19,8 +19,8 @@ component LocalVarRef
 export Executable
   
 run(args:String...):() = do
-  x:ZZ = 23
-  y:ZZ = x
+  x:ZZ64 = 23
+  y:ZZ64 = x
   ()
 end
 

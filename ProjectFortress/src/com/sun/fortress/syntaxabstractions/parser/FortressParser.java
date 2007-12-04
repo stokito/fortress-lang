@@ -55,12 +55,12 @@ public class FortressParser {
         }
 
         public Result(Iterable<? extends StaticError> errors) {
-			super(errors);
-			_apis = IterUtil.empty();
+   super(errors);
+   _apis = IterUtil.empty();
             _components = IterUtil.empty();
-		}
+  }
 
-		public Result(Component component) {
+  public Result(Component component) {
             _components = IterUtil.singleton(component);
             _apis = IterUtil.empty();
         }
@@ -143,37 +143,37 @@ public class FortressParser {
         try {
             BufferedReader in = Useful.utf8BufferedFileReader(f);
             try {
-            	
-            	PreParser.Result ppr = PreParser.parse(f, env);
-    			if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
+             
+             PreParser.Result ppr = PreParser.parse(f, env);
+       if (!ppr.isSuccessful()) { return new Result(ppr.errors()); }
 
-    			xtc.parser.Result parseResult = null; 
-    			ParserBase p = null;
-    			
-    			System.out.print("Parsing file: "+f.getName());
-    			if (!ppr.getGrammars().isEmpty()) {
-    				
-    				// Compile the macro declarations and create a temporary parser
-    				MacroCompiler macroCompiler = new FileBasedMacroCompiler();
-    				MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars());
-    				if (!tr.isSuccessful()) { return new Result(tr.errors()); }
-    				Class<?> temporaryParserClass = tr.getParserClass();
-    				
-    				try {
-						p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
-						parseResult = ParserMediator.parse();
-    				} catch (Exception e) {
-    					String desc = "Error occured while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
-    		            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-    		            return new Result(StaticError.make(desc, f.toString()));
-					} 
-    				
-    			}
-    			else {
+       xtc.parser.Result parseResult = null; 
+       ParserBase p = null;
+       
+       System.out.println("Parsing file: "+f.getName());
+       if (!ppr.getGrammars().isEmpty()) {
+        
+        // Compile the macro declarations and create a temporary parser
+        MacroCompiler macroCompiler = new FileBasedMacroCompiler();
+        MacroCompiler.Result tr = macroCompiler.compile(ppr.getGrammars());
+        if (!tr.isSuccessful()) { return new Result(tr.errors()); }
+        Class<?> temporaryParserClass = tr.getParserClass();
+        
+        try {
+      p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
+      parseResult = ParserMediator.parse();
+        } catch (Exception e) {
+         String desc = "Error occured while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
+                  if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+                  return new Result(StaticError.make(desc, f.toString()));
+     } 
+        
+       }
+       else {
                     p = new com.sun.fortress.parser.Fortress(in, f.toString());
                     parseResult = ((com.sun.fortress.parser.Fortress) p).pFile(0);
-    			}
-            	
+       }
+             
 
                 if (parseResult.hasValue()) {
                     Object cu = ((SemanticValue) parseResult).value;

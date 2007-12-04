@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
@@ -41,14 +42,25 @@ class NonEmptyTypeEnv extends TypeEnv {
         return parent.binding(var);
     }
     
-    public Option<Option<Type>> type(IdName var) { 
-        Option<LValueBind> binding = binding(var);
-        
-        if (binding.isSome()) { return wrap(unwrap(binding).getType()); }
-        else { return Option.none(); }
+    public Option<Type> type(IdName var) { 
+        for (int i = 0; i < entries.length; i++) {
+            LValueBind entry = entries[i];
+
+            if (var.equals(entry.getName())) {
+                Option<Type> type = entry.getType();
+                if (type.isSome()) { 
+                    return type; 
+                } else { 
+                    Type implicitType = new _RewriteImplicitType();
+                    entries[i] = 
+                        NodeFactory.makeLValue(entry, implicitType);
+                    return wrap(implicitType);
+                }
+            }
+        }
+        return Option.none();
     }
-
-
+        
     public Option<List<Modifier>> mods(IdName var) { 
         Option<LValueBind> binding = binding(var);
         

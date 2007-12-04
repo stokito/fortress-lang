@@ -17,7 +17,7 @@
 
 api SimpleApi
   
-x:ZZ
-f(num:ZZ):ZZ
+x:ZZ64
+f(num:ZZ64): ZZ64
 
 end

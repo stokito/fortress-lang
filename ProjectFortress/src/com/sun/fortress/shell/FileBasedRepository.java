@@ -36,10 +36,15 @@ public class FileBasedRepository implements FortressRepository {
     private final Map<DottedName, ComponentIndex> components = 
         new HashMap<DottedName, ComponentIndex>();
     private final String pwd;
-    private final String path = Shell.fortressLocation();
+    private final String path;
     
     public FileBasedRepository(String _pwd) throws IOException {
+        this(_pwd, Shell.fortressLocation());
+    }
+    
+    public FileBasedRepository(String _pwd, String _path) throws IOException {
         pwd = _pwd;
+        path = _path;
         initialize();
     }
 
@@ -48,40 +53,41 @@ public class FileBasedRepository implements FortressRepository {
         List<File> files = Arrays.asList(Files.ls(path));
         
         for (File file: files) {
-            System.err.println("Loading " + file);
-            
-            Option<CompilationUnit> candidate = 
-                Driver.readJavaAst(file.getCanonicalPath());
-            
-            if (candidate.isNone()) {
-                throw new RepositoryError ("Compilation aborted. " +
-                                           "There were problems reading back the compiled file " + 
-                                           file.getCanonicalPath());
-            }
-            else {
-                CompilationUnit _candidate = Option.unwrap(candidate);
+            if (! file.isDirectory()) {
+                System.err.println("Loading " + file);
                 
-                if (_candidate instanceof Api) {
-                    ArrayList<Api> _candidates = new ArrayList<Api>();
-                    _candidates.add((Api)_candidate);
-                    apis.putAll(IndexBuilder.buildApis(_candidates).apis());
-                } else if (_candidate instanceof Component) {
-                    ArrayList<Component> _candidates = new ArrayList<Component>();
-                    _candidates.add((Component)_candidate);
+                Option<CompilationUnit> candidate = 
+                    Driver.readJavaAst(file.getCanonicalPath());
+                
+                if (candidate.isNone()) {
+                    throw new RepositoryError ("Compilation aborted. " +
+                                               "There were problems reading back the compiled file " + 
+                                               file.getCanonicalPath());
+                }
+                else {
+                    CompilationUnit _candidate = Option.unwrap(candidate);
                     
-                    components.putAll(IndexBuilder.buildComponents(_candidates).components());
-        
-                    ArrayList<Id> _ids = new ArrayList<Id>();
-                    for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
-        
-                    
-                } else {
-                    throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
-                }   
-            }                                 
+                    if (_candidate instanceof Api) {
+                        ArrayList<Api> _candidates = new ArrayList<Api>();
+                        _candidates.add((Api)_candidate);
+                        apis.putAll(IndexBuilder.buildApis(_candidates).apis());
+                    } else if (_candidate instanceof Component) {
+                        ArrayList<Component> _candidates = new ArrayList<Component>();
+                        _candidates.add((Component)_candidate);
+                        
+                        components.putAll(IndexBuilder.buildComponents(_candidates).components());
+                        
+                        ArrayList<Id> _ids = new ArrayList<Id>();
+                        for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
+                        
+                        
+                    } else {
+                        throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
+                    }   
+                }                                 
+            }
         }
-    }
-             
+    } 
 
     public Map<DottedName, ApiIndex> apis() { return apis; }
     
@@ -95,11 +101,11 @@ public class FileBasedRepository implements FortressRepository {
             CompilationUnit ast = def.ast();
             if (ast instanceof Component) {
                 Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-				    DOT + Driver.COMP_TREE_SUFFIX);
+        DOT + Driver.COMP_TREE_SUFFIX);
             }
             else { // ast instanceof Api
                 Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-				    DOT + Driver.API_TREE_SUFFIX);
+        DOT + Driver.API_TREE_SUFFIX);
             }
         } catch (IOException e) {
             throw new ShellException(e);
