@@ -1,4 +1,4 @@
-api XXXSyntaxHelloWorld
+api SyntaxHelloWorld
 
 (*  import * from FortressAst *)
 
