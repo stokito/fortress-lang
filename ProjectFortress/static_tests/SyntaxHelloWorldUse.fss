@@ -1,6 +1,6 @@
-component XXXSyntaxHelloWorldUse
+component SyntaxHelloWorldUse
 
-import helloworld from XXXSyntaxHelloWorld
+import helloworld from SyntaxHelloWorld
 
 export Executable
 
