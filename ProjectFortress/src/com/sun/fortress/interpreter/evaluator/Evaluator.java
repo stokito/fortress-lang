@@ -222,11 +222,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         debug = e2.debug;
     }
 
-    public void debugPrint(String debugString) {
-        if (debug)
-            System.out.println(debugString);
-    }
-
     public FValue NI(String s) {
         return bug(this.getClass().getName() + "." + s + " not implemented");
     }
@@ -247,7 +242,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
-        // debugPrint("forAssignment " + x);
         Option<Opr> possOp = x.getOpr();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
@@ -396,7 +390,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forBlock(Block x) {
-        // debugPrint("forBlock " + x);
         List<Expr> exprs = x.getExprs();
         return evalExprList(exprs, x);
     }
@@ -494,10 +487,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return resList;
     }
 
-    public FValue forCaseClause(CaseClause x) {
-        return NI("forCaseClause");
-    }
-
     CaseClause findExtremum(CaseExpr x, Fcn fcn ) {
         List<CaseClause> clauses = x.getClauses();
         Iterator<CaseClause> i = clauses.iterator();
@@ -577,30 +566,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return expr.accept(this);
     }
 
-    public FValue forCaseParamLargest(CaseParamLargest x) {
-        // Should not be called
-        return NI("forCaseParamSmallest");
-    }
-
-    public FValue forCaseParamSmallest(CaseParamSmallest x) {
-        // Should not be called
-        return NI("forCaseParamSmallest");
-    }
-
-    public FValue forCatchClause(CatchClause x) {
-        return NI("forCatchClause");
-    }
-
-    public FValue forCatchExpr(Catch x) {
-        return NI("forCatchExpr");
-    }
-
     /*
      * Only handles 2-ary definitions of chained operators. That should be
      * perfectly wonderful for the moment.
      */
     public FValue forChainExpr(ChainExpr x) {
-        // debugPrint("forChainExpr " + x);
         Expr first = x.getFirst();
         List<Pair<Opr, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
@@ -691,7 +661,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forDottedName(DottedName x) {
-        // debugPrint("forDotted " + x);
         String result = "";
         for (Iterator<Id> i = x.getIds().iterator(); i.hasNext();) {
             result = result.concat(i.next().getText());
@@ -726,11 +695,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         throw e;
     }
 
-    // No need to evaluate this; it's not an expression. -- Eric
-    // We need to do something with it -- CHF
     public FValue forExport(Export x) {
-        // debugPrint("forExport " + x);
-        List<DottedName> name = x.getApis();
         return null;
     }
 
@@ -860,7 +825,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forGenerator(Generator x) {
-        // debugPrint("forGenerator " + x);
         List<IdName> names = x.getBind();
         Expr init = x.getInit();
         FValue rval = init.accept(this);
@@ -896,10 +860,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forIfClause(IfClause x) {
-        return NI("This ought not be called.");
-    }
-
     public FValue forLValueBind(LValueBind x) {
         IdName name = x.getName();
         return FString.make(NodeUtil.nameString(name));
@@ -920,10 +880,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return e.res();
         }
         return res;
-    }
-
-    public FValue forLetFn(LetFn x) {
-        return bug(x,"forLetFn not implemented.");
     }
 
     public FValue forListComprehension(ListComprehension x) {
@@ -1069,10 +1025,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return FString.make(op.getText());
     }
 
-    public FValue forOperatorParam(OperatorParam x) {
-        return NI("forOperatorParam");
-    }
-
     public FValue forOpr(Opr x) {
         return getOp(x);
     }
@@ -1084,7 +1036,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (x.getOps().size() != 1) {
             return bug(x, errorMsg("OprExpr with multiple operators ",x));
         }
-        // debugPrint("forOprExpr " + x);
         QualifiedOpName op = x.getOps().get(0);
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
@@ -1164,12 +1115,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return theArray;
     }
     */
-
-    public FValue forSpawn(Spawn x) {
-      //        Expr body = x.getBody();
-      //        FThread ft = new FThread(body,this);
-        return NI("forSpawn");
-    }
 
     public FValue forStringLiteral(StringLiteral x) {
         return new FStringLiteral(x.getText());
@@ -1265,7 +1210,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     /** Assumes wrapped FnRefs have ids fields of length 1. */
     public FValue forTightJuxt(TightJuxt x) {
-        // debugPrint("forTightJuxt " + x);
         // Assume for now that tight juxtaposition is function application fixme
         // chf
         List<Expr> exprs = x.getExprs();
@@ -1463,7 +1407,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTupleExpr(TupleExpr x) {
-        debugPrint("forTuple " + x);
         List<Expr> exprs = x.getExprs();
         return FTuple.make(evalExprListParallel(exprs));
     }
@@ -1527,12 +1470,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forAbsVarDecl");
     }
 
-    public FValue forVarDecl(VarDecl x) {
-        return NI("forVarDecl");
-    }
-
     public FValue forVarRef(VarRef x) {
-        // debugPrint("forVarRef " + x);
         Iterable<Id> names = NodeUtil.getIds(x.getVar());
 
         FValue res = e.getValueNull(IterUtil.first(names).getText());
@@ -1566,12 +1504,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forWhile(While x) {
-        // debugPrint("forWhile " + x);
         Expr body = x.getBody();
         Expr test = x.getTest();
         FBool res = (FBool) test.accept(this);
         while (res.getBool() != false) {
-            // debugPrint("While loop iter");
             body.accept(this);
             res = (FBool) test.accept(this);
         }

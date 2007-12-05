@@ -141,9 +141,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     Evaluator evaluator;
     FValue value;
 
-    boolean debug = false;
-    public void debugPrint(String debugString) {if (debug) System.out.println(debugString);}
-
     public Voidoid forVarRef(VarRef x) {
         Iterable<Id> names = NodeUtil.getIds(x.getVar());
         Environment e = evaluator.e;
