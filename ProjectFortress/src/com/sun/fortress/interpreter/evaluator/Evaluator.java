@@ -140,7 +140,6 @@ import com.sun.fortress.nodes.SetComprehension;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteral;
-import com.sun.fortress.nodes.SubscriptAssign;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptOp;
 import com.sun.fortress.nodes.Throw;
@@ -1126,12 +1125,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forStringLiteral(StringLiteral x) {
         return new FStringLiteral(x.getText());
-    }
-
-    public FValue forSubscriptAssign(SubscriptAssign x) {
-        // Didn't come here when it seemed like we should have.
-        // See LHSEvaluator.forSubscriptExpr
-        return NI("forSubscriptAssign");
     }
 
     /*

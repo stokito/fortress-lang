@@ -20,17 +20,24 @@ component SubscriptedExpr
 export Executable
 
 object O
-  opr(/i:ZZ32/) : String = "SubscriptedExpr: (//)"
-  opr[i:ZZ32]   : String = "SubscriptedExpr: []"
+  round: ZZ32[5] = array1[\ZZ32,5\]().fill(2)
+  flat : ZZ32[5] = array1[\ZZ32,5\]().fill(1)
+  opr(/i:ZZ32/): ZZ32 = round[i]
+  opr(/i:ZZ32/):=(v:ZZ32) = round[i] := v
+  opr[i:ZZ32]  : ZZ32 = flat[i]
+  opr[i:ZZ32]  :=(v:ZZ32) = flat[i] := v
 end
 
-run(args:String...) = if O[0] = O(/0/) then
-                        println "FAIL!"
-                        println O[0]
-                        println O(/0/)
-                      else
-                        println O[0]
-                        println O(/0/)
-                        println "OK"
-                      end
+run(args:String...) =
+  if O[0] = O(/0/) then
+    println "FAIL!"
+    println O[0]
+    println O(/0/)
+  else
+    O(/2/) := 11
+    O[2] := 12
+    assert(O(/2/),11,"O(/2/) wrong")
+    assert(O[2],12,"O[2] wrong")
+  end
+
 end

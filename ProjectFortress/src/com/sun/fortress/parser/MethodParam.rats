@@ -65,8 +65,7 @@ FnHeaderFront OpHeaderFront :=
            if (FortressUtil.isFunctionalMethod(opa3)) {
                name = new Bracketing(span, opa2, opa4);
            } else {
-               if (opa5 == null) name = new SubscriptOp(span, opa2, opa4);
-               else              name = new SubscriptAssign(span, opa2, opa4);
+               name = new SubscriptOp(span, opa2, opa4);
            }
        } else
            name = error(opa2, "Mismatched enclosing operator definition: "

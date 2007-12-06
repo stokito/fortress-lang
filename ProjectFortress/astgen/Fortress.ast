@@ -838,8 +838,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     List<Expr> args = Collections.<Expr>emptyList());
             /**
              * subscripting expression
-             * SubscriptExpr ::= Primary [ ExprList? ]
-             *                 | Primary LeftEncloser ExprList? RightEncloser
+             * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
              * e.g.) a[i]
              */
             SubscriptExpr(Expr obj, List<Expr> subs,
@@ -1184,7 +1183,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) dimensionless
              */
             UnitArg(UnitExpr unit);
-        _RewriteImplicitType();    
+        _RewriteImplicitType();
     /**
      * static expression
      */
@@ -1701,15 +1700,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     Bracketing();
                     /**
-                     * subscripting operator
+                     * subscripting and subscripted assignment operator
                      * e.g.) a[i]
                      */
                     SubscriptOp();
-                    /**
-                     * subscripted assignment operator
-                     * e.g.) a[i] := 1
-                     */
-                    SubscriptAssign();
             /**
              * internal name for anonymous function expressions
              * not created during parsing but during evaluation

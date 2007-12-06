@@ -3070,7 +3070,7 @@
    _decls=[
     (AbsFnDecl @686:2~690:2
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":686:2~16
+     _name=(SubscriptOp @"FortressLibrary.fss":686:2~16
       _close=(Op @686:9 _text="]")
       _open=(Op @686:5~6 _text="["))
      _returnType=(Some _value=(VoidType @686:20~21))
@@ -3090,7 +3090,7 @@
            _id=(Id _text="I"))))))])
     (AbsFnDecl @690:2~691:2
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":690:2~38
+     _name=(SubscriptOp @"FortressLibrary.fss":690:2~38
       _close=(Op @690:18 _text="]")
       _open=(Op @690:5~6 _text="["))
      _returnType=(Some _value=(VoidType @690:42~43))
@@ -3126,7 +3126,7 @@
               _id=(Id _text="I")))))])))])
     (AbsFnDecl @691:2~79
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":691:2~44
+     _name=(SubscriptOp @"FortressLibrary.fss":691:2~44
       _close=(Op @691:24 _text="]")
       _open=(Op @691:5~6 _text="["))
      _returnType=(Some _value=(VoidType @691:48~49))
@@ -4004,7 +4004,7 @@
            _id=(Id _text="I"))))))])
     (AbsFnDecl @767:4~768:6
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":767:4~18
+     _name=(SubscriptOp @"FortressLibrary.fss":767:4~18
       _close=(Op @767:11 _text="]")
       _open=(Op @767:7~8 _text="["))
      _returnType=(Some _value=(VoidType @767:20~21))
@@ -4042,7 +4042,7 @@
            _id=(Id _text="E"))))))])
     (AbsFnDecl @770:4~781:9
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":770:4~40
+     _name=(SubscriptOp @"FortressLibrary.fss":770:4~40
       _close=(Op @770:20 _text="]")
       _open=(Op @770:7~8 _text="["))
      _returnType=(Some _value=(VoidType @770:42~43))
@@ -6348,7 +6348,7 @@
              _id=(Id _text="ZZ32"))))])))])
     (AbsFnDecl @1056:2~58
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":1056:2~26
+     _name=(SubscriptOp @"FortressLibrary.fss":1056:2~26
       _close=(Op @1056:19 _text="]")
       _open=(Op @1056:5~6 _text="["))
      _returnType=(Some _value=(VoidType @1056:28~29))
@@ -9663,7 +9663,7 @@
              _id=(Id _text="ZZ32"))))])))])
     (AbsFnDecl @1374:2~68
      _contract=(Contract @"":0:0)
-     _name=(SubscriptAssign @"FortressLibrary.fss":1374:2~37
+     _name=(SubscriptOp @"FortressLibrary.fss":1374:2~37
       _close=(Op @1374:28 _text="]")
       _open=(Op @1374:5~6 _text="["))
      _selfName="self"

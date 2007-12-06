@@ -18,7 +18,7 @@
 api FortressAst
 
    (* Fortress representation of Fortress AST nodes *)
-   trait Node 
+   trait Node
       toString():String
    end
 
@@ -72,7 +72,7 @@ api FortressAst
 
    (* TODO: Implement traitObjectAbsDeclOrDecls *)
 
-   trait VarAbsDeclOrDecl extends AbsDeclOrDecl 
+   trait VarAbsDeclOrDecl extends AbsDeclOrDecl
       lhs:List[\LValueBind\]
    end
    trait AbsVarDecl extends { AbsDecl, Decl } end
@@ -153,7 +153,7 @@ api FortressAst
    object AsIfExpr(expr:Expr, atype:Type) extends Expr end
 
    trait TaggedUnitExpr extends Expr
-      val : Expr 
+      val : Expr
       unitExpr : UnitExpr
    end
    object ProductUnitExpr(val:Expr, unitExpr:UnitExpr) extends TaggedUnitExpr end
@@ -184,14 +184,14 @@ api FortressAst
 
    object FnExpr(parenthesized:Boolean, name:SimpleName, staticParams:List[\StaticParam\], params:List[\Param\], returnType:Maybe[\Type\], whereClause:List[\WhereClause\], throwsClause:Maybe[\List[\TraitType\]\], body:Expr) extends { Expr, Applicable } end
 
-   trait LetExpr extends Expr 
+   trait LetExpr extends Expr
       body:List[\Expr\]
    end
    object LetFn(body:List[\Expr\], fns:List[\FnDef\]) extends LetExpr end
    object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteral\]) extends LetExpr end
 
    object GeneratedExpr(expr:Expr, gens:List[\Generator\]) extends Expr end
-  
+
    trait OpExpr extends Expr end
    object OprExpr(ops:List[\QualifiedOpName\], args:List[\Expr\]) extends OpExpr end
    object SubscriptExpr(obj:Expr, subs:List[\Expr\], op:Maybe[\SubscriptOp\]) extends { Lhs, OpExpr } end
@@ -205,7 +205,7 @@ api FortressAst
    end
    object FieldRef(field:IdName) extends AbstractFieldRef end
 
-   trait Juxt extends Primary 
+   trait Juxt extends Primary
       exprs:List[\Expr\]
    end
    object LooseJuxt(exprs:List[\Expr\]) extends Juxt end
@@ -220,7 +220,7 @@ api FortressAst
 
    object VarRef(avar:QualifiedIdName) extends { BaseExpr, Lhs } end
 
-   trait Literal extends BaseExpr 
+   trait Literal extends BaseExpr
       text:String
    end
 
@@ -245,7 +245,7 @@ api FortressAst
    Exception in thread "main" java.lang.IllegalArgumentException: Visitor com.sun.fortress.interpreter.evaluator.EvalType does not support visiting values of type com.sun.fortress.nodes.TaggedDimType
    object ArrayComprehension(List[\ArrayComprehensionClause\] clauses) extends Comprehension end
 *)
-   trait GeneratedComprehension extends Comprehension 
+   trait GeneratedComprehension extends Comprehension
       gens:List[\Generator\]
    end
    object SetComprehension(gens:List[\Generator\], element:Expr) extends GeneratedComprehension end
@@ -254,14 +254,14 @@ api FortressAst
 
    trait Type extends AbstractNode end
    object ArrowType(domain:Type, range:Type, throwsClause:Maybe[\List[\TraitType\]\]) extends Type end
-    
+
    trait NonArrowType extends Type end
    trait TraitType extends NonArrowType end
    object ArrayType(element:Type, indices:Indices) extends TraitType end
    object IdType(name:QualifiedIdName) extends TraitType end
    object MatrixType(element:Type, dimensions:List[\ExtentRange\]) extends TraitType end
    object InstantiatedType(name:QualifiedIdName, args:List[\StaticArg\]) extends TraitType end
-   
+
    object TupleType(elements:List[\Type\], varargs:Maybe[\VarargsType\], keywords:List[\KeywordType\]) extends NonArrowType end
    object VoidType() extends NonArrowType end
 
@@ -285,7 +285,7 @@ api FortressAst
      * StaticExpr ::= BoolExpr
      *)
    trait BoolExpr extends StaticExpr end
-  
+
    (* TODO: rest *)
    (**
      * boolean constraint
@@ -407,15 +407,10 @@ api FortressAst
      *)
    object Bracketing(open:Op, close:Op) extends Enclosing end
    (**
-      * subscripting operator
+      * subscripting or subscripted assignment operator
       * e.g.) a[i]
       *)
    object SubscriptOp(open:Op, close:Op) extends Enclosing end
-   (**
-     * subscripted assignment operator
-     * e.g.) a[i] := 1
-     *)
-    object SubscriptAssign(open:Op, close:Op) extends Enclosing end
 
    (* TODO: Implement AnonymousFnName *)
 
