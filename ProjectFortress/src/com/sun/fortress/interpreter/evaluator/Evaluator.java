@@ -236,7 +236,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forAsExpr(AsExpr x) {
-        return NI("forAsExpr");
+        final Expr expr = x.getExpr();
+        FValue val = expr.accept(this);
+        Type ty = x.getType();
+        FType fty = EvalType.getFType(ty, e);
+        if (val.type().subtypeOf(fty))
+            return val;
+        else
+            return error(x, e, errorMsg("The type of expression ", val.type(),
+                                        " is not a subtype of ", fty, "."));
     }
 
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
