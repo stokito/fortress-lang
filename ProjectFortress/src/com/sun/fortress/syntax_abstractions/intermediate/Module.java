@@ -26,15 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.syntax_abstractions.phases.ModuleResolver;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
-import com.sun.java_cup.internal.production;
 
 import edu.rice.cs.plt.tuple.Option;
 
