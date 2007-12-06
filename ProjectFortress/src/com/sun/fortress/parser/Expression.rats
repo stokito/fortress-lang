@@ -89,37 +89,35 @@ List<LHS> AssignLefts =
      SubscriptExpr
    | FieldSelection
    | QualifiedName
-   SubscriptExpr ::= Primay [ (w ExprList)? w ]
+   SubscriptExpr ::= Primay LeftEncloser (w ExprList)? w RightEncloser
    FieldSelection ::= Primary . Id
  */
 LHS AssignLeft =
-    seed:PrimaryFront list:AssignLeftTail+
-    { Expr left = (Expr)apply(list, seed);
-      if (left instanceof LHS) yyValue = (LHS)left;
-      else yyValue = null;
-    }
-  / a1:QualifiedName
-    { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
+     seed:PrimaryFront list:AssignLeftTail+
+     { Expr left = (Expr)apply(list, seed);
+       if (left instanceof LHS) yyValue = (LHS)left;
+       else yyValue = null;
+     }
+   / a1:QualifiedName
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); };
 
 constant transient Action<Expr> AssignLeftTail =
-      SubscriptAssign
-    / FieldSelectionAssign
-    ;
+     SubscriptAssign
+   / FieldSelectionAssign
+   ;
 
 constant inline Action<Expr> SubscriptAssign =
-    a1:opensquare a2:(w ExprList)? w a3:closesquare
-    { yyValue = new Action<Expr>() {
-          public Expr run(Expr base) {
-              List<Expr> es;
-              if (a2 == null) es = FortressUtil.emptyExprs();
-              else            es = a2;
-              Span span = createSpan(yyStart,yyCount);
-              Op open  = NodeFactory.makeOp(createSpan(yyStart, yyStart+1), a1);
-              Op close = NodeFactory.makeOp(createSpan(yyCount-1,1),a3);
-              SubscriptOp op = new SubscriptOp(span, open, close);
-              return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op));
-          }};
-    };
+     a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+             Span span = createSpan(yyStart,yyCount);
+             List<Expr> es;
+             if (a2 == null) es = FortressUtil.emptyExprs();
+             else            es = a2;
+             SubscriptOp op = new SubscriptOp(FortressUtil.spanTwo(a1,a3),a1,a3);
+             return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op));
+            }};
+     };
 
 constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
@@ -289,7 +287,6 @@ PureList<PrecedenceOpExpr> LooseInfix =
    | QualifiedName [\ w StaticArgList w \]
    | BaseExpr
    | LeftEncloser (w ExprList)? w RightEncloser
-   | Primary [ (w ExprList)? w ]
    | Primary LeftEncloser (w ExprList)? w RightEncloser
    | Primary . Id ([\ w StaticArgList w \])? TupleExpr
    | Primary . Id ([\ w StaticArgList w \])? Parenthesized
@@ -329,21 +326,7 @@ constant transient Action<PureList<Expr>> PrimaryTail =
    ;
 
 constant inline Action<PureList<Expr>> SubscriptExpr =
-     a1:opensquare a2:(w ExprList)? w a3:closesquare
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Span span = createSpan(yyStart,yyCount);
-               Expr arr = FortressUtil.buildPrimary((PureList<Expr>)base);
-               List<Expr> es;
-               if (a2 == null) es = FortressUtil.emptyExprs();
-               else            es = a2;
-               Op open  = NodeFactory.makeOp(createSpan(yyStart, yyStart+1), a1);
-               Op close = NodeFactory.makeOp(createSpan(yyCount-1,1),a3);
-               SubscriptOp op = new SubscriptOp(span, open, close);
-               return PureList.make((Expr)ExprFactory.makeSubscriptExpr(span, arr, es, Option.some(op)));
-           }};
-     }
-   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
