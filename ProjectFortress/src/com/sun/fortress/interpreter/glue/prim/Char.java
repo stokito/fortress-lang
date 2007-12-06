@@ -24,7 +24,7 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
  */
 public class Char {
 public static final class Eq extends Util.CC2B {
-    protected boolean f(char x, char y) { 
+    protected boolean f(char x, char y) {
         return (int) x == (int) y;
     }
 }
