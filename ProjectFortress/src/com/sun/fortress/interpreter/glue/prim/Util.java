@@ -197,6 +197,12 @@ public class Util {
             return FBool.make(f(x.getString(),y.getString()));
         }
     }
+    static public abstract class SS2Z extends NativeFn2 {
+        protected abstract int f(String x, String y);
+        protected final FValue act(FValue x, FValue y) {
+            return FInt.make(f(x.getString(),y.getString()));
+        }
+    }
     static public abstract class SZZ2S extends NativeFn3 {
         protected abstract String f(String x, int y, int z);
         protected final FValue act(FValue x, FValue y, FValue z) {

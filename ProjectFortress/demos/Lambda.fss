@@ -27,7 +27,8 @@ globalEnv: TreeMap[\String,Term\] := emptyMap
 parens(gp:ZZ32, p:ZZ32, s:String):String =
     if gp <= p then "(" s ")" else s end
 
-trait Term comprises { Lambda, App, Var, FreeVar, Const } excludes Number
+trait Term extends Equality[\Term\]
+        comprises { Lambda, App, Var, FreeVar, Const } excludes Number
     getter toString(): String = pretty(0)
     getter inst(): Term = self
     pretty(p:ZZ32): String = ugly()

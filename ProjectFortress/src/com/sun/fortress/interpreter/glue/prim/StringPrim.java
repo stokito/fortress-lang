@@ -32,20 +32,9 @@ public class StringPrim {
 public static final class App extends Util.SS2S {
     protected String f(String x, String y) { return x + y; }
 }
-public static final class Eq extends Util.SS2B {
-    protected boolean f(String x, String y) { return x.equals(y); }
-}
-public static final class Less extends Util.SS2B {
-    protected boolean f(String x, String y) { return x.compareTo(y)<0; }
-}
-public static final class LessEq extends Util.SS2B {
-    protected boolean f(String x, String y) { return x.compareTo(y)<=0; }
-}
-public static final class Greater extends Util.SS2B {
-    protected boolean f(String x, String y) { return x.compareTo(y)>0; }
-}
-public static final class GreaterEq extends Util.SS2B {
-    protected boolean f(String x, String y) { return x.compareTo(y)>=0; }
+
+public static final class Cmp extends Util.SS2Z{
+    protected int f(String x, String y) { return x.compareTo(y); }
 }
 
 public static final class Substring extends Util.SZZ2S {
