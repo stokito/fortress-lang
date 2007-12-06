@@ -212,56 +212,73 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     Concat[\LeafNode[\Key,Val\]\](),
     fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves())
 
-  (* break this internal node in half.  Returns the two halves along with the key used for breaking *)
-  break():(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Key) =
-  if keys.size() = 1 then
-    onekey_break()
-  elif keys.size() = 2 then
-    twokeys_break()
+  (* break this internal node.  
+     Returns the two halves along with an key array of size quantity used for splitting.
+     The values array is of size quantitiy - 1. *)
+  break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = 
+  if keys.size() = quantity then
+    onekey_break(quantity)
+  elif keys.size() - 1 = quantity then
+    twokeys_break(quantity)
   else
-    nkeys_break()
+    nkeys_break(quantity)
   end
 
-  (* perform the break operation when we have exactly one key *)
-  onekey_break():(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Key) = do
+  (* perform the break operation when we have a key count of quantity *)
+  onekey_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
+    keys':Array[\Key,ZZ32\] = keys.copy()
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](keys.size() - 1)
+    for i <- 0 # children'.size() do
+      children'[i] := generate_tail[\Key,Val\](children[i + 1], 1)
+    end
     smaller:Node[\Key,Val\] = children[0]
-    larger:Node[\Key,Val\] = children[1]
-    key':Key = keys[0]
+    larger:Node[\Key,Val\] = children[children.size() - 1]
     left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
     right:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
-    (left, right, key')
+    (left, right, keys', children')
   end
 
-  (* perform the break operation when we have exactly two keys *)
-  twokeys_break():(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Key) = do
+  (* perform the break operation when we have a key count of (quantity + 1) *)
+  twokeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
     smaller:Node[\Key,Val\] = children[0]
+    keys':Array[\Key,ZZ32\] = keys[0 # (keys.size() - 1)]
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](keys.size() - 2)
+    for i <- 0 # children'.size() do    
+      children'[i] := generate_tail[\Key,Val\](children[i + 1], 1)
+    end
     rkeys:Array[\Key,ZZ32\] = array[\Key\](1)
     rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](2)
-    key':Key = keys[0]
-    rkeys[0] := keys[1]
-    rchildren[0#2] := children[1#2]
+    rkeys[0] := keys[keys.size() - 1]
+    rchildren[0#2] := children[(keys.size() - 1) # 2]
     left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
     right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
-    (left, right, key')
+    (left, right, keys', children')  
   end
 
-  (* perform the break operation when we have three or more keys *)
-  nkeys_break():(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Key) = do
-    half:ZZ32 = keys.size() DIV 2
-    rsize:ZZ32 = keys.size() - half - 1
-    lsize:ZZ32 = keys.size() - rsize - 1
-    key':Key = keys[half]
+  (* perform the break operation when we have a key count > (quantity + 1) *)
+  nkeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
+    leftovers:ZZ32 = keys.size() - quantity
+    lsize:ZZ32 = leftovers DIV 2
+    rsize:ZZ32 = leftovers - lsize
+    (* make the left child *)
     lkeys:Array[\Key,ZZ32\] = array[\Key\](lsize)
     lchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](lsize + 1)
+    lkeys[0 # lsize] := keys[0 # lsize]    
+    lchildren[0 # (lsize + 1)] := children[0 # (lsize + 1)]
+    left:NonLeafNode[\Key,Val\] = singleton(lkeys,lchildren)
+    (* make the right child *)
     rkeys:Array[\Key,ZZ32\] = array[\Key\](rsize)
     rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](rsize + 1)
-    lkeys[0 # lsize] := keys[0 # lsize]
-    lchildren[0 # (lsize + 1)] := children[0 # (lsize + 1)]
-    rkeys[0 # rsize] := keys[(half + 1) # rsize]
-    rchildren[0 # (rsize + 1)] := children[(half + 1) # (rsize + 1)]
-    left:NonLeafNode[\Key,Val\] = singleton(lkeys,lchildren)
-    right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
-    (left, right, key')
+    rkeys[0 # rsize] := keys[(keys.size() - rsize) # rsize]
+    rchildren[0 # (rsize + 1)] := children[(keys.size() - rsize) # (rsize + 1)]    
+    right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)    
+    (* make the center child *)
+    keys':Array[\Key,ZZ32\] = keys[lsize # quantity]
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity - 1)
+    for i <- 0 # children'.size() do    
+      children'[i] := generate_tail[\Key,Val\](children[i + lsize + 1], 1)
+    end 
+    (left, right, keys', children') 
   end
   
   (* return a new internal node that has children[index] and keys[index - 1] missing *)
@@ -367,7 +384,7 @@ object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\
     if level < height() OR newKey = false then
       (WhiteLevelN[\Key,Val\](child'), newKey)
     else
-      (split(0, child'), newKey)
+      (split(0, 1, child'), newKey)
     end
   end
 
@@ -382,14 +399,13 @@ object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\
 
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = WhiteLevelN[\Key,Val\](child.merge(nodes))
 
-  (* splits the new child in half and sucks the split key up to this level *)
-  split(index:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
-    keys:Array[\Key,ZZ32\] = array[\Key\](1)
-    children:Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](2)
-    (left,right,key') = heir.break()
-    keys[0] := key'
+  (* breaks the new child and sucks the split keys to this level *)
+  split(index:ZZ32, quantity:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
+    children:Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity + 1)
+    (left, right, keys, children') = heir.break(quantity) 
     children[0] := left
-    children[1] := right
+    children[1 # (children'.size())] := children'[0 # (children'.size())]
+    children[children.size() - 1] := right
     InternalLevelN[\Key,Val\](keys,children)
   end
 
@@ -496,7 +512,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
       children'[index] := child'
       (InternalLevelN[\Key,Val\](keys,children'), newKey)
     else
-      (split(index, child'), newKey)
+      (split(index, 1, child'), newKey)
     end
   end
 
@@ -510,20 +526,21 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
     end
   end
 
-  (* splits the new child in half and sucks the split key up to this level *)
-  split(index:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
+  (* breaks the new child and sucks the split keys to this level *)
+  split(index:ZZ32, quantity:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
     keysplit:ZZ32 = keys.size() - index
-    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + 1)
-    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size() + 1)
-    (left,right,key') = heir.break()
+    keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() + quantity)
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](children.size() + quantity)
+    (left, right, newkeys, newchildren) = heir.break(quantity)
     keys'[0 # index] := keys[0 # index]
+    keys'[index # newkeys.size()] := newkeys[0 # newkeys.size()]
+    keys'[(index + newkeys.size()) # keysplit] := keys[index # keysplit]
     children'[0 # index] := children[0 # index]
-    keys'[index] := key'
     children'[index] := left
-    children'[index + 1] := right
-    keys'[(index + 1) # keysplit] := keys[index # keysplit]
-    children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
-    InternalLevelN[\Key,Val\](keys',children')
+    children'[(index + 1) # newchildren.size()] := newchildren[0 # newchildren.size()]
+    children'[index + newchildren.size() + 1] := right
+    children'[(index + newchildren.size() + 2) # keysplit] := children[(index + 1) # keysplit]
+    InternalLevelN[\Key,Val\](keys',children')  
   end
 
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = heightn_merge(nodes)

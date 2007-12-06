@@ -103,8 +103,10 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   (* given a key k, return the largest offset with a value less than or equal to k *)
   find_index(k:Key):ZZ32
 
-  (* break this internal node in half.  Returns the two halves along with the key used for breaking *)
-  break():(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Key)
+  (* break this internal node.  
+     Returns the two halves along with an key array of size quantity used for splitting.
+     The values array is of size quantitiy - 1. *)
+  break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\])
   
   (* return a new internal node that has children[index] and keys[index - 1] missing *)
   index_remove(index:ZZ32): SelfType
