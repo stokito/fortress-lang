@@ -86,7 +86,7 @@ Expr DelimitedExpr =
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(NodeFactory.makeOpr(a2));
        Option<Block> _else;
-       if (a4 == null) 
+       if (a4 == null)
            _else = Option.none();
        else _else = Option.some(a4);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
@@ -254,13 +254,28 @@ private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
    | <| w Expr wr | wr GeneratorList w |>
    | [ w ArrayComprehensionClause (br ArrayComprehensionClause)* w ]
  */
-Comprehension Comprehension =
+FlowExpr Comprehension =
      opencurly w a1:Expr wr bar wr a2:GeneratorList w closecurly
-     { yyValue = new SetComprehension(createSpan(yyStart,yyCount),false,a2,a1); }
+     { Span span = createSpan(yyStart,yyCount);
+       Op open  = NodeFactory.makeOp(span, "BIG {");
+       Op close = NodeFactory.makeOp(span, "BIG }");
+       OpName opr = new Bracketing(span, open, close);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
+     }
    / opencurly w a1:Entry wr bar wr a2:GeneratorList w closecurly
-     { yyValue = new MapComprehension(createSpan(yyStart,yyCount),false,a2,a1); }
+     { Span span = createSpan(yyStart,yyCount);
+       Op open  = NodeFactory.makeOp(span, "BIG {");
+       Op close = NodeFactory.makeOp(span, "BIG }");
+       OpName opr = new Bracketing(span, open, close);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
+     }
    / openangle w a1:Expr wr bar wr a2:GeneratorList w closeangle
-     { yyValue = new ListComprehension(createSpan(yyStart,yyCount),false,a2,a1);}
+     { Span span = createSpan(yyStart,yyCount);
+       Op open  = NodeFactory.makeOp(span, "BIG <|");
+       Op close = NodeFactory.makeOp(span, "BIG |>");
+       OpName opr = new Bracketing(span, open, close);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
+     }
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
        w closesquare
      { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a1, a2s.list());
@@ -273,8 +288,10 @@ Comprehension Comprehension =
 String mapstoOp = !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->" ;
 
 /* Entry ::= Expr w |-> w Expr */
-Entry Entry = a1:Expr w mapsto w a2:Expr
-     { yyValue = new Entry(createSpan(yyStart,yyCount), a1, a2); };
+Expr Entry = a1:Expr w mapsto w a2:Expr
+     { OpName op = NodeFactory.makeOpr("|->");
+       yyValue = ExprFactory.makeOprExpr(createSpan(yyStart,yyCount),op,a1,a2);
+     };
 
 /* ArrayComprehensionLeft ::=
      IdOrInt w |-> w Expr

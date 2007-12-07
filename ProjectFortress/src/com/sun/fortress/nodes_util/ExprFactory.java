@@ -466,9 +466,6 @@ public class ExprFactory {
             public Expr forOprExpr(OprExpr e) {
                 return new OprExpr(e.getSpan(), true, e.getOps(), e.getArgs());
             }
-            public Expr forMapExpr(MapExpr e) {
-                return new MapExpr(e.getSpan(), true, e.getElements());
-            }
             public Expr forArrayElement(ArrayElement e) {
                 return new ArrayElement(e.getSpan(), true, e.getElement());
             }
@@ -500,18 +497,6 @@ public class ExprFactory {
             }
             public Expr forArrayComprehension(ArrayComprehension e) {
                 return new ArrayComprehension(e.getSpan(), true, e.getClauses());
-            }
-            public Expr forSetComprehension(SetComprehension e) {
-                return new SetComprehension(e.getSpan(), true, e.getGens(),
-                                            e.getElement());
-            }
-            public Expr forMapComprehension(MapComprehension e) {
-                return new MapComprehension(e.getSpan(), true, e.getGens(),
-                                            e.getEntry());
-            }
-            public Expr forListComprehension(ListComprehension e) {
-                return new ListComprehension(e.getSpan(), true, e.getGens(),
-                                             e.getElement());
             }
             public Expr forChainExpr(ChainExpr e) {
                 return new ChainExpr(e.getSpan(), true, e.getFirst(),

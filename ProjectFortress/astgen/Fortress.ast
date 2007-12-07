@@ -727,7 +727,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * Accumulator ::= SUM | PRODUCT | Big Op
              * e.g.) PRODUCT[i <- 1:n] i
              */
-            Accumulator(Opr opr, List<Generator> gens, Expr body);
+            Accumulator(OpName opr, List<Generator> gens, Expr body);
+            /**
+             * array comprehension
+             * Comprehension ::= [ ArrayComprehensionClause+ ]
+             * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
+             */
+            ArrayComprehension(List<ArrayComprehensionClause> clauses);
             /**
              * atomic expression
              * FlowExpr ::= atomic AtomicBack
@@ -998,12 +1004,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     abstract Aggregate();
                         /**
-                         * map expression
-                         * Aggregate ::= { Entry (, Entry)* }
-                         * e.g.) { 'a' |-> 0, 'b' |-> 1, 'c' |-> 2 }
-                         */
-                        MapExpr(List<Entry> elements);
-                        /**
                          * array expression
                          * Aggregate ::= [ RectElements ]
                          * RectElements ::= Expr MultiDimCons*
@@ -1024,39 +1024,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              */
                             ArrayElements(int dimension,
                                           List<ArrayExpr> elements);
-                /**
-                 * comprehension expression
-                 * Primary ::= Comprehension
-                 */
-                abstract Comprehension();
-                    /**
-                     * array comprehension
-                     * Comprehension ::= [ ArrayComprehensionClause+ ]
-                     * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
-                     */
-                    ArrayComprehension(List<ArrayComprehensionClause> clauses);
-                    /**
-                     * comprehension with generators
-                     */
-                    abstract GeneratedComprehension(List<Generator> gens);
-                        /**
-                         * set comprehension
-                         * Comprehension ::= { Expr | GeneratorList }
-                         * e.g.) { x^2 | x <- {0, 1, 2, 3, 4, 5}, x MOD 2 = 0 }
-                         */
-                        SetComprehension(Expr element);
-                        /**
-                         * map comprehension
-                         * Comprehension ::= { Entry | GeneratorList }
-                         * e.g.) { x^2 |-> x^3 | x <- {0, 1, 2, 3, 4, 5} }
-                         */
-                        MapComprehension(Entry entry);
-                        /**
-                         * list comprehension
-                         * Comprehension ::= <| Expr | GeneratorList |>
-                         * e.g.)
-                         */
-                        ListComprehension(Expr element);
     /**
      * type
      * Type ::= ArrowType
@@ -1788,12 +1755,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) String => x.append("foo")
      */
     TypecaseClause(List<Type> match, Block body);
-    /**
-     * key/value pair used in map expressions and map comprehensions
-     * Entry ::= Expr |-> Expr
-     * e.g.) 'a' |-> 0
-     */
-    Entry(Expr key, Expr value);
     /**
      * array and matrix size
      * ExtentRange ::= StaticArg? # StaticArg?

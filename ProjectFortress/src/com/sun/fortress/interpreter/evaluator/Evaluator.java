@@ -89,7 +89,6 @@ import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Bracketing;
 import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.Entry;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
@@ -112,10 +111,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.LetFn;
-import com.sun.fortress.nodes.ListComprehension;
 import com.sun.fortress.nodes.LooseJuxt;
-import com.sun.fortress.nodes.MapComprehension;
-import com.sun.fortress.nodes.MapExpr;
 import com.sun.fortress.nodes.ArrayExpr;
 import com.sun.fortress.nodes.ArrayElement;
 import com.sun.fortress.nodes.ArrayElements;
@@ -136,7 +132,6 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
-import com.sun.fortress.nodes.SetComprehension;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteral;
@@ -677,10 +672,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return FString.make(result);
     }
 
-    public FValue forEntry(Entry x) {
-        return NI("forEntry");
-    }
-
     public FValue forExit(Exit x) {
         Option<IdName> target = x.getTarget();
         Option<Expr> returnExpr = x.getReturnExpr();
@@ -889,10 +880,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    public FValue forListComprehension(ListComprehension x) {
-        return bug(x,"list comprehensions not yet implemented.");
-    }
-
     private FValue juxtApplyStack(Stack<FValue> fns, FValue times, AbstractNode loc) {
         FValue tos = fns.pop();
         while (!fns.empty()) {
@@ -937,14 +924,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
         return juxtApplyStack(stack, times, x);
-    }
-
-    public FValue forMapComprehension(MapComprehension x) {
-        return NI("forMapComprehension");
-    }
-
-    public FValue forMapExpr(MapExpr x) {
-        return NI("forMapExpr");
     }
 
     public FValue forArrayElement(ArrayElement x) {
@@ -1092,10 +1071,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forArrayComprehension(ArrayComprehension x) {
         return NI("forArrayComprehension");
-    }
-
-    public FValue forSetComprehension(SetComprehension x) {
-        return NI("forSetComprehension");
     }
 
     /*
