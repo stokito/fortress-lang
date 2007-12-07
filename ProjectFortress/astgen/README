@@ -1,55 +1,3 @@
-CHECK: value trait / value object / value type
-
-* Not yet implemented features
- - lexical structure
-  = ASCII conversion
-  = digit-group separator
- - coercions
- - operators
-  = conditional operators
-  = BIG operators
- - keyword parameters
- - dimensions and units
- - where clauses
- - conditional extensions
- - syntax expanders
- - component system
- - static checking
-  = acyclic type hierarchy
-
-* Constraints that should be checked by the static checker
- 1) Functions
-  - A throws clause does not include naked type variables.
-  - Every element in a throws clause is a subtype of CheckedException.
- 2) Label Expressions
-  - It is a static error if the identifier after \KWD{end} of a labeled block
-    is not the name of the block.
-  - It is a static error if the target is not in scope
-    in the label namespace at the \KWD{exit} expression.
-    That is, the target must be the name of a statically enclosing \KWD{label}
-    expression, and the \KWD{exit} expression must not be within a \KWD{spawn}
-    expression that is contained in the \KWD{label} expression.
-    If no target is specified, the target is implicitly the name
-    of the smallest statically enclosing \KWD{label} expression;
-    it is a static error if there is no such expression.
- 3) Case Expressions
-  - It is a static error if the specified operator is not defined for these types
-    or if the operator's return type is not \TYP{Boolean}.
- 4) Operator Declarations
-  - An infix/multifix operator declaration must not have any keyword parameters,
-    and must be capable of accepting at least two arguments.  It is permissible
-    to use a varargs parameter.
-  - An operator declaration for superscripting (^) should have exactly two value
-    parameters.
-  - A prefix operator declaration must have one value parameter, which must not
-    be a keyword parameter or varargs parameter.
-  - A postfix operator declaration must have one value parameter, which must not
-    be a keyword parameter or varargs parameter
-  - A nofix operator declaration must have no parameters.
-  - If a result type appears in a subscripted assignment operator method
-    declaration, it must be ().
-
-
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast
  1) CSG defines productions for "NONTERMINALs" and "NONTERMINALList". For
@@ -325,7 +273,6 @@ abstract OprName();
     Enclosing(Op open, Op close);
     Opr(Op op);
     PostFix(Op op);
-    SubscriptAssign();
     SubscriptOp();
 
 26) CSG distinguishes contracts used in coercion declarations and the other
@@ -351,6 +298,7 @@ NonArrowType ::= ( TypeRef? )
  5) Only leaves should be concrete classes.
  6) Common fields should be hoisted where possible and where it makes sense.
 
+
 * Frequently Asked Questions and Answers for Fortress.ast
  1) Why does it distinguish between List<TypeRef> and Option<List<TypeRef>>?
    - Each of extends and excludes clauses and static parameter lists has type
@@ -375,8 +323,7 @@ trait T comprises {...} end
         OprName (abstract) : name representing an operator
             Enclosing      : a pair of enclosing operators
             PostFix        : a postfix operator
-            SubscriptAssign: subscripted assignment operator [ ] :=
-            SubscriptOp    : subscripting operator [ ]
+            SubscriptOp    : subscripting or subscripted assignment operator
             Opr            : all the other operator
 
  4) What is the root of the node hierarchy, UIDObject?
