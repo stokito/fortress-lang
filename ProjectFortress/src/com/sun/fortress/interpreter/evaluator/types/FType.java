@@ -60,7 +60,7 @@ abstract public class FType implements Comparable<FType> {
     };
 
     static public ListComparer<FType> listComparer = new ListComparer<FType>();
-    
+
     // static Random random = new Random(0xd06f00d);
 
     /* (non-Javadoc)
@@ -194,18 +194,24 @@ abstract public class FType implements Comparable<FType> {
         // actual super, then they exclude.
 
         // Otherwise, look for exclusion in the supertypes.
+        if (cannotBeExtended() && other.cannotBeExtended()) {
+            exclDumpln("Excludes.  Neither can be extended.");
+            return true;
+        }
+
+        // This is part of the definition, but it also probes memoized results.
+        if (excludes.contains(other)) {
+            exclDumpln("Excludes (cached).");
+            return true;
+        }
+
+        if (other.getExcludes().contains(this)) {
+            exclDumpln("Excludes (other declared).");
+            this.addExclude(other);
+            return true;
+        }
+
         if (cannotBeExtended()) {
-            if (other.cannotBeExtended) {
-                exclDumpln("Excludes.  Neither can be extended.");
-                return true;
-            }
-
-            // Optimization hack -- check memoized exclusion before doing work.
-            if (excludes.contains(other)) {
-                exclDumpln("Excludes (cached).");
-                return true;
-            }
-
             if (getTransitiveExtends().contains(other)) {
                 exclDumpln("No.  Transitive extend contains.");
                 return false;
@@ -216,14 +222,7 @@ abstract public class FType implements Comparable<FType> {
             this.addExclude(other);
             return true;
 
-
         } else if (other.cannotBeExtended()) {
-            // Optimization hack -- check memoized exclusion before doing work.
-            if (excludes.contains(other)) {
-                exclDumpln("Excludes (cached').");
-                return true;
-            }
-
             if (other.getTransitiveExtends().contains(this)) {
                 exclDumpln("No.  Contains transitive extend.");
                 return false;
@@ -236,32 +235,21 @@ abstract public class FType implements Comparable<FType> {
 
         }
 
-        // Not necessarily an optimization hack here; this is part of
-        // the definition, but it also probes memoized results.
-
-        if (excludes.contains(other)) {
-            exclDumpln("Excludes (cached\").");
-            return true;
-        }
-
-        if (other.getExcludes().contains(this)) {
-            exclDumpln("Excludes (other declared).");
-            this.addExclude(other);
-            return true;
-        }
-
-        List<FType> extendsThis = getTransitiveExtends();
-        for (FType t : extendsThis) {
-            BASet t_excludes = t.excludes;
-            if (t_excludes.isEmpty())
-                continue;
-            List<FType> extendsOther = other.getTransitiveExtends();
-            for (FType o : extendsOther) {
-                if ( !(t == this && o == other) && t_excludes.contains(o)) {
-                    // Short-circuit any future queries
-                    exclDumpln("Excludes via ",t," and ",o);
-                    this.addExclude(o);
-                    if (o!=other) this.addExclude(other);
+        for (FType t : getTransitiveExtends()) {
+            if (t==FTypeTop.ONLY) continue;
+            for (FType o : other.getTransitiveExtends()) {
+                if (o==FTypeTop.ONLY) continue;
+                if (this==t && other==o) continue;
+                Boolean excl_t = t.getExcludes().contains(o);
+                Boolean excl_o = o.getExcludes().contains(t);
+                if (excl_t || excl_o) {
+                    if (!excl_o) o.addExclude(t);
+                    if (!excl_t) t.addExclude(o);
+                    this.addExclude(other);
+                    other.addExclude(this);
+                    if (t != this) other.addExclude(t);
+                    if (o != other) this.addExclude(o);
+                    exclDumpln("Excludes due to ",t," and ",o);
                     return true;
                 }
             }
