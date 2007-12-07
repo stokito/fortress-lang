@@ -21,7 +21,7 @@
 # elsewhere in the specification.
 
 c_2_1
-  asterisk
+  asterisk, *
   middle dot
   multiplication sign
   asterisk operator
@@ -43,14 +43,14 @@ c_2_1
   circled multiplication sign with circumflex accent
   multiplication sign in double circle
   multiplication sign in triangle
-  solidus
+  solidus, /
   division sign
   division slash
   circled division slash
   circled reverse solidus
   circled anticlockwise-rotated division sign
   squared rising diagonal slash
-  reverse solidus operator
+  reverse solidus operator, \
   big solidus
   big reverse solidus
   circled division sign
@@ -58,15 +58,15 @@ c_2_1
   triple solidus binary relation, ///
 
 addition_and_subtraction
-  plus sign
+  plus sign, +
   hyphen-minus
-  minus sign
+  minus sign, -
 
 multiplication_and_division
-  asterisk
+  asterisk, *
   middle dot, dot
   multiplication sign, times, by
-  solidus
+  solidus, /
   division sign, div
   division slash
   asterisk operator
@@ -219,7 +219,7 @@ inequivalence_operators
   not equivalent to
 
 less_than_operators
-  less-than sign, lt
+  less-than sign, lt <
   less-than or equal to, le, <=
   less-than over equal to
   less-than but not equal to
@@ -256,7 +256,7 @@ less_than_operators
   fullwidth less-than sign
 
 greater_than_operators
-  greater-than sign, gt
+  greater-than sign, gt, >
   greater-than or equal to, ge, >=
   greater-than over equal to
   greater-than but not equal to
@@ -314,8 +314,8 @@ plain_comparison
   greater-than above slanted equal above less-than above slanted equal
   greater-than overlapping less-than
   greater-than beside less-than
-  number sign
-  colon
+  number sign, #
+  colon, :
 
 subset_comparison_operators
   subset of, subset
@@ -486,8 +486,8 @@ boolean_misc
   nor
 
 enclosing_left
-  left square bracket
-  left curly bracket
+  left square bracket, [
+  left curly bracket, {
 #  left-pointing double angle quotation mark
   left square bracket with quill, [./
   left ceiling, |/
@@ -518,8 +518,8 @@ enclosing_left
   left white lenticular bracket, {/
 
 enclosing_right
-  right square bracket
-  right curly bracket
+  right square bracket, ]
+  right curly bracket, }
 #  right-pointing double angle quotation mark
   right square bracket with quill, /.]
   right ceiling,\|
@@ -550,17 +550,17 @@ enclosing_right
   right white lenticular bracket, /}
 
 enclosing
-  vertical line
+  vertical line, |
   double vertical line, ||
   triple vertical bar binary relation, |||
 
 other_operators
-  exclamation mark
-  dollar sign
-  percent sign
-  question mark
-  commercial at
-  tilde
+  exclamation mark, !
+  dollar sign, $
+  percent sign, %
+  question mark, ?
+  commercial at, @
+  tilde, ~
   inverted exclamation mark
   cent sign, cents
   pound sign
