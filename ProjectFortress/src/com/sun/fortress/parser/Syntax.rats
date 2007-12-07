@@ -18,7 +18,7 @@
 /*
  * Definition of Fortress macro language.
  */
-module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr, Unicode, Header);
+module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr, Unicode, Header, Type);
 
 import Identifier;
 import Keyword;
@@ -27,12 +27,13 @@ import Symbol;
 import Expr;
 import Unicode;
 import Header;
+import Type;
 
 /* GrammarDef ::= grammar w id w Extends? (br ProductionDef)* end */
 public GrammarDecl GrammarDef =
      grammar w a1:Id a2:(w GrammarExtends)? a3s:(br ProductionDef)* w end
      { if ( a2 == null) a2 = Collections.<QualifiedIdName>emptyList();
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2, a3s.list()); };
+       yyValue = new GrammarDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), a2, a3s.list()); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<QualifiedIdName> GrammarExtends = extends w QualifiedNames ;
@@ -50,13 +51,18 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private ProductionDef ProductionDef =
-       production w a1:Id w colon w a2:Id a3:(w Extends)? w end
-      { if ( a3 == null) a3 = Option.none();
+      m1:(GrammarMod w)? production w a1:Id w colon w a2:TraitType a3:(w Extends)? w end
+      { if (a3 == null) a3 = Option.none();
         List<SyntaxDef> a4 = Collections.<SyntaxDef>emptyList();
-        yyValue = new ProductionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), NodeFactory.makeIdName(a2), a3, a4); }
-    / production w a1:Id w colon w a2:Id a3:(w Extends)? w a4:SyntaxDef  a4s:(br SyntaxDefOr)* w end
+        if (m1 == null) m1 = Option.none();
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), a2, a3, a4); }
+    /m1:(GrammarMod w)? production w a1:Id w colon w a2:TraitType a3:(w Extends)? w a4:SyntaxDef  a4s:(br SyntaxDefOr)* w end
       { if ( a3 == null) a3 = Option.none();
-        yyValue = new ProductionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), NodeFactory.makeIdName(a2), a3, FortressUtil.mkList(a4, a4s.list())); };
+        if ( m1 == null) m1 = Option.none();
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), a2, a3, FortressUtil.mkList(a4, a4s.list())); };
+
+private Option<ModifierPrivate> GrammarMod = 
+        private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
 /* SyntaxDef ::= SyntaxSymbol*  --> w Expr **/
 SyntaxDef SyntaxDef =

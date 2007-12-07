@@ -35,7 +35,7 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class Module {
+public abstract class Module {
 
 	Collection<ProductionDef> productions;
 	Collection<Module> imports;
@@ -98,18 +98,10 @@ public class Module {
 	
 	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionDef> productions) {
 		for (ProductionDef p: productions) {
-			this.addProduction(getQualifiedName(grammar.getName().toString(),p.getName().toString()), p);
+			this.addProduction(p.getName().toString(), p);
 		}		
 	}
 	
-	private String getQualifiedName(String prefix, String productionName) {
-		return prefix+productionName;
-	}
-	
-	public String getQualifiedName(String productionName) {
-		return this.getName()+productionName;
-	}
-
 	private void addProduction(String name, ProductionDef p) {
 //		if (p.getExtends().isSome() &&
 //			this.productionsExtendsMap.keySet().contains(Option.unwrap(p.getExtends()).getName())) {

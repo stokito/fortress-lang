@@ -18,12 +18,15 @@
 package com.sun.fortress.compiler.disambiguator;
 
 import java.util.*;
+import java.util.Map.Entry;
+
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.Grammar;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Variable;
@@ -42,6 +45,7 @@ public class TopLevelEnv extends NameEnv {
     private Map<IdName, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<IdName, Set<QualifiedIdName>>();
     private Map<IdName, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<IdName, Set<QualifiedIdName>>();
     private Map<OpName, Set<QualifiedOpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<QualifiedOpName>>();
+    private Map<IdName, Set<QualifiedIdName>> _onDemandGrammarNames = new HashMap<IdName, Set<QualifiedIdName>>();
     
     private static class TypeIndex {
         private DottedName _api;
@@ -63,6 +67,7 @@ public class TopLevelEnv extends NameEnv {
         initializeOnDemandTypeConsNames();
         initializeOnDemandVariableNames();
         initializeOnDemandFunctionNames();
+        initializeOnDemandGrammarNames();
     }
     
     /**
@@ -165,6 +170,14 @@ public class TopLevelEnv extends NameEnv {
             } 
         }
     }
+   
+    private void initializeOnDemandGrammarNames() {
+        for (Map.Entry<DottedName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
+        	for (Map.Entry<IdName, Grammar> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+            	initializeEntry(apiEntry, grammarEntry, _onDemandGrammarNames);
+            }
+        } 
+    }
     
     public Option<DottedName> apiName(DottedName name) {
         // TODO: Handle aliases.
@@ -179,6 +192,17 @@ public class TopLevelEnv extends NameEnv {
         return false;
     }
 
+	@Override
+	public boolean hasGrammar(IdName name) {
+        if (_current instanceof ApiIndex) {
+        	if (((ApiIndex) _current).grammars().containsKey(name)) {
+        		return true;
+        	}            
+        }
+        return false;
+	}
+
+    
     public Set<QualifiedIdName> explicitTypeConsNames(IdName name) {
         // TODO: imports
         if (_current.typeConses().containsKey(name)) {
@@ -211,6 +235,18 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
 
+	@Override
+	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+        // TODO: imports
+		if (_current instanceof ApiIndex) {
+			if (((ApiIndex)_current).grammars().containsKey(name)) {
+				DottedName api = ((ApiIndex)_current).ast().getName();
+				return Collections.singleton(NodeFactory.makeQualifiedIdName(api , name));
+			}
+		}
+        return Collections.emptySet();
+	}
+    
     private Set<QualifiedIdName> onDemandNames(IdName name, Map<IdName, Set<QualifiedIdName>> table) 
     {
         if (table.containsKey(name)) {
@@ -244,6 +280,14 @@ public class TopLevelEnv extends NameEnv {
         }
     }
     
+    public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+        if (_onDemandGrammarNames.containsKey(name)) {
+            return _onDemandGrammarNames.get(name);
+        } else {
+            return new HashSet<QualifiedIdName>();
+        }
+    }
+    
     public boolean hasQualifiedTypeCons(QualifiedIdName name) {
         DottedName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
@@ -267,6 +311,14 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return false; }
     }
+ 
+    public boolean hasQualifiedGrammar(QualifiedIdName name) {
+        DottedName api = Option.unwrap(name.getApi());
+        if (_globalEnv.definesApi(api)) {
+            return _globalEnv.api(api).grammars().containsKey(name.getName());
+        }
+        else { return false; }
+    }
     
     public TypeConsIndex typeConsIndex(final QualifiedIdName name) {
         return name.getApi().apply(new OptionVisitor<DottedName, TypeConsIndex>() {
@@ -277,6 +329,5 @@ public class TopLevelEnv extends NameEnv {
                 return _current.typeConses().get(name.getName());
             }
         });
-    }
-    
+    }    
 }

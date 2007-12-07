@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.Node;
@@ -30,6 +32,7 @@ import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 
 public class GrammarIndex {
@@ -39,6 +42,8 @@ public class GrammarIndex {
 	private LinkedList<GrammarIndex> extendsGrammars;
 	private boolean initialized;
 	private boolean isTopLevel;
+	private String qualifiedName;
+	private ApiIndex api;
 
 	public GrammarIndex() {
 		this.initialized = false;
@@ -56,6 +61,7 @@ public class GrammarIndex {
 		for (ProductionDef p: grammar.getProductions()) {
 			this.productions.put(p.getName(), p);
 		}
+		this.qualifiedName = qualifiedName;
 		this.initialized = true;
 	}
 
@@ -67,10 +73,6 @@ public class GrammarIndex {
 		return this.isTopLevel;
 	}
 	
-	public IdName getName() {
-		return this.grammar.getName();
-	}
-
 	public boolean containsProduction(String productionName) {
 		return this.productions.containsKey(NodeFactory.makeIdName(productionName));
 	}
@@ -91,4 +93,23 @@ public class GrammarIndex {
 		this.extendsGrammars.add(grammarIndex);		
 	}
 
+	/**
+	 * Returns the fully qualifies name of this grammar
+	 * @return
+	 */
+	public String getQualifiedName() {
+		return this.grammar.getName().getName().getId().getText();
+	}
+	
+	public Span getSpan() {
+		return this.grammar.getSpan();
+	}
+
+	public void setApi(ApiIndex api) {
+		this.api = api;		
+	}
+
+	public ApiIndex getApi() {
+		return this.api;
+	}
 }

@@ -28,18 +28,19 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.ItemSymbol;
+import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.syntax_abstractions.GrammarEnvironment;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
+import com.sun.fortress.syntax_abstractions.intermediate.CoreModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
+import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -72,15 +73,17 @@ public class ModuleResolver {
 		public Collection<Module> modules() { return modules; }
 	}
 
-	// private static Map<IdName, Module> modules;
-
 	public static Result resolve(GrammarEnvironment env) {
 		Map<GrammarIndex, Module> grammarToModules = new HashMap<GrammarIndex, Module>();
 
 		for (GrammarIndex grammar: env.getGrammars()) {
 			// If the grammar has been seen in an import then get 
 			// it from the map. Else create a new one.
-			Module m = new Module();
+			Module m = new UserModule();
+			if (grammar.getApi().ast().getName().stringName().equals("FortressSyntax")) {
+				m = new CoreModule();
+			}
+			
 			if (grammarToModules.containsKey(grammar)) {
 				m = grammarToModules.get(grammar);
 			}
@@ -90,7 +93,7 @@ public class ModuleResolver {
 			final Module module = m;
 
 			// Set the basic things
-			module.setName(grammar.getName().getId().getText());
+			module.setName(grammar.getQualifiedName());
 			module.isTopLevel(grammar.isTopLevel());
 
 			// Add all productions
@@ -99,7 +102,8 @@ public class ModuleResolver {
 			// Add all extended modules
 			for (GrammarIndex g: grammar.getExtendedGrammar()) {
 				if (!grammarToModules.keySet().contains(g)) {
-					grammarToModules.put(g, new Module());
+					
+					grammarToModules.put(g, new UserModule());
 				}
 				module.addExtendedModule(grammarToModules.get(g));
 			}
@@ -116,7 +120,7 @@ public class ModuleResolver {
 		List<Module> modules = new LinkedList<Module>();
 		modules.addAll(grammarToModules.values()); 
 		for (Module coreModule: result.keySet()) {
-			Module module = new Module();
+			Module module = new UserModule();
 			modules.add(module);
 			module.setName(ModuleInfo.getExtendedModuleName(coreModule.getName()));
 			module.setModify(coreModule);
@@ -124,23 +128,23 @@ public class ModuleResolver {
 			module.setImports(coreModule.getImports());
 		}
 
-		// Disambiguate productions names
-		for (final Module m: grammarToModules.values()) {
-			Collection<ProductionDef> productions = new LinkedList<ProductionDef>();
-			for (ProductionDef production: m.getDefinedProductions()) {
-				productions.add(renameProduction(production, m.getQualifiedName(production.getName().toString())));
-			}
-			m.setProductions(productions);
-		}
+//		// Disambiguate productions names
+//		for (final Module m: grammarToModules.values()) {
+//			Collection<ProductionDef> productions = new LinkedList<ProductionDef>();
+//			for (ProductionDef production: m.getDefinedProductions()) {
+//				productions.add(renameProduction(production, m.getQualifiedName(production.getName().toString())));
+//			}
+//			m.setProductions(productions);
+//		}
 		return new ModuleResolver().new Result(modules);
 	}
 
 	public static ProductionDef renameProduction(final ProductionDef production, final String newName) {
 		return (ProductionDef) production.accept(new NodeUpdateVisitor() {						
 			@Override
-			public Node forProductionDefOnly(ProductionDef that, QualifiedName name_result, IdName type_result, Option<? extends QualifiedName> extends_result, List<SyntaxDef> syntaxDefs_result) {
+			public Node forProductionDefOnly(ProductionDef that, Option<? extends Modifier> modifier_result, QualifiedIdName name_result, TraitType type_result, Option<? extends QualifiedName> extends_result, List<SyntaxDef> syntaxDefs_result) {
 				name_result = new QualifiedIdName(new IdName(new Id(newName)));
-				return new ProductionDef(that.getSpan(), name_result, type_result, extends_result, syntaxDefs_result);
+				return new ProductionDef(that.getSpan(), modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
 			}		
 		});
 	}

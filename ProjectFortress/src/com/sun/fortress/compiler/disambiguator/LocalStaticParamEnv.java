@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.List;
 import java.util.Collections;
+import java.util.Set;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -40,4 +41,24 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
         }
         return super.hasTypeParam(name);
     }
+    
+	@Override
+	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+		return Collections.emptySet();
+	}
+
+	@Override
+	public boolean hasGrammar(IdName name) {
+		return false;
+	}
+
+	@Override
+	public boolean hasQualifiedGrammar(QualifiedIdName name) {
+		return false;
+	}
+
+	@Override
+	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+		return Collections.emptySet();
+	}
 }

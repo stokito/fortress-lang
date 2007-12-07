@@ -49,6 +49,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -65,30 +66,30 @@ import edu.rice.cs.plt.lambda.SimpleBox;
 public class PreParser {
 
 	   public static class Result extends StaticPhaseResult {
-	        private Map<GrammarDef, Boolean> grammars;
+	        private Collection<GrammarIndex> grammars;
 	        
-	        public Result(Map<GrammarDef, Boolean> grammars) {
+	        public Result(Collection<GrammarIndex> grammars) {
 	        	this.grammars = grammars;
 	        }
 
 	        public Result(StaticError error) {
 	            super(IterUtil.singleton(error));
-	            this.grammars = new HashMap<GrammarDef, Boolean>();
+	            this.grammars = new LinkedList<GrammarIndex>();
 	        }
 	        
 	        public Result(Iterable<? extends StaticError> errors) {
 	            super(errors);
-	            grammars = new HashMap<GrammarDef, Boolean>();
+	            grammars = new LinkedList<GrammarIndex>();
 	        }
 
 	        public Result(Result r1, Result r2) {
 	            super(r1, r2);
-	            this.grammars = new HashMap<GrammarDef, Boolean>();
-	            grammars.putAll(r1.grammars);
-	            grammars.putAll(r2.grammars);
+	            this.grammars = new LinkedList<GrammarIndex>();
+	            grammars.addAll(r1.grammars);
+	            grammars.addAll(r2.grammars);
 	        }
 
-	        public Map<GrammarDef, Boolean> getGrammars() { 
+	        public Collection<GrammarIndex> getGrammars() { 
 	        	return this.grammars;
 	        }
 	    }

@@ -38,7 +38,7 @@ import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Map<GrammarDef, Boolean> grammars) {
+	public Result compile(Collection<GrammarIndex> grammars) {
 		
 		/*
 		 * Compute a grammar environment
@@ -47,7 +47,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		if (!env.errors().isEmpty()) { return new Result(null, env.errors()); }
 	
 		/* 
-		 * Resolve grammar extension and production extension, but leave the 
+		 * Resolve grammar extensions and production extensions, but leave the 
 		 * the content of the productions untouched
 		 */
 		ModuleResolver.Result mrr = ModuleResolver.resolve(env);

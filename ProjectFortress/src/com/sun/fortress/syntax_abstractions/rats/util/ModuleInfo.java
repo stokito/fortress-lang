@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.nodes.QualifiedName;
+import com.sun.fortress.syntax_abstractions.intermediate.CoreModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
@@ -250,7 +251,7 @@ public class ModuleInfo {
 	
 	public static boolean isCoreProduction(String s) {
 		Map<String, Module> coreProductionAndModules = new HashMap<String, Module>();
-		Module literal = new Module();
+		Module literal = new CoreModule();
 		literal.setName(s);
 		coreProductionAndModules.put("Literal", literal);
 		// TODO: create the map on the fly from Rats! files
@@ -259,7 +260,7 @@ public class ModuleInfo {
 	
 	public static Module getCoreModule(String s) {
 		Map<String, Module> coreProductionAndModules = new HashMap<String, Module>();
-		Module literal = new Module();
+		Module literal = new CoreModule();
 		literal.setName(s);
 		coreProductionAndModules.put("Literal", literal);
 		// TODO: create the map on the fly from Rats! files

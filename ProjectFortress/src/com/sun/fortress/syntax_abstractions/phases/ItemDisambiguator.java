@@ -75,9 +75,9 @@ public class ItemDisambiguator {
 						if (module.containsProduction(production, that.getItem().replace(".", ""))) {
 							return makeNonterminal(that, that.getItem().replace(".", "")); // TODO: don't rewrite production names
 						}
-						else if (module.containsProduction(production, module.getQualifiedName(that.getItem().replace(".", "")))) {
-							return makeNonterminal(that, module.getQualifiedName(that.getItem().replace(".", ""))); // TODO: same here
-						}
+//						else if (module.containsProduction(production, module.getQualifiedName(that.getItem().replace(".", "")))) {
+//							return makeNonterminal(that, module.getQualifiedName(that.getItem().replace(".", ""))); // TODO: same here
+//						}
 						else {
 							Node n = null;
 							for (Module m: module.getImports()) {

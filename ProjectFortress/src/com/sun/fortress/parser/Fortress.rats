@@ -38,7 +38,7 @@ instantiate com.sun.fortress.parser.Header (OtherDecl, Type, Expression, Delimit
                                                                     Keyword, Symbol, Spacing) as Header;
 instantiate com.sun.fortress.parser.OtherDecl (Parameter, Header, Type, NoNewlineExpr, Identifier,
                                                                           Keyword, Symbol, Spacing) as OtherDecl;
-instantiate com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expression, Unicode, Header) as Syntax;
+instantiate com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expression, Unicode, Header, Type) as Syntax;
 instantiate com.sun.fortress.parser.Type (Header, Expression, Literal, Identifier, Keyword,
                                                                  Symbol, Spacing) as Type;
 instantiate com.sun.fortress.parser.Expression (Parameter, Header, Type, DelimitedExpr, Identifier,

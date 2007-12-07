@@ -474,7 +474,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * grammar declaration
      */
-    abstract GrammarDecl(IdName name, List<? extends QualifiedName> extends) implements AbsDecl;
+    abstract GrammarDecl(QualifiedIdName name, List<QualifiedIdName> extends) implements AbsDecl;
         /**
          * grammar definition in grammar declarations
          */
@@ -482,7 +482,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * production declaration
      */
-    abstract ProductionDecl(QualifiedName name, IdName type, Option<? extends QualifiedName> extends) implements AbsDecl;
+    abstract ProductionDecl(Option<? extends Modifier> modifier, QualifiedIdName name, TraitType type, Option<? extends QualifiedName> extends) implements AbsDecl;
         /**
          * production definition in production declarations
          */
