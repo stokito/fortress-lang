@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.tools.javac.*;
 
 public class JavaC {
@@ -53,12 +54,12 @@ public class JavaC {
 	}
 	
 	private static String getFortressBuildDir() {
-		return System.getenv("FORTRESS_HOME")+File.separatorChar+"ProjectFortress"+File.separatorChar+"build"+File.separatorChar;
+		return ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"build"+File.separatorChar;
 	}
 	
 	private static String getFortressThirdPartyDependencyJars() {
 		String sepChar = ""+File.separatorChar;
-		String thirdPartyDir = System.getenv("FORTRESS_HOME")+File.separatorChar+"ProjectFortress"+File.separatorChar+"third_party"+File.separatorChar;
+		String thirdPartyDir = ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"third_party"+File.separatorChar;
 		
 		String jars = "";
 		jars += thirdPartyDir+"ant"+sepChar+"ant-junit.jar:";

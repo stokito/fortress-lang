@@ -29,13 +29,8 @@ import java.util.*;
 
 import static com.sun.fortress.shell.ConvenientStrings.*; 
 
-public class FileBasedRepository implements FortressRepository {
+public class FileBasedRepository extends CacheBasedRepository implements FortressRepository {
 
-    private final Map<DottedName, ApiIndex> apis = 
-        new HashMap<DottedName, ApiIndex>(); 
-    private final Map<DottedName, ComponentIndex> components = 
-        new HashMap<DottedName, ComponentIndex>();
-    private final String pwd;
     private final String path;
     
     public FileBasedRepository(String _pwd) throws IOException {
@@ -43,7 +38,7 @@ public class FileBasedRepository implements FortressRepository {
     }
     
     public FileBasedRepository(String _pwd, String _path) throws IOException {
-        pwd = _pwd;
+        super(_pwd);
         path = _path;
         initialize();
     }
@@ -88,54 +83,4 @@ public class FileBasedRepository implements FortressRepository {
         }
     }
     } 
-
-    public Map<DottedName, ApiIndex> apis() { return apis; }
-    
-    public ApiIndex getApi(DottedName name) { return apis.get(name); }
-    public ComponentIndex getComponent(DottedName name) { return components.get(name); }
-
-    public void addApi(DottedName name, ApiIndex def) {
-        apis.put(name, def);
-        
-        try {
-            CompilationUnit ast = def.ast();
-            if (ast instanceof Component) {
-                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-				    DOT + Driver.COMP_TREE_SUFFIX);
-            }
-            else { // ast instanceof Api
-                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-				    DOT + Driver.API_TREE_SUFFIX);
-            }
-        } catch (IOException e) {
-            throw new ShellException(e);
-        }
-    }
-    
-    public void addApis(Map<DottedName, ApiIndex> newApis) {
-        for (Map.Entry<DottedName, ApiIndex> entry: newApis.entrySet()) {
-            addApi(entry.getKey(), entry.getValue());
-        }
-    }
-    
-    public void addComponent(DottedName name, ComponentIndex def) {
-        // Cache component for quick retrieval.
-        components.put(name, def);
-        
-        try {
-            CompilationUnit ast = def.ast();
-            Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + fs.JAVA_AST_SUFFIX);
-        } catch (IOException e) {
-            throw new ShellException(e);
-        }
-    }
-
-    public long getModifiedDateForApi(DottedName name) {
-        return apis.get(name).modifiedDate();
-       
-    }
-
-    public long getModifiedDateForComponent(DottedName name) {
-        return components.get(name).modifiedDate();
-    }
 }

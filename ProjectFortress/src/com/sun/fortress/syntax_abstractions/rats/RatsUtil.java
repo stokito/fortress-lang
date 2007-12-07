@@ -44,6 +44,7 @@ import xtc.tree.Comment;
 import xtc.tree.Printer;
 import xtc.type.JavaAST;
 
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleEnum;
@@ -271,6 +272,6 @@ public abstract class RatsUtil {
 	}
 
 	public static String getFortressSrcDir() {
-		return System.getenv("FORTRESS_HOME")+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
+		return ProjectProperties.FORTRESS_HOME+File.separatorChar+"ProjectFortress"+File.separatorChar+"src"+File.separatorChar;
 	}
 }
