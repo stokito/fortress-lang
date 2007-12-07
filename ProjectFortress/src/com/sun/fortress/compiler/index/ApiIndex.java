@@ -17,20 +17,28 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
 import java.util.Map;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleName;
 
 public class ApiIndex extends CompilationUnitIndex {
+    
+    private final Map<IdName, Grammar> _grammars;
     
     public ApiIndex(Api ast,
                     Map<IdName, Variable> variables,
                     Relation<SimpleName, Function> functions,
                     Map<IdName, TypeConsIndex> typeConses,
+                    Map<IdName, Grammar> grammars,
                     long modifiedDate) {
         super(ast, variables, functions, typeConses, modifiedDate);
+        _grammars = Collections.unmodifiableMap(grammars);
     }
+
+    public Map<IdName, Grammar> grammars() { return _grammars; }
     
 }

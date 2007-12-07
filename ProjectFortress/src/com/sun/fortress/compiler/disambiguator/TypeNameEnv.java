@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.disambiguator;
 
 import java.util.*;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.IdName;
@@ -84,4 +85,26 @@ public abstract class TypeNameEnv {
         }
         return false;
     }
+    
+    /**
+     * Produce the set of unaliased qualified names corresponding to the given
+     * grammar name; on-demand imports are ignored.  An undefined reference
+     * produces an empty set, and an ambiguous reference produces a set of size greater
+     * than 1.
+     */
+    public abstract Set<QualifiedIdName> explicitGrammarNames(IdName name);
+    /**
+     * Given a disambiguated name (aliases and imports have been resolved),
+     * determine whether a grammar exists.  Assumes {@code name.getApi().isSome()}.
+     */
+    public abstract boolean hasQualifiedGrammar(QualifiedIdName name);
+    /** Determine whether a grammar with the given name is defined. */
+    public abstract boolean hasGrammar(IdName name);
+    /**
+     * Produce the set of unaliased qualified names available via on-demand imports
+     * that correspond to the given grammar name.  An undefined reference
+     * produces an empty set, and an ambiguous reference produces a set of size 
+     * greater than 1.
+     */
+    public abstract Set<QualifiedIdName> onDemandGrammarNames(IdName name);
 }

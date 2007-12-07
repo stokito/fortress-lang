@@ -43,7 +43,7 @@ public class JavaC {
 		String[] args = {"-cp", classpath , "-d", dir, dir+filename};
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
-		int compilationResult = Main.compile(args, pw);
+		int compilationResult = com.sun.tools.javac.Main.compile(args, pw);
 		String errors = sw.getBuffer().toString();
 		System.err.println("done: "+compilationResult);
 		if (!errors.equals("")) {

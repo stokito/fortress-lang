@@ -65,18 +65,35 @@ public class GrammarEnvironment {
     	this.errors = new LinkedList<StaticError>();
 	}
 
-    public GrammarEnvironment(Map<GrammarDef, Boolean> grammars) {
+    public GrammarEnvironment(Collection<GrammarIndex> grammars) {
 		this();
-    	for (GrammarDef grammar: grammars.keySet()) {
-			this.addGrammar(grammar, grammars.get(grammar));
+    	for (GrammarIndex grammar: grammars) {
+			this.addGrammar(grammar);
 		}
 	}
 
-	public Map<String, GrammarIndex> grammars() { return this.grammars; }
-    
-    public boolean definesGrammar(IdName name) { return this.grammars.containsKey(name.getId().getText()); }
+    public void addGrammar(GrammarIndex grammar) {	
+    	GrammarIndex grammarIndex = this.grammars.get(grammar.getQualifiedName());
+System.err.println(grammarIndex+" "+grammar.getQualifiedName()+" "+this.grammars);		
+    	if (grammarIndex == null) {
+			this.grammars.put(grammar.getQualifiedName(), grammar);
+		}
+//		else if (!grammarIndex.isInitialized()) {
+//			grammarIndex.setGrammar(grammar, isTopLevel);
+//		}
+		else {
+			this.errors.add(new Error("Duplicate grammar imported", grammarIndex.getSpan()));			
+		}
+		
+		for (QualifiedName name: grammar.ast().getExtends()) {
+			if (!this.grammars.containsKey(name.getName().toString())) {
+				this.grammars.put(name.getName().toString(), new GrammarIndex());
+			}
+			grammarIndex.addExtendingGrammar(this.grammars.get(name.getName().toString()));							
+		}
+    }
 
-	public GrammarIndex grammar(IdName name) {
+	public GrammarIndex getGrammarIndex(IdName name) {
         GrammarIndex result = this.grammars.get(name);
         if (result == null) {
             throw new IllegalArgumentException("Undefined Grammar: " +
@@ -84,38 +101,13 @@ public class GrammarEnvironment {
         }
         else { return result; }
     }
+
+	public Map<String, GrammarIndex> grammars() { 
+		return this.grammars; 
+	}
     
-    public void print() {
-        for (String name : this.grammars().keySet()) {
-            System.out.println(name);
-        }
-    }
-    
-    public void addGrammar(GrammarDef grammar, Boolean isTopLevel) {
-    	GrammarIndex grammarIndex = this.grammars.get(grammar.getName().getId().getText());
-		if (grammarIndex == null) {
-			grammarIndex = new GrammarIndex(grammar, isTopLevel);
-			this.grammars.put(grammar.getName().getId().getText(), grammarIndex);
-		}
-		else if (!grammarIndex.isInitialized()) {
-			grammarIndex.setGrammar(grammar, isTopLevel);
-		}
-		else {
-			this.errors.add(new Error("Duplicate grammar imported", grammar.getSpan()));			
-		}
-		
-		for (QualifiedName name: grammar.getExtends()) {
-			List<QualifiedName> seen = new LinkedList<QualifiedName>();
-			if (seen.contains(name) || name.getName().equals(grammar.getName().getId().getText())) {
-				this.errors.add(new Error("A grammar can not extend it self", name.getSpan()));
-			}
-			else {
-				if (!this.grammars.containsKey(name.getName().toString())) {
-					this.grammars.put(name.getName().toString(), new GrammarIndex());
-				}
-				grammarIndex.addExtendingGrammar(this.grammars.get(name.getName().toString()));				
-			}			
-		}
+    public boolean definesGrammar(IdName name) {
+    	return this.grammars.containsKey(name.getId().getText());
     }
     
     public List<StaticError> errors() {
@@ -125,5 +117,11 @@ public class GrammarEnvironment {
 	public Collection<GrammarIndex> getGrammars() {
 		return this.grammars.values();
 	}
+
+    public void print() {
+        for (String name : this.grammars().keySet()) {
+            System.out.println(name);
+        }
+    }
 
 }

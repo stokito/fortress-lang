@@ -76,4 +76,5 @@ public abstract class NameEnv extends TypeNameEnv {
      * determine whether a function exists.  Assumes {@code name.getApi().isSome()}.
      */
     public abstract boolean hasQualifiedFunction(QualifiedIdName name);
+
 }

@@ -25,9 +25,18 @@ package com.sun.fortress.syntax_abstractions.parser;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.QualifiedName;
 
 public class GrammarCollector extends NodeDepthFirstVisitor_void {
 
@@ -35,7 +44,7 @@ public class GrammarCollector extends NodeDepthFirstVisitor_void {
 
 	public GrammarCollector() {
 		super();
-		grammars = new LinkedList<GrammarDef>();
+		this.grammars = new LinkedList<GrammarDef>();
 	}
 
 	@Override

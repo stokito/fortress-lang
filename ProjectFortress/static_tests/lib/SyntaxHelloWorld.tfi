@@ -1,27 +1,49 @@
-(Api @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/syntaxprototype/SyntaxHelloWorld.fsi":1:1~13:4
- _name=(DottedName @1:5~5:3 _ids=[(Id @1:5~21 _text="SyntaxHelloWorld")])
+(Api @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":18:1~29:4
+ _name=(DottedName @18:5~20:3 _ids=[(Id @18:5~21 _text="SyntaxHelloWorld")])
  _decls=[
-  (GrammarDef @5:3~11:6
-   _name=(IdName @5:11~21
-    _id=(Id _text="helloworld"))
+  (GrammarDef @23:3~27:6
+   _name=(QualifiedIdName @18:5~23:21
+    _api=(Some _value=(DottedName @18:5~20:3 _ids=[(Id @18:5~21 _text="SyntaxHelloWorld")]))
+    _name=(IdName @23:11~21
+     _id=(Id _text="helloworld")))
+   _extends=[
+    (QualifiedIdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/syntaxprototype/FortressSyntax.fsi":5:11~18
+     _api=(Some _value=(DottedName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":21:23~23:3 _ids=[(Id @21:23~37 _text="FortressSyntax")]))
+     _name=(IdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/syntaxprototype/FortressSyntax.fsi":5:11~18
+      _id=(Id _text="Literal")))]
    _productions=[
-    (ProductionDef @8:18~10:10
-     _extends=(Some _value=(QualifiedIdName @8:58~9:10
-       _name=(IdName @8:58~65
+    (ProductionDef @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":24:7~26:10
+     _extends=(Some _value=(QualifiedIdName @24:47~25:10
+       _name=(IdName @24:47~54
         _id=(Id _text="Literal"))))
-     _name=(QualifiedIdName @8:29~39
+     _name=(QualifiedIdName @24:18~28
       _name=(IdName
        _id=(Id _text="helloworld")))
-     _type=(IdName @8:42~49
-      _id=(Id _text="Literal"))
+     _type=(IdType @24:31~46 _name=(QualifiedIdName @24:31~39
+       _name=(IdName @24:31~38
+        _id=(Id _text="Literal"))))
      _syntaxDefs=[
-      (SyntaxDef @9:10~10:10
-       _transformationExpression=(TightJuxt @9:26~52
+      (SyntaxDef @25:10~26:10
+       _transformationExpression=(TightJuxt @25:26~52
         _exprs=[
-         (VarRef @9:26~40 _var=(QualifiedIdName _name=(IdName @9:26~39 _id=(Id _text="StringLiteral"))))
-         (StringLiteral @9:40~52 _parenthesized=true _text="Hello world")])
+         (FnRef @25:26~39
+          _fns=[
+           (QualifiedIdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/test_library/FortressAst.fsi":232:11~24
+            _api=(Some _value=(DottedName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":20:17~21:3 _ids=[(Id @20:17~28 _text="FortressAst")]))
+            _name=(IdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/test_library/FortressAst.fsi":232:11~24
+             _id=(Id _text="StringLiteral")))])
+         (StringLiteral @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":25:40~52 _parenthesized=true _text="Hello world")])
        _syntaxSymbols=[
         (ItemSymbol @"":0:0
          _item="hello")
         (ItemSymbol
-         _item="world")])])])])
+         _item="world")])])])]
+ _imports=[
+  (ImportStar @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":20:10~21:3
+   _api=(DottedName @20:17~21:3 _ids=[(Id @20:17~28 _text="FortressAst")]))
+  (ImportNames @21:10~23:3
+   _api=(DottedName @21:23~23:3 _ids=[(Id @21:23~37 _text="FortressSyntax")])
+   _aliasedNames=[
+    (AliasedName @21:10~18
+     _name=(IdName @21:10~17
+      _id=(Id _text="Literal")))])])

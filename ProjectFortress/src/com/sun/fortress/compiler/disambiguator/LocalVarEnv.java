@@ -39,4 +39,24 @@ public class LocalVarEnv extends DelegatingNameEnv {
         else { return super.explicitVariableNames(name); }
     }
     
+	@Override
+	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+		return Collections.emptySet();
+	}
+
+	@Override
+	public boolean hasGrammar(IdName name) {
+		return false;
+	}
+
+	@Override
+	public boolean hasQualifiedGrammar(QualifiedIdName name) {
+		return false;
+	}
+
+	@Override
+	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+		return Collections.emptySet();
+	}
+    
 }
