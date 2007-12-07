@@ -60,7 +60,7 @@ public final class Shell {
     
     public static String fortressLocation() {
         try {
-            return new File(System.getenv("FORTRESS_PATH")).getCanonicalPath();
+            return ProjectProperties.FORTRESS_HOME;
         }
         catch (Exception e) {
             return "";

@@ -21,7 +21,7 @@ public class PathJUTest extends TestCase {
     public void testInappropriate() {
         Path p = new Path(".:..");
         try {
-            File f = p.find(".");
+            File f = p.findFile(".");
         
         } catch (FileNotFoundException e) {
             System.err.println(e);
@@ -31,7 +31,7 @@ public class PathJUTest extends TestCase {
     public void testMissing() {
         Path p = new Path(".:..");
         try {
-            File f = p.find("thisfileismissing");
+            File f = p.findFile("thisfileismissing");
         
         } catch (FileNotFoundException e) {
             System.err.println(e);
@@ -41,7 +41,7 @@ public class PathJUTest extends TestCase {
     public void testFound() {
         Path p = new Path(".:..");
         try {
-            File f = p.find("README.txt");
+            File f = p.findFile("README.txt");
         } catch (FileNotFoundException e) {
             System.err.println(e);
         }

@@ -67,7 +67,7 @@
 <!-- for tests -->
  <property name="test.results" location="${basedir}/TEST-RESULTS"/>
 <!-- other setting -->
- <property name="junitMem" value="512m"/>
+ <property name="junitMem" value="768m"/>
  <property name="compile.classpath" value="${build}:${xtc}/xtc.jar:${jsr166y}/jsr166y.jar:${plt}/plt.jar:${junit}/junit.jar"/>
  <property name="junit.dir" value="junit-results"/>
  <property environment="env"/>

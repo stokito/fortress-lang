@@ -31,7 +31,7 @@ public class Path {
         }
     }
  
-    public File find(String s) throws FileNotFoundException {
+    public File findFile(String s) throws FileNotFoundException {
         File inappropriateFile = null;
         for (File d : dirs) {
             File f = new File(d, s);
@@ -49,4 +49,24 @@ public class Path {
         throw new FileNotFoundException("File " + s
                 + " not found in directories " + dirs);
     }
+
+    public File findDir(String s) throws FileNotFoundException {
+        File inappropriateFile = null;
+        for (File d : dirs) {
+            File f = new File(d, s);
+            if (f.isDirectory()) {
+                return f;
+            } else if (f.exists()) {
+                inappropriateFile = f;
+            }
+        }
+        if (inappropriateFile != null) {
+            throw new FileNotFoundException("Directory " + s
+                    + " not found in directories " + dirs
+                    + "; the last non-directory name match was " + inappropriateFile);
+        }
+        throw new FileNotFoundException("File " + s
+                + " not found in directories " + dirs);
+    }
+
 }
