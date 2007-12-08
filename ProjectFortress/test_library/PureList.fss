@@ -43,7 +43,7 @@ export PureList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { ZeroIndexed[\E\] }
+trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
   getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
@@ -60,19 +60,9 @@ trait List[\E\] extends { ZeroIndexed[\E\] }
   split(n:ZZ32): (List[\E\], List[\E\])
   split(): (List[\E\], List[\E\])
   reverse(): List[\E\] = generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
-  zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
-      ZipGenerator[\E,F\](self,other)
   filter(p: E -> Boolean): List[\E\] =
       concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
                                               else emptyList[\E\]() end)
-  opr =(self, other: List[\E\]): Boolean = do
-      println("In List =")
-      if self.size() = other.size() then
-          println("Sizes match")
-          self.zip[\E\](other).generate[\Boolean\](AndReduction,
-                                                   fn(a,b) => a=b)
-      else println("Sizes don't match"); false end
-    end
   toString():String =
     "<|" extractLeft().maybe[\String\](
              fn () => " ",
@@ -203,53 +193,6 @@ value object SeqListGenerator[\E\]( it: FingerTree[\E\] )
     getter size(): ZZ32 = leafSize(it)
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         it.seqgen[\R\](r,fn (x: E): R => body(x))
-end
-
-(* The ZipGenerator works by first chopping the lists so that they are
-the same size, then successively splitting them.  The first argument
-is used as a template to guide the splitting process; the second
-argument is then split to match. *)
-value object ZipGenerator[\A,B\](transient x0: PureList[\A\],
-                                 transient y0: PureList[\B\])
-        extends { Generator[\(A,B)\] }
-    sz = (x0.size() MIN y0.size())
-    xs = x0.take(sz)
-    ys = y0.take(sz)
-    getter size() = sz
-    seq(self): SequentialGenerator[\(A,B)\] = SeqZipGenerator(sz,xs,ys)
-    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R = do
-        zgen(a: PureList[\A\], b: PureList[\B\]): R =
-          if a.size() > 1 then
-              (al,ar) = a.split()
-              (bl,br) = b.split(al.size())
-              r.join(zgen(al,bl),zgen(ar,br))
-          elif a.isEmpty() then
-              r.empty()
-          else
-              body(a[0],b[0])
-          end
-        zgen(xs,ys)
-      end
-end
-
-value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:PureList[\A\], ys:PureList[\B\])
-        extends { SequentialGenerator[\E\] }
-    getter size() = sz
-    generate[\R\](r: Reduction[\R\], body: E->R): R = do
-        zgen(a: PureList[\A\], b: PureList[\B\]): R =
-          if a.size() > 1 then
-              (al,ar) = a.split()
-              (bl,br) = b.split(al.size())
-              zgl = zgen(al,bl)
-              zgr = zgen(ar,br)
-              r.join(zgl,zgr)
-          elif a.isEmpty() then
-              r.empty()
-          else
-              body(a[0],b[0])
-          end
-        zgen(xs,ys)
-      end
 end
 
 emptyList[\E\](): List[\E\] = PureList[\E\](D0[\E\]())
@@ -404,13 +347,6 @@ trait D23[\E\] extends { D13[\E\], D24[\E\] }
   snoc(e:E) : D34[\E\]
   nodes3(x:D04[\E\],y:D14[\E\]):D14[\D23[\E\]\]
   nodes2(x:D14[\E\]):D13[\D23[\E\]\]
-  take(n:ZZ32): D03[\E\] =
-      if n <= 0 then
-          D0[\E\]()
-      else
-          (h,t) = uncons()
-          t.take(n-leafSize(h)).cons(h)
-      end
 end
 
 trait D34[\E\] extends D24[\E\]
@@ -915,7 +851,9 @@ object Deep[\E\]
       end
   takeR(n:ZZ32): FingerTree[\E\] = Deep[\E\](l,m,r.take(n))
   drop(n:ZZ32): NonEmptyFingerTree[\E\] =
-      if n < leafSize(l) then
+      if n <= 0 then
+          self
+      elif n < leafSize(l) then
           Deep[\E\](l.drop(n),m,r)
       else
           dropM(n - leafSize(l), m)
