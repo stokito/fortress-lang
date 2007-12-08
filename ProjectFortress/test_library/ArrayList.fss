@@ -74,7 +74,7 @@ expansion(curr: ZZ32, new: ZZ32) =
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { ZeroIndexed[\E\] }
+trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
     getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
     getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
@@ -92,17 +92,9 @@ trait List[\E\] extends { ZeroIndexed[\E\] }
     split(): (List[\E\], List[\E\])
     reverse(): List[\E\] =
         generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
-    zip[\F\](other: List[\F\]): Generator[\(E,F)\] =
-        ZipGenerator[\E,F\](self,other)
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
                                                 else emptyList[\E\]() end)
-    opr =(self, other: List[\E\]): Boolean = do
-        if self.size() = other.size() then
-            self.zip[\E\](other).generate[\Boolean\](AndReduction,
-                                                     fn(a,b) => a=b)
-        else println("Sizes don't match"); false end
-      end
     toString():String =
       "<|" extractLeft().maybe[\String\](
                fn () => " ",

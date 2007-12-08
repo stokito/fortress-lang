@@ -88,6 +88,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             return foo.apply(args, loc, e);
         } catch (FortressError ex) {
             throw ex.setContext(loc,e);
+        } catch (StackOverflowError soe) {
+            return error(loc,e,errorMsg("Stack overflow on ",foo));
         }
     }
 

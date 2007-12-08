@@ -81,6 +81,7 @@ run(args:String...):() = do
       chkExtract(li,i)
       print(".")
       assert(li,li,"Lists unequal")
+      assert(li CMP li,EqualTo,"Lists CMP unequal")
       (ll,lr) = li.split()
       print(".")
       lii = ll.append(lr)
@@ -92,6 +93,8 @@ run(args:String...):() = do
       print(".")
       mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
       chkPop(mli,17,i)
+      print(".")
+      assertStr(i=0 OR: li < mli," NOT < ",mli)
       print(".")
       cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x, 2 x + 1|>)
       print(".")
@@ -128,6 +131,8 @@ run(args:String...):() = do
           assertStr(gz.generate[\Boolean\](AndReduction,
                                            fn (x,y):Boolean => x+i=y),
                     "zip mismatch ",li,lj)
+          print(".")
+          assertStr(j=0 OR: li < lj, " NOT < ", lj)
       end
   end
   finish = nanoTime()
