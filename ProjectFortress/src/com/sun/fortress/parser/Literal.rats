@@ -39,21 +39,8 @@ Expr Literal =
    / <STRING> StringLiteral
    ;
 
-/* Aggregate ::=
-     { w Entry (w , w Entry)* w }
-   | [ w RectElements w ]
- */
-Expr Aggregate =
-     opencurly w a1:Entry a2s:(w comma w Entry)* w closecurly
-     { List<Expr> elements = new ArrayList<Expr>();
-       elements.add(a1);
-       elements.addAll(a2s.list());
-       Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOp(span, "{");
-       Op close = NodeFactory.makeOp(span, "}");
-       yyValue = ASTUtil.enclosing(span, open, elements, close);
-     }
-   / void:opensquare w RectElements w void:closesquare ;
+/* ArrayExpr ::= [ w RectElements w ] */
+ArrayExpr ArrayExpr = void:opensquare w RectElements w void:closesquare;
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
 private ArrayExpr RectElements =

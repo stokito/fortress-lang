@@ -18,8 +18,9 @@
 /*
  * Definition of Fortress expressions that are enclosed by keywords.
  */
-module com.sun.fortress.parser.DelimitedExpr(TraitObject, Header, Type, Expr, LocalDecl, Literal,
-                     Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.DelimitedExpr(TraitObject, Header, Type, Expr,
+                                             LocalDecl, Literal, Identifier,
+                                             Keyword, Symbol, Spacing);
 import TraitObject;
 import Header;
 import Type;
@@ -318,24 +319,6 @@ Expr IdOrInt =
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* BaseExpr ::=
-     NoKeyTuple
-   | Parenthesized
-   | Literal
-   | Aggregate
-   | QualifiedName
-   | self
- */
-Expr BaseExpr =
-     NoKeyTuple
-   / Parenthesized
-   / Literal
-   / Aggregate
-   / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
-   / a1:self
-     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
