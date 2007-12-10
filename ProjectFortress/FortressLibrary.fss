@@ -2567,8 +2567,8 @@ opr   >(a:Integral, b:Integral):Boolean = NOT (a <= b)
 opr  >=(a:Integral, b:Integral):Boolean = b <= a
 opr CMP(a:Integral, b:Integral):TotalComparison =
     if a<b then LessThan elif a>b then GreaterThan else EqualTo end
-opr MIN[\T extends Integral\](a:T, b:T):T = if a <= b then a else b end
-opr MAX[\T extends Integral\](a:T, b:T):T = if b <= a then a else b end
+opr MIN[\I extends Integral\](a:I, b:I):I = if a <= b then a else b end
+opr MAX[\I extends Integral\](a:I, b:I):I = if b <= a then a else b end
 
 opr -(a:RR64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
 opr +(a:Number,b:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")

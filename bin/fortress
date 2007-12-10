@@ -62,7 +62,7 @@ if [ -z "$FORTRESS_HOME" ]; then
   echo guessing FORTRESS_HOME=$FORTRESS_HOME
 fi
 
-if [ -e ${FORTRESS_HOME}/ProjectFortress ]; then
+if [ -e "${FORTRESS_HOME}/ProjectFortress" ]; then
   true
 else
   echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"
