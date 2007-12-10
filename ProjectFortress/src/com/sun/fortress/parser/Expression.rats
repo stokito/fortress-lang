@@ -18,13 +18,15 @@
 /*
  * Definition of Fortress expressions.
  */
-module com.sun.fortress.parser.Expression(Param, Header, Type, DelimitedExpr, Identifier, Keyword,
-                  Symbol, Spacing);
+module com.sun.fortress.parser.Expression(Param, Header, Type, DelimitedExpr,
+                                          Literal, Identifier, Keyword, Symbol,
+                                          Spacing);
 
 import Param;
 import Header;
 import Type;
 import DelimitedExpr;
+import Literal;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -285,14 +287,19 @@ PureList<PrecedenceOpExpr> LooseInfix =
 /* Primary ::=
      Comprehension
    | QualifiedName [\ w StaticArgList w \]
-   | BaseExpr
+   | NoKeyTuple
+   | Parenthesized
+   | Literal
+   | QualifiedName
+   | self
+   | ArrayExpr
    | LeftEncloser (w ExprList)? w RightEncloser
    | Primary LeftEncloser (w ExprList)? w RightEncloser
    | Primary . Id ([\ w StaticArgList w \])? TupleExpr
    | Primary . Id ([\ w StaticArgList w \])? Parenthesized
    | Primary . Id ([\ w StaticArgList w \])? ( w )
    | Primary . Id
-   | Primary ^ BaseExpr
+   | Primary ^ Exponent
    | Primary ExponentOp
    | Primary w dimensionless
    | Primary w per w UnitExpr
@@ -310,7 +317,14 @@ Expr PrimaryFront =
      Comprehension
    / a1:QualifiedName opendoublesquare w a2:StaticArgList w closedoublesquare
      { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
-   / BaseExpr
+   / NoKeyTuple
+   / Parenthesized
+   / Literal
+   / a1:QualifiedName
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
+   / ArrayExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
@@ -383,7 +397,7 @@ constant inline Action<PureList<Expr>> FieldSelection =
      };
 
 constant inline Action<PureList<Expr>> ExponentExpr =
-     a1:caret a2:BaseExpr
+     a1:caret a2:Exponent
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
                PureList<Expr> primary = (PureList<Expr>)base;
@@ -412,6 +426,22 @@ constant inline Action<PureList<Expr>> ExponentExpr =
                }
            }};
      };
+
+/* Exponent ::=
+     NoKeyTuple
+   | Parenthesized
+   | Literal
+   | QualifiedName
+   | self
+ */
+private Expr Exponent =
+     NoKeyTuple
+   / Parenthesized
+   / Literal
+   / a1:QualifiedName
+     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 constant inline Action<PureList<Expr>> TaggedUnitExpr =
      w "dimensionless"

@@ -18,44 +18,89 @@
 /*
  * A complete Fortress grammar.
  */
-module      com.sun.fortress.parser.Fortress;
-modify      com.sun.fortress.parser.Compilation  (Declaration, Identifier, Keyword, Symbol, Spacing);
-instantiate com.sun.fortress.parser.Declaration  (TraitObject, Function, Variable, OtherDecl, Spacing, Syntax) as Declaration;
-instantiate com.sun.fortress.parser.TraitObject  (Method, Field, AbsField, Parameter, OtherDecl, Header,
-                                                                             Identifier, Keyword, Spacing) as TraitObject;
-instantiate com.sun.fortress.parser.Function (Parameter, Header, Type, NoNewlineExpr, Identifier,
-                                                                        Keyword, Symbol, Spacing) as Function;
-instantiate com.sun.fortress.parser.Parameter (Header, Type, Expression, Identifier, Keyword, Symbol,
-                                                                          Spacing) as Parameter;
-instantiate com.sun.fortress.parser.Method (MethodParam, Header, Type, NoNewlineExpr, Identifier,
-                                                                      Keyword, Symbol, Spacing) as Method;
-instantiate com.sun.fortress.parser.MethodParam (Parameter, Keyword) as MethodParam;
-instantiate com.sun.fortress.parser.Variable (Header, Type, NoNewlineExpr, Identifier, Keyword,
-                                                                       Symbol, Spacing) as Variable;
-instantiate com.sun.fortress.parser.Field (Variable, Header, Type, Identifier, Spacing) as Field;
-instantiate com.sun.fortress.parser.AbsField (Variable, Header, Type, Identifier, Spacing) as AbsField;
-instantiate com.sun.fortress.parser.Header (OtherDecl, Type, Expression, DelimitedExpr, Identifier,
-                                                                    Keyword, Symbol, Spacing) as Header;
-instantiate com.sun.fortress.parser.OtherDecl (Parameter, Header, Type, NoNewlineExpr, Identifier,
-                                                                          Keyword, Symbol, Spacing) as OtherDecl;
-instantiate com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expression, Unicode, Header, Type) as Syntax;
-instantiate com.sun.fortress.parser.Type (Header, Expression, Literal, Identifier, Keyword,
-                                                                 Symbol, Spacing) as Type;
-instantiate com.sun.fortress.parser.Expression (Parameter, Header, Type, DelimitedExpr, Identifier,
-                                                                            Keyword, Symbol, Spacing) as Expression;
-instantiate com.sun.fortress.parser.DelimitedExpr (TraitObject, Header, Type, Expression, LocalDecl,
-                                                                                 Literal, Identifier, Keyword, Symbol, Spacing) as DelimitedExpr;
-instantiate com.sun.fortress.parser.NoNewlineExpr (Expression, Keyword, Symbol, Spacing) as NoNewlineExpr;
-instantiate com.sun.fortress.parser.NoSpaceExpr  (Expression, Keyword, Symbol, Spacing) as NoSpaceExpr;
-instantiate com.sun.fortress.parser.Literal (DelimitedExpr, NoSpaceExpr, Symbol, Spacing) as Literal;
-instantiate com.sun.fortress.parser.LocalDecl (Variable, Function, Parameter, Header, Type,
-                                                                         NoNewlineExpr, DelimitedExpr, Identifier, Keyword,
-                                                                         Symbol, Spacing) as LocalDecl;
-instantiate com.sun.fortress.parser.Identifier (Keyword, Symbol, Unicode, Spacing) as Identifier;
-instantiate com.sun.fortress.parser.Symbol (DelimitedExpr, NoNewlineExpr, Type, Identifier, Spacing, Keyword) as Symbol;
-instantiate com.sun.fortress.parser.Spacing (Symbol) as Spacing;
-instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
-instantiate com.sun.fortress.parser.Unicode as Unicode;
+module com.sun.fortress.parser.Fortress;
+modify com.sun.fortress.parser.Compilation(Declaration, Identifier, Keyword,
+                                           Symbol, Spacing);
+instantiate com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
+                                                OtherDecl, Spacing, Syntax)
+            as Declaration;
+instantiate com.sun.fortress.parser.TraitObject(Method, Field, AbsField,
+                                                Parameter, OtherDecl, Header,
+                                                Identifier, Keyword, Spacing)
+            as TraitObject;
+instantiate com.sun.fortress.parser.Function(Parameter, Header, Type,
+                                             NoNewlineExpr, Identifier, Keyword,
+                                             Symbol, Spacing)
+            as Function;
+instantiate com.sun.fortress.parser.Parameter(Header, Type, Expression,
+                                              Identifier, Keyword, Symbol,
+                                              Spacing)
+            as Parameter;
+instantiate com.sun.fortress.parser.Method(MethodParam, Header, Type,
+                                           NoNewlineExpr, Identifier, Keyword,
+                                           Symbol, Spacing)
+            as Method;
+instantiate com.sun.fortress.parser.MethodParam(Parameter, Keyword)
+            as MethodParam;
+instantiate com.sun.fortress.parser.Variable(Header, Type, NoNewlineExpr,
+                                             Identifier, Keyword, Symbol,
+                                             Spacing)
+            as Variable;
+instantiate com.sun.fortress.parser.Field(Variable, Header, Type, Identifier,
+                                          Spacing)
+            as Field;
+instantiate com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier,
+                                             Spacing)
+            as AbsField;
+instantiate com.sun.fortress.parser.Header(OtherDecl, Type, Expression,
+                                           DelimitedExpr, Identifier, Keyword,
+                                           Symbol, Spacing)
+            as Header;
+instantiate com.sun.fortress.parser.OtherDecl(Parameter, Header, Type,
+                                              NoNewlineExpr, Identifier, Keyword,
+                                              Symbol, Spacing)
+            as OtherDecl;
+instantiate com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol,
+                                           Expression, Unicode, Header, Type)
+            as Syntax;
+instantiate com.sun.fortress.parser.Type(Header, Expression, Literal, Identifier,
+                                         Keyword, Symbol, Spacing)
+            as Type;
+instantiate com.sun.fortress.parser.Expression(Parameter, Header, Type,
+                                               DelimitedExpr, Literal,
+                                               Identifier, Keyword, Symbol,
+                                               Spacing)
+            as Expression;
+instantiate com.sun.fortress.parser.DelimitedExpr(TraitObject, Header, Type,
+                                                  Expression, LocalDecl, Literal,
+                                                  Identifier, Keyword, Symbol,
+                                                  Spacing)
+            as DelimitedExpr;
+instantiate com.sun.fortress.parser.NoNewlineExpr(Expression, Keyword, Symbol,
+                                                  Spacing)
+            as NoNewlineExpr;
+instantiate com.sun.fortress.parser.NoSpaceExpr(Expression, Keyword, Symbol,
+                                                Spacing)
+            as NoSpaceExpr;
+instantiate com.sun.fortress.parser.Literal(DelimitedExpr, NoSpaceExpr, Symbol,
+                                            Spacing)
+            as Literal;
+instantiate com.sun.fortress.parser.LocalDecl(Variable, Function, Parameter,
+                                              Header, Type, NoNewlineExpr,
+                                              DelimitedExpr, Identifier, Keyword,
+                                              Symbol, Spacing)
+            as LocalDecl;
+instantiate com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode, Spacing)
+            as Identifier;
+instantiate com.sun.fortress.parser.Symbol(DelimitedExpr, NoNewlineExpr, Type,
+                                           Identifier, Spacing, Keyword)
+            as Symbol;
+instantiate com.sun.fortress.parser.Spacing(Symbol)
+            as Spacing;
+instantiate com.sun.fortress.parser.Keyword(Identifier)
+            as Keyword;
+instantiate com.sun.fortress.parser.Unicode
+            as Unicode;
 
 header {
 import com.sun.fortress.interpreter.evaluator.ProgramError;
