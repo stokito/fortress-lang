@@ -65,19 +65,20 @@ public class  OverloadedFunction extends Fcn
      * Disables ALL consistency checking of overloaded functions.
      */
     private final boolean noCheck = false;
-    
+
     protected volatile List<Overload> overloads = new ArrayList<Overload>();
     protected List<Overload> pendingOverloads = new ArrayList<Overload>();
     private Map<Overload, Overload> allOverloadsEver = new Hashtable<Overload, Overload>();
-    
+
     protected volatile boolean finishedFirst = true; // an empty overload is consistent
     protected volatile boolean finishedSecond = true;
     protected SimpleName fnName;
-    
+
     static final boolean DUMP_EXCLUSION = false;
+    static int excl_skip = 65536*8+16384+8192+4096+512;
 
     public static void exclDump(Object... os) {
-        if (DUMP_EXCLUSION) {
+        if (DUMP_EXCLUSION && excl_skip <= 0) {
             for (Object o : os) {
                 System.out.print(o);
             }
@@ -85,12 +86,15 @@ public class  OverloadedFunction extends Fcn
     }
 
     public static void exclDumpln(Object... os) {
-        if (DUMP_EXCLUSION) {
+        if (DUMP_EXCLUSION && excl_skip <= 0) {
             for (Object o : os) {
                 System.out.print(o);
             }
             System.out.println();
+        } else {
+            excl_skip--;
         }
+
     }
 
     BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
@@ -143,14 +147,14 @@ public class  OverloadedFunction extends Fcn
             // iteration to the growing end is perfectly ok.
             ol = pendingOverloads.get(i);
             SingleFcn sfcn = ol.getFn();
-            
+
             String ps = ol.ps != null ? String.valueOf(ol.ps) + " " : "";
-            
+
             if (sfcn instanceof Closure)  {
                 Closure cl = (Closure) sfcn;
                 if (! cl.getFinished())
                     cl.finishInitializing();
-                
+
                 if (debug) {
                     System.err.println("Overload " + ps  + cl);
                 }
@@ -159,7 +163,7 @@ public class  OverloadedFunction extends Fcn
                 Constructor cl = (Constructor) sfcn;
                 if (! cl.getFinished())
                     cl.finishInitializing();
-                
+
                 if (debug) {
                     System.err.println("Overload " + ps  + cl);
                 }
@@ -181,7 +185,7 @@ public class  OverloadedFunction extends Fcn
                 bug(errorMsg("Expected a closure or primitive, instead got ",
                              sfcn));
              }
-            
+
             if (ol.ps != null)
                 ol.ps.close();
         }
@@ -195,16 +199,16 @@ public class  OverloadedFunction extends Fcn
     public synchronized boolean finishInitializingSecondPart() {
 
         boolean change = false;
-        
+
         if (finishedSecond)
             return change;
-        
+
         while (true) {
-        
+
         List<Overload> old_pendingOverloads = pendingOverloads;
         pendingOverloads = new ArrayList<Overload>();
         List<Overload> new_overloads = new ArrayList<Overload>();
-        
+
         for (Overload overload : old_pendingOverloads) {
             // Duplicate detector
             if (allOverloadsEver.containsKey(overload)) {
@@ -222,14 +226,14 @@ public class  OverloadedFunction extends Fcn
                 allOverloadsEver.put(overload, overload);
             }
         }
-        
+
         if (new_overloads.size() == 0) {
             bless();
             return change;
         }
-        
-        new_overloads.addAll(overloads);   
-        
+
+        new_overloads.addAll(overloads);
+
         // Put shorter parameter lists first (it's a funny sort order).
         // TODO I don't understand what's "unchecked" about the next line.
         java.util.Collections.<Overload>sort(new_overloads);
@@ -239,14 +243,14 @@ public class  OverloadedFunction extends Fcn
             ftalist.add(new_overloads.get(i).getFn().type());
 
             if (!noCheck) {
-            
+
             for (int j = i-1; j >= 0 ; j--) {
                 Overload o1 = new_overloads.get(i);
                 Overload o2 = new_overloads.get(j);
 
                 SingleFcn f1 = o1.getFn();
                 SingleFcn f2 = o2.getFn();
-                
+
                 if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1))
                     continue;
 
@@ -310,9 +314,9 @@ public class  OverloadedFunction extends Fcn
                 boolean sawSymbolic1 = false;
                 boolean sawSymbolic2 = false;
                 int selfIndex = -1;
-                
+
                 /* This is a hack for dealing with cases like
-                 * 
+                 *
                    trait Bar[\A,nat n\]
                        get():ZZ32 = n
                    end
@@ -324,18 +328,18 @@ public class  OverloadedFunction extends Fcn
                    g[\A\](x:Baz[\A,17\]) = 21
                    h[\A\](x:Bar[\A,17\]) = 22
                    h[\A\](x:Baz[\A,17\]) = 23
-                   
-                   
+
+
 
                  */
                 boolean allObjInstance1 = true;
                 boolean allObjInstance2 = true;
-                
+
                 exclDumpln("Checking exclusion of ",pl1," and ",pl2,":");
                 for (int k = 0; k < min; k++) {
                     FType p1 = pl1.get(k);
                     FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
-                    exclDump(k,": ",p1," and ",p2,", ");
+                    exclDump(k,": ",p1," and ",p2,", ",p1.getExtends()," and ",p2.getExtends(),", ");
 
                     p1 = deRest(p1);
                     p2 = deRest(p2);
@@ -364,12 +368,12 @@ public class  OverloadedFunction extends Fcn
                             if (! p1.equals(p2))
                                 distinct = true;
                     }
-                    
+
                     if (p1.excludesOther(p2)) {
                         exclDumpln("distinct.");
                         distinct = true;
                     } else {
-                        
+
                         boolean local_unrelated = true;
                         boolean p1subp2 = p1.subtypeOf(p2);
                         boolean p2subp1 = p2.subtypeOf(p1);
@@ -399,7 +403,7 @@ public class  OverloadedFunction extends Fcn
                 }
 
                 distinct |= unequal && (allObjInstance1 || allObjInstance2);
-                
+
                 if (!distinct && (sawSymbolic1 || sawSymbolic2)) {
                     String explanation;
                     if (sawSymbolic1 && sawSymbolic2)
@@ -448,12 +452,12 @@ public class  OverloadedFunction extends Fcn
         //String ftoas = ftoa.toString();
         //System.err.println(ftoas);
         this.overloads = new_overloads;
-        
+
         if (!finishedFirst) {
             // Come here if we generated MORE overloads as a side-effect.
             finishInitializingFirstPart();
         }
-        
+
         }
     }
 
@@ -557,7 +561,7 @@ public class  OverloadedFunction extends Fcn
         for (Overload cl : clso) {
             addOverload(cl);
         }
-        
+
     }
 
     /**
@@ -586,14 +590,14 @@ public class  OverloadedFunction extends Fcn
             // InstantiationLock.lastOverload = this;
             // InstantiationLock.lastOverloadThrowable = Useful.backtrace(0, 1000);
         }
- 
+
         if (debug) {
             DebugletPrintStream ps = DebugletPrintStream.make("OVERLOADS");
             overload.ps = ps;
             System.err.println("add " + ps + " " + overload);
             ps.backtrace().flush();
         }
-        
+
     }
 
     @Override
@@ -605,10 +609,10 @@ public class  OverloadedFunction extends Fcn
 //            if (getFnName().toString().equals("seq")) {
 //                System.err.println("Resolving seq from " + this );
 //            }
-            
+
             List<Overload>  someOverloads = overloads;
             // System.err.println("Overloaded " + fnName + " cache.size = " + cache.size());
-            
+
             int best = bestMatchIndex(args, loc, envForInference, someOverloads);
 
             best_f = someOverloads.get(best).getFn();
@@ -625,10 +629,10 @@ public class  OverloadedFunction extends Fcn
      * @throws Error
      */
      public int bestMatchIndex(List<FValue> args, HasAt loc, BetterEnv envForInference, List<Overload> someOverloads) throws Error {
-      
+
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
-           
+
         int best = -1;
         SingleFcn best_sfn = null;
 
