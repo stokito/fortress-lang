@@ -28,7 +28,7 @@ import Spacing;
 /* NoSpaceExpr ::=
      NoSpaceOpExpr
    | DelimitedExpr
-   | NoSpaceAssignLeft AssignOp NoSpaceExpr
+   | NoSpaceAssignExpr
  */
 Expr ExprFront -= <Flow> , <Fn> ;
 Expr NoSpaceExpr = ExprFront ;
