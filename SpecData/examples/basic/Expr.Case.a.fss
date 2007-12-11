@@ -22,28 +22,6 @@ component Expr.Case.a
 import * from Set
 export Executable
 
-trait Planet excludes { Integral, Number, String } end
-object Mercury extends Planet end
-object Venus extends Planet end
-object Earth extends Planet end
-object Mars extends Planet end
-object Jupiter extends Planet end
-object Saturn extends Planet end
-object Uranus extends Planet end
-object Neptune extends Planet end
-
-opr <(a:Planet, b:Planet):Boolean =
-  case (a, b) of
-    (Mercury, c) => true
-    (Venus  , c) => not(c = Mercury)
-    (Earth  , c) => not(c = Mercury OR c = Venus)
-    (Mars   , c) => not(c = Mercury OR c = Venus OR c = Earth)
-    (Jupiter, c) => c = Saturn OR c = Uranus OR c = Neptune
-    (Saturn , c) => c = Urnaus OR c = Neptune
-    (Uranus , c) => c = Neptune
-    (Neptune, c) => false
-  end
-
 f(planet) = do
 (** EXAMPLE **)
 case planet IN of
