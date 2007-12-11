@@ -120,7 +120,7 @@ list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do
     sz = g.size()
     a = primitiveImmutableArray[\E\](sz)
     for (i,v) <- g[#].indexValuePairs() do
-        a.init(i,v)
+        a.init0(i,v)
     end
     fromImmutableArray[\E\](a)
   end
@@ -140,16 +140,16 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
     positions = primitiveImmutableArray[\ZZ32\](lists.size())
     sz : ZZ32 := 0
     for (i,l) <- sequential(lists.indexValuePairs()) do
-         positions.init(i-listsLower,sz)
+         positions.init0(i-listsLower,sz)
          sz += l.size()
     end
     (* The prefix is complete.  Allocate the final list and put elements
        into place in parallel. *)
     under = primitiveImmutableArray[\E\](sz)
     for (i,l) <- lists.indexValuePairs() do
-        ofs = positions[i-listsLower]
+        ofs = positions.get(i-listsLower)
         for (j,v) <- l.indexValuePairs() do
-            under.init(ofs+j,v)
+            under.init0(ofs+j,v)
         end
     end
     fromImmutableArray[\E\](under)
@@ -215,11 +215,11 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
             0
         end
 
-    get(i:ZZ32): E = underlying[firstUsed+i]
+    get(i:ZZ32): E = underlying.get(firstUsed+i)
 
     fill(start: ZZ32, under: ImmutableArray[\E,ZZ32\]): () = do
         shift = start - firstUsed
-        under.init(i+shift, underlying[i]), i <- firstUsed#size()
+        under.init0(i+shift, underlying.get(i)), i <- firstUsed#size()
       end
 
     (** Return new ArrayList enlarged on the left by at least i
@@ -252,7 +252,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
             end
         cFirstUsed1 = c.firstUsed-1
         cUnder = c.underlying
-        cUnder.init(cFirstUsed,e)
+        cUnder.init0(cFirstUsed,e)
         ArrayList[\E\]( cUnder, cFirstUsed1,   oneShot(),
                                 c.firstUnused, c.canExtendRight )
       end
@@ -264,7 +264,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
             end
         cFirstUnused = c.firstUnused
         cUnder = c.underlying
-        cUnder.init(cFirstUnused,e)
+        cUnder.init0(cFirstUnused,e)
         ArrayList[\E\]( cUnder, c.firstUsed,    c.canExtendLeft,
                                 cFirstUnused+1, oneShot() )
       end
@@ -348,7 +348,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
     opr [n:ZZ32]: E = do
         ui = firstUsed + n
         if 0 <= n AND ui < firstUnused then
-            underlying[ui]
+            underlying.get(ui)
         else
             fail("ArrayList[" n "] index outside 0#" size())
         end
@@ -357,17 +357,17 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
         firstUnused1 = firstUnused-1
         sz = size()
         under = primitiveImmutableArray[\E\](sz)
-        under.init(i,underlying[firstUnused1-i]), i <- 0#sz
+        under.init0(i,underlying.get(firstUnused1-i)), i <- 0#sz
         fromImmutableArray[\E\](under)
       end
     mapArr[\G\](f:E->G):ImmutableArray[\G,ZZ32\] =
         primitiveImmutableArray[\G\](size()).fill(
-            fn (i:ZZ32):G => f(underlying[i+firstUsed]))
+            fn (i:ZZ32):G => f(underlying.get(i+firstUsed)))
     map[\G\](f:E->G): ArrayList[\G\] =
         fromImmutableArray[\G\](mapArr[\G\](f))
     ivmapArr[\G\](f:(ZZ32,E)->G):ImmutableArray[\G,ZZ32\] =
         primitiveImmutableArray[\G\](size()).fill(
-            fn (i:ZZ32):G => f(i,underlying[i+firstUsed]))
+            fn (i:ZZ32):G => f(i,underlying.get(i+firstUsed)))
     ivmap[\G\](f:(ZZ32,E)->G): ArrayList[\G\] =
         fromImmutableArray[\G\](ivmapArr[\G\](f))
     (* We implement concatMap data-parallel fashion to avoid repeated copying.
@@ -406,7 +406,7 @@ emptyList[\E\](n:ZZ32): List[\E\] =
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimImmutableArray[\E,1\]()
-    u.init(0,e)
+    u.init0(0,e)
     fromImmutableArray[\E\](u)
   end
 
