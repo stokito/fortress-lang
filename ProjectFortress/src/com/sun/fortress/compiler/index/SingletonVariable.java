@@ -27,4 +27,5 @@ public class SingletonVariable extends Variable {
         _declaringTrait = declaringTrait;
     }
     
+    public IdName declaringTrait() { return _declaringTrait; }
 }

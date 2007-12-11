@@ -54,6 +54,7 @@ public class CompilerTopLevelJUTest extends TestCase {
         staticTests + "XXXUndefinedNestedRef.fss",
         staticTests + "XXXUndefinedRefInLoop.fss",
         staticTests + "XXXUndefinedVar.fss",
+        staticTests + "XXXUndefinedTopLevelVar.fss",                                                          
         staticTests + "SyntaxHelloWorldUse.fss",
         staticTests + "stub to eliminate comma trouble"
     );
