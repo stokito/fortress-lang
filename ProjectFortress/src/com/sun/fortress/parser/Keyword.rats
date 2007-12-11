@@ -52,7 +52,7 @@ body {
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
         "var",          "where",        "while",        "widens",
-        "with",         "wrapped",        "grammar",        "production"
+        "with",         "wrapped",      "grammar",      "production"
     });
   }
 }
@@ -155,4 +155,3 @@ String widens = "widens" !(idrest);
 String wrapped = "wrapped" !(idrest);
 String grammar = "grammar" !(idrest);
 String production = "production" !(idrest);
-
