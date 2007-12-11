@@ -26,7 +26,7 @@ import Symbol;
 import Spacing;
 
 /* NoNewlineExpr ::=
-     AssignLeft s AssignOp w NoNewlineExpr
+     NoNewlineAssignExpr
    | NoNewlineOpExpr
    | DelimitedExpr
    | NoNewlineFlowExpr
@@ -43,14 +43,15 @@ import Spacing;
    NoNewlineAtomicBack ::=
      NoNewlineOpExpr
    | DelimitedExpr
-   | NoNewlineAssignLefts w AssignOp w NoNewlineExpr
+   | NoNewlineAssignExpr
+   NoNewlineAssignExpr ::= AssignLefts s AssignOp w NoNewlineExpr
  */
 Expr NoNewlineExpr = Expr ;
 private Expr Expr := ... ;
-Expr ExprFront :=
-     <Assign> a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3); }
-   / ... ;
+Expr ExprFront := ... ;
+Expr NoNewlineAssignExpr =
+    a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
+    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
 
 Action<Expr> ExprTail :=
      <As> NoNewlineAs

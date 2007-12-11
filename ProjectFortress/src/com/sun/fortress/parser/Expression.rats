@@ -33,7 +33,7 @@ import Symbol;
 import Spacing;
 
 /* Expr ::=
-     AssignLefts w AssignOp w Expr
+     AssignExpr
    | OpExpr
    | DelimitedExpr
    | FlowExpr
@@ -44,8 +44,7 @@ import Spacing;
 Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
 Expr ExprFront =
-     <Assign> a1:AssignLefts w a2:AssignOp w a3:Expr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount),false, a1, a2, a3); }
+     AssignExpr
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
@@ -129,6 +128,10 @@ constant inline Action<Expr> FieldSelectionAssign =
                                   NodeFactory.makeIdName(a1));
           }};
     };
+
+/* AssignExpr ::= AssignLefts w AssignOp w Expr */
+Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
+    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
 
 /* OpExpr ::=
      OpExprNoEnc
@@ -593,13 +596,12 @@ Expr FlowExpr =
      { yyValue = new Throw(createSpan(yyStart,yyCount), false, a1); };
 
 /* AtomicBack ::=
-     AssignLefts w AssignOp w Expr
+     AssignExpr
    | OpExpr
    | DelimitedExpr
  */
 Expr AtomicBack =
-     a1:AssignLefts w a2:AssignOp w a3:Expr
-     { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3); }
+     AssignExpr
    / OpExpr
    / DelimitedExpr ;
 
