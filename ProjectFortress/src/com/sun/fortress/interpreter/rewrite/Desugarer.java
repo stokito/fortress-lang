@@ -1153,7 +1153,7 @@ public class Desugarer extends Rewrite {
                                 false,
                                 selfDotSomething.getObj(), // this will rewrite in the future.
                                 (IdName) selfDotSomething.getField(),
-                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteral(node.getSpan()) : // wrong span
+                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
                                 visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                     new TupleExpr(visitedArgs));
     }

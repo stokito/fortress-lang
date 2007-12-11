@@ -51,11 +51,11 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 	public void print() {
 	    System.out.println("TestTask");
 	}
-    
+
 	public void compute() {
 	    FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
 	    runner.setCurrentTask(this);
-	    
+
 	    try {
 		BetterEnv e = BetterEnv.primitive();
 		e.bless();
@@ -142,7 +142,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      " name=(DottedId @1:16 names=[\"Scopes\"])" +
 //      " defs=[" +
 //      "  (VarDecl @4:8" +
-//      "   init=(IntLiteral text=\"1\" val=1)" +
+//      "   init=(IntLiteralExpr text=\"1\" val=1)" +
 //      "   name=(Id @4:4 name=\"aVar\"))" +
 //      "  (ObjectDecl @9:3" +
 //      "   contract=(Contract @6:14)" +
@@ -153,7 +153,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //      "      type=(Some val=(IdType @6:13 name=(DottedId names=[\"ZZ32\"]))))])" +
 //      "   defs=[" +
 //      "    (VarDecl @7:13" +
-//      "     init=(IntLiteral text=\"2\" val=2)" +
+//      "     init=(IntLiteralExpr text=\"2\" val=2)" +
 //      "     name=(Id @7:4 name=\"f1\")" +
 //      "     type=(Some val=(IdType @7:9 name=(DottedId names=[\"ZZ32\"]))))" +
 //      "    (FnDecl @8:11" +
@@ -209,7 +209,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
 //    // x = 3
 //    String s =        "(Assignment \n"+
 //      "       lhs=(VarRef  var=(Id name=\"x\"))\n"+
-//      "       rhs=(IntLiteral text=\"3\" val=3))\n";
+//      "       rhs=(IntLiteralExpr text=\"3\" val=3))\n";
 //    Lex l = new Lex(bs(s));
 //
 //    Unprinter up = new Unprinter(l);
@@ -265,7 +265,7 @@ public class EvaluatorJUTest extends com.sun.fortress.useful.TcWrapper  {
   //     " (VarRef var=(Id name=\"j\"))) \n " +
   //     " (Pair \n " +
   //     " (Op name=\"<\") \n " +
-  //     " (IntLiteral text=\"10\" val=10))] \n " +
+  //     " (IntLiteralExpr text=\"10\" val=10))] \n " +
   //     " props=[ \n " +
   //     " \"parenthesized\"]))] ";
   //   Lex l = new Lex(bs(s));

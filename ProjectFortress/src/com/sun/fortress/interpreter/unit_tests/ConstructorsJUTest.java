@@ -26,14 +26,14 @@ import junit.framework.TestCase;
 import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FloatLiteral;
+import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.IntLiteral;
-import com.sun.fortress.nodes.StringLiteral;
+import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteral;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.SourceLocRats;
@@ -160,45 +160,45 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testLiterals() {
         Span span1 = newSpan("cat", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        StringLiteral sl1 = new StringLiteral(span1, false, "123");
-        StringLiteral sl2 = new StringLiteral(span2, false, "123");
-        StringLiteral sl3 = new StringLiteral(span1, false, "124");
+        StringLiteralExpr sl1 = new StringLiteralExpr(span1, false, "123");
+        StringLiteralExpr sl2 = new StringLiteralExpr(span2, false, "123");
+        StringLiteralExpr sl3 = new StringLiteralExpr(span1, false, "124");
 
         een(sl1, sl2, sl3);
 
-        IntLiteral il1 = ExprFactory.makeIntLiteral(span1, "123");
-        IntLiteral il2 = ExprFactory.makeIntLiteral(span2, "123");
-        IntLiteral il3 = ExprFactory.makeIntLiteral(span1, "124");
+        IntLiteralExpr il1 = ExprFactory.makeIntLiteralExpr(span1, "123");
+        IntLiteralExpr il2 = ExprFactory.makeIntLiteralExpr(span2, "123");
+        IntLiteralExpr il3 = ExprFactory.makeIntLiteralExpr(span1, "124");
 
         een(il1, il2, il3);
 
-        IntLiteral il4 = ExprFactory.makeIntLiteral(span1, new BigInteger("123"));
+        IntLiteralExpr il4 = ExprFactory.makeIntLiteralExpr(span1, new BigInteger("123"));
 
         Assert.assertEquals(il1, il4);
 
-        FloatLiteral fl1 = ExprFactory.makeFloatLiteral(span1, "123");
-        FloatLiteral fl2 = ExprFactory.makeFloatLiteral(span2, "123");
-        FloatLiteral fl3 = ExprFactory.makeFloatLiteral(span1, "124");
+        FloatLiteralExpr fl1 = ExprFactory.makeFloatLiteralExpr(span1, "123");
+        FloatLiteralExpr fl2 = ExprFactory.makeFloatLiteralExpr(span2, "123");
+        FloatLiteralExpr fl3 = ExprFactory.makeFloatLiteralExpr(span1, "124");
         een(fl1, fl2, fl3);
 
         nnn(sl1, il1, fl1);
 
-        FloatLiteral fl4 = ExprFactory.makeFloatLiteral(span1, "123.0");
+        FloatLiteralExpr fl4 = ExprFactory.makeFloatLiteralExpr(span1, "123.0");
         Assert.assertEquals(fl1, fl4);
     }
 
 
-    StringLiteral newString(String s) {
+    StringLiteralExpr newString(String s) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return new StringLiteral(span1, false, s);
+        return new StringLiteralExpr(span1, false, s);
     }
-    IntLiteral newInt(String s) {
+    IntLiteralExpr newInt(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
-        return ExprFactory.makeIntLiteral(span1, s);
+        return ExprFactory.makeIntLiteralExpr(span1, s);
     }
-    FloatLiteral newFloat(String s) {
+    FloatLiteralExpr newFloat(String s) {
         Span span1 = newSpan("emu", 1, 2, 3);
-        return ExprFactory.makeFloatLiteral(span1, s);
+        return ExprFactory.makeFloatLiteralExpr(span1, s);
     }
 
     public void testVarRef() {
@@ -236,8 +236,8 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     public void testVoid() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        VoidLiteral v1 = ExprFactory.makeVoidLiteral(span1);
-        VoidLiteral v2 = ExprFactory.makeVoidLiteral(span2);
+        VoidLiteralExpr v1 = ExprFactory.makeVoidLiteralExpr(span1);
+        VoidLiteralExpr v2 = ExprFactory.makeVoidLiteralExpr(span2);
         Assert.assertEquals(v1, v2);
     }
 

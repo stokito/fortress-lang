@@ -29,7 +29,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.nodes.IntLiteral;
+import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
@@ -153,59 +153,59 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         }
     }
 
-    // public void testDecodeIntLiteral() {
-    //     Assert.assertEquals(IntLiteral.decode("10_16").intValue(), 16);
-    //     Assert.assertEquals(IntLiteral.decode("10_SIXTEEN").intValue(), 16);
-    //     Assert.assertEquals(IntLiteral.decode("FF_SIXTEEN").intValue(), 255);
+    // public void testDecodeIntLiteralExpr() {
+    //     Assert.assertEquals(IntLiteralExpr.decode("10_16").intValue(), 16);
+    //     Assert.assertEquals(IntLiteralExpr.decode("10_SIXTEEN").intValue(), 16);
+    //     Assert.assertEquals(IntLiteralExpr.decode("FF_SIXTEEN").intValue(), 255);
     // }
 
-//    public void testDecodeFloatLiteral() {
-//        Assert.assertEquals(FloatLiteral.decode("10_16"), 16.0);
-//        Assert.assertEquals(FloatLiteral.decode("10_SIXTEEN"), 16.0);
-//        Assert.assertEquals(FloatLiteral.decode("10.0_SIXTEEN"), 16.0);
-//        Assert.assertEquals(FloatLiteral.decode("10.00_SIXTEEN"), 16.0);
-//        Assert.assertEquals(FloatLiteral.decode("10._SIXTEEN"), 16.0);
-//        Assert.assertEquals(FloatLiteral.decode("10.0000000000000000000000000000_10"), 10.0);
-//        Assert.assertEquals(FloatLiteral.decode("0.0000000000000000000000000000_10"), 0.0);
-//        Assert.assertEquals(FloatLiteral.decode("0.0000000000000000000000000000_16"), 0.0);
+//    public void testDecodeFloatLiteralExpr() {
+//        Assert.assertEquals(FloatLiteralExpr.decode("10_16"), 16.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("10_SIXTEEN"), 16.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("10.0_SIXTEEN"), 16.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("10.00_SIXTEEN"), 16.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("10._SIXTEEN"), 16.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("10.0000000000000000000000000000_10"), 10.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.0000000000000000000000000000_10"), 0.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.0000000000000000000000000000_16"), 0.0);
 //
-//        Assert.assertEquals(FloatLiteral.decode("X_12"), 10.0);
-//        Assert.assertEquals(FloatLiteral.decode("E_12"), 11.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("X_12"), 10.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("E_12"), 11.0);
 //
-//        Assert.assertEquals(FloatLiteral.decode("XX_12"), 130.0);
-//        Assert.assertEquals(FloatLiteral.decode("EE_12"), 143.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("XX_12"), 130.0);
+//        Assert.assertEquals(FloatLiteralExpr.decode("EE_12"), 143.0);
 //
-//        Assert.assertEquals(FloatLiteral.decode("0.1_2"), 1.0/2);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_3"), 1.0/3);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_4"), 1.0/4);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_5"), 1.0/5);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_6"), 1.0/6);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_7"), 1.0/7);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_8"), 1.0/8);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_9"), 1.0/9);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_10"), 1.0/10);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_11"), 1.0/11);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_12"), 1.0/12);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_13"), 1.0/13);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_14"), 1.0/14);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_15"), 1.0/15);
-//        Assert.assertEquals(FloatLiteral.decode("0.1_16"), 1.0/16);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_2"), 1.0/2);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_3"), 1.0/3);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_4"), 1.0/4);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_5"), 1.0/5);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_6"), 1.0/6);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_7"), 1.0/7);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_8"), 1.0/8);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_9"), 1.0/9);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_10"), 1.0/10);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_11"), 1.0/11);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_12"), 1.0/12);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_13"), 1.0/13);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_14"), 1.0/14);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_15"), 1.0/15);
+//        Assert.assertEquals(FloatLiteralExpr.decode("0.1_16"), 1.0/16);
 //
-//        Assert.assertEquals(FloatLiteral.decode("1.1_2"), 1+1.0/2);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_3"), 1+1.0/3);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_4"), 1+1.0/4);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_5"), 1+1.0/5);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_6"), 1+1.0/6);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_7"), 1+1.0/7);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_8"), 1+1.0/8);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_9"), 1+1.0/9);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_10"), 1+1.0/10);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_11"), 1+1.0/11);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_12"), 1+1.0/12);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_13"), 1+1.0/13);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_14"), 1+1.0/14);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_15"), 1+1.0/15);
-//        Assert.assertEquals(FloatLiteral.decode("1.1_16"), 1+1.0/16);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_2"), 1+1.0/2);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_3"), 1+1.0/3);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_4"), 1+1.0/4);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_5"), 1+1.0/5);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_6"), 1+1.0/6);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_7"), 1+1.0/7);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_8"), 1+1.0/8);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_9"), 1+1.0/9);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_10"), 1+1.0/10);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_11"), 1+1.0/11);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_12"), 1+1.0/12);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_13"), 1+1.0/13);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_14"), 1+1.0/14);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_15"), 1+1.0/15);
+//        Assert.assertEquals(FloatLiteralExpr.decode("1.1_16"), 1+1.0/16);
 //
 //    }
 
@@ -265,7 +265,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
 //        String s =
 //            "(Assignment \n"+
 //             "       lhs=(VarRef  var=(Id name=\"x\"))\n"+
-//             "       rhs=(IntLiteral text=\"3\" val=3))\n";
+//             "       rhs=(IntLiteralExpr text=\"3\" val=3))\n";
 //        Lex l = new Lex(bs(s));
 //        Unprinter up = new Unprinter(l);
 //        l.name(); // Reading "("
@@ -320,11 +320,11 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         Option<String> oc = Option.some("cat");
         Option<String> none = Option.<String>none();
         Option<String> od = Option.some("cat");
-        
+
         l.add(oc);
         l.add(none);
         l.add(od);
-        
+
         Printer p = new Printer(false, true, true);
         p.dump(l, sb, 0);
         String s = sb.toString();
@@ -349,11 +349,11 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         Option<Pair<Option<String>, Option<String>>> none = Option.<Pair<Option<String>, Option<String>>>none();
         Option<Pair<Option<String>, Option<String>>> od =
             Option.some(new Pair<Option<String>, Option<String>>(Option.some("dog"), Option.<String>none()));
-        
+
         l.add(oc);
         l.add(none);
         l.add(od);
-        
+
         Printer p = new Printer(false, true, true);
         p.dump(l, sb, 0);
         String s = sb.toString();
@@ -378,11 +378,11 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         Option<Pair<Option<String>, List<String>>> none = Option.<Pair<Option<String>, List<String>>>none();
         Option<Pair<Option<String>, List<String>>> od =
             Option.some(new Pair<Option<String>, List<String>>(Option.<String>none(), Collections.<String>emptyList()));
-        
+
         l.add(oc);
         l.add(none);
         l.add(od);
-        
+
         Printer p = new Printer(false, true, true);
         p.dump(l, sb, 0);
         String s = sb.toString();
@@ -398,7 +398,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TcWrapper  {
         assertEquals(l.get(2), l2.get(2));
     }
 
-    
+
     public void testEnquote() {
         out.println("testEnquote");
         Assert.assertEquals("cat", Unprinter.enQuote("cat"));

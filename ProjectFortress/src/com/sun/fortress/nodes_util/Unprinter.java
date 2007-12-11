@@ -63,12 +63,12 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  * &#064;6:11 init=(Block exprs=[ (LetFn
  * &#064;4:21 body=[ (TightJuxt
  * &#064;5:10~12 exprs=[ (VarRef
- * &#064;5:10 var=(Id name="f")) (IntLiteral
+ * &#064;5:10 var=(Id name="f")) (IntLiteralExpr
  * &#064;5:12 text="7" val=7 props=["parenthesized"])])] fns=[ (FnDecl
  * &#064;4:21 body=(OprExpr
  * &#064;4:17~21 op=(Opr
  * &#064;4:19 op=(Op name="+")) args=[ (VarRef
- * &#064;4:17 var=(Id name="y")) (IntLiteral
+ * &#064;4:17 var=(Id name="y")) (IntLiteralExpr
  * &#064;4:21 text="1" val=1)]) contract=(Contract
  * &#064;4:13) name=(Fun name_=(Id
  * &#064;4:10 name="f")) params=[ (Param
@@ -545,7 +545,7 @@ public class Unprinter extends NodeReflection {
         } else if ("[".equals(a)) {
             return readList();
         } else if (a.startsWith("\"")) {
-            return deQuote(a).intern(); // Internal form is quoted   
+            return deQuote(a).intern(); // Internal form is quoted
         } else {
             return bug("Pair of unknown stuff beginning " + a);
         }

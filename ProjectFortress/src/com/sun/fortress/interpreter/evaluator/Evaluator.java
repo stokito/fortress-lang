@@ -83,7 +83,7 @@ import com.sun.fortress.nodes.CaseParamSmallest;
 import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.ChainExpr;
-import com.sun.fortress.nodes.CharLiteral;
+import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.DottedName;
@@ -96,7 +96,7 @@ import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FieldRefForSure;
 import com.sun.fortress.nodes.MethodInvocation;
-import com.sun.fortress.nodes.FloatLiteral;
+import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
@@ -105,7 +105,7 @@ import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.IntLiteral;
+import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
@@ -134,7 +134,7 @@ import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
 import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StringLiteral;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptOp;
 import com.sun.fortress.nodes.Throw;
@@ -154,7 +154,7 @@ import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteral;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -1098,7 +1098,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
     */
 
-    public FValue forStringLiteral(StringLiteral x) {
+    public FValue forStringLiteralExpr(StringLiteralExpr x) {
         return new FStringLiteral(x.getText());
     }
 
@@ -1475,7 +1475,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    public FValue forVoidLiteral(VoidLiteral x) {
+    public FValue forVoidLiteralExpr(VoidLiteralExpr x) {
         return FVoid.V;
     }
 
@@ -1498,15 +1498,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // neverReached
     }
 
-    public FValue forCharLiteral(CharLiteral x) {
+    public FValue forCharLiteralExpr(CharLiteralExpr x) {
         return FChar.make(x.getVal());
     }
 
-    public FValue forFloatLiteral(FloatLiteral x) {
+    public FValue forFloatLiteralExpr(FloatLiteralExpr x) {
         return new FFloatLiteral(x.getText());
     }
 
-    public FValue forIntLiteral(IntLiteral x) {
+    public FValue forIntLiteralExpr(IntLiteralExpr x) {
         return FIntLiteral.make(x.getVal());
     }
 

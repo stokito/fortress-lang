@@ -32,7 +32,7 @@
             _api=(Some _value=(DottedName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":20:17~21:3 _ids=[(Id @20:17~28 _text="FortressAst")]))
             _name=(IdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/test_library/FortressAst.fsi":232:11~24
              _id=(Id _text="StringLiteral")))])
-         (StringLiteral @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":25:40~52 _parenthesized=true _text="Hello world")])
+         (StringLiteralExpr @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":25:40~52 _parenthesized=true _text="Hello world")])
        _syntaxSymbols=[
         (ItemSymbol @"":0:0
          _item="hello")

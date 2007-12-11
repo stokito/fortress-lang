@@ -2392,7 +2392,7 @@
       _args=[
        (IntArg @562:28~30
         _val=(NumberConstraint
-         _val=(IntLiteral _text="1" _val=1)))]))])
+         _val=(IntLiteralExpr _text="1" _val=1)))]))])
   (AbsTraitDecl @565:0~566:3
    _name=(IdName @565:6~11
     _id=(Id _text="Rank2"))
@@ -2415,7 +2415,7 @@
       _args=[
        (IntArg @565:28~30
         _val=(NumberConstraint @565:28~29
-         _val=(IntLiteral _text="2" _val=2)))]))])
+         _val=(IntLiteralExpr _text="2" _val=2)))]))])
   (AbsTraitDecl @568:0~569:3
    _name=(IdName @568:6~11
     _id=(Id _text="Rank3"))
@@ -2435,7 +2435,7 @@
       _args=[
        (IntArg @568:28~30
         _val=(NumberConstraint @568:28~29
-         _val=(IntLiteral _text="3" _val=3)))]))])
+         _val=(IntLiteralExpr _text="3" _val=3)))]))])
   (AbsTraitDecl @575:0~29
    _name=(IdName @575:6~14
     _id=(Id _text="Indexed1"))
@@ -3522,7 +3522,7 @@
           _id=(Id _text="E")))))
       (IntArg @730:68~69
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @730:70~72
        _type=(IdType _name=(QualifiedIdName @730:70~71
          _name=(IdName
@@ -3581,14 +3581,14 @@
           _id=(Id _text="E")))))
       (IntArg @733:14~15
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @733:16~17
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="n")))))
       (IntArg @733:18~19
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @733:20~22
        _type=(IdType _name=(QualifiedIdName @733:20~21
          _name=(IdName
@@ -3659,21 +3659,21 @@
           _id=(Id _text="E")))))
       (IntArg @735:14~15
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @735:16~17
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="n")))))
       (IntArg @735:18~19
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @735:20~21
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="m")))))
       (IntArg @735:22~23
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @735:24~26
        _type=(IdType _name=(QualifiedIdName @735:24~25
          _name=(IdName
@@ -5241,7 +5241,7 @@
            _id=(Id _text="T")))))
        (IntArg @918:59~60
         _val=(NumberConstraint
-         _val=(IntLiteral _text="0" _val=0)))
+         _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @918:61~64
         _type=(IdType _name=(QualifiedIdName @918:61~63
           _name=(IdName
@@ -5410,7 +5410,7 @@
           _id=(Id _text="T")))))
       (IntArg @955:32~33
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @955:34~37
        _type=(IdType _name=(QualifiedIdName @955:34~36
          _name=(IdName
@@ -5438,7 +5438,7 @@
           _id=(Id _text="T")))))
       (IntArg @964:35~36
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @964:37~40
        _type=(IdType _name=(QualifiedIdName @964:37~39
          _name=(IdName
@@ -5473,7 +5473,7 @@
           _id=(Id _text="T")))))
       (IntArg @965:41~42
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @965:43~46
        _type=(IdType _name=(QualifiedIdName @965:43~45
          _name=(IdName
@@ -7795,14 +7795,14 @@
            _id=(Id _text="T")))))
        (IntArg @1143:53~54
         _val=(NumberConstraint
-         _val=(IntLiteral _text="0" _val=0)))
+         _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @1143:56~58
         _type=(IdType _name=(QualifiedIdName
           _name=(IdName
            _id=(Id _text="s0")))))
        (IntArg @1143:60~61
         _val=(NumberConstraint
-         _val=(IntLiteral _text="0" _val=0)))
+         _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @1143:63~66
         _type=(IdType _name=(QualifiedIdName @1143:63~65
           _name=(IdName
@@ -7986,14 +7986,14 @@
             _id=(Id _text="U")))))
         (IntArg @1219:29~30
          _val=(NumberConstraint
-          _val=(IntLiteral _text="0" _val=0)))
+          _val=(IntLiteralExpr _text="0" _val=0)))
         (TypeArg @1219:31~33
          _type=(IdType _name=(QualifiedIdName
            _name=(IdName
             _id=(Id _text="s0")))))
         (IntArg @1219:34~35
          _val=(NumberConstraint
-          _val=(IntLiteral _text="0" _val=0)))
+          _val=(IntLiteralExpr _text="0" _val=0)))
         (TypeArg @1219:36~39
          _type=(IdType _name=(QualifiedIdName @1219:36~38
            _name=(IdName
@@ -8390,14 +8390,14 @@
           _id=(Id _text="T")))))
       (IntArg @1246:40~41
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1246:42~44
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="s0")))))
       (IntArg @1246:45~46
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1246:47~50
        _type=(IdType _name=(QualifiedIdName @1246:47~49
          _name=(IdName
@@ -8428,14 +8428,14 @@
           _id=(Id _text="T")))))
       (IntArg @1255:43~44
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1255:45~47
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="s0")))))
       (IntArg @1255:48~49
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1255:50~53
        _type=(IdType _name=(QualifiedIdName @1255:50~52
          _name=(IdName
@@ -8473,14 +8473,14 @@
           _id=(Id _text="T")))))
       (IntArg @1257:56~57
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1257:58~60
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="s0")))))
       (IntArg @1257:61~62
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1257:63~66
        _type=(IdType _name=(QualifiedIdName @1257:63~65
          _name=(IdName
@@ -10898,21 +10898,21 @@
           _id=(Id _text="T")))))
       (IntArg @1458:47~48
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1458:49~51
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="s0")))))
       (IntArg @1458:52~53
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1458:54~56
        _type=(IdType _name=(QualifiedIdName
          _name=(IdName
           _id=(Id _text="s1")))))
       (IntArg @1458:57~58
        _val=(NumberConstraint
-        _val=(IntLiteral _text="0" _val=0)))
+        _val=(IntLiteralExpr _text="0" _val=0)))
       (TypeArg @1458:59~62
        _type=(IdType _name=(QualifiedIdName @1458:59~61
          _name=(IdName

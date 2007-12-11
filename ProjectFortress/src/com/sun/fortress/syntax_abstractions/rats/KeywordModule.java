@@ -57,7 +57,7 @@ public class KeywordModule {
 		code.remove(inx);
 		code.add(inx, insertString);
 
-		// Adding production for keyword 
+		// Adding production for keyword
 		for (String keyword: keywords) {
 			if (!com.sun.fortress.parser.Fortress.FORTRESS_KEYWORDS.contains(keyword)) {
 				List<Attribute> attributes = new LinkedList<Attribute>();

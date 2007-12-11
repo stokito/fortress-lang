@@ -81,12 +81,12 @@ public class NodeFactory {
                                                   Collections.<ExtentRange>emptyList()));
         return new ArrayType(span, element, indices);
     }
-    
-    public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized, 
+
+    public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
                                                         QualifiedIdName name, List<StaticArg> args) {
         return new InstantiatedType(span, isParenthesized, name, args);
     }
-    
+
     public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
                                                         QualifiedIdName name, StaticArg... args) {
         List<StaticArg> _args = new ArrayList<StaticArg>();
@@ -157,7 +157,7 @@ public class NodeFactory {
     public static DottedName makeDottedName(Id s) {
         return new DottedName(s.getSpan(), Useful.list(s));
     }
-    
+
     public static DottedName makeDottedName(String s) {
         return makeDottedName(makeId(s));
     }
@@ -284,7 +284,7 @@ public class NodeFactory {
     public static IdType makeIdType(String string) {
         return makeIdType(new Span(), makeId(string));
     }
-    
+
     public static IdType makeIdType(Span span, Id id) {
         return new IdType(span, makeQualifiedIdName(id));
     }
@@ -292,16 +292,16 @@ public class NodeFactory {
     public static LValueBind makeLValue(String name, String type) {
         return makeLValue(name, makeIdType(type));
     }
-    
+
     public static LValueBind makeLValue(IdName name, IdName type) {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
-                              name, 
-                              Option.some((Type)makeIdType(type.getSpan(), 
-                                                           type.getId())), 
-                              new ArrayList<Modifier>(), 
+                              name,
+                              Option.some((Type)makeIdType(type.getSpan(),
+                                                           type.getId())),
+                              new ArrayList<Modifier>(),
                               false);
     }
-    
+
     public static LValueBind makeLValue(IdName name, Type type) {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
                               name,
@@ -309,16 +309,16 @@ public class NodeFactory {
                               new ArrayList<Modifier>(),
                               false);
     }
-        
+
     public static LValueBind makeLValue(String name, Type type) {
         return new LValueBind(type.getSpan(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), false);
     }
-    
+
     public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
         LValueBind result = makeLValue(name, type);
         return makeLValue(result, mods);
     }
-    
+
     public static LValueBind makeLValue(LValueBind lvb, Id id) {
         IdName name = makeIdName(id);
         return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
@@ -368,9 +368,9 @@ public class NodeFactory {
         return new LValueBind(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), mods, mutable);
     }
-    
+
     public static LValueBind makeLValue(NormalParam param) {
-        return new LValueBind(param.getSpan(), param.getName(), 
+        return new LValueBind(param.getSpan(), param.getName(),
                               param.getType(), param.getMods(), false);
     }
 
@@ -393,7 +393,7 @@ public class NodeFactory {
     public static Opr makeOpr(String name) {
         return new Opr(new Span(), makeOp(name));
     }
-    
+
     public static IdName makeIdName(String text) {
         Span span = new Span();
         return new IdName(span, new Id(span, text));
@@ -496,7 +496,7 @@ public class NodeFactory {
     public static OperatorParam makeOperatorParam(String name) {
         return new OperatorParam(new Span(), makeOpr(name));
     }
-    
+
     public static BoolParam makeBoolParam(String name) {
         Span s = new Span();
         return new BoolParam(s, makeIdName(s, name));
@@ -506,7 +506,7 @@ public class NodeFactory {
         Span s = new Span();
         return new DimensionParam(s, makeIdName(s, name));
     }
-    
+
     public static UnitParam makeUnitParam(String name) {
         Span s = new Span();
         return new UnitParam(s, makeIdName(s, name));
@@ -515,12 +515,12 @@ public class NodeFactory {
     public static IntParam makeIntParam(String name) {
         Span s = new Span();
         return new IntParam(s, makeIdName(s, name));
-    }    
+    }
 
     public static NatParam makeNatParam(String name) {
         Span s = new Span();
         return new NatParam(s, makeIdName(s, name));
-    }    
+    }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
     public static TupleType makeTupleType(Span span, List<Type> elements, Option<VarargsType> varargs) {
@@ -746,24 +746,23 @@ public class NodeFactory {
         return new SyntaxDef(s, syntaxSymbols, transformationExpression);
     }
 
- public static IntLiteral makeIntLiteral(int i) {
-  return new IntLiteral(BigInteger.valueOf(i));
- }
- 
- public static StringLiteral makeStringLiteral(String s) {
-  return new StringLiteral(s);
- }
- 
- public static CharLiteral makeCharLiteral(char c) {
-  return new CharLiteral(""+c);
- }
- 
- public static VoidLiteral makeVoidLiteral() {
-  return new VoidLiteral();
- }
- 
- public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
-  return new ImportStar(api, excepts);
- }
+	public static IntLiteralExpr makeIntLiteralExpr(int i) {
+		return new IntLiteralExpr(BigInteger.valueOf(i));
+	}
 
+	public static StringLiteralExpr makeStringLiteralExpr(String s) {
+		return new StringLiteralExpr(s);
+	}
+
+	public static CharLiteralExpr makeCharLiteralExpr(char c) {
+		return new CharLiteralExpr(""+c);
+	}
+
+	public static VoidLiteralExpr makeVoidLiteralExpr() {
+		return new VoidLiteralExpr();
+	}
+
+	public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
+		return new ImportStar(api, excepts);
+	}
 }
