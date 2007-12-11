@@ -93,7 +93,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteral;
+import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereExtends;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -185,7 +185,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     BetterEnv containing;
 
     BetterEnv bindInto;
-    
+
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
@@ -717,7 +717,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
                       ExprFactory.makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x)),
-                      ExprFactory.makeVoidLiteral(x.getSpan()));
+                      ExprFactory.makeVoidLiteralExpr(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
 
@@ -747,7 +747,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     }
 
- 
+
      private void forObjectDecl2(ObjectDecl x) {
 
         BetterEnv e = containing;
@@ -1579,7 +1579,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         FType ft;
 
         if (params.isSome()) {
-           
+
         } else {
 
         }

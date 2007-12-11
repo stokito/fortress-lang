@@ -376,7 +376,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
      openparen w closeparen
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
-               Expr arg = ExprFactory.makeVoidLiteral(a1.getSpan());
+               Expr arg = ExprFactory.makeVoidLiteralExpr(a1.getSpan());
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
                List<StaticArg> sargs;
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
@@ -483,7 +483,7 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
    / openparen w closeparen
      { yyValue = new Action<PureList<Expr>>() {
            public PureList<Expr> run(PureList<Expr> base) {
-               return base.cons(ExprFactory.makeVoidLiteral(createSpan(yyStart,yyCount)));
+               return base.cons(ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)));
            }};
      }
    / a1:Primary

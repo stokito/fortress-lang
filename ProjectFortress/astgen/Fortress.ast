@@ -962,42 +962,42 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     VarRef(QualifiedIdName var) implements LHS;
                     /**
                      * literal
-                     * BaseExpr ::= Literal
+                     * BaseExpr ::= LiteralExpr
                      */
-                    abstract Literal(String text);
+                    abstract LiteralExpr(String text);
                         /**
                          * number literal
                          */
-                        abstract NumberLiteral();
+                        abstract NumberLiteralExpr();
                             /**
                              * float literal
                              * e.g.) 3.5
                              */
-                            FloatLiteral(ignoreForEquals String text,
-                                         BigInteger intPart,
-                                         BigInteger numerator, int denomBase,
-                                         int denomPower);
+                            FloatLiteralExpr(ignoreForEquals String text,
+                                             BigInteger intPart,
+                                             BigInteger numerator, int denomBase,
+                                             int denomPower);
                             /**
                              * int literal
                              * e.g.) 7
                              */
-                            IntLiteral(String text = in_val.toString(),
-                                       BigInteger val);
+                            IntLiteralExpr(String text = in_val.toString(),
+                                           BigInteger val);
                         /**
                          * char literal
                          * e.g.) 'c'
                          */
-                        CharLiteral(int val = in_text.charAt(0));
+                        CharLiteralExpr(int val = in_text.charAt(0));
                         /**
                          * string literal
                          * e.g.) "string"
                          */
-                        StringLiteral();
+                        StringLiteralExpr();
                         /**
                          * void literal
                          * e.g.) ()
                          */
-                        VoidLiteral(String text = "");
+                        VoidLiteralExpr(String text = "");
                     /**
                      * aggregate expression
                      * BaseExpr ::= Aggregate
@@ -1005,7 +1005,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     abstract Aggregate();
                         /**
                          * array expression
-                         * Aggregate ::= [ RectElements ]
+                         * ArrayExpr ::= [ RectElements ]
                          * RectElements ::= Expr MultiDimCons*
                          * MultiDimCons ::= RectSeparator Expr
                          * RectSeparator ::= ;+
@@ -1169,7 +1169,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * IntVal ::= Number
                  * e.g.) 8
                  */
-                NumberConstraint(IntLiteral val);
+                NumberConstraint(IntLiteralExpr val);
                 /**
                  * integer identiier
                  * IntVal ::= QualifiedIdName
@@ -1286,10 +1286,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             QuotientDim(DimExpr numerator, DimExpr denominator);
             /* dimension exponentiation
-             * DimExpr ::= DimExpr ^ IntLiteral
+             * DimExpr ::= DimExpr ^ IntLiteralExpr
              * e.g.) Time^2
              */
-            ExponentDim(DimExpr base, IntLiteral power);
+            ExponentDim(DimExpr base, IntLiteralExpr power);
             /* dimension with operator
              * DimExpr ::= DUPreOp DimExpr
              *           | DimExpr DUPostOp
@@ -1324,10 +1324,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             QuotientUnit(UnitExpr numerator, UnitExpr denominator);
             /* unit exponentiation
-             * UnitExpr ::= UnitExpr ^ IntLiteral
+             * UnitExpr ::= UnitExpr ^ IntLiteralExpr
              * e.g.) Time^2
              */
-            ExponentUnit(UnitExpr base, IntLiteral power);
+            ExponentUnit(UnitExpr base, IntLiteralExpr power);
             /* unit with operator
              * UnitExpr ::= DUPreOp UnitExpr
              *            | UnitExpr DUPostOp
@@ -1688,7 +1688,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * ArrayComprehensionLeft ::= IdOrInt |-> Expr
      *                          | ( IdOrInt, IdOrIntList ) |-> Expr
      * IdOrInt ::= Id
-     *           | IntLiteral
+     *           | IntLiteralExpr
      * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorList
      * e.g.) (x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}
      */

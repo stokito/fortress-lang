@@ -20,11 +20,11 @@ package com.sun.fortress.syntax_abstractions.util;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Literal;
+import com.sun.fortress.nodes.LiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 public class FortressObjectASTVisitor<T> {
-	
+
 	private static final String VALUE_FIELD_NAME = "val";
 
 	public T dispatch(FValue value) {
@@ -33,11 +33,11 @@ public class FortressObjectASTVisitor<T> {
 		}
 		throw new RuntimeException("Unexpected type of value: "+value.getClass());
 	}
-	
+
 	private FValue getVal(FObject value) {
 		return value.getSelfEnv().getValueNull(VALUE_FIELD_NAME);
 	}
-		
+
 	public T dispatch(FObject value) {
 		if (value.type().toString().equals("IntLiteral")) {
 			return dispatchInteger(value);
@@ -47,24 +47,24 @@ public class FortressObjectASTVisitor<T> {
 			return dispatchString(value);
 		} else if (value.type().toString().equals("VoidLiteral")) {
 			return dispatchVoid(value);
-		} else { 
+		} else {
 			throw new RuntimeException("NYI: "+value.type());
 		}
 	}
 
 	public T dispatchChar(FObject value) {
-		return (T) NodeFactory.makeIntLiteral(getVal(value).getInt());
+		return (T) NodeFactory.makeIntLiteralExpr(getVal(value).getInt());
 	}
-	
+
 	public T dispatchInteger(FObject value) {
-		return (T) NodeFactory.makeCharLiteral(getVal(value).getChar());
+		return (T) NodeFactory.makeCharLiteralExpr(getVal(value).getChar());
 	}
-	
+
 	public T dispatchString(FObject value) {
-		return (T) NodeFactory.makeStringLiteral(getVal(value).getString());
+		return (T) NodeFactory.makeStringLiteralExpr(getVal(value).getString());
 	}
-	
+
 	public T dispatchVoid(FObject value) {
-		return (T) NodeFactory.makeVoidLiteral();
-	}	
+		return (T) NodeFactory.makeVoidLiteralExpr();
+	}
 }

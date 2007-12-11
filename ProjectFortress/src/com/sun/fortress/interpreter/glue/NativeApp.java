@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.StringLiteral;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
@@ -136,11 +136,11 @@ public abstract class NativeApp implements Applicable {
         Expr fn = juxts.get(0);
         Expr arg = juxts.get(1);
         if (!(fn instanceof VarRef)) return defn;
-        if (!(arg instanceof StringLiteral)) return defn;
+        if (!(arg instanceof StringLiteralExpr)) return defn;
         QualifiedIdName name = ((VarRef)fn).getVar();
         if (name.getApi().isSome()) return defn;
         if (!name.getName().getId().getText().equals("builtinPrimitive")) return defn;
-        String str = ((StringLiteral)arg).getText();
+        String str = ((StringLiteralExpr)arg).getText();
         Pair<String, Applicable> key = new Pair<String, Applicable>(str, defn);
         synchronized(cache) {
             NativeApp res = cache.get(key);
@@ -161,7 +161,7 @@ public abstract class NativeApp implements Applicable {
             return bug(defn,"Native class "+str +" cannot be accessed.",x);
         } catch (java.lang.ClassCastException x) {
             return bug(defn,"Native class "+str +" is not a NativeApp.",x);
-                                    
+
         }
         }
     }

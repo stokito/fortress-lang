@@ -104,7 +104,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getName().toString();
     }
 
-    public String forIntLiteral(IntLiteral node) {
+    public String forIntLiteralExpr(IntLiteralExpr node) {
         return node.getVal().toString();
     }
 

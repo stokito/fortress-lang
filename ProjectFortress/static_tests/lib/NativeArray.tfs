@@ -104,7 +104,7 @@
            _id=(Id _text="T")))))
        (IntArg @20:55~56
         _val=(NumberConstraint
-         _val=(IntLiteral _text="0" _val=0)))
+         _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @20:57~60
         _type=(IdType _name=(QualifiedIdName @20:57~59
           _name=(IdName

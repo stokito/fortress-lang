@@ -35,12 +35,12 @@ import com.sun.fortress.parser_util.FortressUtil;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class ExprFactory {
-    /** Alternatively, you can invoke the CharLiteral constructor without parenthesized or val */
-    public static CharLiteral makeCharLiteral(Span span, String s) {
-        return new CharLiteral(span, false, s, s.charAt(0));
+    /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */
+    public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
+        return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
 
-    public static FloatLiteral makeFloatLiteral(Span span, String s) {
+    public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
         BigInteger intPart;
         BigInteger numerator;
         int denomBase;
@@ -130,8 +130,8 @@ public class ExprFactory {
                 }
             }
         }
-        return new FloatLiteral(span, false, s,
-                                intPart, numerator, denomBase, denomPower);
+        return new FloatLiteralExpr(span, false, s,
+                                    intPart, numerator, denomBase, denomPower);
     }
 
     /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
@@ -150,12 +150,12 @@ public class ExprFactory {
                           throwsClause, body);
     }
 
-    /** Alternatively, you can invoke the IntLiteral constructor without parenthesized or text */
-    public static IntLiteral makeIntLiteral(Span span, BigInteger val) {
-        return new IntLiteral(span, false, val.toString(), val);
+    /** Alternatively, you can invoke the IntLiteralExpr constructor without parenthesized or text */
+    public static IntLiteralExpr makeIntLiteralExpr(Span span, BigInteger val) {
+        return new IntLiteralExpr(span, false, val.toString(), val);
     }
 
-    public static IntLiteral makeIntLiteral(Span span, String s) {
+    public static IntLiteralExpr makeIntLiteralExpr(Span span, String s) {
         BigInteger val;
         int underLoc = s.indexOf('_');
         if (underLoc == -1) {
@@ -174,7 +174,7 @@ public class ExprFactory {
             digits = dozenalHack(digits, base);
             val = new BigInteger(digits, base);
         }
-        return new IntLiteral(span, false, s, val);
+        return new IntLiteralExpr(span, false, s, val);
     }
 
    static String dozenalHack(String digits, int base) {
@@ -328,9 +328,9 @@ public class ExprFactory {
                             NodeFactory.makeIdName(field));
     }
 
-    /** Alternatively, you can invoke the VoidLiteral constructor without parenthesized or text */
-    public static VoidLiteral makeVoidLiteral(Span span) {
-        return new VoidLiteral(span, false, "");
+    /** Alternatively, you can invoke the VoidLiteralExpr constructor without parenthesized or text */
+    public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
+        return new VoidLiteralExpr(span, false, "");
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
@@ -473,24 +473,24 @@ public class ExprFactory {
                 return new ArrayElements(e.getSpan(), true, e.getDimension(),
                                          e.getElements());
             }
-            public Expr forFloatLiteral(FloatLiteral e) {
-                return new FloatLiteral(e.getSpan(), true, e.getText(),
-                                        e.getIntPart(), e.getNumerator(),
-                                        e.getDenomBase(), e.getDenomPower());
+            public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
+                return new FloatLiteralExpr(e.getSpan(), true, e.getText(),
+                                            e.getIntPart(), e.getNumerator(),
+                                            e.getDenomBase(), e.getDenomPower());
             }
-            public Expr forIntLiteral(IntLiteral e) {
-                return new IntLiteral(e.getSpan(), true, e.getText(),
-                                      e.getVal());
+            public Expr forIntLiteralExpr(IntLiteralExpr e) {
+                return new IntLiteralExpr(e.getSpan(), true, e.getText(),
+                                          e.getVal());
             }
-            public Expr forCharLiteral(CharLiteral e) {
-                return new CharLiteral(e.getSpan(), true, e.getText(),
-                                       e.getVal());
+            public Expr forCharLiteralExpr(CharLiteralExpr e) {
+                return new CharLiteralExpr(e.getSpan(), true, e.getText(),
+                                           e.getVal());
             }
-            public Expr forStringLiteral(StringLiteral e) {
-                return new StringLiteral(e.getSpan(), true, e.getText());
+            public Expr forStringLiteralExpr(StringLiteralExpr e) {
+                return new StringLiteralExpr(e.getSpan(), true, e.getText());
             }
-            public Expr forVoidLiteral(VoidLiteral e) {
-                return new VoidLiteral(e.getSpan(), true, e.getText());
+            public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
+                return new VoidLiteralExpr(e.getSpan(), true, e.getText());
             }
             public Expr forVarRef(VarRef e) {
                 return new VarRef(e.getSpan(), true, e.getVar());
