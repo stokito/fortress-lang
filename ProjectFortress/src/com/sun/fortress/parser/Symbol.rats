@@ -101,7 +101,7 @@ private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
  * shouldn't since this set of operators is open-ended.
  */
 private String OpName =
-     !(cross) opn:id &{FortressUtil.validOp(opn) } ;
+     opn:id &{FortressUtil.validOp(opn) } ;
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
