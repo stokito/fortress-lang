@@ -23,9 +23,4 @@ import com.sun.fortress.useful.NI;
 
 /** Comprises DeclaredVariable, ParamVariable, and SingletonVariable. */
 public abstract class Variable {
-    
-    public Type type() {
-        return NI.nyi();
-    }
-    
 }

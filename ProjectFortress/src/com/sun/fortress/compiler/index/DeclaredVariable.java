@@ -24,4 +24,6 @@ public class DeclaredVariable extends Variable {
     private final LValueBind _ast;
     
     public DeclaredVariable(LValueBind ast) { _ast = ast; }
+    
+    public LValueBind ast() { return _ast; }
 }

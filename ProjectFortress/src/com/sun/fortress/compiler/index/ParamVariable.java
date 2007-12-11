@@ -23,4 +23,6 @@ public class ParamVariable extends Variable {
     private Param _ast;
     
     public ParamVariable(Param ast) { _ast = ast; }
+    
+    public Param ast() { return _ast; }
 }

@@ -66,6 +66,16 @@ public class StaticChecker {
         public Map<DottedName, ComponentIndex> components() { return _components; }
     }
     
+    public static class SingleComponentResult extends StaticPhaseResult {
+        private final ComponentIndex _component;
+        public SingleComponentResult(ComponentIndex component, 
+                                     Iterable<? extends StaticError> errors) {
+            super(errors);
+            _component = component;
+        }
+        public ComponentIndex component() { return _component; }
+    }
+    
     /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<DottedName, ComponentIndex> components,
@@ -74,26 +84,34 @@ public class StaticChecker {
         Map<DottedName, ComponentIndex> checkedComponents = new HashMap<DottedName, ComponentIndex>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         
-//        for (DottedName componentName : components.keySet()) {
-//            ComponentResult checkedComponent = checkComponent(components.get(componentName), env);
-//            checkedComponents.put(componentName, checkedComponent.components().get(componentName));
-//            errors = IterUtil.compose(checkedComponent.errors(), errors);
-//        }
-        return new ComponentResult(components, errors);
-        //return new ComponentResult(checkedComponents, errors);
+        for (DottedName componentName : components.keySet()) {
+            SingleComponentResult checked = checkComponent(components.get(componentName), env);
+            checkedComponents.put(componentName, checked.component());
+            errors = IterUtil.compose(checked.errors(), errors);
+        }
+        return new ComponentResult(checkedComponents, errors);
     }
     
-    public static ComponentResult checkComponent(ComponentIndex component, GlobalEnvironment env) {
-        //TypeEnv typeEnv = 
-        // Iterate over top-level variables, adding each to the component-level environment.
-        //Iterable<Variable> vars = component.variables();
+    public static SingleComponentResult checkComponent(ComponentIndex component, GlobalEnvironment env) {
+        TypeEnv typeEnv = TypeEnv.make();
         
         // Add all top-level function names to the component-level environment.
-        // Iterate over top-level functions, checking the body of each.
+        //typeEnv.extend(component.functions());
+        
+        // Iterate over top-level variables, adding each to the component-level environment.
+        typeEnv.extend(component.variables());
+        
+//        TypeChecker typeChecker = new TypeChecker(env, typeEnv, StaticParamEnv.make());
+//        TypeCheckerResult result = new 
+//        // Iterate over top-level functions, checking the body of each.
+//        for (Function fn: component.functions()) {
+//            typeChecker.check(fn);
+//        }
+        
         // Iterate over trait and object definitions.
-        //TypeChecker typeChecker = new TypeChecker(env);
+        //for (
         //return component.ast().accept(typeChecker);
-        return null;
+        return new SingleComponentResult(component, IterUtil.<StaticError>empty());
     }
     
 }

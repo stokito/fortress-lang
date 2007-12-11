@@ -34,6 +34,7 @@ import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
+import static edu.rice.cs.plt.tuple.Option.wrap;
 
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
@@ -79,6 +80,20 @@ public class NodeFactory {
         FixedDim indices = Option.unwrap(ind, new FixedDim(span,
                                                   Collections.<ExtentRange>emptyList()));
         return new ArrayType(span, element, indices);
+    }
+    
+    public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized, 
+                                                        QualifiedIdName name, List<StaticArg> args) {
+        return new InstantiatedType(span, isParenthesized, name, args);
+    }
+    
+    public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
+                                                        QualifiedIdName name, StaticArg... args) {
+        List<StaticArg> _args = new ArrayList<StaticArg>();
+        for (StaticArg arg: args) {
+            _args.add(arg);
+        }
+        return makeInstantiatedType(span, isParenthesized, name, _args);
     }
 
     public static ArrowType makeArrowType(Span span, Type domain,
@@ -278,8 +293,25 @@ public class NodeFactory {
         return makeLValue(name, makeIdType(type));
     }
     
+    public static LValueBind makeLValue(IdName name, IdName type) {
+        return new LValueBind(new Span(name.getSpan(), type.getSpan()),
+                              name, 
+                              Option.some((Type)makeIdType(type.getSpan(), 
+                                                           type.getId())), 
+                              new ArrayList<Modifier>(), 
+                              false);
+    }
+    
+    public static LValueBind makeLValue(IdName name, Type type) {
+        return new LValueBind(new Span(name.getSpan(), type.getSpan()),
+                              name,
+                              Option.some(type),
+                              new ArrayList<Modifier>(),
+                              false);
+    }
+        
     public static LValueBind makeLValue(String name, Type type) {
-        return new LValueBind(new Span(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), false);
+        return new LValueBind(type.getSpan(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), false);
     }
     
     public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
@@ -335,6 +367,11 @@ public class NodeFactory {
         }
         return new LValueBind(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), mods, mutable);
+    }
+    
+    public static LValueBind makeLValue(NormalParam param) {
+        return new LValueBind(param.getSpan(), param.getName(), 
+                              param.getType(), param.getMods(), false);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
@@ -709,24 +746,24 @@ public class NodeFactory {
         return new SyntaxDef(s, syntaxSymbols, transformationExpression);
     }
 
-	public static IntLiteral makeIntLiteral(int i) {
-		return new IntLiteral(BigInteger.valueOf(i));
-	}
-	
-	public static StringLiteral makeStringLiteral(String s) {
-		return new StringLiteral(s);
-	}
-	
-	public static CharLiteral makeCharLiteral(char c) {
-		return new CharLiteral(""+c);
-	}
-	
-	public static VoidLiteral makeVoidLiteral() {
-		return new VoidLiteral();
-	}
-	
-	public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
-		return new ImportStar(api, excepts);
-	}
+ public static IntLiteral makeIntLiteral(int i) {
+  return new IntLiteral(BigInteger.valueOf(i));
+ }
+ 
+ public static StringLiteral makeStringLiteral(String s) {
+  return new StringLiteral(s);
+ }
+ 
+ public static CharLiteral makeCharLiteral(char c) {
+  return new CharLiteral(""+c);
+ }
+ 
+ public static VoidLiteral makeVoidLiteral() {
+  return new VoidLiteral();
+ }
+ 
+ public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
+  return new ImportStar(api, excepts);
+ }
 
 }

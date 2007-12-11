@@ -48,39 +48,43 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
         List<File> files = Arrays.asList(Files.ls(path));
         
         for (File file: files) {
-            if (! file.isDirectory()) {
-            System.err.println("Loading " + file);
             
-            Option<CompilationUnit> candidate = 
-                Driver.readJavaAst(file.getCanonicalPath());
-            
-            if (candidate.isNone()) {
-                throw new RepositoryError ("Compilation aborted. " +
-                                           "There were problems reading back the compiled file " + 
-                                           file.getCanonicalPath());
-            }
-            else {
-                CompilationUnit _candidate = Option.unwrap(candidate);
+            if ((! file.isDirectory()) &&
+                (file.getName().matches("[\\S]+.tfs") ||
+                 file.getName().matches("[\\S]+.tfi"))) 
+            {
+                System.err.println("Loading " + file);
                 
-                if (_candidate instanceof Api) {
-                    ArrayList<Api> _candidates = new ArrayList<Api>();
-                    _candidates.add((Api)_candidate);
-                    apis.putAll(IndexBuilder.buildApis(_candidates, file.lastModified()).apis());
-                } else if (_candidate instanceof Component) {
-                    ArrayList<Component> _candidates = new ArrayList<Component>();
-                    _candidates.add((Component)_candidate);
+                Option<CompilationUnit> candidate = 
+                    Driver.readJavaAst(file.getCanonicalPath());
+                
+                if (candidate.isNone()) {
+                    throw new RepositoryError ("Compilation aborted. " +
+                                               "There were problems reading back the compiled file " + 
+                                               file.getCanonicalPath());
+                }
+                else {
+                    CompilationUnit _candidate = Option.unwrap(candidate);
                     
-                    components.putAll(IndexBuilder.buildComponents(_candidates, file.lastModified()).components());
-        
-                    ArrayList<Id> _ids = new ArrayList<Id>();
-                    for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
-        
-                    
-                } else {
-                    throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
-                }   
-            }                                 
+                    if (_candidate instanceof Api) {
+                        ArrayList<Api> _candidates = new ArrayList<Api>();
+                        _candidates.add((Api)_candidate);
+                        apis.putAll(IndexBuilder.buildApis(_candidates, file.lastModified()).apis());
+                    } else if (_candidate instanceof Component) {
+                        ArrayList<Component> _candidates = new ArrayList<Component>();
+                        _candidates.add((Component)_candidate);
+                        
+                        components.putAll(IndexBuilder.buildComponents(_candidates, file.lastModified()).components());
+                        
+                        ArrayList<Id> _ids = new ArrayList<Id>();
+                        for (Id id: _candidate.getName().getIds()) { _ids.add(new Id(new String(id.getText()))); }
+                        
+                        
+                    } else {
+                        throw new RuntimeException("The file " + file.getName() + " parsed to something other than a component or API!");
+                    }   
+                }                                 
+            }
         }
-    }
     } 
 }
