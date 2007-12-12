@@ -25,7 +25,7 @@ import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.HasAt;
 
 
-// Note: implements Comparable, but only for equivalance classes of
+// Note: implements Comparable, but only for equivalence classes of
 // overloads.  Right now, the number of parameters determines,
 // the equivalence class.
 
@@ -44,6 +44,11 @@ public class Overload implements Comparable, HasAt {
 
     public Overload(SingleFcn fn, OverloadedFunction olf) {
         this.fn = fn;
+    }
+
+    public Overload(SingleFcn fn, OverloadedFunction olf, boolean guaranteedOK) {
+        this.fn = fn;
+        this.guaranteedOK = guaranteedOK;
     }
 
 
@@ -72,6 +77,7 @@ public class Overload implements Comparable, HasAt {
 
 
     private SingleFcn fn;
+    boolean guaranteedOK;
     
     DebugletPrintStream ps;
 

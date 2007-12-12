@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Properties;
 
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.StringMap;
 
 public class ProjectProperties {
     
@@ -110,7 +112,9 @@ public class ProjectProperties {
         return s;
     }
 
-
+   private static Properties sysProps = System.getProperties();
+    
+   
     /**
      * No-op right now.
      * 
@@ -127,16 +131,46 @@ public class ProjectProperties {
         return s;
     }
     
+    public static final String FORTRESS_HOME = fortressHome();
+    
+    static final String home = System.getenv("HOME");
+    
+    static final StringMap searchTail = new StringMap.ComposedMaps(
+            new StringMap.FromFileProps(".fortress.properties"),
+            new StringMap.FromFileProps(home+"/.fortress.properties"),
+            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
+             );
+ 
+    /**
+     * System.getProperty("fortress.cache")
+     * System.getenv("FORTRESS_CACHE")
+     * ./.fortress.properties .getProperty("fortress.cache")
+     * ~/.fortress.properties .getProperty("fortress.cache")
+     * ${FORTRESS_HOME}/fortress.properties .getProperty("fortress.cache") .
+     */
+    
+    private static String searchDef(String asProp, String asEnv, String defaultValue) {
+        String result = null;
+        result = System.getProperty(asProp);
+        if (result != null) return result;
+        result = System.getenv(asEnv);
+        if (result != null) return result;
+        result = searchTail.get(asProp);
+        return result == null ? defaultValue : result;
+    }
+    
+    public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
+    
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
      */
     public static final String BASEDIR = baseDir();
-    public static final String FORTRESS_HOME = fortressHome();
     
     public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
     public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
-        
+    
+    
 
     /** Creates a new instance of ProjectProperties */
     private ProjectProperties() {
