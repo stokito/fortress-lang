@@ -21,8 +21,11 @@ import java.util.List;
 import java.util.Collections;
 import java.util.Set;
 
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     private List<StaticParam> _staticParams;
@@ -61,4 +64,10 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
 	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
 		return Collections.emptySet();
 	}
+	
+	@Override
+	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
+		return Option.none();
+	}
+	
 }

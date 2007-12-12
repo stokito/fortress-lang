@@ -26,6 +26,7 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.sun.fortress.nodes.GrammarDef;
@@ -33,24 +34,19 @@ import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
 import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
-import com.sun.fortress.syntax_abstractions.phases.ModuleResolver;
+import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GrammarIndex> grammars) {
+	public Result compile(Collection<GrammarEnv> env) {
 		
-		/*
-		 * Compute a grammar environment
-		 */
-		GrammarEnvironment env = new GrammarEnvironment(grammars);
-		if (!env.errors().isEmpty()) { return new Result(null, env.errors()); }
 	
 		/* 
 		 * Resolve grammar extensions and production extensions, but leave the 
 		 * the content of the productions untouched
 		 */
-		ModuleResolver.Result mrr = ModuleResolver.resolve(env);
+		ModuleTranslator.Result mrr = ModuleTranslator.resolve(env);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
 //		for (Module m: mrr.modules()) {

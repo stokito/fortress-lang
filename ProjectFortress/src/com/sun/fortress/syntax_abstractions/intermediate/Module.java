@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
-import com.sun.fortress.syntax_abstractions.phases.ModuleResolver;
+import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -137,7 +137,7 @@ public abstract class Module {
 					productions = extendedCoreModules.get(module);
 				}
 				// Rename production if it extends a core production
-				productions.add(ModuleResolver.renameProduction(production, name));
+				//productions.add(ModuleTranslator.renameProduction(production, name));
 				module.setImports(this.getExtendedModules());
 				extendedCoreModules.put(module, productions);
 			}

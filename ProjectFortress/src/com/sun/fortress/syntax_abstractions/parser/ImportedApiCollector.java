@@ -30,6 +30,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.AliasedName;
 import com.sun.fortress.nodes.DottedName;
@@ -49,7 +50,7 @@ import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.GrammarIndex;
+import com.sun.fortress.syntax_abstractions.GrammarEnv;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -60,74 +61,56 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
 	private boolean isTopLevel;
 	private GlobalEnvironment env;
-	private Collection<GrammarIndex> grammars;
-	
+	private Collection<GrammarEnv> grammars;
+
 	public ImportedApiCollector(GlobalEnvironment env) {
 		this.env = env;
 		this.isTopLevel = true;
-		this.grammars = new LinkedList<GrammarIndex>();
+		this.grammars = new LinkedList<GrammarEnv>();
 	}
-	
+
 	@Override
 	public void forImportApiOnly(ImportApi that) {
 		for (AliasedDottedName apiAlias : that.getApis()) {
-			final GrammarCollector grammarCollector = new GrammarCollector();
-			env.api(apiAlias.getApi()).ast().accept(grammarCollector);
-			for (GrammarDef grammar: grammarCollector.getGrammars()) {
-				GrammarIndex grammarIndex = new GrammarIndex(grammar, this.isTopLevel);
-				grammarIndex.setApi(env.api(apiAlias.getApi()));
-				this.grammars.add(grammarIndex);
-			}
-
+			grammars.add(new GrammarEnv(env.api(apiAlias.getApi()).grammars().values(), this.isTopLevel));
 			getRecursiveImports(apiAlias.getApi());
 		}		
 	}
 
 	@Override
 	public void forImportStarOnly(ImportStar that) {
-		GrammarCollector grammarCollector = new GrammarCollector();
-		env.api(that.getApi()).ast().accept(grammarCollector);
-		for (GrammarDef grammar: grammarCollector.getGrammars()) {
-			if (that.getExcept().contains(grammar.getName())) {
-				GrammarIndex grammarIndex = new GrammarIndex(grammar, false);
-				grammarIndex.setApi(env.api(that.getApi()));
-				this.grammars.add(grammarIndex);
-			}
-			else {
-				GrammarIndex grammarIndex = new GrammarIndex(grammar, this.isTopLevel);
-				grammarIndex.setApi(env.api(that.getApi()));
-				this.grammars.add(grammarIndex);
+		Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
+		for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
+			if (grammar.ast().isSome()) {
+				if (!that.getExcept().contains(Option.unwrap(grammar.ast()).getName())) {
+					gs.add(grammar);
+				}
 			}
 		}
-
+		grammars.add(new GrammarEnv(gs, this.isTopLevel));
 		getRecursiveImports(that.getApi());
 	}
 
 
 	@Override
 	public void forImportNamesOnly(ImportNames that) {
-		GrammarCollector grammarCollector = new GrammarCollector();
-		env.api(that.getApi()).ast().accept(grammarCollector);
-		for (GrammarDef grammar: grammarCollector.getGrammars()) {
+		GrammarEnv grammarEnv = new GrammarEnv();
+		for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 			boolean found = false;
 			for (AliasedName name: that.getAliasedNames()) {
-				if (name.getName().toString().equals(grammar.getName().getName().getId().getText())) {
+				if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getName().getId().getText())) {
 					found  = true;
 					break;
 				}
 			}
 			if (found) {
-				GrammarIndex grammarIndex = new GrammarIndex(grammar, this.isTopLevel);
-				grammarIndex.setApi(env.api(that.getApi()));
-				this.grammars.add(grammarIndex);
+				grammarEnv.addGrammar(grammar, this.isTopLevel);
 			}
 			else {
-				GrammarIndex grammarIndex = new GrammarIndex(grammar, false);
-				grammarIndex.setApi(env.api(that.getApi()));
-				this.grammars.add(grammarIndex);
+				grammarEnv.addGrammar(grammar, false);
 			}
 		}
-
+		grammars.add(grammarEnv);
 		getRecursiveImports(that.getApi());
 	}
 
@@ -140,28 +123,8 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 		env.api(api).ast().accept(this);
 		this.isTopLevel = isTopLevel;
 	}
-	
-//	private GrammarDef disambiguate(GrammarDef that, final Collection<GrammarDef> grammars, final ApiIndex api) {
-//		return (GrammarDef) that.accept(new NodeUpdateVisitor() {						
-//			@Override
-//			public Node forGrammarDefOnly(GrammarDef that, IdName name_result, List<? extends QualifiedName> extends_result, List<ProductionDef> productions_result) {
-//				List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
-//				for (QualifiedName name: extends_result) {
-//					// Check if it is locally declared:
-//					for (GrammarDef grammar: grammars) {
-//						if (name.stringName().equals(grammar.getName().stringName())) {							
-//							ls.add(new QualifiedIdName(new IdName(new Id(api.ast().getName().stringName()+"."+name.stringName()))));
-//						}
-//					}
-//					// Check if it is 
-//				}
-//				return new GrammarDef(that.getSpan(), name_result, extends_result, productions_result);
-//			}		
-//		});
-//	}
 
-	
-	public Collection<GrammarIndex> getGrammars() {
+	public Collection<GrammarEnv> getGrammars() {
 		return this.grammars;
 	}
 }

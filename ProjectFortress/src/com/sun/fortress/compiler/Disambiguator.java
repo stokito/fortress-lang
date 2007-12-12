@@ -27,6 +27,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -93,9 +94,12 @@ public class Disambiguator {
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
-                ExprDisambiguator ed = 
+    			ProductionDisambiguator pd = 
+    				new ProductionDisambiguator(env, newErrs);
+    			Api pdResult = (Api) tdResult.accept(pd);
+            	ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);
-                Api edResult = (Api) tdResult.accept(ed);
+                Api edResult = (Api) pdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             

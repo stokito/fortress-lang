@@ -54,8 +54,15 @@ public class CompilerTopLevelJUTest extends TestCase {
         staticTests + "XXXUndefinedNestedRef.fss",
         staticTests + "XXXUndefinedRefInLoop.fss",
         staticTests + "XXXUndefinedVar.fss",
-        staticTests + "XXXUndefinedTopLevelVar.fss",                                                          
+        staticTests + "XXXUndefinedTopLevelVar.fss",
+        /* Tests for Syntax abstractions */
         staticTests + "SyntaxHelloWorldUse.fss",
+        staticTests + "SyntaxProductionExtends.fsi",
+        staticTests + "XXXSyntaxMultipleGrammarsWithSameName.fsi",
+        staticTests + "XXXSyntaxMultipleProductionsWithSameName.fsi",
+        staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi",
+        // really not working:
+        staticTests + "XXXSyntaxNoFortressAstImport.fsi",
         staticTests + "stub to eliminate comma trouble"
     );
 

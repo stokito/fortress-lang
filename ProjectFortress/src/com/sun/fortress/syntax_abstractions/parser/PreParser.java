@@ -49,6 +49,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportFrom;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.useful.Useful;
 
@@ -66,30 +67,30 @@ import edu.rice.cs.plt.lambda.SimpleBox;
 public class PreParser {
 
 	   public static class Result extends StaticPhaseResult {
-	        private Collection<GrammarIndex> grammars;
+	        private Collection<GrammarEnv> grammars;
 	        
-	        public Result(Collection<GrammarIndex> grammars) {
+	        public Result(Collection<GrammarEnv> grammars) {
 	        	this.grammars = grammars;
 	        }
 
 	        public Result(StaticError error) {
 	            super(IterUtil.singleton(error));
-	            this.grammars = new LinkedList<GrammarIndex>();
+	            this.grammars = new LinkedList<GrammarEnv>();
 	        }
 	        
 	        public Result(Iterable<? extends StaticError> errors) {
 	            super(errors);
-	            grammars = new LinkedList<GrammarIndex>();
+	            grammars = new LinkedList<GrammarEnv>();
 	        }
 
 	        public Result(Result r1, Result r2) {
 	            super(r1, r2);
-	            this.grammars = new LinkedList<GrammarIndex>();
+	            this.grammars = new LinkedList<GrammarEnv>();
 	            grammars.addAll(r1.grammars);
 	            grammars.addAll(r2.grammars);
 	        }
 
-	        public Collection<GrammarIndex> getGrammars() { 
+	        public Collection<GrammarEnv> getGrammars() { 
 	        	return this.grammars;
 	        }
 	    }

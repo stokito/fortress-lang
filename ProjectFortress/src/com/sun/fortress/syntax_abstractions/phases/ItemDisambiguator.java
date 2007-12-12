@@ -35,7 +35,7 @@ import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.syntax_abstractions.GrammarEnvironment;
+import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 

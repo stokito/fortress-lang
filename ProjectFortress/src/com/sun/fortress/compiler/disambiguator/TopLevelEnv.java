@@ -26,7 +26,8 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.Grammar;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Variable;
@@ -173,7 +174,7 @@ public class TopLevelEnv extends NameEnv {
    
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<DottedName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-        	for (Map.Entry<IdName, Grammar> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+        	for (Map.Entry<IdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
             	initializeEntry(apiEntry, grammarEntry, _onDemandGrammarNames);
             }
         } 
@@ -329,5 +330,20 @@ public class TopLevelEnv extends NameEnv {
                 return _current.typeConses().get(name.getName());
             }
         });
-    }    
+    }
+    
+    public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {
+        if (name.getApi().isSome()) {
+        	DottedName n = Option.unwrap(name.getApi());
+			return Option.some(_globalEnv.api(n).grammars().get(name.getName()));
+        }
+        if (_current instanceof ApiIndex) {
+        	return Option.some(((ApiIndex) _current).grammars().get(name.getName()));
+        }
+        else {
+        	_errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name,
+                name.getSpan().toString()));
+        	return Option.none();
+        }
+    }
 }
