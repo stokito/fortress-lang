@@ -78,8 +78,7 @@ import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.CaseParam;
 import com.sun.fortress.nodes.CaseParamExpr;
-import com.sun.fortress.nodes.CaseParamLargest;
-import com.sun.fortress.nodes.CaseParamSmallest;
+import com.sun.fortress.nodes.CaseParamMost;
 import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.ChainExpr;
@@ -492,10 +491,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     CaseClause findExtremum(CaseExpr x, Fcn fcn ) {
         List<CaseClause> clauses = x.getClauses();
         Iterator<CaseClause> i = clauses.iterator();
-        Option<Opr> in_compare = x.getCompare();
-
-        if (in_compare.isSome())
-            bug(x, "Explicit comparison operators in extremum expressions aren't supported yet");
 
         CaseClause c = i.next();
         FValue winner = c.getMatch().accept(this);
@@ -524,10 +519,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forCaseExpr(CaseExpr x) {
         List<CaseClause> clauses = x.getClauses();
         CaseParam param = x.getParam();
-        if (param instanceof CaseParamLargest) {
-            return forBlock(findExtremum(x,(Fcn) e.getValue(">")).getBody());
-        } else if (param instanceof CaseParamSmallest) {
-            return forBlock(findExtremum(x,(Fcn) e.getValue("<")).getBody());
+        if (param instanceof CaseParamMost) {
+            Option<Opr> compare = x.getCompare();
+            if (compare.isSome()) {
+                String op = NodeUtil.nameString(Option.unwrap(compare));
+                return forBlock(findExtremum(x,(Fcn) e.getValue(op)).getBody());
+            } else
+                return error(x,errorMsg("Missing operator for the extremum ",
+                                        "expression ", x));
         } else {
             // Evaluate the parameter
             FValue paramValue = param.accept(this);

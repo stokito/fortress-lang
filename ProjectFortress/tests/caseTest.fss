@@ -36,7 +36,7 @@ end
 test3() = do
     i = 7
     j = 9
-    case largest of
+    case most > of
         i => fail("caseTest test3 failed")
         j => ()
     end
@@ -45,7 +45,7 @@ end
 test4() = do
     i = 7
     j = 9
-    case largest of
+    case most > of
         i => fail("caseTest test4 failed")
         j => ()
     end
@@ -69,7 +69,7 @@ end
 test7() = do
     i = 7
     j = 9
-    case smallest of
+    case most < of
         7 => ()
         9 => fail("caseTest test7 failed")
     end
@@ -78,8 +78,8 @@ end
 test8()=do
     mile = 1.6
     km   = 1
-    f() = do 
-        case largest of 
+    f() = do
+        case most > of
             1 mile => "miles are larger"
             1 km   => fail("caseTest test8 failed")
         end
@@ -88,7 +88,7 @@ test8()=do
 end
 
 test9()=do
-   case largest of
+   case most > of
       "hocuspocus"  => fail("caseTest test9 failed")
       "abracadabra" => fail("caseTest test9 failed")
       "shazam"      => ()
@@ -97,7 +97,7 @@ end
 
 run(args:String...):()=do
    test1();
-   test2(); 
+   test2();
    test3();
    test4();
    test5();
@@ -107,4 +107,3 @@ run(args:String...):()=do
    test9();
 end
 end
-

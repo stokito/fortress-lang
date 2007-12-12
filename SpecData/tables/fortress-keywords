@@ -42,7 +42,7 @@ invariant
 io
 juxtaposition
 label
-largest
+most
 nat
 object
 of
@@ -56,7 +56,6 @@ requires
 self
 settable
 setter
-smallest
 spawn
 syntax
 test
