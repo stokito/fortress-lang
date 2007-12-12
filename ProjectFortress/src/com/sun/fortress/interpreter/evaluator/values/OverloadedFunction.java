@@ -240,14 +240,16 @@ public class  OverloadedFunction extends Fcn
         ArrayList<FType> ftalist = new ArrayList<FType> (new_overloads.size());
 
         for (int i = 0; i< new_overloads.size(); i++) {
-            ftalist.add(new_overloads.get(i).getFn().type());
+            Overload o1 = new_overloads.get(i);
+            ftalist.add(o1.getFn().type());
 
-            if (!noCheck) {
+            if (!noCheck && !o1.guaranteedOK) {
 
             for (int j = i-1; j >= 0 ; j--) {
-                Overload o1 = new_overloads.get(i);
+                
                 Overload o2 = new_overloads.get(j);
-
+                if (o2.guaranteedOK)
+                    continue;
                 SingleFcn f1 = o1.getFn();
                 SingleFcn f2 = o2.getFn();
 
@@ -547,10 +549,16 @@ public class  OverloadedFunction extends Fcn
     }
 
     public void addOverload(SingleFcn fn) {
-//        if (finishedFirst && !fn.getFinished())
-//            throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
-        addOverload(new Overload(fn, this));
-    }
+//      if (finishedFirst && !fn.getFinished())
+//          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
+      addOverload(new Overload(fn, this));
+  }
+
+    public void addOverload(SingleFcn fn, boolean guaranteedOK) {
+//      if (finishedFirst && !fn.getFinished())
+//          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
+      addOverload(new Overload(fn, this, guaranteedOK));
+  }
 
     public void addOverloads(OverloadedFunction cls) {
         List<Overload> clso = cls.overloads;
@@ -800,7 +808,7 @@ public class  OverloadedFunction extends Fcn
     }
 
     /**
-     * Same as typeApply, but with the types evaliated already.
+     * Same as typeApply, but with the types evaluated already.
      *
      * @param args
      * @param e

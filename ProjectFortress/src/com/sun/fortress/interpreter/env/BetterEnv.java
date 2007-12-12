@@ -290,7 +290,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         }
     }
 
-    private BATreeNode<String, FValue> putFunction(BATreeNode<String, FValue> table, String index, Fcn value, String what, boolean shadowIfDifferent) {
+    private BATreeNode<String, FValue> putFunction(BATreeNode<String, FValue> table, String index, Fcn value, String what, boolean shadowIfDifferent, boolean overloadIsOK) {
         if (table == null) {
             noteName(index);
             return new BATreeNode<String, FValue> (index, value);
@@ -355,7 +355,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                     OverloadedFunction gms = new OverloadedFunction(gm.getFnName(), this);
                     gms.addOverload(gm);
                      if (value instanceof SingleFcn) {
-                         gms.addOverload((SingleFcn) value);
+                         gms.addOverload((SingleFcn) value, overloadIsOK);
                     } else if (value instanceof OverloadedFunction) {
                         gms.addOverloads((OverloadedFunction) value);
                     } else {
@@ -365,7 +365,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
                      return table.add(index, gms, comparator);
                  } else if (fvo instanceof OverloadedFunction) {
                    if (value instanceof SingleFcn) {
-                       ((OverloadedFunction)fvo).addOverload((SingleFcn) value);
+                       ((OverloadedFunction)fvo).addOverload((SingleFcn) value, overloadIsOK);
                     } else if (value instanceof OverloadedFunction) {
                         ((OverloadedFunction)fvo).addOverloads((OverloadedFunction) value);
                     } else {
@@ -645,23 +645,35 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
 
     public void putValue(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
+            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false, false);
         else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
 
     public void putValueShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false);
+            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", false, false);
         else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
      }
 
     public void putValueNoShadowFn(String str, FValue f2) {
         if (f2 instanceof Fcn)
-            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true);
+            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true, false);
         else
             var_env = putNoShadow(var_env, str, f2, "Var/value");
+     }
+
+    /**
+     * 
+     * @param str
+     * @param f2
+     */
+    public void putFunctionalMethodInstance(String str, FValue f2) {
+        if (f2 instanceof Fcn)
+            var_env = putFunction(var_env, str, (Fcn) f2, "Var/value", true, true);
+        else
+            error(str + " must be a functional method instance ");
      }
 
     public void putVariable(String str, FValue f2) {

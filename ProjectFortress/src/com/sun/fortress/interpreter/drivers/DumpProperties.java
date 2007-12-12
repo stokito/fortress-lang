@@ -15,7 +15,8 @@ class DumpProperties {
     else System.out.println("ClassLoader " + cl.toString());
 
     System.out.println("Fortress home is " + ProjectProperties.FORTRESS_HOME);
-    
+    System.out.println("Fortress cache is " + ProjectProperties.CACHE_DIR);
+       
     java.util.Properties p = System.getProperties();
     Enumeration e = p.propertyNames();
     ArrayList<String> al = new ArrayList<String>();

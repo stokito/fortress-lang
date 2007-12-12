@@ -676,10 +676,20 @@ public class Useful {
        return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN);
     }
  
+    public static StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
+    
     public static String substituteVars(String e,
             Pattern varPat,
             int intro_len,
             int outro_len) {
+       return substituteVars(e, varPat, intro_len, outro_len, sysMap);
+    }
+    
+    public static String substituteVars(String e,
+            Pattern varPat,
+            int intro_len,
+            int outro_len,
+            StringMap map) {
         Matcher m = varPat.matcher(e);
 
         int lastMatchEnd = 0;
@@ -692,20 +702,13 @@ public class Useful {
             lastMatchEnd = mr.end();
             String toReplace = e.substring(mr.start() + intro_len, mr.end()
                     - outro_len);
-            String candidate = System.getProperty(toReplace);
-            if (candidate == null) {
-                candidate = System.getenv(toReplace);
-                if (candidate == null) {
-                    candidate = "";
-                }
-            }
+            String candidate = map.get(toReplace);
             newE.append(candidate);
         }
         if (newE != null)
             e = newE.toString();
         return e;
     }
-    
 
     
 }

@@ -72,7 +72,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         initializeFunctionalMethods(getEnv());
         
     }
-    public void initializeFunctionalMethods(BetterEnv topLevel) {
+    public final void initializeFunctionalMethods(BetterEnv topLevel) {
         if (isSymbolic)
             return;
         FTraitOrObjectOrGeneric x = this;
@@ -128,7 +128,10 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     String fndodname = NodeUtil.nameString(fndod.getName());
 
                     Fcn cl = new FunctionalMethod(getEnv(), fndod, spi, x);
-                    topLevel.putValueNoShadowFn(fndodname, cl);
+                    if (x instanceof GenericTypeInstance)
+                        topLevel.putFunctionalMethodInstance(fndodname, cl);
+                    else
+                        topLevel.putValueNoShadowFn(fndodname, cl);
                 }
             }
         }
