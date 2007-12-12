@@ -482,7 +482,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * production declaration
      */
-    abstract ProductionDecl(Option<? extends Modifier> modifier, QualifiedIdName name, TraitType type, Option<? extends QualifiedName> extends) implements AbsDecl;
+    abstract ProductionDecl(Option<? extends Modifier> modifier, QualifiedIdName name, TraitType type, Option<QualifiedIdName> extends) implements AbsDecl;
         /**
          * production definition in production declarations
          */

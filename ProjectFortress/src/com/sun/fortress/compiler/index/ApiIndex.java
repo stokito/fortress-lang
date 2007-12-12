@@ -27,18 +27,18 @@ import com.sun.fortress.nodes.SimpleName;
 
 public class ApiIndex extends CompilationUnitIndex {
     
-    private final Map<IdName, Grammar> _grammars;
+    private final Map<IdName, GrammarIndex> _grammars;
     
     public ApiIndex(Api ast,
                     Map<IdName, Variable> variables,
                     Relation<SimpleName, Function> functions,
                     Map<IdName, TypeConsIndex> typeConses,
-                    Map<IdName, Grammar> grammars,
+                    Map<IdName, GrammarIndex> grammars,
                     long modifiedDate) {
         super(ast, variables, functions, typeConses, modifiedDate);
         _grammars = Collections.unmodifiableMap(grammars);
     }
 
-    public Map<IdName, Grammar> grammars() { return _grammars; }
+    public Map<IdName, GrammarIndex> grammars() { return _grammars; }
     
 }

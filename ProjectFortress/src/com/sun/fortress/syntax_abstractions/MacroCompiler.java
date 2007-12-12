@@ -48,6 +48,6 @@ public interface MacroCompiler {
 		public Class<?> getParserClass() { return parserClass; }
 	}
 	
-	public Result compile(Collection<GrammarIndex> grammars);
+	public Result compile(Collection<GrammarEnv> grammars);
 	
 }

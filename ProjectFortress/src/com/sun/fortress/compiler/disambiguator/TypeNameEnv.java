@@ -25,6 +25,7 @@ import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.DottedName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class TypeNameEnv {
@@ -107,4 +108,10 @@ public abstract class TypeNameEnv {
      * greater than 1.
      */
     public abstract Set<QualifiedIdName> onDemandGrammarNames(IdName name);
+    
+    /**
+     * Given a disambiguated name (aliases and imports have been resolved),
+     * return the corresponding grammar.  Assumes {@code name.getApi().isSome()}.
+     */
+    public abstract Option<GrammarIndex> grammarIndex(final QualifiedIdName name);
 }

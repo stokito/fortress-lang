@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
@@ -36,8 +37,10 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.compiler.ProductionDisambiguator;
 import com.sun.fortress.compiler.StaticError;
-import com.sun.fortress.compiler.index.Grammar;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.useful.HasAt;
 
@@ -322,19 +325,43 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
+
 		List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
+		Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
 		for (QualifiedIdName name: that.getExtends()) {
-			ls.add(handleGrammarName(name));
+			QualifiedIdName nname = handleGrammarName(name);
+			ls.add(nname);
+			Option<GrammarIndex> gi = this._env.grammarIndex(nname);
+			if (gi.isSome()) {
+				gs.add(Option.unwrap(gi));
+			}
+			else {
+				error("Undefined grammar: " + NodeUtil.nameString(nname), name);
+			}
 		}
 		QualifiedIdName name = handleGrammarName(that.getName());
-		return new GrammarDef(that.getSpan(),name,ls,that.getProductions());
-	}
+		
+		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,ls,that.getProductions());
 
-	/**
-	 * @param that
-	 * @param ls
-	 * @param name
-	 */
+		List<StaticError> newErrs = new ArrayList<StaticError>();
+		Option<GrammarIndex> grammar = this._env.grammarIndex(name);
+		if (grammar.isSome()) {
+			GrammarIndex g = Option.unwrap(grammar);
+			g.setAst(disambiguatedGrammar);
+			
+			g.setExtendedGrammars(gs);
+			
+			g.setEnv(new ProductionEnv(this._env, g, this._errors));
+			g.setAst(disambiguatedGrammar);
+		}
+		
+        if (!newErrs.isEmpty()) { 
+            this._errors.addAll(newErrs); 
+        }
+		
+		return disambiguatedGrammar;
+	}	
+	
 	private QualifiedIdName handleGrammarName(QualifiedIdName name) {
 		if (name.getApi().isSome()) {
 			DottedName originalApi = Option.unwrap(name.getApi());

@@ -20,9 +20,12 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import java.util.Collections;
 
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class LocalVarEnv extends DelegatingNameEnv {
     private Set<IdName> _vars;
@@ -57,6 +60,11 @@ public class LocalVarEnv extends DelegatingNameEnv {
 	@Override
 	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
 		return Collections.emptySet();
+	}
+
+	@Override
+	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
+		return Option.none();
 	}
     
 }
