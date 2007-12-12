@@ -18,8 +18,8 @@
 /*
  * Definition of Fortress method declarations.
  */
-module com.sun.fortress.parser.Method(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
-              Spacing);
+module com.sun.fortress.parser.Method(Param, Header, Type, NoNewlineExpr,
+                                      Identifier, Keyword, Symbol, Spacing);
 
 import Param;
 import Header;
@@ -65,15 +65,19 @@ AbsFnDecl AbsMdDecl =
      };
 
 /* MdHeaderFront ::=
-     Id (w StaticParams)? w MdValParam
+     NamedFnHeaderFront
    | OpHeaderFront
  */
 private FnHeaderFront MdHeaderFront =
+     NamedFnHeaderFront
+   / OpHeaderFront ;
+
+/* NamedFnHeaderFront ::= Id (w StaticParams)? w MdValParam */
+FnHeaderFront NamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(NodeFactory.makeIdName(a1), a2, a3);
-     }
-   / OpHeaderFront ;
+       yyValue = new FnHeaderFront(NodeFactory.makeIdName(a1),a2,a3);
+     };
 
 /* GetterSetterDecl ::=
    GetterSetterDef
