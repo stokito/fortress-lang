@@ -604,25 +604,12 @@ public class PrecedenceMap {
 
     private void buildPrecedences() {
         /* Operator sets whose precedences are all equal. */
-        eqPrec(Operators.p_dot_below_addition_and_subtraction);
         eqPrec(Operators.p_addition_and_subtraction);
-        eqPrec(Operators.p_multiplication_and_division);
-        eqPrec(Operators.p_dot_above_multiplication_and_division);
         eqPrec(Operators.p_dot_above_addition_and_subtraction);
-        eqPrec(Operators.p_tri_multiplication_and_division);
+        eqPrec(Operators.p_dot_below_addition_and_subtraction);
         eqPrec(Operators.p_tri_addition_and_subtraction);
-        eqPrec(Operators.p_circled_multiplication_and_division);
         eqPrec(Operators.p_circled_addition_and_subtraction);
-        eqPrec(Operators.p_squared_multiplication_and_division);
         eqPrec(Operators.p_squared_addition_and_subtraction);
-        eqPrec(Operators.p_set_intersection);
-        eqPrec(Operators.p_set_union);
-        eqPrec(Operators.p_square_intersection);
-        eqPrec(Operators.p_square_union);
-        eqPrec(Operators.p_curly_and);
-        eqPrec(Operators.p_curly_or);
-        eqPrec(Operators.p_boolean_conjunction);
-        eqPrec(Operators.p_boolean_disjunction);
 
         /* Each list is ordered from left to right, and is transitive
            There is no ordering between the lists. */
