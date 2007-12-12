@@ -593,10 +593,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * case expression or extremum expression
              * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
-             *                 | case largest Op? of CaseClauses end
-             *                 | case smallest Op? of CaseClauses end
+             *                 | case most Op of CaseClauses end
              * CaseElse ::= else => BlockElems
-             * e.g.) case largest of
+             * e.g.) case most > of
              *         1 mile => "miles are larger"
              *         1 kilometer => "we were wrong again"
              *       end
@@ -1714,13 +1713,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         CaseParamExpr(Expr expr);
         /**
-         * "largest" used in extremum expressions
+         * "most" used in extremum expressions
          */
-        CaseParamLargest();
-        /**
-         * "smallest" used in extremum expressions
-         */
-        CaseParamSmallest();
+        CaseParamMost();
     /**
      * catch clause used in try expressions
      * Catch ::= catch Id CatchClauses

@@ -43,11 +43,11 @@ body {
         "extends",      "finally",      "fn",           "for",
         "forbid",       "from",         "getter",       "hidden",
         "if",           "import",       "in",           "int",
-        "invariant",    "io",           "label",        "largest",
+        "invariant",    "io",           "label",        "most",
         "nat",          "object",       "of",           "opr",
         "or",           "override",     "private",      "property",
         "provided",     "requires",     "self",         "settable",
-        "setter",       "smallest",     "spawn",        "syntax",
+        "setter",       "spawn",        "syntax",
         "test",         "then",         "throw",        "throws",
         "trait",        "transient",    "try",          "tryatomic",
         "type",         "typecase",     "unit",         "value",
@@ -108,6 +108,7 @@ transient void in = "in" !(idrest);
 transient void int = "int" !(idrest);
 transient void invariant = "invariant" !(idrest);
 transient void label = "label" !(idrest);
+transient void most = "most" !(idrest);
 transient void nat = "nat" !(idrest);
 transient void object = "object" !(idrest);
 transient void of = "of" !(idrest);
@@ -139,13 +140,11 @@ String end = "end" !(idrest);
 String getter = "getter" !(idrest);
 String hidden = "hidden" !(idrest);
 String io = "io" !(idrest);
-String largest = "largest" !(idrest);
 String override = "override" !(idrest);
 String private = "private" !(idrest);
 String self = "self" !(idrest);
 String settable = "settable" !(idrest);
 String setter = "setter" !(idrest);
-String smallest = "smallest" !(idrest);
 String test = "test" !(idrest);
 String transient = "transient" !(idrest);
 String unit = "unit" !(idrest);

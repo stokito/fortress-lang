@@ -43,7 +43,7 @@ import Spacing;
    | if w Expr w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w Expr w then w BlockElems (w Elifs)? w Else (w end)? w )
    | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
-   | case w (largest | smallest) (w Op)? w of w CaseClauses w end
+   | case w most w Op w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)? (w finally w BlockElems)? w end
  */
@@ -93,17 +93,11 @@ Expr DelimitedExpr =
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
                               a3, _else);
      }
-   / case w a1:(largest / smallest)  a2:(w Op)? w of w a3:CaseClauses w end
-     { CaseParam e1;
-       if (a1.equals("largest"))
-           e1 = new CaseParamLargest(createSpan(yyStart+5,7));
-       else // a1.equals("smallest")
-           e1 = new CaseParamSmallest(createSpan(yyStart+5,8));
-       Option<Opr> compare;
-       if (a2 == null) compare = Option.none();
-       else            compare = Option.some(NodeFactory.makeOpr(a2));
+   / case w most w a1:Op w of w a2:CaseClauses w end
+     { CaseParam e1 = new CaseParamMost(createSpan(yyStart+5,4));
+       Option<Opr> compare = Option.some(NodeFactory.makeOpr(a1));
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, Option.some(FortressUtil.doBlock(FortressUtil.emptyExprs())));
+                              a2, Option.<Block>none());
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end

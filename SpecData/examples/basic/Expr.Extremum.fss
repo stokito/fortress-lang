@@ -24,7 +24,7 @@ mile = 2
 kilometer = 1
 f() = do
 (** EXAMPLE **)
-case largest of
+case most > of
   1 mile => "miles are larger"
   1 kilometer => "we were wrong again"
 end
