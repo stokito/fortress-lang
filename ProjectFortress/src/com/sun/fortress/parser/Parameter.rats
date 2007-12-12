@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress parameters.
  */
-module com.sun.fortress.parser.Parameter(Header, Type, Expr, Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Parameter(Header, Type, Expr, Identifier, Keyword,
+                                         Symbol, Spacing);
 
 import Header;
 import Type;

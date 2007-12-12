@@ -18,8 +18,9 @@
 /*
  * Definition of Fortress local declarations.
  */
-module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header, Type, NoNewlineExpr,
-                 DelimitedExpr, Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header, Type,
+                                         NoNewlineExpr, DelimitedExpr,
+                                         Identifier, Keyword, Symbol, Spacing);
 modify Variable;
 import Function;
 import Param;
@@ -70,10 +71,10 @@ private LetExpr LocalVarFnDecl =
    / LocalVarDecl ;
 
 /* LocalFnDecl ::=
-     LocalFnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+     LocalFnMods? NamedFnHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
 private FnDef LocalFnDecl =
-     a1:LocalFnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w
+     a1:LocalFnMods? a2:NamedFnHeaderFront a3:FnHeaderClause w equals w
      a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);

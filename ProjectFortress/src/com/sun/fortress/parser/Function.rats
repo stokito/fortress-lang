@@ -84,12 +84,16 @@ AbsFnDecl AbsFnDecl =
    / FnSig ;
 
 /* FnHeaderFront ::=
-     Id (w StaticParams)? w ValParam
+     NamedFnHeaderFront
    | OpHeaderFront
  */
 FnHeaderFront FnHeaderFront =
+     NamedFnHeaderFront
+   / OpHeaderFront ;
+
+/* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
+FnHeaderFront NamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new FnHeaderFront(NodeFactory.makeIdName(a1),a2,a3);
-     }
-   / OpHeaderFront ;
+     };
