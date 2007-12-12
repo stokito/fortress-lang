@@ -91,16 +91,12 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
     public void testEqPrecedences() {
         /* Just spot test. */
-        for (Set<String> s :
-                 Useful.list(Operators.p_circled_multiplication_and_division,
-                             Operators.p_addition_and_subtraction,
-                             Operators.p_boolean_disjunction)) {
-            for (String i : s) {
-                for (String op : Operators.ops) {
-                    Precedence p = pm.precedence(i,op);
-                    assertEquals(i+" and "+op+" is "+p, s.contains(op),
-                                 equal_precedence.equals(p));
-                }
+        for (String i : Operators.p_addition_and_subtraction) {
+            for (String op : Operators.ops) {
+                Precedence p = pm.precedence(i,op);
+                assertEquals(i+" and "+op+" is "+p,
+                             Operators.p_addition_and_subtraction.contains(op),
+                             equal_precedence.equals(p));
             }
         }
     }
