@@ -19,7 +19,7 @@ component BigOperator
 
 export Executable
 
-opr SUM(g: Generator[\ZZ32\]):ZZ32 = g.reduce(SumReduction[\ZZ32\]())
+opr SUM(g: Generator[\Number\]):Number = g.reduce(SumReduction)
 
 opr BIG +(g: Generator[\ZZ32\]):ZZ32 = SUM(g)
 

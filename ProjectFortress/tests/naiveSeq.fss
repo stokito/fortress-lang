@@ -44,12 +44,11 @@ end
 
 run(args:String...):() = do
     r1 = NewRange(1,11)
-    sum = SumReduction[\ZZ32\]()
     s2 : ZZ32 := 0
     for i <- seq(r1) do
       s2 += i
     end
-    s1 = r1.reduce(sum)
+    s1 = r1.generate[\Number\](SumReduction,cast[\Number\])
     tst(s1,s2,"sum")
     tst(s1,66,"actualSum")
     v : ZZ32 := 0

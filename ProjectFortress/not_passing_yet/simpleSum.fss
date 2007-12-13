@@ -18,7 +18,7 @@
 component simpleSum
 export Executable
 
-opr SUM(g: Generator[\ZZ32\]):ZZ32 = g.reduce(SumReduction[\ZZ32\]())
+opr SUM(g: Generator[\Number\]):Number = g.reduce(SumReduction)
 
 run(args:String...):() = do
     s0 = SUM [x <- 0#10] x
