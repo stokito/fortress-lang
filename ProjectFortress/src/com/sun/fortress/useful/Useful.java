@@ -672,11 +672,47 @@ public class Useful {
 
     final static int OUTRO_LEN = 1;
 
+    /**
+     * Perform variable replacement on e, where variable references match the
+     * pattern "[$][{][-A-Za-z0-9_.]+[}]" and the variable name referenced is
+     * contained between the curly braces.  For example, "My home is ${HOME}".
+     * 
+     * The replacement value for the variable is obtained by consulting first
+     * the system properties, then the environment.
+     * 
+     * @param e
+     * @return
+     */
     public static String substituteVars(String e) {
        return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN);
     }
  
-    public static StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
+    /**
+     * Perform variable replacement on e, where variable references match the
+     * pattern "[$][{][-A-Za-z0-9_.]+[}]" and the variable name referenced is
+     * contained between the curly braces.  For example, "My home is ${HOME}".
+     * 
+     * The replacement value for the variable is obtained by consulting the
+     * supplied StringMap.
+     * 
+     * @param e
+     * @return
+     */
+    public static String substituteVars(String e, StringMap map) {
+       return substituteVars(e, envVar, INTRO_LEN, OUTRO_LEN, map);
+    }
+ 
+    public static String substituteVarsCompletely(String e, StringMap map, int limit) {
+        String old_e = e;
+        e = substituteVars(e, map);
+        while (old_e != e && limit-- > 0) {
+            old_e = e;
+            e = substituteVars(e, map);
+        }
+        return e;
+     }
+
+   public static StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
     
     public static String substituteVars(String e,
             Pattern varPat,
@@ -705,8 +741,10 @@ public class Useful {
             String candidate = map.get(toReplace);
             newE.append(candidate);
         }
-        if (newE != null)
+        if (newE != null) {
+            newE.append(e.substring(lastMatchEnd));
             e = newE.toString();
+        }
         return e;
     }
 

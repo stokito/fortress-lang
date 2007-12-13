@@ -25,12 +25,12 @@ public class SpecDataJUTests {
     }
 
     public static Test suite() {
-        String testDir1 = System.getenv("FORTRESS_HOME") + "/SpecData/examples/basic";
-        String testDir2 = System.getenv("FORTRESS_HOME") + 
+        String testDir1 = ProjectProperties.FORTRESS_HOME + "/SpecData/examples/basic";
+        String testDir2 = ProjectProperties.FORTRESS_HOME + 
             "/SpecData/examples/preliminaries";
-        String testDir3 = System.getenv("FORTRESS_HOME") + 
+        String testDir3 = ProjectProperties.FORTRESS_HOME + 
             "/SpecData/examples/advanced";
-        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
+        boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
         TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");
         //$JUnit-BEGIN$
         suite.addTest(FileTests.suite(testDir1, failsOnly, false));

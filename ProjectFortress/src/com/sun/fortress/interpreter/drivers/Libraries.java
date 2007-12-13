@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 
 public class Libraries {
 
-    public static String libraryBasename = ProjectProperties.BASEDIR + "FortressLibrary";
+    public static String libraryBasename = "FortressLibrary";
 
     static private Component library = null;
   
@@ -39,38 +39,38 @@ public class Libraries {
 
     public static Component theLibrary() throws IOException {
         if (library == null) {
-            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename);
+            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename, ProjectProperties.SOURCE_PATH);
         }
         return library;
     }
     
-    public static Component link(BuildEnvironments be, Desugarer dis) throws IOException {
-        Component c = library;
-        
-        if (c == null)
-            c = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename);
-
-        if (c != null) {
-            library = c;
-            c = (Component) RewriteInAbsenceOfTypeInfo.Only.visit(c);
-            c = (Component) dis.visit(c);
-            be.forComponent1(c);
-            be.secondPass();
-            /*
-             * This is ugly, but it probably needs to be exposed
-             * like this.  Once linking-proper is working, each component
-             * must be pushed through pass N in turn before N is incremented.
-             */
-            be.forComponentDefs(c);
-            be.thirdPass();
-            be.forComponentDefs(c);
-            be.fourthPass();
-            be.forComponentDefs(c);
-            be.resetPass();
-        }
-        
-        return c;
-
-    }
+//    public static Component link(BuildEnvironments be, Desugarer dis) throws IOException {
+//        Component c = library;
+//        
+//        if (c == null)
+//            c = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename);
+//
+//        if (c != null) {
+//            library = c;
+//            c = (Component) RewriteInAbsenceOfTypeInfo.Only.visit(c);
+//            c = (Component) dis.visit(c);
+//            be.forComponent1(c);
+//            be.secondPass();
+//            /*
+//             * This is ugly, but it probably needs to be exposed
+//             * like this.  Once linking-proper is working, each component
+//             * must be pushed through pass N in turn before N is incremented.
+//             */
+//            be.forComponentDefs(c);
+//            be.thirdPass();
+//            be.forComponentDefs(c);
+//            be.fourthPass();
+//            be.forComponentDefs(c);
+//            be.resetPass();
+//        }
+//        
+//        return c;
+//
+//    }
 
 }

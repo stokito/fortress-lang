@@ -46,6 +46,14 @@ public class Path {
  
     public File findFile(String s) throws FileNotFoundException {
         File inappropriateFile = null;
+        if (s.startsWith("/") || s.startsWith(File.separator)) {
+            File f = new File(s);
+            if (f.isFile()) {
+                return f;
+            } else if (f.exists()) {
+                inappropriateFile = f;
+            }
+        } else {
         for (File d : dirs) {
             File f = new File(d, s);
             if (f.isFile()) {
@@ -53,6 +61,7 @@ public class Path {
             } else if (f.exists()) {
                 inappropriateFile = f;
             }
+        }
         }
         if (inappropriateFile != null) {
             throw new FileNotFoundException("Normal file " + s
@@ -65,6 +74,14 @@ public class Path {
 
     public File findDir(String s) throws FileNotFoundException {
         File inappropriateFile = null;
+        if (s.startsWith("/") || s.startsWith(File.separator)) {
+            File f = new File(s);
+            if (f.isDirectory()) {
+                return f;
+            } else if (f.exists()) {
+                inappropriateFile = f;
+            }
+        } else {
         for (File d : dirs) {
             File f = new File(d, s);
             if (f.isDirectory()) {
@@ -72,6 +89,7 @@ public class Path {
             } else if (f.exists()) {
                 inappropriateFile = f;
             }
+        }
         }
         if (inappropriateFile != null) {
             throw new FileNotFoundException("Directory " + s

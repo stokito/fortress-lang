@@ -138,6 +138,7 @@ public class FileTests {
                     wt_out.flush(printFailure);
                     if (printFailure) {
                         System.out.println(" UNEXPECTED exception " + ex);
+                        ex.printStackTrace();
                         throw ex;
                     } else {
                         System.out.println(" UNEXPECTED exception");

@@ -20,6 +20,7 @@ package com.sun.fortress.useful;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Properties;
 
 public interface StringMap {
@@ -69,8 +70,41 @@ public interface StringMap {
        }
         
    }
+   static public class FromReflection implements StringMap {
+
+       private final Class mapClass;
+       
+    public FromReflection(Class cl) {
+        mapClass = cl;
+    }
+       
+    public String get(String s) {
+        try {
+            Field f = mapClass.getDeclaredField(s);
+            return f.get(null).toString();
+        } catch (SecurityException e) {
+            return null;
+        } catch (NoSuchFieldException e) {
+            return null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IllegalAccessException e) {
+            return null;
+        } catch (NullPointerException e) {
+            return null;
+        }
+    
+    }
+
+    public boolean isEmpty() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+       
+   }
+   
    static public class ComposedMaps implements StringMap {
-       StringMap[] ma;
+       private final StringMap[] ma;
        public String get(String s) {
            String a = null;
            for (StringMap m : ma) {

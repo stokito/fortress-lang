@@ -29,6 +29,7 @@ class DumpProperties {
 
     System.out.println("Fortress home is " + ProjectProperties.FORTRESS_HOME);
     System.out.println("Fortress cache is " + ProjectProperties.CACHE_DIR);
+    System.out.println("Fortress base is " + ProjectProperties.BASEDIR);
        
     java.util.Properties p = System.getProperties();
     Enumeration e = p.propertyNames();

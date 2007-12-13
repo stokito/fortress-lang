@@ -77,6 +77,7 @@ import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringComparer;
@@ -96,11 +97,12 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
-    private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
-    private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
+   // private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
+   // private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
 
     public final static String COMP_SOURCE_SUFFIX = "fss";
     public final static String COMP_TREE_SUFFIX = "tfs";
+    public final static String COMP_TREE_SUFFIX_NATIVE = "tfn";
     public final static String API_SOURCE_SUFFIX = "fsi";
     public final static String API_TREE_SUFFIX = "tfi";
 
@@ -918,14 +920,14 @@ public class Driver {
              *
              * These few lines are what needs to be replaced by a real linker.
              */
-            Api newapi = readTreeOrSourceApi(apiname, LIB_DIR + apiname);
+            Api newapi = readTreeOrSourceApi(apiname, apiname, ProjectProperties.SOURCE_PATH);
             Component newcomp;
             boolean is_native = false;
             try {
-                newcomp = readTreeOrSourceComponent(apiname, LIB_DIR + apiname);
+                newcomp = readTreeOrSourceComponent(apiname, apiname, ProjectProperties.SOURCE_PATH) ;
             } catch (Exception ex) {
                 try {
-                    newcomp = readTreeOrSourceComponent(apiname, LIB_NATIVE_DIR + apiname);
+                    newcomp = readTreeOrSourceNativeComponent(apiname, apiname, ProjectProperties.SOURCE_PATH_NATIVE);
                     is_native = true;
                 } catch (Exception ex1) {
                     newcomp = error(errorMsg(ex, " AND ", ex1));
@@ -1031,13 +1033,19 @@ public class Driver {
         }
     }
 
-    public static Component readTreeOrSourceComponent(String key, String basename) throws IOException {
-        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX, basename + "." + COMP_SOURCE_SUFFIX, basename
-                + "." + COMP_TREE_SUFFIX);
+    public static Component readTreeOrSourceComponent(String key, String basename, Path p) throws IOException {
+        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
+                basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX, p);
+    }
+    
+    public static Component readTreeOrSourceNativeComponent(String key, String basename, Path p) throws IOException {
+        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
+                basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX_NATIVE, p);
     }
 
-    public static Api readTreeOrSourceApi(String key, String basename) throws IOException {
-        return (Api) readTreeOrSource(key + "." + API_SOURCE_SUFFIX, basename + "." + API_SOURCE_SUFFIX, basename + "." + API_TREE_SUFFIX);
+    public static Api readTreeOrSourceApi(String key, String basename, Path p) throws IOException {
+        return (Api) readTreeOrSource(key + "." + API_SOURCE_SUFFIX,
+                basename ,  API_SOURCE_SUFFIX, API_TREE_SUFFIX, p);
     }
 
     static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
@@ -1050,11 +1058,17 @@ public class Driver {
      * @param libraryTree
      */
     public static CompilationUnit
-        readTreeOrSource(String key, String librarySource, String libraryTree) throws IOException
+        readTreeOrSource(String key, String base, String source_suffix, String tree_suffix, Path p) throws IOException
     {
         if (false && libraryCache.containsKey(key))
             return libraryCache.get(key);
 
+        String librarySource = base + "." + source_suffix;
+        
+        File sourceFile = p.findFile(librarySource);
+        librarySource = sourceFile.getCanonicalPath();
+        String libraryTree = ProjectProperties.CACHE_DIR + "/" + base + "." + tree_suffix;
+        
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
 
             System.err.println("Missing or stale preparsed AST "
