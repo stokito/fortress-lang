@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress top-level declarations.
  */
-module com.sun.fortress.parser.Declaration(TraitObject, Function, Variable, Other, Spacing, Syntax);
+module com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
+                                           Other, Spacing, Syntax);
 
 import TraitObject;
 import Function;
@@ -77,6 +78,6 @@ private AbsDecl AbsDecl =
    / TypeAlias
    / TestDecl
    / PropertyDecl
-   / AbsExternalSyntax 
+   / AbsExternalSyntax
    / GrammarDef
    ;

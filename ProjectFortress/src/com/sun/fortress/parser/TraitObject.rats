@@ -18,8 +18,8 @@
 /*
  * Definition of Fortress trait and object declarations.
  */
-module com.sun.fortress.parser.TraitObject(Method, Field, AbsField, Param, Other, Header, Identifier,
-                   Keyword, Spacing);
+module com.sun.fortress.parser.TraitObject(Method, Field, AbsField, Param, Other,
+                                           Header, Identifier, Keyword, Spacing);
 
 import Method;
 import Field;

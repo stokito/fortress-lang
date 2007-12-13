@@ -29,7 +29,7 @@ import Unicode;
 import Header;
 import Type;
 
-/* GrammarDef ::= grammar w id w Extends? (br ProductionDef)* end */
+/* GrammarDef ::= grammar w id w GrammarExtends? (br ProductionDef)* w end */
 public GrammarDecl GrammarDef =
      grammar w a1:Id a2:(w GrammarExtends)? a3s:(br ProductionDef)* w end
      { if ( a2 == null) a2 = Collections.<QualifiedIdName>emptyList();
@@ -61,7 +61,7 @@ private ProductionDef ProductionDef =
         if ( m1 == null) m1 = Option.none();
         yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), a2, a3, FortressUtil.mkList(a4, a4s.list())); };
 
-private Option<ModifierPrivate> GrammarMod = 
+private Option<ModifierPrivate> GrammarMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
 
 /* SyntaxDef ::= SyntaxSymbol*  --> w Expr **/
@@ -87,7 +87,7 @@ SyntaxSymbol SyntaxSymbol =
          {yyValue = new RepeatOneOrMoreSymbol(a1); }
       / a1:SyntaxSymbol comma
          {yyValue = new WhitespaceSymbol(a1); }
-      / a1:Item 
+      / a1:Item
          {yyValue = new ItemSymbol(a1); };
 */
 SyntaxSymbol SyntaxSymbol =
@@ -122,7 +122,7 @@ Action<SyntaxSymbol> SyntaxSymbolTail =
     and make the non-terminal referencing that production optional.
     Similar if you have a token which is abc?? then we take it to mean
     the token "absc??" for the same reasons. */
-SyntaxSymbol Item = 
+SyntaxSymbol Item =
        !(w doublerightarrow) s:ItemText
        { yyValue = new ItemSymbol(s); }
      / !(w doublerightarrow) s1:questionmark s2:questionmark*

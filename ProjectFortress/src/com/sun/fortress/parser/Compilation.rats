@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress components and APIs.
  */
-module com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol,
+                                           Spacing);
 
 import Decl;
 import Identifier;
@@ -27,14 +28,15 @@ import Symbol;
 import Spacing;
 
 /* File ::=
-     w CompilationUnit w
-   | (w Imports)? w Exports (w Decls)? w
-   | (w Imports)? w AbsDecls w
-   | w Imports (w AbsDecls)? w
+     w CompilationUnit w EndOfFile
+   | (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w EndOfFile
+   | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
+   | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
 public CompilationUnit File =
      w CompilationUnit w EndOfFile
-   / a1:(w Imports)? w a2:Exports a3:(w Decls)? w EndOfFile
+   / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w semicolon?
+     a3:(w yyValue:Decls w semicolon?)? w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -42,14 +44,14 @@ public CompilationUnit File =
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
-   / a1:(w Imports)? w a2:AbsDecls w EndOfFile
+   / a1:(w yyValue:Imports w semicolon?)? w a2:AbsDecls w semicolon? w EndOfFile
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      }
-   / w a1:Imports a2:(w AbsDecls)? w EndOfFile
+   / w a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)? w EndOfFile
      { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
@@ -65,16 +67,21 @@ private CompilationUnit CompilationUnit =
      Component
    / Api ;
 
-/* Component ::= component w DottedName (w Imports)? w Exports (w Decls)? w end */
+/* Component ::=
+   component w DottedName (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w end
+ */
 private Component Component =
-     component w a1:DottedName a2:(w Imports)? w a3:Exports a4:(w Decls)? w end
+     component w a1:DottedName a2:(w yyValue:Imports w semicolon?)? w
+     a3:Exports w semicolon? a4:(w yyValue:Decls w semicolon?)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);
      };
 
-/* Api ::= api w DottedName (w Imports)? (w AbsDecls)? w end */
-private Api Api = api w a1:DottedName a2:(w Imports)? a3:(w AbsDecls)? w end
+/* Api ::= api w DottedName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
+private Api Api =
+     api w a1:DottedName a2:(w yyValue:Imports w semicolon?)?
+     a3:(w yyValue:AbsDecls w semicolon?)? w end
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);

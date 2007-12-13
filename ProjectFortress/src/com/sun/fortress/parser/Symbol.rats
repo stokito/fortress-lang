@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress symbols and operators.
  */
-module com.sun.fortress.parser.Symbol(DelimitedExpr, NoNewlineExpr, Type, Identifier, Spacing, Keyword);
+module com.sun.fortress.parser.Symbol(DelimitedExpr, NoNewlineExpr, Type,
+                                      Identifier, Spacing, Keyword);
 
 import DelimitedExpr;
 import NoNewlineExpr;
