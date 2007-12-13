@@ -17,30 +17,21 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-
-import com.sun.fortress.compiler.*;
-import com.sun.fortress.nodes.*;
-import edu.rice.cs.plt.iter.IterUtil;
 import java.util.*;
+import com.sun.fortress.compiler.*;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.Node;
 
-public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
-    private GlobalEnvironment globals;
-    private StaticParamEnv staticParams;
-    private TypeEnv params; 
-    
-    public TypeChecker(GlobalEnvironment _globals, 
-                       TypeEnv _params,
-                       StaticParamEnv _staticParams) 
-    {
-        globals = _globals;
-        params = _params;
-        staticParams = _staticParams;
+import edu.rice.cs.plt.iter.IterUtil;
+
+public class TypeCheckerResult extends StaticPhaseResult {
+    private final Node _ast;
+    public TypeCheckerResult(Node ast, 
+                             Iterable<? extends StaticError> errors) {
+        super(errors);
+        _ast = ast;
     }
-    
-    /** Ignore unsupported nodes for now. */
-    public TypeCheckerResult defaultCase(Node that) {
-        return new TypeCheckerResult(that, IterUtil.<StaticError>empty());
-    }
-    
-    public TypeCheckerResult forFnDecl(FnDecl that) { return null;}
+    public Node ast() { return _ast; }
 }
