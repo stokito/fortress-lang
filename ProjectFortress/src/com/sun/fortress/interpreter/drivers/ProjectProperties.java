@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.StringMap;
+import com.sun.fortress.useful.Useful;
 
 public class ProjectProperties {
     
@@ -78,9 +79,10 @@ public class ProjectProperties {
             // of the repository.  As a transitional crutch, specify the
             // BASEDIR explicitly with a property instead.
             
-            s = new File(URI.create(ProjectProperties.class.getProtectionDomain().
-                getCodeSource().getLocation().toExternalForm())).
-                    getParent() ;
+//            s = new File(URI.create(ProjectProperties.class.getProtectionDomain().
+//                getCodeSource().getLocation().toExternalForm())).
+//                    getParent() ;
+            s= FORTRESS_HOME + File.separator + "ProjectFortress";
         }
         
         s = s + File.separator;
@@ -90,6 +92,15 @@ public class ProjectProperties {
         s = backslashToSlash(s);
         return s;
     }
+    
+    /**
+     * If the property is defined, return that value,
+     * else return BASE_DIR + default_name .
+     * 
+     * @param property_name
+     * @param default_name
+     * @return
+     */
 
    private static String someImplDir(String property_name, String default_name) {
         String s = null;
@@ -140,8 +151,23 @@ public class ProjectProperties {
             new StringMap.FromFileProps(home+"/.fortress.properties"),
             new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
              );
+    
+    static final StringMap allProps = new StringMap.ComposedMaps(
+            new StringMap.FromReflection(ProjectProperties.class),
+            new StringMap.FromSysProps(), 
+            new StringMap.FromEnv(),
+            new StringMap.FromFileProps(".fortress.properties"),
+            new StringMap.FromFileProps(home+"/.fortress.properties"),
+            new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
+             );
  
+    static final public String get(String s) {
+        return allProps.get(s);
+    }
+    
     /**
+     * Searches for property/environment definition in the following order
+     * 
      * System.getProperty("fortress.cache")
      * System.getenv("FORTRESS_CACHE")
      * ./.fortress.properties .getProperty("fortress.cache")
@@ -156,20 +182,42 @@ public class ProjectProperties {
         result = System.getenv(asEnv);
         if (result != null) return result;
         result = searchTail.get(asProp);
-        return result == null ? defaultValue : result;
+        result =  result == null ? defaultValue : result;
+        result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        return result;
     }
     
     public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
+    public static final Path SOURCE_PATH = new Path(searchDef("fortress.path", "FORTRESS_PATH", "."));
+    // Note default of "." for native means nothing will be native if both defaults are used.
+    public static final Path SOURCE_PATH_NATIVE = new Path(searchDef("fortress.path.native", "FORTRESS_PATH_NATIVE", "."));
     
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
      */
-    public static final String BASEDIR = baseDir();
+    public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
+        //baseDir();
     
-    public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
-    public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
+    //public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
+    //public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
     
+    static {
+        File f = new File(CACHE_DIR);
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                // ok
+            } else {
+                throw new Error("Cache dir " + CACHE_DIR + " is not a directory");
+            }
+        } else {
+            if (f.mkdirs()) {
+                // ok
+            } else {
+                throw new Error("Failed to create cache dir " + CACHE_DIR );
+            }
+        }
+    }
     
 
     /** Creates a new instance of ProjectProperties */
