@@ -1139,36 +1139,6 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     freeze():ImmutableArray[\T,(ZZ32,ZZ32,ZZ32)\]
 end
 
-object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
-                                        Array3[\T, b0, s0, b1, s1, b2, s2\]
-  mem:PrimitiveArray[\T,(s0 (s1 s2))\] = PrimitiveArray[\T,(s0 (s1 s2))\]()
-
-  ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
-
-  init0(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.init0(ofs(t),v)
-  put(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.put(ofs(t),v)
-  get(t:(ZZ32,ZZ32,ZZ32)) : T = mem.get(ofs(t))
-end
-
-(** Simple 3-D subarray, used when we have no other knowledge of the
-    underlying structure.  If we're on top of a PrimitiveArray we can
-    really do much better than this.
-    (b0,b1,b2)#(s0,s1,s2) are the bounds of the subarray.
-    (bu0,bu1,bu2)#(su0,su1,su2) are the bounds of the underlying array.
-    m_i, o_i are multiplier and offset (0-based) of dimension i.
-**)
-object SubArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
-                     nat bu0, nat su0, nat bu1, nat su1, nat bu2, nat su2\]
-                (mem: Array3[\T,bu0,su0,bu1,su1,bu2,su2\],
-                 m0:ZZ32,o0:ZZ32, m1:ZZ32,o1:ZZ32, m2:ZZ32, o2:ZZ32)
-        extends Array3[\T,b0,s0,b1,s1,b2,s2\]
-    index(a0:ZZ32, a1:ZZ32, a2:ZZ32): (ZZ32,ZZ32,ZZ32) =
-        (m0 a0 + o0, m1 a1 + o1, m2 a2 + o2)
-    init0(t:(ZZ32,ZZ32,ZZ32), v:T): () = mem.init0(index(t),v)
-    put(t:(ZZ32,ZZ32,ZZ32), v:T): () = mem.put(index(t),v)
-    get(t:(ZZ32,ZZ32,ZZ32)): T = mem.get(index(t))
-end
-
 __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
         Array3[\T,b0,s0,b1,s1,b2,s2\]
 
@@ -1223,21 +1193,21 @@ end
  *)
 
 object AndReduction extends Reduction[\Boolean\]
-    getter toString() = "AndReduction"
-    empty(): Boolean = true
-    join(a: Boolean, b: Boolean): Boolean = a AND b
+    getter toString()
+    empty(): Boolean
+    join(a: Boolean, b: Boolean): Boolean
 end
 
 object OrReduction extends Reduction[\Boolean\]
-    getter toString() = "OrReduction"
-    empty(): Boolean = false
-    join(a: Boolean, b: Boolean): Boolean = a OR b
+    getter toString()
+    empty(): Boolean
+    join(a: Boolean, b: Boolean): Boolean
 end
 
 object StringReduction extends Reduction[\String\]
-    getter toString() = "StringReduction"
-    empty(): Boolean = ""
-    join(a:String, b:String): String = a b
+    getter toString()
+    empty(): Boolean
+    join(a:String, b:String): String
 end
 
 (** Ranges in general represent uses of the # and : operators.
