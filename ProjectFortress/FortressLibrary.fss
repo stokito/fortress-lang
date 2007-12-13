@@ -915,10 +915,12 @@ immutableArray[\E\](x:ZZ32,y:ZZ32,z:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32,ZZ32)\] =
    parametric methods in the language spec at all at the moment. *)
 __imm1[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):ImmutableArray1[\E,0,n\] =
    immutableArray1[\E,n\]()
+(*
 __imm2[\E, nat n, nat m\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
     ImmutableArray2[\E,0,n,0,m\] = immutableArray2[\E,n,m\]()
 __imm3[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
     ImmutableArray3[\E,0,n,0,m,0,p\] = immutableArray3[\E,n,m,p\]()
+*)
 
 primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__Proxy[\E\](),reflect(x))
 __parr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimitiveArray[\E,n\] =

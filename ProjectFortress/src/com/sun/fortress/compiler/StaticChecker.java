@@ -21,6 +21,7 @@ import java.util.*;
 import com.sun.fortress.compiler.typechecker.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DottedName;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -66,42 +67,39 @@ public class StaticChecker {
         public Map<DottedName, ComponentIndex> components() { return _components; }
     }
     
-    public static class SingleComponentResult extends StaticPhaseResult {
-        private final ComponentIndex _component;
-        public SingleComponentResult(ComponentIndex component, 
-                                     Iterable<? extends StaticError> errors) {
-            super(errors);
-            _component = component;
-        }
-        public ComponentIndex component() { return _component; }
-    }
-    
     /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<DottedName, ComponentIndex> components,
                         GlobalEnvironment env) 
     {
-        Map<DottedName, ComponentIndex> checkedComponents = new HashMap<DottedName, ComponentIndex>();
+        HashSet<Component> checkedComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         
         for (DottedName componentName : components.keySet()) {
-            SingleComponentResult checked = checkComponent(components.get(componentName), env);
-            checkedComponents.put(componentName, checked.component());
+            TypeCheckerResult checked = checkComponent(components.get(componentName), env);
+            checkedComponents.add((Component)checked.ast());
             errors = IterUtil.compose(checked.errors(), errors);
         }
-        return new ComponentResult(checkedComponents, errors);
+        return new ComponentResult
+            (IndexBuilder.buildComponents(checkedComponents, 
+                                          System.currentTimeMillis()).
+                 components(),
+                                   errors);
     }
     
-    public static SingleComponentResult checkComponent(ComponentIndex component, GlobalEnvironment env) {
+    public static TypeCheckerResult checkComponent(ComponentIndex component, 
+                                                   GlobalEnvironment env) 
+    {
         TypeEnv typeEnv = TypeEnv.make();
         
         // Add all top-level function names to the component-level environment.
         //typeEnv.extend(component.functions());
         
         // Iterate over top-level variables, adding each to the component-level environment.
-        typeEnv.extend(component.variables());
+        typeEnv = typeEnv.extend(component.variables());
         
-//        TypeChecker typeChecker = new TypeChecker(env, typeEnv, StaticParamEnv.make());
+        TypeChecker typeChecker = new TypeChecker(env, typeEnv, StaticParamEnv.make());
+        
 //        TypeCheckerResult result = new 
 //        // Iterate over top-level functions, checking the body of each.
 //        for (Function fn: component.functions()) {
@@ -110,8 +108,8 @@ public class StaticChecker {
         
         // Iterate over trait and object definitions.
         //for (
-        //return component.ast().accept(typeChecker);
-        return new SingleComponentResult(component, IterUtil.<StaticError>empty());
+        return component.ast().accept(typeChecker);
+        //return new TypeCheckerResult(component, IterUtil.<StaticError>empty());
     }
     
 }

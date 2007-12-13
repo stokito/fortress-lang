@@ -44,5 +44,5 @@ public class ComponentIndex extends CompilationUnitIndex {
     public Set<VarDecl> initializers() {
         return NI.nyi();
     }
-    
+        
 }
