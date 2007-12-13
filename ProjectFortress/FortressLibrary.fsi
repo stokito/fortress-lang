@@ -842,7 +842,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
         extends { Indexed1[\s0\], Rank1, ArrayTypeWith0[\T,ZZ32\] }
         comprises { ImmutableArray1[\T,b0,s0\], Array1[\T,b0,s0\] }
     getter size():ZZ32
-    getter bounds():ScalarRange[\ZZ32\]
+    getter bounds():FullRange[\ZZ32\]
     abstract getter mutability():String
     getter toString()
 
@@ -853,7 +853,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     offset(i:ZZ32):ZZ32
     toIndex(i:ZZ32):ZZ32
 
-    zeroIndices(): ScalarRange[\ZZ32\]
+    zeroIndices(): FullRange[\ZZ32\]
 end
 
 trait ImmutableArray1[\T, nat b0, nat s0\]
@@ -989,7 +989,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
               StandardMutableArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32
-  getter bounds():Tuple2Range[\ZZ32,ZZ32\]
+  getter bounds():FullRange[\(ZZ32,ZZ32)\]
   getter toString()
   (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
   offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
@@ -1007,7 +1007,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\]
 
-  zeroIndices():Tuple2Range[\ZZ32,ZZ32\]
+  zeroIndices():FullRange[\(ZZ32,ZZ32)\]
 
   replica[\U\]():Array2[\U,b0,s0,b1,s1\]
   copy():Array2[\T,b0,s0,b1,s1\]
@@ -1103,7 +1103,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     excludes { Number, String }
 
     getter size():ZZ32
-    getter bounds():Tuple3Range[\ZZ32,ZZ32,ZZ32\]
+    getter bounds():FullRange[\(ZZ32,ZZ32,ZZ32)\]
 
     getter toString():String
 
@@ -1129,7 +1129,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
               nat o0, nat o1, nat o2\]
             (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\]
 
-    zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32\]
+    zeroIndices():FullRange[\(ZZ32,ZZ32,ZZ32)\]
 
     replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\]
     copy():Array3[\T,b0,s0,b1,s1,b2,s2\]
@@ -1180,8 +1180,8 @@ end
 (* Hack to permit both Numbers and TotalOrders to work. *)
 object MaxReduction extends Reduction[\Any\]
     getter toString()
-    empty(): N
-    join(a: N, b: N): N
+    empty(): Any
+    join(a: Any, b: Any): Any
 end
 
 (** TODO: AndReduction and OrReduction have natural zeros, and could
@@ -1286,7 +1286,7 @@ end
 trait FullRange[\T\]
         extends { RangeWithLower[\T\], RangeWithUpper[\T\],
                   RangeWithExtent[\T\], Indexed[\T,T\] }
-        comprises { ScalarRange[\T\], TupleRange[\T\] }
+        comprises { ... }
     getter indices(): FullRange[\T\]
 
     opr[r:Range[\T\]]: FullRange[\T\]
@@ -1317,8 +1317,8 @@ opr #[\I extends Integral, J extends Integral\]
      (lo:(I,J), ex:(I,J)): Range[\(I,J)\]
 opr #[\I extends Integral, J extends Integral, K extends Integral\]
      (lo:(I,J,K), ex:(I,J,K)): Range[\(I,J,K)\]
-opr :[\I extends Integral\](lo:I, hi:I): ParRange[\I\]
-opr :(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\]
+opr :[\I extends Integral\](lo:I, hi:I): FullRange[\I\]
+opr :(lo:IntLiteral, ex:IntLiteral): FullRange[\ZZ32\]
 opr :[\I extends Integral, J extends Integral\]
      (lo:(I,J), hi:(I,J)): Range[\(I,J)\]
 opr :[\I extends Integral, J extends Integral, K extends Integral\]
