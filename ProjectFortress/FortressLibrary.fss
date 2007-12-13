@@ -18,6 +18,7 @@
 component FortressLibrary
 import * from NativeArray
 import * from NativeThread
+import * from NatReflect
 
 export Executable
 
@@ -327,6 +328,15 @@ trait Generator[\E\]
     contains(x:E) = self.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
 end
 
+__generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
+    g.generate[\R\](r,b)
+
+__reduce[\E,R\](g:Generator[\E\], r:Reduction[\R\]): R =
+    g.generate[\R\](r,cast[\R\])
+
+__nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\] =
+    g.nest[\E2\](g,f)
+
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self) = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
@@ -582,51 +592,6 @@ first[\T\](t:T, u:Any...): T = t
 second[\A,T\](a:A, t:T, u:Any...): T = t
 
 third[\A,B,T\](a:A, b:B, t:T, u:Any...): T = t
-
-(** Reflection for run-time integers into compile-time nat parameters.
- *
- *  Basically you can call the function reflect(n) and it will return
- *  an instance of NatParam.  But every instance of NatParam is an
- *  object N[\n\], so we can write a function which takes N[\n\] and
- *  pass it a NatParam; within that function n becomes a static nat
- *  parameter.
- *)
-trait NatParam
-  (* comprises { N[\n\] } where [\ nat n \] *)
-  getter toZZ() : ZZ32
-  getter toString()
-end
-
-value object N[\nat n\]() extends { NatParam }
-  toZZ() = n
-  toString() = "" n
-end
-
-(* Inner loop of reflect, hoisted to top level because of incomplete
- * implementation of generic local functions.  This basically
- * decomposes the argument x into binary digits, and does the same
- * operations on the static parameter r as it does so.
- *
- * Really this just proves that it can be done without extending the
- * language.  Having proven that, we ought to build it in and document
- * it in the spec for clarity and sanity's sake.
- *)
-  __refl'[\nat r, nat b\](x:ZZ32):NatParam =
-    if x=0 then N[\r\]()
-    elif (x REM (b+b)) = 0 then
-      __refl'[\r, b+b\](x)
-    else
-      __refl'[\r+b, b+b\](x-b)
-    end
-
-(* Actually convert a ZZ32 into a NatParam. *)
-reflect(z:ZZ32):NatParam = do
-  if z < 0 then
-    fail("reflect(" z "): negative argument")
-  else
-    __refl'[\0,1\](z)
-  end
-end
 
 (** Reflection of static type parameters for overloading purposes.
     Works around shortcomings in the story on parametric overloading
@@ -1246,8 +1211,8 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
     dot(v: Vector[\T,s0\]): T =
-        indexValuePairs().generate[\T\](SumReduction[\T\](),
-                                        fn (i:ZZ32, me_i:T):T => me_i v.get(i))
+        indexValuePairs().generate[\Number\](SumReduction,
+                                  fn (i:ZZ32, me_i:T):Number => me_i v.get(i))
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
@@ -1533,14 +1498,14 @@ trait Matrix[\T extends Number, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1
       end
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
         row(i:ZZ32):T =
-            v.indexValuePairs().generate[\T\](SumReduction[\T\](),
-                                      fn (j:ZZ32, v_j):T => get(i,j) v_j)
+            v.indexValuePairs().generate[\Number\](SumReduction,
+                                      fn (j:ZZ32, v_j):Number => get(i,j) v_j)
         vector[\T,s0\]().fill(row)
       end
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
         col(i:ZZ32):T =
-            v.indexValuePairs().generate[\T\](SumReduction[\T\](),
-                                      fn (j:ZZ32, v_j):T => v_j get(j,i))
+            v.indexValuePairs().generate[\Number\](SumReduction,
+                                      fn (j:ZZ32, v_j):Number => v_j get(j,i))
         vector[\T,s1\]().fill(col)
       end
     t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
@@ -1840,22 +1805,24 @@ object VoidReduction extends Reduction[\()\]
     join(a: (), b: ()): () = ()
 end
 
-object SumReduction[\N extends Number\]() extends Reduction[\N\]
+(* Hack to permit any Number to work non-parametrically. *)
+object SumReduction extends Reduction[\Number\]
     getter toString() = "SumReduction"
-    empty(): N = 0
-    join(a: N, b: N): N = a+b
+    empty(): Number = 0
+    join(a: Number, b: Number): Number = a+b
 end
 
-object MinReduction[\N extends Number\]() extends Reduction[\N\]
+(* Hack to permit both Numbers and TotalOrders to work. *)
+object MinReduction extends Reduction[\Any\]
     getter toString() = "MinReduction"
-    empty(): N = 0
-    join(a: N, b: N): N = a MIN b
+    empty(): Any = 0
+    join(a: Any, b: Any): Any = a MIN b
 end
 
-object MaxReduction[\N extends Number\]() extends Reduction[\N\]
+object MaxReduction extends Reduction[\Any\]
     getter toString() = "MaxReduction"
-    empty(): N = 0
-    join(a: N, b: N): N = a MAX b
+    empty(): Any = 0
+    join(a: Any, b: Any): Any = a MAX b
 end
 
 (** TODO: AndReduction and OrReduction have natural zeros, and could

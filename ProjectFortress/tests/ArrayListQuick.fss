@@ -71,7 +71,7 @@ run(args:String...):() = do
   start = nanoTime()
   (* The sizes which turned up bugs *)
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
-  assert(20,testLens.generate[\ZZ32\](SumReduction[\ZZ32\](),identity[\ZZ32\]),
+  assert(20,testLens.generate[\Number\](SumReduction,identity[\Number\]),
          "sum wrong")
   for i <- seq(testLens) do
       print("\n" i ":")

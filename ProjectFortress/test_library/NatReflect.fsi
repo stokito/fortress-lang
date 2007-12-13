@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,24 +14,27 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component OprDecl.Multifix
+api NatReflect
 
-export Executable
-
-object SumRed extends Reduction[\ZZ32\]
-  empty(): ZZ32 = 0
-  join(a:ZZ32,b:ZZ32): ZZ32 = a+b
+(** Reflection for run-time integers into compile-time nat parameters.
+ *
+ *  Basically you can call the function reflect(n) and it will return
+ *  an instance of NatParam.  But every instance of NatParam is an
+ *  object N[\n\], so we can write a function which takes N[\n\] and
+ *  pass it a NatParam; within that function n becomes a static nat
+ *  parameter.
+ *)
+trait NatParam
+  (* comprises { N[\n\] } where [\ nat n \] *)
+  abstract getter toZZ() : ZZ32
+  abstract getter toString(): String
 end
 
-(** EXAMPLE **)
-opr SUM(xs: ZZ32...) = xs.reduce(SumRed)
-(** END EXAMPLE **)
-
-run(args:String...) = do
-  assert(SUM(1,2,3,4,5),15,"SUM(1,2,3,4,5)")
-  println("OprDecl.Multifix.fss passed.")
+value object N[\nat n\]() extends { NatParam }
 end
+
+(* Actually convert a ZZ32 into a NatParam. *)
+reflect(z:ZZ32):NatParam
 
 end

@@ -27,7 +27,7 @@ public class WellKnownNames {
     public static String arrayMaker(int rank) {
         return "__builtinFactory"+rank;
     }
-    public static String varargsFactoryName = "__builtinFactory1";
+    public static String varargsFactoryName = "__immutableFactory1";
     public static String arrayElementTypeName = "T";
     public static String arrayGetter = "get";
     public static String arrayPutter = "init";

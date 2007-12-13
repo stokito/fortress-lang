@@ -72,7 +72,7 @@ run(args:String...):() = do
   (* Cause mild stress *)
   testLens : List[\ZZ32\] = <|0,1,2,3,7,10,25,75,175,900|>
   assert(1198,
-         testLens.generate[\ZZ32\](SumReduction[\ZZ32\](),identity[\ZZ32\]),
+         testLens.generate[\Number\](SumReduction,identity[\Number\]),
          "sum wrong")
   for i <- seq(testLens) do
       print("\n" i ":")

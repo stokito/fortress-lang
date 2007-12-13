@@ -23,15 +23,15 @@ export Executable
 
 run(args:String...):() = do
   testLens : List[\ZZ32\] = emptyList[\ZZ32\]()
-  s0 = testLens.generate[\ZZ32\](SumReduction[\ZZ32\](), fn (x:ZZ32):ZZ32 => x)
+  s0 = testLens.generate[\Number\](SumReduction, identity[\Number\])
   assert(s0,0,"Sum s0")
-  s1 = testLens.generate[\ZZ32\](SumReduction[\ZZ32\](), identity[\ZZ32\])
+  s1 = testLens.generate[\Number\](SumReduction, identity[\Number\])
   assert(s1,0,"Sum s1")
   tl2 : List[\ZZ32\] = <| 5 |>
-  s2 = tl2.generate[\ZZ32\](SumReduction[\ZZ32\](), fn (x:ZZ32):ZZ32 => x)
+  s2 = tl2.generate[\Number\](SumReduction, identity[\Number\])
   assert(s2,5,"Sum s2")
   tl3 : List[\ZZ32\] = <| 0,1,2,7,10 |>
-  s3 = tl3.generate[\ZZ32\](SumReduction[\ZZ32\](), fn (x:ZZ32):ZZ32 => x)
+  s3 = tl3.generate[\Number\](SumReduction, fn (x:ZZ32):Number => x)
   assert(s3,20,"Sum s3")
 end
 

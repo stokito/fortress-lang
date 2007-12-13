@@ -96,7 +96,7 @@ fmt3(i:ZZ32): String =
 
 
 median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
-    n = gen.generate[\ZZ32\](SumReduction[\ZZ32\](), bucket)
+    n = gen.generate[\Number\](SumReduction, bucket)
     half = n DIV 2
     s: ZZ32 := 0
     var med: I

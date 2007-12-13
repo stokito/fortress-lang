@@ -42,10 +42,10 @@ end
 (** Vararg factory for lists; provides aggregate list constants *)
 opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
 
-fromArray[\E, nat n\](f: Array1[\E,0,n\]): Alr[\E,n\] =
-    Alr[\E,n\]( PrimitiveArray[\E,n\]().assign(f), 0, n )
+fromArray[\E, nat n\](f: ReadableArray1[\E,0,n\]): Alr[\E,n\] =
+    Alr[\E,n\]( f, 0, n )
 
-value object Alr[\E,nat maxUn\]( underlying : PrimitiveArray[\E,maxUn\],
+value object Alr[\E,nat maxUn\]( underlying : ReadableArray1[\E,0,maxUn\],
                                  firstUsed:ZZ32, firstUnused:ZZ32)
       extends { List[\E\], DelegatedIndexed[\E, ZZ32\]}
   getter size(): ZZ32 = firstUnused - firstUsed

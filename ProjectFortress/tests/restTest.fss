@@ -19,7 +19,7 @@ component restTest
 export Executable
 
 foo(x:ZZ32...) =
-  x.reduce(SumReduction[\ZZ32\]())
+  x.generate[\Number\](SumReduction,identity[\Number\])
 
 
 run(args:String...):() = do
