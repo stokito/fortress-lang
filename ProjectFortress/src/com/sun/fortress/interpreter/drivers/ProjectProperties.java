@@ -188,9 +188,11 @@ public class ProjectProperties {
     }
     
     public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
-    public static final Path SOURCE_PATH = new Path(searchDef("fortress.path", "FORTRESS_PATH", "."));
+    public static final Path FORTRESS_PATH = new Path(searchDef("fortress.path", "FORTRESS_PATH", "."));
+    
+    public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
     // Note default of "." for native means nothing will be native if both defaults are used.
-    public static final Path SOURCE_PATH_NATIVE = new Path(searchDef("fortress.path.native", "FORTRESS_PATH_NATIVE", "."));
+    public static final Path SOURCE_PATH_NATIVE = new Path(searchDef("fortress.source.path.native", "FORTRESS_SOURCE_PATH_NATIVE", "."));
     
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
