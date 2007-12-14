@@ -102,6 +102,26 @@ public class NodeFactory {
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
     }
+    
+    public static _RewriteIntersectionType makeIntersectionType(Type... elements) {
+        List<Type> types = new ArrayList<Type>();
+        for (Type type: elements) {
+            types.add(type);
+        }
+        return new _RewriteIntersectionType(new Span(), types);
+    }
+  
+    public static _RewriteUnionType makeUnionType(Type... elements) {
+        List<Type> types = new ArrayList<Type>();
+        for (Type type: elements) {
+            types.add(type);
+        }
+        return new _RewriteUnionType(new Span(), types);
+    }
+    
+    public static _RewriteFixedPointType makeFixedPointType(_RewriteImplicitType var, Type body) {
+        return new _RewriteFixedPointType(new Span(), var, body);
+    }
 
     public static OprArg makeOprArg(Span span, Op op) {
         return new OprArg(span, new Opr(span, op));
@@ -747,23 +767,23 @@ public class NodeFactory {
         return new SyntaxDef(s, syntaxSymbols, transformationExpression);
     }
 
-	public static IntLiteralExpr makeIntLiteralExpr(int i) {
-		return new IntLiteralExpr(BigInteger.valueOf(i));
-	}
+ public static IntLiteralExpr makeIntLiteralExpr(int i) {
+  return new IntLiteralExpr(BigInteger.valueOf(i));
+ }
 
-	public static StringLiteralExpr makeStringLiteralExpr(String s) {
-		return new StringLiteralExpr(s);
-	}
+ public static StringLiteralExpr makeStringLiteralExpr(String s) {
+  return new StringLiteralExpr(s);
+ }
 
-	public static CharLiteralExpr makeCharLiteralExpr(char c) {
-		return new CharLiteralExpr(""+c);
-	}
+ public static CharLiteralExpr makeCharLiteralExpr(char c) {
+  return new CharLiteralExpr(""+c);
+ }
 
-	public static VoidLiteralExpr makeVoidLiteralExpr() {
-		return new VoidLiteralExpr();
-	}
+ public static VoidLiteralExpr makeVoidLiteralExpr() {
+  return new VoidLiteralExpr();
+ }
 
-	public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
-		return new ImportStar(api, excepts);
-	}
+ public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
+  return new ImportStar(api, excepts);
+ }
 }

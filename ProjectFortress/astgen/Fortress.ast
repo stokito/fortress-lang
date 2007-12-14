@@ -1150,6 +1150,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             UnitArg(UnitExpr unit);
         _RewriteImplicitType();
+        _RewriteIntersectionType(List<Type> elements);
+        _RewriteUnionType(List<Type> elements);
+        _RewriteFixedPointType(_RewriteImplicitType var, Type body);
     /**
      * static expression
      */

@@ -64,10 +64,15 @@ public abstract class TypeEnv {
                     lvals.add(NodeFactory.makeLValue((NormalParam)ast));
                 } else { // ast instanceof VarargsParam
                     lvals.add(NodeFactory.makeLValue(ast.getName(),
-                        NodeFactory.makeInstantiatedType(ast.getSpan(), false, 
-                                                         makeQualifiedIdName(Arrays.asList(makeId("FortressBuiltin")), makeId("ImmutableHeapSequence")
-                                                         ),
-                                                         new TypeArg(((VarargsParam)ast).getVarargsType().getType()))));
+                        makeInstantiatedType
+                            (ast.getSpan(), 
+                             false, 
+                             makeQualifiedIdName
+                                 (Arrays.asList
+                                      (makeId("FortressBuiltin")), 
+                                  makeId("ImmutableHeapSequence")),
+                             new TypeArg(((VarargsParam)ast).
+                                             getVarargsType().getType()))));
                 }
             } else if (var instanceof SingletonVariable) {
                 // Singleton objects declare both a value and a type with the same name.
@@ -80,4 +85,22 @@ public abstract class TypeEnv {
         LValueBind[] result = new LValueBind[lvals.size()];
         return this.extend(lvals.toArray(result));
     }
+    
+    // I think this is the wrong approach. We should instead create various
+    // subtypes of TypeEnvs corresponding to function environments, var environments, 
+    // etc.
+//    public TypeEnv extend(Relation<SimpleName, Function> functions) {
+//        // First build up map of functions -> names in a HashMap.
+//        HashMap<SimpleName, Function> fnMap = new HashMap<SimpleName, Function>();
+//        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
+//                            
+//        for (SimpleName name: functions.firstSet()) {
+//            List<Type> elements = new ArrayList<Type>();
+//            for (Function fn: functions.getSeconds(name)) {
+//                elements.add(fn.instantiatedType
+//            if (fnMap.containsKey(pair.first())
+//                    
+//
+//    }
+    
 }
