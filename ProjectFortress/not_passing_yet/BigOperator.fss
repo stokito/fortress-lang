@@ -23,7 +23,7 @@ opr SUM(g: Generator[\Number\]):Number = g.reduce(SumReduction)
 
 opr BIG +(g: Generator[\ZZ32\]):ZZ32 = SUM(g)
 
-opr BIG <|x: Generator[\RR\]|> = x.reduce(ListReduction[\RR\]())
+opr BIG <|x: Generator[\RR64\]|> = x.reduce(ListReduction[\RR64\]())
 
 run(args:String...) = print "Big operators and comprehensions.\n"
 

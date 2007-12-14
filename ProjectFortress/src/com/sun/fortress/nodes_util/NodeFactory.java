@@ -18,6 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedList;

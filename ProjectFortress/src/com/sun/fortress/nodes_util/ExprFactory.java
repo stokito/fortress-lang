@@ -207,6 +207,15 @@ public class ExprFactory {
         return new Generator(span, IterUtil.asList(names), expr);
     }
 
+    public static TupleExpr makeTuple(List<Expr> exprs) {
+        Span s = new Span();
+        List<Binding> mt = Collections.<Binding>emptyList();
+        return new TupleExpr(s,false,exprs,Option.<VarargsExpr>none(),mt);
+    }
+
+    public static TupleExpr makeTuple(Expr... exprs) {
+        return makeTuple(Arrays.asList(exprs));
+    }
 
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
         return new OprExpr(span, false, Collections.singletonList(op),

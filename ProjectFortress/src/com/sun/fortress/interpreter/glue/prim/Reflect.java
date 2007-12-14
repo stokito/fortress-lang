@@ -87,7 +87,7 @@ public class Reflect extends Constructor {
                          "\\]; constructor not invoked from Fortress yet.");
         }
         Simple_fcn con = gcon.typeApply(gcon,Useful.list(t));
-        return (ReflectedType)con.apply(Collections.EMPTY_LIST, gcon,
+        return (ReflectedType)con.apply(Collections.<FValue>emptyList(), gcon,
                                         BetterEnv.blessedEmpty());
     }
 
