@@ -208,10 +208,15 @@ transient String accumulator = "SUM" / "PROD" ;
 /* Accumulator ::= SUM | PROD | BIG w Op */
 Op Accumulator =
      "SUM":accumulator
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "+"); }
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "BIG +"); }
    / "PROD":accumulator
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "DOT"); }
-   / void:BIG w Op ;
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
+                                    "BIG juxtaposition");
+     }
+   / void:BIG w a1:Op
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
+                                    "BIG " + a1.getText());
+     };
 
 /* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
 ArrayComprehensionClause ArrayComprehensionClause =
