@@ -33,7 +33,7 @@ public class WellKnownNames {
     public static String arrayPutter = "init";
 
     public static String loopMethod = "loop";
-    public static String generateMethod = "generate";
+    public static String generate = "__generate";
     public static String generatorCross = "cross";
 
     public static String forbiddenException = "ForbiddenException";

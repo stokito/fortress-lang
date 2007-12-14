@@ -1239,15 +1239,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
             } else if (fn instanceof VarRef) {
                 // FALL OUT TO REGULAR FUNCTION CASE!
             } else {
-                return bug("_RewriteFnRef with unexpected fn " + fn);
+                return bug(x,"_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
-            return NI.na("FnRefs are supposed to be gone from the AST");
+            return bug(fcnExpr,"FnRefs are supposed to be gone from the AST");
         }
 
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
-            return NI.nyi("Unexpected application of " + fcnExpr);
+            return bug(x,"Unexpected application of " + fcnExpr);
         } else {
             return finishFunctionInvocation(exprs, fnVal, x);
         }

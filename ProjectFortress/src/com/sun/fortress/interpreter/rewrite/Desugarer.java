@@ -46,6 +46,7 @@ import com.sun.fortress.nodes_util.UIDMapFactory;
 import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
+import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AliasedDottedName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.ArrowType;
@@ -87,6 +88,7 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.OprExpr;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeArg;
@@ -164,6 +166,9 @@ public class Desugarer extends Rewrite {
 
     public final static IdName LOOP_NAME =
         NodeFactory.makeIdName(WellKnownNames.loopMethod);
+
+    public final static VarRef GENERATE_NAME =
+        ExprFactory.makeVarRef(NodeFactory.makeIdName(WellKnownNames.generate));
 
     private boolean isLibrary;
     private final static boolean debug = false;
@@ -647,7 +652,7 @@ public class Desugarer extends Rewrite {
                     FieldRef fs = (FieldRef) node;
 
                     // Rewrite this to a getter?
-                } else if ( node instanceof Assignment) {
+                } else if (node instanceof Assignment) {
 
                 } else if (node instanceof VarDecl) {
                     atTopLevelInsideTraitOrObject = false;
@@ -802,10 +807,15 @@ public class Desugarer extends Rewrite {
                     For f = (For)node;
                     DoFront df = f.getBody();
                     Do doBlock = new Do(df.getSpan(),Useful.list(df));
-                    return visitGeneratorList(f, f.getGens(), LOOP_NAME, doBlock);
+                    return visitGeneratorList(f.getSpan(), f.getGens(),
+                                              LOOP_NAME, doBlock);
                 } else if (node instanceof GeneratedExpr) {
                     GeneratedExpr ge = (GeneratedExpr)node;
-                    return visitGeneratorList(ge, ge.getGens(), LOOP_NAME, ge.getExpr());
+                    return visitGeneratorList(ge.getSpan(), ge.getGens(),
+                                              LOOP_NAME, ge.getExpr());
+                } else if (node instanceof Accumulator) {
+                    Accumulator ac = (Accumulator)node;
+                    System.out.println("Accumulator opr = '"+ac.getOpr()+"'");
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
                 } else {
@@ -836,8 +846,16 @@ public class Desugarer extends Rewrite {
 
     }
 
+    public String gensym(String prefix) {
+        return prefix + "$" + (++tempCount);
+    }
+
     public String gensym() {
-        return "t$" + (++tempCount);
+        return gensym("t");
+    }
+
+    public IdName gensymIdName(String prefix) {
+        return NodeFactory.makeIdName(gensym(prefix));
     }
 
     private String vrToString(VarRef vre) {
@@ -847,30 +865,52 @@ public class Desugarer extends Rewrite {
         return s;
     }
 
+    Expr bindsAndBody(Span span, List<IdName> binds, Expr body) {
+        List<Param> params = new ArrayList<Param>(binds.size());
+        for (IdName b : binds) params.add(NodeFactory.makeParam(b));
+        Expr res = ExprFactory.makeFnExpr(span,params,body);
+        return res;
+    }
+
     /**
      * @param loc   Containing context
      * @param gens  Generators in generator list
      * @return single generator equivalent to the generator list
      */
-    Expr visitGeneratorList(HasAt loc, List<Generator> gens,
-                                 IdName what, Expr body) {
-        Span span = body.getSpan();
+    Expr visitGeneratorList(Span span, List<Generator> gens,
+                            IdName what, Expr body) {
         for (int i = gens.size()-1; i >= 0; i--) {
             Generator g = gens.get(i);
+            Expr loopBody = bindsAndBody(span, g.getBind(), body);
             Expr loopSel = new FieldRef(g.getSpan(), false, g.getInit(), what);
-            List<IdName> binds = g.getBind();
-            List<Param> params = new ArrayList<Param>(binds.size());
-            for (IdName b : binds) params.add(NodeFactory.makeParam(b));
-            Expr loopBody = ExprFactory.makeFnExpr(span,params,body);
-            span = new Span(span, g.getSpan());
             body = new TightJuxt(span, false, Useful.list(loopSel,loopBody));
         }
         return (Expr)visitNode(body);
     }
 
+    Expr visitAccumulator(Span span, List<Generator> gens,
+                          OpName op, Expr body) {
+        IdName reduction = gensymIdName("reduction");
+        for (int i = gens.size()-1; i >= 0; i--) {
+            Generator g = gens.get(i);
+            Expr loopBody = bindsAndBody(span, g.getBind(), body);
+            Expr params =
+                ExprFactory.makeTuple(ExprFactory.makeVarRef(reduction),
+                                      loopBody);
+            body = new TightJuxt(span, false,
+                                 Useful.list(GENERATE_NAME,params));
+        }
+        List<Param> redParam =
+            Collections.<Param>singletonList(NodeFactory.makeParam(reduction));
+        Expr reductionFunction = ExprFactory.makeFnExpr(span,redParam,body);
+        Expr res = ExprFactory.makeOprExpr(span,op,reductionFunction);
+        return (Expr)visitNode(res);
+    }
+
     /** Given expr e, return (fn () => e) */
     Expr thunk(Expr e) {
-        return ExprFactory.makeFnExpr(e.getSpan(), Collections.EMPTY_LIST, e);
+        return ExprFactory.makeFnExpr(e.getSpan(),
+                                      Collections.<Param>emptyList(), e);
     }
 
     private Expr cleanupOprExpr(OprExpr opExp) {
