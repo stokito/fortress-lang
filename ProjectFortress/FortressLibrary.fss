@@ -106,7 +106,7 @@ end
     ordered and no ordering relationship exists between them. **)
 object Unordered extends Comparison
     getter toString(): String = "Unordered"
-    opr =(self, other:Unordered): Boolean = Unordered
+    opr =(self, other:Unordered): Boolean = true
     opr <(self, other:Comparison): Boolean = false
     opr INVERSE(self): Comparison = Unordered
 end
@@ -644,11 +644,11 @@ end
  * dimension of size n.  In general anything which extends Indexed_i
  * must also extend Indexed_j for j < i. *)
 
-trait Indexed1[\ nat n \] end
+trait Indexed1[\ nat n \] extends HasRank end
 
-trait Indexed2[\ nat n \] end
+trait Indexed2[\ nat n \] extends HasRank end
 
-trait Indexed3[\ nat n \] end
+trait Indexed3[\ nat n \] extends HasRank end
 
 (** The indexed trait indicates that an object of type T can be
 indexed using type I to obtain elements with type E.

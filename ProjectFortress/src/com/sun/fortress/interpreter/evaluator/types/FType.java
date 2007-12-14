@@ -339,29 +339,56 @@ abstract public class FType implements Comparable<FType> {
     }
 
     public static Set<FType> join(List<FValue> evaled) {
+        List<FType> tys = new ArrayList<FType>(evaled.size());
+        for (FValue v: evaled) {
+            tys.add(v.type());
+        }
+        return joinTypes(tys);
+    }
+
+    public static Set<FType> joinTypes(List<FType> types) {
         // A is the accumulated set of joined items.
         Set<FType> a = null;
-        if (evaled.size() > 0) {
-            for (FValue v: evaled) {
+        if (types.size() > 0) {
+            for (FType vt: types) {
                 // for each value, join in the value's type.
                 TreeSet<FType> b = new TreeSet<FType>();
-                FType vt = v.type();
-                if (a == null)
+                if (a == null) {
                     b.add(vt);
-                else {
+                } else {
                     // For each type in the accumulator, do the
                     // join with the next element, accumulating in b.
                     for (FType t : a) {
-                        if (b.size() == 0)
-                            b.add(t);
-                        else
-                            b.addAll(t.join(vt));
+                        b.addAll(t.join(vt));
                     }
-                    // b is our new "a".
-
                 }
                 a = b;
-
+            }
+            // Now a may contain non-minimal types.
+            if (a.size() > 1) {
+                TreeSet<FType> r = new TreeSet<FType>();
+                for (FType c : a) {
+                    if (r.size()==0) {
+                        r.add(c);
+                    } else {
+                        boolean addC = true;
+                        TreeSet<FType> s = new TreeSet<FType>();
+                        for (FType d : r) {
+                            if (c.subtypeOf(d)) {
+                                /* Drop d */
+                            } else if (d.subtypeOf(c)) {
+                                addC = false;
+                                s = r;
+                                break;
+                            } else {
+                                s.add(d);
+                            }
+                        }
+                        if (addC) s.add(c);
+                        r = s;
+                    }
+                }
+                a = r;
             }
         } else {
             // Empty set, best we can do
@@ -370,7 +397,7 @@ abstract public class FType implements Comparable<FType> {
         return a;
     }
 
-     public FType deRest() {
+    public FType deRest() {
         return this;
     }
 

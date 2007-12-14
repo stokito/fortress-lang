@@ -1,0 +1,140 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component CovariantCollection
+import * from TypeReflect
+export CovariantCollection
+
+(** A special covariant indexed generator type.  Usage: create a
+covariant indexed collection from an arbitrary Generator, then consume
+it.  This type only needs to exist because we don't presently support
+simple covariance (and this is problematic for constructing e.g. PureList,
+ArrayList, and Arrayn types efficiently using a Reduction).
+
+Basically, by constructing a CovariantCollection[\T\], we are
+simultaneously computing the upper bound T of the collection's
+constituents.  We need this upper bound before we can construct a
+non-covariant collection of element type T.
+
+From an algebraic standpoint, CovariantCollection reifies the Boom
+algebra of generators (which can be seen as hylomorphisms over a Boom
+algebra). **)
+
+trait SomeCovariantCollection
+(*        comprises { CovariantCollection[\T\] } *)
+end
+
+trait CovariantCollection[\T\]
+          extends { ZeroIndexed[\T\], Indexed[\T,ZZ32\],
+                    SomeCovariantCollection }
+(*        comprises { CVJoin[\T,U,V\], CVUnit[\T\], CVEmpty[\T\] } *)
+    getter indices(): Generator[\ZZ32\] = bounds()
+
+    opr[rng:Range[\ZZ32\]]: CovariantCollection[\T\] =
+        self[bounds()[rng]]
+end
+
+object CVJoin[\T, U extends T, V extends T\](
+    l:CovariantCollection[\U\], r:CovariantCollection[\V\])
+        extends CovariantCollection[\T\]
+    sz : ZZ32 = l.size() + r.size()
+    getter size() = sz
+    opr[i:ZZ32]:T = do
+        ls = l.size()
+        if i < ls then l[i] else r[i-ls] end
+      end
+    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\] = do
+        lower = rng.lower()
+        upper = rng.upper()
+        ls = l.size()
+        if lower >= ls then
+            r[(lower-ls)#rng.size()]
+        elif upper < ls then
+            l[rng]
+        else
+            lowSize = ls - lower
+            highSize = rng.size() - lowSize
+            CVJoin[\T,U,V\](l[lower#lowSize],r[0#highSize])
+        end
+      end
+
+    generate[\R\](red:Reduction[\R\], body: T->R): R =
+        red.join(l.generate[\R\](red,body),
+                 r.generate[\R\](red,body))
+end
+
+object CVUnit[\T\](obj:T) extends CovariantCollection[\T\]
+    getter size() = 1
+    opr[i:ZZ32]:T =
+        if i = 0 then obj else fail("CVUnit index " i " out of bounds. ") end
+    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\] = do
+        lo = rng.lower()
+        if lo=0 then
+            sz = rng.size()
+            if sz=1 then
+                self
+            elif sz=0 then
+                cvEmpty()
+            else
+                fail("CVUnit: Invalid range size [" rng "]")
+            end
+        elif lo=1 AND rng.size()=0 then
+            cvEmpty()
+        else
+            fail("CVUnit: Invalid range [" rng "]")
+        end
+      end
+
+    generate[\R\](red:Reduction[\R\], body: T->R): R = body(obj)
+end
+
+object CVEmpty[\T\]() extends CovariantCollection[\T\]
+    getter size() = 0
+    opr[i:ZZ32]:T = fail("CVEmpty index " i)
+    opr[rng:FullRange[\ZZ32\]]: CovariantCollection[\T\] =
+        if rng.lower()=0 AND rng.size()=0 then
+            self
+        else
+            fail("CVEmpty: Invalid range [" rng "]")
+        end
+
+    generate[\R\](red:Reduction[\R\], body: T->R): R = red.empty()
+end
+
+(* Try to get BottomTypes in. *)
+cvEmpty[\T\](): CVEmpty[\T\] = CVEmpty[\T\]()
+
+cvJoin[\T,U\](l:CovariantCollection[\T\], r:CovariantCollection[\U\]):
+        SomeCovariantCollection =
+    if l.isEmpty() then r
+    elif r.isEmpty() then l
+    else cvj(joinReflected(Reflect[\T\](),Reflect[\U\]()),l,r)
+    end
+
+cvj[\T,U,V\](
+    _: Reflect[\T\], l:CovariantCollection[\U\],
+                     r:CovariantCollection[\V\]): CovariantCollection[\T\] = do
+    CVJoin[\T,U,V\](l,r)
+  end
+
+object CVReduction extends Reduction[\SomeCovariantCollection\]
+    empty(): SomeCovariantCollection = cvEmpty()
+    join(l:SomeCovariantCollection, r:SomeCovariantCollection):
+        SomeCovariantCollection = cvJoin(l,r)
+end
+
+end

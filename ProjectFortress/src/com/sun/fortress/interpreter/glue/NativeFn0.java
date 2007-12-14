@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 public abstract class NativeFn0 extends NativeApp {
     public final int getArity() { return 0; }
     protected abstract FValue act();
-    public FValue applyToArgs(List<FValue> args) {
+    public final FValue applyToArgs(List<FValue> args) {
         return act();
     }
 }
