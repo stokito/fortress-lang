@@ -18,15 +18,7 @@
 component EqualityOverloadBug
 export Executable
 
-(*
-object Baz
-  toString():Baz = "Baz"
-end
-
-opr =(x:Baz, y:Baz): Boolean = do println("OK Baz"); true end
-*)
-
-object Bar
+object Bar extends Equality[\Bar\]
   toString():Bar = "Bar"
   opr =(self, _:Bar): Boolean = do println("OK Bar"); true end
 end
