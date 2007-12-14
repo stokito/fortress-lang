@@ -18,7 +18,7 @@
 component WhereConstraints
 export Executable
 
-trait T where { nat n, int i, bool b, unit u }
+trait T where [\ nat n, int i, bool b, unit u \]
 end
 
 run(args:String...):()=()

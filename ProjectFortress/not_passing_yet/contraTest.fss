@@ -20,7 +20,7 @@ export Executable
 
 trait Object end
 
-trait ThingOf[\T\] extends ThingOf[\S\] where { T extends S, S extends Object }
+trait ThingOf[\T\] extends ThingOf[\S\] where [\S\]{ T extends S }
 end
 
 trait A extends Object end

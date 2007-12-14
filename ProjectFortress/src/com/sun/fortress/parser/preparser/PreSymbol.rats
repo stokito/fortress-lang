@@ -40,6 +40,15 @@ Op ExponentOp = a1:exponentOp
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 */
 
+/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+Bracketing EncloserPair =
+     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
+           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
+       else
+           yyValue = error(a2, "Mismatched Enclosers.");
+     };
+
 transient void bar = "|";
 private transient String sd = [*.]? ;
 private String bars = "|" (sd "|")* ;

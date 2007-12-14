@@ -18,8 +18,6 @@
 component simpleSum
 export Executable
 
-(** NOTE: works if we replace "SUM" with "BIG +" in the following
-    declaration. *)
 opr SUM(g: Reduction[\Number\]->Number):Number = g(SumReduction)
 
 run(args:String...):() = do

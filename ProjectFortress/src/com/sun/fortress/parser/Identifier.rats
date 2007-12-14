@@ -60,12 +60,13 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* Name ::= Id | opr w Op */
+/* Name ::= Id | opr w Op | opr w EncloserPair */
 SimpleName Name =
      a1:Id
      { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
    / opr w a1:Op
-     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); }
+   / opr w EncloserPair;
 
 /* DottedName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */

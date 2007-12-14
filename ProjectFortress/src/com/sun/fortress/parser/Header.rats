@@ -86,36 +86,37 @@ private List<TraitType> ComprisingTypeList =
    / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Where ::= where w { w WhereClauseList w } */
+/* Where ::=
+     where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
+   | where w { w WhereConstraintList w }
+ */
 List<WhereClause> Where =
-      where w opencurly w WhereClauseList w closecurly ;
+      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
+      a2:(w opencurly w WhereConstraintList w closecurly)?
+      { if (a2 != null)
+            for (WhereClause w : a2) a1.add(w);
+        yyValue = a1;
+      }
+    / where w opencurly w WhereConstraintList w closecurly ;
 
-/* WhereClauseList ::= WhereClause (w , w WhereClause)* */
-private List<WhereClause> WhereClauseList =
-     a1:WhereClause a2s:(w comma w WhereClause)*
+/* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
+List<WhereClause> WhereBindingList =
+     a1:WhereBinding a2s:(w comma w WhereBinding)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* WhereClause ::=
-     Id w Extends
-   | TypeAlias
+/* WhereBinding ::=
+     Id (w Extends)?
    | nat w Id
    | int w Id
    | bool w Id
    | unit w Id
-   | Type w coerces w Type
-   | Type w widens w Type
-   | dimensionless w = w Id
-   | Id w = w dimensionless
-   | QualifiedName w = w QualifiedName
-   | IntConstraint
-   | BoolConstraint
  */
-WhereClause WhereClause =
-     a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount),
+WhereClause WhereBinding =
+     a1:Id a2:(w a2:Extends)?
+     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
+       yyValue = new WhereExtends(createSpan(yyStart,yyCount),
                                   NodeFactory.makeIdName(a1), a2);
      }
-   / TypeAlias
    / nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount),
                               NodeFactory.makeIdName(a1));
@@ -131,24 +132,53 @@ WhereClause WhereClause =
    / unit w a1:Id
      { yyValue = new WhereUnit(createSpan(yyStart,yyCount),
                                NodeFactory.makeIdName(a1));
+     };
+
+/* WhereConstraintList ::= WhereConstraint (w , w WhereConstraint)* */
+private List<WhereClause> WhereConstraintList =
+     a1:WhereConstraint a2s:(w comma w WhereConstraint)*
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* WhereConstraint ::=
+     Id w Extends
+   | TypeAlias
+   | Type w coerces w Type
+   | Type w widens w Type
+   | UnitConstraint
+   | QualifiedName w = w QualifiedName
+   | IntConstraint
+   | BoolConstraint
+ */
+WhereClause WhereConstraint =
+     a1:Id w a2:Extends
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount),
+                                  NodeFactory.makeIdName(a1), a2);
      }
+   / TypeAlias
    / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Type w widens w a2:Type
      { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
-   / "dimensionless" w equals w a1:Id
+   / UnitConstraint
+   / a1:QualifiedName w equals w a2:QualifiedName
+     { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
+   / IntConstraint
+   / a1:BoolConstraint
+     { yyValue = new BoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
+
+/* UnitConstraint ::=
+     dimensionless w = w Id
+   | Id w = w dimensionless
+ */
+UnitConstraint UnitConstraint =
+     "dimensionless" w equals w a1:Id
      { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
                                     NodeFactory.makeIdName(a1));
      }
    / a1:Id w equals w "dimensionless"
      { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
                                     NodeFactory.makeIdName(a1));
-     }
-   / a1:QualifiedName w equals w a2:QualifiedName
-     { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
-   / IntConstraint
-   / a1:BoolConstraint
-     { yyValue = new BoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
+     };
 
 /* IntConstraint ::=
      IntExpr w <= w IntExpr
