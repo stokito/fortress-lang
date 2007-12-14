@@ -79,8 +79,10 @@
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
 checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
 compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
-fortressparser, preparser, parser, reportNotPassing, systemProperties, test, testAll, testDemos,
-testNotPassing, testOnly testCruiseControl interpreter"/>
+fortressparser, preparser, parser, reportNotPassing, systemProperties,
+test, testAll, testDemos, testSystem,
+testNotPassing, testOnly, testCruiseControl interpreter"/>
+        <echo message="If you are building Fortress, you want ant compile or ant test."/>
     </target>
 
     <condition property="correct.environment">
@@ -129,8 +131,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
         ${java.specification.vendor}"/>
         <echo message="Java Runtime Environment
               specification name:
-        ${java.specification.name}"/>
-        <echo message="Java class format version
+        ${java.specification.name}"/>        <echo message="Java class format version
         number: ${java.class.version}"/>
         <echo message="Java class path:
         ${java.class.path}"/>
@@ -376,7 +377,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
-    <target name="test" depends="compile"
+    <target name="test" depends="testSystem"
             description="Run all unit and system tests expected to pass.">
         <mkdir dir="${test.results}"/>
         <junit printsummary="on"
@@ -397,6 +398,7 @@ testNotPassing, testOnly testCruiseControl interpreter"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
+                    <exclude name="**/SystemJUTests.class"/>
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>

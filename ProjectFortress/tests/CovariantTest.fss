@@ -1,0 +1,62 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component CovariantTest
+import * from TypeReflect
+import * from CovariantCollection
+import * from ArrayList
+export Executable
+
+chk[\T\](_:Reflect[\T\]): () = ()
+
+run(args:String...):() = do
+    chk[\RR64\](joinReflected(Reflect[\ZZ32\](),Reflect[\RR64\]()))
+    chk[\MaybeType\](joinReflected(Reflect[\Nothing[\ZZ32\]\](),
+                                   Reflect[\Nothing[\RR64\]\](),
+                                   Reflect[\Just[\ZZ64\]\]()))
+    println(joinReflected(Reflect[\Array1[\ZZ32,0,1\]\](),
+                          Reflect[\Array1[\RR64,0,1\]\]()))
+
+    assert(Reflect[\ZZ32\]() CMP Reflect[\RR64\](), LessThan, " ZZ32 CMP RR64")
+    assert(Reflect[\RR64\]() CMP Reflect[\RR64\](), EqualTo, " RR64 CMP RR64")
+    assert(Reflect[\RR64\]() CMP Reflect[\ZZ32\](), GreaterThan, " RR64 CMP ZZ32")
+    assert(Reflect[\Just[\ZZ32\]\]() CMP Reflect[\Just[\RR64\]\](), Unordered, " Just[\\ZZ32\\] CMP Just[\\RR64\\]")
+    println(Reflect())
+
+    samples : List[\ZZ32\] = <|0,1,2,7,11|>
+    body(x:ZZ32): Number =
+        if x MOD 2 = 0 then x else 1.0 x end
+
+    cv1(x): SomeCovariantCollection = CVUnit(x)
+    samples1 : CovariantCollection[\ZZ32\] =
+        __generate(samples,CVReduction,cv1)
+    list1 : List[\ZZ32\] = list(samples1)
+    for (i,j) <- list1.zip[\ZZ32\](samples) do
+        assert(i,j,"Not the same in ", list1, " and ", samples)
+    end
+
+    cv2(x): SomeCovariantCollection = CVUnit(body(x))
+    samples2 : CovariantCollection[\RR64\] =
+        __generate(samples,CVReduction,cv2)
+    list2 : List[\RR64\] = list(samples2)
+    for (i,j) <- list1.zip[\RR64\](list2) do
+        assert(i,j,"Not the same in ", list1, " and ", list2)
+    end
+
+  end
+
+end
