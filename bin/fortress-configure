@@ -83,9 +83,9 @@ if [ -z "$FORTRESS_PATH" ]; then
 fi
 
 ${FORTRESS_HOME}/bin/fss compile ${FORTRESS_HOME}/ProjectFortress/test_library/FortressBuiltin.fsi
-${FORTRESS_HOME}/bin/fss compile ${FORTRESS_HOME}/ProjectFortress/FortressLibrary.fsi
-
 mv FortressBuiltin.tfi ${FORTRESS_PATH}
+
+${FORTRESS_HOME}/bin/fss compile ${FORTRESS_HOME}/ProjectFortress/FortressLibrary.fsi
 mv FortressLibrary.tfi ${FORTRESS_PATH}
 
 ${FORTRESS_HOME}/bin/fss compile ${FORTRESS_HOME}/ProjectFortress/test_library/NativeThread.fsi
@@ -99,7 +99,7 @@ mv NatReflect.tfi ${FORTRESS_PATH}
 echo ""
 echo "Testing that configuration succeeded by trying to compile FortressLibrary.fss..."
 ${FORTRESS_HOME}/bin/fss compile ${FORTRESS_HOME}/ProjectFortress/FortressLibrary.fss
-rm ${FORTRESS_HOME}/ProjectFortress/FortressLibrary.tfs
+rm FortressLibrary.tfs
 
 echo "If there are no errors signaled above, you should now be able to compile Fortress source files with the following command:"
 echo "  fss compile YOUR_FILE_NAME"
