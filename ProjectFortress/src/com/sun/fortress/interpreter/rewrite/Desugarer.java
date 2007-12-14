@@ -815,7 +815,8 @@ public class Desugarer extends Rewrite {
                                               LOOP_NAME, ge.getExpr());
                 } else if (node instanceof Accumulator) {
                     Accumulator ac = (Accumulator)node;
-                    System.out.println("Accumulator opr = '"+ac.getOpr()+"'");
+                    return visitAccumulator(ac.getSpan(), ac.getGens(),
+                                            ac.getOpr(), ac.getBody());
                 } else if (node instanceof Spawn) {
                     return translateSpawn((Spawn)node);
                 } else {
@@ -872,6 +873,13 @@ public class Desugarer extends Rewrite {
         return res;
     }
 
+    Expr oneGeneration(Span span, VarRef redvar,
+                       List<IdName> binds, Expr init, Expr body) {
+        Expr loopBody = bindsAndBody(span, binds, body);
+        Expr params = ExprFactory.makeTuple(init, redvar, loopBody);
+        return new TightJuxt(span, false, Useful.list(GENERATE_NAME,params));
+    }
+
     /**
      * @param loc   Containing context
      * @param gens  Generators in generator list
@@ -891,19 +899,27 @@ public class Desugarer extends Rewrite {
     Expr visitAccumulator(Span span, List<Generator> gens,
                           OpName op, Expr body) {
         IdName reduction = gensymIdName("reduction");
-        for (int i = gens.size()-1; i >= 0; i--) {
-            Generator g = gens.get(i);
-            Expr loopBody = bindsAndBody(span, g.getBind(), body);
-            Expr params =
-                ExprFactory.makeTuple(ExprFactory.makeVarRef(reduction),
-                                      loopBody);
-            body = new TightJuxt(span, false,
-                                 Useful.list(GENERATE_NAME,params));
+        VarRef redvar = ExprFactory.makeVarRef(reduction);
+        if (gens.size() >= 1) {
+            for (int i = gens.size()-1; i >= 0; i--) {
+                Generator g = gens.get(i);
+                body = oneGeneration(span, redvar,
+                                     g.getBind(), g.getInit(), body);
+            }
+        } else {
+            // Special case: With no generators the body is taken to be
+            // the (sole) generator, so we turn
+            // BIG OP genExpr into BIG OP [x <- genExpr] x
+            IdName x = gensymIdName("x");
+            body = oneGeneration(span, redvar,
+                                 Collections.<IdName>singletonList(x),
+                                 body, ExprFactory.makeVarRef(x));
         }
         List<Param> redParam =
             Collections.<Param>singletonList(NodeFactory.makeParam(reduction));
         Expr reductionFunction = ExprFactory.makeFnExpr(span,redParam,body);
         Expr res = ExprFactory.makeOprExpr(span,op,reductionFunction);
+        // System.out.println("Desugared to "+res.toStringVerbose());
         return (Expr)visitNode(res);
     }
 

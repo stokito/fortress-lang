@@ -18,20 +18,27 @@
 component simpleSum
 export Executable
 
-opr SUM(g: Generator[\Number\]):Number = g.reduce(SumReduction)
+(** NOTE: works if we replace "SUM" with "BIG +" in the following
+    declaration. *)
+opr SUM(g: Reduction[\Number\]->Number):Number = g(SumReduction)
 
 run(args:String...):() = do
     s0 = SUM [x<-0#10] x
+    println(s0)
     assert(s0,45,"SUM [x<-0#10] x")
-    s1 = SUM [x<-0#10] 2x+1
+    s1 = SUM [x<-0#10] 2 x + 1
+    println(s1)
     assert(s1,100,"SUM [x <- 0#10] 2x+1")
     s2 = SUM (0#10)
+    println(s2)
     assert(s2,45,"SUM (0#10)")
     s3 = SUM (5#0)
+    println(s3)
     assert(s3,0,"SUM (5#0)")
 
     body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
-    s4 = SUM [x<-0#10] body(3x+1)
+    s4 = SUM [x<-0#10] body(3 x + 1)
+    println(s4)
     assert(s4,145.0,"SUM [x<-0#10] body(3x+1)")
   end
 

@@ -18,21 +18,30 @@
 component simpleBig
 export Executable
 
-opr BIG +(g: Generator[\Number\]):Number = g.reduce(SumReduction)
+opr BIG +(l:Reduction[\Number\]->Number):Number = l(SumReduction)
 
 run(args:String...):() = do
     p0 = BIG + [x<-0#10] x
+    println(p0)
     assert(p0,45,"BIG + [x<-0#10] x")
-    p1 = BIG + [x<-0#10] 2x+1
+    p1 = BIG + [x<-0#10] 2 x + 1
+    println(p1)
     assert(p1,100,"BIG + [x <- 0#10] 2x+1")
     p2 = BIG + (0#10)
+    println(p2)
     assert(p2,45,"BIG + (0#10)")
     p3 = BIG + (5#0)
+    println(p3)
     assert(p3,0,"BIG + (5#0)")
 
     body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
-    p4 = BIG + [x<-0#10] body(3x+1)
+    p4 = BIG + [x<-0#10] body(3 x + 1)
+    println(p4)
     assert(p4,145.0,"BIG + [x<-0#10] body(3x+1)")
+
+    p5 = BIG + [x<-1#10, y<-1#x] (x+y)
+    println(p5)
+    assert(p5,605,"BIG + [x<-1#10, y<-1#x] (x+y)")
   end
 
 end
