@@ -42,6 +42,15 @@ Op RightEncloser = a1:rightEncloser
 Op ExponentOp = a1:exponentOp
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
+/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+Bracketing EncloserPair =
+     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
+           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
+       else
+           yyValue = error(a2, "Mismatched Enclosers.");
+     };
+
 transient void bar = &("|" wr GeneratorList closingComprehension) "|";
 private transient void closingComprehension =
      w closecurly
@@ -102,7 +111,13 @@ private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
  * shouldn't since this set of operators is open-ended.
  */
 private String OpName =
-     opn:id &{FortressUtil.validOp(opn) } ;
+     opn:id &{FortressUtil.validOp(opn) }
+     { if (opn.equals("SUM"))
+           yyValue = "BIG +";
+       else if (opn.equals("PROD"))
+           yyValue = "BIG juxtaposition";
+       else yyValue = opn;
+     };
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)

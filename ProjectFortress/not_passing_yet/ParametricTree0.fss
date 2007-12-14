@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component ParametricTree
+export ParametricTree
 
 (* Tests non-parametric singleton extending polymorphic supertype,
    only simple type paramters. *)
@@ -32,7 +33,7 @@ object Node0[\ E \]
 end
 
 object Leaf0 extends { Tree0[\ E \] }
-    where { E extends Object }
+    where [\E\]
 end
 
 end

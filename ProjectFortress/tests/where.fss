@@ -20,9 +20,10 @@ component Where
 export Executable
 
 trait T[\S, int i, unit U, bool b\]
-  where { S extends Number, type IntList = List[\ZZ64\],
-          S widens String, bool b', NOT b, b IMPLIES b',
-          nat n, n = i, U = dimensionless, 2 n + i < 2^8 }
+  where [\bool b', nat n\]
+        { S extends Number, type IntList = List[\ZZ64\],
+          S widens String, NOT b, b IMPLIES b',
+          n = i, U = dimensionless, 2 n + i < 2^8 }
 end
 
 run(args:String...) = println "Where clasues can be parsed."

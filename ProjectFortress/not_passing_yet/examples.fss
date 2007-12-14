@@ -383,7 +383,7 @@ DispatchExpr2() =
   end
 
   object Empty extends List[\T\]
-    where {T extends {Object}}
+    where [\T extends {Object}\]
     first() = throw Error
     rest () = throw Error
     cons(x) = Cons(x,self)

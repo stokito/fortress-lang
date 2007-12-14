@@ -176,21 +176,31 @@ private FnHeaderClause CoercionClauses =
                                     contractClause, Option.<Type>none());
      };
 
-/* CoercionWhere ::= where w { w CoercionWhereClauseList w } */
-private List<WhereClause> CoercionWhere =
-     where w opencurly w CoercionWhereClauseList w closecurly ;
-
-/* CoercionWhereClauseList ::= CoercionWhereClause (w , w CoercionWhereClause)*
+/* CoercionWhere ::=
+     where w [\ w WhereBindingList w \] (w { w CoercionWhereConstraintList w })?
+   | where w { w CoercionWhereConstraintList w }
  */
-private List<WhereClause> CoercionWhereClauseList =
-     a1:CoercionWhereClause a2s:(w comma w CoercionWhereClause)*
+private List<WhereClause> CoercionWhere =
+     where w opendoublesquare w a1:WhereBindingList w closedoublesquare
+     a2:(w opencurly w CoercionWhereConstraintList w closecurly)?
+     { if (a2 != null)
+           for (WhereClause w : a2) a1.add(w);
+       yyValue = a1;
+     }
+   / where w opencurly w CoercionWhereConstraintList w closecurly ;
+
+/* CoercionWhereConstraintList ::=
+     CoercionWhereConstraint (w , w CoercionWhereConstraint)*
+ */
+private List<WhereClause> CoercionWhereConstraintList =
+     a1:CoercionWhereConstraint a2s:(w comma w CoercionWhereConstraint)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* CoercionWhereClause ::=
-     WhereClause
+/* CoercionWhereConstraint ::=
+     WhereConstraint
    | Type w widens w or w coerces w Type
 */
-private WhereClause CoercionWhereClause =
-     WhereClause
+private WhereClause CoercionWhereConstraint =
+     WhereConstraint
    / a1:Type w widens w or w coerces w a2:Type
      { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };

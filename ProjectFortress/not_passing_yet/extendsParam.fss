@@ -25,7 +25,7 @@ trait Parametric[\T extends NonParam \]
 end
 
 object Singleton extends {Parametric[\T\]}
-  where { T extends NonParam }
+  where [\ T extends NonParam \]
 end
 
 run(args:String...) = ()
