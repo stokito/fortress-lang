@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component failTestFn
-import * from Constants
+import Constants.{...}
 export Executable
 
 testFn(x:String, y:RR64):String = builtinPrimitive("glue.TestFn");

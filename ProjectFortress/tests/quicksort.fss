@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Quicksort
-import * from QuickSort
+import QuickSort.{...}
 export Executable
 
 arr:Array[\ZZ32,ZZ32\] := array[\ZZ32\](5)

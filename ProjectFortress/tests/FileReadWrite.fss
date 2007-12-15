@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component FileReadWrite
-import * from File
-import * from FileSupport
+import File.{...}
+import FileSupport.{...}
 export Executable
 
 same(a:String, b:String, diag:String,f:String):() =

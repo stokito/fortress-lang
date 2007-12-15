@@ -188,6 +188,7 @@ String colon = ":" (!op);
 String colonOp = ":":singleOp;
 String closesquare = "]";
 String opensquare = "[":leftEncloser;
+String ellipses = "...";
 
 transient void closecurly = "}";
 transient void closeangle = "|>";
@@ -195,7 +196,6 @@ transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
 transient void cross = "BY";
 transient void DOT = "DOT":OpName;
-transient void ellipses = "...";
 transient void mapsto = "|->";
 transient void match = "=>";
 transient void minus = "-":singleOp;

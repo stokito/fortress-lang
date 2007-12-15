@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component stringJuxt
-import * from Constants
+import Constants.{...}
 export Executable
 
 run(args:String...):() = do

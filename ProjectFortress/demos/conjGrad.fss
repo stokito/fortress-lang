@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component conjGrad
-import * from Sparse
+import Sparse.{...}
 export Executable
 
 mkMatrix[\nat n\]() : RR64[n,n] = do

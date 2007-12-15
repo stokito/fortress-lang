@@ -16,11 +16,11 @@
  ******************************************************************************)
 
 component TennisRanking
-import * from Set
-import * from Map
-import * from List
-import * from QuickSort
-import * from File
+import Set.{...}
+import Map.{...}
+import List.{...}
+import QuickSort.{...}
+import File.{...}
 export Executable
 
 (* Tennis Ranking System
@@ -41,7 +41,7 @@ export Executable
       MEP (Most Energetic Player): who played the most games
       MIP (Most Improved  Player): who rose   the most ranks
  *)
-(* 
+(*
    Rules to calculuate the ranking
    1. Every player begins with 1000 points at the very beginng of the season.
    2. A new term starts in 2 weeks.

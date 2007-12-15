@@ -16,9 +16,9 @@
  ******************************************************************************)
 
 component FortressLibrary
-import * from NativeArray
-import * from NativeThread
-import * from NatReflect
+import NativeArray.{...}
+import NativeThread.{...}
+import NatReflect.{...}
 
 export Executable
 

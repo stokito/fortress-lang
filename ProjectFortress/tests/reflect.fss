@@ -17,7 +17,7 @@
 
 component Reflect
 (* Currently implicitly imported from FortressLibrary.
-import * from NatReflect
+import NatReflect.{...}
 *)
 export Executable
 

@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component testRecImport
-import * from RecA
-import * from RecB
+import RecA.{...}
+import RecB.{...}
 export Executable
 
 object MyOdd extends Odd

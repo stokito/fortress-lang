@@ -17,8 +17,8 @@
 
 api SyntaxHelloWorld
 
-  import * from FortressAst
-  import Literal from FortressSyntax
+  import FortressAst.{...}
+  import FortressSyntax.Literal
 
   grammar helloworld extends Literal
       production helloworld : Literal extends Literal

@@ -19,7 +19,7 @@
 
 component Expr.Case.a
 
-import * from Set
+import Set.{...}
 export Executable
 
 f(planet) = do

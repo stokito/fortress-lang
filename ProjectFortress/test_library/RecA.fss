@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component RecA
-  import * from RecB
+  import RecB.{...}
   export RecA
 
   trait Odd

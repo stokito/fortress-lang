@@ -15,9 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component Lambda
-import * from Map
-import * from ArrayList
-import * from File
+import Map.{...}
+import ArrayList.{...}
+import File.{...}
 export Executable
 
 emptyMap = EmptyMap[\String,Term\]()

@@ -19,7 +19,7 @@
 
 component Expr.List
 
-import * from PureList
+import PureList.{...}
 export Executable
 
 f() = do

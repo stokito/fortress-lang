@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component nativeArrayTest
-import * from NativeArray
+import NativeArray.{...}
 export Executable
 
 run(args:String...):() = do

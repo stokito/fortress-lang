@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component FortressAst
-  import * from ArrayList
+  import ArrayList.{...}
 
   (* export Fortress.Ast *)
 

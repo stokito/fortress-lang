@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component HeapShakedown
-import * from Heap
-import * from ArrayList
+import Heap.{...}
+import ArrayList.{...}
 export Executable
 
 checkFull[\H extends Heap[\ZZ32,ZZ32\]\](h0: H, n:ZZ32): () =

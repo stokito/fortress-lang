@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component RecB
-  import * from RecA
+  import RecA.{...}
   export RecB
 
   trait Even

@@ -134,7 +134,7 @@ private DoFront DoFront =
    | NoKeyTuple
  */
 Expr TupleExpr =
-     openparen w a1s:(Expr w comma w)* a2:(Expr w ellipses w comma w)?
+     openparen w a1s:(Expr w comma w)* a2:(Expr w void:ellipses w comma w)?
        a3:Binding a4s:(w comma w Binding)* w closeparen
      { List<Expr> es = a1s.list();
        Option<VarargsExpr> vs = ((a2 != null) ?

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component PureListLong
-import * from PureList
+import PureList.{...}
 export Executable
 
 assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =

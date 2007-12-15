@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ArrayList
-import * from OneShotFlag
+import OneShotFlag.{...}
 export ArrayList
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component CovariantCollection
-import * from TypeReflect
+import TypeReflect.{...}
 export CovariantCollection
 
 (** A special covariant indexed generator type.  Usage: create a

@@ -17,7 +17,7 @@
 
 component atomicsets
 
-import * from Set
+import Set.{...}
 export Executable
 
 emptySet = Empty[\ZZ32\]()

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component MapTest
-import * from Map
+import Map.{...}
 export Executable
 
 database:TreeMap[\String,ZZ32\] := EmptyMap[\String,ZZ32\]()
