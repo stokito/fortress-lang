@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ListNullPointer
-import * from PureList
+import PureList.{...}
 export Executable
 
 (* Causes null pointer exception during sum computation *)

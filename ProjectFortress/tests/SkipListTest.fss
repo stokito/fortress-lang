@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component SkipListTest
-import * from SkipList
+import SkipList.{...}
 export Executable
 
 
@@ -38,14 +38,14 @@ run(args:String...):() = do
 
   println(database1.toString())
   println(database1.size())
-    
+
   database2 := add(database2, "Michael", 0)
   database2 := add(database2, "Aaron", 13)
   database2 := add(database2, "Jacob", 7)
   database2 := add(database2, "Benny", 2)
   database2 := add(database2, "Larry", 3)
   database2 := add(database2, "Smeagol", 73)
-  
+
   println(database2.toString())
   println(database2.size())
 
@@ -55,20 +55,20 @@ run(args:String...):() = do
 
   database1 := remove(database1, "Emily")
   println(database1.toString())
-  database1 := remove(database1, "David")  
+  database1 := remove(database1, "David")
   println(database1.toString())
-  database1 := remove(database1, "Nathi")  
+  database1 := remove(database1, "Nathi")
   println(database1.toString())
-  database1 := remove(database1, "Paul")  
+  database1 := remove(database1, "Paul")
   println(database1.toString())
-  database1 := remove(database1, "John")  
+  database1 := remove(database1, "John")
   println(database1.toString())
-  database1 := remove(database1, "Cathy")  
+  database1 := remove(database1, "Cathy")
   println(database1.toString())
-  println(database1.size())  
+  println(database1.size())
 
 
-  (* Test duplicates  
+  (* Test duplicates
   init("David", 3)
   init("David", 3)
   init("David", 3)
@@ -81,12 +81,12 @@ run(args:String...):() = do
   remove("David")
   remove("David")
   println(database.toString())
-  println(database.getSize())  
+  println(database.getSize())
   remove("David")
   remove("David")
   remove("David")
   println(database.toString())
-  println(database.getSize())    
+  println(database.getSize())
   *)
 end
 

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component SetTest
-import * from Set
+import Set.{...}
 export Executable
 
   assertStr(a: TreeSet[\ZZ32\], b:TreeSet[\ZZ32\], s:String) =
@@ -28,7 +28,7 @@ export Executable
   run(args:String...):() = do
     a: TreeSet[\ZZ32\] = set[\ZZ32\]()
     b: TreeSet[\ZZ32\] = set[\ZZ32\](1#10)
-  
+
     assertStr(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
     assertStr(b[:], b, "subscript operator[:] incorrect for tree set")
     assertStr(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")

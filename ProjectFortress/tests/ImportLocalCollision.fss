@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ImportLocalCollision
-import * from TestImports1
+import TestImports1.{...}
 export Executable
 
 trait U
@@ -37,4 +37,3 @@ run(args:String...):()=do
 end
 
 end
-

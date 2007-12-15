@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api RecB
-import * from RecA
+import RecA.{...}
 
 trait Even
   getter anOdd(): Odd

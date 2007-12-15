@@ -17,7 +17,7 @@
 
 component Sudoku
 
-import * from Set
+import Set.{...}
 export Executable
 
 emptySet = EmptySet[\ZZ32\]()

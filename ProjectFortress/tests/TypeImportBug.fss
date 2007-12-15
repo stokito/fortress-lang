@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component TypeImportBug
-import * from Set
+import Set.{...}
 export Executable
 
 (* Very odd error behavior having something to do with how imported

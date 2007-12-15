@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component TestPrim
-import * from TestNative
+import TestNative.{...}
 export Executable
 
 object o

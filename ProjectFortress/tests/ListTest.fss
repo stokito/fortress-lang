@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ListTest
-import * from List
+import List.{...}
 export Executable
 
 list  = Cons[\ZZ32\](3, Cons[\ZZ32\](5, Cons[\ZZ32\](7, Empty[\ZZ32\]())))

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component File
-import * from FileSupport
+import FileSupport.{...}
 export File
 
 language="java"

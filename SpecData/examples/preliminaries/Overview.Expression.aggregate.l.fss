@@ -19,7 +19,7 @@
 
 component Overview.Expression.aggregate.l
 
-import * from PureList
+import PureList.{...}
 export Executable
 
 run(args:String...) = do

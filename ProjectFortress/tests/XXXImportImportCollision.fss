@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component ImportImportCollision
-import * from TestImports1
-import * from TestImports2
+import TestImports1.{...}
+import TestImports2.{...}
 export Executable
 
 trait U
@@ -29,7 +29,7 @@ end
 
 (* Fails to define W, because T is multiply defined
    from TestImports1 and TestImports2 *)
-   
+
 object W extends T
   myname():String = "ImportImportCollision.W"
 end
@@ -41,4 +41,3 @@ run(args:String...):()=do
 end
 
 end
-

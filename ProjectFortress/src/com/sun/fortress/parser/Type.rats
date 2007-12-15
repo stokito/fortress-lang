@@ -198,7 +198,7 @@ TraitType TraitType =
    | SimpleTupleType
  */
 Type TupleType =
-     openparen w a1s:(Type w comma w)* a2:(Type w ellipses w comma w)?
+     openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
        a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
        Option<VarargsType> ts2 = ((a2 != null)?

@@ -16,9 +16,9 @@
  ******************************************************************************)
 
 component CovariantTest
-import * from TypeReflect
-import * from CovariantCollection
-import * from ArrayList
+import TypeReflect.{...}
+import CovariantCollection.{...}
+import ArrayList.{...}
 export Executable
 
 chk[\T\](_:Reflect[\T\]): () = ()

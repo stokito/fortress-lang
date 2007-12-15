@@ -17,8 +17,8 @@
 
 component testImport
 
-import * except z from Foo
-import { TNFoo as MyFoo } from TestNative
+import Foo.{...} except z
+import TestNative.{ TNFoo as MyFoo }
 
 export Executable
 
