@@ -17,7 +17,7 @@
 
 component examples
 export Executable
-import Constants
+import api Constants
 
   astring = "cat"
 

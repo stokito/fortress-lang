@@ -57,6 +57,16 @@ public class NodeFactory {
                              throwss, where, contract, selfName);
     }
 
+    public static AliasedName makeAliasedName(Span span, SimpleName name) {
+        return new AliasedName(span, name, Option.<SimpleName>none());
+    }
+
+    public static AliasedName makeAliasedName(Span span, SimpleName name,
+                                              Id alias) {
+        return new AliasedName(span, name,
+                               Option.<SimpleName>some(makeIdName(alias)));
+    }
+
     public static AliasedName makeAliasedName(Span span, Id id) {
         return new AliasedName(span, makeIdName(id), Option.<SimpleName>none());
     }
@@ -102,7 +112,7 @@ public class NodeFactory {
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
     }
-    
+
     public static _RewriteIntersectionType makeIntersectionType(Type... elements) {
         List<Type> types = new ArrayList<Type>();
         for (Type type: elements) {
@@ -110,7 +120,7 @@ public class NodeFactory {
         }
         return new _RewriteIntersectionType(new Span(), types);
     }
-  
+
     public static _RewriteUnionType makeUnionType(Type... elements) {
         List<Type> types = new ArrayList<Type>();
         for (Type type: elements) {
@@ -118,7 +128,7 @@ public class NodeFactory {
         }
         return new _RewriteUnionType(new Span(), types);
     }
-    
+
     public static _RewriteFixedPointType makeFixedPointType(_RewriteImplicitType var, Type body) {
         return new _RewriteFixedPointType(new Span(), var, body);
     }

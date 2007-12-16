@@ -110,23 +110,14 @@ private List<Import> Import =
 
 /* ImportedNames ::=
      APIName . w { w ... w } (w except w Names)?
-   | APIName . w Id (w as w Id)?
    | APIName . w { w AliasedNameList (w , w ...)? w }
+   | QualifiedName (w as w Id)?
  */
 private List<Import> ImportedNames =
      a1:APIName dot w opencurly w ellipses w closecurly a2:(w except w Names)?
      { if (a2 == null) a2 = Collections.<SimpleName>emptyList();
        yyValue = FortressUtil.mkList((Import)new ImportStar(createSpan(yyStart,yyCount),
                                                     a1, a2));
-     }
-   / a1:APIName dot w a2:Id a3:(w as w Id)?
-     { AliasedName an;
-       if (a3 == null)
-         an = NodeFactory.makeAliasedName(a2.getSpan(), a2);
-       else
-         an = NodeFactory.makeAliasedName(FortressUtil.spanTwo(a2, a3), a2, a3);
-       yyValue = FortressUtil.mkList((Import)new ImportNames(createSpan(yyStart,yyCount),
-                                                    a1,FortressUtil.mkList(an)));
      }
    / a1:APIName dot w opencurly w a2:AliasedNameList a3:(w comma w ellipses)?
      w closecurly
@@ -137,6 +128,17 @@ private List<Import> ImportedNames =
            imports.add((Import)new ImportStar(span, a1,
                                Collections.<SimpleName>emptyList()));
        yyValue = imports;
+     }
+   / a1:QualifiedName a2:(w as w Id)?
+     { AliasedName an;
+       DottedName api = Option.unwrap(a1.getApi());
+       SimpleName name = a1.getName();
+       if (a2 == null)
+         an = NodeFactory.makeAliasedName(name.getSpan(), name);
+       else
+         an = NodeFactory.makeAliasedName(FortressUtil.spanTwo(name,a2),name,a2);
+       yyValue = FortressUtil.mkList((Import)new ImportNames(createSpan(yyStart,yyCount),
+                                             api,FortressUtil.mkList(an)));
      };
 
 /* Names ::= Name | { w NameList w } */
