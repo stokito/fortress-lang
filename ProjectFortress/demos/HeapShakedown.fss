@@ -17,7 +17,7 @@
 
 component HeapShakedown
 import Heap.{...}
-import ArrayList
+import api ArrayList
 export Executable
 
 appending[\T\](xs: List[\T\]...): List[\T\] =
