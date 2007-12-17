@@ -57,33 +57,37 @@ public class NodeFactory {
                              throwss, where, contract, selfName);
     }
 
-    public static AliasedName makeAliasedName(Span span, SimpleName name) {
-        return new AliasedName(span, name, Option.<SimpleName>none());
+    public static AliasedSimpleName makeAliasedSimpleName(Span span,
+                                                          SimpleName name) {
+        return new AliasedSimpleName(span, name, Option.<SimpleName>none());
     }
 
-    public static AliasedName makeAliasedName(Span span, SimpleName name,
+    public static AliasedSimpleName makeAliasedSimpleName(Span span,
+                                                          SimpleName name,
                                               Id alias) {
-        return new AliasedName(span, name,
-                               Option.<SimpleName>some(makeIdName(alias)));
+        return new AliasedSimpleName(span, name,
+                                     Option.<SimpleName>some(makeIdName(alias)));
     }
 
-    public static AliasedName makeAliasedName(Span span, Id id) {
-        return new AliasedName(span, makeIdName(id), Option.<SimpleName>none());
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id) {
+        return new AliasedSimpleName(span, makeIdName(id),
+                                     Option.<SimpleName>none());
     }
 
-    public static AliasedName makeAliasedName(Span span, Id id, Id alias) {
-        return new AliasedName(span, makeIdName(id),
-                               Option.<SimpleName>some(makeIdName(alias)));
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id,
+                                                          Id alias) {
+        return new AliasedSimpleName(span, makeIdName(id),
+                                     Option.<SimpleName>some(makeIdName(alias)));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
-    public static AliasedName makeAliasedName(Span span, OpName op) {
-        return new AliasedName(span, op, Option.<SimpleName>none());
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op) {
+        return new AliasedSimpleName(span, op, Option.<SimpleName>none());
     }
 
-    public static AliasedName makeAliasedName(Span span, OpName op,
-                                              OpName alias) {
-        return new AliasedName(span, op, Option.<SimpleName>some(alias));
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op,
+                                                          OpName alias) {
+        return new AliasedSimpleName(span, op, Option.<SimpleName>some(alias));
     }
 
     public static ArrayType makeArrayType(Span span, Type element,

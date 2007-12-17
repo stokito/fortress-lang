@@ -63,12 +63,14 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     interface LHS();
     /**
      * with static parameters
-     * implemented by TraitAbsDeclOrDecl, ObjectAbsDeclOrDecl and FnAbsDeclOrDecl
+     * implemented by trait, object, and function declarations and
+     * object expressions in components or APIs
      */
     interface Generic(List<StaticParam> staticParams);
     /**
      * with value parameters
-     * implemented by object declarations and object expressions
+     * implemented by object declarations and object expressions in components
+     * or APIs
      */
     interface HasParams(Option<List<Param>> params,
                         List<? extends AbsDeclOrDecl> decls);
@@ -136,12 +138,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract Import();
         /**
-         * ImportedNames ::= APIName . {...} (except Names)?
-         *                 | APIName . { AliasedNameList (, ...)? }
+         * ImportedNames ::= APIName . {...} (except SimpleNames)?
+         *                 | APIName . { AliasedSimpleNameList (, ...)? }
          *                 | QualifiedName (as Id)?
-         * Name ::= Id
-         *        | opr Op
-         *        | opr EncloserPair
          */
         abstract ImportedNames(APIName api);
             /**
@@ -151,33 +150,34 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * e.g.) import Set.{empty, union}
              */
-            ImportNames(List<AliasedName> aliasedNames);
+            ImportNames(List<AliasedSimpleName> aliasedNames);
         /**
          * e.g.) import api {Set, Map, List}
          */
         ImportApi(List<AliasedAPIName> apis);
+    /**
+     * aliased simple name used in import statements
+     * AliasedSimpleName ::= Id (as Id)?
+     *                     | opr Op (as Op)?
+     *                     | opr EncloserPair (as EncloserPair)?
+     * EncloserPair ::= (LeftEncloser | Encloser) (RightEncloser | Encloser)
+     * e.g.) longComplexName as shortName
+     */
+    AliasedSimpleName(SimpleName name,
+                      Option<SimpleName> alias = Option.<SimpleName>none());
+    /**
+     * aliased API name used in import statements
+     * AliasedAPIName ::= APIName (as Id)?
+     * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
+     */
+    AliasedAPIName(APIName api,
+                   Option<Id> alias = Option.<Id>none());
     /**
      * export statement
      * Export ::= export APINames
      * e.g.) export Executable
      */
     Export(List<APIName> apis);
-    /**
-     * aliased name used in import statements
-     * AliasedName ::= Id (as Id)?
-     *               | opr Op (as Op)?
-     *               | opr EncloserPair (as EncloserPair)?
-     * EncloserPair ::= LeftEncloser RightEncloser
-     * e.g.) longComplexName as shortName
-     */
-    AliasedName(SimpleName name, Option<SimpleName> alias = Option.<SimpleName>none());
-    /**
-     * aliased dotted id used in import statements
-     * AliasedAPIName ::= APIName (as APIName)?
-     * e.g.) com.sun.fortress.parser.precedence.resolver as precedence.resolver
-     */
-    AliasedAPIName(APIName api,
-                   Option<APIName> alias = Option.<APIName>none());
     /**
      * trait or object declaration in components or APIs
      */
@@ -1637,6 +1637,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             QualifiedOpName(OpName name);
         /**
          * unqualified name
+         * SimpleName ::= Id
+         *              | opr Op
+         *              | opr EncloserPair
          */
         abstract SimpleName();
             /**

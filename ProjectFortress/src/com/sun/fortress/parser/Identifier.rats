@@ -60,8 +60,8 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* Name ::= Id | opr w Op | opr w EncloserPair */
-SimpleName Name =
+/* SimpleName ::= Id | opr w Op | opr w EncloserPair */
+SimpleName SimpleName =
      a1:Id
      { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
    / opr w a1:Op

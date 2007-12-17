@@ -44,6 +44,6 @@
   (ImportNames @21:10~23:3
    _api=(APIName @21:23~23:3 _ids=[(Id @21:23~37 _text="FortressSyntax")])
    _aliasedNames=[
-    (AliasedName @21:10~18
+    (AliasedSimpleName @21:10~18
      _name=(IdName @21:10~17
       _id=(Id _text="Literal")))])])

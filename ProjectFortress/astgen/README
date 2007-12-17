@@ -1,3 +1,13 @@
+* Where each AST node (that is concrete) is evaluated
+ - Component
+ - Api
+ - ImportStar
+ - ImportNames
+ - ImportApi
+ - AliasedSimpleName
+ - AliasedAPIName
+ - Export
+
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast
  1) CSG defines productions for "NONTERMINALs" and "NONTERMINALList". For
