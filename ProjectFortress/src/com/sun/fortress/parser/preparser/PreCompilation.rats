@@ -37,7 +37,7 @@ public CompilationUnit File =
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       DottedName name = NodeFactory.makeDottedName(span, file, "\\.");
+       APIName name = NodeFactory.makeAPIName(span, file, "\\.");
        List<Export> a3 = Collections.<Export>emptyList();
        List<Decl> a4 = Collections.<Decl>emptyList();
        yyValue = new Component(span, name, a1, a3, a4);
@@ -64,19 +64,19 @@ private List<Import> Imports = a1:Import a2s:(br Import)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Import ::=
-     import w ImportFrom
-   | import w AliasedDottedNames
+     import w ImportedNames
+   | import w AliasedAPINames
  */
 private Import Import =
-     import w ImportFrom
-   / import w a1:AliasedDottedNames
+     import w ImportedNames
+   / import w a1:AliasedAPINames
      { yyValue = new ImportApi(createSpan(yyStart, yyCount), a1); };
 
-/* ImportFrom ::=
+/* ImportedNames ::=
      * (w except w Names)? w from w APIName
    | AliasedNames w from w APIName
  */
-private ImportFrom ImportFrom =
+private ImportedNames ImportedNames =
      a1:APIName dot w opencurly w ellipses w closecurly a2:(w except w Names)?
      { if (a2 == null) a2 = Collections.<SimpleName>emptyList();
        yyValue = new ImportStar(createSpan(yyStart,yyCount), a1, a2);
@@ -146,40 +146,40 @@ private List<AliasedName> AliasedNameList =
      a1:AliasedName a2s:(w comma w AliasedName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AliasedDottedNames ::=
-     AliasedDottedName
-   | { w AliasedDottedNameList w }
+/* AliasedAPINames ::=
+     AliasedAPIName
+   | { w AliasedAPINameList w }
  */
-private List<AliasedDottedName> AliasedDottedNames =
-     a1:AliasedDottedName
+private List<AliasedAPIName> AliasedAPINames =
+     a1:AliasedAPIName
      { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w AliasedDottedNameList w closecurly ;
+   / opencurly w AliasedAPINameList w closecurly ;
 
-/* AliasedDottedName ::= APIName (w as w APIName)? */
-private AliasedDottedName AliasedDottedName =
+/* AliasedAPIName ::= APIName (w as w APIName)? */
+private AliasedAPIName AliasedAPIName =
      a1:APIName a2:(w as w APIName)?
      { if (a2 == null)
-           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
-                                           Option.<DottedName>none());
+           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
+                                           Option.<APIName>none());
        else
-           yyValue = new AliasedDottedName(createSpan(yyStart,yyCount), a1,
+           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
                                            Option.some(a2));
      };
 
-/* AliasedDottedNameList ::= AliasedDottedName (w , w AliasedDottedName)* */
-private List<AliasedDottedName> AliasedDottedNameList =
-     a1:AliasedDottedName a2s:(w comma w AliasedDottedName)*
+/* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
+private List<AliasedAPIName> AliasedAPINameList =
+     a1:AliasedAPIName a2s:(w comma w AliasedAPIName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* APINames ::=
      APIName
    | { w APINameList w }
  */
-List<DottedName> APINames =
+List<APIName> APINames =
      a1:APIName
      { yyValue = FortressUtil.mkList(a1); }
    / opencurly w APINameList w closecurly ;
 
 /* APINameList ::= APIName (w , w APIName)* */
-private List<DottedName> APINameList = a1:APIName a2s:(w comma w APIName)*
+private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };

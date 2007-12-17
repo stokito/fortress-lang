@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -44,10 +44,10 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getApiNull(com.sun.fortress.interpreter.nodes.DottedName)
+     * @see com.sun.fortress.interpreter.evaluator.CommonEnv#getApiNull(com.sun.fortress.interpreter.nodes.APIName)
      */
     @Override
-    public SApi getApiNull(DottedName d) {
+    public SApi getApiNull(APIName d) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -106,7 +106,7 @@ public class EmptyEnv extends CommonEnv {
         return null;
     }
 
-    public Declaration getDeclNull(DottedName d) {
+    public Declaration getDeclNull(APIName d) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -158,9 +158,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SApi)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.APIName, com.sun.fortress.interpreter.evaluator.scopes.SApi)
      */
-    public void putApi(DottedName d, SApi x) {
+    public void putApi(APIName d, SApi x) {
         bug(d, "Empty environment does not support this operation");
 
     }
@@ -188,9 +188,9 @@ public class EmptyEnv extends CommonEnv {
 
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.APIName, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
      */
-    public void putComponent(DottedName name, SComponent comp) {
+    public void putComponent(APIName name, SComponent comp) {
         bug(name, "Empty environment does not support this operation");
 
     }
@@ -287,7 +287,7 @@ public class EmptyEnv extends CommonEnv {
 
 
     @Override
-    public SComponent getComponentNull(DottedName d) {
+    public SComponent getComponentNull(APIName d) {
         return null;
     }
 

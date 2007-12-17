@@ -66,7 +66,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimUnitDecl;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
@@ -321,7 +321,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     public Voidoid forComponent1(Component x) {
-        DottedName name = x.getName();
+        APIName name = x.getName();
         // List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
         List<? extends AbsDeclOrDecl> defs = x.getDecls();

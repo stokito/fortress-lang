@@ -22,7 +22,7 @@ import com.sun.fortress.compiler.typechecker.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -50,7 +50,7 @@ public class StaticChecker {
      * Check the given apis. To support circular references, the apis should appear 
      * in the given environment.
      */
-    public static ApiResult checkApis(Map<DottedName, ApiIndex> apis,
+    public static ApiResult checkApis(Map<APIName, ApiIndex> apis,
                                       GlobalEnvironment env) {
         // TODO: implement
         return new ApiResult(IterUtil.<StaticError>empty());
@@ -58,24 +58,24 @@ public class StaticChecker {
     
     
     public static class ComponentResult extends StaticPhaseResult {
-        private final Map<DottedName, ComponentIndex> _components;
-        public ComponentResult(Map<DottedName, ComponentIndex> components,
+        private final Map<APIName, ComponentIndex> _components;
+        public ComponentResult(Map<APIName, ComponentIndex> components,
                                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
-        public Map<DottedName, ComponentIndex> components() { return _components; }
+        public Map<APIName, ComponentIndex> components() { return _components; }
     }
     
     /** Statically check the given components. */
     public static ComponentResult
-        checkComponents(Map<DottedName, ComponentIndex> components,
+        checkComponents(Map<APIName, ComponentIndex> components,
                         GlobalEnvironment env) 
     {
         HashSet<Component> checkedComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         
-        for (DottedName componentName : components.keySet()) {
+        for (APIName componentName : components.keySet()) {
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
             checkedComponents.add((Component)checked.ast());
             errors = IterUtil.compose(checked.errors(), errors);

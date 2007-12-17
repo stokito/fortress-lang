@@ -112,10 +112,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * compilation unit declaration
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(DottedName name, List<Import> imports);
+    abstract CompilationUnit(APIName name, List<Import> imports);
         /**
          * component declaration
-         * Component ::= component DottedName Imports? Exports Decls? end
+         * Component ::= component APIName Imports? Exports Decls? end
          * e.g.) component Hello
          *         export Executable
          *         run(args:String...) = print "Hello, World!\n"
@@ -124,7 +124,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         Component(List<Export> exports, List<Decl> decls);
         /**
          * API declaration
-         * Api ::= api DottedName Imports? AbsDecls? end
+         * Api ::= api APIName Imports? AbsDecls? end
          * e.g.) api Executable
          *         run(args:String...):()
          *       end
@@ -132,35 +132,36 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         Api(List<AbsDecl> decls);
     /**
      * import statement
-     * Import ::= import ImportFrom | import AliasedDottedNames
+     * Import ::= import ImportedNames | import api AliasedAPINames
      */
     abstract Import();
         /**
-         * ImportFrom ::= * (except Names)? from DottedName
-         *              | AliasedNames from DottedName
+         * ImportedNames ::= APIName . {...} (except Names)?
+         *                 | APIName . { AliasedNameList (, ...)? }
+         *                 | QualifiedName (as Id)?
          * Name ::= Id
          *        | opr Op
          *        | opr EncloserPair
          */
-        abstract ImportFrom(DottedName api);
+        abstract ImportedNames(APIName api);
             /**
-             * e.g.) import * except {opr UNION, union} from Set
+             * e.g.) import Set.{...} except {opr UNION, union}
              */
             ImportStar(List<SimpleName> except);
             /**
-             * e.g.) import {empty, union} from Set
+             * e.g.) import Set.{empty, union}
              */
             ImportNames(List<AliasedName> aliasedNames);
         /**
-         * e.g.) import {Set, Map, List}
+         * e.g.) import api {Set, Map, List}
          */
-        ImportApi(List<AliasedDottedName> apis);
+        ImportApi(List<AliasedAPIName> apis);
     /**
      * export statement
-     * Export ::= export DottedNames
+     * Export ::= export APINames
      * e.g.) export Executable
      */
-    Export(List<DottedName> apis);
+    Export(List<APIName> apis);
     /**
      * aliased name used in import statements
      * AliasedName ::= Id (as Id)?
@@ -172,11 +173,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     AliasedName(SimpleName name, Option<SimpleName> alias = Option.<SimpleName>none());
     /**
      * aliased dotted id used in import statements
-     * AliasedDottedName ::= DottedName (as DottedName)?
+     * AliasedAPIName ::= APIName (as APIName)?
      * e.g.) com.sun.fortress.parser.precedence.resolver as precedence.resolver
      */
-    AliasedDottedName(DottedName api,
-                      Option<DottedName> alias = Option.<DottedName>none());
+    AliasedAPIName(APIName api,
+                   Option<APIName> alias = Option.<APIName>none());
     /**
      * trait or object declaration in components or APIs
      */
@@ -1613,14 +1614,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract Name();
         /**
          * unstructured sequence of ids naming an API or component
-         * DottedName ::= (Id.)*Id
+         * APIName ::= (Id.)*Id
          * e.g.) com.sun.fortress.nodes_util
          */
-        DottedName(List<Id> ids);
+        APIName(List<Id> ids);
         /**
          * name prefixed by an optional API name
          */
-        abstract QualifiedName(Option<DottedName> api = Option.<DottedName>none(),
+        abstract QualifiedName(Option<APIName> api = Option.<APIName>none(),
                                SimpleName name);
             /**
              * qualified id name

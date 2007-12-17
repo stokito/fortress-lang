@@ -31,24 +31,24 @@ import edu.rice.cs.plt.tuple.Option;
 import java.io.*;
 import java.util.*;
 
-import static com.sun.fortress.shell.ConvenientStrings.*; 
+import static com.sun.fortress.shell.ConvenientStrings.*;
 
 public class FileBasedRepositoryJUTest extends TestCase {
 
     private static FileBasedRepository repository;
-    
+
     public void testNothing() {}
-    
+
 //    public void setUp() throws IOException {
 //        repository = new FileBasedRepository(".");
 //    }
-//    
+//
 //    public void testStandardLibrary() throws IOException {
 //        ArrayList<Id> ids = new ArrayList<Id>();
 //        ids.add(new Id("FortressLibrary"));
-//        assertNotNull(repository.getComponent(new DottedName(ids)));
+//        assertNotNull(repository.getComponent(new APIName(ids)));
 //    }
-//    
+//
 //    public void testAddApi() throws IOException {
 //        Fortress fortress = new Fortress(repository);
 //        Iterable<? extends StaticError> errors = fortress.compile(new File("tests/TupleBinding.fss"));
@@ -56,9 +56,9 @@ public class FileBasedRepositoryJUTest extends TestCase {
 //
 //        ArrayList<Id> ids = new ArrayList<Id>();
 //        ids.add(new Id("TupleBinding"));
-//        assertNotNull(repository.getApi(new DottedName(ids)));
+//        assertNotNull(repository.getApi(new APIName(ids)));
 //    }
-//    
+//
 //    public void testAddComponent() throws IOException {
 //        Fortress fortress = new Fortress(repository);
 //        Iterable<? extends StaticError> errors = fortress.compile(new File("tests/TupleBinding.fss"));
@@ -66,9 +66,6 @@ public class FileBasedRepositoryJUTest extends TestCase {
 //
 //        ArrayList<Id> ids = new ArrayList<Id>();
 //        ids.add(new Id("TupleBinding"));
-//        assertNotNull(repository.getApi(new DottedName(ids)));
+//        assertNotNull(repository.getApi(new APIName(ids)));
 //    }
 }
-    
-    
-    

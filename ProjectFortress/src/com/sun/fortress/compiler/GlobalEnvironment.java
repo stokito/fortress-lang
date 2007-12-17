@@ -19,19 +19,19 @@ package com.sun.fortress.compiler;
 
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeUtil;
 
 public class GlobalEnvironment {
-    private Map<DottedName, ApiIndex> _apis;
+    private Map<APIName, ApiIndex> _apis;
     
-    public GlobalEnvironment(Map<DottedName, ApiIndex> apis) { _apis = apis; }
+    public GlobalEnvironment(Map<APIName, ApiIndex> apis) { _apis = apis; }
     
-    public Map<DottedName, ApiIndex> apis() { return _apis; }
+    public Map<APIName, ApiIndex> apis() { return _apis; }
     
-    public boolean definesApi(DottedName name) { return _apis.containsKey(name); }
+    public boolean definesApi(APIName name) { return _apis.containsKey(name); }
     
-    public ApiIndex api(DottedName name) {
+    public ApiIndex api(APIName name) {
         ApiIndex result = _apis.get(name);
         if (result == null) {
             throw new IllegalArgumentException("Undefined API: " +
@@ -41,7 +41,7 @@ public class GlobalEnvironment {
     }
     
     public void print() {
-        for (DottedName name : apis().keySet()) {
+        for (APIName name : apis().keySet()) {
             System.out.println(name);
         }
     }

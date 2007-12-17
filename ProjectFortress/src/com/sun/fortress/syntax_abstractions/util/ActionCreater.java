@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
@@ -71,7 +71,7 @@ public class ActionCreater {
 	public class Result extends StaticPhaseResult {
 		private Action action;
 
-		public Result(Action action, 
+		public Result(Action action,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			this.action = action;
@@ -80,7 +80,7 @@ public class ActionCreater {
 		public Action action() { return action; }
 
 	}
-	
+
 	private class Error extends StaticError {
 
 		private String description;
@@ -100,12 +100,12 @@ public class ActionCreater {
 		public String description() {
 			return this.description;
 		}
-		
+
 	}
 
 	private static final IdName ANY = new IdName(new Id("Any"));
 	private static final IdName STRING = new IdName(new Id("String"));
-	
+
 	public static Result create(String productionName, Expr e, String returnType) {
 		ActionCreater ac = new ActionCreater();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
@@ -155,14 +155,14 @@ public class ActionCreater {
 	}
 
 	private Component makeComponent(Expr expression) {
-		DottedName name = makeDottedName("TransformationComponent"); 
+		APIName name = makeAPIName("TransformationComponent");
 		Span span = new Span();
 		List<Import> imports = new LinkedList<Import>();
-		imports.add(NodeFactory.makeImportStar(NodeFactory.makeDottedName(FORTRESS_AST), new LinkedList<SimpleName>()));
+		imports.add(NodeFactory.makeImportStar(NodeFactory.makeAPIName(FORTRESS_AST), new LinkedList<SimpleName>()));
 		// Exports:
 		List<Export> exports = new LinkedList<Export>();
-		List<DottedName> exportApis = new LinkedList<DottedName>();
-		exportApis.add(makeDottedName("Executable"));
+		List<APIName> exportApis = new LinkedList<APIName>();
+		exportApis.add(makeAPIName("Executable"));
 		exports.add(new Export(exportApis ));
 
 		// Decls:
@@ -175,7 +175,7 @@ public class ActionCreater {
 		//decls.add(makeFunction("run", STRING, expression));
 		return new Component(span, name, imports, exports, decls);
 	}
-	
+
 	private Decl makeFunction(String functionName, IdName typeString, Expr expression) {
 		IdName fnName = new IdName(new Id(functionName));
 		List<Param> params = new LinkedList<Param>();
@@ -191,10 +191,10 @@ public class ActionCreater {
 	/**
 	 * @return
 	 */
-	private DottedName makeDottedName(String name) {
+	private APIName makeAPIName(String name) {
 		List<Id> ids = new LinkedList<Id>();
 		ids.add(new Id(name));
-		return new DottedName(ids);
+		return new APIName(ids);
 	}
 
 	private String writeJavaAST(Component component) throws IOException {

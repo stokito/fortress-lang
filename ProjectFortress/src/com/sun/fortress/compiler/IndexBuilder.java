@@ -42,21 +42,21 @@ public class IndexBuilder {
 
 	/** Result of {@link #buildApis}. */
 	public static class ApiResult extends StaticPhaseResult {
-		private final Map<DottedName, ApiIndex> _apis;
+		private final Map<APIName, ApiIndex> _apis;
 
-		public ApiResult(Map<DottedName, ApiIndex> apis,
+		public ApiResult(Map<APIName, ApiIndex> apis,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			_apis = apis;
 		}
 
-		public Map<DottedName, ApiIndex> apis() { return _apis; }
+		public Map<APIName, ApiIndex> apis() { return _apis; }
 	}
 
 	/** Convert the given ASTs to ApiIndices. */
 	public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
 		IndexBuilder builder = new IndexBuilder();
-		Map<DottedName, ApiIndex> apis = new HashMap<DottedName, ApiIndex>();
+		Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 		for (Api ast : asts) { builder.buildApi(ast, apis, modifiedDate); }
 		return new ApiResult(apis, builder.errors());
 	}
@@ -71,22 +71,22 @@ public class IndexBuilder {
 
 	/** Result of {@link #buildComponents}. */
 	public static class ComponentResult extends StaticPhaseResult {
-		private final Map<DottedName, ComponentIndex> _components;
+		private final Map<APIName, ComponentIndex> _components;
 
-		public ComponentResult(Map<DottedName, ComponentIndex> components,
+		public ComponentResult(Map<APIName, ComponentIndex> components,
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			_components = components;
 		}
 
-		public Map<DottedName, ComponentIndex> components() { return _components; }
+		public Map<APIName, ComponentIndex> components() { return _components; }
 	}
 
 	/** Convert the given ASTs to ComponentIndices. */
 	public static ComponentResult buildComponents(Iterable<Component> asts, long modifiedDate) {
 		IndexBuilder builder = new IndexBuilder();
-		Map<DottedName, ComponentIndex> components =
-			new HashMap<DottedName, ComponentIndex>();
+		Map<APIName, ComponentIndex> components =
+			new HashMap<APIName, ComponentIndex>();
 		for (Component ast : asts) { builder.buildComponent(ast, components, modifiedDate); }
 		return new ComponentResult(components, builder.errors());
 	}
@@ -103,7 +103,7 @@ public class IndexBuilder {
 	}
 
 	/** Create an ApiIndex and add it to the given map. */
-	private void buildApi(Api ast, Map<DottedName, ApiIndex> apis, long modifiedDate) {
+	private void buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate) {
 		ApiIndex api = buildApiIndex(ast, modifiedDate);
 		apis.put(ast.getName(), api);
 	}
@@ -157,7 +157,7 @@ public class IndexBuilder {
 
 	/** Create a ComponentIndex and add it to the given map. */
 	private void buildComponent(Component ast,
-			Map<DottedName, ComponentIndex> components,
+			Map<APIName, ComponentIndex> components,
 			long modifiedDate) {
 		ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
 		components.put(ast.getName(), comp);

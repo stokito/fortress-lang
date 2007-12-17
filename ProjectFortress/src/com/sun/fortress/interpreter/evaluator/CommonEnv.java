@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
@@ -129,8 +129,8 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  SApi getApiNull(DottedName d) ;
-    final public  SApi getApi(DottedName d)  {
+    abstract public  SApi getApiNull(APIName d) ;
+    final public  SApi getApi(APIName d)  {
         SApi x = getApiNull(d);
         if (x == null)
             return error(errorMsg("Missing api ", d));
@@ -147,8 +147,8 @@ abstract public class CommonEnv extends BaseEnv implements Environment {
             return x;
     }
 
-    abstract public  SComponent getComponentNull(DottedName d) ;
-    final public  SComponent getComponent(DottedName d)  {
+    abstract public  SComponent getComponentNull(APIName d) ;
+    final public  SComponent getComponent(APIName d)  {
         SComponent x = getComponentNull(d);
         if (x == null)
             return error(errorMsg("Missing component ", d));

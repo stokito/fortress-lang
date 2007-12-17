@@ -27,13 +27,13 @@ import com.sun.fortress.useful.NI;
 
 /** Comprises {@link ApiIndex} and {@link CompilationUnit}. */
 public abstract class CompilationUnitIndex {
-    
+
     private final CompilationUnit _ast;
     private final Map<IdName, Variable> _variables;
     private final Relation<SimpleName, Function> _functions;
     private final Map<IdName, TypeConsIndex> _typeConses;
     private final long _modifiedDate;
-    
+
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<IdName, Variable> variables,
                                 Relation<SimpleName, Function> functions,
@@ -45,31 +45,31 @@ public abstract class CompilationUnitIndex {
         _typeConses = Collections.unmodifiableMap(typeConses);
         _modifiedDate = modifiedDate;
     }
-    
+
     public CompilationUnit ast() { return _ast; }
-    
-    public Set<DottedName> exports() {
+
+    public Set<APIName> exports() {
         return NI.nyi();
     }
-    
-    public Set<DottedName> imports() {
-        final Set<DottedName> result = new HashSet<DottedName>();
+
+    public Set<APIName> imports() {
+        final Set<APIName> result = new HashSet<APIName>();
         for (Import _import : ast().getImports()) {
             _import.accept(new NodeAbstractVisitor_void() {
-                public void forImportFrom(ImportFrom that) {
+                public void forImportedNames(ImportedNames that) {
                     result.add(that.getApi());
                 }
             });
         }
         return result;
     }
-    
+
     public Map<IdName, Variable> variables() { return _variables; }
-    
+
     public Relation<SimpleName, Function> functions() { return _functions; }
-    
+
     public Map<IdName, TypeConsIndex> typeConses() { return _typeConses; }
-    
+
     public long modifiedDate() { return _modifiedDate; }
-    
+
 }

@@ -273,13 +273,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 			Thunk<Type> variableHandler,
 			Lambda<QualifiedIdName, Type> typeConsHandler) {
 		if (n.getApi().isSome()) {
-			DottedName originalApi = Option.unwrap(n.getApi());
-			Option<DottedName> realApiOpt = _env.apiName(originalApi);
+			APIName originalApi = Option.unwrap(n.getApi());
+			Option<APIName> realApiOpt = _env.apiName(originalApi);
 			if (realApiOpt.isNone()) {
 				error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
 				return that;
 			}
-			DottedName realApi = Option.unwrap(realApiOpt);
+			APIName realApi = Option.unwrap(realApiOpt);
 			QualifiedIdName newN;
 			if (originalApi == realApi) { newN = n; }
 			else { newN = NodeFactory.makeQualifiedIdName(realApi, n.getName()); }
@@ -364,13 +364,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 	
 	private QualifiedIdName handleGrammarName(QualifiedIdName name) {
 		if (name.getApi().isSome()) {
-			DottedName originalApi = Option.unwrap(name.getApi());
-			Option<DottedName> realApiOpt = _env.apiName(originalApi);
+			APIName originalApi = Option.unwrap(name.getApi());
+			Option<APIName> realApiOpt = _env.apiName(originalApi);
 			if (realApiOpt.isNone()) {
 				error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
 				return name;
 			}
-			DottedName realApi = Option.unwrap(realApiOpt);
+			APIName realApi = Option.unwrap(realApiOpt);
 			QualifiedIdName newN;
 			if (originalApi == realApi) { newN = name; }
 			else { newN = NodeFactory.makeQualifiedIdName(realApi, name.getName()); }

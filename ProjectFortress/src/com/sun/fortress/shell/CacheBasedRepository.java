@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.drivers.fs;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -46,10 +46,10 @@ import edu.rice.cs.plt.tuple.Option;
 public class CacheBasedRepository implements FortressRepository {
 
     
-    protected final Map<DottedName, ApiIndex> apis = 
-        new HashMap<DottedName, ApiIndex>(); 
-    protected final Map<DottedName, ComponentIndex> components = 
-        new HashMap<DottedName, ComponentIndex>();
+    protected final Map<APIName, ApiIndex> apis = 
+        new HashMap<APIName, ApiIndex>(); 
+    protected final Map<APIName, ComponentIndex> components = 
+        new HashMap<APIName, ComponentIndex>();
  
     protected final String pwd;
     
@@ -57,11 +57,11 @@ public class CacheBasedRepository implements FortressRepository {
         pwd = _pwd;
     }
 
-    public Map<DottedName, ApiIndex> apis() { return apis; }    
-    public ApiIndex getApi(DottedName name) { return apis.get(name); }
-    public ComponentIndex getComponent(DottedName name) { return components.get(name); }
+    public Map<APIName, ApiIndex> apis() { return apis; }    
+    public ApiIndex getApi(APIName name) { return apis.get(name); }
+    public ComponentIndex getComponent(APIName name) { return components.get(name); }
 
-    public void addApi(DottedName name, ApiIndex def) {
+    public void addApi(APIName name, ApiIndex def) {
         apis.put(name, def);
         
         try {
@@ -79,13 +79,13 @@ public class CacheBasedRepository implements FortressRepository {
         }
     }
     
-    public void addApis(Map<DottedName, ApiIndex> newApis) {
-        for (Map.Entry<DottedName, ApiIndex> entry: newApis.entrySet()) {
+    public void addApis(Map<APIName, ApiIndex> newApis) {
+        for (Map.Entry<APIName, ApiIndex> entry: newApis.entrySet()) {
             addApi(entry.getKey(), entry.getValue());
         }
     }
     
-    public void addComponent(DottedName name, ComponentIndex def) {
+    public void addComponent(APIName name, ComponentIndex def) {
         // Cache component for quick retrieval.
         components.put(name, def);
         
@@ -97,12 +97,12 @@ public class CacheBasedRepository implements FortressRepository {
         }
     }
 
-    public long getModifiedDateForApi(DottedName name) {
+    public long getModifiedDateForApi(APIName name) {
         return apis.get(name).modifiedDate();
        
     }
 
-    public long getModifiedDateForComponent(DottedName name) {
+    public long getModifiedDateForComponent(APIName name) {
         return components.get(name).modifiedDate();
     }
 }

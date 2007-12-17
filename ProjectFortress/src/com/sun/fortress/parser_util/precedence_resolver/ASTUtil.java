@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedOpName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -79,7 +79,7 @@ public class ASTUtil {
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
         QualifiedOpName qName =
-            new QualifiedOpName(op.getSpan(), Option.<DottedName>none(),
+            new QualifiedOpName(op.getSpan(), Option.<APIName>none(),
                                 new Opr(op.getSpan(), op));
         return new OprExpr(span, false,
                            Collections.<QualifiedOpName>singletonList(qName), args);
@@ -91,7 +91,7 @@ public class ASTUtil {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
             Bracketing en = new Bracketing(s, left, right);
-            QualifiedOpName qName = new QualifiedOpName(s, Option.<DottedName>none(),
+            QualifiedOpName qName = new QualifiedOpName(s, Option.<APIName>none(),
                                                         new Bracketing(s, left, right));
             return new OprExpr(span, false,
                                Collections.<QualifiedOpName>singletonList(qName), args);

@@ -26,12 +26,12 @@ package com.sun.fortress.parser_util;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Import;
 
 public class NameAndImportCollection {
 
-	private DottedName componentName;
+	private APIName componentName;
 	private List<Import> imports;
 	
 	/**
@@ -50,16 +50,16 @@ public class NameAndImportCollection {
 	 * @param name
 	 * @param imports
 	 */
-	public NameAndImportCollection(DottedName name, List<Import> imports) {
+	public NameAndImportCollection(APIName name, List<Import> imports) {
 		this.componentName = name;
 		this.imports = imports;
 	}
 
-	public DottedName getComponentName() {
+	public APIName getComponentName() {
 		return componentName;
 	}
 
-	public void setComponentName(DottedName componentName) {
+	public void setComponentName(APIName componentName) {
 		this.componentName = componentName;
 	}
 

@@ -47,7 +47,7 @@ import com.sun.fortress.nodes_util.UIDObject;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.Accumulator;
-import com.sun.fortress.nodes.AliasedDottedName;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Assignment;
@@ -57,7 +57,7 @@ import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
@@ -550,10 +550,10 @@ public class Desugarer extends Rewrite {
 //            for (Import imp : imports) {
 //                if (imp instanceof ImportApi) {
 //                    ImportApi impapi = (ImportApi) imp;
-//                    List<AliasedDottedName> ladn = impapi.getApis();
-//                    for (AliasedDottedName adn : ladn) {
-//                        DottedName dn = adn.getApi();
-//                        Option<DottedName> odn = adn.getAlias();
+//                    List<AliasedAPIName> ladn = impapi.getApis();
+//                    for (AliasedAPIName adn : ladn) {
+//                        APIName dn = adn.getApi();
+//                        Option<APIName> odn = adn.getAlias();
 //                        dn = odn.isSome() ? Option.unwrap(odn, dn) : dn;
 //                        packages.add(NodeUtil.nameString(dn));
 //                    }

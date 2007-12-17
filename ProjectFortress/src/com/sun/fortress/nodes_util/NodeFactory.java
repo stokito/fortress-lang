@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
     Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -177,36 +177,38 @@ public class NodeFactory {
                                Option.<IdName>none(), si_unit, ids, def);
     }
 
-    public static DottedName makeDottedName(Span span, String s) {
-        return new DottedName(span, Useful.list(new Id(span, s)));
+    public static APIName makeAPIName(Span span, String s) {
+        return new APIName(span, Useful.list(new Id(span, s)));
     }
 
-    public static DottedName makeDottedName(Span span, Id s) {
-        return new DottedName(span, Useful.list(s));
+    public static APIName makeAPIName(Span span, Id s) {
+        return new APIName(span, Useful.list(s));
     }
 
-    public static DottedName makeDottedName(Id s) {
-        return new DottedName(s.getSpan(), Useful.list(s));
+    public static APIName makeAPIName(Id s) {
+        return new APIName(s.getSpan(), Useful.list(s));
     }
 
-    public static DottedName makeDottedName(String s) {
-        return makeDottedName(makeId(s));
+    public static APIName makeAPIName(String s) {
+        return makeAPIName(makeId(s));
     }
 
-    public static DottedName makeDottedName(Iterable<Id> ids) {
-        return new DottedName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
+    public static APIName makeAPIName(Iterable<Id> ids) {
+        return new APIName(FortressUtil.spanAll(ids), IterUtil.asList(ids));
     }
 
-    public static DottedName makeDottedName(Id id, Iterable<Id> ids) {
-        return makeDottedName(IterUtil.asList(IterUtil.compose(id, ids)));
+    public static APIName makeAPIName(Id id, Iterable<Id> ids) {
+        return makeAPIName(IterUtil.asList(IterUtil.compose(id, ids)));
     }
 
-    public static DottedName makeDottedName(Span span, Iterable<Id> ids) {
-        return new DottedName(span, IterUtil.asList(ids));
+    public static APIName makeAPIName(Span span, Iterable<Id> ids) {
+        return new APIName(span, IterUtil.asList(ids));
     }
 
-    /** Create a DottedName from the name of the file with the given path. */
-    public static DottedName makeDottedName(Span span, String path, String delimiter) {
+    /**
+     * Create a APIName from the name of the file with the given path.
+     */
+    public static APIName makeAPIName(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
         if (file.length() <= 4) {
@@ -216,37 +218,37 @@ public class NodeFactory {
             for (String n : file.substring(0, file.length()-4).split(delimiter)) {
                 ids.add(new Id(span, n));
             }
-            return new DottedName(span, ids);
+            return new APIName(span, ids);
         }
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, String s) {
-        return new QualifiedIdName(span, Option.<DottedName>none(),
+        return new QualifiedIdName(span, Option.<APIName>none(),
                                    makeIdName(span, s));
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Id id) {
-        return new QualifiedIdName(span, Option.<DottedName>none(), makeIdName(id));
+        return new QualifiedIdName(span, Option.<APIName>none(), makeIdName(id));
     }
 
     public static QualifiedIdName makeQualifiedIdName(Id id) {
-        return new QualifiedIdName(id.getSpan(), Option.<DottedName>none(),
+        return new QualifiedIdName(id.getSpan(), Option.<APIName>none(),
                                    makeIdName(id));
     }
 
     public static QualifiedIdName makeQualifiedIdName(IdName name) {
-        return new QualifiedIdName(name.getSpan(), Option.<DottedName>none(), name);
+        return new QualifiedIdName(name.getSpan(), Option.<APIName>none(), name);
     }
 
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> apiIds, Id id) {
         Span span;
-        Option<DottedName> api;
+        Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) {
             span = id.getSpan();
             api = Option.none();
         }
         else {
-            DottedName n = makeDottedName(apiIds);
+            APIName n = makeAPIName(apiIds);
             span = FortressUtil.spanTwo(n, id);
             api = Option.some(n);
         }
@@ -255,18 +257,18 @@ public class NodeFactory {
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Iterable<Id> apiIds,
                                                       Id id) {
-        Option<DottedName> api;
+        Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
-        else { api = Option.some(makeDottedName(apiIds)); }
+        else { api = Option.some(makeAPIName(apiIds)); }
         return new QualifiedIdName(span, api, makeIdName(id));
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Id id,
                                                       Iterable<Id> ids) {
-        Option<DottedName> api;
+        Option<APIName> api;
         Id last;
         if (IterUtil.isEmpty(ids)) { api = Option.none(); last = id; }
-        else { api = Option.some(makeDottedName(id, IterUtil.skipLast(ids)));
+        else { api = Option.some(makeAPIName(id, IterUtil.skipLast(ids)));
                last = IterUtil.last(ids);
              }
         return new QualifiedIdName(span, api, makeIdName(last));
@@ -277,13 +279,13 @@ public class NodeFactory {
         return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
 
-    public static QualifiedIdName makeQualifiedIdName(DottedName api, IdName name) {
+    public static QualifiedIdName makeQualifiedIdName(APIName api, IdName name) {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
                                    name);
     }
 
     public static QualifiedOpName makeQualifiedOpName(OpName name) {
-        return new QualifiedOpName(name.getSpan(), Option.<DottedName>none(), name);
+        return new QualifiedOpName(name.getSpan(), Option.<APIName>none(), name);
     }
 
     /**
@@ -793,7 +795,7 @@ public class NodeFactory {
   return new VoidLiteralExpr();
  }
 
- public static Import makeImportStar(DottedName api, List<SimpleName> excepts) {
+ public static Import makeImportStar(APIName api, List<SimpleName> excepts) {
   return new ImportStar(api, excepts);
  }
 }

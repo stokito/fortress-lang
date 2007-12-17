@@ -23,7 +23,7 @@ import java.util.Collections;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FloatLiteralExpr;
@@ -95,22 +95,22 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
     Id newId(String id) {
         return new Id(newSpan("somefile", 1, 2, 3), id);
     }
-    public void testDottedName() {
+    public void testAPIName() {
         Span span11 = newSpan("cat", 1, 2, 3);
         Span span12 = newSpan("cat", 1, 2, 3);
         Span span13 = newSpan("cat", 2, 4, 5);
-        DottedName di1 = NodeFactory.makeDottedName(span11, newId("snert"));
-        DottedName di2 = NodeFactory.makeDottedName(span11, newId("snert"));
-        DottedName di3 = NodeFactory.makeDottedName(span11, newId("snort"));
+        APIName di1 = NodeFactory.makeAPIName(span11, newId("snert"));
+        APIName di2 = NodeFactory.makeAPIName(span11, newId("snert"));
+        APIName di3 = NodeFactory.makeAPIName(span11, newId("snort"));
         Assert.assertEquals(di1, di2);
         Assert.assertEquals(di1.hashCode(), di2.hashCode());
         Assert.assertFalse(di1.equals(di3));
         Assert.assertFalse(di1.hashCode() == di3.hashCode());
 
-        DottedName di4 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("bar"), newId("baz")));
-        DottedName di5 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("bar"), newId("bar")));
-        DottedName di6 = NodeFactory.makeDottedName(span12, Useful.list(newId("foo"), newId("baz"), newId("baz")));
-        DottedName di7 = NodeFactory.makeDottedName(span12, Useful.list(newId("bar"), newId("bar"), newId("baz")));
+        APIName di4 = NodeFactory.makeAPIName(span12, Useful.list(newId("foo"), newId("bar"), newId("baz")));
+        APIName di5 = NodeFactory.makeAPIName(span12, Useful.list(newId("foo"), newId("bar"), newId("bar")));
+        APIName di6 = NodeFactory.makeAPIName(span12, Useful.list(newId("foo"), newId("baz"), newId("baz")));
+        APIName di7 = NodeFactory.makeAPIName(span12, Useful.list(newId("bar"), newId("bar"), newId("baz")));
 
         Assert.assertEquals("foo.bar.baz", NodeUtil.nameString(di4));
         Assert.assertEquals(di4.hashCode(), di4.hashCode());
@@ -120,16 +120,16 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TcWrapper  {
         Assert.assertFalse(di4.equals(di7));
     }
 
-    DottedName newDottedName(String a, String b, String c) {
+    APIName newAPIName(String a, String b, String c) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return NodeFactory.makeDottedName(span1, Useful.list(newId(a), newId(b), newId(c)));
+        return NodeFactory.makeAPIName(span1, Useful.list(newId(a), newId(b), newId(c)));
     }
 
     public void testExport() {
         Span span1 = newSpan("cat", 1, 2, 3);
-        Export e1 = new Export(span1, FortressUtil.mkList(newDottedName("some", "exported", "apiname")));
-        Export e2 = new Export(span1, FortressUtil.mkList(newDottedName("some", "exported", "apiname")));
-        Export e3 = new Export(span1, FortressUtil.mkList(newDottedName("an", "exported", "apiname")));
+        Export e1 = new Export(span1, FortressUtil.mkList(newAPIName("some", "exported", "apiname")));
+        Export e2 = new Export(span1, FortressUtil.mkList(newAPIName("some", "exported", "apiname")));
+        Export e3 = new Export(span1, FortressUtil.mkList(newAPIName("an", "exported", "apiname")));
 
         een(e1, e2, e3);
     }

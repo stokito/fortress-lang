@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
@@ -494,7 +494,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return v;
     }
 
-    public SApi getApiNull(DottedName d) {
+    public SApi getApiNull(APIName d) {
         return getApiNull(NodeUtil.nameString(d));
     }
 
@@ -508,7 +508,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         return v;
     }
 
-    public SComponent getComponentNull(DottedName name) {
+    public SComponent getComponentNull(APIName name) {
         return getComponentNull(NodeUtil.nameString(name));
     }
 
@@ -600,7 +600,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         api_env = put(api_env, s, api, "API");
     }
 
-    public void putApi(DottedName d, SApi x) {
+    public void putApi(APIName d, SApi x) {
         putApi(NodeUtil.nameString(d), x);
 
     }
@@ -610,7 +610,7 @@ public final class BetterEnv extends CommonEnv implements Environment, Iterable<
         var_env = put(var_env, str, FBool.make(f2), "Nat param as var/value");
    }
 
-    public void putComponent(DottedName name, SComponent comp) {
+    public void putComponent(APIName name, SComponent comp) {
         putComponent(NodeUtil.nameString(name), comp);
 
     }

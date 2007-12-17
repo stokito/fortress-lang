@@ -350,18 +350,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
         QualifiedIdName qname = that.getVar();
-        Option<DottedName> api = qname.getApi();
+        Option<APIName> api = qname.getApi();
         IdName entity = qname.getName();
         ConsList<IdName> fields = ConsList.empty();
         Expr result = null;
         
         // First, try to interpret it as a qualified name
         while (result == null && api.isSome()) {
-            DottedName givenApiName = Option.unwrap(api);
-            Option<DottedName> realApiNameOpt = _env.apiName(givenApiName);
+            APIName givenApiName = Option.unwrap(api);
+            Option<APIName> realApiNameOpt = _env.apiName(givenApiName);
             
             if (realApiNameOpt.isSome()) {
-                DottedName realApiName = Option.unwrap(realApiNameOpt);
+                APIName realApiName = Option.unwrap(realApiNameOpt);
                 QualifiedIdName newName =
                     NodeFactory.makeQualifiedIdName(realApiName, entity);
                 if (_env.hasQualifiedVariable(newName)) {
@@ -388,7 +388,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 entity = NodeFactory.makeIdName(IterUtil.last(ids));
                 Iterable<Id> prefix = IterUtil.skipLast(ids);
                 if (IterUtil.isEmpty(prefix)) { api = Option.none(); }
-                else { api = Option.some(NodeFactory.makeDottedName(prefix)); }
+                else { api = Option.some(NodeFactory.makeAPIName(prefix)); }
             }
         }
         

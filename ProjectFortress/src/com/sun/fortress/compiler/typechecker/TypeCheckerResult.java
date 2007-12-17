@@ -21,7 +21,7 @@ import java.util.*;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
 
 import edu.rice.cs.plt.iter.IterUtil;

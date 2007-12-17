@@ -34,7 +34,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
