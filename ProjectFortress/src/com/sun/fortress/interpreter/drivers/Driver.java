@@ -59,12 +59,13 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.AliasedName;
+import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
@@ -83,6 +84,7 @@ import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
@@ -275,7 +277,7 @@ public class Driver {
     public static BetterEnv evalComponent(CompilationUnit p) throws IOException {
         return evalComponent(p, false);
     }
-    
+
     public static ArrayList<ComponentWrapper> components;
 
     public static BetterEnv evalComponent(CompilationUnit p,
@@ -411,7 +413,7 @@ public class Driver {
         for (ComponentWrapper cw : components) {
             finishAllFunctionalMethods(cw.getEnvironment());
         }
-        
+
         for (ComponentWrapper cw : components) {
             cw.initVars();
         }
@@ -429,7 +431,7 @@ public class Driver {
         final BetterEnv e = cw.getEnvironment();
 
         /* First handle all imports that name the things they introduce. */
-        
+
         for (Import i : imports){
             if (i instanceof ImportApi) {
                 ImportApi ix = (ImportApi) i;
@@ -438,8 +440,12 @@ public class Driver {
                     APIName id = adi.getApi();
                     String from_apiname = NodeUtil.nameString(id);
 
-                    Option<APIName> alias = adi.getAlias();
-                    String known_as = NodeUtil.nameString(Option.unwrap(alias, id));
+                    Option<Id> alias = adi.getAlias();
+                    Option<APIName> as;
+                    if (alias.isSome())
+                        as = Option.some(NodeFactory.makeAPIName(Option.unwrap(alias)));
+                    else as = Option.none();
+                    String known_as = NodeUtil.nameString(Option.unwrap(as, id));
 
                     ComponentWrapper from_cw = linker.get(from_apiname);
 
@@ -471,8 +477,8 @@ public class Driver {
 
                 if (ix instanceof ImportNames) {
                     /* A set of names */
-                    List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
-                    for (AliasedName an : names) {
+                    List<AliasedSimpleName> names = ((ImportNames) ix).getAliasedNames();
+                    for (AliasedSimpleName an : names) {
                         SimpleName name = an.getName();
                         Option<SimpleName> alias = an.getAlias();
                         /*
@@ -489,13 +495,13 @@ public class Driver {
             } else {
 
             }
-        
-            
+
+
         }
-        
+
         /* Next handle import-*. When two of these try to introduce the same
          * name (implicitly), the name remains undefined, except for functions.
-         * 
+         *
          * When one of these tries to introduce a name previously defined locally
          * or in a non-* import, the new (import-*) definition is ignored.
          */
@@ -573,8 +579,8 @@ public class Driver {
 
                 if (ix instanceof ImportNames) {
                     /* A set of names */
-                    List<AliasedName> names = ((ImportNames) ix).getAliasedNames();
-                    for (AliasedName an : names) {
+                    List<AliasedSimpleName> names = ((ImportNames) ix).getAliasedNames();
+                    for (AliasedSimpleName an : names) {
                         SimpleName name = an.getName();
                         Option<SimpleName> alias = an.getAlias();
                         /*
@@ -602,7 +608,7 @@ public class Driver {
                                 }
                             },
                             new HashSet<String>());
-                    
+
                     for (String s : api_cw.dis.getTopLevelRewriteNames()) {
                         if (! except_names.contains(s) &&
                                 !cw.isOwnName(s) &&
@@ -615,8 +621,8 @@ public class Driver {
                 bug(errorMsg("NYI Import " + i));
             }
         }
-        
-        
+
+
         return change;
     }
 
@@ -631,14 +637,14 @@ public class Driver {
                             if (t instanceof FTraitOrObjectOrGeneric)
                                 ((FTraitOrObject)t).initializeFunctionalMethods(e);
                     } else {
-                        
+
                     }
                 }
             }
         };
         e.visit(vt, null, null, null, null);
     }
-    
+
     private static void finishAllFunctionalMethods(final BetterEnv e) {
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
             public void visit(String s, FType o) {
@@ -656,11 +662,11 @@ public class Driver {
         e.visit(vt, null, null, null, null);
     }
 
-    
+
     private static void notImport(String s, Object o, String api, String component) {
 //        System.err.println("Not importing from " + api + " into " + component + " name " + s + ", value " + o);
     }
-    
+
     /**
      * @param into_e
      * @param from_e
@@ -681,7 +687,7 @@ public class Driver {
             final String a,
             final String c,
             final ComponentWrapper importer) {
-        
+
         final boolean[] flag = new boolean[1];
 
         Visitor2<String, FType> vt = new Visitor2<String, FType>() {
@@ -833,9 +839,9 @@ public class Driver {
         if (alias.isSome()) {
             add_as = NodeUtil.nameString(Option.unwrap(alias));
         }
-        
+
         importer.ownNames.add(add_as);
-        
+
         try {
             boolean isOverloadable = false;
             if (api_e.getNatNull(s) != null) {
@@ -1017,8 +1023,8 @@ public class Driver {
             List<String> args) throws Throwable {
         runProgram(p, runTests, false, false, args);
     }
-    
-    
+
+
     public static void runProgram(CompilationUnit p, List<String> args) throws Throwable {
         runProgram(p, false, false, false, args);
     }
@@ -1037,7 +1043,7 @@ public class Driver {
         return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
                 basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX, p);
     }
-    
+
     public static Component readTreeOrSourceNativeComponent(String key, String basename, Path p) throws IOException {
         return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
                 basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX_NATIVE, p);
@@ -1064,11 +1070,11 @@ public class Driver {
             return libraryCache.get(key);
 
         String librarySource = base + "." + source_suffix;
-        
+
         File sourceFile = p.findFile(librarySource);
         librarySource = sourceFile.getCanonicalPath();
         String libraryTree = ProjectProperties.CACHE_DIR + "/" + base + "." + tree_suffix;
-        
+
         if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
 
             System.err.println("Missing or stale preparsed AST "

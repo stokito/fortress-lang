@@ -32,7 +32,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.AliasedName;
+import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -97,7 +97,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 		GrammarEnv grammarEnv = new GrammarEnv();
 		for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 			boolean found = false;
-			for (AliasedName name: that.getAliasedNames()) {
+			for (AliasedSimpleName name: that.getAliasedNames()) {
 				if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getName().getId().getText())) {
 					found  = true;
 					break;

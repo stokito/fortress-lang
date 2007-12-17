@@ -109,18 +109,19 @@ private List<Import> Import =
      };
 
 /* ImportedNames ::=
-     APIName . w { w ... w } (w except w Names)?
-   | APIName . w { w AliasedNameList (w , w ...)? w }
+     APIName . w { w ... w } (w except w SimpleNames)?
+   | APIName . w { w AliasedSimpleNameList (w , w ...)? w }
    | QualifiedName (w as w Id)?
  */
 private List<Import> ImportedNames =
-     a1:APIName dot w opencurly w ellipses w closecurly a2:(w except w Names)?
+     a1:APIName dot w opencurly w ellipses w closecurly
+     a2:(w except w SimpleNames)?
      { if (a2 == null) a2 = Collections.<SimpleName>emptyList();
-       yyValue = FortressUtil.mkList((Import)new ImportStar(createSpan(yyStart,yyCount),
-                                                    a1, a2));
+       yyValue = FortressUtil.mkList((Import)new ImportStar(
+                                             createSpan(yyStart,yyCount),a1,a2));
      }
-   / a1:APIName dot w opencurly w a2:AliasedNameList a3:(w comma w ellipses)?
-     w closecurly
+   / a1:APIName dot w opencurly w a2:AliasedSimpleNameList
+     a3:(w comma w ellipses)? w closecurly
      { Span span = createSpan(yyStart,yyCount);
        List<Import> imports = FortressUtil.mkList((Import)new ImportNames(span,
                                                                          a1,a2));
@@ -130,59 +131,63 @@ private List<Import> ImportedNames =
        yyValue = imports;
      }
    / a1:QualifiedName a2:(w as w Id)?
-     { AliasedName an;
+     { AliasedSimpleName an;
        APIName api = Option.unwrap(a1.getApi());
        SimpleName name = a1.getName();
        if (a2 == null)
-         an = NodeFactory.makeAliasedName(name.getSpan(), name);
+           an = NodeFactory.makeAliasedSimpleName(name.getSpan(), name);
        else
-         an = NodeFactory.makeAliasedName(FortressUtil.spanTwo(name,a2),name,a2);
-       yyValue = FortressUtil.mkList((Import)new ImportNames(createSpan(yyStart,yyCount),
-                                             api,FortressUtil.mkList(an)));
+           an = NodeFactory.makeAliasedSimpleName(FortressUtil.spanTwo(name,a2),
+                                                  name, a2);
+       yyValue = FortressUtil.mkList((Import)new ImportNames(
+                                             createSpan(yyStart,yyCount),
+                                             api, FortressUtil.mkList(an)));
      };
 
-/* Names ::= Name | { w NameList w } */
-private List<SimpleName> Names =
-     a1:Name
-     { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w NameList w closecurly ;
+/* SimpleNames ::= SimpleName | { w SimpleNameList w } */
+private List<SimpleName> SimpleNames =
+     a1:SimpleName { yyValue = FortressUtil.mkList(a1); }
+   / opencurly w SimpleNameList w closecurly ;
 
-/* NameList ::= Name (w , w Name)* */
-private List<SimpleName> NameList = a1:Name a2s:(w comma w Name)*
+/* SimpleNameList ::= SimpleName (w , w SimpleName)* */
+private List<SimpleName> SimpleNameList =
+     a1:SimpleName a2s:(w comma w SimpleName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AliasedName ::=
+/* AliasedSimpleName ::=
      Id (w as w Id)?
    | opr w Op (w as w Op)?
    | opr w EncloserPair (w as w EncloserPair)?
  */
-private AliasedName AliasedName =
+private AliasedSimpleName AliasedSimpleName =
      a1:Id a2:(w as w Id)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1);
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
-           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
    / opr w a1:Op a2:(w as w Op)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
-                                                 new Opr(a1.getSpan(), a1));
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(span,
+                                                       new Opr(a1.getSpan(),a1));
        else
-           yyValue = NodeFactory.makeAliasedName(createSpan(yyStart,yyCount),
-                                                 new Opr(a1.getSpan(), a1),
-                                                 new Opr(a2.getSpan(), a2));
+           yyValue = NodeFactory.makeAliasedSimpleName(span,
+                                                       new Opr(a1.getSpan(),a1),
+                                                       new Opr(a2.getSpan(),a2));
      }
    / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null)
-           yyValue = NodeFactory.makeAliasedName(span, a1);
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
-           yyValue = NodeFactory.makeAliasedName(span, a1, a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      };
 
-/* AliasedNameList ::= AliasedName (w , w AliasedName)* */
-private List<AliasedName> AliasedNameList =
-     a1:AliasedName a2s:(w comma w AliasedName)*
+/* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
+private List<AliasedSimpleName> AliasedSimpleNameList =
+     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* AliasedAPINames ::=
@@ -190,19 +195,17 @@ private List<AliasedName> AliasedNameList =
    | { w AliasedAPINameList w }
  */
 private List<AliasedAPIName> AliasedAPINames =
-     a1:AliasedAPIName
-     { yyValue = FortressUtil.mkList(a1); }
+     a1:AliasedAPIName { yyValue = FortressUtil.mkList(a1); }
    / opencurly w AliasedAPINameList w closecurly ;
 
-/* AliasedAPIName ::= APIName (w as w APIName)? */
+/* AliasedAPIName ::= APIName (w as w Id)? */
 private AliasedAPIName AliasedAPIName =
-     a1:APIName a2:(w as w APIName)?
-     { if (a2 == null)
-           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
-                                        Option.<APIName>none());
+     a1:APIName a2:(w as w Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null)
+           yyValue = new AliasedAPIName(span, a1, Option.<Id>none());
        else
-           yyValue = new AliasedAPIName(createSpan(yyStart,yyCount), a1,
-                                        Option.some(a2));
+           yyValue = new AliasedAPIName(span, a1, Option.some(a2));
      };
 
 /* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
@@ -223,8 +226,7 @@ private Export Export = export w a1:APINames
    | { w APINameList w }
  */
 List<APIName> APINames =
-     a1:APIName
-     { yyValue = FortressUtil.mkList(a1); }
+     a1:APIName { yyValue = FortressUtil.mkList(a1); }
    / opencurly w APINameList w closecurly ;
 
 /* APINameList ::= APIName (w , w APIName)* */

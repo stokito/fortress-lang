@@ -43,9 +43,9 @@ Decl FnDecl =
      }
    / FnSig ;
 
-/* FnSig ::= Name w : w ArrowType */
+/* FnSig ::= SimpleName w : w ArrowType */
 AbsFnDecl FnSig =
-     a1:Name w colon w a2:ArrowType
+     a1:SimpleName w colon w a2:ArrowType
      { final List<Modifier> mods = FortressUtil.emptyModifiers();
        final List<Param>  params = FortressUtil.emptyParams();
 
