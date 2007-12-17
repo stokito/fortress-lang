@@ -26,7 +26,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -126,7 +126,7 @@ public class Disambiguator {
     public static ComponentResult
         disambiguateComponents(Iterable<Component> components,
                                GlobalEnvironment globalEnv,
-                               Map<DottedName, ComponentIndex> indices) {
+                               Map<APIName, ComponentIndex> indices) {
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
         for (Component comp : components) {

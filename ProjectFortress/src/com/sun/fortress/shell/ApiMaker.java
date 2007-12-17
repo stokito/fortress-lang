@@ -46,7 +46,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
     }
     
     public Node forComponent(Component that) {
-        DottedName name_result = (DottedName) that.getName().accept(this);
+        APIName name_result = (APIName) that.getName().accept(this);
         List<Import> imports_result = recurOnListOfImport(that.getImports());
         List<Export> exports_result = recurOnListOfExport(that.getExports());
         List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());

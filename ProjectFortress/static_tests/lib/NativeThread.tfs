@@ -1,5 +1,5 @@
 (Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeThread.fsi":18:0~26:3
- _name=(DottedName @18:4~20:0 _ids=[(Id @18:4~16 _text="NativeThread")])
+ _name=(APIName @18:4~20:0 _ids=[(Id @18:4~16 _text="NativeThread")])
  _decls=[
   (AbsObjectDecl @20:0~25:3
    _contract=(Contract @"":0:0)
@@ -35,7 +35,7 @@
       _id=(Id _text="ready"))
      _returnType=(Some _value=(InstantiatedType @"":0:0
        _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
-        _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+        _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
         _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
          _id=(Id _text="Boolean")))))
      _selfName="self")

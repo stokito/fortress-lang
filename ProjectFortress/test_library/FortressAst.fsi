@@ -68,7 +68,7 @@ api FortressAst
 
    (* TODO: Implement aliasedName *)
 
-   (* TODO: Implement aliasedDottedName *)
+   (* TODO: Implement aliasedAPIName *)
 
    (* TODO: Implement traitObjectAbsDeclOrDecls *)
 
@@ -348,13 +348,13 @@ api FortressAst
    (* TODO: Implement static params *)
 
    trait Name extends AbstractNode end
-   object DottedName(ids:List[\Id\]) extends Name end
+   object APIName(ids:List[\Id\]) extends Name end
 
    (**
      * name prefixed by an optional API name
      *)
    trait QualifiedName extends Name
-      aapi:Maybe[\DottedName\]
+      aapi:Maybe[\APIName\]
       name:SimpleName
    end
    (**
@@ -362,13 +362,13 @@ api FortressAst
      * QualifiedIdName ::= (Id.)*Id
      * e.g.) com.sun.fortress.nodes_util.getName
      *)
-   object QualifiedIdName(aapi:Maybe[\DottedName\], name:SimpleName, name:IdName) extends QualifiedName end
+   object QualifiedIdName(aapi:Maybe[\APIName\], name:SimpleName, name:IdName) extends QualifiedName end
    (**
      * qualified operator name
      * internal uses only
      * e.g.) com.sun.fortress.nodes_util.+
      *)
-   object QualifiedOpName(aapi:Maybe[\DottedName\], name:SimpleName, name:OpName) extends QualifiedName end
+   object QualifiedOpName(aapi:Maybe[\APIName\], name:SimpleName, name:OpName) extends QualifiedName end
    (**
      * unqualified name
      *)

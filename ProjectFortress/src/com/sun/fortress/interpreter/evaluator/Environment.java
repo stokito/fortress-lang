@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.useful.HasAt;
 
@@ -128,9 +128,9 @@ public interface Environment  {
     public abstract void putApi(String s, SApi api);
 
     /* An Api name is unambiguous. */
-    public abstract SApi getApi(DottedName d);
+    public abstract SApi getApi(APIName d);
 
-    public abstract void putApi(DottedName d, SApi x);
+    public abstract void putApi(APIName d, SApi x);
 
     /* Type names take the form ID or Api.ID */
     public abstract FType getType(QualifiedIdName d);
@@ -148,11 +148,11 @@ public interface Environment  {
 
     public abstract void putValue(QualifiedIdName d, FValue x);
 
-    public abstract void putComponent(DottedName name, SComponent comp);
+    public abstract void putComponent(APIName name, SComponent comp);
 
     public abstract void putComponent(String name, SComponent comp);
 
-    public abstract SComponent getComponent(DottedName name);
+    public abstract SComponent getComponent(APIName name);
 
     public abstract SComponent getComponent(String name);
 

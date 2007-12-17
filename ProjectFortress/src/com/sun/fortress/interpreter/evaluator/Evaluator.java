@@ -85,7 +85,7 @@ import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Bracketing;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
@@ -661,7 +661,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return result;
     }
 
-    public FValue forDottedName(DottedName x) {
+    public FValue forAPIName(APIName x) {
         String result = "";
         for (Iterator<Id> i = x.getIds().iterator(); i.hasNext();) {
             result = result.concat(i.next().getText());

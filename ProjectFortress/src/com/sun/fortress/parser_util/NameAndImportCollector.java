@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportFrom;
+import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
@@ -42,9 +42,9 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> {
 
 	private NameAndImportCollection namesAndImports;
-	
-	
-	
+
+
+
 	@Override
 	public List<Import> forComponentOnly(Component that,
 			List<Import> name_result, List<List<Import>> imports_result,
@@ -52,7 +52,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 		this.namesAndImports = new NameAndImportCollection();
 		this.namesAndImports.setComponentName(that.getName());
 		this.namesAndImports.setImports(collapseList(imports_result));
-			
+
 		return super.forComponentOnly(that, name_result, imports_result,
 				exports_result, decls_result);
 	}
@@ -82,9 +82,9 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 		return ls;
 	}
 
-	
+
 	@Override
-	public List<Import> forImportFromOnly(ImportFrom that,
+	public List<Import> forImportedNamesOnly(ImportedNames that,
 			List<Import> api_result) {
 		List<Import> ls = api_result;
 		ls.add(that);
@@ -110,7 +110,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public NameAndImportCollector() {
 

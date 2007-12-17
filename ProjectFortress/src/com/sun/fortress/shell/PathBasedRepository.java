@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.Path;
 
@@ -43,31 +43,31 @@ public class PathBasedRepository implements FortressRepository {
     final Path path;
     IndexBuilder builder = new IndexBuilder();
     
-    private final Map<DottedName, ApiIndex> apis = 
-        new HashMap<DottedName, ApiIndex>();
+    private final Map<APIName, ApiIndex> apis = 
+        new HashMap<APIName, ApiIndex>();
     
-    private final Map<DottedName, ComponentIndex> components = 
-        new HashMap<DottedName, ComponentIndex>();
+    private final Map<APIName, ComponentIndex> components = 
+        new HashMap<APIName, ComponentIndex>();
    
     public PathBasedRepository(Path p) {
         path = p;
     }
     
-    public void addApi(DottedName name, ApiIndex definition) {
+    public void addApi(APIName name, ApiIndex definition) {
         throw new Error("Won't work");
     }
 
-    public void addComponent(DottedName name, ComponentIndex definition) {
+    public void addComponent(APIName name, ComponentIndex definition) {
         throw new Error("Won't work");
         
     }
 
-    public Map<DottedName, ApiIndex> apis() {
+    public Map<APIName, ApiIndex> apis() {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public ApiIndex getApi(DottedName name) throws IOException {
+    public ApiIndex getApi(APIName name) throws IOException {
         if (apis.containsKey(name))
             return apis.get(name);
         File fdot = findFile(name, ".fsi");
@@ -94,7 +94,7 @@ public class PathBasedRepository implements FortressRepository {
         
     }
 
-    public ComponentIndex getComponent(DottedName name) throws FileNotFoundException, IOException {
+    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
         if (components.containsKey(name))
             return components.get(name);
         File fdot = findFile(name, ".fss");
@@ -119,7 +119,7 @@ public class PathBasedRepository implements FortressRepository {
         } 
     }
 
-    private File findFile(DottedName name, String suffix) throws FileNotFoundException {
+    private File findFile(APIName name, String suffix) throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll(".", "/");
         dotted = dotted + suffix;
@@ -133,14 +133,14 @@ public class PathBasedRepository implements FortressRepository {
         return fdot;
     }
 
-    public long getModifiedDateForApi(DottedName name) throws FileNotFoundException {
+    public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         if (apis.containsKey(name))
             return apis.get(name).modifiedDate();
         File fdot = findFile(name, ".fsi");
         return fdot.lastModified();
     }
 
-    public long getModifiedDateForComponent(DottedName name) throws FileNotFoundException {
+    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
         if (components.containsKey(name))
             return components.get(name).modifiedDate();
         File fdot = findFile(name, ".fss");

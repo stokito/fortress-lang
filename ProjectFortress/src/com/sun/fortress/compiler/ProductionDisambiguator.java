@@ -22,7 +22,7 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -78,13 +78,13 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 
 	private QualifiedIdName handleProductionName(QualifiedIdName name) {
 		if (name.getApi().isSome()) {
-			DottedName originalApiGrammar = Option.unwrap(name.getApi());
-			Option<DottedName> realApiGrammarOpt = _currentEnv.grammarName(originalApiGrammar);
+			APIName originalApiGrammar = Option.unwrap(name.getApi());
+			Option<APIName> realApiGrammarOpt = _currentEnv.grammarName(originalApiGrammar);
 			if (realApiGrammarOpt.isNone()) {
 				error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar), originalApiGrammar);
 				return name;
 			}
-			DottedName realApiGrammar = Option.unwrap(realApiGrammarOpt);
+			APIName realApiGrammar = Option.unwrap(realApiGrammarOpt);
 			QualifiedIdName newN;
 			if (originalApiGrammar == realApiGrammar) { newN = name; }
 			else { newN = NodeFactory.makeQualifiedIdName(realApiGrammar, name.getName()); }

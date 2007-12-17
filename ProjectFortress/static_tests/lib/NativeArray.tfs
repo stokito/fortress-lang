@@ -1,5 +1,5 @@
 (Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":18:0~27:3
- _name=(DottedName @18:4~20:0 _ids=[(Id @18:4~15 _text="NativeArray")])
+ _name=(APIName @18:4~20:0 _ids=[(Id @18:4~15 _text="NativeArray")])
  _decls=[
   (AbsObjectDecl @20:0~25:3
    _contract=(Contract @"":0:0)
@@ -21,7 +21,7 @@
         _id=(Id _text="i"))
        _type=(Some _value=(InstantiatedType @"":0:0
          _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
           _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
            _id=(Id _text="ZZ32"))))))])
     (AbsFnDecl @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":22:2~23:4
@@ -36,7 +36,7 @@
         _id=(Id _text="i"))
        _type=(Some _value=(InstantiatedType @"":0:0
          _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
           _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
            _id=(Id _text="ZZ32"))))))
       (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":22:14~15
@@ -51,7 +51,7 @@
       _id=(Id _text="init00"))
      _returnType=(Some _value=(InstantiatedType @"":0:0
        _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
-        _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+        _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
         _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
          _id=(Id _text="Boolean")))))
      _selfName="self"
@@ -61,7 +61,7 @@
         _id=(Id _text="i"))
        _type=(Some _value=(InstantiatedType @"":0:0
          _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
           _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
            _id=(Id _text="ZZ32"))))))
       (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":23:17~18
@@ -82,7 +82,7 @@
         _id=(Id _text="i"))
        _type=(Some _value=(InstantiatedType @"":0:0
          _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(DottedName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
+          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
           _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
            _id=(Id _text="ZZ32"))))))
       (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":24:16~17

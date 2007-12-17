@@ -34,7 +34,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.shell.FileBasedRepository;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
@@ -102,16 +102,16 @@ public class CompilerTopLevelJUTest extends TestCase {
     }
 
     private Iterable<? extends StaticError> compile(File f) throws IOException {
-        final Map<DottedName, ApiIndex> apis = new HashMap<DottedName, ApiIndex>();
+        final Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
         Fortress fortress = new Fortress(new FileBasedRepository(baseDir, staticTests + "lib"));
 //        new FortressRepository() {
-//            public Map<DottedName, ApiIndex> apis() {
+//            public Map<APIName, ApiIndex> apis() {
 //                return Collections.unmodifiableMap(apis);
 //            }
-//            public void addApi(DottedName name, ApiIndex def) {
+//            public void addApi(APIName name, ApiIndex def) {
 //                apis.put(name, def);
 //            }
-//            public void addComponent(DottedName name, ComponentIndex def) {
+//            public void addComponent(APIName name, ComponentIndex def) {
 //                /* ignore */
 //            }
 //        });

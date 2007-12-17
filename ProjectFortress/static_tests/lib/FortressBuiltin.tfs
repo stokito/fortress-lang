@@ -1,5 +1,5 @@
 (Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":18:0~61:3
- _name=(DottedName @18:4~20:0 _ids=[(Id @18:4~19 _text="FortressBuiltin")])
+ _name=(APIName @18:4~20:0 _ids=[(Id @18:4~19 _text="FortressBuiltin")])
  _decls=[
   (AbsTraitDecl @20:0~29
    _name=(IdName @20:6~9

@@ -70,15 +70,15 @@ SimpleName Name =
 
 /* APIName ::= Id(.Id)* */
 /* This says that if we find ellipses, the dot doesn't count */
-DottedName APIName =
+APIName APIName =
      a1:Id &(w ellipses)
-     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2s:(dot Id)* &(w ellipses)
-     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
                                             IterUtil.compose(a1, a2s.list()));
      }
    / a1:Id a2s:(dot Id)*
-     { yyValue = NodeFactory.makeDottedName(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
                                             IterUtil.compose(a1, a2s.list()));
      };
 

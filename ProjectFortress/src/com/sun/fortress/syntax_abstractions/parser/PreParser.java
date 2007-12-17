@@ -38,15 +38,15 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.Parser.Result;
-import com.sun.fortress.nodes.AliasedDottedName;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportFrom;
+import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.GrammarEnv;
@@ -160,7 +160,7 @@ public class PreParser {
 	}
 
 	/** Get the filename in which the given API should be defined. */
-	private static File fileForApiName(DottedName api) {
+	private static File fileForApiName(APIName api) {
 		return new File(NodeUtil.nameString(api) + ".fsi");
 	}
 }

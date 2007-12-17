@@ -20,12 +20,12 @@ package com.sun.fortress.nodes_util;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.TcWrapper;
 
-/** 
+/**
  * More tests are needed over NodeFactory. This is a start.
  */
 public class NodeFactoryJUTest extends TcWrapper {
-    public void testMakeDottedName() {
-        DottedName result = NodeFactory.makeDottedName(new Span(), "foobar.fss", "\\.");
+    public void testMakeAPIName() {
+        APIName result = NodeFactory.makeAPIName(new Span(), "foobar.fss", "\\.");
         assertEquals("foobar", result.toString());
     }
 }

@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.Printer;
@@ -301,11 +301,11 @@ class LeafEnv extends CommonEnv {
      * adapted for Fortress.
      */
     
-    protected Environment deDot(DottedName d) {
+    protected Environment deDot(APIName d) {
         return deDot(IterUtil.skipLast(d.getIds()));
     }
     
-    protected String last(DottedName d) {
+    protected String last(APIName d) {
         return IterUtil.last(d.getIds()).getText();
     }
     
@@ -338,16 +338,16 @@ class LeafEnv extends CommonEnv {
 
     /* An Api name is unambiguous. */
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#getApi(com.sun.fortress.interpreter.nodes.DottedName)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#getApi(com.sun.fortress.interpreter.nodes.APIName)
      */
-    public SApi getApiNull(DottedName d) {
+    public SApi getApiNull(APIName d) {
         return deDot(d).getApi(last(d));
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SApi)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putApi(com.sun.fortress.interpreter.nodes.APIName, com.sun.fortress.interpreter.evaluator.scopes.SApi)
      */
-    public void putApi(DottedName d, SApi x) {
+    public void putApi(APIName d, SApi x) {
         deDot(d).putApi(last(d), x);
      }
 
@@ -408,16 +408,16 @@ class LeafEnv extends CommonEnv {
 
     /* An Component name is unambiguous. */
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#getComponent(com.sun.fortress.interpreter.nodes.DottedName)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#getComponent(com.sun.fortress.interpreter.nodes.APIName)
      */
-    public SComponent getComponentNull(DottedName d) {
+    public SComponent getComponentNull(APIName d) {
         return deDot(d).getComponent(last(d));
      }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.DottedName, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
+     * @see com.sun.fortress.interpreter.evaluator.Environment#putComponent(com.sun.fortress.interpreter.nodes.APIName, com.sun.fortress.interpreter.evaluator.scopes.SComponent)
      */
-    public void putComponent(DottedName d, SComponent x) {
+    public void putComponent(APIName d, SComponent x) {
         deDot(d).putComponent(last(d), x);
      }
 

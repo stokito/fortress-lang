@@ -22,7 +22,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.IdName;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -34,7 +34,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
         _parent = parent;
     }
     
-    public Option<DottedName> apiName(DottedName name) {
+    public Option<APIName> apiName(APIName name) {
         return _parent.apiName(name);
     }
     

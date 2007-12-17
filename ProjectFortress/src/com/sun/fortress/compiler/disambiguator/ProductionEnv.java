@@ -31,7 +31,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -78,9 +78,9 @@ public class ProductionEnv {
 		}
 	}
 
-	public Option<DottedName> grammarName(DottedName name) {
-		DottedName api = getApi(name);
-		Option<DottedName> realApi = _typeEnv.apiName(api);
+	public Option<APIName> grammarName(APIName name) {
+		APIName api = getApi(name);
+		Option<APIName> realApi = _typeEnv.apiName(api);
 		Id grammarName = getGrammar(name);
 		GrammarDecl currentGrammar = Option.unwrap(_current.ast());
 		if (currentGrammar.getName().getName().equals(grammarName) &&
@@ -88,17 +88,17 @@ public class ProductionEnv {
 			Collection<Id> ids = new LinkedList<Id>();
 			ids.addAll(Option.unwrap(realApi).getIds());
 			ids.add(grammarName);
-			return Option.some(NodeFactory.makeDottedName(ids));
+			return Option.some(NodeFactory.makeAPIName(ids));
 		}
 		return Option.none();
 	}
 
-	private Id getGrammar(DottedName name) {
+	private Id getGrammar(APIName name) {
 		return name.getIds().get(name.getIds().size()-1);
 	}
 
-	private DottedName getApi(DottedName name) {
-		return NodeFactory.makeDottedName(name.getIds().remove(name.getIds().size()));
+	private APIName getApi(APIName name) {
+		return NodeFactory.makeAPIName(name.getIds().remove(name.getIds().size()));
 	}
 
     /**
@@ -106,7 +106,7 @@ public class ProductionEnv {
      * determine whether a production exists.  Assumes {@code name.getApi().isSome()}.
      */
 	public boolean hasQualifiedProduction(QualifiedIdName name) {
-        DottedName api = getApi(Option.unwrap(name.getApi()));
+        APIName api = getApi(Option.unwrap(name.getApi()));
         IdName gname = NodeFactory.makeIdName(getGrammar(Option.unwrap(name.getApi())));
         QualifiedIdName grammarName = NodeFactory.makeQualifiedIdName(api, gname);
         if (this._typeEnv.hasQualifiedGrammar(grammarName)) {
@@ -144,11 +144,11 @@ public class ProductionEnv {
         return Collections.emptySet();
 	}
 	
-	private QualifiedIdName qualifyProductionName(DottedName api, Id grammarName, IdName productionName) {
+	private QualifiedIdName qualifyProductionName(APIName api, Id grammarName, IdName productionName) {
 		Collection<Id> names = new LinkedList<Id>();
 		names.addAll(api.getIds());
 		names.add(grammarName);
-		DottedName apiGrammar = NodeFactory.makeDottedName(names);
+		APIName apiGrammar = NodeFactory.makeAPIName(names);
 		return NodeFactory.makeQualifiedIdName(apiGrammar, productionName);
 	}
 

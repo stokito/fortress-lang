@@ -31,9 +31,9 @@ import java.util.Map;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.nodes.AliasedDottedName;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdName;
@@ -71,7 +71,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
 	@Override
 	public void forImportApiOnly(ImportApi that) {
-		for (AliasedDottedName apiAlias : that.getApis()) {
+		for (AliasedAPIName apiAlias : that.getApis()) {
 			grammars.add(new GrammarEnv(env.api(apiAlias.getApi()).grammars().values(), this.isTopLevel));
 			getRecursiveImports(apiAlias.getApi());
 		}		
@@ -117,7 +117,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 	/**
 	 * @param that
 	 */
-	private void getRecursiveImports(DottedName api) {
+	private void getRecursiveImports(APIName api) {
 		boolean isTopLevel = this.isTopLevel;
 		this.isTopLevel = false;
 		env.api(api).ast().accept(this);

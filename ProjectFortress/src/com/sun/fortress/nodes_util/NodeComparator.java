@@ -125,7 +125,7 @@ public class NodeComparator {
     }
 
     /* compare methods ***************************************************/
-    public static int compare(DottedName left, DottedName right) {
+    public static int compare(APIName left, APIName right) {
         return ListComparer.stringListComparer.compare(NodeUtil.toStrings(left),
                                                        NodeUtil.toStrings(right));
     }

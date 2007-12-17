@@ -1,5 +1,5 @@
 (Api @"FortressLibrary.fss":18:0~2235:3
- _name=(DottedName @18:10~19:0 _ids=[(Id @18:10~25 _text="FortressLibrary")])
+ _name=(APIName @18:10~19:0 _ids=[(Id @18:10~25 _text="FortressLibrary")])
  _decls=[
   (AbsFnDecl @42:0~77:0
    _contract=(Contract @"":0:0)
@@ -18373,8 +18373,8 @@
          _id=(Id _text="Number"))))])])]
  _imports=[
   (ImportStar @19:7~20:0
-   _api=(DottedName @19:14~20:0 _ids=[(Id @19:14~29 _text="FortressBuiltin")]))
+   _api=(APIName @19:14~20:0 _ids=[(Id @19:14~29 _text="FortressBuiltin")]))
   (ImportStar @20:7~21:0
-   _api=(DottedName @20:14~21:0 _ids=[(Id @20:14~25 _text="NativeArray")]))
+   _api=(APIName @20:14~21:0 _ids=[(Id @20:14~25 _text="NativeArray")]))
   (ImportStar @21:7~23:0
-   _api=(DottedName @21:14~23:0 _ids=[(Id @21:14~26 _text="NativeThread")]))])
+   _api=(APIName @21:14~23:0 _ids=[(Id @21:14~26 _text="NativeThread")]))])

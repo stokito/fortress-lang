@@ -234,20 +234,20 @@ public class ExprFactory {
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
         return new OprExpr(span, false, Collections.singletonList(name),
                            Collections.<Expr>emptyList());
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr arg) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
         return new OprExpr(span, false, Collections.singletonList(name),
                            Collections.singletonList(arg));
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr first,
                                       Expr second) {
-        QualifiedOpName name = new QualifiedOpName(span, Option.<DottedName>none(), op);
+        QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
         return new OprExpr(span, false, Collections.singletonList(name),
                            Arrays.asList(first, second));
     }
@@ -271,7 +271,7 @@ public class ExprFactory {
                          Collections.<StaticArg>emptyList());
     }
 
-    public static FnRef makeFnRef(DottedName api, IdName name) {
+    public static FnRef makeFnRef(APIName api, IdName name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         List<QualifiedIdName> qNames = Collections.singletonList(qName);
         return new FnRef(qName.getSpan(), false, qNames,
@@ -327,7 +327,7 @@ public class ExprFactory {
         return new VarRef(qName.getSpan(), false, qName);
     }
 
-    public static VarRef makeVarRef(DottedName api, IdName name) {
+    public static VarRef makeVarRef(APIName api, IdName name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         return new VarRef(qName.getSpan(), false, qName);
     }

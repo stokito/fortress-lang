@@ -22,7 +22,7 @@ import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.IdName;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.index.GrammarIndex;
@@ -35,7 +35,7 @@ public abstract class TypeNameEnv {
      * the {@code name} object (wrapped as a "some") where possible, rather
      * than a duplication of it.
      */
-    public abstract Option<DottedName> apiName(DottedName name);
+    public abstract Option<APIName> apiName(APIName name);
     
     /** Determine whether a type parameter with the given name is defined. */
     public abstract boolean hasTypeParam(IdName name);
@@ -69,17 +69,17 @@ public abstract class TypeNameEnv {
     /** 
      * Returns a list of implicitly imported APIS.
      */
-    public List<DottedName> implicitlyImportedApis() {
-        List<DottedName> result = new ArrayList<DottedName>();
-        result.add(NodeFactory.makeDottedName("FortressBuiltin"));
-        result.add(NodeFactory.makeDottedName("FortressLibrary"));
+    public List<APIName> implicitlyImportedApis() {
+        List<APIName> result = new ArrayList<APIName>();
+        result.add(NodeFactory.makeAPIName("FortressBuiltin"));
+        result.add(NodeFactory.makeAPIName("FortressLibrary"));
         return result;
     }
     /**
      * Returns true iff the given api is implicitly imported.
      */
-    public boolean isImplicitlyImportedApi(DottedName api) {
-        for (DottedName imported : implicitlyImportedApis()) {
+    public boolean isImplicitlyImportedApi(APIName api) {
+        for (APIName imported : implicitlyImportedApis()) {
             if (api.equals(imported)) {
                 return true;
             }

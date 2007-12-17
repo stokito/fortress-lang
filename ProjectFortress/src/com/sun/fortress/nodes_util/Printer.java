@@ -180,7 +180,7 @@ public class Printer extends NodeReflection {
             AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();
             String clname = cl.getSimpleName();
-            int oneLinerNestingInc = (o instanceof DottedName || o instanceof LiteralExpr ||
+            int oneLinerNestingInc = (o instanceof APIName || o instanceof LiteralExpr ||
                                       o instanceof VarRef || o instanceof Opr) ? 1 : 0;
             oneLinerNesting += oneLinerNestingInc;
 

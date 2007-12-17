@@ -41,8 +41,8 @@ public class NodeUtil {
 
 
     public static Iterable<Id> getIds(final QualifiedIdName qName) {
-        return qName.getApi().apply(new OptionVisitor<DottedName, Iterable<Id>>() {
-            public Iterable<Id> forSome(DottedName apiName) {
+        return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
+            public Iterable<Id> forSome(APIName apiName) {
                 return IterUtil.compose(apiName.getIds(), qName.getName().getId());
             }
             public Iterable<Id> forNone() {
@@ -112,7 +112,7 @@ public class NodeUtil {
     private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
 
-        @Override public String forDottedName(DottedName n) {
+        @Override public String forAPIName(APIName n) {
             return nameString(n);
             }
         @Override public String forQualifiedName(QualifiedName n) {
@@ -146,20 +146,20 @@ public class NodeUtil {
         return n.getOp().getText();
     }
 
-    public static String nameString(DottedName n) {
+    public static String nameString(APIName n) {
         Iterable<String> ns = IterUtil.map(n.getIds(), IdToStringFn);
         return IterUtil.toString(ns, "", ".", "");
     }
 
     public static String nameString(QualifiedName n) {
         final String last = n.getName().accept(nameGetter);
-//        return n.getApi().apply(new OptionVisitor<DottedName, String>() {
-//            public String forSome(DottedName api) {
+//        return n.getApi().apply(new OptionVisitor<APIName, String>() {
+//            public String forSome(APIName api) {
 //                return nameString(api) + "." + last;
 //            }
 //            public String forNone() { return last; }
 //        });
-        Option<DottedName> odn = n.getApi();
+        Option<APIName> odn = n.getApi();
         return odn.isSome() ? nameString(Option.unwrap(odn)) + "." + last : last;
     }
 
@@ -350,8 +350,8 @@ public class NodeUtil {
         public String apply(Name n) { return nameString(n); }
     };
 
-    /* for DottedName ******************************************************/
-    public static List<String> toStrings(DottedName n) {
+    /* for APIName ******************************************************/
+    public static List<String> toStrings(APIName n) {
         return IterUtil.asList(IterUtil.map(n.getIds(), IdToStringFn));
     }
 

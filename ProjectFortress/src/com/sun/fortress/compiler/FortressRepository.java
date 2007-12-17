@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.DottedName;
+import com.sun.fortress.nodes.APIName;
 
 /**
  * Allows the {@link Fortress} class to interface with a custom repository
@@ -35,19 +35,19 @@ public interface FortressRepository {
      * Provide an updating view of the apis present in the repository.
      * Need not support mutation.
      */
-    public Map<DottedName, ApiIndex> apis();
+    public Map<APIName, ApiIndex> apis();
     
-    public void addApi(DottedName name, ApiIndex definition);
+    public void addApi(APIName name, ApiIndex definition);
     
-    public void addComponent(DottedName name, ComponentIndex definition);
+    public void addComponent(APIName name, ComponentIndex definition);
    
-    public ApiIndex getApi(DottedName name) throws FileNotFoundException, IOException;
+    public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException;
     
-    public ComponentIndex getComponent(DottedName name) throws FileNotFoundException, IOException;
+    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException;
     
-    public long getModifiedDateForApi(DottedName name) throws FileNotFoundException ;
+    public long getModifiedDateForApi(APIName name) throws FileNotFoundException ;
     
-    public long getModifiedDateForComponent(DottedName name) throws FileNotFoundException ;
+    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
 
     
 }
