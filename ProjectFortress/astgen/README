@@ -7,6 +7,10 @@
  - AliasedSimpleName
  - AliasedAPIName
  - Export
+ - AbsTraitDecl
+ - TraitDecl
+ - AbsObjectDecl
+ - ObjectDecl
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast

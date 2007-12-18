@@ -180,12 +180,14 @@ private Unpasting Unpasting =
      void:opensquare w UnpastingElems w void:closesquare ;
 
 /* UnpastingElems ::=
-     UnpastingElem
-   | UnpastingElem RectSeparator UnpastingElems
+     UnpastingElem RectSeparator UnpastingElems
+   | UnpastingElem
  */
 private Unpasting UnpastingElems =
      a1:UnpastingElem a2:RectSeparator a3:UnpastingElems
-     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount),a1,a2,a3); }
+     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount),
+                                            a1, a2, a3);
+     }
    / UnpastingElem ;
 
 /* UnpastingElem ::=

@@ -26,10 +26,10 @@ module com.sun.fortress.parser.Spacing(Symbol);
 
 import Symbol;
 
-transient void EndOfFile  = !_  ;
+transient void EndOfFile  = !_ ;
 private String Whitespace = Space / Newline ;
 private String Space      = " " / "\f" / NoNewlineComment ;
-private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment   ;
+private String Newline    = "\r\n" / "\r" / "\n" / NewlineComment ;
 private String Comment    =
      a1:"(*" a2:CommentContents a3:"*)" { yyValue = a1 + a2 + a3; } ;
 private String CommentContents =
@@ -49,7 +49,7 @@ private String NoNewlineComment =
      Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r")
                || yyValue.contains("\n")) };
 
-private String wValue  =
+private String wValue =
    a1s:Whitespace*
    { yyValue = "";
      for (String s : (List<String>)a1s.list()) {
@@ -73,7 +73,7 @@ transient void sr = void:Space+;      // space required
 transient void nl = s void:Newline w ; // required newline in whitespace
 transient void br = nl / s ";" w;      // line break
 
-/* RectSeparator ::= (w ;)+ w /  sr / nl */
+/* RectSeparator ::= (w ;)+ w / sr / nl */
 Integer RectSeparator =
      a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
    / sr                   { yyValue = 1; }
