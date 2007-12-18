@@ -202,8 +202,7 @@ assert(flag: Boolean, failMsg: String): () =
 
 assert(x:Any, y:Any, failMsg: Any...): () =
     if x =/= y then
-        msg = (x " =/= " y "; "
-               failMsg.generate[\String\](StringReduction, fn (x:Any) => "" x))
+        msg = x " =/= " y "; " (BIG STRING failMsg)
         fail(msg)
     end
 
@@ -325,7 +324,7 @@ trait Generator[\E\]
     (** The contains method shouldn't be used directly; programmers
         should use the IN operator instead.  It exists simply to work
         around bugs. **)
-    contains(x:E) = self.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
+    contains(x:E) = BIG OR [y <- self] x=y
 end
 
 (** The following top-level functions are used as glue in the
@@ -772,8 +771,8 @@ trait LexicographicOrder[\T extends LexicographicOrder[\T,E\],E\]
     (** We give a specialized version of = because it can fail faster
         than CMP by checking sizes early. **)
     opr =(self,other:T): Boolean =
-        (self.size() = other.size()) OR:
-          self.zip[\E\](other).generate[\Boolean\](AndReduction, fn(a,b)=>a=b)
+        (self.size() = other.size()) AND:
+          (BIG AND [(a,b)<-self.zip[\E\](other)] a=b)
 end
 
 toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
@@ -1231,8 +1230,7 @@ trait Vector[\T extends Number, nat s0\] extends Array1[\T,0,s0\]
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
     dot(v: Vector[\T,s0\]): T =
-        indexValuePairs().generate[\Number\](SumReduction,
-                                  fn (i:ZZ32, me_i:T):Number => me_i v.get(i))
+        SUM [(i,me_i)<-indexValuePairs()] me_i v.get(i)
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
@@ -1518,14 +1516,12 @@ trait Matrix[\T extends Number, nat s0, nat s1\] extends Array2[\T, 0, s0, 0, s1
       end
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
         row(i:ZZ32):T =
-            v.indexValuePairs().generate[\Number\](SumReduction,
-                                      fn (j:ZZ32, v_j):Number => get(i,j) v_j)
+            SUM[(j,v_j)<-v.indexValuePairs()] get(i,j) v_j
         vector[\T,s0\]().fill(row)
       end
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
         col(i:ZZ32):T =
-            v.indexValuePairs().generate[\Number\](SumReduction,
-                                      fn (j:ZZ32, v_j):Number => v_j get(j,i))
+            SUM[(j,v_j)<-v.indexValuePairs()] v_j get(j,i)
         vector[\T,s1\]().fill(col)
       end
     t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
@@ -1832,18 +1828,58 @@ object SumReduction extends Reduction[\Number\]
     join(a: Number, b: Number): Number = a+b
 end
 
+opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
+    g(SumReduction,cast[\Number\])
+
+object ProdReduction extends Reduction[\Number\]
+    getter toString() = "ProdReduction"
+    empty(): Number = 1
+    join(a:Number, b:Number): Number = a b
+end
+
+opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number =
+    g(ProdReduction,cast[\Number\])
+
+object NoMin extends UncheckedException end
+
 (* Hack to permit both Numbers and TotalOrders to work. *)
 object MinReduction extends Reduction[\Any\]
     getter toString() = "MinReduction"
-    empty(): Any = 0
-    join(a: Any, b: Any): Any = a MIN b
+    empty(): Any = NoMin
+    join(a: Any, b: Any): Any =
+        typecase _ = (a,b) of
+            (NoMin,Any) => b
+            (Any,NoMin) => a
+            else => a MIN b
+        end
 end
+
+(* Again, type information is notoriously non-specific to permit
+   either TotalOrder or Number types. *)
+opr BIG MIN(g:(Reduction[\Any\],Any->Any)->Any): Any =
+    typecase x = g(MinReduction,identity[\Any\]) of
+        NoMin => throw x
+        else => x
+    end
+
+object NoMax extends UncheckedException end
 
 object MaxReduction extends Reduction[\Any\]
     getter toString() = "MaxReduction"
-    empty(): Any = 0
-    join(a: Any, b: Any): Any = a MAX b
+    empty(): Any = NoMax
+    join(a: Any, b: Any): Any =
+        typecase _ = (a,b) of
+            (NoMax,Any) => b
+            (Any,NoMax) => a
+            else => a MAX b
+        end
 end
+
+opr BIG MAX(g:(Reduction[\Any\],Any->Any)->Any): Any =
+    typecase x = g(MaxReduction,identity[\Any\]) of
+        NoMax => throw x
+        else => x
+    end
 
 (** TODO: AndReduction and OrReduction have natural zeros, and could
  *  take advantage of early exit.
@@ -1859,17 +1895,40 @@ object AndReduction extends Reduction[\Boolean\]
     join(a: Boolean, b: Boolean): Boolean = a AND b
 end
 
+opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
+    label MustBe
+        f(x): Boolean =
+            typecase x of
+                Boolean => if x then true else exit MustBe with false end
+                else => fail("BIG AND of non-boolean")
+            end
+        g(AndReduction, f)
+    end MustBe
+
 object OrReduction extends Reduction[\Boolean\]
     getter toString() = "OrReduction"
     empty(): Boolean = false
     join(a: Boolean, b: Boolean): Boolean = a OR b
 end
 
+opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean =
+    label MustBe
+        f(x): Boolean =
+            typecase x of
+                Boolean => if x then exit MustBe with true else false end
+                else => fail("BIG OR of non-boolean")
+            end
+        g(OrReduction, f)
+    end MustBe
+
 object StringReduction extends Reduction[\String\]
     getter toString() = "StringReduction"
     empty(): Boolean = ""
     join(a:String, b:String): String = a b
 end
+
+opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String =
+    g(StringReduction, fn (x:Any)=> "" x)
 
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends Reduction[\R\]
     getter toString()="mapReduce.Reduction"

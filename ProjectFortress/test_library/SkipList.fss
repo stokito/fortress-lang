@@ -178,8 +178,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   getter keys():Array[\Key,ZZ32\]
   getter children():Array[\ChildType,ZZ32\]
 
-  getter size():ZZ32 = children.generate[\Number\](SumReduction,
-                                        fn (node:Node[\Key,Val\]):Number => node.size())
+  getter size():ZZ32 = SUM [node <- children] node.size()
 
   getter height():ZZ32 = children[0].height() + 1
 

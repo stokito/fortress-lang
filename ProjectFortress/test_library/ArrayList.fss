@@ -98,8 +98,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     toString():String =
       "<|" extractLeft().maybe[\String\](
                fn () => " ",
-               fn (h,t) => h t.generate[\String\](StringReduction,
-                                                     fn (e:E) => ", " e)) "|>"
+               fn (h,t) => h (BIG STRING [e<-t] ", " e)) "|>"
     concatMap[\G\](f: E->List[\G\]): List[\G\] =
         generate[\List[\G\]\](Concat[\G\](),f)
     map[\G\](f: E->G): List[\G\] =

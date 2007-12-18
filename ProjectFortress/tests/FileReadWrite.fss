@@ -45,7 +45,7 @@ genTest(s:String, inter:String, gen: ReadStream -> Generator[\String\],
         desc: String) = do
     println("************************* par " desc)
     rs = FileReadStream("testFile.txt")
-    res = gen(rs).generate[\String\](StringReduction, fn (l) => l inter)
+    res = BIG STRING [l<-gen(rs)] l inter
     rs.close()
     same(s,res,"Generated using ",desc)
     println("************************* seq " desc)

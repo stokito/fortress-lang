@@ -22,7 +22,7 @@ export Executable
 run(args:String...):()= do
     typecase (x = "test") of
       String => row(i: ZZ32):() = ()
-                println("String (PASS)")
+                println(x ": String (PASS)")
       else => println("FAIL")
     end
   end

@@ -18,8 +18,10 @@
 component simpleSum
 export Executable
 
+(* Now a library function
 opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =
     g(SumReduction,cast[\Number\])
+*)
 
 run(args:String...):() = do
     s0 = SUM [x<-0#10] x

@@ -20,7 +20,7 @@ export Executable
 
 
 foo(y:ZZ32, z:ZZ32, x:ZZ32...) =
-    y + z + x.generate[\Number\](SumReduction,identity[\Number\])
+    y + z + (SUM x)
 
 foo(y:ZZ32) = y
 
