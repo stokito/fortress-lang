@@ -377,7 +377,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
-    <target name="test" depends="testSystem"
+    <target name="test" depends="compile"
             description="Run all unit and system tests expected to pass.">
         <mkdir dir="${test.results}"/>
         <junit printsummary="on"
@@ -398,7 +398,6 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
-                    <exclude name="**/SystemJUTests.class"/>
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
