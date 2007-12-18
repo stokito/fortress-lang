@@ -44,27 +44,24 @@ import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
 public class Reflect extends Constructor {
-    static volatile GenericConstructor gcon = null;
+    static GenericConstructor gcon = null;
 
     volatile ReflectedType it;
 
     public Reflect(BetterEnv env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
-        if (gcon==null) {
-            GenericConstructor gc = (GenericConstructor)env.getValue("Reflect");
-            synchronized(getClass()) {
-                if (gcon==null) {
-                    gcon = gc;
-                }
-            }
-        }
+        gcon = (GenericConstructor)env.getValue("Reflect");
     }
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
+        FType t = self_env.getType("T");
+        System.out.println("Trying to make a Reflect at "+t);
         if (it==null) {
+            System.out.println("None yet, attempting to allocate.");
             synchronized(this) {
                 if (it==null) {
                     it = new ReflectedType(selfType, self_env);
+                    System.out.println("Set it for Reflect "+t);
                 }
             }
         }
