@@ -328,14 +328,32 @@ trait Generator[\E\]
     contains(x:E) = self.generate[\Boolean\](OrReduction, fn (y:E)=> x=y)
 end
 
+(** The following top-level functions are used as glue in the
+    desugaring of generated expressions (comprehensions, BIG
+    operators, and loops).  They exist at the top level in part to
+    work around shortcomings in the ablity of the Fortress interpreter
+    to check types dynamically for anything except top-level
+    non-overloaded function calls. **)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
     g.generate[\R\](r,b)
 
-__reduce[\E,R\](g:Generator[\E\], r:Reduction[\R\]): R =
-    g.generate[\R\](r,cast[\R\])
-
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\] =
-    g.nest[\E2\](g,f)
+    g.nest[\E2\](f)
+
+__singleton[\E\](body:E): Generator[\E\] = Just[\E\](body)
+
+__loop[\E,R\](g:Generator[\E\], body:E->R): () = g.loop(body)
+
+(** Unlike the user-visible dotted map method, this method is used for
+    the internals of comprehension desugaring.  As a result we know
+    that its result will immediately be consumed, and we should *not*
+    create an intermediate collection if we're passed a
+    collection. **)
+__map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
+    typecase g of
+        SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g,f)
+        else => SimpleMappedGenerator[\E,R\](g,f)
+    end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self) = self

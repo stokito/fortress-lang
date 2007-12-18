@@ -226,7 +226,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     error(loc, env,
                           errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
-                                   " parameter ", i, " (",
+                                   " param ", i, " (",
                                    param.getName(), ":",
                                    paramType, ") got type ",
                                    arg.type(), " with arg ", arg));

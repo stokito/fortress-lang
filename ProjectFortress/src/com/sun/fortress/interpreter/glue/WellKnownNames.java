@@ -32,8 +32,12 @@ public class WellKnownNames {
     public static String arrayGetter = "get";
     public static String arrayPutter = "init";
 
-    public static String loopMethod = "loop";
+    public static String loop = "loop";
     public static String generate = "__generate";
+    public static String nest = "__nest";
+    public static String map = "__map";
+    public static String singleton = "__singleton";
+
     public static String generatorCross = "cross";
 
     public static String forbiddenException = "ForbiddenException";

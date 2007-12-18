@@ -303,6 +303,10 @@ public class ExprFactory {
         return new VarRef(span, false, NodeFactory.makeQualifiedIdName(span, s));
     }
 
+    public static VarRef makeVarRef(String s) {
+        return makeVarRef(NodeFactory.makeIdName(s));
+    }
+
     public static VarRef makeVarRef(Id id) {
         return new VarRef(id.getSpan(), false, NodeFactory.makeQualifiedIdName(id));
     }

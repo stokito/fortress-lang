@@ -293,9 +293,9 @@ end
    reduction desugaring. *)
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
 
-__reduce[\E,R\](g:Generator[\E\], r:Reduction[\R\]): R
-
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
+
+__map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\]
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     seq(self)
