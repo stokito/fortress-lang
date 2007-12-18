@@ -71,9 +71,7 @@ run(args:String...):() = do
   start = nanoTime()
   (* Cause mild stress *)
   testLens : List[\ZZ32\] = <|0,1,2,3,7,10,25,75,175,900|>
-  assert(1198,
-         testLens.generate[\Number\](SumReduction,identity[\Number\]),
-         "sum wrong")
+  assert(1198,SUM testLens,"sum wrong")
   for i <- seq(testLens) do
       print("\n" i ":")
       li = list(0#i)
@@ -118,9 +116,7 @@ run(args:String...):() = do
           chkPop(li.append(lj),i+j)
           gz = li.zip[\ZZ32\](lj)
           assert(gz.size(),li.size() MIN lj.size(), "zip size wrong")
-          assertStr(gz.generate[\Boolean\](AndReduction,
-                                           fn (x,y):Boolean => x+i=y),
-                    "zip mismatch ",li,lj)
+          assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
       end
   end
   finish = nanoTime()

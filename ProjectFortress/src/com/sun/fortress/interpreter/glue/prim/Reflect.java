@@ -55,13 +55,10 @@ public class Reflect extends Constructor {
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
         FType t = self_env.getType("T");
-        System.out.println("Trying to make a Reflect at "+t);
         if (it==null) {
-            System.out.println("None yet, attempting to allocate.");
             synchronized(this) {
                 if (it==null) {
                     it = new ReflectedType(selfType, self_env);
-                    System.out.println("Set it for Reflect "+t);
                 }
             }
         }

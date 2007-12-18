@@ -128,7 +128,7 @@ cvJoin[\T,U\](l:CovariantCollection[\T\], r:CovariantCollection[\U\]):
 cvj[\T,U,V\](
     t: Reflect[\T\], l:CovariantCollection[\U\],
                      r:CovariantCollection[\V\]): CovariantCollection[\T\] = do
-    println("cvj " Reflect[\U\]() "&" Reflect[\V\]() " => " t)
+    (* println("cvj " Reflect[\U\]() "&" Reflect[\V\]() " => " t) *)
     CVJoin[\T,U,V\](l,r)
   end
 

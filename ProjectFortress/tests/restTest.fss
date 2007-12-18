@@ -18,9 +18,7 @@
 component restTest
 export Executable
 
-foo(x:ZZ32...) =
-  x.generate[\Number\](SumReduction,identity[\Number\])
-
+foo(x:ZZ32...) = SUM x
 
 run(args:String...):() = do
    assert(foo(1,2,3,4,5),15,"foo(1,2,3,4,5)")

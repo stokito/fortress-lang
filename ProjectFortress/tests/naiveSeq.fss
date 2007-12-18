@@ -48,7 +48,7 @@ run(args:String...):() = do
     for i <- seq(r1) do
       s2 += i
     end
-    s1 = r1.generate[\Number\](SumReduction,cast[\Number\])
+    s1 = SUM r1
     tst(s1,s2,"sum")
     tst(s1,66,"actualSum")
     v : ZZ32 := 0

@@ -71,8 +71,7 @@ run(args:String...):() = do
   start = nanoTime()
   (* The sizes which turned up bugs *)
   testLens : List[\ZZ32\] = <|0,1,2,7,10|>
-  assert(20,testLens.generate[\Number\](SumReduction,identity[\Number\]),
-         "sum wrong")
+  assert(20,SUM testLens,"sum wrong")
   for i <- seq(testLens) do
       print("\n" i ":")
       li = list(0#i)
@@ -128,9 +127,7 @@ run(args:String...):() = do
           print(".")
           gz = li.zip[\ZZ32\](lj)
           assert(gz.size(),li.size() MIN lj.size(), "zip size wrong")
-          assertStr(gz.generate[\Boolean\](AndReduction,
-                                           fn (x,y):Boolean => x+i=y),
-                    "zip mismatch ",li,lj)
+          assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
           print(".")
           assertStr(j=0 OR: li < lj, " NOT < ", lj)
       end

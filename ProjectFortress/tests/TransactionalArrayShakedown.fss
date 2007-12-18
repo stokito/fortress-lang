@@ -36,7 +36,7 @@ job2(a:Array[\ZZ32,ZZ32\]):() = do
         else
             fail(i " !!! " v)
         end
-    pre = a.indexValuePairs().generate[\Number\](SumReduction, body)
+    pre = SUM [(i,v)<-a.indexValuePairs()] body(i,v)
     println(pre " pre and " (1000-pre) " post")
   end
 

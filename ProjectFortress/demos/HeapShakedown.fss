@@ -17,7 +17,7 @@
 
 component HeapShakedown
 import Heap.{...}
-import api ArrayList
+import ArrayList.{...}
 export Executable
 
 appending[\T\](xs: List[\T\]...): List[\T\] =
@@ -35,10 +35,8 @@ showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
         end
     end
     println(
-        headers.indexValuePairs().generate[\String\](StringReduction,
-            fn (i:ZZ32, l:String): String =>
-                "\n" l data.generate[\String\](StringReduction,
-                           fn (row: List[\RR64\]):String => "," row[i])))
+        BIG STRING [(i,l) <- headers.indexValuePairs()]
+            "\n" l (BIG STRING [row <- data] "," row[i]))
   end
 
 checkFull[\H extends Heap[\ZZ32,ZZ32\]\](h0: H, n:ZZ32): () =

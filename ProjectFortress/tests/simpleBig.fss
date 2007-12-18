@@ -20,7 +20,7 @@ import ArrayList.{...}
 import CovariantCollection.{...}
 export Executable
 
-opr BIG +[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =
+opr BIG STAR[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =
     g(SumReduction,cast[\Number\])
 
 opr [\T,U\]BIG <|g:(Reduction[\SomeCovariantCollection\],T->SomeCovariantCollection)->SomeCovariantCollection|>: List[\U\] =
@@ -38,34 +38,34 @@ run(args:String...):() = do
     p7 : List[\RR64\] = <| body(x + y) | x <- 1#10, y<-0#x |>
     println(p7)
 
-    p0 = BIG + [x<-0#10] x
+    p0 = BIG STAR [x<-0#10] x
     println(p0)
-    assert(p0,45,"BIG + [x<-0#10] x")
+    assert(p0,45,"BIG STAR [x<-0#10] x")
 
-    p1 = BIG + [x<-0#10] 2 x + 1
+    p1 = BIG STAR [x<-0#10] 2 x + 1
     println(p1)
-    assert(p1,100,"BIG + [x <- 0#10] 2x+1")
+    assert(p1,100,"BIG STAR [x <- 0#10] 2x+1")
 
-    p2 = BIG + (0#10)
+    p2 = BIG STAR (0#10)
     println(p2)
-    assert(p2,45,"BIG + (0#10)")
+    assert(p2,45,"BIG STAR (0#10)")
 
-    p3 = BIG + (5#0)
+    p3 = BIG STAR (5#0)
     println(p3)
-    assert(p3,0,"BIG + (5#0)")
+    assert(p3,0,"BIG STAR (5#0)")
 
-    p4 = BIG + [x<-0#10] body(3 x + 1)
+    p4 = BIG STAR [x<-0#10] body(3 x + 1)
     println(p4)
-    assert(p4,145.0,"BIG + [x<-0#10] body(3x+1)")
+    assert(p4,145.0,"BIG STAR [x<-0#10] body(3x+1)")
 
     s : ZZ32 := 0
     s += x + y, x <- seq(1#10), y <- seq(1#x)
     println(s)
     assert(s,605,"loop x,y")
 
-    p5 = BIG + [x<-1#10, y<-1#x] (x+y)
+    p5 = BIG STAR [x<-1#10, y<-1#x] (x+y)
     println(p5)
-    assert(p5,605,"BIG + [x<-1#10, y<-1#x] (x+y)")
+    assert(p5,605,"BIG STAR [x<-1#10, y<-1#x] (x+y)")
 
   end
 

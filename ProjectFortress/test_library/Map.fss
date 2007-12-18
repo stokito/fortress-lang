@@ -61,8 +61,7 @@ mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\] =
     g.generate[\TreeMap[\Key,Val\]\](MapUnion[\Key,Val\](), singleton[\Key,Val\])
 
 opr [\Key,Val\]{ pairs:(Key,Val)... }: TreeMap[\Key,Val\] =
-  (0#pairs.size()).generate[\TreeMap[\Key,Val\]\](MapUnion[\Key,Val\](),
-         fn (i:ZZ32):TreeMap[\Key,Val\] => singleton[\Key,Val\](pairs.get(i)))
+    mapping[\Key,Val\](pairs)
 
 object SeqMapGenerator[\Key,Val\](o:TreeMap[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]
@@ -153,8 +152,7 @@ object NodeMap[\Key,Val\](pair:(Key,Val), left:TreeMap[\Key,Val\],
     (two, delmin) = removeMinimum()
     (km, vm) = two
     ("{" km "|->" vm
-         delmin.generate[\String\](StringReduction,
-                            fn (k:Key, v:Val):String=> ", " k "|->" v) "}")
+         (BIG STRING[(k,v)<-delmin] ", " k "|->" v) "}")
   end
 
   member(x:Key): Maybe[\Val\] =

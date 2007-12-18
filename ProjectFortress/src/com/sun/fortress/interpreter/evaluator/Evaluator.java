@@ -1409,8 +1409,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Option<Block> el = x.getElseClause();
         if (el.isSome()) {
             Block elseClauses = Option.unwrap(el);
-            // TODO really ought to have a node, with a location, for this list
-            result = forBlock(elseClauses);
+            result = evalExprList(elseClauses.getExprs(), elseClauses, ev);
             return result;
         } else {
             throw new MatchFailure();

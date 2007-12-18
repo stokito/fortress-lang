@@ -20,7 +20,7 @@ export Executable
 
 run(args:String...):()=do
    typecase x = "One Two Three " of
-      String => print("pass ")
+      String => print("pass " x)
       ZZ32 => print("FAIL ")
       else => print("FAIL ")
    end
@@ -28,26 +28,26 @@ run(args:String...):()=do
    typecase x = 3.1415 of
       String => print("FAIL ")
       ZZ32 => print("FAIL ")
-      Number => print("pass ")
+      Number => print("pass " x)
    end
 
    typecase (a = 1, b = 3.1415, c = "Hurrah") of
     (Number, Number, Number) => print("FAIL ")
-    (Number, Number, String) => print("pass ")
+    (Number, Number, String) => print("pass " a "," b "," c)
    end
 
    (* Check that typecase returns a value! *)
    q = typecase x = 3.1415 of
          String => "FAIL "
          ZZ32 => "FAIL "
-         else => "pass "
+         else => "pass " x
        end
    print(q)
 
    (* From a clause, too. *)
    p = typecase x = 5 of
           String => "FAIL"
-          ZZ32 => "pass"
+          ZZ32 => "pass" x
           else => "FAIL"
        end
    println(p)
