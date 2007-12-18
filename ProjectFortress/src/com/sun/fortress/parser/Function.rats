@@ -18,8 +18,8 @@
 /*
  * Definition of Fortress function declarations.
  */
-module com.sun.fortress.parser.Function(Param, Header, Type, NoNewlineExpr, Identifier, Keyword, Symbol,
-                Spacing);
+module com.sun.fortress.parser.Function(Param, Header, Type, NoNewlineExpr,
+                                        Identifier, Keyword, Symbol, Spacing);
 
 import Param;
 import Header;
@@ -31,11 +31,12 @@ import Symbol;
 import Spacing;
 
 /* FnDecl ::=
-   FnMods? FnHeaderFront FnHeaderClause (w = w NoNewlineExpr)?
- | FnSig
+     FnMods? FnHeaderFront FnHeaderClause (w = w NoNewlineExpr)?
+   | FnSig
  */
 Decl FnDecl =
-     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause a4:(w void:equals w NoNewlineExpr)?
+     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause
+     a4:(w void:equals w NoNewlineExpr)?
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        Span span = createSpan(yyStart,yyCount);
        if (a4 == null) yyValue = FortressUtil.mkAbsFnDecl(span, a1, a2, a3);
@@ -52,7 +53,7 @@ AbsFnDecl FnSig =
        a2.getDomain().accept(new NodeAbstractVisitor_void() {
            public void forType(Type that) {
                IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
-               params.add(NodeFactory.makeParam(that.getSpan(), mods, name, that));
+               params.add(NodeFactory.makeParam(that.getSpan(),mods,name,that));
            }
            public void forVarargsType(VarargsType that) {
                IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
@@ -61,8 +62,10 @@ AbsFnDecl FnSig =
            }
            public void forTupleType(TupleType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
-               if (that.getVarargs().isSome()) { Option.unwrap(that.getVarargs()).accept(this); }
-               assert(that.getKeywords().isEmpty()): "Keyword parameters present in a FnSig: " + that;
+               if (that.getVarargs().isSome())
+                   Option.unwrap(that.getVarargs()).accept(this);
+               assert(that.getKeywords().isEmpty()): "Keyword parameters present"
+                                                     + " in a FnSig: " + that;
            }
            public void defaultCase(Node that) {
                bug(errorMsg("Node expected to be a Type; was: ", that));
