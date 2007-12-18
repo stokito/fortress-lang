@@ -11,6 +11,15 @@
  - TraitDecl
  - AbsObjectDecl
  - ObjectDecl
+ - AbsVarDecl
+ - VarDecl
+ - LValueBind
+ - UnpastingBind        : NYI
+ - UnpastingSplit       : NYI
+ - AbsFnDecl
+ - FnDef
+ - NormalParam
+ - VarargsParam
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast

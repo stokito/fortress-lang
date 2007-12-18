@@ -19,8 +19,8 @@
  * Definition of Fortress dimension, unit, type alias, test, property, and
  * external syntax declarations.
  */
-module com.sun.fortress.parser.OtherDecl(Param, Header, Type, NoNewlineExpr, Identifier, Keyword,
-                 Symbol, Spacing);
+module com.sun.fortress.parser.OtherDecl(Param, Header, Type, NoNewlineExpr,
+                                         Identifier, Keyword, Symbol, Spacing);
 
 import Param;
 import Header;
@@ -72,19 +72,21 @@ DimUnitDecl DimUnitDecl =
 /* TypeAlias ::= type w Id (w StaticParams)? w = w Type */
 TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:Type
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new TypeAlias(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1),
-                               a2, a3);
+       yyValue = new TypeAlias(createSpan(yyStart,yyCount),
+                               NodeFactory.makeIdName(a1), a2, a3);
      };
 
 /* TestDecl ::= test w Id w [ w GeneratorList w ] w = w NoNewlineExpr */
 TestDecl TestDecl =
      test w a1:Id w opensquare w a2:GeneratorList w closesquare w equals w
      a3:NoNewlineExpr
-     { yyValue = new TestDecl(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1),
-                              a2, a3);
+     { yyValue = new TestDecl(createSpan(yyStart,yyCount),
+                              NodeFactory.makeIdName(a1), a2, a3);
      };
 
-/* PropertyDecl ::= property (w Id w =)? (w FORALL w ValParam)? w NoNewlineExpr */
+/* PropertyDecl ::=
+     property (w Id w =)? (w FORALL w ValParam)? w NoNewlineExpr
+ */
 PropertyDecl PropertyDecl =
      property a1:(w Id w void:equals)? a2:(w FORALL w ValParam)? w
      a3:NoNewlineExpr

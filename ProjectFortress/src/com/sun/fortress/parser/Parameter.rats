@@ -53,7 +53,7 @@ List<Param> Params =
      }
    / a1s:(Param w comma w)* a2:Varargs
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list(), a2); }
-   /  a1:Param a2s:(w comma w Param)*
+   / a1:Param a2s:(w comma w Param)*
      { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
 
 /* Varargs ::= BindId w : w Type w ... */
@@ -84,7 +84,7 @@ NormalParam Param = PlainParam ;
      opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser)
    | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
-   | opr (w BIG)? w (Op | caret | Encloser) (w StaticParams)? w ValParam
+   | opr (w BIG)? w (Op | ^ | Encloser) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
      <Enclosing>

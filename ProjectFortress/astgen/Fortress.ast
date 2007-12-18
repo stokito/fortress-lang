@@ -373,18 +373,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              String selfName = NodeUtil.defaultSelfName)
                             implements Applicable, GenericDecl;
         /**
-         * functional declaration in APIs
+         * functional declaration in components or APIs
          * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
          *             | FnSig
-         * FnSig ::= Name : ArrowType
-         * FnHeaderFront ::= Id StaticParams? ValParam
+         * FnSig ::= SimpleName : ArrowType
+         * FnHeaderFront ::= NamedFnHeaderFront
          *                 | OpHeaderFront
-         * OpHeaderFront ::= opr StaticParams? (LeftEncloser | Encloser) Params
-         *                     (RightEncloser | Encloser)
-         *                     (:= ( SubscriptAssignParam ))?
-         *                 | opr StaticParams? ValParam Op
-         *                 | opr (Op | ExponentOp | Encloser) StaticParams? ValParam
-         * SubscriptAssignParam ::= Varargs | Param
+         * NamedFnHeaderFront ::= Id StaticParams? ValParam
+         * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
+         *                     Params (RightEncloser | Encloser)
+         *                 | opr StaticParams? ValParam (Op | ExponentOp)
+         *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
          * FnHeaderClause ::= IsType? FnClauses
          * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
          *          | FnSig
@@ -407,21 +406,20 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
                    IdName name);
         /**
-         * ValParam := Id
-         *           | (Params?)
+         * ValParam := BindId
+         *           | ( Params? )
          * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
          *          | (Param, )* Varargs
          *          | Param(, Param)*
-         *
          * Keyword ::= Param = Expr
-         * PlainParam ::= Id IsType?
-         *              | Type
+         * Param ::= BindId IsType?
+         *         | Type
          */
         NormalParam(Option<Type> type = Option.<Type>none(),
                     Option<Expr> defaultExpr = Option.<Expr>none());
         /**
          * varargs parameter
-         * VarargsParam ::= Id : Type ...
+         * Varargs ::= BindId : Type ...
          */
         VarargsParam(VarargsType varargsType);
     /**
@@ -445,10 +443,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                implements Decl, AbsDecl;
     /**
      * test declaration
-     * TestDecl ::= test Id [GeneratorList] = Expr
+     * TestDecl ::= test Id [ GeneratorList ] = Expr
      * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
      */
-    TestDecl(IdName name, List<Generator> gens, Expr expr) implements Decl, AbsDecl;
+    TestDecl(IdName name, List<Generator> gens, Expr expr)
+            implements Decl, AbsDecl;
     /**
      * property declaration
      * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
@@ -466,9 +465,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * syntax expanders declaration in APIs
          * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
          * OpenExpander ::= Id
-         *                | LeftEncloser
+         *                | (LeftEncloser / Encloser)
          * CloseExpander ::= Id
-         *                 | RightEncloser
+         *                 | (RightEncloser / Encloser)
          *                 | end
          * e.g.) syntax sql e end
          */
@@ -482,7 +481,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * grammar declaration
      */
-    abstract GrammarDecl(QualifiedIdName name, List<QualifiedIdName> extends) implements AbsDecl;
+    abstract GrammarDecl(QualifiedIdName name, List<QualifiedIdName> extends)
+                        implements AbsDecl;
         /**
          * grammar definition in grammar declarations
          */
@@ -490,7 +490,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * production declaration
      */
-    abstract ProductionDecl(Option<? extends Modifier> modifier, QualifiedIdName name, TraitType type, Option<QualifiedIdName> extends) implements AbsDecl;
+    abstract ProductionDecl(Option<? extends Modifier> modifier,
+                            QualifiedIdName name, TraitType type,
+                            Option<QualifiedIdName> extends) implements AbsDecl;
         /**
          * production definition in production declarations
          */
@@ -502,7 +504,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * syntax definition in syntax declarations
          */
-        SyntaxDef(List<SyntaxSymbol> syntaxSymbols, Expr transformationExpression);
+        SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
+                  Expr transformationExpression);
     /**
       * syntax symbol
       */
