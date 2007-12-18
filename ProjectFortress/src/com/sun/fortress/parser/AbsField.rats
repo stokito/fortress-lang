@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress abstract field declarations.
  */
-module com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier, Spacing);
+module com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier,
+                                        Spacing);
 
 modify Variable;
 import Header;
@@ -27,13 +28,9 @@ import Identifier;
 import Spacing;
 
 /* AbsFldDecl ::=
-     AbsFldMods? AbsFldWTypes
-   | AbsFldMods? BindIdOrBindIdTuple w : w Type...
+     AbsFldMods? FldWTypes
+   | AbsFldMods? BindIdOrBindIdTuple w : w Type w ...
    | AbsFldMods? BindIdOrBindIdTuple w : w SimpleTupleType
-   AbsFldWTypes ::=
-     AbsFldWType
-   | ( w AbsFldWType (w , w AbsFldWType)+ w )
-   AbsFldWType ::= BindId w IsType
  */
 AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
@@ -41,9 +38,10 @@ List<Modifier> VarMods := AbsFldMods ;
 
 /* ApiFldDecl ::= ApiFldMods? BindId w IsType */
 AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:BindId w a3:IsType
-     { List<LValueBind> lhs;
+     { LValueBind lhs;
        if (a1 == null)
-            lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3));
-       else lhs = FortressUtil.mkList((LValueBind)FortressUtil.mkLValueBind(a2, a3, a1));
-       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lhs);
+            lhs = (LValueBind)FortressUtil.mkLValueBind(a2, a3);
+       else lhs = (LValueBind)FortressUtil.mkLValueBind(a2, a3, a1);
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount),
+                                FortressUtil.mkList(lhs));
      };

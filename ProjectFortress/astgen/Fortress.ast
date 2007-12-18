@@ -204,7 +204,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * trait declaration in APIs
              * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
              *                  AbsGoInATrait? end
-             * TraitHeaderFront ::= trait Id StaticParams? Extends?
+             * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
              * AbsTraitClause ::= Excludes | AbsComprises | Where
              * Extends ::= extends TraitTypes
              * Excludes ::= excludes TraitTypes
@@ -214,6 +214,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                      | TraitType(, TraitType)*(, ...)?
              * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
              *                 | AbsCoercions? AbsGoBackInATrait
+             *                 | AbsCoercions
              * AbsGoesFrontInATrait ::= ApiFldDecl
              *                        | AbsGetterSetterDecl
              *                        | PropertyDecl
@@ -227,11 +228,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * trait declaration in components
              * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
-             *                 end
+             *               end
              * TraitClause ::= Excludes | Comprises | Where
              * Comprises ::= comprises TraitTypes
              * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
              *              | Coercions? GoBackInATrait
+             *              | Coercions
              * GoesFrontInATrait ::= AbsFldDecl
              *                     | GetterSetterDecl
              *                     | PropertyDecl
@@ -255,8 +257,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * object declaration in APIs
              * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
-             * ObjectHeader ::= object Id StaticParams? ObjectValParam? Extends?
-             *                  FnClauses
+             * ObjectHeader ::= object Id StaticParams? ObjectValParam?
+             *                  ExtendsWhere? FnClauses
              * FnClauses ::= Throws? Where? Contract
              * Throws ::= throws MayTraitTypes
              * ObjectValParam ::= ( ObjectParams? )
@@ -269,6 +271,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *               | transient Param
              * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
              *                   | AbsCoercions? AbsGoBackInAnObject
+             *                   | AbsCoercions
              * AbsGoesFrontInAnObject ::= ApiFldDecl
              *                          | AbsGetterSetterDecl
              *                          | PropertyDecl
@@ -282,10 +285,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
              * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
              *                | Coercions? GoBackInAnObject
+             *                | Coercions
              * GoesFrontInAnObject ::= FldDecl
              *                       | GetterSetterDecl
              *                       | PropertyDecl
-             * GoesBackInAnObject ::= MdDecl
+             * GoesBackInAnObject ::= MdDef
              *                      | PropertyDecl
              * e.g.) object Empty[\alph\]() extends List[\alpha\]
              *         length() = 0
@@ -300,19 +304,22 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * variable declaration in APIs
          * AbsVarDecl ::= AbsVarMods? VarWTypes
-         *              | AbsVarMods? IdOrIdTuple : Type ...
-         *              | AbsVarMods? IdOrIdTuple : SimpleTupleType
+         *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
+         *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
          * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
-         * VarWType ::= Id IsType
+         * VarWType ::= BindId IsType
+         * BindIdOrBindIdTuple ::= BindId
+         *                       | ( BindId , BindIdList )
+         * BindId ::= Id | _
          * e.g.) var (x, y): ZZ64...
          */
         AbsVarDecl() implements AbsDecl, Decl;
         /**
          * variable declaration in components
          * VarDecl ::= VarMods? VarWTypes InitVal
-         *           | VarMods? IdOrIdTuple = Expr
-         *           | VarMods? IdOrIdTuple : Type ... InitVal
-         *           | VarMods? IdOrIdTuple : SimpleTupleType InitVal
+         *           | VarMods? BindIdOrBindIdTuple = Expr
+         *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
+         *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
          * InitVal ::= (= | :=) Expr
          * e.g.) var (x, y): ZZ64... = (5, 6)
          */
@@ -334,7 +341,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract Unpasting();
             /**
              * simple unpasting
-             * UnpastingElem ::= Id ([ UnpastingDim ])?
+             * UnpastingElem ::= BindId ([ UnpastingDim ])?
              *                 | Unpasting
              * UnpastingDim ::= ExtentRange (BY ExtentRange)+
              * e.g.) squareShape[m BY m]

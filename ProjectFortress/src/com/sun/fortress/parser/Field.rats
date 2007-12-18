@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress field declarations.
  */
-module com.sun.fortress.parser.Field(Variable, Header, Type, Identifier, Spacing);
+module com.sun.fortress.parser.Field(Variable, Header, Type, Identifier,
+                                     Spacing);
 
 modify Variable;
 import Header;
