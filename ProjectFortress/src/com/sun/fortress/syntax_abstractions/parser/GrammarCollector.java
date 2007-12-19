@@ -30,7 +30,7 @@ import java.util.List;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeUpdateVisitor;

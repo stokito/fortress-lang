@@ -78,7 +78,7 @@ import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
@@ -164,8 +164,8 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  */
 public class Desugarer extends Rewrite {
 
-    public final static IdName LOOP_NAME =
-        NodeFactory.makeIdName(WellKnownNames.loop);
+    public final static Id LOOP_NAME =
+        NodeFactory.makeId(WellKnownNames.loop);
 
     public final static VarRef GENERATE_NAME =
         ExprFactory.makeVarRef(WellKnownNames.generate);
@@ -208,7 +208,7 @@ public class Desugarer extends Rewrite {
     }
 
 
-    static IdName filterQID(QualifiedIdName qid) {
+    static Id filterQID(QualifiedIdName qid) {
         if (qid.getApi().isNone())
             return qid.getName();
         return bug("Not yet prepared for QIDsref'd through self/parent, QID=" + NodeUtil.dump(qid));
@@ -418,7 +418,7 @@ public class Desugarer extends Rewrite {
                 BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
                                                     null, null, fto, env, oe);
                 Constructor con = new Constructor(env, fto, oe,
-                                                  NodeFactory.makeIdName(name),
+                                                  NodeFactory.makeId(name),
                                                   oe.getDecls(),
                                                   Option.<List<Param>>none());
 
@@ -428,7 +428,7 @@ public class Desugarer extends Rewrite {
                 // Generic constructor
                 FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls(), oe);
                 env.putType(name, fto);
-                GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeIdName(name));
+                GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeId(name));
                 env.putValue(name, con);
             }
         }
@@ -467,7 +467,7 @@ public class Desugarer extends Rewrite {
         }
         if (i > 0) {
             return new _RewriteFieldRef(s, false, dottedReference(s, i - 1),
-                                      new IdName(s, new Id(s, WellKnownNames.secretParentName)));
+                                      new Id(s,WellKnownNames.secretParentName));
         } else {
             throw new Error("Confusion in member reference numbering.");
         }
@@ -634,7 +634,7 @@ public class Desugarer extends Rewrite {
                 }
                 else if (node instanceof LValueBind) {
                     LValueBind lvb = (LValueBind) node;
-                    Id id = lvb.getName().getId();
+                    Id id = lvb.getName();
                     if ("_".equals(id.getText())) {
                         Id newId = new Id(id.getSpan(), "_$" + id.getSpan());
                         return NodeFactory.makeLValue(lvb, newId);
@@ -681,8 +681,7 @@ public class Desugarer extends Rewrite {
                         newdecls.add(new_vd);
                         int element_index = 0;
                         for (LValueBind lv : lhs) {
-                            IdName newName = NodeFactory.makeIdName(at,
-                                                                    "$" + element_index);
+                            Id newName = new Id(at, "$" + element_index);
                             newdecls.add(new VarDecl(at, Useful.list(lv),
                                     new _RewriteFieldRef(at, false, init, newName)));
                             element_index++;
@@ -862,8 +861,8 @@ public class Desugarer extends Rewrite {
         return gensym("t");
     }
 
-    public IdName gensymIdName(String prefix) {
-        return NodeFactory.makeIdName(gensym(prefix));
+    public Id gensymId(String prefix) {
+        return NodeFactory.makeId(gensym(prefix));
     }
 
     private String vrToString(VarRef vre) {
@@ -878,9 +877,9 @@ public class Desugarer extends Rewrite {
      *  generate (fn binds => body)
      */
     Expr bindsAndBody(Generator g, Expr body) {
-        List<IdName> binds = g.getBind();
+        List<Id> binds = g.getBind();
         List<Param> params = new ArrayList<Param>(binds.size());
-        for (IdName b : binds) params.add(NodeFactory.makeParam(b));
+        for (Id b : binds) params.add(NodeFactory.makeParam(b));
         Expr res = ExprFactory.makeFnExpr(g.getSpan(),params,body);
         return res;
     }
@@ -924,9 +923,9 @@ public class Desugarer extends Rewrite {
      *  body | x <- exp, gs =>  __generate(exp,r,fn x => u(body)) | gs
      */
     Expr visitGenerators(Span span, List <Generator> gens, Expr body) {
-        IdName reduction = gensymIdName("reduction");
+        Id reduction = gensymId("reduction");
         VarRef redVar = ExprFactory.makeVarRef(reduction);
-        IdName unitFn = gensymIdName("unit");
+        Id unitFn = gensymId("unit");
         VarRef unitVar = ExprFactory.makeVarRef(unitFn);
         int i = gens.size();
         if (i==0) {
@@ -1048,7 +1047,7 @@ public class Desugarer extends Rewrite {
      */
     private void paramsToLocals(List<? extends Param> params) {
         for (Param d : params) {
-            String s = d.getName().getId().getText();
+            String s = d.getName().getText();
             // "self" is not a local.
             if (! s.equals(currentSelfName)) {
                 rewrites.put(s, new Local());
@@ -1100,7 +1099,7 @@ public class Desugarer extends Rewrite {
     private void paramsToMembers(Option<List<Param>> params) {
         if (params.isSome())
             for (Param d : Option.unwrap(params)) {
-                String s = d.getName().getId().getText();
+                String s = d.getName().getText();
                 rewrites.put(s, new Member());
                 if (d.accept(isAnArrowName))
                     arrows.add(s);
@@ -1163,7 +1162,7 @@ public class Desugarer extends Rewrite {
                 }
                 if (qName.getApi().isNone()) {
                     // TODO we've got to generalize this to qualified names.
-                    String s = qName.getName().getId().getText();
+                    String s = qName.getName().getText();
                     Thing th;
                     try {
                         th = typeEnv.get(s);
@@ -1238,7 +1237,7 @@ public class Desugarer extends Rewrite {
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 selfDotSomething.getObj(), // this will rewrite in the future.
-                                (IdName) selfDotSomething.getField(),
+                                (Id) selfDotSomething.getField(),
                                 visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
                                 visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                     new TupleExpr(visitedArgs));
@@ -1252,9 +1251,9 @@ public class Desugarer extends Rewrite {
 
         AbstractNode rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, new QualifiedIdName(new IdName(sp, new Id("PrimitiveThread"))));
+        Expr in_fn = new VarRef(sp, new QualifiedIdName(new Id("PrimitiveThread")));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new IdName(sp, new Id("Any"))))));
+        args.add(new TypeArg(new IdType( new QualifiedIdName(sp, new Id("Any")))));
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 

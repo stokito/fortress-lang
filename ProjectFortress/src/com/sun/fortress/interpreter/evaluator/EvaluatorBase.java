@@ -110,9 +110,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 e = ((GenericTypeInstance) selfArg.type()).getEnv();
             else
                 return error(loc, errorMsg("Non-generic-instance type for self argument ", selfArg, " to generic functional method ",appliedThing));
-          
+
         }
-        
+
         GenericFunctionOrMethod bar = (GenericFunctionOrMethod) appliedThing;
        // FnAbsDeclOrDecl fndod =  bar.getFnDefOrDecl();
         List<StaticParam> tparams = bar.getStaticParams();
@@ -130,7 +130,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         for (StaticParam sp : tparams) {
             if (sp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) sp;
-                    String stp_name = stp.getName().getId().getText();
+                    String stp_name = stp.getName().getText();
                     for (Type tr : stp.getExtendsClause()) {
                         // Preinstall bounds in the boundingmap
                         try {
@@ -165,7 +165,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                          */
                         if (p.getName().toString().equals("self") && bar instanceof GenericFunctionalMethod) {
                             GenericTypeInstance gi = (GenericTypeInstance) at;
-                            
+
                             at.unify(e, tp_set, abm, gi.getGeneric().getInstantiationForFunctionalMethodInference());// instantiationAST());
                         } else {
                             error(loc,"Parameter needs type for generic resolution");

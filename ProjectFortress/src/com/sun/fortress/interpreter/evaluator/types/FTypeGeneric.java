@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.DimensionParam;
 import com.sun.fortress.nodes.Generic;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.IntParam;
@@ -64,19 +64,19 @@ import com.sun.fortress.useful.LazyMemo1PCL;
 import com.sun.fortress.useful.Useful;
 
 public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<List<FType>, FTraitOrObject, HasAt> {
-    
+
     /**
      * This is a HACK, to let other people make progress.
      * Traits should not be scanned for functional methods until the last possible moment,
      * and that is not known until, say, a generic constructor is returned.
-     * 
+     *
      */
     static ThreadLocal<List<FTraitOrObjectOrGeneric>> pendingFunctionalMethodFinishes = new ThreadLocal<List<FTraitOrObjectOrGeneric>>() {
         protected synchronized List<FTraitOrObjectOrGeneric> initialValue() {
             return new ArrayList<FTraitOrObjectOrGeneric>();
         }
     };
-    
+
     static public void flushPendingTraitFMs() {
         for (int i = 0; i < pendingFunctionalMethodFinishes.get().size(); i++) {
             FTraitOrObjectOrGeneric tt = pendingFunctionalMethodFinishes.get().get(i);
@@ -84,7 +84,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
         pendingFunctionalMethodFinishes.get().clear();
     }
-    
+
     public FTypeGeneric(BetterEnv e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
         super(NodeUtil.stringName(d), e, decl);
         def = d;
@@ -112,11 +112,11 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     public Generic getDef() {
         return def;
     }
-    
+
     public List<StaticParam> getParams() {
         return params;
     }
-    
+
     public Type getInstantiationForFunctionalMethodInference() {
         List<StaticArg> statics = paramsToArgs();
         QualifiedIdName qin = NodeFactory.makeQualifiedIdName(def.getSpan(), name);
@@ -135,7 +135,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
      static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
 
-         private TypeArg idNameToTypeArg(IdName idn) {
+         private TypeArg idNameToTypeArg(Id idn) {
              return new TypeArg(idn.getSpan(),
                      new IdType(idn.getSpan(),
                              NodeFactory.makeQualifiedIdName(idn)));
@@ -146,7 +146,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             return idNameToTypeArg(that.getName());
         }
 
- 
+
         @Override
         public StaticArg forDimensionParam(DimensionParam that) {
             return idNameToTypeArg(that.getName());
@@ -177,9 +177,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             return idNameToTypeArg(that.getName());
        }
      }
-     
+
      private final static ParamToArg paramToArg = new ParamToArg();
-     
+
    private StaticArg paramToArg(StaticParam p) {
        return p.accept(paramToArg);
     }
@@ -255,7 +255,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
             if (dod instanceof TraitAbsDeclOrDecl) {
                 TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
-                FTypeTrait ftt = new FTypeTraitInstance(td.getName().getId().getText(),
+                FTypeTrait ftt = new FTypeTraitInstance(td.getName().getText(),
                                                         clenv, gen, bind_args, key_args, gen.members);
                 FTraitOrObject old = map.put(key_args, ftt); // Must put
                                                             // early to
@@ -270,13 +270,13 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 be.thirdPass();
                 // Perhaps this is ok now that we have self-param double-overload fix in.
                 // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
-                
+
                 pendingFunctionalMethodFinishes.get().add(ftt);
-                
+
                 rval = ftt;
             } else if (dod instanceof ObjectDecl) {
                 ObjectDecl td = (ObjectDecl) dod;
-                FTypeObject fto = new FTypeObjectInstance(td.getName().getId().getText(),
+                FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
                                        clenv, gen, bind_args, key_args, gen.members);
                 map.put(key_args, fto); // Must put early to expose for second
                                     // pass.

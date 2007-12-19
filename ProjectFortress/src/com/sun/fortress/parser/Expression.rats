@@ -124,8 +124,7 @@ constant inline Action<Expr> FieldSelectionAssign =
     dot a1:Id
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return new FieldRef(createSpan(yyStart,yyCount), false, base,
-                                  NodeFactory.makeIdName(a1));
+              return new FieldRef(createSpan(yyStart,yyCount), false, base, a1);
           }};
     };
 
@@ -367,8 +366,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
                Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
-                                               false, rcv, NodeFactory.makeIdName(a1),
-                                               sargs, a3);
+                                               false, rcv, a1, sargs, a3);
                return PureList.make(inv);
            }};
      }
@@ -382,8 +380,7 @@ constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
                Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
-                                               false, rcv, NodeFactory.makeIdName(a1),
-                                               sargs, arg);
+                                               false, rcv, a1, sargs, arg);
                return PureList.make(inv);
            }};
      };
@@ -394,8 +391,7 @@ constant inline Action<PureList<Expr>> FieldSelection =
            public PureList<Expr> run(PureList<Expr> base) {
                Span span = createSpan(yyStart,yyCount);
                Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldRef(span,false,rcv,
-                                                       NodeFactory.makeIdName(a1)));
+               return PureList.make((Expr)new FieldRef(span,false,rcv, a1));
            }};
      };
 
@@ -575,8 +571,7 @@ private constant inline Action<UnitExpr> OpUnit =
  */
 Expr FlowExpr =
      exit a1:(w Id)? a2:(w with w Expr)?
-     { Option<IdName> name = (a1 == null) ? Option.<IdName>none() :
-                                            Option.some(NodeFactory.makeIdName(a1));
+     { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.some(a1);
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
@@ -618,5 +613,5 @@ Generator Generator =
      { yyValue = ExprFactory.makeGenerator(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Expr
      { yyValue = new Generator(createSpan(yyStart,yyCount),
-                               Collections.<IdName>emptyList(), a1);
+                               Collections.<Id>emptyList(), a1);
      };

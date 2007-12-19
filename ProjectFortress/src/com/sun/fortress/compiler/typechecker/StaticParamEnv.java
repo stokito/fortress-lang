@@ -25,27 +25,27 @@ public abstract class StaticParamEnv {
     public static StaticParamEnv make(StaticParam... params) {
         return EmptyStaticParamEnv.ONLY.extend(params);
     }
-    
+
     public abstract Option<StaticParam> binding(SimpleName name);
-    
-    public Option<StaticParam> binding(String name) { 
-        return binding(NodeFactory.makeIdName(name));
+
+    public Option<StaticParam> binding(String name) {
+        return binding(NodeFactory.makeId(name));
     }
-    
+
     public Option<StaticParam> opBinding(String name) {
         return binding(NodeFactory.makeOpr(name));
     }
-    
+
     public StaticParamEnv extend(StaticParam... params) {
         if (params.length == 0) { return EmptyStaticParamEnv.ONLY; }
         else { return new NonEmptyStaticParamEnv(params, EmptyStaticParamEnv.ONLY); }
     }
-    
+
 //    public abstract Option<OperatorParam> operatorParam(OpName name);
-//    public abstract Option<BoolParam> boolParam(IdName name);
-//    public abstract Option<DimensionParam> dimensionParam(IdName name);
-//    public abstract Option<IntParam> intParam(IdName name);
-//    public abstract Option<NatParam> natParam(IdName name);
-//    public abstract Option<SimpleTypeParam> typeParam(IdName name);
-//    public abstract Option<UnitParam> unitParam(IdName name);
+//    public abstract Option<BoolParam> boolParam(Id name);
+//    public abstract Option<DimensionParam> dimensionParam(Id name);
+//    public abstract Option<IntParam> intParam(Id name);
+//    public abstract Option<NatParam> natParam(Id name);
+//    public abstract Option<SimpleTypeParam> typeParam(Id name);
+//    public abstract Option<UnitParam> unitParam(Id name);
 }

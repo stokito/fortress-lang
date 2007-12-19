@@ -23,7 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SimpleName;
 
 import com.sun.fortress.useful.NI;
@@ -35,15 +35,15 @@ import com.sun.fortress.useful.NI;
 public abstract class TraitIndex extends TypeConsIndex {
     
     private final TraitObjectAbsDeclOrDecl _ast;
-    private final Map<IdName, Method> _getters;
-    private final Map<IdName, Method> _setters;
+    private final Map<Id, Method> _getters;
+    private final Map<Id, Method> _setters;
     private final Set<Function> _coercions;
     private final Relation<SimpleName, Method> _dottedMethods;
     private final Relation<SimpleName, FunctionalMethod> _functionalMethods;
     
     public TraitIndex(TraitObjectAbsDeclOrDecl ast,
-                      Map<IdName, Method> getters,
-                      Map<IdName, Method> setters,
+                      Map<Id, Method> getters,
+                      Map<Id, Method> setters,
                       Set<Function> coercions,
                       Relation<SimpleName, Method> dottedMethods,
                       Relation<SimpleName, FunctionalMethod> functionalMethods) {
@@ -61,11 +61,11 @@ public abstract class TraitIndex extends TypeConsIndex {
         return NI.nyi();
     }
     
-    public Map<IdName, Method> getters() {
+    public Map<Id, Method> getters() {
         return NI.nyi();
     }
     
-    public Map<IdName, Method> setters() {
+    public Map<Id, Method> setters() {
         return NI.nyi();
     }
     

@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.*;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.StaticParam;
 
 import com.sun.fortress.useful.NI;

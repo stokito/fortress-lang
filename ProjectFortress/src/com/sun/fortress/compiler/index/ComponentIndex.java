@@ -23,7 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.SimpleName;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 
 import com.sun.fortress.useful.NI;
 
@@ -32,10 +32,10 @@ public class ComponentIndex extends CompilationUnitIndex {
     private final Set<VarDecl> _initializers;
     
     public ComponentIndex(Component ast,
-                          Map<IdName, Variable> variables,
+                          Map<Id, Variable> variables,
                           Set<VarDecl> initializers,
                           Relation<SimpleName, Function> functions,
-                          Map<IdName, TypeConsIndex> typeConses,
+                          Map<Id, TypeConsIndex> typeConses,
                           long modifiedDate) {
         super(ast, variables, functions, typeConses, modifiedDate);
         _initializers = initializers;

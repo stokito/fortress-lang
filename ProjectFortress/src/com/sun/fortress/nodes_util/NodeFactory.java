@@ -64,20 +64,18 @@ public class NodeFactory {
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
                                                           SimpleName name,
-                                              Id alias) {
+                                                          Id alias) {
         return new AliasedSimpleName(span, name,
-                                     Option.<SimpleName>some(makeIdName(alias)));
+                                     Option.<SimpleName>some(alias));
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id) {
-        return new AliasedSimpleName(span, makeIdName(id),
-                                     Option.<SimpleName>none());
+        return new AliasedSimpleName(span, id, Option.<SimpleName>none());
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id,
                                                           Id alias) {
-        return new AliasedSimpleName(span, makeIdName(id),
-                                     Option.<SimpleName>some(makeIdName(alias)));
+        return new AliasedSimpleName(span, id, Option.<SimpleName>some(alias));
     }
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
@@ -152,33 +150,33 @@ public class NodeFactory {
                             Option.<List<Expr>>none());
     }
 
-    public static DimUnitDecl makeDimUnitDecl(Span span, IdName dim,
+    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
                                               Option<DimExpr> derived,
-                                              Option<IdName> defaultId) {
+                                              Option<Id> defaultId) {
         return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
-                               false, Collections.<IdName>emptyList(),
+                               false, Collections.<Id>emptyList(),
                                Option.<ExprOrUnitExpr>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
-                                              String unit, List<IdName> ids,
+                                              String unit, List<Id> ids,
                                               Option<ExprOrUnitExpr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
-        return new DimUnitDecl(span, Option.<IdName>none(), derived,
-                               Option.<IdName>none(), si_unit, ids, def);
+        return new DimUnitDecl(span, Option.<Id>none(), derived,
+                               Option.<Id>none(), si_unit, ids, def);
     }
 
-    public static DimUnitDecl makeDimUnitDecl(Span span, IdName dim,
+    public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
                                               Option<DimExpr> derived,
-                                              String unit, List<IdName> ids,
+                                              String unit, List<Id> ids,
                                               Option<ExprOrUnitExpr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
         return new DimUnitDecl(span, Option.some(dim), derived,
-                               Option.<IdName>none(), si_unit, ids, def);
+                               Option.<Id>none(), si_unit, ids, def);
     }
 
     public static APIName makeAPIName(Span span, String s) {
@@ -228,20 +226,15 @@ public class NodeFactory {
 
     public static QualifiedIdName makeQualifiedIdName(Span span, String s) {
         return new QualifiedIdName(span, Option.<APIName>none(),
-                                   makeIdName(span, s));
+                                   new Id(span, s));
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Id id) {
-        return new QualifiedIdName(span, Option.<APIName>none(), makeIdName(id));
+        return new QualifiedIdName(span, Option.<APIName>none(), id);
     }
 
     public static QualifiedIdName makeQualifiedIdName(Id id) {
-        return new QualifiedIdName(id.getSpan(), Option.<APIName>none(),
-                                   makeIdName(id));
-    }
-
-    public static QualifiedIdName makeQualifiedIdName(IdName name) {
-        return new QualifiedIdName(name.getSpan(), Option.<APIName>none(), name);
+        return new QualifiedIdName(id.getSpan(), Option.<APIName>none(), id);
     }
 
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> apiIds, Id id) {
@@ -256,7 +249,7 @@ public class NodeFactory {
             span = FortressUtil.spanTwo(n, id);
             api = Option.some(n);
         }
-        return new QualifiedIdName(span, api, makeIdName(id));
+        return new QualifiedIdName(span, api, id);
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Iterable<Id> apiIds,
@@ -264,7 +257,7 @@ public class NodeFactory {
         Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
         else { api = Option.some(makeAPIName(apiIds)); }
-        return new QualifiedIdName(span, api, makeIdName(id));
+        return new QualifiedIdName(span, api, id);
     }
 
     public static QualifiedIdName makeQualifiedIdName(Span span, Id id,
@@ -275,7 +268,7 @@ public class NodeFactory {
         else { api = Option.some(makeAPIName(id, IterUtil.skipLast(ids)));
                last = IterUtil.last(ids);
              }
-        return new QualifiedIdName(span, api, makeIdName(last));
+        return new QualifiedIdName(span, api, last);
     }
 
     /** Assumes {@code ids} is nonempty. */
@@ -283,7 +276,7 @@ public class NodeFactory {
         return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
 
-    public static QualifiedIdName makeQualifiedIdName(APIName api, IdName name) {
+    public static QualifiedIdName makeQualifiedIdName(APIName api, Id name) {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
                                    name);
     }
@@ -313,7 +306,6 @@ public class NodeFactory {
                          throwss, where, contract, selfName, body);
     }
 
-    /** Alternatively, you can invoke the Id constructor without a span */
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
@@ -330,16 +322,15 @@ public class NodeFactory {
         return makeLValue(name, makeIdType(type));
     }
 
-    public static LValueBind makeLValue(IdName name, IdName type) {
+    public static LValueBind makeLValue(Id name, Id type) {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
                               name,
-                              Option.some((Type)makeIdType(type.getSpan(),
-                                                           type.getId())),
+                              Option.some((Type)makeIdType(type.getSpan(),type)),
                               new ArrayList<Modifier>(),
                               false);
     }
 
-    public static LValueBind makeLValue(IdName name, Type type) {
+    public static LValueBind makeLValue(Id name, Type type) {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
                               name,
                               Option.some(type),
@@ -348,7 +339,8 @@ public class NodeFactory {
     }
 
     public static LValueBind makeLValue(String name, Type type) {
-        return new LValueBind(type.getSpan(), makeIdName(makeId(name)), Option.some(type), new ArrayList<Modifier>(), false);
+        return new LValueBind(type.getSpan(), makeId(name), Option.some(type),
+                              new ArrayList<Modifier>(), false);
     }
 
     public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
@@ -356,8 +348,7 @@ public class NodeFactory {
         return makeLValue(result, mods);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, Id id) {
-        IdName name = makeIdName(id);
+    public static LValueBind makeLValue(LValueBind lvb, Id name) {
         return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
                               lvb.isMutable());
     }
@@ -431,23 +422,6 @@ public class NodeFactory {
         return new Opr(new Span(), makeOp(name));
     }
 
-    public static IdName makeIdName(String text) {
-        Span span = new Span();
-        return new IdName(span, new Id(span, text));
-    }
-
-    public static IdName makeIdName(Span span, String text) {
-        return new IdName(span, new Id(span, text));
-    }
-
-    public static IdName makeIdName(Span span, Id id) {
-        return new IdName(span, id);
-    }
-
-    public static IdName makeIdName(Id id) {
-        return new IdName(id.getSpan(), id);
-    }
-
     public static Opr makeOpr(Span span, Op op) {
         return new Opr(span, op);
     }
@@ -459,7 +433,7 @@ public class NodeFactory {
     /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
-                                            IdName name,
+                                            Id name,
                                             List<StaticParam> stParams,
                                             Option<List<Param>> params,
                                             List<TraitTypeWhere> traits,
@@ -479,7 +453,7 @@ public class NodeFactory {
     }
 
 
-    public static VarargsParam makeVarargsParam(IdName name, VarargsType type) {
+    public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
     }
 
@@ -489,29 +463,23 @@ public class NodeFactory {
     }
 
     public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods,
-                                                IdName name, VarargsType type) {
+                                                Id name, VarargsType type) {
         return new VarargsParam(span, mods, name, type);
     }
 
-    public static NormalParam makeParam(Span span, List<Modifier> mods, IdName name,
+    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
                                         Type type) {
         return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(Id id, Type type) {
         return new NormalParam(id.getSpan(), Collections.<Modifier>emptyList(),
-                               makeIdName(id), Option.some(type),
-                               Option.<Expr>none());
+                               id, Option.some(type), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Id id) {
-        return new NormalParam(id.getSpan(), Collections.<Modifier>emptyList(),
-                               makeIdName(id), Option.<Type>none(), Option.<Expr>none());
-    }
-
-    public static NormalParam makeParam(IdName name) {
-        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
-                         Option.<Type>none(), Option.<Expr>none());
+    public static NormalParam makeParam(Id name) {
+        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(),
+                               name, Option.<Type>none(), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(NormalParam param, Expr expr) {
@@ -526,7 +494,7 @@ public class NodeFactory {
 
     public static SimpleTypeParam makeSimpleTypeParam(String name) {
         Span s = new Span();
-        return new SimpleTypeParam(s, makeIdName(s, name),
+        return new SimpleTypeParam(s, new Id(s, name),
                                    Collections.<TraitType>emptyList(), false);
     }
 
@@ -536,27 +504,27 @@ public class NodeFactory {
 
     public static BoolParam makeBoolParam(String name) {
         Span s = new Span();
-        return new BoolParam(s, makeIdName(s, name));
+        return new BoolParam(s, new Id(s, name));
     }
 
     public static DimensionParam makeDimensionParam(String name) {
         Span s = new Span();
-        return new DimensionParam(s, makeIdName(s, name));
+        return new DimensionParam(s, new Id(s, name));
     }
 
     public static UnitParam makeUnitParam(String name) {
         Span s = new Span();
-        return new UnitParam(s, makeIdName(s, name));
+        return new UnitParam(s, new Id(s, name));
     }
 
     public static IntParam makeIntParam(String name) {
         Span s = new Span();
-        return new IntParam(s, makeIdName(s, name));
+        return new IntParam(s, new Id(s, name));
     }
 
     public static NatParam makeNatParam(String name) {
         Span s = new Span();
-        return new NatParam(s, makeIdName(s, name));
+        return new NatParam(s, new Id(s, name));
     }
 
     /** Alternatively, you can invoke the TupleType constructor without keywords */
@@ -570,14 +538,14 @@ public class NodeFactory {
         return new TypeArg(span, new IdType(span, makeQualifiedIdName(span, string)));
     }
 
-    public static VarDecl makeVarDecl(Span span, IdName name, Expr init) {
+    public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
         LValueBind bind = new LValueBind(span, name, Option.<Type>none(),
                                          Collections.<Modifier>emptyList(), true);
         return new VarDecl(span, Useful.<LValueBind>list(bind), init);
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
-        LValueBind bind = new LValueBind(span, makeIdName(span, name),
+        LValueBind bind = new LValueBind(span, new Id(span, name),
                                          Option.<Type>none(),
                                          Collections.<Modifier>emptyList(), true);
         return new VarDecl(span, Useful.<LValueBind>list(bind), init);

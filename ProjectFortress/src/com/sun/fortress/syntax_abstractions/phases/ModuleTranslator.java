@@ -28,7 +28,7 @@ import java.util.Set;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -178,7 +178,7 @@ public class ModuleTranslator {
 //		return (ProductionDef) production.accept(new NodeUpdateVisitor() {						
 //			@Override
 //			public Node forProductionDefOnly(ProductionDef that, Option<? extends Modifier> modifier_result, QualifiedIdName name_result, TraitType type_result, Option<? extends QualifiedIdName> extends_result, List<SyntaxDef> syntaxDefs_result) {
-//				name_result = new QualifiedIdName(new IdName(new Id(newName)));
+//				name_result = new QualifiedIdName(new Id(new Id(newName)));
 //				return new ProductionDef(that.getSpan(), modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
 //			}		
 //		});

@@ -109,13 +109,13 @@ public class IndexBuilder {
 	}
 
 	public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
-		final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
+		final Map<Id, Variable> variables = new HashMap<Id, Variable>();
 		final Relation<SimpleName, Function> functions =
 			new HashRelation<SimpleName, Function>(true, false);
-		final Map<IdName, TypeConsIndex> typeConses =
-			new HashMap<IdName, TypeConsIndex>();
-		final Map<IdName, GrammarIndex> grammars =
-			new HashMap<IdName, GrammarIndex>();
+		final Map<Id, TypeConsIndex> typeConses =
+			new HashMap<Id, TypeConsIndex>();
+		final Map<Id, GrammarIndex> grammars =
+			new HashMap<Id, GrammarIndex>();
 		NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
 			@Override public void forAbsTraitDecl(AbsTraitDecl d) {
 				buildTrait(d, typeConses, functions);
@@ -164,12 +164,12 @@ public class IndexBuilder {
 	}
 
 	public ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
-		final Map<IdName, Variable> variables = new HashMap<IdName, Variable>();
+		final Map<Id, Variable> variables = new HashMap<Id, Variable>();
 		final Set<VarDecl> initializers = new HashSet<VarDecl>();
 		final Relation<SimpleName, Function> functions =
 			new HashRelation<SimpleName, Function>(true, false);
-		final Map<IdName, TypeConsIndex> typeConses =
-			new HashMap<IdName, TypeConsIndex>();
+		final Map<Id, TypeConsIndex> typeConses =
+			new HashMap<Id, TypeConsIndex>();
 		NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
 			@Override public void forTraitDecl(TraitDecl d) {
 				buildTrait(d, typeConses, functions);
@@ -216,11 +216,11 @@ public class IndexBuilder {
 	 * to the given relation.
 	 */
 	private void buildTrait(TraitAbsDeclOrDecl ast,
-			Map<IdName, TypeConsIndex> typeConses,
+			Map<Id, TypeConsIndex> typeConses,
 			final Relation<SimpleName, Function> functions) {
-		final IdName name = ast.getName();
-		final Map<IdName, Method> getters = new HashMap<IdName, Method>();
-		final Map<IdName, Method> setters = new HashMap<IdName, Method>();
+		final Id name = ast.getName();
+		final Map<Id, Method> getters = new HashMap<Id, Method>();
+		final Map<Id, Method> setters = new HashMap<Id, Method>();
 		final Set<Function> coercions = new HashSet<Function>();
 		final Relation<SimpleName, Method> dottedMethods =
 			new HashRelation<SimpleName, Method>(true, false);
@@ -252,14 +252,14 @@ public class IndexBuilder {
 	 * put it in the appropriate map.
 	 */
 	private void buildObject(ObjectAbsDeclOrDecl ast,
-			Map<IdName, TypeConsIndex> typeConses,
+			Map<Id, TypeConsIndex> typeConses,
 			final Relation<SimpleName, Function> functions,
-			Map<IdName, Variable> variables) {
-		final IdName name = ast.getName();
-		final Map<IdName, Variable> fields = new HashMap<IdName, Variable>();
+			Map<Id, Variable> variables) {
+		final Id name = ast.getName();
+		final Map<Id, Variable> fields = new HashMap<Id, Variable>();
 		final Set<VarDecl> initializers = new HashSet<VarDecl>();
-		final Map<IdName, Method> getters = new HashMap<IdName, Method>();
-		final Map<IdName, Method> setters = new HashMap<IdName, Method>();
+		final Map<Id, Method> getters = new HashMap<Id, Method>();
+		final Map<Id, Method> setters = new HashMap<Id, Method>();
 		final Set<Function> coercions = new HashSet<Function>();
 		final Relation<SimpleName, Method> dottedMethods =
 			new HashRelation<SimpleName, Method>(true, false);
@@ -311,7 +311,7 @@ public class IndexBuilder {
 	 * map.
 	 */
 	private void buildVariables(VarAbsDeclOrDecl ast,
-			Map<IdName, Variable> variables) {
+			Map<Id, Variable> variables) {
 		for (LValueBind b : ast.getLhs()) {
 			variables.put(b.getName(), new DeclaredVariable(b));
 		}
@@ -322,13 +322,13 @@ public class IndexBuilder {
 	 * abstract fields.
 	 */
 	private void buildTraitFields(AbsVarDecl ast,
-			IdName declaringTrait,
-			Map<IdName, Method> getters,
-			Map<IdName, Method> setters) {
+			Id declaringTrait,
+			Map<Id, Method> getters,
+			Map<Id, Method> setters) {
 		for (LValueBind b : ast.getLhs()) {
 			ModifierSet mods = extractModifiers(b.getMods());
 			// TODO: check for correct modifiers?
-			IdName name = b.getName();
+			Id name = b.getName();
 			if (!mods.isHidden) {
 				getters.put(name, new FieldGetterMethod(b, declaringTrait));
 			}
@@ -343,14 +343,14 @@ public class IndexBuilder {
 	 * getters and setters.
 	 */
 	private void buildFields(VarAbsDeclOrDecl ast,
-			IdName declaringTrait,
-			Map<IdName, Variable> fields,
-			Map<IdName, Method> getters,
-			Map<IdName, Method> setters) {
+			Id declaringTrait,
+			Map<Id, Variable> fields,
+			Map<Id, Method> getters,
+			Map<Id, Method> setters) {
 		for (LValueBind b : ast.getLhs()) {
 			ModifierSet mods = extractModifiers(b.getMods());
 			// TODO: check for correct modifiers?
-			IdName name = b.getName();
+			Id name = b.getName();
 			fields.put(name, new DeclaredVariable(b));
 			if (!mods.isHidden) {
 				getters.put(name, new FieldGetterMethod(b, declaringTrait));
@@ -377,9 +377,9 @@ public class IndexBuilder {
 	 * functional methods with top-level functions.
 	 */
 	private void buildMethod(FnAbsDeclOrDecl ast,
-			IdName declaringTrait,
-			Map<IdName, Method> getters,
-			Map<IdName, Method> setters,
+			Id declaringTrait,
+			Map<Id, Method> getters,
+			Map<Id, Method> setters,
 			Set<Function> coercions,
 			Relation<SimpleName, Method> dottedMethods,
 			Relation<SimpleName, FunctionalMethod> functionalMethods,
@@ -388,8 +388,8 @@ public class IndexBuilder {
 		// TODO: check for correct modifiers?
 		SimpleName name = ast.getName();
 		if (mods.isGetter) {
-			if (name instanceof IdName) {
-				getters.put((IdName) name, new DeclaredMethod(ast, declaringTrait));
+			if (name instanceof Id) {
+				getters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
 			}
 			else {
 				String s = NodeUtil.nameString(name);
@@ -397,8 +397,8 @@ public class IndexBuilder {
 			}
 		}
 		else if (mods.isSetter) {
-			if (name instanceof IdName) {
-				setters.put((IdName) name, new DeclaredMethod(ast, declaringTrait));
+			if (name instanceof Id) {
+				setters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
 			}
 			else {
 				String s = NodeUtil.nameString(name);
@@ -432,8 +432,8 @@ public class IndexBuilder {
 	/**
 	 * Create a Grammar and put it in the given map.
 	 */
-	private void buildGrammar(GrammarDef ast, Map<IdName, GrammarIndex> grammars) {
-		final IdName name = ast.getName().getName();
+	private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
+		final Id name = ast.getName().getName();
 		final Map<QualifiedIdName, ProductionIndex> productions = new HashMap<QualifiedIdName, ProductionIndex>();
 		GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getProductions(), productions));
 		if (grammars.containsKey(name)) {
@@ -456,8 +456,8 @@ public class IndexBuilder {
 	}
 
 
-	private static final IdName COERCION_NAME = NodeFactory.makeIdName("coercion");
-	private static final IdName SELF_NAME = NodeFactory.makeIdName("self");
+	private static final Id COERCION_NAME = NodeFactory.makeId("coercion");
+	private static final Id SELF_NAME = NodeFactory.makeId("self");
 
 	private ModifierSet extractModifiers(List<Modifier> mods) {
 		final ModifierSet result = new ModifierSet();

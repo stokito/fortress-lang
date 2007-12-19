@@ -20,6 +20,23 @@
  - FnDef
  - NormalParam
  - VarargsParam
+ - DimUnitDecl          : NYI
+ - TestDecl             : NYI
+ - PropertyDecl         : NYI
+ - AbsExternalSyntax    : NYI
+ - ExternalSyntax       : NYI
+ - APIName
+ - QualifiedIdName
+ - QualifiedOpName      : internal
+ - IdName
+ - Opr
+ - PostFix
+ - Bracketing
+ - SubscriptOp
+ - AnonymousFnName      : internal
+ - ConstructorFnName    : internal
+ - ArrayComprehensionClause
+ - Binding
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast

@@ -27,14 +27,14 @@ import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
 
-/** 
+/**
  * A visitor that makes an api from a component.
  */
 public final class ApiMaker extends NodeUpdateVisitor {
     public static final ApiMaker ONLY = new ApiMaker();
-    
+
     private ApiMaker() {}
-    
+
     private List<AbsDecl> declsToAbsDecls(final List<Decl> that) {
         boolean changed = false;
         List<AbsDecl> result = new java.util.ArrayList<AbsDecl>(0);
@@ -44,7 +44,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
         }
         return result;
     }
-    
+
     public Node forComponent(Component that) {
         APIName name_result = (APIName) that.getName().accept(this);
         List<Import> imports_result = recurOnListOfImport(that.getImports());
@@ -52,10 +52,10 @@ public final class ApiMaker extends NodeUpdateVisitor {
         List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
         return new Api(that.getSpan(), name_result, imports_result, decls_result);
     }
-    
+
     public Node forTraitDecl(TraitDecl that) {
         List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
-        IdName name_result = (IdName) that.getName().accept(this);
+        Id name_result = (Id) that.getName().accept(this);
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
         List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
@@ -63,20 +63,20 @@ public final class ApiMaker extends NodeUpdateVisitor {
         Option<List<TraitType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
         List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
 
-        return new AbsTraitDecl(that.getSpan(), 
-                                mods_result, 
-                                name_result, 
-                                staticParams_result, 
-                                extendsClause_result, 
-                                where_result, 
-                                excludes_result, 
-                                comprises_result, 
+        return new AbsTraitDecl(that.getSpan(),
+                                mods_result,
+                                name_result,
+                                staticParams_result,
+                                extendsClause_result,
+                                where_result,
+                                excludes_result,
+                                comprises_result,
                                 decls_result);
     }
 
     public Node forObjectDecl(ObjectDecl that) {
         List<Modifier> mods_result = recurOnListOfModifier(that.getMods());
-        IdName name_result = (IdName) that.getName().accept(this);
+        Id name_result = (Id) that.getName().accept(this);
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
         List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
@@ -85,15 +85,15 @@ public final class ApiMaker extends NodeUpdateVisitor {
         Contract contract_result = (Contract) that.getContract().accept(this);
         List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
 
-                return new AbsObjectDecl(that.getSpan(), 
-                                 mods_result, 
-                                 name_result, 
-                                 staticParams_result, 
-                                 extendsClause_result, 
-                                 where_result, 
-                                 params_result, 
-                                 throwsClause_result, 
-                                 contract_result, 
+                return new AbsObjectDecl(that.getSpan(),
+                                 mods_result,
+                                 name_result,
+                                 staticParams_result,
+                                 extendsClause_result,
+                                 where_result,
+                                 params_result,
+                                 throwsClause_result,
+                                 contract_result,
                                  decls_result);
     }
 
@@ -101,41 +101,41 @@ public final class ApiMaker extends NodeUpdateVisitor {
         return new AbsVarDecl(that.getSpan(), lhs_result);
     }
 
-    public Node forFnDefOnly(FnDef that, 
-                             List<Modifier> mods_result, 
-                             SimpleName name_result, 
-                             List<StaticParam> staticParams_result, 
-                             List<Param> params_result, 
-                             Option<Type> returnType_result, 
-                             Option<List<TraitType>> throwsClause_result, 
-                             List<WhereClause> where_result, 
-                             Contract contract_result, 
+    public Node forFnDefOnly(FnDef that,
+                             List<Modifier> mods_result,
+                             SimpleName name_result,
+                             List<StaticParam> staticParams_result,
+                             List<Param> params_result,
+                             Option<Type> returnType_result,
+                             Option<List<TraitType>> throwsClause_result,
+                             List<WhereClause> where_result,
+                             Contract contract_result,
                              Expr body_result) {
-        return new AbsFnDecl(that.getSpan(), 
-                             mods_result, 
-                             name_result, 
-                             staticParams_result, 
-                             params_result, 
-                             returnType_result, 
-                             throwsClause_result, 
-                             where_result, 
-                             contract_result, 
+        return new AbsFnDecl(that.getSpan(),
+                             mods_result,
+                             name_result,
+                             staticParams_result,
+                             params_result,
+                             returnType_result,
+                             throwsClause_result,
+                             where_result,
+                             contract_result,
                              that.getSelfName());
     }
 
-    public Node forExternalSyntaxOnly(ExternalSyntax that, 
-                                      SimpleName openExpander_result, 
-                                      IdName name_result, 
-                                      SimpleName closeExpander_result, 
+    public Node forExternalSyntaxOnly(ExternalSyntax that,
+                                      SimpleName openExpander_result,
+                                      Id name_result,
+                                      SimpleName closeExpander_result,
                                       Expr expr_result) {
-        return new AbsExternalSyntax(that.getSpan(), 
-                                     openExpander_result, 
-                                     name_result, 
+        return new AbsExternalSyntax(that.getSpan(),
+                                     openExpander_result,
+                                     name_result,
                                      closeExpander_result);
     }
-    
 
-    
+
+
     // The following for- methods are overridden solely as an optimization;
     // we can short-circuit processing of AST fragments that are simply
     // thrown away by the above forOnly- methods.
@@ -158,21 +158,21 @@ public final class ApiMaker extends NodeUpdateVisitor {
         Contract contract_result = (Contract) that.getContract().accept(this);
         // No need to recur on the body, since we throw it away.
         Expr body_result = null;
-        return forFnDefOnly(that, 
-                            mods_result, 
-                            name_result, 
-                            staticParams_result, 
-                            params_result, 
-                            returnType_result, 
-                            throwsClause_result, 
-                            where_result, 
-                            contract_result, 
+        return forFnDefOnly(that,
+                            mods_result,
+                            name_result,
+                            staticParams_result,
+                            params_result,
+                            returnType_result,
+                            throwsClause_result,
+                            where_result,
+                            contract_result,
                             body_result);
     }
 
     public Node forExternalSyntax(ExternalSyntax that) {
         SimpleName openExpander_result = (SimpleName) that.getOpenExpander().accept(this);
-        IdName name_result = (IdName) that.getName().accept(this);
+        Id name_result = (Id) that.getName().accept(this);
         SimpleName closeExpander_result = (SimpleName) that.getCloseExpander().accept(this);
         // No need to recur on the body, since we throw it away.
         Expr expr_result = null;

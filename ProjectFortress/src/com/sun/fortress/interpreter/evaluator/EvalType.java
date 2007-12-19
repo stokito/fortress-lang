@@ -157,7 +157,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         int i = 0;
         List<Parameter> fparams = new ArrayList<Parameter>(params.size());
         for (Param in_p : params) {
-            IdName idName = in_p.getName();
+            Id idName = in_p.getName();
             String pname = NodeUtil.nameString(idName);
             FType ptype;
             if (in_p instanceof NormalParam) {

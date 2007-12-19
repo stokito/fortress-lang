@@ -114,25 +114,16 @@ List<WhereClause> WhereBindingList =
 WhereClause WhereBinding =
      a1:Id a2:(w a2:Extends)?
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new WhereExtends(createSpan(yyStart,yyCount),
-                                  NodeFactory.makeIdName(a1), a2);
+       yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2);
      }
    / nat w a1:Id
-     { yyValue = new WhereNat(createSpan(yyStart,yyCount),
-                              NodeFactory.makeIdName(a1));
-     }
+     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
    / int w a1:Id
-     { yyValue = new WhereInt(createSpan(yyStart,yyCount),
-                              NodeFactory.makeIdName(a1));
-     }
+     { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
    / bool w a1:Id
-     { yyValue = new WhereBool(createSpan(yyStart,yyCount),
-                               NodeFactory.makeIdName(a1));
-     }
+     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
    / unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount),
-                               NodeFactory.makeIdName(a1));
-     };
+     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); };
 
 /* WhereConstraintList ::= WhereConstraint (w , w WhereConstraint)* */
 private List<WhereClause> WhereConstraintList =
@@ -151,9 +142,7 @@ private List<WhereClause> WhereConstraintList =
  */
 WhereClause WhereConstraint =
      a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount),
-                                  NodeFactory.makeIdName(a1), a2);
-     }
+     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / TypeAlias
    / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
@@ -172,13 +161,9 @@ WhereClause WhereConstraint =
  */
 UnitConstraint UnitConstraint =
      "dimensionless" w equals w a1:Id
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
-                                    NodeFactory.makeIdName(a1));
-     }
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:Id w equals w "dimensionless"
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount),
-                                    NodeFactory.makeIdName(a1));
-     };
+     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); };
 
 /* IntConstraint ::=
      IntExpr w <= w IntExpr
@@ -650,21 +635,21 @@ private StaticParam StaticParam =
        if (a3 == null) absorbs = false;
        else            absorbs = true;
        yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
-                                     NodeFactory.makeIdName(a1),a2,absorbs);
+                                     a1, a2, absorbs);
      }
    / nat  w a1:Id
-     { yyValue = new NatParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1));}
+     { yyValue = new NatParam(createSpan(yyStart,yyCount), a1);}
    / int  w a1:Id
-     { yyValue = new IntParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1)); }
+     { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
    / bool w a1:Id
-     { yyValue = new BoolParam(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1)); }
+     { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
    / dim  w a1:Id
-     {yyValue = new DimensionParam(createSpan(yyStart,yyCount),NodeFactory.makeIdName(a1));}
+     {yyValue = new DimensionParam(createSpan(yyStart,yyCount), a1);}
    / unit w a1:Id a2:(w void:colon w DimExpr)? a3:(w absorbs w unit)?
      { Option<DimExpr> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
-       yyValue = new UnitParam(createSpan(yyStart,yyCount),NodeFactory.makeIdName(a1),
-                               derived,absorbs);
+       yyValue = new UnitParam(createSpan(yyStart,yyCount), a1,
+                               derived, absorbs);
      }
    / opr  w a1:Op
      {yyValue = new OperatorParam(createSpan(yyStart,yyCount),NodeFactory.makeOpr(a1));};

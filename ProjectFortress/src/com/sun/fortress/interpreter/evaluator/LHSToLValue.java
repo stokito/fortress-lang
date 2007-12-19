@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LHS;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -139,7 +139,7 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
      */
     @Override
     public LHS forUnpastingBind(UnpastingBind x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
     }

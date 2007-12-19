@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.SimpleName;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
@@ -32,19 +32,19 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class LocalFnEnv extends DelegatingNameEnv {
     private Set<SimpleName> _fns;
-    
+
     public LocalFnEnv(NameEnv parent, Set<SimpleName> fns) {
         super(parent);
         _fns = fns;
     }
-    
-    @Override public Set<QualifiedIdName> explicitFunctionNames(IdName name) {
+
+    @Override public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         if (_fns.contains(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
         }
         else { return super.explicitFunctionNames(name); }
     }
-    
+
     @Override public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
         if (_fns.contains(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedOpName(name));
@@ -53,12 +53,12 @@ public class LocalFnEnv extends DelegatingNameEnv {
     }
 
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public boolean hasGrammar(IdName name) {
+	public boolean hasGrammar(Id name) {
 		return false;
 	}
 
@@ -68,7 +68,7 @@ public class LocalFnEnv extends DelegatingNameEnv {
 	}
 
 	@Override
-	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+	public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 
@@ -76,5 +76,5 @@ public class LocalFnEnv extends DelegatingNameEnv {
 	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
 		return Option.none();
 	}
-	
+
 }

@@ -22,7 +22,7 @@
 package com.sun.fortress.parser_util;
 import java.util.List;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -30,18 +30,18 @@ import com.sun.fortress.useful.MagicNumbers;
 
 public class TraitHeader {
 
-    private IdName name;
+    private Id name;
     private List<StaticParam> staticParams;
     private List<TraitTypeWhere> extendsClause;
 
-    public TraitHeader(IdName name, List<StaticParam> staticParams,
+    public TraitHeader(Id name, List<StaticParam> staticParams,
                        List<TraitTypeWhere> extendsClause) {
         this.name = name;
         this.staticParams = staticParams;
         this.extendsClause = extendsClause;
     }
 
-    public IdName getName() {
+    public Id getName() {
         return name;
     }
 

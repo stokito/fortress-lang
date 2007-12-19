@@ -58,13 +58,13 @@ com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
 
 NumberLiteralExpr NumericLiteral =
      FloatLiteral
-   / IntLiteral ;
+   / IntLiteralExpr ;
 
 transient FloatLiteralExpr FloatLiteral = a1:DigitString dot a2:DigitString
      { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
                                                   a1 + "." + a2); };
 
-transient IntLiteralExpr IntLiteral = a1:DigitString
+transient IntLiteralExpr IntLiteralExpr = a1:DigitString
      { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
                                                 a1); };
 

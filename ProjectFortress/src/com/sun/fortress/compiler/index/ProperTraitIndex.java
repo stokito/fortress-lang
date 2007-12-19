@@ -22,7 +22,7 @@ import java.util.Set;
 import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SimpleName;
 
 import com.sun.fortress.useful.NI;
@@ -31,8 +31,8 @@ import com.sun.fortress.useful.NI;
 public class ProperTraitIndex extends TraitIndex {
     
     public ProperTraitIndex(TraitAbsDeclOrDecl ast,
-                            Map<IdName, Method> getters,
-                            Map<IdName, Method> setters,
+                            Map<Id, Method> getters,
+                            Map<Id, Method> setters,
                             Set<Function> coercions,
                             Relation<SimpleName, Method> dottedMethods,
                             Relation<SimpleName, FunctionalMethod> functionalMethods) {

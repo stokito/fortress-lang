@@ -26,7 +26,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -44,7 +44,7 @@ public class GrammarEnv {
 
 	public void addGrammar(GrammarIndex grammar, boolean isTopLevel) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 //	@SuppressWarnings("serial")
@@ -73,7 +73,7 @@ public class GrammarEnv {
 //
 //	private Map<String, GrammarIndex> grammars;
 //	private List<StaticError> errors;
-//       
+//
 //    public GrammarEnv() {
 //    	this.grammars = new HashMap<String, GrammarIndex>();
 //    	this.errors = new LinkedList<StaticError>();
@@ -86,9 +86,9 @@ public class GrammarEnv {
 //		}
 //	}
 //
-//    public void addGrammar(GrammarIndex grammar) {	
+//    public void addGrammar(GrammarIndex grammar) {
 //    	GrammarIndex grammarIndex = this.grammars.get(grammar.getQualifiedName());
-//System.err.println(grammarIndex+" "+grammar.getQualifiedName()+" "+this.grammars);		
+//System.err.println(grammarIndex+" "+grammar.getQualifiedName()+" "+this.grammars);
 //    	if (grammarIndex == null) {
 //			this.grammars.put(grammar.getQualifiedName(), grammar);
 //		}
@@ -96,18 +96,18 @@ public class GrammarEnv {
 ////			grammarIndex.setGrammar(grammar, isTopLevel);
 ////		}
 //		else {
-//			this.errors.add(new Error("Duplicate grammar imported", grammarIndex.getSpan()));			
+//			this.errors.add(new Error("Duplicate grammar imported", grammarIndex.getSpan()));
 //		}
-//		
+//
 //		for (QualifiedName name: grammar.ast().getExtends()) {
 //			if (!this.grammars.containsKey(name.getName().toString())) {
 //				this.grammars.put(name.getName().toString(), new GrammarIndex());
 //			}
-//			grammarIndex.addExtendingGrammar(this.grammars.get(name.getName().toString()));							
+//			grammarIndex.addExtendingGrammar(this.grammars.get(name.getName().toString()));
 //		}
 //    }
 //
-//	public GrammarIndex getGrammarIndex(IdName name) {
+//	public GrammarIndex getGrammarIndex(Id name) {
 //        GrammarIndex result = this.grammars.get(name);
 //        if (result == null) {
 //            throw new IllegalArgumentException("Undefined Grammar: " +
@@ -116,14 +116,14 @@ public class GrammarEnv {
 //        else { return result; }
 //    }
 //
-//	public Map<String, GrammarIndex> grammars() { 
-//		return this.grammars; 
+//	public Map<String, GrammarIndex> grammars() {
+//		return this.grammars;
 //	}
-//    
-//    public boolean definesGrammar(IdName name) {
+//
+//    public boolean definesGrammar(Id name) {
 //    	return this.grammars.containsKey(name.getId().getText());
 //    }
-//    
+//
 //    public List<StaticError> errors() {
 //    	return this.errors;
 //    }

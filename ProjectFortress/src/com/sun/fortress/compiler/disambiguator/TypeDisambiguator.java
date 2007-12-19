@@ -86,16 +86,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		return new TypeDisambiguator(newEnv, _onDemandImports, _errors);
 	}
 
-	/** 
-	 * When recurring on an AbsTraitDecl, we first need to extend the 
+	/**
+	 * When recurring on an AbsTraitDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forAbsTraitDeclOnly(that, 
+		return forAbsTraitDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(IdName) that.getName().accept(v),
+				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
 				v.recurOnListOfWhereClause(that.getWhere()),
@@ -104,16 +104,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 				v.recurOnListOfAbsDecl(that.getDecls()));
 	}
 
-	/** 
-	 * When recurring on a TraitDecl, we first need to extend the 
+	/**
+	 * When recurring on a TraitDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forTraitDecl(final TraitDecl that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forTraitDeclOnly(that, 
+		return forTraitDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(IdName) that.getName().accept(v),
+				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
 				v.recurOnListOfWhereClause(that.getWhere()),
@@ -123,16 +123,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 	}
 
 
-	/** 
-	 * When recurring on an AbsObjectDecl, we first need to extend the 
+	/**
+	 * When recurring on an AbsObjectDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forAbsObjectDeclOnly(that, 
+		return forAbsObjectDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(IdName) that.getName().accept(v),
+				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
 				v.recurOnListOfWhereClause(that.getWhere()),
@@ -142,16 +142,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 				v.recurOnListOfAbsDecl(that.getDecls()));
 	}
 
-	/** 
-	 * When recurring on an ObjectDecl, we first need to extend the 
+	/**
+	 * When recurring on an ObjectDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forObjectDecl(final ObjectDecl that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forObjectDeclOnly(that, 
+		return forObjectDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(IdName) that.getName().accept(v),
+				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
 				v.recurOnListOfWhereClause(that.getWhere()),
@@ -162,16 +162,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 	}
 
 
-	/** 
-	 * When recurring on an AbsFnDecl, we first need to extend the 
+	/**
+	 * When recurring on an AbsFnDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forAbsFnDecl(final AbsFnDecl that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forAbsFnDeclOnly(that, 
+		return forAbsFnDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(SimpleName) that.getName().accept(v), 
+				(SimpleName) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfParam(that.getParams()),
 				v.recurOnOptionOfType(that.getReturnType()),
@@ -180,16 +180,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 				(Contract) that.getContract().accept(v));
 	}
 
-	/** 
-	 * When recurring on a FnDecl, we first need to extend the 
+	/**
+	 * When recurring on a FnDecl, we first need to extend the
 	 * environment with all the newly bound static parameters.
 	 */
 	@Override public Node forFnDef(final FnDef that) {
 		TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forFnDefOnly(that, 
+		return forFnDefOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
-				(SimpleName) that.getName().accept(v), 
+				(SimpleName) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				v.recurOnListOfParam(that.getParams()),
 				v.recurOnOptionOfType(that.getReturnType()),
@@ -292,7 +292,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		}
 
 		else {
-			IdName id = n.getName();
+			Id id = n.getName();
 			if (_env.hasTypeParam(id)) { return variableHandler.value(); }
 			else {
 				Set<QualifiedIdName> typeConses = _env.explicitTypeConsNames(id);
@@ -340,7 +340,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 			}
 		}
 		QualifiedIdName name = handleGrammarName(that.getName());
-		
+
 		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,ls,that.getProductions());
 
 		List<StaticError> newErrs = new ArrayList<StaticError>();
@@ -348,20 +348,20 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		if (grammar.isSome()) {
 			GrammarIndex g = Option.unwrap(grammar);
 			g.setAst(disambiguatedGrammar);
-			
+
 			g.setExtendedGrammars(gs);
-			
+
 			g.setEnv(new ProductionEnv(this._env, g, this._errors));
 			g.setAst(disambiguatedGrammar);
 		}
-		
-        if (!newErrs.isEmpty()) { 
-            this._errors.addAll(newErrs); 
+
+        if (!newErrs.isEmpty()) {
+            this._errors.addAll(newErrs);
         }
-		
+
 		return disambiguatedGrammar;
-	}	
-	
+	}
+
 	private QualifiedIdName handleGrammarName(QualifiedIdName name) {
 		if (name.getApi().isSome()) {
 			APIName originalApi = Option.unwrap(name.getApi());
@@ -382,8 +382,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 			return newN;
 		}
 		else {
-			IdName id = name.getName();
-			if (_env.hasGrammar(id)) { 
+			Id id = name.getName();
+			if (_env.hasGrammar(id)) {
 				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(id);
 				if (grammars.size() > 1) {
 					error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);

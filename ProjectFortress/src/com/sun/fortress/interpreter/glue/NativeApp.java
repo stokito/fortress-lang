@@ -139,7 +139,7 @@ public abstract class NativeApp implements Applicable {
         if (!(arg instanceof StringLiteralExpr)) return defn;
         QualifiedIdName name = ((VarRef)fn).getVar();
         if (name.getApi().isSome()) return defn;
-        if (!name.getName().getId().getText().equals("builtinPrimitive")) return defn;
+        if (!name.getName().getText().equals("builtinPrimitive")) return defn;
         String str = ((StringLiteralExpr)arg).getText();
         Pair<String, Applicable> key = new Pair<String, Applicable>(str, defn);
         synchronized(cache) {

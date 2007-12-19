@@ -43,10 +43,10 @@ public class NodeUtil {
     public static Iterable<Id> getIds(final QualifiedIdName qName) {
         return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
             public Iterable<Id> forSome(APIName apiName) {
-                return IterUtil.compose(apiName.getIds(), qName.getName().getId());
+                return IterUtil.compose(apiName.getIds(), qName.getName());
             }
             public Iterable<Id> forNone() {
-                return IterUtil.singleton(qName.getName().getId());
+                return IterUtil.singleton(qName.getName());
             }
         });
     }
@@ -63,7 +63,7 @@ public class NodeUtil {
             return -1;
         int i = 0;
         for (Param p : d.getParams()) {
-            IdName name = p.getName();
+            Id name = p.getName();
                 if (WellKnownNames.defaultSelfName.equals(nameString(name))) {
                 return i;
             }
@@ -118,7 +118,7 @@ public class NodeUtil {
         @Override public String forQualifiedName(QualifiedName n) {
             return nameString(n);
             }
-        public String forIdName(IdName n) { return n.getId().getText(); }
+        public String forId(Id n) { return n.getText(); }
         public String forOpr(Opr n) { return n.getOp().getText(); }
         public String forPostFix(PostFix n) { return n.getOp().getText(); }
         public String forEnclosing(Enclosing n) {
@@ -138,8 +138,8 @@ public class NodeUtil {
         return n.accept(nameGetter);
     }
 
-    public static String nameString(IdName n) {
-        return n.getId().getText();
+    public static String nameString(Id n) {
+        return n.getText();
     }
 
     public static String nameString(Opr n) {
@@ -172,25 +172,25 @@ public class NodeUtil {
     public static String getName(StaticParam param) {
         return param.accept(new NodeAbstractVisitor<String>() {
             public String forBoolParam(BoolParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
             public String forDimensionParam(DimensionParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
             public String forIntParam(IntParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
             public String forNatParam(NatParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
             public String forOperatorParam(OperatorParam p) {
                 return nameString(p.getName());
             }
             public String forSimpleTypeParam(SimpleTypeParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
             public String forUnitParam(UnitParam p) {
-                return p.getName().getId().getText();
+                return p.getName().getText();
             }
         });
     }
@@ -200,9 +200,9 @@ public class NodeUtil {
         public String forDimUnitDecl(DimUnitDecl node) {
             if (node.getDim().isSome()) {
                 if (node.getUnits().isEmpty())
-                    return Option.unwrap(node.getDim()).getId().getText();
+                    return Option.unwrap(node.getDim()).getText();
                 else
-                    return Option.unwrap(node.getDim()).getId().getText() + " and " +
+                    return Option.unwrap(node.getDim()).getText() + " and " +
                            Useful.listInDelimiters("", node.getUnits(), "");
             } else
                 return Useful.listInDelimiters("", node.getUnits(), "");
@@ -214,16 +214,16 @@ public class NodeUtil {
             return nameString(node);
         }
         public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
-            return node.getName().getId().getText();
+            return node.getName().getText();
         }
         public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
             return node.getGenSymName();
         }
         public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
-            return node.getName().getId().getText();
+            return node.getName().getText();
         }
         public String forTypeAlias(TypeAlias node) {
-            return node.getName().getId().getText();
+            return node.getName().getText();
         }
         public String defaultCase(Node node) {
             return node.getClass().getSimpleName();
@@ -240,10 +240,10 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(LValue lv) {
         return lv.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forLValueBind(LValueBind d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forUnpastingBind(UnpastingBind d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forUnpastingSplit(UnpastingSplit d) {
                 return new IterableOnceForLValueList(d.getElems());
@@ -254,13 +254,13 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {
         return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forDimUnitDecl(DimUnitDecl d) {
                 if (d.getDim().isSome()) {
                     if (d.getUnits().isEmpty())
                         return new UnitIterable<String>(
-                           Option.unwrap(d.getDim()).getId().getText());
+                           Option.unwrap(d.getDim()).getText());
                     else
                         return bug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
                 } else
@@ -268,7 +268,7 @@ public class NodeUtil {
                            d.getUnits(), NameToStringFn);
             }
             public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forFnExpr(FnExpr d) {
                 return new UnitIterable<String>(nameString(d.getName()));
@@ -286,15 +286,15 @@ public class NodeUtil {
                 return new IterableOnceForLValueList(d.getLhs());
             }
             public IterableOnce<String> forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> for_RewriteObjectExpr(_RewriteObjectExpr d) {
                 return new UnitIterable<String>(d.getGenSymName());
             }
             public IterableOnce<String> forPropertyDecl(PropertyDecl d) {
-                return d.getName().apply(new OptionVisitor<IdName, IterableOnce<String>>() {
-                    public IterableOnce<String> forSome(IdName name) {
-                        return new UnitIterable<String>(name.getId().getText());
+                return d.getName().apply(new OptionVisitor<Id, IterableOnce<String>>() {
+                    public IterableOnce<String> forSome(Id name) {
+                        return new UnitIterable<String>(name.getText());
                     }
                     public IterableOnce<String> forNone() {
                         return new UnitIterable<String>("_");
@@ -302,13 +302,13 @@ public class NodeUtil {
                 });
             }
             public IterableOnce<String> forTestDecl(TestDecl d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forTypeAlias(TypeAlias d) {
-                return new UnitIterable<String>(d.getName().getId().getText());
+                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());

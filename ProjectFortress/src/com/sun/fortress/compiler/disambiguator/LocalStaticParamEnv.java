@@ -35,7 +35,7 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
         _staticParams = staticParams;
     }
     
-    @Override public boolean hasTypeParam(IdName name) {
+    @Override public boolean hasTypeParam(Id name) {
         for (StaticParam typeVar : _staticParams) {
             if (typeVar instanceof IdStaticParam &&
                 ((IdStaticParam)typeVar).getName().equals(name)) {
@@ -46,12 +46,12 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     }
     
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public boolean hasGrammar(IdName name) {
+	public boolean hasGrammar(Id name) {
 		return false;
 	}
 
@@ -61,7 +61,7 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
 	}
 
 	@Override
-	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+	public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 	

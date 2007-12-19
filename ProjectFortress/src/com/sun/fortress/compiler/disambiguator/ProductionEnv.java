@@ -35,7 +35,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -49,7 +49,7 @@ public class ProductionEnv {
 	private GrammarIndex _current;
 	private List<StaticError> _errors;
 
-	private Map<IdName, Set<QualifiedIdName>> _productions = new HashMap<IdName, Set<QualifiedIdName>>();
+	private Map<Id, Set<QualifiedIdName>> _productions = new HashMap<Id, Set<QualifiedIdName>>();
 
 	public ProductionEnv(TypeNameEnv typeEnv, GrammarIndex currentGrammar, List<StaticError> errors) {
 		_typeEnv = typeEnv;
@@ -60,9 +60,9 @@ public class ProductionEnv {
 
 	private void initializeProductions() {
 		for (Map.Entry<QualifiedIdName,ProductionIndex> e: _current.productions().entrySet()) {
-			IdName key = e.getKey().getName();
+			Id key = e.getKey().getName();
 			GrammarDecl currentGrammar = Option.unwrap(_current.ast());
-			IdName name = NodeFactory.makeIdName(currentGrammar.getName().stringName()+"."+key.getId().stringName());
+			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());
 			if (_productions.containsKey(key)) {
 				_productions.get(key).add(new QualifiedIdName(key.getSpan(),
 						currentGrammar.getName().getApi(),
@@ -107,44 +107,44 @@ public class ProductionEnv {
      */
 	public boolean hasQualifiedProduction(QualifiedIdName name) {
         APIName api = getApi(Option.unwrap(name.getApi()));
-        IdName gname = NodeFactory.makeIdName(getGrammar(Option.unwrap(name.getApi())));
+        Id gname = getGrammar(Option.unwrap(name.getApi()));
         QualifiedIdName grammarName = NodeFactory.makeQualifiedIdName(api, gname);
         if (this._typeEnv.hasQualifiedGrammar(grammarName)) {
             return this._current.productions().containsKey(name.getName());
         }
         else { return false; }
-		
+
 	}
 
 	/** Determine whether a production with the given name is defined. */
 	public boolean hasProduction(QualifiedIdName name) {
 		if (_current.productions().containsKey(name)) {
-        	return true;            
+        	return true;
         }
         return false;
 	}
 
     /**
      * Produce the set of qualified names corresponding to the given
-     * production name.  An undefined reference produces an empty set, and 
+     * production name.  An undefined reference produces an empty set, and
      * an ambiguous reference produces a set of size greater
      * than 1.
      */
 	public Set<QualifiedIdName> explicitProductionNames(QualifiedIdName name) {
         return explicitProductionNames(_current, name);
 	}
-	
+
 	private Set<QualifiedIdName> explicitProductionNames(GrammarIndex grammar, QualifiedIdName name) {
 		if (grammar.productions().containsKey(name)) {
 			if (grammar.ast().isSome()) {
 				QualifiedIdName gname = Option.unwrap(grammar.ast()).getName();
-				return Collections.singleton(qualifyProductionName(Option.unwrap(gname.getApi()), gname.getName().getId(), name.getName()));
+				return Collections.singleton(qualifyProductionName(Option.unwrap(gname.getApi()), gname.getName(), name.getName()));
 			}
 		}
         return Collections.emptySet();
 	}
-	
-	private QualifiedIdName qualifyProductionName(APIName api, Id grammarName, IdName productionName) {
+
+	private QualifiedIdName qualifyProductionName(APIName api, Id grammarName, Id productionName) {
 		Collection<Id> names = new LinkedList<Id>();
 		names.addAll(api.getIds());
 		names.add(grammarName);
@@ -154,7 +154,7 @@ public class ProductionEnv {
 
     /**
      * Produce the set of inherited qualified names corresponding to the given
-     * production name.  An undefined reference produces an empty set, and 
+     * production name.  An undefined reference produces an empty set, and
      * an ambiguous reference produces a set of size greater
      * than 1.
      */
@@ -163,7 +163,7 @@ public class ProductionEnv {
 		for (GrammarIndex g: _current.getExtendedGrammars()) {
 			if (g.ast().isSome()) {
 				QualifiedIdName gname = Option.unwrap(g.ast()).getName();
-				QualifiedIdName n = qualifyProductionName(Option.unwrap(gname.getApi()), gname.getName().getId(), name.getName());
+				QualifiedIdName n = qualifyProductionName(Option.unwrap(gname.getApi()), gname.getName(), name.getName());
 				rs.addAll(explicitProductionNames(g, n));
 			}
 		}

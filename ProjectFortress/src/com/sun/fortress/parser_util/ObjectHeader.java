@@ -24,7 +24,7 @@ package com.sun.fortress.parser_util;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -33,13 +33,13 @@ import com.sun.fortress.useful.MagicNumbers;
 
 public class ObjectHeader {
 
-    private IdName name;
+    private Id name;
     private List<StaticParam> staticParams;
     private Option<List<Param>> params;
     private List<TraitTypeWhere> extendsClause;
     private FnHeaderClause fnHeaderClause;
 
-    public ObjectHeader(IdName name, List<StaticParam> staticParams,
+    public ObjectHeader(Id name, List<StaticParam> staticParams,
                         Option<List<Param>> params,
                         List<TraitTypeWhere> extendsClause,
                         FnHeaderClause fnHeaderClause) {
@@ -50,7 +50,7 @@ public class ObjectHeader {
         this.fnHeaderClause = fnHeaderClause;
     }
 
-    public IdName getName() {
+    public Id getName() {
         return name;
     }
 

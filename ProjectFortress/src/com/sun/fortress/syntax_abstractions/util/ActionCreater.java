@@ -42,7 +42,7 @@ import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.Param;
@@ -103,8 +103,8 @@ public class ActionCreater {
 
 	}
 
-	private static final IdName ANY = new IdName(new Id("Any"));
-	private static final IdName STRING = new IdName(new Id("String"));
+	private static final Id ANY = new Id("Any");
+	private static final Id STRING = new Id("String");
 
 	public static Result create(String productionName, Expr e, String returnType) {
 		ActionCreater ac = new ActionCreater();
@@ -176,13 +176,13 @@ public class ActionCreater {
 		return new Component(span, name, imports, exports, decls);
 	}
 
-	private Decl makeFunction(String functionName, IdName typeString, Expr expression) {
-		IdName fnName = new IdName(new Id(functionName));
+	private Decl makeFunction(String functionName, Id typeString, Expr expression) {
+		Id fnName = new Id(functionName);
 		List<Param> params = new LinkedList<Param>();
 		QualifiedIdName typeName = new QualifiedIdName(typeString);
 		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
 		Type type = new InstantiatedType(typeName, staticArgs);
-		params.add(new VarargsParam(new IdName(new Id("args")), new VarargsType(type)));
+		params.add(new VarargsParam(new Id("args"), new VarargsType(type)));
 		QualifiedIdName objectTypeName = new QualifiedIdName(typeString);
 		Type returnType = new InstantiatedType(objectTypeName , staticArgs);
 		return new FnDef(fnName, params, Option.some(returnType), expression);

@@ -71,7 +71,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.SimpleName;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
@@ -257,7 +257,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         @Override
         public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
             List<StaticParam> staticParams = x.getStaticParams();
-            IdName name = x.getName();
+            Id name = x.getName();
 
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt =
@@ -274,7 +274,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         @Override
         public Voidoid forTraitDecl(TraitDecl x) {
             List<StaticParam> staticParams = x.getStaticParams();
-            IdName name = x.getName();
+            Id name = x.getName();
 
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing
@@ -661,7 +661,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Modifier> mods;
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
@@ -751,7 +751,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      private void forObjectDecl2(ObjectDecl x) {
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
@@ -781,7 +781,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forObjectDecl3(ObjectDecl x) {
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
@@ -816,7 +816,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forObjectDecl4(ObjectDecl x) {
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         Option<List<Param>> params = x.getParams();
 
@@ -884,7 +884,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         LValueBind lvb = lhs.get(0);
 
           Option<Type> type = lvb.getType();
-          IdName name = lvb.getName();
+          Id name = lvb.getName();
           String sname = NodeUtil.nameString(name);
 
           try {
@@ -956,7 +956,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
          {
                 Option<Type> type = lvb.getType();
-                IdName name = lvb.getName();
+                Id name = lvb.getName();
                 String sname = NodeUtil.nameString(name);
 
                 FType ft = type.isSome() ?
@@ -1019,7 +1019,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // TODO Auto-generated method stub
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        IdName name = x.getName();
+        Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         // List<WhereClause> where;
@@ -1048,7 +1048,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // TODO Auto-generated method stub
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        IdName name = x.getName();
+        Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         // List<WhereClause> where;
@@ -1066,7 +1066,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
     }
     private void forAbsTraitDecl3(AbsTraitDecl x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(NodeUtil.nameString(name));
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
@@ -1094,7 +1094,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // TODO Auto-generated method stub
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        IdName name = x.getName();
+        Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         // List<WhereClause> where;
@@ -1123,7 +1123,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // TODO Auto-generated method stub
         List<StaticParam> staticParams = x.getStaticParams();
         // List<Modifier> mods;
-        IdName name = x.getName();
+        Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         // List<WhereClause> where;
@@ -1141,7 +1141,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         }
     }
     private void forTraitDecl3(TraitDecl x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(fname);
         scanForFunctionalMethodNames(ft, x.getDecls());
@@ -1187,7 +1187,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             for (WhereClause w : wheres) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
-                    IdName name = we.getName();
+                    Id name = we.getName();
                     String string_name = NodeUtil.nameString(name);
                     // List<Type> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
@@ -1214,7 +1214,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
             for (WhereClause w : wheres) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
-                    IdName name = we.getName();
+                    Id name = we.getName();
                     String string_name = NodeUtil.nameString(name);
                     List<TraitType> types = we.getSupers();
                     FType ft = interior.getTypeNull(string_name);
@@ -1243,7 +1243,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
                     // For now, assume that the order in the where clause is
                     // topological.
                     TypeAlias ta = (TypeAlias) w;
-                    IdName name = ta.getName();
+                    Id name = ta.getName();
                     Type type = ta.getType();
                     interior.putType(NodeUtil.nameString(name), et.evalType(type));
                 } else {
@@ -1371,7 +1371,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // Option<Type> type = x.getType();
         LValueBind lvb = lhs.get(0);
 
-        IdName name = lvb.getName();
+        Id name = lvb.getName();
         String sname = NodeUtil.nameString(name);
 
         try {
@@ -1482,7 +1482,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         // List<Modifier> mods;
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
@@ -1537,7 +1537,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     private void forAbsObjectDecl2(AbsObjectDecl x) {
 
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();
@@ -1563,14 +1563,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
     }
     private void forAbsObjectDecl3(AbsObjectDecl x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname);
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
     private void forAbsObjectDecl4(AbsObjectDecl x) {
         BetterEnv e = containing;
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();

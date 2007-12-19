@@ -29,7 +29,7 @@ import java.util.List;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleName;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.useful.Pair;
 
@@ -46,7 +46,7 @@ public class DependencyResolver {
 //		dependencies = new LinkedList<ModuleDependency>();
 //		parameters = new LinkedList<ModuleName>();
 //		boolean addKeyword = false;
-//		for (Pair<IdName, Option<QualifiedName>> p: syntaxHeaderFront.getParameters()) {
+//		for (Pair<Id, Option<QualifiedName>> p: syntaxHeaderFront.getParameters()) {
 //			if (p.getB().isNone() ||
 //					(p.getB().isSome() && Option.unwrap(p.getB()).getName().stringName().equals("Keyword"))) {
 //				addKeyword  = true;

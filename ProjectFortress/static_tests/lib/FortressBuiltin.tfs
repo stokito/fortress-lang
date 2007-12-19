@@ -1,156 +1,95 @@
-(Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":18:0~61:3
- _name=(APIName @18:4~20:0 _ids=[(Id @18:4~19 _text="FortressBuiltin")])
+(Api @"test_library/FortressBuiltin.fsi":18:1~61:4
+ _name=(APIName @18:5~20:1 _ids=[(Id @18:5~20 _text="FortressBuiltin")])
  _decls=[
-  (AbsTraitDecl @20:0~29
-   _name=(IdName @20:6~9
-    _id=(Id _text="Any"))
+  (AbsTraitDecl @20:1~14
+   _name=(Id @20:7~10 _text="Any"))
+  (AbsTraitDecl @22:1~34
+   _name=(Id @22:7~14 _text="Boolean")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":20:20~23
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsObjectDecl @22:0~34
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
-    _id=(Id _text="Boolean"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":22:25~29 _name=(QualifiedIdName
+       _name=(Id @22:25~28 _text="Any"))))])
+  (AbsTraitDecl @24:1~26:4
+   _name=(Id @24:7~13 _text="String")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:25~28
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsObjectDecl @24:0~26:3
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":24:7~13
-    _id=(Id _text="String"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":24:24~28 _name=(QualifiedIdName
+       _name=(Id @24:24~27 _text="Any"))))])
+  (AbsTraitDecl @28:1~29:4
+   _name=(Id @28:7~11 _text="Char")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":24:24~27
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsObjectDecl @28:0~29:3
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":28:7~11
-    _id=(Id _text="Char"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":28:22~26 _name=(QualifiedIdName
+       _name=(Id @28:22~25 _text="Any"))))])
+  (AbsTraitDecl @31:1~33:4
+   _name=(Id @31:8~14 _text="Number")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":28:22~25
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsTraitDecl @31:0~33:3
-   _name=(IdName @31:7~13
-    _id=(Id _text="Number"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":31:25~29 _name=(QualifiedIdName
+       _name=(Id @31:25~28 _text="Any"))))])
+  (AbsTraitDecl @35:1~37:4
+   _name=(Id @35:8~16 _text="Integral")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":31:24~27
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsTraitDecl @35:0~37:3
-   _name=(IdName @35:7~15
-    _id=(Id _text="Integral"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":35:27~34 _name=(QualifiedIdName
+       _name=(Id @35:27~33 _text="Number"))))])
+  (AbsTraitDecl @39:1~41
+   _name=(Id @39:7~21 _text="BufferedReader")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":35:26~32
-       _name=(IdName
-        _id=(Id _text="Number")))))])
-  (AbsTraitDecl @39:0~40
-   _name=(IdName @39:6~20
-    _id=(Id _text="BufferedReader"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":39:32~36 _name=(QualifiedIdName
+       _name=(Id @39:32~35 _text="Any"))))])
+  (AbsTraitDecl @40:1~41
+   _name=(Id @40:7~21 _text="BufferedWriter")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":39:31~34
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsTraitDecl @40:0~40
-   _name=(IdName @40:6~20
-    _id=(Id _text="BufferedWriter"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":40:32~36 _name=(QualifiedIdName
+       _name=(Id @40:32~35 _text="Any"))))])
+  (AbsTraitDecl @42:1~44:4
+   _name=(Id @42:7~11 _text="ZZ32")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":40:31~34
-       _name=(IdName
-        _id=(Id _text="Any")))))])
-  (AbsObjectDecl @42:0~44:3
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-    _id=(Id _text="ZZ32"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":42:22~31 _name=(QualifiedIdName
+       _name=(Id @42:22~30 _text="Integral"))))])
+  (AbsTraitDecl @46:1~48:4
+   _name=(Id @46:7~11 _text="ZZ64")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:22~30
-       _name=(IdName
-        _id=(Id _text="Integral")))))])
-  (AbsObjectDecl @46:0~48:3
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":46:7~11
-    _id=(Id _text="ZZ64"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":46:22~31 _name=(QualifiedIdName
+       _name=(Id @46:22~30 _text="Integral"))))])
+  (AbsTraitDecl @50:1~52:4
+   _name=(Id @50:7~11 _text="RR64")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":46:22~30
-       _name=(IdName
-        _id=(Id _text="Integral")))))])
-  (AbsObjectDecl @50:0~52:3
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":50:7~11
-    _id=(Id _text="RR64"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":50:22~29 _name=(QualifiedIdName
+       _name=(Id @50:22~28 _text="Number"))))])
+  (AbsTraitDecl @54:1~50
+   _name=(Id @54:7~17 _text="IntLiteral")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":50:22~28
-       _name=(IdName
-        _id=(Id _text="Number")))))])
-  (AbsObjectDecl @54:0~50
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":54:7~17
-    _id=(Id _text="IntLiteral"))
+     _type=(IdType @"test_library/FortressBuiltin.fsi":54:28~32 _name=(QualifiedIdName
+       _name=(Id _text="ZZ32"))))
+    (TraitTypeWhere @"":0:0
+     _type=(IdType @"test_library/FortressBuiltin.fsi":54:34~38 _name=(QualifiedIdName
+       _name=(Id _text="ZZ64"))))
+    (TraitTypeWhere @"":0:0
+     _type=(IdType @"test_library/FortressBuiltin.fsi":54:40~45 _name=(QualifiedIdName
+       _name=(Id @54:40~44 _text="RR64"))))])
+  (AbsTraitDecl @56:1~40
+   _name=(Id @56:7~19 _text="FloatLiteral")
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":54:28~32
-       _name=(IdName
-        _id=(Id _text="ZZ32")))))
-    (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":54:34~38
-       _name=(IdName
-        _id=(Id _text="ZZ64")))))
-    (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":54:40~44
-       _name=(IdName
-        _id=(Id _text="RR64")))))])
-  (AbsObjectDecl @56:0~40
-   _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":56:7~19
-    _id=(Id _text="FloatLiteral"))
-   _extendsClause=[
-    (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType
-      _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":56:30~34
-       _name=(IdName
-        _id=(Id _text="RR64")))))])
-  (AbsVarDecl @58:0~59:0
+     _type=(IdType @"test_library/FortressBuiltin.fsi":56:30~35 _name=(QualifiedIdName
+       _name=(Id @56:30~34 _text="RR64"))))])
+  (AbsVarDecl @58:1~59:1
    _lhs=[
     (LValueBind
-     _name=(IdName @58:0~4
-      _id=(Id _text="true"))
-     _type=(Some _value=(InstantiatedType @"":0:0
-       _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":58:6~13
-        _name=(IdName
-         _id=(Id _text="Boolean"))))))])
-  (AbsVarDecl @59:0~61:0
+     _name=(Id @58:1~5 _text="true")
+     _type=(Some _value=(IdType @58:7~59:1 _name=(QualifiedIdName
+        _name=(Id @58:7~14 _text="Boolean")))))])
+  (AbsVarDecl @59:1~61:1
    _lhs=[
     (LValueBind
-     _name=(IdName @59:0~5
-      _id=(Id _text="false"))
-     _type=(Some _value=(InstantiatedType @"":0:0
-       _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":59:7~14
-        _name=(IdName
-         _id=(Id _text="Boolean"))))))])])
+     _name=(Id @59:1~6 _text="false")
+     _type=(Some _value=(IdType @59:8~61:1 _name=(QualifiedIdName
+        _name=(Id @59:8~15 _text="Boolean")))))])])

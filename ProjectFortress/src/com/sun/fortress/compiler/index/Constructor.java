@@ -17,11 +17,11 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 
 public class Constructor extends Function {
     
-    private final IdName _declaringTrait;
+    private final Id _declaringTrait;
     
-    public Constructor(IdName declaringTrait) { _declaringTrait = declaringTrait; }
+    public Constructor(Id declaringTrait) { _declaringTrait = declaringTrait; }
 }

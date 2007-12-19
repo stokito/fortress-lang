@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGenerator;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -33,17 +33,17 @@ public class FGenerator extends FValue {
     // For now assume that we only have a single identifier.
     //  List<Id> id;
     //  List<Range> range;
-    private final IdName id;
+    private final Id id;
     private final FRange range;
     private final FRangeIterator iterator;
 
-    public FGenerator(List<IdName> b, FRange r) {
+    public FGenerator(List<Id> b, FRange r) {
         id = b.get(0);
         range = r;
         iterator = new FRangeIterator(range);
     }
 
-    public FGenerator(IdName b, FRange r) {
+    public FGenerator(Id b, FRange r) {
         id = b;
         range = r;
         iterator = new FRangeIterator(range);

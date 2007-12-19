@@ -18,7 +18,7 @@
 /*
  * Class traversing a macro declaration and creates a corresponding Rats!
  * macro declaration
- * 
+ *
  */
 
 package com.sun.fortress.syntax_abstractions.old;
@@ -52,7 +52,7 @@ public class RatsMacroTranslator extends NodeDepthFirstVisitor_void {
 	private RatsMacroDecl ratsMacroDecl;
 	/* keywords are collected so they can be written out into the Keyword.rats file */
 	private Set<String> keywords;
-		
+
 	public RatsMacroTranslator() {
 		super();
 		this.keywords = new HashSet<String>();
@@ -66,23 +66,23 @@ public class RatsMacroTranslator extends NodeDepthFirstVisitor_void {
 	public void forSyntaxDef(SyntaxDef that) {
 //		ProductionEnum production = ModuleInfo.getProductionFromSyntaxParamType(Option.unwrap(that.getTypedSyntaxParam().getB()));
 //		ModuleEnum module = ModuleInfo.getModuleFromProduction(production);
-//		
+//
 //		ratsMacroDecl = new RatsMacroDecl(module, production);
-//		
+//
 //		// Which other Rats! modules does this module depend on?
 //		DependencyResolver dependencyResolver = new DependencyResolver();
 //		dependencyResolver.resolveDependencies(that.getBody().getSyntaxHeaderFront());
 //		ratsMacroDecl.addParameters(dependencyResolver.getParameters());
 //		ratsMacroDecl.addDependencies(dependencyResolver.getDependencies());
-//		
+//
 //		SyntaxParamCollector syntaxParamCollector = new SyntaxParamCollector();
 //		List<SyntaxParam> syntaxParams = syntaxParamCollector.getSyntaxParams(that.getBody().getSyntaxHeaderFront());
 //		for (SyntaxParam syntaxParam: syntaxParams) {
 //			if (syntaxParam.isKeyword()) {
-//				this.keywords.add(syntaxParam.getIdName().stringName());
+//				this.keywords.add(syntaxParam.getId().stringName());
 //			}
 //		}
-//		
+//
 //		List<Sequence> seq = new LinkedList<Sequence>();
 //
 //		List<Element> elms = new LinkedList<Element>();
@@ -100,7 +100,7 @@ public class RatsMacroTranslator extends NodeDepthFirstVisitor_void {
 //				elms.add(new NonTerminal("w"));
 //			}
 //		}
-//		elms.add(FortressObjectTranslator.translate(that.getBody().getBody()));	
+//		elms.add(FortressObjectTranslator.translate(that.getBody().getBody()));
 //
 //		seq.add(new Sequence(new SequenceName(FreshName.getFreshName(production.toString()).toUpperCase()), elms )); // TODO: generate freshname
 //		ratsMacroDecl.setSequence(seq);
@@ -115,5 +115,5 @@ public class RatsMacroTranslator extends NodeDepthFirstVisitor_void {
 	}
 
 
-	
+
 }

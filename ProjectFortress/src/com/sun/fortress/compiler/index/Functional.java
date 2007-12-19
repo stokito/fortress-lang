@@ -23,7 +23,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 
 import com.sun.fortress.useful.NI;
 
@@ -34,11 +34,11 @@ public abstract class Functional {
         return NI.nyi();
     }
     
-    public Map<IdName, StaticParam> staticParameters() {
+    public Map<Id, StaticParam> staticParameters() {
         return NI.nyi();
     }
     
-    public Map<IdName, Param> parameters() {
+    public Map<Id, Param> parameters() {
         return NI.nyi();
     }
     

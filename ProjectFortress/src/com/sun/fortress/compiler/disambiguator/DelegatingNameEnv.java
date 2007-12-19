@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -29,46 +29,46 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingNameEnv extends NameEnv {
     private NameEnv _parent;
-    
+
     protected DelegatingNameEnv(NameEnv parent) {
         _parent = parent;
     }
-    
+
     public Option<APIName> apiName(APIName name) {
         return _parent.apiName(name);
     }
-    
-    public boolean hasTypeParam(IdName name) {
+
+    public boolean hasTypeParam(Id name) {
         return _parent.hasTypeParam(name);
     }
 
-    public Set<QualifiedIdName> explicitTypeConsNames(IdName name) {
+    public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
         return _parent.explicitTypeConsNames(name);
     }
-    public Set<QualifiedIdName> explicitVariableNames(IdName name) {
+    public Set<QualifiedIdName> explicitVariableNames(Id name) {
         return _parent.explicitVariableNames(name);
     }
-    public Set<QualifiedIdName> explicitFunctionNames(IdName name) {
+    public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         return _parent.explicitFunctionNames(name);
     }
     public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
         return _parent.explicitFunctionNames(name);
     }
 
-    public Set<QualifiedIdName> onDemandTypeConsNames(IdName name) {
+    public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
         return _parent.onDemandTypeConsNames(name);
     }
-    public Set<QualifiedIdName> onDemandVariableNames(IdName name) {
+    public Set<QualifiedIdName> onDemandVariableNames(Id name) {
         return _parent.onDemandVariableNames(name);
     }
-    public Set<QualifiedIdName> onDemandFunctionNames(IdName name) {
+    public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
         return _parent.onDemandFunctionNames(name);
     }
     public Set<QualifiedOpName> onDemandFunctionNames(OpName name) {
         return _parent.onDemandFunctionNames(name);
     }
-    
-    
+
+
     public boolean hasQualifiedTypeCons(QualifiedIdName name) {
         return _parent.hasQualifiedTypeCons(name);
     }
@@ -78,7 +78,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public boolean hasQualifiedFunction(QualifiedIdName name) {
         return _parent.hasQualifiedFunction(name);
     }
-    
+
     public TypeConsIndex typeConsIndex(QualifiedIdName name) {
         return _parent.typeConsIndex(name);
     }

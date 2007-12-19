@@ -21,21 +21,21 @@ import java.util.Set;
 import java.util.Collections;
 
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class LocalVarEnv extends DelegatingNameEnv {
-    private Set<IdName> _vars;
+    private Set<Id> _vars;
     
-    public LocalVarEnv(NameEnv parent, Set<IdName> vars) {
+    public LocalVarEnv(NameEnv parent, Set<Id> vars) {
         super(parent);
         _vars = vars;
     }
     
-    @Override public Set<QualifiedIdName> explicitVariableNames(IdName name) {
+    @Override public Set<QualifiedIdName> explicitVariableNames(Id name) {
         if (_vars.contains(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
         }
@@ -43,12 +43,12 @@ public class LocalVarEnv extends DelegatingNameEnv {
     }
     
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public boolean hasGrammar(IdName name) {
+	public boolean hasGrammar(Id name) {
 		return false;
 	}
 
@@ -58,7 +58,7 @@ public class LocalVarEnv extends DelegatingNameEnv {
 	}
 
 	@Override
-	public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+	public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
 

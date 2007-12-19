@@ -201,10 +201,7 @@ public class ExprFactory {
     }
 
     public static Generator makeGenerator(Span span, Iterable<Id> ids, Expr expr) {
-        Iterable<IdName> names = IterUtil.map(ids, new Lambda<Id, IdName>() {
-            public IdName value(Id id) { return NodeFactory.makeIdName(id); }
-        });
-        return new Generator(span, IterUtil.asList(names), expr);
+        return new Generator(span, IterUtil.asList(ids), expr);
     }
 
     public static TupleExpr makeTuple(List<Expr> exprs) {
@@ -271,7 +268,7 @@ public class ExprFactory {
                          Collections.<StaticArg>emptyList());
     }
 
-    public static FnRef makeFnRef(APIName api, IdName name) {
+    public static FnRef makeFnRef(APIName api, Id name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         List<QualifiedIdName> qNames = Collections.singletonList(qName);
         return new FnRef(qName.getSpan(), false, qNames,
@@ -304,15 +301,12 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(String s) {
-        return makeVarRef(NodeFactory.makeIdName(s));
+        return makeVarRef(NodeFactory.makeId(s));
     }
 
     public static VarRef makeVarRef(Id id) {
-        return new VarRef(id.getSpan(), false, NodeFactory.makeQualifiedIdName(id));
-    }
-
-    public static VarRef makeVarRef(IdName name) {
-        return new VarRef(name.getSpan(), false, NodeFactory.makeQualifiedIdName(name));
+        return new VarRef(id.getSpan(), false,
+                          NodeFactory.makeQualifiedIdName(id));
     }
 
     public static VarRef makeVarRef(Iterable<Id> apiIds, Id name) {
@@ -331,14 +325,14 @@ public class ExprFactory {
         return new VarRef(qName.getSpan(), false, qName);
     }
 
-    public static VarRef makeVarRef(APIName api, IdName name) {
+    public static VarRef makeVarRef(APIName api, Id name) {
         QualifiedIdName qName = NodeFactory.makeQualifiedIdName(api, name);
         return new VarRef(qName.getSpan(), false, qName);
     }
 
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
-        return new FieldRef(FortressUtil.spanTwo(receiver, field), false, receiver,
-                            NodeFactory.makeIdName(field));
+        return new FieldRef(FortressUtil.spanTwo(receiver, field), false,
+                            receiver, field);
     }
 
     /** Alternatively, you can invoke the VoidLiteralExpr constructor without parenthesized or text */
