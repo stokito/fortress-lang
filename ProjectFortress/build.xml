@@ -490,7 +490,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                     <include name="**/SystemJUTests.class"/>
                 </fileset>
             </batchtest>
-        </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        </junit>
     </target>
 
     <target name="testDemos" depends="compile"
