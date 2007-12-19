@@ -114,7 +114,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * compilation unit declaration
      * CompilationUnit ::= Component | Api
      */
-    abstract CompilationUnit(APIName name, List<Import> imports);
+    abstract CompilationUnit(boolean _native = false,
+                             APIName name, List<Import> imports);
         /**
          * component declaration
          * Component ::= component APIName Imports? Exports Decls? end
