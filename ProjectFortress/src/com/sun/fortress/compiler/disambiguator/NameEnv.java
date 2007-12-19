@@ -19,7 +19,7 @@ package com.sun.fortress.compiler.disambiguator;
 
 import java.util.Set;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
@@ -32,13 +32,13 @@ public abstract class NameEnv extends TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size greater
      * than 1.
      */
-    public abstract Set<QualifiedIdName> explicitVariableNames(IdName name);
+    public abstract Set<QualifiedIdName> explicitVariableNames(Id name);
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * function name; on-demand imports are ignored.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedIdName> explicitFunctionNames(IdName name);
+    public abstract Set<QualifiedIdName> explicitFunctionNames(Id name);
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * operator name; on-demand imports are ignored.  An undefined reference
@@ -52,13 +52,13 @@ public abstract class NameEnv extends TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size 
      * greater than 1.
      */
-    public abstract Set<QualifiedIdName> onDemandVariableNames(IdName name);
+    public abstract Set<QualifiedIdName> onDemandVariableNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given function name.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<QualifiedIdName> onDemandFunctionNames(IdName name);
+    public abstract Set<QualifiedIdName> onDemandFunctionNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given operator name.  An undefined reference

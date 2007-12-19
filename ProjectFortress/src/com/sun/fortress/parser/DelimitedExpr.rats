@@ -59,8 +59,7 @@ Expr DelimitedExpr =
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getText().equals(a3.getText()))
            error(a1, "Mismatched identifiers for label expressions.");
-       yyValue = new Label(createSpan(yyStart,yyCount), false,
-                           NodeFactory.makeIdName(a1), a2);
+       yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
    / while w a1:Expr w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
@@ -196,8 +195,7 @@ private List<Binding> TypecaseBindings =
    / a1:Binding
      { yyValue = FortressUtil.mkList(a1); }
    / a1:BindId
-     { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount),
-                                                 NodeFactory.makeIdName(a1),
+     { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount), a1,
                                                  ExprFactory.makeVarRef(a1)));
      };
 
@@ -207,9 +205,7 @@ private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
 
 /* Binding ::= BindId w = w Expr */
 private Binding Binding = a1:BindId w equals w a2:Expr
-     { yyValue = new Binding(createSpan(yyStart,yyCount),
-                             NodeFactory.makeIdName(a1), a2);
-     };
+     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =
@@ -232,8 +228,7 @@ List<Type> TypecaseTypes =
 
 /* Catch ::= catch w BindId w CatchClauses */
 Catch Catch = catch w a1:BindId w a2:CatchClauses
-     { yyValue = new Catch(createSpan(yyStart,yyCount), NodeFactory.makeIdName(a1), a2);
-     };
+     { yyValue = new Catch(createSpan(yyStart,yyCount), a1, a2); };
 
 /* CatchClauses ::= CatchClause (br CatchClause)* */
 private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
@@ -297,7 +292,8 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
      { List<Expr> exprs = FortressUtil.mkList(a1);
        yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a2);
      }
-   / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w a3:Expr
+   / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w
+     a3:Expr
      { List<Expr> exprs = FortressUtil.mkList(a1);
        for (Expr i : a2) {
            exprs.add(i);
@@ -305,10 +301,10 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
        yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
      };
 
-/* IdOrInt ::= Id | IntLiteral */
+/* IdOrInt ::= Id | IntLiteralExpr */
 Expr IdOrInt =
      a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
-   / IntLiteral ;
+   / IntLiteralExpr ;
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
 List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*

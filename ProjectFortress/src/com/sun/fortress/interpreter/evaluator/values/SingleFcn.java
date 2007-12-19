@@ -60,7 +60,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
     abstract public String  at();
     abstract public List<FType> getDomain();
-    
+
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.
@@ -75,9 +75,9 @@ public abstract class SingleFcn extends Fcn implements HasAt {
             }
         }
         return d;
-         
+
     }
-    
+
     public List<FValue> fixupArgCount(List<FValue> args) {
         System.out.println("Naive fixupArgCount "+this+
                            "("+this.getClass()+")"+
@@ -200,7 +200,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 NI.nyi("Where clauses - type alias");
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getId().getText();
+                String we_name = we.getName().getText();
                 // List<Type> we_supers = we.getSupers();
                 if (ge.getTypeNull(we_name) == null) {
                     // Add name
@@ -227,7 +227,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
             } else if (tp instanceof OperatorParam) {
                 OperatorParam op = (OperatorParam) tp;
-                
+
             } else if (tp instanceof SimpleTypeParam) {
                 SimpleTypeParam stp = (SimpleTypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
@@ -249,7 +249,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 TypeAlias ta = (TypeAlias) wc;
             } else if (wc instanceof WhereExtends) {
                 WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getId().getText();
+                String we_name = we.getName().getText();
                 List<TraitType> we_supers = we.getSupers();
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
                 st.addExtends(eval_type.getFTypeListFromList(we_supers));

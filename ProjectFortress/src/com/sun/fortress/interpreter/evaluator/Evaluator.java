@@ -101,7 +101,7 @@ import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.Generator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
@@ -603,7 +603,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FType> res = new ArrayList<FType>();
         for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
             Binding bind = i.next();
-            String name = bind.getName().getId().getText();
+            String name = bind.getName().getText();
             Expr init = bind.getInit();
             FValue val = init.accept(ev);
             if (init instanceof VarRef
@@ -672,7 +672,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forExit(Exit x) {
-        Option<IdName> target = x.getTarget();
+        Option<Id> target = x.getTarget();
         Option<Expr> returnExpr = x.getReturnExpr();
         FValue res;
         LabelException e;
@@ -684,7 +684,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
 
         if (target.isSome()) {
-            String t = Option.unwrap(target).getId().getText();
+            String t = Option.unwrap(target).getText();
             e = new NamedLabelException(x, t, res);
         } else {
             e = new LabelException(x,res);
@@ -753,7 +753,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forMethodInvocation(MethodInvocation x) {
         Expr obj = x.getObj();
-        IdName method = x.getMethod();
+        Id method = x.getMethod();
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
 
@@ -822,7 +822,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forGenerator(Generator x) {
-        List<IdName> names = x.getBind();
+        List<Id> names = x.getBind();
         Expr init = x.getInit();
         FValue rval = init.accept(this);
         FRange range = (FRange)rval;
@@ -858,19 +858,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLValueBind(LValueBind x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         return FString.make(NodeUtil.nameString(name));
     }
 
     public FValue forLabel(Label x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         Block body  = x.getBody();
         FValue res = FVoid.V;
         try {
             Evaluator ev = new Evaluator(new BetterEnv(e,body));
             res = ev.forBlock(body);
         } catch (NamedLabelException e) {
-            if (e.match(name.getId().getText())) {
+            if (e.match(name.getText())) {
                 return e.res();
             } else throw e;
         } catch (LabelException e) {
@@ -1199,7 +1199,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // the field selection.
             FieldRef fld_sel = (FieldRef) fcnExpr;
             Expr obj = fld_sel.getObj();
-            IdName fld = fld_sel.getField();
+            Id fld = fld_sel.getField();
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
 
@@ -1211,9 +1211,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             _RewriteFieldRef fld_sel = (_RewriteFieldRef) fcnExpr;
             Expr obj = fld_sel.getObj();
             Name fld = fld_sel.getField();
-            if (fld instanceof IdName) {
+            if (fld instanceof Id) {
                 FValue fobj = obj.accept(this);
-                return juxtMemberSelection(x, fobj, (IdName) fld, exprs);
+                return juxtMemberSelection(x, fobj, (Id) fld, exprs);
             } else {
                 NI.nyi("Field selector of dotted");
             }
@@ -1262,7 +1262,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      * @throws ProgramError
      */
-    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, IdName fld,
+    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
                                        List<Expr> exprs) throws ProgramError {
         if (fobj instanceof FObject) {
             FObject fobject = (FObject) fobj;
@@ -1343,9 +1343,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FType excType = exc.getException().type();
             if (_catchClause.isSome()) {
                 Catch _catch = Option.unwrap(_catchClause);
-                IdName name = _catch.getName();
+                Id name = _catch.getName();
                 List<CatchClause> clauses = _catch.getClauses();
-                e.putValue(name.getId().getText(), exc.getException());
+                e.putValue(name.getText(), exc.getException());
 
                 for (CatchClause clause : clauses) {
                     TraitType match = clause.getMatch();

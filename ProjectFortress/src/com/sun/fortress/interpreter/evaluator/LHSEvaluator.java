@@ -50,7 +50,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
@@ -104,8 +104,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         FValue val = from.accept(evaluator);
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
-            if (what instanceof IdName) {
-                obj.getSelfEnv().assignValue(x, ((IdName)what).getId().getText(), value);
+            if (what instanceof Id) {
+                obj.getSelfEnv().assignValue(x, ((Id)what).getText(), value);
             } else {
                 bug("'what' not instanceof IDName, instead is " + what );
             }
@@ -168,7 +168,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
     }
@@ -184,7 +184,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     }
 
     public Voidoid forLValueBind(LValueBind x) {
-        IdName name = x.getName();
+        Id name = x.getName();
         Option<Type> type = x.getType();
         String s = NodeUtil.nameString(name);
         boolean mutable = x.isMutable();

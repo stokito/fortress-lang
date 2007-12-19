@@ -21,7 +21,7 @@ import java.util.*;
 
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -38,7 +38,7 @@ public abstract class TypeNameEnv {
     public abstract Option<APIName> apiName(APIName name);
     
     /** Determine whether a type parameter with the given name is defined. */
-    public abstract boolean hasTypeParam(IdName name);
+    public abstract boolean hasTypeParam(Id name);
     
     /**
      * Produce the set of unaliased qualified names corresponding to the given
@@ -46,14 +46,14 @@ public abstract class TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size greater
      * than 1.
      */
-    public abstract Set<QualifiedIdName> explicitTypeConsNames(IdName name);
+    public abstract Set<QualifiedIdName> explicitTypeConsNames(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given type constructor name.  An undefined reference
      * produces an empty set, and an ambiguous reference produces a set of size 
      * greater than 1.
      */
-    public abstract Set<QualifiedIdName> onDemandTypeConsNames(IdName name);
+    public abstract Set<QualifiedIdName> onDemandTypeConsNames(Id name);
     
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
@@ -93,21 +93,21 @@ public abstract class TypeNameEnv {
      * produces an empty set, and an ambiguous reference produces a set of size greater
      * than 1.
      */
-    public abstract Set<QualifiedIdName> explicitGrammarNames(IdName name);
+    public abstract Set<QualifiedIdName> explicitGrammarNames(Id name);
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a grammar exists.  Assumes {@code name.getApi().isSome()}.
      */
     public abstract boolean hasQualifiedGrammar(QualifiedIdName name);
     /** Determine whether a grammar with the given name is defined. */
-    public abstract boolean hasGrammar(IdName name);
+    public abstract boolean hasGrammar(Id name);
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given grammar name.  An undefined reference
      * produces an empty set, and an ambiguous reference produces a set of size 
      * greater than 1.
      */
-    public abstract Set<QualifiedIdName> onDemandGrammarNames(IdName name);
+    public abstract Set<QualifiedIdName> onDemandGrammarNames(Id name);
     
     /**
      * Given a disambiguated name (aliases and imports have been resolved),

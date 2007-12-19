@@ -218,9 +218,7 @@ Type TupleType =
 
 /* KeywordType ::= BindId w = w Type */
 private KeywordType KeywordType = a1:BindId w equals w a2:Type
-     { yyValue = new KeywordType(createSpan(yyStart,yyCount),
-                                 NodeFactory.makeIdName(a1), a2);
-     };
+     { yyValue = new KeywordType(createSpan(yyStart,yyCount), a1, a2); };
 
 /* SimpleTupleType ::= ( w Type w , w TypeList w ) */
 TupleType SimpleTupleType =
@@ -412,4 +410,4 @@ ExtentRange ExtentRange =
      };
 
 /* Number */
-IntLiteralExpr Number = IntLiteral ;
+IntLiteralExpr Number = IntLiteralExpr ;

@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericNativeConstructor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -104,7 +104,7 @@ public class BuildNativeEnvironment extends BuildEnvironments {
     protected void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
-        IdName name = x.getName();
+        Id name = x.getName();
 
         List<StaticParam> staticParams = x.getStaticParams();
         Option<List<Param>> params = x.getParams();

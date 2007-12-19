@@ -50,7 +50,7 @@ private TraitHeader TraitHeaderFront =
      trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        if (a3 == null) a3 = FortressUtil.emptyTraitTypeWheres();
-       yyValue = new TraitHeader(NodeFactory.makeIdName(a1), a2, a3);
+       yyValue = new TraitHeader(a1, a2, a3);
      };
 
 /* Each trait clause cannot appear more than once. */
@@ -142,7 +142,7 @@ private ObjectHeader ObjectHeader =
      { Option<List<Param>> ps = Option.wrap(a3);
        if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        if (a4 == null) a4 = FortressUtil.emptyTraitTypeWheres();
-       yyValue = new ObjectHeader(NodeFactory.makeIdName(a1), a2, ps, a4, a5);
+       yyValue = new ObjectHeader(a1, a2, ps, a4, a5);
      };
 
 /* ObjectValParam ::= ( (w ObjectParams)? w ) */

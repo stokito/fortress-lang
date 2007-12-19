@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.NormalParam;

@@ -45,66 +45,66 @@ import com.sun.fortress.compiler.index.ApiIndex;
  *     contain lists of qualified names referring to multiple APIs).
  * <li>VarRefs referring to functions become FnRefs with placeholders for implicit static
  *     arguments filled in (to be replaced later during type inference).</li>
- * <li>VarRefs referring to trait members, and that are juxtaposed with Exprs, become 
+ * <li>VarRefs referring to trait members, and that are juxtaposed with Exprs, become
  *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
  * <li>VarRefs referring to trait members become FieldRefs.</li>
- * <li>FieldRefs referring to trait members, and that are juxtaposed with Exprs, become 
+ * <li>FieldRefs referring to trait members, and that are juxtaposed with Exprs, become
  *     MethodInvocations.  (Maybe?  Depends on parsing rules for getters.)</li>
- * <li>FnRefs referring to trait members, and that are juxtaposed with Exprs, become 
+ * <li>FnRefs referring to trait members, and that are juxtaposed with Exprs, become
  *     MethodInvocations.</li>
  * <li>StaticArgs of FnRefs, and types nested within them, are disambiguated.</li>
  * </ul>
- * 
+ *
  * Additionally, all name references that are undefined or used incorrectly are
  * treated as static errors.</p>
  */
 public class ExprDisambiguator extends NodeUpdateVisitor {
-    
+
     private NameEnv _env;
     private Set<SimpleName> _onDemandImports;
     private List<StaticError> _errors;
-    
+
     public ExprDisambiguator(NameEnv env, Set<SimpleName> onDemandImports,
                              List<StaticError> errors) {
         _env = env;
         _onDemandImports = onDemandImports;
         _errors = errors;
     }
-    
-    private ExprDisambiguator extend(Set<IdName> vars) {
+
+    private ExprDisambiguator extend(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         return new ExprDisambiguator(newEnv, _onDemandImports, _errors);
     }
-    
+
     private ExprDisambiguator extendWithSelf(Span span) {
-        Set<IdName> selfSet = new HashSet<IdName>();
-        selfSet.add(new IdName(span, new Id(span, "self")));
+        Set<Id> selfSet = new HashSet<Id>();
+        selfSet.add(new Id(span, "self"));
         return extend(selfSet);
     }
-        
+
     private void error(String msg, HasAt loc) {
         _errors.add(StaticError.make(msg, loc));
     }
-    
+
     /** LocalVarDecls introduce local variables while visiting the body. */
     @Override public Node forLocalVarDecl(LocalVarDecl that) {
       List<LValue> lhsResult = recurOnListOfLValue(that.getLhs());
       Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
-      Set<IdName> definedNames = extractDefinedVarNames(lhsResult);
+      Set<Id> definedNames = extractDefinedVarNames(lhsResult);
       NameEnv newEnv = new LocalVarEnv(_env, definedNames);
       ExprDisambiguator v = new ExprDisambiguator(newEnv, _onDemandImports, _errors);
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLocalVarDeclOnly(that, bodyResult, lhsResult, rhsResult);
     }
-    
-    private Set<IdName> extractDefinedVarNames(Iterable<? extends LValue> lvalues) {
-      Set<IdName> result = new HashSet<IdName>();
+
+    private Set<Id> extractDefinedVarNames(Iterable<? extends LValue> lvalues) {
+      Set<Id> result = new HashSet<Id>();
       extractDefinedVarNames(lvalues, result);
       return result;
     }
-    
+
     private void extractDefinedVarNames(Iterable<? extends LValue> lvalues,
-                                        Set<IdName> result) {
+                                        Set<Id> result) {
       for (LValue lv : lvalues) {
         boolean valid = true;
         if (lv instanceof LValueBind) {
@@ -119,14 +119,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (!valid) { error("Duplicate local variable name", lv); }
       }
     }
-    
-    /** 
+
+    /**
      * Pull out all static variables that can be used in expression contexts,
-     * and return them as a Set<IdName>.
+     * and return them as a Set<Id>.
      * TODO: Collect OpParams as well.
      */
-    private Set<IdName> extractStaticExprVars(List<StaticParam> staticParams) {
-        Set<IdName> result = new HashSet<IdName>();
+    private Set<Id> extractStaticExprVars(List<StaticParam> staticParams) {
+        Set<Id> result = new HashSet<Id>();
         for (StaticParam staticParam: staticParams) {
             if (staticParam instanceof BoolParam ||
                 staticParam instanceof NatParam  ||
@@ -138,31 +138,31 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         return result;
     }
-    
+
     /**
      * Convenience method that unwraps its argument and passes it
      * to the overloaded definition of extractParamNames on lists.
      */
-    private Set<IdName> extractParamNames(Option<List<Param>> params) {
-        Set<IdName> result = new HashSet<IdName>();
-        if (params.isNone()) { return new HashSet<IdName>(); }
+    private Set<Id> extractParamNames(Option<List<Param>> params) {
+        Set<Id> result = new HashSet<Id>();
+        if (params.isNone()) { return new HashSet<Id>(); }
         else { return extractParamNames(Option.unwrap(params)); }
     }
-    
+
     /**
-     * Returns a list of IdNames of the given list of Params.
+     * Returns a list of Ids of the given list of Params.
      */
-    private Set<IdName> extractParamNames(List<Param> params) {
-        Set<IdName> result = new HashSet<IdName>();
-        
+    private Set<Id> extractParamNames(List<Param> params) {
+        Set<Id> result = new HashSet<Id>();
+
         for (Param param: params) {
             result.add(param.getName());
         }
         return result;
     }
-            
-    /** 
-     * When recurring on an AbsTraitDecl, we first need to extend the 
+
+    /**
+     * When recurring on an AbsTraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that can
      * be used in an expression context.
      * TODO: Handle variables bound in where clauses.
@@ -172,10 +172,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = this.extend(extractStaticExprVars
                                               (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
-        
-        return forAbsTraitDeclOnly(that, 
+
+        return forAbsTraitDeclOnly(that,
                                    v.recurOnListOfModifier(that.getMods()),
-                                   (IdName) that.getName().accept(v),
+                                   (Id) that.getName().accept(v),
                                    v.recurOnListOfStaticParam(that.getStaticParams()),
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    v.recurOnListOfWhereClause(that.getWhere()),
@@ -184,8 +184,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
 
-    /** 
-     * When recurring on a TraitDecl, we first need to extend the 
+    /**
+     * When recurring on a TraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that
      * can be used in an expression context.
      * TODO: Handle variables bound in where clauses.
@@ -195,10 +195,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = this.extend(extractStaticExprVars
                                               (that.getStaticParams())).
                                   extendWithSelf(that.getSpan());
-        
-        return forTraitDeclOnly(that, 
+
+        return forTraitDeclOnly(that,
                                 v.recurOnListOfModifier(that.getMods()),
-                                (IdName) that.getName().accept(v),
+                                (Id) that.getName().accept(v),
                                 v.recurOnListOfStaticParam(that.getStaticParams()),
                                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                 v.recurOnListOfWhereClause(that.getWhere()),
@@ -206,25 +206,25 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                 v.recurOnOptionOfListOfTraitType(that.getComprises()),
                                 v.recurOnListOfDecl(that.getDecls()));
     }
-    
-    
-    /** 
-     * When recurring on an AbsObjectDecl, we first need to extend the 
+
+
+    /**
+     * When recurring on an AbsObjectDecl, we first need to extend the
      * environment with all the newly bound static parameters that can
      * be used in an expression context.
      * TODO: Handle variables bound in where clauses.
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-        Set<IdName> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<IdName> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+        Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
                                       extend(params);
-        
-        return forAbsObjectDeclOnly(that, 
+
+        return forAbsObjectDeclOnly(that,
                                    v.recurOnListOfModifier(that.getMods()),
-                                   (IdName) that.getName().accept(v),
+                                   (Id) that.getName().accept(v),
                                    v.recurOnListOfStaticParam(that.getStaticParams()),
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    v.recurOnListOfWhereClause(that.getWhere()),
@@ -233,24 +233,24 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    (Contract) that.getContract().accept(v),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
     }
-    
-    /** 
-     * When recurring on an ObjectDecl, we first need to extend the 
+
+    /**
+     * When recurring on an ObjectDecl, we first need to extend the
      * environment with all the newly bound static parameters that can
      * be used in an expression context, along with all the object parameters.
      * TODO: Handle variables bound in where clauses.
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forObjectDecl(final ObjectDecl that) {
-        Set<IdName> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<IdName> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+        Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).
                                   extendWithSelf(that.getSpan()).
                                       extend(params);
-        
-        return forObjectDeclOnly(that, 
+
+        return forObjectDeclOnly(that,
                                    v.recurOnListOfModifier(that.getMods()),
-                                   (IdName) that.getName().accept(v),
+                                   (Id) that.getName().accept(v),
                                    v.recurOnListOfStaticParam(that.getStaticParams()),
                                    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
                                    v.recurOnListOfWhereClause(that.getWhere()),
@@ -259,23 +259,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    (Contract) that.getContract().accept(v),
                                    v.recurOnListOfDecl(that.getDecls()));
     }
-        
-    
-    /** 
-     * When recurring on an AbsFnDecl, we first need to extend the 
+
+
+    /**
+     * When recurring on an AbsFnDecl, we first need to extend the
      * environment with all the newly bound static parameters that
      * can be used in an expression context, along with all function
      * parameters and 'self'.
      * TODO: Handle variables bound in where clauses.
      */
     @Override public Node forAbsFnDecl(final AbsFnDecl that) {
-        Set<IdName> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<IdName> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+        Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).extend(params);
 
-        return forAbsFnDeclOnly(that, 
+        return forAbsFnDeclOnly(that,
                                 v.recurOnListOfModifier(that.getMods()),
-                                (SimpleName) that.getName().accept(v), 
+                                (SimpleName) that.getName().accept(v),
                                 v.recurOnListOfStaticParam(that.getStaticParams()),
                                 v.recurOnListOfParam(that.getParams()),
                                 v.recurOnOptionOfType(that.getReturnType()),
@@ -283,23 +283,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                 v.recurOnListOfWhereClause(that.getWhere()),
                                 (Contract) that.getContract().accept(v));
     }
-    
-    
-    /**      
-     * When recurring on a FnDef, we first need to extend the 
+
+
+    /**
+     * When recurring on a FnDef, we first need to extend the
      * environment with all the newly bound static parameters that
      * can be used in an expression context, along with all function
      * parameters and 'self'.
      * TODO: Handle variables bound in where clauses.
      */
     @Override public Node forFnDef(FnDef that) {
-        Set<IdName> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<IdName> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+        Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).extend(params);
-        
-        return forFnDefOnly(that, 
+
+        return forFnDefOnly(that,
                             v.recurOnListOfModifier(that.getMods()),
-                            (SimpleName) that.getName().accept(v), 
+                            (SimpleName) that.getName().accept(v),
                             v.recurOnListOfStaticParam(that.getStaticParams()),
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
@@ -308,18 +308,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             (Contract) that.getContract().accept(v),
                             (Expr) that.getBody().accept(v));
     }
-    
-    /**      
-     * When recurring on a FnExpr, we first need to extend the 
+
+    /**
+     * When recurring on a FnExpr, we first need to extend the
      * environment with any newly bound static parameters that
      * can be used in an expression context, along with all function
      * parameters and 'self'.
      */
     @Override public Node forFnExpr(FnExpr that) {
-        Set<IdName> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<IdName> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
+        Set<Id> params = extractParamNames(that.getParams());
         ExprDisambiguator v = extend(staticExprVars).extend(params);
-        
+
         return forFnExprOnly(that,
                              (SimpleName) that.getName().accept(v),
                              v.recurOnListOfStaticParam(that.getStaticParams()),
@@ -329,7 +329,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
                              (Expr) that.getBody().accept(v));
     }
-    
+
     /** LetFns introduce local functions in scope within the body. */
     @Override public Node forLetFn(LetFn that) {
       List<FnDef> fnsResult = recurOnListOfFnDef(that.getFns());
@@ -339,7 +339,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
       return forLetFnOnly(that, bodyResult, fnsResult);
     }
-    
+
     private Set<SimpleName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
       Set<SimpleName> result = new HashSet<SimpleName>();
       for (FnDef fd : fnDefs) { result.add(fd.getName()); }
@@ -351,15 +351,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forVarRef(VarRef that) {
         QualifiedIdName qname = that.getVar();
         Option<APIName> api = qname.getApi();
-        IdName entity = qname.getName();
-        ConsList<IdName> fields = ConsList.empty();
+        Id entity = qname.getName();
+        ConsList<Id> fields = ConsList.empty();
         Expr result = null;
-        
+
         // First, try to interpret it as a qualified name
         while (result == null && api.isSome()) {
             APIName givenApiName = Option.unwrap(api);
             Option<APIName> realApiNameOpt = _env.apiName(givenApiName);
-            
+
             if (realApiNameOpt.isSome()) {
                 APIName realApiName = Option.unwrap(realApiNameOpt);
                 QualifiedIdName newName =
@@ -380,18 +380,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return that;
                 }
             }
-            
+
             else {
                 // shift all names to the right, and try a smaller api name
                 List<Id> ids = givenApiName.getIds();
                 fields = ConsList.cons(entity, fields);
-                entity = NodeFactory.makeIdName(IterUtil.last(ids));
+                entity = IterUtil.last(ids);
                 Iterable<Id> prefix = IterUtil.skipLast(ids);
                 if (IterUtil.isEmpty(prefix)) { api = Option.none(); }
                 else { api = Option.some(NodeFactory.makeAPIName(prefix)); }
             }
         }
-        
+
         // Second, try to interpret it as an unqualified name.
         if (result == null) {
             // api.isNone() must be true
@@ -402,7 +402,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 fns = _env.onDemandFunctionNames(entity);
                 _onDemandImports.add(entity);
             }
-            
+
             if (vars.size() == 1 && fns.isEmpty()) {
                 QualifiedIdName newName = IterUtil.first(vars);
 
@@ -424,23 +424,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
             else {
                 // Turn off error message on this branch until we can ensure
-                // that the VarRef doesn't resolve to an inherited method. 
+                // that the VarRef doesn't resolve to an inherited method.
                 // For now, assume it does refer to an inherited method.
                 if (ConsList.isEmpty(fields)) {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
-                else { 
+                else {
                     QualifiedIdName newName = NodeFactory.makeQualifiedIdName(entity);
-                    result = new VarRef(newName.getSpan(), newName); 
-                }                
+                    result = new VarRef(newName.getSpan(), newName);
+                }
                 // error("Unrecognized name: " + NodeUtil.nameString(qname), that);
                 // return that;
             }
         }
-            
+
         // result is now non-null
-        for (IdName field : fields) {
+        for (Id field : fields) {
             result = new FieldRef(result, field);
         }
         if (that.isParenthesized()) {
@@ -448,5 +448,5 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         return result;
     }
-       
+
 }

@@ -62,8 +62,7 @@ List<Id> BindIdOrBindIdTuple =
 
 /* SimpleName ::= Id | opr w Op | opr w EncloserPair */
 SimpleName SimpleName =
-     a1:Id
-     { yyValue = NodeFactory.makeIdName(createSpan(yyStart,yyCount), a1); }
+     Id
    / opr w a1:Op
      { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); }
    / opr w EncloserPair;
@@ -75,11 +74,11 @@ APIName APIName =
      { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount), a1); }
    / a1:Id a2s:(dot Id)* &(w ellipses)
      { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
-                                            IterUtil.compose(a1, a2s.list()));
+                                         IterUtil.compose(a1, a2s.list()));
      }
    / a1:Id a2s:(dot Id)*
      { yyValue = NodeFactory.makeAPIName(createSpan(yyStart,yyCount),
-                                            IterUtil.compose(a1, a2s.list()));
+                                         IterUtil.compose(a1, a2s.list()));
      };
 
 /* QualifiedName ::= Id(.Id)* */

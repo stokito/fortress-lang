@@ -33,7 +33,7 @@ class NonEmptyTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
-    public Option<LValueBind> binding(IdName var) {
+    public Option<LValueBind> binding(Id var) {
         for (LValueBind entry : entries) {
             if (var.equals(entry.getName())) { 
                 return wrap(entry);
@@ -42,7 +42,7 @@ class NonEmptyTypeEnv extends TypeEnv {
         return parent.binding(var);
     }
     
-    public Option<Type> type(IdName var) { 
+    public Option<Type> type(Id var) { 
         for (int i = 0; i < entries.length; i++) {
             LValueBind entry = entries[i];
 
@@ -61,14 +61,14 @@ class NonEmptyTypeEnv extends TypeEnv {
         return Option.none();
     }
         
-    public Option<List<Modifier>> mods(IdName var) { 
+    public Option<List<Modifier>> mods(Id var) { 
         Option<LValueBind> binding = binding(var);
         
         if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
         else { return Option.none(); }
     }
 
-    public Option<Boolean> mutable(IdName var) { 
+    public Option<Boolean> mutable(Id var) { 
         Option<LValueBind> binding = binding(var);
         
         if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }

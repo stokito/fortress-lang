@@ -27,7 +27,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -53,13 +53,13 @@ public class ItemDisambiguator {
 
 		public Collection<Module> modules() { return modules; }
 	}
-	
+
 	public static Result disambiguateEnv(Collection<Module> modules) {
 		for (final Module module: modules) {
 			List<ProductionDef> productions = new LinkedList<ProductionDef>();
 			for (final ProductionDef production: module.getDefinedProductions()) {
 				final Set<TokenSymbol> tokens = new HashSet<TokenSymbol>();
-				productions.add((ProductionDef) production.accept(new NodeUpdateVisitor() {						
+				productions.add((ProductionDef) production.accept(new NodeUpdateVisitor() {
 					@Override
 					public Node forItemSymbolOnly(ItemSymbol that) {
 						Node n = nameResolution(module, production, that);
@@ -85,14 +85,14 @@ public class ItemDisambiguator {
 								if (n != null) {
 									return n;
 								}
-							}							
+							}
 						}
 						return null;
 					}
 
 					private Node makeNonterminal(ItemSymbol that, String name) {
-						return new NonterminalSymbol(that.getSpan(), new QualifiedIdName(new IdName(that.getSpan(), new Id(that.getSpan(), name))));
-					}		
+						return new NonterminalSymbol(that.getSpan(), new QualifiedIdName(new Id(that.getSpan(), name)));
+					}
 				}));
 				module.addTokens(production.getName(), tokens);
 			}

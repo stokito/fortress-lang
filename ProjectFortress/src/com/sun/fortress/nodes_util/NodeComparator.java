@@ -177,7 +177,7 @@ public class NodeComparator {
             return NodeComparator.compare(left, right);
         }
     }
-    
+
     public final static FnAbsDeclOrDeclComparer fnAbsDeclOrDeclComparer = new FnAbsDeclOrDeclComparer();
 
      public static int compare(SimpleName left, SimpleName right) {
@@ -206,13 +206,13 @@ public class NodeComparator {
     }
 
     public static int compare(KeywordType left, KeywordType right) {
-        return compare(left.getName().getId(), right.getName().getId(),
+        return compare(left.getName(), right.getName(),
                        left.getType(), right.getType());
     }
 
     public static int compare(Param left, Param right) {
-        int x = left.getName().getId().getText()
-                    .compareTo(right.getName().getId().getText());
+        int x = left.getName().getText()
+                    .compareTo(right.getName().getText());
         if (x != 0) return x;
         if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
             x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
@@ -373,11 +373,11 @@ public class NodeComparator {
     static int compare(TypeArg left, TypeArg right) {
         return compare(left.getType(), right.getType());
     }
-    
+
     private static int subtypeCompareTo(Type left, Type right) {
         // Commented out cases haven't had their methods implememnted yet,
         // and will stack overflow instead.
-        
+
         if (left instanceof ArrowType) {
             return compare((ArrowType) left, (ArrowType) right);
         } else if (left instanceof VoidType) {
@@ -411,7 +411,7 @@ public class NodeComparator {
         } else if (left instanceof UnitArg) {
             //return compare((UnitArg) left, (UnitArg) right);
         } else {
-            
+
         }
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +

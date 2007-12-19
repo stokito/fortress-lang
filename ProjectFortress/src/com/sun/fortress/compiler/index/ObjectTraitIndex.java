@@ -23,7 +23,7 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SimpleName;
 
 import com.sun.fortress.useful.NI;
@@ -32,15 +32,15 @@ import com.sun.fortress.useful.NI;
 public class ObjectTraitIndex extends TraitIndex {
     
     private final Option<Constructor> _constructor;
-    private final Map<IdName, Variable> _fields;
+    private final Map<Id, Variable> _fields;
     private final Set<VarDecl> _fieldInitializers;
     
     public ObjectTraitIndex(ObjectAbsDeclOrDecl ast,
                             Option<Constructor> constructor,
-                            Map<IdName, Variable> fields,
+                            Map<Id, Variable> fields,
                             Set<VarDecl> fieldInitializers,
-                            Map<IdName, Method> getters,
-                            Map<IdName, Method> setters,
+                            Map<Id, Method> getters,
+                            Map<Id, Method> setters,
                             Set<Function>coercions,
                             Relation<SimpleName, Method> dottedMethods,
                             Relation<SimpleName, FunctionalMethod> functionalMethods) {
@@ -54,7 +54,7 @@ public class ObjectTraitIndex extends TraitIndex {
         return NI.nyi();
     }
     
-    public Map<IdName, Variable> fields() {
+    public Map<Id, Variable> fields() {
         return NI.nyi();
     }
     

@@ -17,15 +17,15 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 
 /** Represents the variable produced by a singleton object declaration. */
 public class SingletonVariable extends Variable {
-    private final IdName _declaringTrait;
+    private final Id _declaringTrait;
     
-    public SingletonVariable(IdName declaringTrait) {
+    public SingletonVariable(Id declaringTrait) {
         _declaringTrait = declaringTrait;
     }
     
-    public IdName declaringTrait() { return _declaringTrait; }
+    public Id declaringTrait() { return _declaringTrait; }
 }

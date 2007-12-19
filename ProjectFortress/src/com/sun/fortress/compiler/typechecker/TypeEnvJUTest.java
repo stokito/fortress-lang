@@ -30,50 +30,49 @@ public class TypeEnvJUTest extends TestCase {
     private final Type FOO = makeIdType("Foo");
     private final Type BAZ = makeIdType("Baz");
     private final Type BAR = makeIdType("Bar");
-        
-    private final TypeEnv extended = TypeEnv.make(makeLValue("x", FOO), 
-                                                  makeLValue("y", BAZ), 
+
+    private final TypeEnv extended = TypeEnv.make(makeLValue("x", FOO),
+                                                  makeLValue("y", BAZ),
                                                   makeLValue("z", BAR));
-    
-    private final TypeEnv moreExtended = 
+
+    private final TypeEnv moreExtended =
         extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar())),
-                        makeLValue("b", 
-                                   BAZ, 
+                        makeLValue("b",
+                                   BAZ,
                                    Useful.<Modifier>list(new ModifierAbstract())),
-                        makeLValue("c", 
-                                   BAR, 
-                                   Useful.<Modifier>list(new ModifierWrapped(), 
+                        makeLValue("c",
+                                   BAR,
+                                   Useful.<Modifier>list(new ModifierWrapped(),
                                                          new ModifierHidden(),
                                                          new ModifierSettable())));
-            
+
     public void testEmptyTypeEnv() {
-        assertEquals(none(), TypeEnv.make().type(makeIdName("x")));
-        assertEquals(none(), TypeEnv.make().mods(makeIdName("x")));
-        assertEquals(none(), TypeEnv.make().mutable(makeIdName("x")));
+        assertEquals(none(), TypeEnv.make().type(makeId("x")));
+        assertEquals(none(), TypeEnv.make().mods(makeId("x")));
+        assertEquals(none(), TypeEnv.make().mutable(makeId("x")));
     }
-    
+
     public void testLookupType() {
         assertEquals(FOO, unwrap(extended.type("x")));
         assertEquals(BAZ, unwrap(extended.type("y")));
         assertEquals(BAR, unwrap(extended.type("z")));
-        
+
         assert(! (BAR.equals(unwrap(extended.type("x")))));
     }
-    
+
     public void testLookupMods() {
         assertEquals(0, unwrap(moreExtended.mods("x")).size());
-        assertEquals(Useful.<Modifier>list(new ModifierAbstract()), 
+        assertEquals(Useful.<Modifier>list(new ModifierAbstract()),
                      unwrap(moreExtended.mods("b")));
     }
-    
+
     public void testLookupMutable() {
         assertTrue("Variable a should not be mutable", unwrap(moreExtended.mutable("a")));
         assertTrue("Variable c should not be mutable", unwrap(moreExtended.mutable("c")));
         assertFalse("Variable b should not be mutable", unwrap(moreExtended.mutable("b")));
-    
+
         assertFalse("Variable x should not be mutable", unwrap(moreExtended.mutable("x")));
-        
+
         assertEquals("Variable d does not exist", none(), moreExtended.mutable("d"));
     }
 }
-    

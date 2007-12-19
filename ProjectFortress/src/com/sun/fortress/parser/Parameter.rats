@@ -59,7 +59,7 @@ List<Param> Params =
 /* Varargs ::= BindId w : w Type w ... */
 VarargsParam VarargsParam = a1:BindId w colon w a2:Type w ellipses
      { VarargsType ty = new VarargsType(a2.getSpan(), a2);
-       yyValue = NodeFactory.makeVarargsParam(NodeFactory.makeIdName(a1), ty);
+       yyValue = NodeFactory.makeVarargsParam(a1, ty);
      };
 VarargsParam Varargs = VarargsParam ;
 

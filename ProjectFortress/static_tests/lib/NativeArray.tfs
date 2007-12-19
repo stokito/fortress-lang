@@ -1,118 +1,51 @@
-(Api @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":18:0~27:3
- _name=(APIName @18:4~20:0 _ids=[(Id @18:4~15 _text="NativeArray")])
+(Api @"test_library/NativeArray.fsi":18:1~24:4
+ _name=(APIName @18:5~20:1 _ids=[(Id @18:5~16 _text="NativeArray")])
  _decls=[
-  (AbsObjectDecl @20:0~25:3
+  (AbsObjectDecl @20:1~66
    _contract=(Contract @"":0:0)
-   _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":20:7~21
-    _id=(Id _text="PrimitiveArray"))
+   _name=(Id @"test_library/NativeArray.fsi":20:8~22 _text="PrimitiveArray")
    _params=(Some _value=[])
-   _decls=[
-    (AbsFnDecl @21:2~22:2
-     _contract=(Contract @"":0:0)
-     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":21:2~5
-      _id=(Id _text="get"))
-     _returnType=(Some _value=(IdType @21:14~22:2 _name=(QualifiedIdName
-        _name=(IdName @21:14~15
-         _id=(Id _text="T")))))
-     _selfName="self"
-     _params=[
-      (NormalParam @21:6~7
-       _name=(IdName
-        _id=(Id _text="i"))
-       _type=(Some _value=(InstantiatedType @"":0:0
-         _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
-          _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-           _id=(Id _text="ZZ32"))))))])
-    (AbsFnDecl @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":22:2~23:4
-     _contract=(Contract @"":0:0)
-     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":22:2~5
-      _id=(Id _text="put"))
-     _returnType=(Some _value=(VoidType @22:19~20))
-     _selfName="self"
-     _params=[
-      (NormalParam @22:6~7
-       _name=(IdName
-        _id=(Id _text="i"))
-       _type=(Some _value=(InstantiatedType @"":0:0
-         _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
-          _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-           _id=(Id _text="ZZ32"))))))
-      (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":22:14~15
-       _name=(IdName
-        _id=(Id _text="v"))
-       _type=(Some _value=(IdType @22:16~17 _name=(QualifiedIdName
-          _name=(IdName
-           _id=(Id _text="T"))))))])
-    (AbsFnDecl @23:2~24:4
-     _contract=(Contract @"":0:0)
-     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":23:2~8
-      _id=(Id _text="init00"))
-     _returnType=(Some _value=(InstantiatedType @"":0:0
-       _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
-        _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
-        _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":22:7~14
-         _id=(Id _text="Boolean")))))
-     _selfName="self"
-     _params=[
-      (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":23:9~10
-       _name=(IdName
-        _id=(Id _text="i"))
-       _type=(Some _value=(InstantiatedType @"":0:0
-         _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
-          _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-           _id=(Id _text="ZZ32"))))))
-      (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":23:17~18
-       _name=(IdName
-        _id=(Id _text="v"))
-       _type=(Some _value=(IdType @23:19~20 _name=(QualifiedIdName
-          _name=(IdName
-           _id=(Id _text="T"))))))])
-    (AbsFnDecl @24:2~25:2
-     _contract=(Contract @"":0:0)
-     _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":24:2~7
-      _id=(Id _text="init0"))
-     _returnType=(Some _value=(VoidType @24:21~22))
-     _selfName="self"
-     _params=[
-      (NormalParam @24:8~9
-       _name=(IdName
-        _id=(Id _text="i"))
-       _type=(Some _value=(InstantiatedType @"":0:0
-         _name=(QualifiedIdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-          _api=(Some _value=(APIName @"":0:0 _ids=[(Id _text="FortressBuiltin")]))
-          _name=(IdName @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/FortressBuiltin.fsi":42:7~11
-           _id=(Id _text="ZZ32"))))))
-      (NormalParam @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":24:16~17
-       _name=(IdName
-        _id=(Id _text="v"))
-       _type=(Some _value=(IdType @24:18~19 _name=(QualifiedIdName
-          _name=(IdName
-           _id=(Id _text="T"))))))])]
    _extendsClause=[
     (TraitTypeWhere @"":0:0
-     _type=(InstantiatedType @"/Users/ericeallen/Documents/Documents/Fortress/ProjectFortress/test_library_native/NativeArray.fsi":20:45~21:2
-      _name=(QualifiedIdName @20:45~51
-       _name=(IdName
-        _id=(Id _text="Array1")))
+     _type=(InstantiatedType @"test_library/NativeArray.fsi":20:46~66
+      _name=(QualifiedIdName @20:46~52
+       _name=(Id _text="Array1"))
       _args=[
-       (TypeArg @20:53~54
+       (TypeArg @20:54~55
         _type=(IdType _name=(QualifiedIdName
-          _name=(IdName
-           _id=(Id _text="T")))))
-       (IntArg @20:55~56
+          _name=(Id _text="T"))))
+       (IntArg @20:56~57
         _val=(NumberConstraint
          _val=(IntLiteralExpr _text="0" _val=0)))
-       (TypeArg @20:57~60
-        _type=(IdType _name=(QualifiedIdName @20:57~59
-          _name=(IdName
-           _id=(Id _text="s0")))))]))]
+       (TypeArg @20:58~61
+        _type=(IdType _name=(QualifiedIdName @20:58~60
+          _name=(Id _text="s0"))))]))]
    _staticParams=[
-    (SimpleTypeParam @20:23~24
-     _name=(IdName
-      _id=(Id _text="T")))
-    (NatParam @20:26~32
-     _name=(IdName @20:30~32
-      _id=(Id _text="s0")))])])
+    (SimpleTypeParam @20:24~25
+     _name=(Id _text="T"))
+    (NatParam @20:27~33
+     _name=(Id @20:31~33 _text="s0"))])
+  (AbsObjectDecl @22:1~79
+   _contract=(Contract @"":0:0)
+   _name=(Id @"test_library/NativeArray.fsi":22:8~26 _text="PrimImmutableArray")
+   _params=(Some _value=[])
+   _extendsClause=[
+    (TraitTypeWhere @"":0:0
+     _type=(InstantiatedType @"test_library/NativeArray.fsi":22:50~79
+      _name=(QualifiedIdName @22:50~65
+       _name=(Id _text="ImmutableArray1"))
+      _args=[
+       (TypeArg @22:67~68
+        _type=(IdType _name=(QualifiedIdName
+          _name=(Id _text="T"))))
+       (IntArg @22:69~70
+        _val=(NumberConstraint
+         _val=(IntLiteralExpr _text="0" _val=0)))
+       (TypeArg @22:71~74
+        _type=(IdType _name=(QualifiedIdName @22:71~73
+          _name=(Id _text="s0"))))]))]
+   _staticParams=[
+    (SimpleTypeParam @22:28~29
+     _name=(Id _text="T"))
+    (NatParam @22:31~37
+     _name=(Id @22:35~37 _text="s0"))])])

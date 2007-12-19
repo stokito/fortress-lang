@@ -52,11 +52,11 @@ AbsFnDecl FnSig =
 
        a2.getDomain().accept(new NodeAbstractVisitor_void() {
            public void forType(Type that) {
-               IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
+               Id name = new Id(that.getSpan(), "_");
                params.add(NodeFactory.makeParam(that.getSpan(),mods,name,that));
            }
            public void forVarargsType(VarargsType that) {
-               IdName name = NodeFactory.makeIdName(that.getSpan(), "_");
+               Id name = new Id(that.getSpan(), "_");
                params.add(NodeFactory.makeVarargsParam(that.getSpan(), mods,
                                                        name, that));
            }
@@ -98,5 +98,5 @@ FnHeaderFront FnHeaderFront =
 FnHeaderFront NamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(NodeFactory.makeIdName(a1),a2,a3);
+       yyValue = new FnHeaderFront(a1, a2, a3);
      };

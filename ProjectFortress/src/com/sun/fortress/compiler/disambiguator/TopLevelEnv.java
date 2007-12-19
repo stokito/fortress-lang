@@ -42,11 +42,11 @@ public class TopLevelEnv extends NameEnv {
     private List<StaticError> _errors;
     
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
-    private Map<IdName, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<IdName, Set<QualifiedIdName>>();
-    private Map<IdName, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<IdName, Set<QualifiedIdName>>();
-    private Map<IdName, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<IdName, Set<QualifiedIdName>>();
+    private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
+    private Map<Id, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<Id, Set<QualifiedIdName>>();
+    private Map<Id, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<OpName, Set<QualifiedOpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<QualifiedOpName>>();
-    private Map<IdName, Set<QualifiedIdName>> _onDemandGrammarNames = new HashMap<IdName, Set<QualifiedIdName>>();
+    private Map<Id, Set<QualifiedIdName>> _onDemandGrammarNames = new HashMap<Id, Set<QualifiedIdName>>();
     
     private static class TypeIndex {
         private APIName _api;
@@ -104,9 +104,9 @@ public class TopLevelEnv extends NameEnv {
     }
     
     private <T> void initializeEntry(Map.Entry<APIName, ApiIndex> apiEntry,
-                                     Map.Entry<IdName, T> entry, 
-                                     Map<IdName, Set<QualifiedIdName>> table) {
-        IdName key = entry.getKey();
+                                     Map.Entry<Id, T> entry, 
+                                     Map<Id, Set<QualifiedIdName>> table) {
+        Id key = entry.getKey();
         if (table.containsKey(key)) {
             table.get(key).add(new QualifiedIdName(key.getSpan(),
                                                    Option.some(apiEntry.getKey()),
@@ -126,7 +126,7 @@ public class TopLevelEnv extends NameEnv {
         // TODO: Fix to support explicit imports and api imports.
         
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-            for (Map.Entry<IdName, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
+            for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
                 initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
             } 
         }
@@ -134,7 +134,7 @@ public class TopLevelEnv extends NameEnv {
     
     private void initializeOnDemandVariableNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-            for (Map.Entry<IdName, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
+            for (Map.Entry<Id, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
                 initializeEntry(apiEntry, varEntry, _onDemandVariableNames);
             }
         } 
@@ -143,8 +143,8 @@ public class TopLevelEnv extends NameEnv {
     private void initializeOnDemandFunctionNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (SimpleName fnName: apiEntry.getValue().functions().firstSet()) {
-                if (fnName instanceof IdName) {
-                    IdName _fnName = (IdName)fnName;
+                if (fnName instanceof Id) {
+                    Id _fnName = (Id)fnName;
                     QualifiedIdName name = new QualifiedIdName(_fnName.getSpan(),
                                                                Option.some(apiEntry.getKey()),
                                                                _fnName);
@@ -174,7 +174,7 @@ public class TopLevelEnv extends NameEnv {
    
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-        	for (Map.Entry<IdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+        	for (Map.Entry<Id, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
             	initializeEntry(apiEntry, grammarEntry, _onDemandGrammarNames);
             }
         } 
@@ -189,12 +189,12 @@ public class TopLevelEnv extends NameEnv {
         }
     }
     
-    public boolean hasTypeParam(IdName name) {
+    public boolean hasTypeParam(Id name) {
         return false;
     }
 
 	@Override
-	public boolean hasGrammar(IdName name) {
+	public boolean hasGrammar(Id name) {
         if (_current instanceof ApiIndex) {
         	if (((ApiIndex) _current).grammars().containsKey(name)) {
         		return true;
@@ -204,7 +204,7 @@ public class TopLevelEnv extends NameEnv {
 	}
 
     
-    public Set<QualifiedIdName> explicitTypeConsNames(IdName name) {
+    public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
         // TODO: imports
         if (_current.typeConses().containsKey(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
@@ -212,7 +212,7 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
     
-    public Set<QualifiedIdName> explicitVariableNames(IdName name) {
+    public Set<QualifiedIdName> explicitVariableNames(Id name) {
         // TODO: imports
         if (_current.variables().containsKey(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
@@ -220,7 +220,7 @@ public class TopLevelEnv extends NameEnv {
         else { return Collections.emptySet(); }
     }
     
-    public Set<QualifiedIdName> explicitFunctionNames(IdName name) {
+    public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
@@ -237,7 +237,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(IdName name) {
+	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
         // TODO: imports
 		if (_current instanceof ApiIndex) {
 			if (((ApiIndex)_current).grammars().containsKey(name)) {
@@ -248,7 +248,7 @@ public class TopLevelEnv extends NameEnv {
         return Collections.emptySet();
 	}
     
-    private Set<QualifiedIdName> onDemandNames(IdName name, Map<IdName, Set<QualifiedIdName>> table) 
+    private Set<QualifiedIdName> onDemandNames(Id name, Map<Id, Set<QualifiedIdName>> table) 
     {
         if (table.containsKey(name)) {
             return table.get(name);
@@ -257,15 +257,15 @@ public class TopLevelEnv extends NameEnv {
         }
     }
         
-    public Set<QualifiedIdName> onDemandTypeConsNames(IdName name) {
+    public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
         return onDemandNames(name, _onDemandTypeConsNames);
     }
     
-    public Set<QualifiedIdName> onDemandVariableNames(IdName name) {
+    public Set<QualifiedIdName> onDemandVariableNames(Id name) {
         return onDemandNames(name, _onDemandVariableNames);
     }
     
-    public Set<QualifiedIdName> onDemandFunctionNames(IdName name) {
+    public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
         if (_onDemandFunctionIdNames.containsKey(name)) {
             return _onDemandFunctionIdNames.get(name);
         } else {
@@ -281,7 +281,7 @@ public class TopLevelEnv extends NameEnv {
         }
     }
     
-    public Set<QualifiedIdName> onDemandGrammarNames(IdName name) {
+    public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
         if (_onDemandGrammarNames.containsKey(name)) {
             return _onDemandGrammarNames.get(name);
         } else {

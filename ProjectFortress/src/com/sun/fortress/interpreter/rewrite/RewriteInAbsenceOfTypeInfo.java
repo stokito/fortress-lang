@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -40,19 +40,19 @@ import edu.rice.cs.plt.tuple.Option;
 public class RewriteInAbsenceOfTypeInfo extends Rewrite {
 
     public static RewriteInAbsenceOfTypeInfo Only = new RewriteInAbsenceOfTypeInfo();
-    
+
     static Expr translateQualifiedToFieldRef(VarRef vr) {
         QualifiedIdName qidn = vr.getVar();
         if (qidn.getApi().isNone())
             return vr;
-        
+
         List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
-        
+
         return new FieldRef(vr.getSpan(),
                 false,
                 translateQualifiedToFieldRef(ids), qidn.getName());
     }
-    
+
     static Expr translateFnRef(FnRef fr) {
         List<QualifiedIdName> fns = fr.getFns();
         List<StaticArg> sargs = fr.getStaticArgs();
@@ -61,10 +61,10 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
             // Call it a var or field ref for now.
             if (qidn.getApi().isNone()) {
                 return new VarRef(qidn.getSpan(), qidn);
-                       
+
             } else {
                 List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
-                
+
                 return new FieldRef(fr.getSpan(),
                                         false,
                                         translateQualifiedToFieldRef(ids),
@@ -74,11 +74,11 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         if (qidn.getApi().isNone()) {
             return new _RewriteFnRef(fr.getSpan(),
                     false,
-                    new VarRef(qidn.getSpan(), qidn), 
+                    new VarRef(qidn.getSpan(), qidn),
                     sargs);
         } else {
             List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
-            
+
             return new _RewriteFnRef(fr.getSpan(),
                         false,
                         new FieldRef(fr.getSpan(),
@@ -89,37 +89,37 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         }
         }
     }
-    
+
     static Expr translateQualifiedToFieldRef(List<Id> ids) {
         // id is trailing (perhaps only) id
         Id id = ids.get(ids.size()-1);
-    
+
         if (ids.size() == 1) {
-            return new VarRef(id.getSpan(), new QualifiedIdName(id.getSpan(), new IdName(id.getSpan(), id)));
+            return new VarRef(id.getSpan(), new QualifiedIdName(id.getSpan(), id));
 
         }
         // TODO fix span -- it needs to cover the whole list.
         return new FieldRef(id.getSpan(),
                 false,
                 translateQualifiedToFieldRef(ids.subList(0, ids.size()-1)),
-                new IdName(id.getSpan(), id)
+                id
                 );
     }
 
     @Override
     public AbstractNode visit(AbstractNode node) {
-        if (node instanceof VarRef) 
+        if (node instanceof VarRef)
             return translateQualifiedToFieldRef((VarRef)node);
-        
-        if (node instanceof FnRef) 
-         
+
+        if (node instanceof FnRef)
+
             return visit(translateFnRef((FnRef)node));
-        
+
         if (node instanceof TightJuxt && looksLikeMethodInvocation((Juxt) node)) {
             return visit(translateJuxtOfDotted((Juxt) node));
         }
-            
-            
+
+
         return visitNode(node);
     }
 
@@ -128,7 +128,7 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
         VarRef first = (VarRef) exprs.get(0);
         QualifiedIdName qidn = first.getVar();
         List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
-        
+
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 translateQualifiedToFieldRef(ids),

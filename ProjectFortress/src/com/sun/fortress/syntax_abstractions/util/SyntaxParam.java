@@ -17,29 +17,29 @@
 
 package com.sun.fortress.syntax_abstractions.util;
 
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.QualifiedName;
 
 import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Representation of syntax parameters
- * A syntax parameter is either a keyword or an Id colon Type. Where 
- * production names are used as types. 
- * 
+ * A syntax parameter is either a keyword or an Id colon Type. Where
+ * production names are used as types.
+ *
  */
 public class SyntaxParam {
 
-	private IdName identifier;
+	private Id identifier;
 	private Option<QualifiedName> type;
-	
-	public SyntaxParam(IdName identifier, Option<QualifiedName> type) {
+
+	public SyntaxParam(Id identifier, Option<QualifiedName> type) {
 		super();
 		this.identifier = identifier;
 		this.type = type;
 	}
 
-	public IdName getIdName() {
+	public Id getId() {
 		return identifier;
 	}
 
@@ -47,7 +47,7 @@ public class SyntaxParam {
 		return identifier.stringName();
 	}
 
-	public void setIdName(IdName identifier) {
+	public void setId(Id identifier) {
 		this.identifier = identifier;
 	}
 
@@ -58,7 +58,7 @@ public class SyntaxParam {
 	public void setType(QualifiedName type) {
 		this.type = Option.wrap(type);
 	}
-	
+
 	public boolean isKeyword() {
 		return this.type.isNone() || Option.unwrap(this.type).getName().stringName().equals("Keyword");
 	}

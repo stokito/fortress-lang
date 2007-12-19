@@ -36,15 +36,15 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
     BATreeEC<List<FValue>, List<FType>, Method> mcache =
         new BATreeEC<List<FValue>, List<FType>, Method>(FValue.asTypesList);
 
-    
+
     public OverloadedMethod(String fnName, BetterEnv within) {
-        super(NodeFactory.makeIdName(fnName), within);
+        super(NodeFactory.makeId(fnName), within);
         // TODO Auto-generated constructor stub
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
             BetterEnv within) {
-        super(NodeFactory.makeIdName(fnName), ssf, within);
+        super(NodeFactory.makeId(fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
 
@@ -54,7 +54,7 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
        Method best_f = mcache.get(args);
        if (best_f == null) {
-       
+
            List<Overload>  someOverloads = overloads;
            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
         lastBest = best;

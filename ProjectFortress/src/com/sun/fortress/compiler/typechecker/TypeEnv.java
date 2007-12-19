@@ -28,24 +28,24 @@ import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 
-/** 
+/**
  * This class is used by the type checker to represent static type environments,
- * mapping bound variables to their types. 
+ * mapping bound variables to their types.
  */
 public abstract class TypeEnv {
     public static TypeEnv make(LValueBind... entries) {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
-    
-    public abstract Option<LValueBind> binding(IdName var);
-    public abstract Option<Type> type(IdName var);
-    public abstract Option<List<Modifier>> mods(IdName var);
-    public abstract Option<Boolean> mutable(IdName var);
-    
-    public Option<Type> type(String var) { return type(makeIdName(var)); }
-    public Option<List<Modifier>> mods(String var) { return mods(makeIdName(var)); }
-    public Option<Boolean> mutable(String var) { return mutable(makeIdName(var)); }
-        
+
+    public abstract Option<LValueBind> binding(Id var);
+    public abstract Option<Type> type(Id var);
+    public abstract Option<List<Modifier>> mods(Id var);
+    public abstract Option<Boolean> mutable(Id var);
+
+    public Option<Type> type(String var) { return type(makeId(var)); }
+    public Option<List<Modifier>> mods(String var) { return mods(makeId(var)); }
+    public Option<Boolean> mutable(String var) { return mutable(makeId(var)); }
+
     /**
      * Produce a new type environment extending this with the given variable bindings.
      */
@@ -53,10 +53,10 @@ public abstract class TypeEnv {
         if (entries.length == 0) { return EmptyTypeEnv.ONLY; }
         else { return new NonEmptyTypeEnv(entries, this); }
     }
-    
-    public TypeEnv extend(Map<IdName, Variable> vars) {
+
+    public TypeEnv extend(Map<Id, Variable> vars) {
         ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
-        
+
         for (Variable var: vars.values()) {
             if (var instanceof ParamVariable) {
                 Param ast = ((ParamVariable)var).ast();
@@ -65,18 +65,18 @@ public abstract class TypeEnv {
                 } else { // ast instanceof VarargsParam
                     lvals.add(NodeFactory.makeLValue(ast.getName(),
                         makeInstantiatedType
-                            (ast.getSpan(), 
-                             false, 
+                            (ast.getSpan(),
+                             false,
                              makeQualifiedIdName
                                  (Arrays.asList
-                                      (makeId("FortressBuiltin")), 
+                                      (makeId("FortressBuiltin")),
                                   makeId("ImmutableHeapSequence")),
                              new TypeArg(((VarargsParam)ast).
                                              getVarargsType().getType()))));
                 }
             } else if (var instanceof SingletonVariable) {
                 // Singleton objects declare both a value and a type with the same name.
-                IdName nameAndType = ((SingletonVariable)var).declaringTrait();
+                Id nameAndType = ((SingletonVariable)var).declaringTrait();
                 lvals.add(NodeFactory.makeLValue(nameAndType, nameAndType));
             } else { // entry instanceof DeclaredVariable
                 lvals.add(((DeclaredVariable)var).ast());
@@ -85,22 +85,22 @@ public abstract class TypeEnv {
         LValueBind[] result = new LValueBind[lvals.size()];
         return this.extend(lvals.toArray(result));
     }
-    
+
     // I think this is the wrong approach. We should instead create various
-    // subtypes of TypeEnvs corresponding to function environments, var environments, 
+    // subtypes of TypeEnvs corresponding to function environments, var environments,
     // etc.
 //    public TypeEnv extend(Relation<SimpleName, Function> functions) {
 //        // First build up map of functions -> names in a HashMap.
 //        HashMap<SimpleName, Function> fnMap = new HashMap<SimpleName, Function>();
 //        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
-//                            
+//
 //        for (SimpleName name: functions.firstSet()) {
 //            List<Type> elements = new ArrayList<Type>();
 //            for (Function fn: functions.getSeconds(name)) {
 //                elements.add(fn.instantiatedType
 //            if (fnMap.containsKey(pair.first())
-//                    
+//
 //
 //    }
-    
+
 }

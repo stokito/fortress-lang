@@ -36,7 +36,7 @@ import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
@@ -55,7 +55,7 @@ import com.sun.fortress.syntax_abstractions.GrammarEnv;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
- * 
+ *
  */
 public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
@@ -74,7 +74,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 		for (AliasedAPIName apiAlias : that.getApis()) {
 			grammars.add(new GrammarEnv(env.api(apiAlias.getApi()).grammars().values(), this.isTopLevel));
 			getRecursiveImports(apiAlias.getApi());
-		}		
+		}
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 		for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 			boolean found = false;
 			for (AliasedSimpleName name: that.getAliasedNames()) {
-				if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getName().getId().getText())) {
+				if (name.getName().toString().equals(Option.unwrap(grammar.ast()).getName().getName().getText())) {
 					found  = true;
 					break;
 				}

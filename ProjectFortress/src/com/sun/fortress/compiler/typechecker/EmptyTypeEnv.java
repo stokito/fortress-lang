@@ -30,8 +30,8 @@ class EmptyTypeEnv extends TypeEnv {
     
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
     
-    public Option<LValueBind> binding(IdName var) { return none(); }
-    public Option<Type> type(IdName var) { return none(); }
-    public Option<List<Modifier>> mods(IdName var) { return none(); }
-    public Option<Boolean> mutable(IdName var) { return none(); }
+    public Option<LValueBind> binding(Id var) { return none(); }
+    public Option<Type> type(Id var) { return none(); }
+    public Option<List<Modifier>> mods(Id var) { return none(); }
+    public Option<Boolean> mutable(Id var) { return none(); }
 }
