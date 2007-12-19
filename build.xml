@@ -1,0 +1,16 @@
+<!-- Delegating build script, used to build ProjectFortress.
+     Note that the basedir is set to the checked out project
+     The explicit pathname seems to be a necessary evil <sigh> -->
+<project name="ProjectFortress"
+        default="build"
+        basedir="ProjectFortress">
+    <target name="compile">
+        <ant target="compile"/>
+    </target>
+    <target name="test">
+        <ant target="test"/>
+    </target>
+    <target name="clean">
+        <ant target="clean"/>
+    </target>
+</project>
