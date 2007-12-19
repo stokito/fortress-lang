@@ -142,4 +142,4 @@ body {
    }
 }
 
-option parser(com.sun.fortress.parser.Fortress);
+option flag(isNative), parser(com.sun.fortress.parser.Fortress);
