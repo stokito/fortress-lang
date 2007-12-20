@@ -27,6 +27,7 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
+import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * This class is used by the type checker to represent static type environments,
@@ -46,45 +47,73 @@ public abstract class TypeEnv {
     public Option<List<Modifier>> mods(String var) { return mods(makeId(var)); }
     public Option<Boolean> mutable(String var) { return mutable(makeId(var)); }
 
+    /** 
+     * Get a type from a Param.
+     */
+    public static Option<Type> typeFromParam(Param param) {
+        if (param instanceof NormalParam) {
+            NormalParam _param = (NormalParam) param;
+            return _param.getType();
+        } else { // param instanceof VarargsParam 
+            // Convert the declared VarargsType into a reference to
+            // FortressBuiltin.ImmutableHeapSequence.
+            VarargsParam _param = (VarargsParam) param;
+            
+            Type result = 
+                makeInstantiatedType(_param.getVarargsType().getSpan(),
+                                     false,
+                                     makeQualifiedIdName
+                                         (Arrays.asList
+                                              (makeId("FortressBuiltin")),
+                                          makeId("ImmutableHeapSequence")));
+            return some(result);
+        }
+    }
+        
     /**
      * Produce a new type environment extending this with the given variable bindings.
      */
     public TypeEnv extend(LValueBind... entries) {
-        if (entries.length == 0) { return EmptyTypeEnv.ONLY; }
-        else { return new NonEmptyTypeEnv(entries, this); }
+        if (entries.length == 0) { return this; }
+        else { return new LValueTypeEnv(entries, this); }
     }
 
     public TypeEnv extend(Map<Id, Variable> vars) {
-        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
-
-        for (Variable var: vars.values()) {
-            if (var instanceof ParamVariable) {
-                Param ast = ((ParamVariable)var).ast();
-                if (ast instanceof NormalParam) {
-                    lvals.add(NodeFactory.makeLValue((NormalParam)ast));
-                } else { // ast instanceof VarargsParam
-                    lvals.add(NodeFactory.makeLValue(ast.getName(),
-                        makeInstantiatedType
-                            (ast.getSpan(),
-                             false,
-                             makeQualifiedIdName
-                                 (Arrays.asList
-                                      (makeId("FortressBuiltin")),
-                                  makeId("ImmutableHeapSequence")),
-                             new TypeArg(((VarargsParam)ast).
-                                             getVarargsType().getType()))));
-                }
-            } else if (var instanceof SingletonVariable) {
-                // Singleton objects declare both a value and a type with the same name.
-                Id nameAndType = ((SingletonVariable)var).declaringTrait();
-                lvals.add(NodeFactory.makeLValue(nameAndType, nameAndType));
-            } else { // entry instanceof DeclaredVariable
-                lvals.add(((DeclaredVariable)var).ast());
-            }
-        }
-        LValueBind[] result = new LValueBind[lvals.size()];
-        return this.extend(lvals.toArray(result));
+        if (vars.size() == 0) { return this; }
+        else { return new VarTypeEnv(vars, this); }
     }
+    
+//    public TypeEnv extend(Map<Id, Variable> vars) {
+//        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
+//
+//        for (Variable var: vars.values()) {
+//            if (var instanceof ParamVariable) {
+//                Param ast = ((ParamVariable)var).ast();
+//                if (ast instanceof NormalParam) {
+//                    lvals.add(NodeFactory.makeLValue((NormalParam)ast));
+//                } else { // ast instanceof VarargsParam
+//                    lvals.add(NodeFactory.makeLValue(ast.getName(),
+//                        makeInstantiatedType
+//                            (ast.getSpan(),
+//                             false,
+//                             makeQualifiedIdName
+//                                 (Arrays.asList
+//                                      (makeId("FortressBuiltin")),
+//                                  makeId("ImmutableHeapSequence")),
+//                             new TypeArg(((VarargsParam)ast).
+//                                             getVarargsType().getType()))));
+//                }
+//            } else if (var instanceof SingletonVariable) {
+//                // Singleton objects declare both a value and a type with the same name.
+//                Id nameAndType = ((SingletonVariable)var).declaringTrait();
+//                lvals.add(NodeFactory.makeLValue(nameAndType, nameAndType));
+//            } else { // entry instanceof DeclaredVariable
+//                lvals.add(((DeclaredVariable)var).ast());
+//            }
+//        }
+//        LValueBind[] result = new LValueBind[lvals.size()];
+//        return this.extend(lvals.toArray(result));
+//    }
 
     // I think this is the wrong approach. We should instead create various
     // subtypes of TypeEnvs corresponding to function environments, var environments,

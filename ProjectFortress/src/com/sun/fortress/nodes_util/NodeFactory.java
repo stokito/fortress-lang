@@ -337,6 +337,14 @@ public class NodeFactory {
                               new ArrayList<Modifier>(),
                               false);
     }
+    
+    public static LValueBind makeLValue(Id name, Option<Type> type) {
+        return new LValueBind(name.getSpan(),
+                              name,
+                              type,
+                              new ArrayList<Modifier>(),
+                              false);
+    }
 
     public static LValueBind makeLValue(String name, Type type) {
         return new LValueBind(type.getSpan(), makeId(name), Option.some(type),
