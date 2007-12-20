@@ -84,7 +84,7 @@ NormalParam Param = PlainParam ;
      opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser)
    | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
-   | opr (w BIG)? w (Op | ^ | Encloser) (w StaticParams)? w ValParam
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
      <Enclosing>
@@ -116,7 +116,10 @@ FnHeaderFront OpHeaderFront =
    / opr big:(w BIG)? w
      a1:(Op
         / caret {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),"^");}
-        / Encloser)
+        / Encloser
+        / SUM  {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),"BIG +");}
+        / PROD {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),
+                                           "BIG juxtaposition");})
      a2:(w StaticParams)? w a3:ValParam
      { Span span = createSpan(yyStart,yyCount);
        Op op = (Op)a1;
