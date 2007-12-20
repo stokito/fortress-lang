@@ -1780,7 +1780,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     VarargsType(Type type);
     /**
      * keyword type used in tuple types
-     * KeywordType ::= Id = Type
+     * KeywordType ::= BindId = Type
      * e.g.) x = String
      */
     KeywordType(Id name, Type type);
@@ -1790,15 +1790,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     TraitTypeWhere(TraitType type, List<WhereClause> where);
     /**
-     * array indices
+     * array dimensionality
+     * ArraySize ::= ExtentRange(, ExtentRange)*
+     * e.g.) 3, 2#1, 3:5
      */
-    abstract Indices();
-        /**
-         * array dimensionality
-         * ArraySize ::= ExtentRange(, ExtentRange)*
-         * e.g.) 3, 2#1, 3:5
-         */
-        FixedDim(List<ExtentRange> extents);
+    Indices(List<ExtentRange> extents);
     /**
      * operator on dimensions and units
      * DUPreOp ::= square | cubic | inverse

@@ -196,15 +196,6 @@ public class NodeComparator {
         return left.getText().compareTo(right.getText());
     }
 
-    public static int compare(Indices left, Indices right) {
-        Class tclass = left.getClass();
-        Class oclass = right.getClass();
-        if (oclass != tclass) {
-            return tclass.getName().compareTo(oclass.getName());
-        }
-        return subtypeCompareTo(left, right);
-    }
-
     public static int compare(KeywordType left, KeywordType right) {
         return compare(left.getName(), right.getName(),
                        left.getType(), right.getType());
@@ -299,7 +290,7 @@ public class NodeComparator {
         else return 0;
     }
 
-    static int compare(FixedDim left, FixedDim right) {
+    public static int compare(Indices left, Indices right) {
         return extentRangeListComparer
             .compare(left.getExtents(), right.getExtents());
     }

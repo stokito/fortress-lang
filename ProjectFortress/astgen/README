@@ -43,7 +43,15 @@
  - IfClause
  - TypecaseClause
  - ExtentRange
-
+ - GeneratorClause
+ - VarargsExpr
+ - VarargsType
+ - KeywordType
+ - TraitTypeWhere
+ - ???
+ - SquareDimUnit        : NYI
+ - CubicDimUnit         : NYI
+ - InverseDimUnit       : NYI
 
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
