@@ -652,4 +652,4 @@ private StaticParam StaticParam =
                                derived, absorbs);
      }
    / opr  w a1:Op
-     {yyValue = new OperatorParam(createSpan(yyStart,yyCount),NodeFactory.makeOpr(a1));};
+     { yyValue = new OperatorParam(createSpan(yyStart,yyCount), a1); };

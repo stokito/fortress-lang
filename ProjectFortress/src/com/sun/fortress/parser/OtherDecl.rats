@@ -99,16 +99,13 @@ ExternalSyntax ExternalSyntax =
      { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
 
 /* OpenExpander ::= Id | LeftEncloser | Encloser */
-SimpleName OpenExpander =
-     Id
-   / a1:(LeftEncloser / Encloser)
-     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); };
+SimpleName OpenExpander = Id / LeftEncloser / Encloser ;
 
 /* CloseExpander ::= Id | RightEncloser | Encloser | end */
 SimpleName CloseExpander =
      Id
-   / a1:(RightEncloser / Encloser)
-     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); }
+   / RightEncloser
+   / Encloser
    / end
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new Id(span, "end");

@@ -17,37 +17,37 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.Bracketing;
+import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.Opr;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes.QualifiedOpName;
 
 public final class OprUtil {
     public static boolean isInfixOrPrefix(OpName op) {
-        return (op instanceof Opr);
+        return (op instanceof Op);
     }
 
     public static boolean isInfixOrPrefix(QualifiedOpName q) {
         return isInfixOrPrefix(q.getName());
     }
 
-    public static boolean isBracketing(OpName op) {
-        return (op instanceof Bracketing);
+    public static boolean isEnclosing(OpName op) {
+        return (op instanceof Enclosing);
     }
 
-    public static boolean isBracketing(QualifiedOpName q) {
+    public static boolean isEnclosing(QualifiedOpName q) {
         return isInfixOrPrefix(q.getName());
     }
 
     public static Op getOp(OpName op) {
         if (isInfixOrPrefix(op)) {
-            return ((Opr)op).getOp();
-        } else if (isBracketing(op)) {
-            return ((Bracketing)op).getOpen();
+            return (Op)op;
+        } else if (isEnclosing(op)) {
+            return ((Enclosing)op).getOpen();
         } else {
-            return ((PostFix)op).getOp();
+            return (PostFix)op;
         }
     }
 
@@ -62,7 +62,7 @@ public final class OprUtil {
 
     public static boolean hasPrefixColon(OpName n) {
         if (isInfixOrPrefix(n)) {
-            return hasPrefixColon(((Opr)n).getOp());
+            return hasPrefixColon((Op)n);
         } else {
             return false;
         }
@@ -80,7 +80,7 @@ public final class OprUtil {
 
     public static boolean hasSuffixColon(OpName n) {
         if (isInfixOrPrefix(n)) {
-            return hasSuffixColon(((Opr)n).getOp());
+            return hasSuffixColon((Op)n);
         } else {
             return false;
         }
@@ -109,7 +109,7 @@ public final class OprUtil {
 
     public static String noColonText(OpName n) {
         if (isInfixOrPrefix(n)) {
-            return noColonText(((Opr)n).getOp());
+            return noColonText((Op)n);
         } else {
             return getOp(n).getText();
         }
@@ -139,9 +139,8 @@ public final class OprUtil {
 
     public static OpName noColon(OpName n) {
         if (isInfixOrPrefix(n)) {
-            Op orig = ((Opr)n).getOp();
-            Op op = noColon(orig);
-            if (op != orig) return NodeFactory.makeOpr(op);
+            Op op = noColon((Op)n);
+            if (op != n) return op;
         }
         return n;
     }

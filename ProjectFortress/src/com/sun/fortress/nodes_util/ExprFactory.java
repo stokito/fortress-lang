@@ -283,12 +283,13 @@ public class ExprFactory {
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs) {
-        return new SubscriptExpr(span, false, obj, subs, Option.<SubscriptOp>none());
+        return new SubscriptExpr(span, false, obj, subs,
+                                 Option.<Enclosing>none());
     }
 
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
                                                   List<Expr> subs,
-                                                  Option<SubscriptOp> op) {
+                                                  Option<Enclosing> op) {
         return new SubscriptExpr(span, false, obj, subs, op);
     }
 

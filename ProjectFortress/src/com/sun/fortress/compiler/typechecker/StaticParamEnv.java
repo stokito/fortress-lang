@@ -33,7 +33,7 @@ public abstract class StaticParamEnv {
     }
 
     public Option<StaticParam> opBinding(String name) {
-        return binding(NodeFactory.makeOpr(name));
+        return binding(NodeFactory.makeOp(name));
     }
 
     public StaticParamEnv extend(StaticParam... params) {

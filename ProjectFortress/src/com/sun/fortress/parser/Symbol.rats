@@ -43,10 +43,10 @@ Op ExponentOp = a1:exponentOp
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 /* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
-Bracketing EncloserPair =
+Enclosing EncloserPair =
      a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
            yyValue = error(a2, "Mismatched Enclosers.");
      };
@@ -214,9 +214,9 @@ transient void comma = ",";
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
-Option<Opr> AssignOp =
+Option<Op> AssignOp =
      colonequals   { yyValue = Option.none(); }
-   / a1:CompoundOp { yyValue = Option.some(NodeFactory.makeOpr(a1)); };
+   / a1:CompoundOp { yyValue = Option.some(a1); };
 
 transient String accumulator = "SUM" / "PROD" ;
 

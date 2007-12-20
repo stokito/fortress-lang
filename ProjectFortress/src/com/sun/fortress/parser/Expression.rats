@@ -115,7 +115,7 @@ constant inline Action<Expr> SubscriptAssign =
              List<Expr> es;
              if (a2 == null) es = FortressUtil.emptyExprs();
              else            es = a2;
-             SubscriptOp op = new SubscriptOp(FortressUtil.spanTwo(a1,a3),a1,a3);
+             Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3),a1,a3);
              return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op));
             }};
      };
@@ -350,7 +350,7 @@ constant inline Action<PureList<Expr>> SubscriptExpr =
                List<Expr> es;
                if (a2 == null) es = FortressUtil.emptyExprs();
                else            es = a2;
-               SubscriptOp op = new SubscriptOp(FortressUtil.spanTwo(a1,a3), a1, a3);
+               Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3),a1,a3);
                return PureList.make((Expr)new SubscriptExpr(span, false, arr, es,
                                                             Option.some(op)));
            }};
@@ -578,8 +578,7 @@ Expr FlowExpr =
    / a1:Accumulator a2:(w void:opensquare w GeneratorList w void:closesquare)? w
      a3:Expr
      { if (a2 == null) a2 = Collections.<Generator>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), false,
-                                 NodeFactory.makeOpr(a1), a2, a3);
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), false, a1, a2, a3);
      }
    / atomic w a1:AtomicBack
      { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }

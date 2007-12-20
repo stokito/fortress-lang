@@ -588,7 +588,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * AssignOp ::= := | Op=
          * e.g.) x += 1
          */
-        Assignment(List<LHS> lhs, Option<Opr> opr, Expr rhs);
+        Assignment(List<LHS> lhs, Option<Op> opr, Expr rhs);
         /**
          * expressions beginning and ending with reserved words
          * Expr ::= DelimitedExpr
@@ -612,7 +612,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         1 kilometer => "we were wrong again"
              *       end
              */
-            CaseExpr(CaseParam param, Option<Opr> compare = Option.<Opr>none(),
+            CaseExpr(CaseParam param, Option<Op> compare = Option.<Op>none(),
                      List<CaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**
@@ -859,7 +859,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) a[i]
              */
             SubscriptExpr(Expr obj, List<Expr> subs,
-                          Option<SubscriptOp> op = Option.<SubscriptOp>none())
+                          Option<Enclosing> op = Option.<Enclosing>none())
                          implements LHS;
             /**
              * primary expression
@@ -939,7 +939,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * may be chained.
                  * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                  */
-                ChainExpr(Expr first, List<Pair<Opr, Expr>> links);
+                ChainExpr(Expr first, List<Pair<Op, Expr>> links);
                 /**
                  * expression with static instantiations
                  * list of ids allows cross-API overloading
@@ -1654,46 +1654,32 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract SimpleName();
             /**
-             * identifier
+             * unqualified identifier
              * e.g.) hashCode
              */
             Id(String text);
-            /**
-             * unqualified id name
-            IdName(Id id);
-             */
             /**
              * unqualified operator name
              */
             abstract OpName();
                 /**
-                 * infix/prefix/nofix/multifix operator
+                 * operator
                  * e.g.) COMPOSE
-                 * e.g.) +
+                 * e.g.) ===
                  */
-                Opr(Op op);
-                /**
-                 * postfix operator
-                 * e.g.) 3!
-                 */
-                PostFix(Op op);
+                Op(String text);
+                    /**
+                     * postfix operator
+                     * e.g.) 3!
+                     */
+                    PostFix();
                 /**
                  * pair of enclosing operators
                  * EncloserPair ::= (LeftEncloser | Encloser)
                  *                    (RightEncloser | Encloser)
                  * e.g.) </ />
                  */
-                abstract Enclosing(Op open, Op close);
-                    /**
-                     * bracketing operator
-                     * e.g.) a[i]
-                     */
-                    Bracketing();
-                    /**
-                     * subscripting and subscripted assignment operator
-                     * e.g.) a[i]
-                     */
-                    SubscriptOp();
+                Enclosing(Op open, Op close);
             /**
              * internal name for anonymous function expressions
              * not created during parsing but during evaluation
@@ -1791,11 +1777,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) (i, j) <- my2DArray.indices
      */
     Generator(List<Id> bind, Expr init);
-    /**
-     * operator symbol
-     * e.g.) ===
-     */
-    Op(String text);
     /**
      * varargs expression used in tuple expressions
      * Expr...

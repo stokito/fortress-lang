@@ -86,7 +86,6 @@ import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Bracketing;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Export;
@@ -122,7 +121,6 @@ import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
-import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.PostFix;
@@ -135,7 +133,7 @@ import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.SubscriptOp;
+import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
@@ -243,7 +241,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
-        Option<Opr> possOp = x.getOpr();
+        Option<Op> possOp = x.getOpr();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends LHS> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
@@ -252,7 +250,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            Opr opr = Option.unwrap(possOp);
+            Op opr = Option.unwrap(possOp);
             Fcn fcn = (Fcn) opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
@@ -520,7 +518,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<CaseClause> clauses = x.getClauses();
         CaseParam param = x.getParam();
         if (param instanceof CaseParamMost) {
-            Option<Opr> compare = x.getCompare();
+            Option<Op> compare = x.getCompare();
             if (compare.isSome()) {
                 String op = NodeUtil.nameString(Option.unwrap(compare));
                 return forBlock(findExtremum(x,(Fcn) e.getValue(op)).getBody());
@@ -532,7 +530,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue paramValue = param.accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
-            Option<Opr> compare = x.getCompare();
+            Option<Op> compare = x.getCompare();
             if (compare.isSome())
                 fcn = (Fcn) e.getValue(NodeUtil.nameString(Option.unwrap(compare)));
 
@@ -573,15 +571,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     public FValue forChainExpr(ChainExpr x) {
         Expr first = x.getFirst();
-        List<Pair<Opr, Expr>> links = x.getLinks();
+        List<Pair<Op, Expr>> links = x.getLinks();
         FValue idVal = first.accept(this);
         FBool boolres = FBool.TRUE;
-        Iterator<Pair<Opr, Expr>> i = links.iterator();
+        Iterator<Pair<Op, Expr>> i = links.iterator();
         List<FValue> vargs = new ArrayList<FValue>(2);
         vargs.add(idVal);
         vargs.add(idVal);
         while (boolres.getBool() && i.hasNext()) {
-            Pair<Opr, Expr> link = i.next();
+            Pair<Op, Expr> link = i.next();
             Fcn fcn = (Fcn) link.getA().accept(this);
             FValue exprVal = link.getB().accept(this);
             vargs.set(0, idVal);
@@ -998,7 +996,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forBracketing(Bracketing x) {
+    public FValue forEnclosing(Enclosing x) {
         return getOp(x);
     }
 
@@ -1007,11 +1005,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forOp(Op op) {
-        return FString.make(op.getText());
-    }
-
-    public FValue forOpr(Opr x) {
-        return getOp(x);
+        return getOp(op);
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
@@ -1110,7 +1104,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
-        Option<SubscriptOp> op = x.getOp();
+        Option<Enclosing> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
@@ -1131,10 +1125,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Method cl = (Method) ixing;
         List<FValue> subscripts = evalExprListParallel(subs);
         return cl.applyMethod(subscripts, array, x, e);
-    }
-
-    public FValue forSubscriptOp(SubscriptOp x) {
-        return getOp(x);
     }
 
     public FValue invokeGenericMethod(FObject fobject, Name fld, List<StaticArg> args, List<Expr> exprs, HasAt x) {

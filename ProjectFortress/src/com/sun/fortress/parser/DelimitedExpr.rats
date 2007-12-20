@@ -82,9 +82,9 @@ Expr DelimitedExpr =
      }
    / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
      { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
-       Option<Opr> compare;
+       Option<Op> compare;
        if (a2 == null) compare = Option.none();
-       else            compare = Option.some(NodeFactory.makeOpr(a2));
+       else            compare = Option.some(a2);
        Option<Block> _else;
        if (a4 == null)
            _else = Option.none();
@@ -94,7 +94,7 @@ Expr DelimitedExpr =
      }
    / case w most w a1:Op w of w a2:CaseClauses w end
      { CaseParam e1 = new CaseParamMost(createSpan(yyStart+5,4));
-       Option<Opr> compare = Option.some(NodeFactory.makeOpr(a1));
+       Option<Op> compare = Option.some(a1);
        yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
                               a2, Option.<Block>none());
      }
@@ -249,21 +249,21 @@ FlowExpr Comprehension =
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG {");
        Op close = NodeFactory.makeOp(span, "BIG }");
-       OpName opr = new Bracketing(span, open, close);
+       OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
    / opencurly w a1:Entry wr bar wr a2:GeneratorList w closecurly
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG {");
        Op close = NodeFactory.makeOp(span, "BIG }");
-       OpName opr = new Bracketing(span, open, close);
+       OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
    / openangle w a1:Expr wr bar wr a2:GeneratorList w closeangle
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG <|");
        Op close = NodeFactory.makeOp(span, "BIG |>");
-       OpName opr = new Bracketing(span, open, close);
+       OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
    / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
@@ -279,7 +279,7 @@ String mapstoOp = !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "
 
 /* Entry ::= Expr w |-> w Expr */
 Expr Entry = a1:Expr w mapsto w a2:Expr
-     { OpName op = NodeFactory.makeOpr("|->");
+     { OpName op = NodeFactory.makeOp("|->");
        yyValue = ExprFactory.makeOprExpr(createSpan(yyStart,yyCount),op,a1,a2);
      };
 

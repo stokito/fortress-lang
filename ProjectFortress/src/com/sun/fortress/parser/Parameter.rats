@@ -99,7 +99,7 @@ FnHeaderFront OpHeaderFront =
                opa2 = NodeFactory.makeOp(opa2.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOp(opa4.getSpan(), "BIG " + right);
            }
-           name = new Bracketing(span, opa2, opa4);
+           name = new Enclosing(span, opa2, opa4);
        } else
            name = error(opa2, "Mismatched enclosing operator definition: "
                               + left + " and " + right);
@@ -108,16 +108,20 @@ FnHeaderFront OpHeaderFront =
      }
    / opr a1:(w StaticParams)? w a2:ValParam w a3:(Op / ExponentOp)
      { Span span = createSpan(yyStart,yyCount);
-       if (a1 == null) yyValue = new FnHeaderFront(new PostFix(span,a3), a2);
-       else            yyValue = new FnHeaderFront(new PostFix(span,a3), a1, a2);
+       if (a1 == null)
+           yyValue = new FnHeaderFront(new PostFix(span,a3.getText()), a2);
+       else
+           yyValue = new FnHeaderFront(new PostFix(span,a3.getText()), a1, a2);
      }
    / opr big:(w BIG)? w
-     a1:(Op / caret {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),"^");} / Encloser)
+     a1:(Op
+        / caret {yyValue=NodeFactory.makeOp(createSpan(yyStart,yyCount),"^");}
+        / Encloser)
      a2:(w StaticParams)? w a3:ValParam
      { Span span = createSpan(yyStart,yyCount);
        Op op = (Op)a1;
        if (big != null)
            op = NodeFactory.makeOp(op.getSpan(), "BIG " + op.getText());
-       if (a2 == null) yyValue = new FnHeaderFront(new Opr(span,op), a3);
-       else            yyValue = new FnHeaderFront(new Opr(span,op), a2, a3);
+       if (a2 == null) yyValue = new FnHeaderFront(op, a3);
+       else            yyValue = new FnHeaderFront(op, a2, a3);
      };

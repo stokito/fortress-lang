@@ -118,11 +118,11 @@ private AliasedSimpleName AliasedSimpleName =
    / opr w a1:Op a2:(w as w Op)?
      { if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount),
-                                                 new Opr(a1.getSpan(), a1));
+                                                 a1);
        else
            yyValue = NodeFactory.makeAliasedSimpleName(createSpan(yyStart,yyCount),
-                                                 new Opr(a1.getSpan(), a1),
-                                                 new Opr(a2.getSpan(), a2));
+                                                 a1,
+                                                 a2);
      }
    / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
@@ -133,10 +133,10 @@ private AliasedSimpleName AliasedSimpleName =
      };
 
 /* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
-private Bracketing EncloserPair =
+private Enclosing EncloserPair =
      a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = new Bracketing(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
            yyValue = error(a2, "Mismatched Enclosers.");
      };

@@ -25,7 +25,6 @@ import java.util.List;
 
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.Opr;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Chain;
@@ -584,18 +583,16 @@ public class Resolver {
   //   match links with
   //     | [] -> [(first,last)]
   //     | (e,op) :: rest -> (first,e) :: build_links op rest last
-  private static PureList<Pair<Opr, Expr>>
+  private static PureList<Pair<Op, Expr>>
       buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
-    Opr fOpr = new Opr(first.getSpan(), first);
     if (links.isEmpty()) {
-        return PureList.<Pair<Opr,Expr>>make(
-                      new Pair<Opr,Expr>(fOpr,last));
+        return PureList.<Pair<Op,Expr>>make(new Pair<Op,Expr>(first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Pair<Opr,Expr> l = new Pair<Opr,Expr>(fOpr, link.getA());
+      Pair<Op,Expr> l = new Pair<Op,Expr>(first, link.getA());
 
       return (buildLinks(link.getB(), _links.getRest(), last)).cons(l);
     }

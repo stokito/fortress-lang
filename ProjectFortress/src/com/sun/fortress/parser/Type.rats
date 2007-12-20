@@ -333,7 +333,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
  */
 private StaticArg StaticArg =
      a1:Op
-     { yyValue = NodeFactory.makeOprArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new OprArg(createSpan(yyStart,yyCount), a1); }
    / "Unity"
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new DimArg(span, new BaseDim(span));
