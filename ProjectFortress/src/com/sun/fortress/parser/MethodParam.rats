@@ -62,11 +62,7 @@ FnHeaderFront OpHeaderFront :=
                opa2 = NodeFactory.makeOp(opa2.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOp(opa4.getSpan(), "BIG " + right);
            }
-           if (FortressUtil.isFunctionalMethod(opa3)) {
-               name = new Bracketing(span, opa2, opa4);
-           } else {
-               name = new SubscriptOp(span, opa2, opa4);
-           }
+           name = new Enclosing(span, opa2, opa4);
        } else
            name = error(opa2, "Mismatched enclosing operator definition: "
                               + left + " and " + right);

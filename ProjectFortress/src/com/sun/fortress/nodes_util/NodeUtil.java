@@ -119,8 +119,8 @@ public class NodeUtil {
             return nameString(n);
             }
         public String forId(Id n) { return n.getText(); }
-        public String forOpr(Opr n) { return n.getOp().getText(); }
-        public String forPostFix(PostFix n) { return n.getOp().getText(); }
+        public String forOp(Op n) { return n.getText(); }
+        public String forPostFix(PostFix n) { return n.getText(); }
         public String forEnclosing(Enclosing n) {
             return n.getOpen().getText() + " " + n.getClose().getText();
         }
@@ -142,8 +142,8 @@ public class NodeUtil {
         return n.getText();
     }
 
-    public static String nameString(Opr n) {
-        return n.getOp().getText();
+    public static String nameString(Op n) {
+        return n.getText();
     }
 
     public static String nameString(APIName n) {

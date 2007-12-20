@@ -54,7 +54,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.SubscriptOp;
+import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Unpasting;
@@ -80,7 +80,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     public Voidoid forSubscriptExpr(SubscriptExpr x) {
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
-        Option<SubscriptOp> op = x.getOp();
+        Option<Enclosing> op = x.getOp();
         // Should evaluate obj.[](subs, value)
         FObject array = (FObject) obj.accept(evaluator);
         String opString;

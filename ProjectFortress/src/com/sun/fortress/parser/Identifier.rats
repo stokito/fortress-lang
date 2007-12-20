@@ -63,8 +63,7 @@ List<Id> BindIdOrBindIdTuple =
 /* SimpleName ::= Id | opr w Op | opr w EncloserPair */
 SimpleName SimpleName =
      Id
-   / opr w a1:Op
-     { yyValue = NodeFactory.makeOpr(createSpan(yyStart,yyCount), a1); }
+   / opr w Op
    / opr w EncloserPair;
 
 /* APIName ::= Id(.Id)* */

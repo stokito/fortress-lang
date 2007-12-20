@@ -135,10 +135,6 @@ public class NodeFactory {
         return new _RewriteFixedPointType(new Span(), var, body);
     }
 
-    public static OprArg makeOprArg(Span span, Op op) {
-        return new OprArg(span, new Opr(span, op));
-    }
-
     public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
         return new ConstructorFnName(def.getSpan(), def);
     }
@@ -337,7 +333,7 @@ public class NodeFactory {
                               new ArrayList<Modifier>(),
                               false);
     }
-    
+
     public static LValueBind makeLValue(Id name, Option<Type> type) {
         return new LValueBind(name.getSpan(),
                               name,
@@ -426,18 +422,6 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
-    public static Opr makeOpr(String name) {
-        return new Opr(new Span(), makeOp(name));
-    }
-
-    public static Opr makeOpr(Span span, Op op) {
-        return new Opr(span, op);
-    }
-
-    public static Opr makeOpr(Op op) {
-        return new Opr(op.getSpan(), op);
-    }
-
     /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
                                             List<Modifier> mods,
@@ -507,7 +491,7 @@ public class NodeFactory {
     }
 
     public static OperatorParam makeOperatorParam(String name) {
-        return new OperatorParam(new Span(), makeOpr(name));
+        return new OperatorParam(new Span(), makeOp(name));
     }
 
     public static BoolParam makeBoolParam(String name) {

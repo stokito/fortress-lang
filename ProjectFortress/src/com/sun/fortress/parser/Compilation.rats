@@ -170,12 +170,9 @@ private AliasedSimpleName AliasedSimpleName =
    / opr w a1:Op a2:(w as w Op)?
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(span,
-                                                       new Opr(a1.getSpan(),a1));
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
        else
-           yyValue = NodeFactory.makeAliasedSimpleName(span,
-                                                       new Opr(a1.getSpan(),a1),
-                                                       new Opr(a2.getSpan(),a2));
+           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
      }
    / opr w a1:EncloserPair a2:(w as w EncloserPair)?
      { Span span = createSpan(yyStart,yyCount);
