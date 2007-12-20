@@ -448,8 +448,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                showoutput="yes"
                fork="true"
                maxmemory="${junitMem}"
-               errorProperty="not.passing.yet"
-               failureProperty="not.passing.yet">
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
             <classpath>
              <pathelement location="${build}"/>
              <pathelement location="${jsr166y}/jsr166y.jar"/>
@@ -464,6 +464,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 </fileset>
             </batchtest>
         </junit>
+        <fail message="Tests expected to fail are failing!" if="tests.failed"/>        
     </target>
 
     <target name="testSystem" depends="compile"
@@ -475,8 +476,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                showoutput="yes"
                fork="true"
                maxmemory="${junitMem}"
-               errorProperty="system.failed"
-               failureProperty="system.failed">
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
             <classpath>
              <pathelement location="${build}"/>
              <pathelement location="${xtc}/xtc.jar"/>
@@ -490,7 +491,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                     <include name="**/SystemJUTests.class"/>
                 </fileset>
             </batchtest>
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        </junit>
+      </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
     </target>
 
     <target name="testDemos" depends="compile"
@@ -502,8 +504,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 showoutput="yes"
                 fork="true"
                 maxmemory="${junitMem}"
-                errorProperty="demos"
-                failureProperty="demos">
+                errorProperty="tests.failed"
+                failureProperty="tests.failed">
              <classpath>
               <pathelement location="${build}"/>
               <pathelement location="${jsr166y}/jsr166y.jar"/>
@@ -517,7 +519,8 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                      <include name="**/DemoTests.class"/>
                  </fileset>
              </batchtest>
-         </junit>
+        </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
      </target>
 
     <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"
