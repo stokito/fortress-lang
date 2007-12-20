@@ -40,6 +40,10 @@ class VarTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
+    /**
+     * Return an LValueBind that binds the given Id to a type
+     * (if the given Id is in this type environment).
+     */
     public Option<LValueBind> binding(Id var) {
         if (entries.containsKey(var)) { 
             Variable result = entries.get(var); 
@@ -60,31 +64,5 @@ class VarTypeEnv extends TypeEnv {
                                        param.getMods()));
             }
         } else { return parent.binding(var); }
-    }
-    
-    public Option<List<Modifier>> mods(Id var) { return none(); }
-    public Option<Boolean> mutable(Id var) { return none(); }
-    
-    public Option<Type> type(Id var) { 
-        if (entries.containsKey(var)) { 
-            Variable result = entries.get(var); 
-            if (result instanceof DeclaredVariable) {
-                return ((DeclaredVariable)result).ast().getType(); 
-            } else if (result instanceof SingletonVariable) {
-                SingletonVariable _result = (SingletonVariable)result;
-                Id declaringTrait = _result.declaringTrait();
-                
-                return Option.<Type>some(makeInstantiatedType(_result.declaringTrait().
-                                                                  getSpan(), 
-                                                              false, 
-                                                              makeQualifiedIdName(Arrays.<Id>asList(),
-                                                                                  declaringTrait)));
-            } else { // result instanceof ParamVariable
-                ParamVariable _result = (ParamVariable)result;
-                Param param = _result.ast();
-                
-                return typeFromParam(param);
-            }
-        } else { return parent.type(var); }
     }
 }
