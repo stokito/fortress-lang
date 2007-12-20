@@ -34,23 +34,24 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * mapping bound variables to their types.
  */
 public abstract class TypeEnv {
+    /**
+     * Construct a new TypeEnv from the given bindings.
+     */
     public static TypeEnv make(LValueBind... entries) {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
-
-    public abstract Option<LValueBind> binding(Id var);
-    public abstract Option<Type> type(Id var);
-    public abstract Option<List<Modifier>> mods(Id var);
-    public abstract Option<Boolean> mutable(Id var);
-
-    public Option<Type> type(String var) { return type(makeId(var)); }
-    public Option<List<Modifier>> mods(String var) { return mods(makeId(var)); }
-    public Option<Boolean> mutable(String var) { return mutable(makeId(var)); }
+    
+    /**
+     * Construct a new TypeEnv from the given bindings.
+     */
+    public static TypeEnv make(Map<Id, Variable> entries) {
+        return EmptyTypeEnv.ONLY.extend(entries);
+    }
 
     /** 
      * Get a type from a Param.
      */
-    public static Option<Type> typeFromParam(Param param) {
+    protected static Option<Type> typeFromParam(Param param) {
         if (param instanceof NormalParam) {
             NormalParam _param = (NormalParam) param;
             return _param.getType();
@@ -69,67 +70,95 @@ public abstract class TypeEnv {
             return some(result);
         }
     }
+    
+    /**
+     * Return an LValueBind that binds the given Id to a type
+     * (if the given Id is in this type environment).
+     */
+    public abstract Option<LValueBind> binding(Id var);
+    
+    /**
+     * Return the type of the given Id (if the given Id is in
+     * this type environment).
+     */
+    public final Option<Type> type(Id var) { 
+        Option<LValueBind> _binding = binding(var);
+        if (_binding.isSome()) {
+            Option<Type> type = unwrap(_binding).getType();
+            if (type.isSome()) {
+                return type;
+            } else {
+                // When an explicit type is not given in the source code, the 
+                // type environment returns a fresh implicit type. Note that
+                // a distinct implicit type is returned each time type() is 
+                // called. This is necessary because TypeEnvs are immutable.
+                // It's up to the type checker to accumulate the constraints
+                // on implicit types. 
+                return Option.<Type>wrap(new _RewriteImplicitType());
+            }
+        } else {
+            return Option.none();
+        }
+    }
+    
+    
+    /**
+     * Return the list of modifiers for the given Id (if that
+     * Id is in this type environment).
+     */
+    public final Option<List<Modifier>> mods(Id var) { 
+        Option<LValueBind> binding = binding(var);
+        
+        if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
+        else { return Option.none(); }
+    }
+    
+    /**
+     * Indicate whether the given Id is bound as a mutable
+     * variable (if the given Id is in this type environment).
+     */
+    public final Option<Boolean> mutable(Id var) { 
+        Option<LValueBind> binding = binding(var);
+        
+        if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
+        else { return Option.none(); }
+    }     
+
+    /**
+     * Convenience method that takes a String and returns the type of the 
+     * corresponding Id in this type environment.
+     */
+    public final Option<Type> type(String var) { return type(makeId(var)); }
+      
+    /**
+     * Convenience method that takes a String and returns the modifiers for the 
+     * corresponding Id in this type environment.
+     */  
+    public final Option<List<Modifier>> mods(String var) { 
+        return mods(makeId(var)); 
+    }
+    
+    /**
+     * Convenience method that takes a String and indicates whether the 
+     * corresponding Id in this type environment.
+     */
+    public final Option<Boolean> mutable(String var) { 
+        return mutable(makeId(var)); 
+    }
         
     /**
      * Produce a new type environment extending this with the given variable bindings.
      */
-    public TypeEnv extend(LValueBind... entries) {
+    public final TypeEnv extend(LValueBind... entries) {
         if (entries.length == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
 
-    public TypeEnv extend(Map<Id, Variable> vars) {
+    /**
+     * Produce a new type environment extending this with the given variable bindings.
+     */
+    public final TypeEnv extend(Map<Id, Variable> vars) {
         if (vars.size() == 0) { return this; }
         else { return new VarTypeEnv(vars, this); }
     }
-    
-//    public TypeEnv extend(Map<Id, Variable> vars) {
-//        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
-//
-//        for (Variable var: vars.values()) {
-//            if (var instanceof ParamVariable) {
-//                Param ast = ((ParamVariable)var).ast();
-//                if (ast instanceof NormalParam) {
-//                    lvals.add(NodeFactory.makeLValue((NormalParam)ast));
-//                } else { // ast instanceof VarargsParam
-//                    lvals.add(NodeFactory.makeLValue(ast.getName(),
-//                        makeInstantiatedType
-//                            (ast.getSpan(),
-//                             false,
-//                             makeQualifiedIdName
-//                                 (Arrays.asList
-//                                      (makeId("FortressBuiltin")),
-//                                  makeId("ImmutableHeapSequence")),
-//                             new TypeArg(((VarargsParam)ast).
-//                                             getVarargsType().getType()))));
-//                }
-//            } else if (var instanceof SingletonVariable) {
-//                // Singleton objects declare both a value and a type with the same name.
-//                Id nameAndType = ((SingletonVariable)var).declaringTrait();
-//                lvals.add(NodeFactory.makeLValue(nameAndType, nameAndType));
-//            } else { // entry instanceof DeclaredVariable
-//                lvals.add(((DeclaredVariable)var).ast());
-//            }
-//        }
-//        LValueBind[] result = new LValueBind[lvals.size()];
-//        return this.extend(lvals.toArray(result));
-//    }
-
-    // I think this is the wrong approach. We should instead create various
-    // subtypes of TypeEnvs corresponding to function environments, var environments,
-    // etc.
-//    public TypeEnv extend(Relation<SimpleName, Function> functions) {
-//        // First build up map of functions -> names in a HashMap.
-//        HashMap<SimpleName, Function> fnMap = new HashMap<SimpleName, Function>();
-//        ArrayList<LValueBind> lvals = new ArrayList<LValueBind>();
-//
-//        for (SimpleName name: functions.firstSet()) {
-//            List<Type> elements = new ArrayList<Type>();
-//            for (Function fn: functions.getSeconds(name)) {
-//                elements.add(fn.instantiatedType
-//            if (fnMap.containsKey(pair.first())
-//
-//
-//    }
-
 }

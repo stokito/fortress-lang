@@ -33,6 +33,10 @@ class LValueTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
+    /**
+     * Return an LValueBind that binds the given Id to a type
+     * (if the given Id is in this type environment).
+     */
     public Option<LValueBind> binding(Id var) {
         for (LValueBind entry : entries) {
             if (var.equals(entry.getName())) { 
@@ -41,38 +45,4 @@ class LValueTypeEnv extends TypeEnv {
         }
         return parent.binding(var);
     }
-    
-    public Option<Type> type(Id var) { 
-        for (int i = 0; i < entries.length; i++) {
-            LValueBind entry = entries[i];
-
-            if (var.equals(entry.getName())) {
-                Option<Type> type = entry.getType();
-                if (type.isSome()) { 
-                    return type; 
-                } else { 
-                    Type implicitType = new _RewriteImplicitType();
-                    entries[i] = 
-                        NodeFactory.makeLValue(entry, implicitType);
-                    return wrap(implicitType);
-                }
-            }
-        }
-        return Option.none();
-    }
-        
-    public Option<List<Modifier>> mods(Id var) { 
-        Option<LValueBind> binding = binding(var);
-        
-        if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
-        else { return Option.none(); }
-    }
-
-    public Option<Boolean> mutable(Id var) { 
-        Option<LValueBind> binding = binding(var);
-        
-        if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
-        else { return Option.none(); }
-    }        
-
 }
