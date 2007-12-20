@@ -24,11 +24,11 @@ import java.util.*;
 
 import static edu.rice.cs.plt.tuple.Option.*;
 
-class NonEmptyTypeEnv extends TypeEnv {
+class LValueTypeEnv extends TypeEnv {
     private LValueBind[] entries;
     private TypeEnv parent;
     
-    NonEmptyTypeEnv(LValueBind[] _entries, TypeEnv _parent) {
+    LValueTypeEnv(LValueBind[] _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
