@@ -75,7 +75,7 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.Generator;
+import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Id;
@@ -876,7 +876,7 @@ public class Desugarer extends Rewrite {
      *  Given body, binds <- exp
      *  generate (fn binds => body)
      */
-    Expr bindsAndBody(Generator g, Expr body) {
+    Expr bindsAndBody(GeneratorClause g, Expr body) {
         List<Id> binds = g.getBind();
         List<Param> params = new ArrayList<Param>(binds.size());
         for (Id b : binds) params.add(NodeFactory.makeParam(b));
@@ -888,7 +888,7 @@ public class Desugarer extends Rewrite {
      *  Given reduction of body | x <- exp, yields
      *  __generate(x,reduction,fn x => body)
      */
-    Expr oneGenerator(Generator g, VarRef reduction, Expr body) {
+    Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
         Expr params = ExprFactory.makeTuple(g.getInit(), reduction, loopBody);
         return new TightJuxt(g.getSpan(), false,
@@ -903,9 +903,9 @@ public class Desugarer extends Rewrite {
      * body, empty  =>  body
      * body, x <- exp, gs  => exp.loop(fn x => body, gs)
      */
-    Expr visitLoop(Span span, List<Generator> gens, Expr body) {
+    Expr visitLoop(Span span, List<GeneratorClause> gens, Expr body) {
         for (int i = gens.size()-1; i >= 0; i--) {
-            Generator g = gens.get(i);
+            GeneratorClause g = gens.get(i);
             Expr loopBody = bindsAndBody(g, body);
             Expr loopSel = new FieldRef(g.getSpan(), false,
                                         g.getInit(), LOOP_NAME);
@@ -922,7 +922,7 @@ public class Desugarer extends Rewrite {
      *  body | x <- exp     =>  __generate(exp,r,fn x => u(body))
      *  body | x <- exp, gs =>  __generate(exp,r,fn x => u(body)) | gs
      */
-    Expr visitGenerators(Span span, List <Generator> gens, Expr body) {
+    Expr visitGenerators(Span span, List<GeneratorClause> gens, Expr body) {
         Id reduction = gensymId("reduction");
         VarRef redVar = ExprFactory.makeVarRef(reduction);
         Id unitFn = gensymId("unit");
@@ -944,7 +944,7 @@ public class Desugarer extends Rewrite {
                                       body);
     }
 
-    Expr visitAccumulator(Span span, List<Generator> gens,
+    Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                           OpName op, Expr body) {
         body = visitGenerators(span, gens, body);
         Expr res = ExprFactory.makeOprExpr(span,op,body);

@@ -51,7 +51,7 @@ Enclosing EncloserPair =
            yyValue = error(a2, "Mismatched Enclosers.");
      };
 
-transient void bar = &("|" wr GeneratorList closingComprehension) "|";
+transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
 private transient void closingComprehension =
      w closecurly
    / w closeangle
@@ -230,9 +230,9 @@ Op Accumulator =
                                     "BIG " + a1.getText());
      };
 
-/* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorList */
+/* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorClauseList */
 ArrayComprehensionClause ArrayComprehensionClause =
-     a1:ArrayComprehensionLeft wr bar wr a2:GeneratorList
+     a1:ArrayComprehensionLeft wr bar wr a2:GeneratorClauseList
      { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),
                                               a1.getA(), a1.getB(), a2);
      };

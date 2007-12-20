@@ -200,8 +200,10 @@ public class ExprFactory {
         });
     }
 
-    public static Generator makeGenerator(Span span, Iterable<Id> ids, Expr expr) {
-        return new Generator(span, IterUtil.asList(ids), expr);
+    public static GeneratorClause makeGeneratorClause(Span span,
+                                                      Iterable<Id> ids,
+                                                      Expr expr) {
+        return new GeneratorClause(span, IterUtil.asList(ids), expr);
     }
 
     public static TupleExpr makeTuple(List<Expr> exprs) {

@@ -51,11 +51,11 @@ Block BlockElems =
 
 /* BlockElem ::=
      LocalVarFnDecl
-   | NoNewlineExpr (s , w NoNewlineGeneratorList)?
+   | NoNewlineExpr (s , w NoNewlineGeneratorClauseList)?
  */
 private Expr BlockElem =
      LocalVarFnDecl
-   / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorList)?
+   / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorClauseList)?
      { if (a2 == null) yyValue = a1;
        else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), false,
                                         a1, a2);

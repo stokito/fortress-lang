@@ -28,15 +28,23 @@
  - APIName
  - QualifiedIdName
  - QualifiedOpName      : internal
- - IdName
- - Opr
+ - Id
+ - Op
  - PostFix
- - Bracketing
- - SubscriptOp
+ - Enclosing
  - AnonymousFnName      : internal
  - ConstructorFnName    : internal
  - ArrayComprehensionClause
  - Binding
+ - CaseClause
+ - Catch
+ - CatchClause
+ - DoFront
+ - IfClause
+ - TypecaseClause
+ - ExtentRange
+
+
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification
   and the Abstract Syntax Tree (AST) in Fortress.ast
