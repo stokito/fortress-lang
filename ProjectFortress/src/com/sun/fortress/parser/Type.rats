@@ -85,7 +85,7 @@ private constant transient Action<Type> TypeTail =
      w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Option<FixedDim> indices = Option.wrap(a1);
+               Option<Indices> indices = Option.wrap(a1);
                NonArrowType ty =
                    NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                              (Type)base, indices);
@@ -172,7 +172,7 @@ private NonArrowType NonArrowType =
  */
 TraitType TraitType =
      a1:Type w opensquare a2:(w ArraySize)? w closesquare
-     { Option<FixedDim> indices = Option.wrap(a2);
+     { Option<Indices> indices = Option.wrap(a2);
        yyValue = NodeFactory.makeArrayType(createSpan(yyStart,yyCount), a1,
                                            indices);
      }
@@ -382,9 +382,9 @@ DimUnitOp DUPostOp =
    / cubed   { yyValue = new CubicDimUnit(createSpan(yyStart,yyCount));  };
 
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
-private FixedDim ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
+private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
      { List<ExtentRange> es = FortressUtil.mkList(a1, a2s.list());
-       yyValue = new FixedDim(createSpan(yyStart,yyCount), es);
+       yyValue = new Indices(createSpan(yyStart,yyCount), es);
      };
 
 /* ExtentRange ::=

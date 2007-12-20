@@ -89,8 +89,8 @@ public class NodeFactory {
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
-                                          Option<FixedDim> ind) {
-        FixedDim indices = Option.unwrap(ind, new FixedDim(span,
+                                          Option<Indices> ind) {
+        Indices indices = Option.unwrap(ind, new Indices(span,
                                                   Collections.<ExtentRange>emptyList()));
         return new ArrayType(span, element, indices);
     }

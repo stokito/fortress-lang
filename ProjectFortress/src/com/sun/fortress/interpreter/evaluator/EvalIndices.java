@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.evaluator.types.TypeIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FixedDim;
+import com.sun.fortress.nodes.Indices;
 
 
 public class EvalIndices extends NodeAbstractVisitor<TypeIndices> {
@@ -36,10 +36,10 @@ public class EvalIndices extends NodeAbstractVisitor<TypeIndices> {
         evalType = type;
     }
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFixedDim(com.sun.fortress.interpreter.nodes.FixedDim)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIndices(com.sun.fortress.interpreter.nodes.Indices)
      */
     @Override
-    public TypeIndices forFixedDim(FixedDim x) {
+    public TypeIndices forIndices(Indices x) {
         List<ExtentRange> extents = x.getExtents();
         List<TypeRange> indices = new ArrayList<TypeRange>(extents.size());
         for (ExtentRange extent : extents) {
