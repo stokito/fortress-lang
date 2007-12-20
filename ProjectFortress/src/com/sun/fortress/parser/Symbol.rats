@@ -111,13 +111,7 @@ private String exponentOp = "^T" / a1:"^" a2:op { yyValue = a1+a2; };
  * shouldn't since this set of operators is open-ended.
  */
 private String OpName =
-     opn:id &{FortressUtil.validOp(opn) }
-     { if (opn.equals("SUM"))
-           yyValue = "BIG +";
-       else if (opn.equals("PROD"))
-           yyValue = "BIG juxtaposition";
-       else yyValue = opn;
-     };
+     opn:id &{FortressUtil.validOp(opn) };
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
@@ -220,14 +214,17 @@ Option<Op> AssignOp =
 
 transient String accumulator = "SUM" / "PROD" ;
 
-/* Accumulator ::= SUM | PROD | BIG w Op */
-Op Accumulator =
-     "SUM":accumulator
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "BIG +"); }
-   / "PROD":accumulator
+Op SUM = "SUM":accumulator
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "BIG +"); };
+Op PROD = "PROD":accumulator
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
                                     "BIG juxtaposition");
-     }
+     };
+
+/* Accumulator ::= SUM | PROD | BIG w Op */
+Op Accumulator =
+     SUM
+   / PROD
    / void:BIG w a1:Op
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
                                     "BIG " + a1.getText());

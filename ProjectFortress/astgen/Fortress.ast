@@ -1663,7 +1663,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract OpName();
                 /**
-                 * operator
+                 * non-enclosing operator
                  * e.g.) COMPOSE
                  * e.g.) ===
                  */

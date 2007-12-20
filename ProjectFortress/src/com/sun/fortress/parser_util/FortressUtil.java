@@ -257,6 +257,7 @@ public final class FortressUtil {
     }
     public static boolean validOp(String s) {
         if (s.equals("juxtaposition")) return true;
+        if (s.equals("SUM") || s.equals("PROD")) return false;
         int length = s.length();
         if (length < 2 || compoundOp(s)) return false;
         char start = s.charAt(0);
