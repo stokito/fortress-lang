@@ -76,9 +76,6 @@ import com.sun.fortress.nodes.Binding;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
-import com.sun.fortress.nodes.CaseParam;
-import com.sun.fortress.nodes.CaseParamExpr;
-import com.sun.fortress.nodes.CaseParamMost;
 import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.ChainExpr;
@@ -97,7 +94,7 @@ import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.Generator;
+import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.Id;
@@ -516,8 +513,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forCaseExpr(CaseExpr x) {
         List<CaseClause> clauses = x.getClauses();
-        CaseParam param = x.getParam();
-        if (param instanceof CaseParamMost) {
+        Option<Expr> param = x.getParam();
+        if (param.isNone()) {
             Option<Op> compare = x.getCompare();
             if (compare.isSome()) {
                 String op = NodeUtil.nameString(Option.unwrap(compare));
@@ -527,7 +524,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                         "expression ", x));
         } else {
             // Evaluate the parameter
-            FValue paramValue = param.accept(this);
+            FValue paramValue = Option.unwrap(param).accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue("=");
             Option<Op> compare = x.getCompare();
@@ -558,11 +555,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FortressException f_exc = new FortressException(f);
             throw f_exc;
         }
-    }
-
-    public FValue forCaseParamExpr(CaseParamExpr x) {
-        Expr expr = x.getExpr();
-        return expr.accept(this);
     }
 
     /*
@@ -819,7 +811,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return NI("forAbsFnDecl");
     }
 
-    public FValue forGenerator(Generator x) {
+    public FValue forGeneratorClause(GeneratorClause x) {
         List<Id> names = x.getBind();
         Expr init = x.getInit();
         FValue rval = init.accept(this);

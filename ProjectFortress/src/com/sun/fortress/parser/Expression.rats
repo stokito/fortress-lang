@@ -563,7 +563,7 @@ private constant inline Action<UnitExpr> OpUnit =
 
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?
-   | Accumulator (w [ w GeneratorList w ])? w Expr
+   | Accumulator (w [ w GeneratorClauseList w ])? w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
    | spawn w Expr
@@ -575,9 +575,9 @@ Expr FlowExpr =
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
-   / a1:Accumulator a2:(w void:opensquare w GeneratorList w void:closesquare)? w
+   / a1:Accumulator a2:(w void:opensquare w GeneratorClauseList w void:closesquare)? w
      a3:Expr
-     { if (a2 == null) a2 = Collections.<Generator>emptyList();
+     { if (a2 == null) a2 = Collections.<GeneratorClause>emptyList();
        yyValue = new Accumulator(createSpan(yyStart,yyCount), false, a1, a2, a3);
      }
    / atomic w a1:AtomicBack
@@ -599,18 +599,25 @@ Expr AtomicBack =
    / OpExpr
    / DelimitedExpr ;
 
-/* GeneratorList ::= Generator (w , w Generator)* */
-List<Generator> GeneratorList = a1:Generator a2s:(w comma w Generator)*
+/* GeneratorClauseList ::= GeneratorBinding (w , w GeneratorClause)* */
+List<GeneratorClause> GeneratorClauseList =
+     a1:GeneratorBinding a2s:(w comma w GeneratorClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* Generator ::=
-     BindIdOrBindIdTuple w <- w Expr
+/* GeneratorBinding ::= BindIdOrBindIdTuple w <- w Expr */
+GeneratorClause GeneratorBinding =
+     a1:BindIdOrBindIdTuple w leftarrow w a2:Expr
+     { yyValue = ExprFactory.makeGeneratorClause(createSpan(yyStart,yyCount),
+                                                 a1,a2);
+     };
+
+/* GeneratorClause ::=
+     GeneratorBinding
    | Expr
  */
-Generator Generator =
-     a1:BindIdOrBindIdTuple w leftarrow w a2:Expr
-     { yyValue = ExprFactory.makeGenerator(createSpan(yyStart,yyCount), a1, a2); }
+GeneratorClause GeneratorClause =
+     GeneratorBinding
    / a1:Expr
-     { yyValue = new Generator(createSpan(yyStart,yyCount),
+     { yyValue = new GeneratorClause(createSpan(yyStart,yyCount),
                                Collections.<Id>emptyList(), a1);
      };

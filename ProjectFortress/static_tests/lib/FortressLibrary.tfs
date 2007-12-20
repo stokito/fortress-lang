@@ -1464,7 +1464,7 @@
          (VarRef @327:42~328:1 _var=(QualifiedIdName _name=(Id @327:42~43 _text="y"))))])
       _opr=(Op @327:21~27 _text="BIG OR")
       _gens=[
-       (Generator @327:29~38
+       (GeneratorClause @327:29~38
         _init=(VarRef @327:34~38 _var=(QualifiedIdName _name=(Id _text="self")))
         _bind=[
          (Id @327:29~30 _text="y")])])
@@ -4488,7 +4488,7 @@
         _opr=(Op @775:12~19 _text="BIG AND")
         _parenthesized=true
         _gens=[
-         (Generator @775:21~48
+         (GeneratorClause @775:21~48
           _init=(MethodInvocation @775:28~47
            _arg=(VarRef @775:42~47 _parenthesized=true _var=(QualifiedIdName _name=(Id _text="other")))
            _method=(Id @775:33~36 _text="zip")
@@ -4600,7 +4600,7 @@
                         (VarRef @782:16~17 _var=(QualifiedIdName _name=(Id _text="i")))
                         (VarRef @782:18~19 _var=(QualifiedIdName _name=(Id _text="v")))])])]))
                  _gens=[
-                  (Generator @781:9~40
+                  (GeneratorClause @781:9~40
                    _init=(TightJuxt @781:18~39
                     _exprs=[
                      (VarRef @781:18~36 _var=(QualifiedIdName _api=(Some _value=(APIName @781:18~19 _ids=[(Id _text="g")])) _name=(Id @781:20~35 _text="indexValuePairs")))
@@ -7047,7 +7047,7 @@
                       (VarRef @992:45~53 _var=(QualifiedIdName _name=(Id @992:45~52 _text="toIndex")))
                       (VarRef @992:53~54 _parenthesized=true _var=(QualifiedIdName _name=(Id _text="i")))])])])])]))
            _gens=[
-            (Generator @992:13~34
+            (GeneratorClause @992:13~34
              _init=(TightJuxt @992:18~33
               _exprs=[
                (VarRef @992:18~30 _var=(QualifiedIdName _name=(Id @992:18~29 _text="zeroIndices")))
@@ -7088,7 +7088,7 @@
                   (VarRef @996:41~48 _var=(QualifiedIdName _name=(Id @996:41~42 _text="i")))
                   (VarRef @996:43~48 _var=(QualifiedIdName _name=(Id @996:43~44 _text="v")))])])]))
            _gens=[
-            (Generator @996:13~34
+            (GeneratorClause @996:13~34
              _init=(TightJuxt @996:18~33
               _exprs=[
                (VarRef @996:18~30 _var=(QualifiedIdName _name=(Id @996:18~29 _text="zeroIndices")))
@@ -7256,7 +7256,7 @@
                                (VarRef @1015:24~25 _var=(QualifiedIdName _name=(Id _text="i")))
                                (VarRef @1015:26~27 _var=(QualifiedIdName _name=(Id _text="v")))])])]))
                         _gens=[
-                         (Generator @1014:17~48
+                         (GeneratorClause @1014:17~48
                           _init=(TightJuxt @1014:26~47
                            _exprs=[
                             (VarRef @1014:26~44 _var=(QualifiedIdName _api=(Some _value=(APIName @1014:26~27 _ids=[(Id _text="a")])) _name=(Id @1014:28~43 _text="indexValuePairs")))
@@ -7331,7 +7331,7 @@
                     (VarRef @1024:41~47 _var=(QualifiedIdName _api=(Some _value=(APIName @1024:41~42 _ids=[(Id _text="v")])) _name=(Id @1024:43~46 _text="get")))
                     (VarRef @1024:47~48 _parenthesized=true _var=(QualifiedIdName _name=(Id _text="i")))])])])]))
            _gens=[
-            (Generator @1024:13~34
+            (GeneratorClause @1024:13~34
              _init=(TightJuxt @1024:18~33
               _exprs=[
                (VarRef @1024:18~30 _var=(QualifiedIdName _name=(Id @1024:18~29 _text="zeroIndices")))
@@ -7376,7 +7376,7 @@
                       (VarRef @1028:43~51 _var=(QualifiedIdName _name=(Id @1028:43~50 _text="toIndex")))
                       (VarRef @1028:51~52 _parenthesized=true _var=(QualifiedIdName _name=(Id _text="i")))])])])])]))
            _gens=[
-            (Generator @1028:13~34
+            (GeneratorClause @1028:13~34
              _init=(TightJuxt @1028:18~33
               _exprs=[
                (VarRef @1028:18~30 _var=(QualifiedIdName _name=(Id @1028:18~29 _text="zeroIndices")))
@@ -10140,9 +10140,9 @@
          _exprs=[
           (VarRef @1233:48~54 _var=(QualifiedIdName _api=(Some _value=(APIName @1233:48~49 _ids=[(Id _text="v")])) _name=(Id @1233:50~53 _text="get")))
           (VarRef @1233:54~55 _parenthesized=true _var=(QualifiedIdName _name=(Id _text="i")))])])
-      _opr=(Op @1233:9~12 _text="BIG +")
+      _opr=(Op @1233:9~14 _text="BIG +")
       _gens=[
-       (Generator @1233:14~41
+       (GeneratorClause @1233:14~41
         _init=(TightJuxt @1233:24~41
          _exprs=[
           (VarRef @1233:24~40 _var=(QualifiedIdName _name=(Id @1233:24~39 _text="indexValuePairs")))
@@ -11600,7 +11600,7 @@
                                   (VarRef _var=(QualifiedIdName _name=(Id @1354:9~12 _text="row")))
                                   (VarRef @1354:13~1355:9 _parenthesized=true _var=(QualifiedIdName _name=(Id @1354:13~14 _text="i")))])])]))
                            _gens=[
-                            (Generator @1352:11~32
+                            (GeneratorClause @1352:11~32
                              _init=(TightJuxt @1352:16~21
                               _exprs=[
                                (VarRef @1352:16~20 _var=(QualifiedIdName _name=(Id @1352:16~19 _text="seq")))
@@ -11662,7 +11662,7 @@
                       _lhs=[
                        (VarRef @1345:10~14 _var=(QualifiedIdName _name=(Id @1345:10~11 _text="r")))])]))
                   _gens=[
-                   (Generator @1344:11~28
+                   (GeneratorClause @1344:11~28
                     _init=(TightJuxt @1344:16~21
                      _exprs=[
                       (VarRef @1344:16~20 _var=(QualifiedIdName _name=(Id @1344:16~19 _text="seq")))
@@ -14506,13 +14506,13 @@
                     (VarRef @1519:51~52 _var=(QualifiedIdName _name=(Id _text="i")))
                     (VarRef @1519:53~54 _var=(QualifiedIdName _name=(Id _text="j")))])])
                 (VarRef @1519:56~1520:9 _var=(QualifiedIdName _name=(Id @1519:56~59 _text="v_j")))])
-              _opr=(Op @1519:13~16 _text="BIG +")
+              _opr=(Op @1519:13~50 _text="BIG +")
               _gens=[
-               (Generator @1519:17~45
-                _init=(TightJuxt @1519:26~45
+               (GeneratorClause @1519:17~50
+                _init=(TightJuxt @1519:26~50
                  _exprs=[
                   (VarRef @1519:26~44 _var=(QualifiedIdName _api=(Some _value=(APIName @1519:26~27 _ids=[(Id _text="v")])) _name=(Id @1519:28~43 _text="indexValuePairs")))
-                  (VoidLiteralExpr @1519:43~45 _text="")])
+                  (VoidLiteralExpr @1519:43~50 _text="")])
                 _bind=[
                  (Id @1519:18~19 _text="j")
                  (Id @1519:20~23 _text="v_j")])])
@@ -14592,13 +14592,13 @@
                    _exprs=[
                     (VarRef @1524:55~56 _var=(QualifiedIdName _name=(Id _text="j")))
                     (VarRef @1524:57~58 _var=(QualifiedIdName _name=(Id _text="i")))])])])
-              _opr=(Op @1524:13~16 _text="BIG +")
+              _opr=(Op @1524:13~50 _text="BIG +")
               _gens=[
-               (Generator @1524:17~45
-                _init=(TightJuxt @1524:26~45
+               (GeneratorClause @1524:17~50
+                _init=(TightJuxt @1524:26~50
                  _exprs=[
                   (VarRef @1524:26~44 _var=(QualifiedIdName _api=(Some _value=(APIName @1524:26~27 _ids=[(Id _text="v")])) _name=(Id @1524:28~43 _text="indexValuePairs")))
-                  (VoidLiteralExpr @1524:43~45 _text="")])
+                  (VoidLiteralExpr @1524:43~50 _text="")])
                 _bind=[
                  (Id @1524:18~19 _text="j")
                  (Id @1524:20~23 _text="v_j")])])
@@ -16763,7 +16763,7 @@
                                   (VarRef _var=(QualifiedIdName _name=(Id @1676:11~16 _text="plane")))
                                   (VarRef @1676:17~1677:11 _parenthesized=true _var=(QualifiedIdName _name=(Id @1676:17~18 _text="k")))])])]))
                            _gens=[
-                            (Generator @1674:13~34
+                            (GeneratorClause @1674:13~34
                              _init=(TightJuxt @1674:18~23
                               _exprs=[
                                (VarRef @1674:18~22 _var=(QualifiedIdName _name=(Id @1674:18~21 _text="seq")))
@@ -16845,7 +16845,7 @@
                       _lhs=[
                        (VarRef @1659:13~17 _var=(QualifiedIdName _name=(Id @1659:13~14 _text="r")))])]))
                   _gens=[
-                   (Generator @1658:15~32
+                   (GeneratorClause @1658:15~32
                     _init=(TightJuxt @1658:20~25
                      _exprs=[
                       (VarRef @1658:20~24 _var=(QualifiedIdName _name=(Id @1658:20~23 _text="seq")))
@@ -16903,7 +16903,7 @@
                                   (VarRef @1666:17~1667:13 _var=(QualifiedIdName _name=(Id @1666:17~18 _text="i")))
                                   (VarRef @1666:19~1667:13 _var=(QualifiedIdName _name=(Id @1666:19~20 _text="k")))])])])]))
                          _gens=[
-                          (Generator @1664:15~36
+                          (GeneratorClause @1664:15~36
                            _init=(TightJuxt @1664:20~25
                             _exprs=[
                              (VarRef @1664:20~24 _var=(QualifiedIdName _name=(Id @1664:20~23 _text="seq")))

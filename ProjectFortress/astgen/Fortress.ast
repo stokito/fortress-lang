@@ -444,10 +444,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                implements Decl, AbsDecl;
     /**
      * test declaration
-     * TestDecl ::= test Id [ GeneratorList ] = Expr
+     * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
      * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
      */
-    TestDecl(Id name, List<Generator> gens, Expr expr)
+    TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
             implements Decl, AbsDecl;
     /**
      * property declaration
@@ -612,7 +612,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *         1 kilometer => "we were wrong again"
              *       end
              */
-            CaseExpr(CaseParam param, Option<Op> compare = Option.<Op>none(),
+            CaseExpr(Option<Expr> param, Option<Op> compare = Option.<Op>none(),
                      List<CaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**
@@ -629,12 +629,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             Do(List<DoFront> fronts);
             /**
              * for expression
-             * DelimitedExpr ::= for GeneratorList DoFront end
+             * DelimitedExpr ::= for GeneratorClauseList DoFront end
              * e.g.) for i <- sequential(1:5) do
              *         print (i " ")
              *       end
              */
-            For(List<Generator> gens, DoFront body);
+            For(List<GeneratorClause> gens, DoFront body);
             /**
              * if expression
              * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
@@ -734,11 +734,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract FlowExpr();
             /**
              * summation and other reduction expression
-             * FlowExpr ::= Accumulator ([ GeneratorList ])? Expr
+             * FlowExpr ::= Accumulator ([ GeneratorClauseList ])? Expr
              * Accumulator ::= SUM | PRODUCT | Big Op
              * e.g.) PRODUCT[i <- 1:n] i
              */
-            Accumulator(OpName opr, List<Generator> gens, Expr body);
+            Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
             /**
              * array comprehension
              * Comprehension ::= [ ArrayComprehensionClause+ ]
@@ -799,7 +799,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * expression used in block expressions
          * BlockElem ::= LocalVarFnDecl
-         *             | Expr(, GeneratorList)?
+         *             | Expr(, GeneratorClauseList)?
          * LocalVarFnDecl ::= LocalFnDecl+
          *                  | LocalVarDecl
          */
@@ -830,10 +830,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = Option.<Expr>none());
         /**
          * generated expression
-         * BlockElem ::= Expr(, GeneratorList)?
+         * BlockElem ::= Expr(, GeneratorClauseList)?
          * e.g.) print (i " "), i <- sequential(1:5)
          */
-        GeneratedExpr(Expr expr, List<Generator> gens);
+        GeneratedExpr(Expr expr, List<GeneratorClause> gens);
         /**
          * expression that is simple or using operators
          * Expr ::= OpExpr
@@ -1694,14 +1694,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             ConstructorFnName(GenericWithParams def);
     /**
      * array comprehension clause
-     * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorList
+     * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList
      * ArrayComprehensionLeft ::= IdOrInt |-> Expr
      *                          | ( IdOrInt, IdOrIntList ) |-> Expr
      * IdOrInt ::= Id
      *           | IntLiteralExpr
      * e.g.) (x, y) = 0 | x <- {0, 1, 2}, y <- {0, 1, 2}
      */
-    ArrayComprehensionClause(List<Expr> bind, Expr init, List<Generator> gens);
+    ArrayComprehensionClause(List<Expr> bind, Expr init,
+                             List<GeneratorClause> gens);
     /**
      * binding used in tuple expressions and typecase expressions
      * Binding ::= BindId = Expr
@@ -1715,20 +1716,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     CaseClause(Expr match, Block body);
     /**
-     * condition expression used in case expressions and extremum expressions
-     */
-    abstract CaseParam();
-        /**
-         * condition expression used in case expressions
-         */
-        CaseParamExpr(Expr expr);
-        /**
-         * "most" used in extremum expressions
-         */
-        CaseParamMost();
-    /**
      * catch clause used in try expressions
-     * Catch ::= catch Id CatchClauses
+     * Catch ::= catch BindId CatchClauses
      * e.g.) catch e IOException => throw ForbiddenException(e)
      */
     Catch(Id name, List<CatchClause> clauses);
@@ -1743,8 +1732,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * DoFront ::= (at Expr)? atomic? do BlockElems?
      * e.g.) at a.region(j) do w := a_j
      */
-    DoFront(Option<Expr> loc = Option.<Expr>none(),
-            boolean atomic = false, Block expr);
+    DoFront(Option<Expr> loc = Option.<Expr>none(), boolean atomic = false,
+            Block expr);
     /**
      * if clause used in if expressions
      * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
@@ -1756,7 +1745,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * typecase clause used in typecase expressions
      * TypecaseClause ::= TypecaseTypes => BlockElems
      * TypecaseTypes ::= ( TypeList )
-     *                    | Type
+     *                 | Type
      * e.g.) String => x.append("foo")
      */
     TypecaseClause(List<Type> match, Block body);
@@ -1770,13 +1759,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     ExtentRange(Option<StaticArg> base, Option<StaticArg> size);
     /**
      * generator
-     * Generator ::= IdOrIdTuple <- Expr
-     *             | Expr
-     * IdOrIdTuple ::= Id
-     *               | ( Id, IdList )
+     * GeneratorClauseList ::= GeneratorBinding (, GeneratorClause)*
+     * GeneratorBinding ::= BindIdOrBindIdTuple <- Expr
+     * GeneratorClause ::= GeneratorBinding
+     *                   | Expr
      * e.g.) (i, j) <- my2DArray.indices
      */
-    Generator(List<Id> bind, Expr init);
+    GeneratorClause(List<Id> bind, Expr init);
     /**
      * varargs expression used in tuple expressions
      * Expr...

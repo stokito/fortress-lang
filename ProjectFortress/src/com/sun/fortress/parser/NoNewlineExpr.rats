@@ -35,7 +35,7 @@ import Spacing;
    | NoNewlineExpr s asif w Type
    NoNewlineFlowExpr ::=
      exit (w Id)? (w with w NoNewlineExpr)?
-   | Accumulator (w [ w GeneratorList w ] w)? w NoNewlineExpr
+   | Accumulator (w [ w GeneratorClauseList w ] w)? w NoNewlineExpr
    | atomic w NoNewlineAtomicBack
    | tryatomic w NoNewlineAtomicBack
    | spawn w NoNewlineExpr
@@ -171,12 +171,12 @@ PureList<PrecedenceOpExpr> LooseInfix := ...
    / <Left> a1:Op sr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
-/* NoNewlineGeneratorList ::= NoNewlineGenerator (s , w NoNewlineGenerator)*
-   NoNewlineGenerator ::=
+/* NoNewlineGeneratorClauseList ::= NoNewlineGeneratorClause (s , w NoNewlineGeneratorClause)*
+   NoNewlineGeneratorClause ::=
      Id w <- w NoNewlineExpr
    | ( w Id w , w IdList w ) w <- w NoNewlineExpr
    | NoNewlineExpr
  */
-List<Generator> GeneratorList := a1:Generator a2s:(s comma w Generator)*
+List<GeneratorClause> GeneratorClauseList := a1:GeneratorClause a2s:(s comma w GeneratorClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-List<Generator> NoNewlineGeneratorList = GeneratorList ;
+List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;

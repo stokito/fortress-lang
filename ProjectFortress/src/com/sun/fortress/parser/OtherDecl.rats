@@ -73,9 +73,9 @@ TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:Type
        yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
      };
 
-/* TestDecl ::= test w Id w [ w GeneratorList w ] w = w NoNewlineExpr */
+/* TestDecl ::= test w Id w [ w GeneratorClauseList w ] w = w NoNewlineExpr */
 TestDecl TestDecl =
-     test w a1:Id w opensquare w a2:GeneratorList w closesquare w equals w
+     test w a1:Id w opensquare w a2:GeneratorClauseList w closesquare w equals w
      a3:NoNewlineExpr
      { yyValue = new TestDecl(createSpan(yyStart,yyCount), a1, a2, a3); };
 

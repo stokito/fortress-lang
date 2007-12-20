@@ -39,7 +39,7 @@ import Spacing;
    | Do
    | label w Id w BlockElems w end w Id
    | while w Expr w Do
-   | for w GeneratorList w DoFront w end
+   | for w GeneratorClauseList w DoFront w end
    | if w Expr w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w Expr w then w BlockElems (w Elifs)? w Else (w end)? w )
    | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
@@ -63,7 +63,7 @@ Expr DelimitedExpr =
      }
    / while w a1:Expr w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
-   / for w a1:GeneratorList w a2:DoFront w end
+   / for w a1:GeneratorClauseList w a2:DoFront w end
      { yyValue = new For(createSpan(yyStart,yyCount), false, a1, a2); }
    / if w a1:Expr w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
@@ -81,22 +81,21 @@ Expr DelimitedExpr =
                         Option.some(a4));
      }
    / case w a1:Expr a2:(w Op)? w of w a3:CaseClauses a4:(w CaseElse)? w end
-     { CaseParam e1 = new CaseParamExpr(a1.getSpan(), a1);
-       Option<Op> compare;
+     { Option<Op> compare;
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(a2);
        Option<Block> _else;
        if (a4 == null)
            _else = Option.none();
        else _else = Option.some(a4);
-       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a3, _else);
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
+                              Option.some(a1), compare, a3, _else);
      }
    / case w most w a1:Op w of w a2:CaseClauses w end
-     { CaseParam e1 = new CaseParamMost(createSpan(yyStart+5,4));
-       Option<Op> compare = Option.some(a1);
-       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false, e1, compare,
-                              a2, Option.<Block>none());
+     { Option<Op> compare = Option.some(a1);
+       yyValue = new CaseExpr(createSpan(yyStart,yyCount), false,
+                              Option.<Expr>none(), compare, a2,
+                              Option.<Block>none());
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
        w end
@@ -223,8 +222,7 @@ TypecaseClause TypecaseClause =
  */
 List<Type> TypecaseTypes =
      openparen w TypeList w closeparen
-   / a1:Type
-     { yyValue = FortressUtil.mkList(a1); };
+   / a1:Type { yyValue = FortressUtil.mkList(a1); };
 
 /* Catch ::= catch w BindId w CatchClauses */
 Catch Catch = catch w a1:BindId w a2:CatchClauses
@@ -239,27 +237,27 @@ private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
      { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Comprehension ::=
-     { w Expr wr | wr GeneratorList w }
-   | { w Entry wr | wr GeneratorList w }
-   | <| w Expr wr | wr GeneratorList w |>
+     { w Expr wr | wr GeneratorClauseList w }
+   | { w Entry wr | wr GeneratorClauseList w }
+   | <| w Expr wr | wr GeneratorClauseList w |>
    | [ w ArrayComprehensionClause (br ArrayComprehensionClause)* w ]
  */
 FlowExpr Comprehension =
-     opencurly w a1:Expr wr bar wr a2:GeneratorList w closecurly
+     opencurly w a1:Expr wr bar wr a2:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG {");
        Op close = NodeFactory.makeOp(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
-   / opencurly w a1:Entry wr bar wr a2:GeneratorList w closecurly
+   / opencurly w a1:Entry wr bar wr a2:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG {");
        Op close = NodeFactory.makeOp(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
-   / openangle w a1:Expr wr bar wr a2:GeneratorList w closeangle
+   / openangle w a1:Expr wr bar wr a2:GeneratorClauseList w closeangle
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOp(span, "BIG <|");
        Op close = NodeFactory.makeOp(span, "BIG |>");
