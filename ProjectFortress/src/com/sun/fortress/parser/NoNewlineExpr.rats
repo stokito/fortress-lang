@@ -27,9 +27,9 @@ import Spacing;
 
 /* NoNewlineExpr ::=
      NoNewlineAssignExpr
+   | NoNewlineFlowExpr
    | NoNewlineOpExpr
    | DelimitedExpr
-   | NoNewlineFlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
    | NoNewlineExpr s as w Type
    | NoNewlineExpr s asif w Type
@@ -41,9 +41,9 @@ import Spacing;
    | spawn w NoNewlineExpr
    | throw w NoNewlineExpr
    NoNewlineAtomicBack ::=
-     NoNewlineOpExpr
+     NoNewlineAssignExpr
+   | NoNewlineOpExpr
    | DelimitedExpr
-   | NoNewlineAssignExpr
    NoNewlineAssignExpr ::= AssignLefts s AssignOp w NoNewlineExpr
  */
 Expr NoNewlineExpr = Expr ;
@@ -62,7 +62,8 @@ inline Action<Expr> NoNewlineAs =
      s as w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
+               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base,
+                                 a1);
            }};
      };
 
@@ -70,7 +71,8 @@ inline Action<Expr> NoNewlineAsIf =
      s asif w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
+               return new AsIfExpr(createSpan(yyStart,yyCount), false,
+                                   (Expr)base, a1);
            }};
      };
 
@@ -171,12 +173,14 @@ PureList<PrecedenceOpExpr> LooseInfix := ...
    / <Left> a1:Op sr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
-/* NoNewlineGeneratorClauseList ::= NoNewlineGeneratorClause (s , w NoNewlineGeneratorClause)*
+/* NoNewlineGeneratorClauseList ::=
+     NoNewlineGeneratorBinding (s , w NoNewlineGeneratorClause)*
+   NoNewlineGeneratorBinding ::= BindIdOrBindIdTuple w <- w NoNewlineExpr
    NoNewlineGeneratorClause ::=
-     Id w <- w NoNewlineExpr
-   | ( w Id w , w IdList w ) w <- w NoNewlineExpr
+     NoNewlineGeneratorBinding
    | NoNewlineExpr
  */
-List<GeneratorClause> GeneratorClauseList := a1:GeneratorClause a2s:(s comma w GeneratorClause)*
+List<GeneratorClause> GeneratorClauseList :=
+     a1:GeneratorBinding a2s:(s comma w GeneratorClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;

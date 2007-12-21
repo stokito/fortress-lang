@@ -41,7 +41,7 @@ public abstract class StaticParamEnv {
         else { return new NonEmptyStaticParamEnv(params, EmptyStaticParamEnv.ONLY); }
     }
 
-//    public abstract Option<OperatorParam> operatorParam(OpName name);
+//    public abstract Option<OperatorParam> operatorParam(Op name);
 //    public abstract Option<BoolParam> boolParam(Id name);
 //    public abstract Option<DimensionParam> dimensionParam(Id name);
 //    public abstract Option<IntParam> intParam(Id name);

@@ -638,7 +638,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * if expression
              * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end
-             *                 | ( if Expr then blockElems Elifs? Else end? )
+             *                 | ( if Expr then BlockElems Elifs? Else end? )
              * Elif ::= elif Expr then BlockElems
              * Else ::= else BlockElems
              * e.g.) if x IN {0, 1, 2} then 0
@@ -666,7 +666,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                         List<Decl> decls);
                 /**
                  * object expression
-                 * DelimitedExpr ::= object Extends? GoInAnObject end
+                 * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
                  * e.g.)  object extends {List}
                  *          cons(x) = Cons(x, self)
                  *          append (xs) = xs
@@ -697,7 +697,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Option<Block> finallyClause = Option.<Block>none());
             /**
              * tuple expression
-             * TupleExpr ::= ( (Expr,)*  (Expr...,)? Binding(, Binding)* )
+             * TupleExpr ::= ( (Expr,)* (Expr...,)? Binding(, Binding)* )
              *             | NoKeyTuple
              * NoKeyTuple ::= ( (Expr,)* Expr... )
              *              | ( (Expr,)+ Expr )
@@ -712,7 +712,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                     CaseElse? end
              * TypecaseBindings ::= ( BindgingList )
              *                    | Binding
-             *                    | Id
+             *                    | BindId
              * e.g.) typecase x = myLoser .myField of
              *         String => x.append("foo")
              *         Number => x + 3
@@ -806,8 +806,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract LetExpr(List<Expr> body);
             /**
              * local function declaration
-             * LocalVarFnDecl ::= LocalFnDecl+
-             * LocalFnDecl ::= LocalFnMods? FnHeaderFront FnHeaderClause = Expr
+             * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause = Expr
              * e.g.) localFn(x: ZZ32) = x + 2
              */
             LetFn(List<FnDef> fns);
@@ -820,14 +819,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              *                | var? LocalVarWoTypes : SimpleTupleType InitVal?
              * LocalVarWTypes ::= LocalVarWType
              *                  | ( LocalVarWType(, LocalVarWType)+ )
-             * LocalVarWType ::= Id IsType
+             * LocalVarWType ::= BindId IsType
              * LocalVarWoTypes ::= LocalVarWoType
              *                   | ( LocalVarWoType(, LocalVarWoType)+ )
-             * LocalVarWoType ::= Id
+             * LocalVarWoType ::= BindId
              *                  | Unpasting
              * e.g.) localVar x = 3
              */
-            LocalVarDecl(List<LValue> lhs, Option<Expr> rhs = Option.<Expr>none());
+            LocalVarDecl(List<LValue> lhs,
+                         Option<Expr> rhs = Option.<Expr>none());
         /**
          * generated expression
          * BlockElem ::= Expr(, GeneratorClauseList)?
@@ -1010,31 +1010,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         VoidLiteralExpr(String text = "");
                     /**
-                     * aggregate expression
-                     * BaseExpr ::= Aggregate
+                     * array expression
+                     * ArrayExpr ::= [ RectElements ]
+                     * RectElements ::= Expr MultiDimCons*
+                     * MultiDimCons ::= RectSeparator Expr
+                     * RectSeparator ::= ;+
+                     *                 | Whitespace
+                     * e.g.) [1 2 3; 4 5 6; 7 8 9]
                      */
-                    abstract Aggregate();
+                    abstract ArrayExpr();
                         /**
-                         * array expression
-                         * ArrayExpr ::= [ RectElements ]
-                         * RectElements ::= Expr MultiDimCons*
-                         * MultiDimCons ::= RectSeparator Expr
-                         * RectSeparator ::= ;+
-                         *                 | Whitespace
-                         * e.g.) [1 2 3; 4 5 6; 7 8 9]
+                         * array with a single element
+                         * e.g.) [3]
                          */
-                        abstract ArrayExpr();
-                            /**
-                             * array with a single element
-                             * e.g.) [3]
-                             */
-                            ArrayElement(Expr element);
-                            /**
-                             * array with multiple elements
-                             * e.g.) [3 4 5; 6 7 8]
-                             */
-                            ArrayElements(int dimension,
-                                          List<ArrayExpr> elements);
+                        ArrayElement(Expr element);
+                        /**
+                         * array with multiple elements
+                         * e.g.) [3 4 5; 6 7 8]
+                         */
+                        ArrayElements(int dimension, List<ArrayExpr> elements);
     /**
      * type
      * Type ::= ArrowType
@@ -1574,10 +1568,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * StaticParam ::= opr Op
          * e.g.) opr ODOT
          */
-        OperatorParam(OpName name);
+        OperatorParam(Op name);
         /**
-         * static parameter with a name field
-         * of type Id
+         * static parameter with a name field of type Id
          */
         abstract IdStaticParam(Id name);
            /**

@@ -230,7 +230,9 @@ Op Accumulator =
                                     "BIG " + a1.getText());
      };
 
-/* ArrayComprehensionClause ::= ArrayComprehensionLeft wr | wr GeneratorClauseList */
+/* ArrayComprehensionClause ::=
+     ArrayComprehensionLeft wr | wr GeneratorClauseList
+ */
 ArrayComprehensionClause ArrayComprehensionClause =
      a1:ArrayComprehensionLeft wr bar wr a2:GeneratorClauseList
      { yyValue = new ArrayComprehensionClause(createSpan(yyStart,yyCount),

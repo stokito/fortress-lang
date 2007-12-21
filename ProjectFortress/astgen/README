@@ -25,6 +25,29 @@
  - PropertyDecl         : NYI
  - AbsExternalSyntax    : NYI
  - ExternalSyntax       : NYI
+
+ - ModifierAbstract     : NYI
+ - ModifierAtomic       : NYI
+ - ModifierGetter       : NYI
+ - ModifierHidden       : NYI
+ - ModifierIO           : NYI
+ - ModifierOverride     : NYI
+ - ModifierPrivate      : NYI
+ - ModifierSettable     : NYI
+ - ModifierSetter       : NYI
+ - ModifierTest         : NYI
+ - ModifierTransient    : NYI
+ - ModifierValue        : NYI
+ - ModifierVar          : NYI
+ - ModifierWidens       : NYI
+ - ModifierWrapped      : NYI
+ - OperatorParam
+ - BoolParam
+ - DimensionParam
+ - IntParam
+ - NatParam
+ - SimpleTypeParam
+ - UnitParam
  - APIName
  - QualifiedIdName
  - QualifiedOpName      : internal
@@ -48,7 +71,7 @@
  - VarargsType
  - KeywordType
  - TraitTypeWhere
- - ???
+ - Indices
  - SquareDimUnit        : NYI
  - CubicDimUnit         : NYI
  - InverseDimUnit       : NYI
