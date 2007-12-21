@@ -61,7 +61,10 @@ private Expr BlockElem =
                                         a1, a2);
      };
 
-/* LocalVarFnDecl ::= LocalFnDecl (br LocalFnDecl)* | LocalVarDecl */
+/* LocalVarFnDecl ::=
+     LocalFnDecl (br LocalFnDecl)*
+   | LocalVarDecl
+ */
 private LetExpr LocalVarFnDecl =
      a1:LocalFnDecl a2s:(br LocalFnDecl)*
      { List<FnDef> fns = FortressUtil.mkList(a1, a2s.list());

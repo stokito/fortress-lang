@@ -18,25 +18,26 @@
 /*
  * Definition of Fortress literals.
  */
-module com.sun.fortress.parser.Literal(DelimitedExpr, NoSpaceExpr, Symbol, Spacing);
+module com.sun.fortress.parser.Literal(DelimitedExpr, NoSpaceExpr, Symbol,
+                                       Spacing);
 
 import DelimitedExpr;
 import NoSpaceExpr;
 import Symbol;
 import Spacing;
 
-/* Literal ::=
+/* LiteralExpr ::=
      ( w )
-   | NumericLiteral
-   | CharLiteral
-   | StringLiteral
+   | NumericLiteralExpr
+   | CharLiteralExpr
+   | StringLiteralExpr
  */
 Expr Literal =
      <VOID> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); }
-   / <NUMERICAL> NumericLiteral
-   / <CHAR>CharLiteral
-   / <STRING> StringLiteral
+   / <NUMERICAL> NumericLiteralExpr
+   / <CHAR>CharLiteralExpr
+   / <STRING> StringLiteralExpr
    ;
 
 /* ArrayExpr ::= [ w RectElements w ] */
@@ -56,26 +57,27 @@ com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
      a1:RectSeparator a2:NoSpaceExpr
      { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
 
-NumberLiteralExpr NumericLiteral =
-     FloatLiteral
+NumberLiteralExpr NumericLiteralExpr =
+     FloatLiteralExpr
    / IntLiteralExpr ;
 
-transient FloatLiteralExpr FloatLiteral = a1:DigitString dot a2:DigitString
+transient FloatLiteralExpr FloatLiteralExpr = a1:DigitString dot a2:DigitString
      { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
                                                   a1 + "." + a2); };
 
 transient IntLiteralExpr IntLiteralExpr = a1:DigitString
      { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
-                                                a1); };
+                                                a1);
+     };
 
 private transient String DigitString = [0-9]+;
 
-CharLiteralExpr CharLiteral = "'" a1:CharLiteralContent "'"
+CharLiteralExpr CharLiteralExpr = "'" a1:CharLiteralContent "'"
      { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
                                                  a1);
      };
 
-StringLiteralExpr StringLiteral = ["] a1:StringLiteralContent* ["]
+StringLiteralExpr StringLiteralExpr = ["] a1:StringLiteralContent* ["]
      { String str = "";
        for (String s : (List<String>)a1.list()) {
            str = str.concat(s);
