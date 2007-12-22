@@ -108,11 +108,29 @@ public class NodeFactory {
         }
         return makeInstantiatedType(span, isParenthesized, name, _args);
     }
+    
+    public static InstantiatedType makeInstantiatedType(QualifiedIdName name, List<StaticArg> args) {
+        return makeInstantiatedType(new Span(), false, name, args);
+    }
 
     public static ArrowType makeArrowType(Span span, Type domain,
                                           Type range,
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
+    }
+    
+    public static _RewriteGenericArrowType makeGenericArrowType(Span span, 
+                                                                List<StaticParam> staticParams,
+                                                                Type domain,
+                                                                Type range,
+                                                                Option<List<TraitType>> throws_,
+                                                                List<WhereClause> where)
+    {
+        return new _RewriteGenericArrowType(span, domain, range, throws_, staticParams, where);
+    }
+    
+    public static KeywordType makeKeywordType(Id name, Type type) {
+        return new KeywordType(new Span(), name, type);
     }
 
     public static _RewriteIntersectionType makeIntersectionType(Type... elements) {
@@ -523,6 +541,13 @@ public class NodeFactory {
     public static TupleType makeTupleType(Span span, List<Type> elements, Option<VarargsType> varargs) {
         return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
+    }
+    
+    public static TupleType makeTupleType(Span span, List<Type> elements, 
+                                          List<KeywordType> keywordElements, 
+                                          Option<VarargsType> varargs) 
+    {
+        return new TupleType(span, elements, varargs, keywordElements);
     }
 
 

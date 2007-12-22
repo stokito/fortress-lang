@@ -23,4 +23,6 @@ public class DeclaredFunction extends Function {
     private final FnAbsDeclOrDecl _ast;
     
     public DeclaredFunction(FnAbsDeclOrDecl ast) { _ast = ast; }
+    
+    public FnAbsDeclOrDecl ast() { return _ast; }
 }

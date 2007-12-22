@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
@@ -70,6 +71,75 @@ public abstract class TypeEnv {
             return some(result);
         }
     }
+    
+    /**
+     * Get a type from a list of params.
+     */
+    protected static Type typeFromParams(List<Param> params) {
+        List<Type> paramTypes = new ArrayList<Type>();
+        List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
+        Option<VarargsType> varargsType = none();
+        
+        for (Param param: params) {
+            if (param instanceof NormalParam) {
+                NormalParam _param = (NormalParam) param;
+                Option<Type> maybeType = _param.getType();
+                
+                if (maybeType.isSome()) { // An explicit type is declared.
+                    if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(makeKeywordType(_param.getName(), unwrap(maybeType)));
+                    } else { // We have an ordinary param.
+                        paramTypes.add(unwrap(maybeType));
+                    }
+                } else { // No type is explicitly declared for this parameter.
+                    if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(makeKeywordType(_param.getName(), new _RewriteImplicitType()));                   
+                    } else { // We have an ordinary param.
+                        paramTypes.add(new _RewriteImplicitType());
+                    }
+                }
+            } else { // We have a varargs param.
+                VarargsParam _param = (VarargsParam) param;
+                varargsType = wrap(_param.getVarargsType());
+            }
+        }
+        return makeTupleType(new Span(), paramTypes, keywordTypes, varargsType);
+    }
+    
+    protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
+        List<StaticArg> result = new ArrayList<StaticArg>();
+        
+        for (StaticParam param: params) {
+            result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
+                public StaticArg forOperatorParam(OperatorParam that) {
+                    return new OprArg(new Span(), that.getName());
+                }
+                public StaticArg forIdStaticParam(IdStaticParam that) {
+                    return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
+                }
+                public StaticArg forBoolParam(BoolParam that) {
+                    return new BoolArg(new Span(), new BoolRef(new Span(), makeQualifiedIdName(that.getName())));
+                }
+                public StaticArg forDimensionParam(DimensionParam that) {
+                    return new DimArg(new Span(), new DimRef(new Span(), makeQualifiedIdName(that.getName())));
+                }
+                public StaticArg forIntParam(IntParam that) {
+                    return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
+                }
+                public StaticArg forNatParam(NatParam that) {
+                    return new IntArg(new Span(), new IntRef(new Span(), makeQualifiedIdName(that.getName())));
+                }
+                public StaticArg forSimpleTypeParam(SimpleTypeParam that) {
+                    return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
+                }
+                public StaticArg forUnitParam(UnitParam that) {
+                    return new UnitArg(new Span(), new UnitRef(new Span(), makeQualifiedIdName(that.getName())));
+                }
+            }));
+        }
+        return result;
+    }
+               
     
     /**
      * Return an LValueBind that binds the given Id to a type

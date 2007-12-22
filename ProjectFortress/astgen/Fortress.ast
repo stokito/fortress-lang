@@ -1042,6 +1042,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         ArrowType(Type domain, Type range,
                   Option<List<TraitType>> throwsClause);
+            /**
+             * type of a generic function, used during static checking
+             */
+            _RewriteGenericArrowType(List<StaticParam> staticParams
+                                      = Collections.<StaticParam>emptyList(),
+                                  List<WhereClause> where
+                                      = Collections.<WhereClause>emptyList());
         /**
          * nonarrow type
          */
@@ -1155,10 +1162,23 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) dimensionless
              */
             UnitArg(UnitExpr unit);
+        /**
+         * a fresh type variable, used by type inference
+         */
         _RewriteImplicitType();
+        /**
+         * intersection type, used during static checking
+         */
         _RewriteIntersectionType(List<Type> elements);
+        /**
+         * union type, used during static checking
+         */
         _RewriteUnionType(List<Type> elements);
+        /**
+         * fixed point (a.k.a. "mu") type, used during witness finding
+         */
         _RewriteFixedPointType(_RewriteImplicitType var, Type body);
+
     /**
      * static expression
      */

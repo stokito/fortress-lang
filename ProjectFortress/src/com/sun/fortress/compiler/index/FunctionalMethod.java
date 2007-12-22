@@ -33,4 +33,6 @@ public class FunctionalMethod extends Function {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
+    
+    public FnAbsDeclOrDecl ast() { return _ast; }
 }
