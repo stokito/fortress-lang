@@ -87,8 +87,9 @@ public final class FortressUtil {
         return Collections.<Type>emptyList();
     }
 
-    public static List<WhereClause> emptyWhereClauses() {
-        return Collections.<WhereClause>emptyList();
+    public static WhereClause emptyWhereClause() {
+        return new WhereClause(Collections.<WhereBinding>emptyList(),
+                               Collections.<WhereConstraint>emptyList());
     }
 
     public static <T> List<T> getListVal(Option<List<T>> o) {
@@ -418,8 +419,7 @@ public final class FortressUtil {
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
-        return ids2Lvs(ids, FortressUtil.emptyModifiers(),
-                       Option.some(ty), mutable);
+        return ids2Lvs(ids, emptyModifiers(), Option.some(ty), mutable);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods) {
@@ -427,8 +427,7 @@ public final class FortressUtil {
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids) {
-        return ids2Lvs(ids, FortressUtil.emptyModifiers(), Option.<Type>none(),
-                       false);
+        return ids2Lvs(ids, emptyModifiers(), Option.<Type>none(), false);
     }
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
@@ -445,14 +444,14 @@ public final class FortressUtil {
 
     public static List<LValueBind> ids2Lvs(List<Id> ids, List<Type> tys,
                                            boolean mutable) {
-        return ids2Lvs(ids, FortressUtil.emptyModifiers(), tys, mutable);
+        return ids2Lvs(ids, emptyModifiers(), tys, mutable);
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         Option<Id> receiver,
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
-        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        WhereClause where_ = fhc.getWhereClause();
         Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeAbsFnDecl(span, mods, receiver, fhf.getName(),
                                          fhf.getStaticParams(), fhf.getParams(),
@@ -470,7 +469,7 @@ public final class FortressUtil {
                                         List<Param> params,
                                         FnHeaderClause fhc) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
-        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        WhereClause where_ = fhc.getWhereClause();
         Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
                                          sparams, params,
@@ -482,18 +481,17 @@ public final class FortressUtil {
                                         SimpleName name, List<Param> params,
                                         Type ty) {
         return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
-                                         FortressUtil.emptyStaticParams(),
-                                         params, Option.some(ty),
+                                         emptyStaticParams(), params,
+                                         Option.some(ty),
                                          Option.<List<TraitType>>none(),
-                                         FortressUtil.emptyWhereClauses(),
-                                         FortressUtil.emptyContract());
+                                         emptyWhereClause(), emptyContract());
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods,
                                  Option<Id> receiver, FnHeaderFront fhf,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
-        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        WhereClause where_ = fhc.getWhereClause();
         Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeFnDecl(span, mods, receiver, fhf.getName(),
                                       fhf.getStaticParams(), fhf.getParams(),
@@ -505,7 +503,7 @@ public final class FortressUtil {
                                  List<StaticParam> sparams, List<Param> params,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<TraitType>> throws_ = fhc.getThrowsClause();
-        List<WhereClause> where_ = FortressUtil.getListVal(fhc.getWhereClause());
+        WhereClause where_ = fhc.getWhereClause();
         Contract contract = Option.unwrap(fhc.getContractClause(), emptyContract());
         return NodeFactory.makeFnDecl(span, mods, Option.<Id>none(), name,
                                       sparams, params, Option.<Type>none(),

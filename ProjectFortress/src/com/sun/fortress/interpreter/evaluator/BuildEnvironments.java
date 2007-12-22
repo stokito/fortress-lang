@@ -95,6 +95,7 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.WhereExtends;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -1172,7 +1173,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
 
     /**
-     * Processes a list of where clauses,
+     * Processes a where clause,
      * both using and augmenting the environment
      * "interior" passed in as a parameter.
      *
@@ -1180,11 +1181,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @param interior
      * @return
      */
-    private static EvalType processWhereClauses(List<WhereClause> wheres,
+    private static EvalType processWhereClauses(WhereClause wheres,
             BetterEnv interior) {
 
         if (wheres != null) {
-            for (WhereClause w : wheres) {
+            for (WhereConstraint w : wheres.getConstraints()) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
                     Id name = we.getName();
@@ -1211,7 +1212,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         EvalType et = new EvalType(interior);
 
         if (wheres != null) {
-            for (WhereClause w : wheres) {
+            for (WhereConstraint w : wheres.getConstraints()) {
                 if (w instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) w;
                     Id name = we.getName();
@@ -1266,7 +1267,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     static public void finishObjectTrait(List<TraitType> extends_,
-            List<? extends Type> excludes, List<WhereClause> wheres, FTypeObject ftt,
+            List<? extends Type> excludes, WhereClause wheres, FTypeObject ftt,
             BetterEnv interior, HasAt x) {
         interior = new BetterEnv(interior, x);
         EvalType et = processWhereClauses(wheres, interior);
@@ -1488,7 +1489,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         Option<List<Param>> params = x.getParams();
 
         // List<Type> throws_;
-        // List<WhereClause> where;
+        // WhereClause where;
         // Contract contract;
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);

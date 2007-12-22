@@ -58,7 +58,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
         Id name_result = (Id) that.getName().accept(this);
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
+        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
         List<TraitType> excludes_result = recurOnListOfTraitType(that.getExcludes());
         Option<List<TraitType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
         List<AbsDecl> decls_result = declsToAbsDecls(that.getDecls());
@@ -79,7 +79,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
         Id name_result = (Id) that.getName().accept(this);
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
+        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
         Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
         Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
         Contract contract_result = (Contract) that.getContract().accept(this);
@@ -108,7 +108,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
                              List<Param> params_result,
                              Option<Type> returnType_result,
                              Option<List<TraitType>> throwsClause_result,
-                             List<WhereClause> where_result,
+                             WhereClause where_result,
                              Contract contract_result,
                              Expr body_result) {
         return new AbsFnDecl(that.getSpan(),
@@ -154,7 +154,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
         List<Param> params_result = recurOnListOfParam(that.getParams());
         Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
         Option<List<TraitType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
-        List<WhereClause> where_result = recurOnListOfWhereClause(that.getWhere());
+        WhereClause where_result = (WhereClause) that.getWhere().accept(this);
         Contract contract_result = (Contract) that.getContract().accept(this);
         // No need to recur on the body, since we throw it away.
         Expr body_result = null;

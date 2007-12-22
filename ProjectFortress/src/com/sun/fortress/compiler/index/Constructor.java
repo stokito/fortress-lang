@@ -22,29 +22,29 @@ import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends Function {
-    
+
     private final Id _declaringTrait;
     private final List<StaticParam> _staticParams;
     private final Option<List<Param>> _params;
     private final Option<List<TraitType>> _throwsClause;
-    private final List<WhereClause> _where;
-    
-    public Constructor(Id declaringTrait, 
-                       List<StaticParam> staticParams, 
+    private final WhereClause _where;
+
+    public Constructor(Id declaringTrait,
+                       List<StaticParam> staticParams,
                        Option<List<Param>> params,
                        Option<List<TraitType>> throwsClause,
-                       List<WhereClause> where) 
-    { 
+                       WhereClause where)
+    {
         _declaringTrait = declaringTrait;
         _staticParams = staticParams;
         _params = params;
         _throwsClause = throwsClause;
         _where = where;
     }
-    
+
     public Id declaringTrait() { return _declaringTrait; }
     public List<StaticParam> staticParams() { return _staticParams; }
     public Option<List<Param>> params() { return _params; }
     public Option<List<TraitType>> throwsClause() { return _throwsClause; }
-    public List<WhereClause> where() { return _where; }
+    public WhereClause where() { return _where; }
 }

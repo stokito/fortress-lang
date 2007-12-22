@@ -146,7 +146,7 @@ public class ExprFactory {
                                     Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
                           Collections.<StaticParam>emptyList(), params,
-                          returnType, Collections.<WhereClause>emptyList(),
+                          returnType, FortressUtil.emptyWhereClause(),
                           throwsClause, body);
     }
 

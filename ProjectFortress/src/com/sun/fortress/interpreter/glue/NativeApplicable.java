@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
@@ -78,7 +79,7 @@ public class NativeApplicable implements Applicable {
         return Collections.<StaticParam>emptyList();
     }
 
-    public List<WhereClause> getWhere() {
-        return Collections.<WhereClause>emptyList();
+    public WhereClause getWhere() {
+        return FortressUtil.emptyWhereClause();
     }
 }

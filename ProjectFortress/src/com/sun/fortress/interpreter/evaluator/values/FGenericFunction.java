@@ -60,7 +60,7 @@ public class FGenericFunction extends SingleFcn
     public String at() {
         return fndef.at();
     }
-    
+
      public String stringName() {
         return fndef.stringName();
     }
@@ -182,17 +182,17 @@ public class FGenericFunction extends SingleFcn
     public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
         return make(argValues, location);
     }
-    
+
     public  List<StaticParam> getStaticParams() {
         return  fndef.getStaticParams();
     }
-    
+
     public List<Param> getParams() {
         return fndef.getParams();
     }
 
-    
-    protected List<WhereClause> getWhere() {
+
+    protected WhereClause getWhere() {
         return fndef.getWhere();
     }
 
@@ -219,7 +219,7 @@ public class FGenericFunction extends SingleFcn
     static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
 
         public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
-           
+
             SimpleName fn0 = a0.getName();
             SimpleName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);

@@ -28,15 +28,14 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.WhereClause;
 
 public class Where extends TraitClause {
-    private Option<List<WhereClause>> where = Option.none();
+    private WhereClause where = FortressUtil.emptyWhereClause();
 
-    public Where(Span span, List<WhereClause> where) {
+    public Where(Span span, WhereClause where) {
         super(span);
-        if (where.size() == 0) { this.where = Option.none(); }
-        else { this.where = Option.some(where); }
+        this.where = where;
     }
 
-    public Option<List<WhereClause>> getWhere() {
+    public WhereClause getWhere() {
         return where;
     }
 
