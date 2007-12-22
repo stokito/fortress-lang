@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.WhereExtends;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -134,7 +135,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      */
     static public List<FType> createSymbolicInstantiation(BetterEnv bte, Applicable ap, HasAt location) throws Error {
         List<StaticParam> tpl = ap.getStaticParams();
-        List<WhereClause> wcl = ap.getWhere();
+        WhereClause wcl = ap.getWhere();
 
         // The (possibly multiple and interrelated) symbolic
         // types must be created in an environment, but we don't
@@ -149,7 +150,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return instantiationTypes;
     }
 
-    static public List<FType> createSymbolicInstantiation(BetterEnv bte, List<StaticParam> tpl, List<WhereClause> wcl, HasAt location) throws Error {
+    static public List<FType> createSymbolicInstantiation(BetterEnv bte, List<StaticParam> tpl, WhereClause wcl, HasAt location) throws Error {
         return createSymbolicInstantiation(tpl, wcl, new BetterEnv(bte, location));
     }
     /**
@@ -158,7 +159,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      * @param ge The generic environment that is being populated by this instantiation.
      * @throws Error
      */
-    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, List<WhereClause> wcl, BetterEnv ge) throws Error {
+    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, BetterEnv ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
         for (StaticParam tp: tpl) {
             if (tp instanceof DimensionParam) {
@@ -194,7 +195,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         }
 
         // Expect that where clauses will add names and constraints.9
-        for (WhereClause wc : wcl) {
+        for (WhereConstraint wc : wcl.getConstraints()) {
             if (wc instanceof TypeAlias) {
                 TypeAlias ta = (TypeAlias) wc;
                 NI.nyi("Where clauses - type alias");
@@ -243,7 +244,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         }
 
         // Expect that where clauses will add names and constraints.
-        for (WhereClause wc : wcl) {
+        for (WhereConstraint wc : wcl.getConstraints()) {
             if (wc instanceof TypeAlias) {
                 NI.nyi("Where clauses - type alias");
                 TypeAlias ta = (TypeAlias) wc;

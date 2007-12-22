@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.Factory2P;
 import com.sun.fortress.useful.HasAt;
@@ -57,7 +58,7 @@ import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class GenericConstructor 
+public class GenericConstructor
 extends SingleFcn
 implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
     private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
@@ -66,7 +67,7 @@ implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
             // Use the generic type to make the specific type
             String name = odefOrDecl.stringName();
             FTypeGeneric gt = (FTypeGeneric) env.getType(name);
-            
+
             /*
              * Necessary to fake an instantiation expression.
              */
@@ -122,7 +123,7 @@ implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
                                               Option<List<Param>> objectParams) {
     return new Constructor(clenv, objectType, odefOrDecl, objectParams);
   }
-  
+
   private Constructor makeAConstructor(BetterEnv clenv, FTypeObject objectType, Option<List<Param>> objectParams) {
       Constructor cl = constructAConstructor(clenv, objectType, objectParams);
       cl.finishInitializing();
@@ -133,7 +134,7 @@ implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
   public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
       return make(argValues, location);
   }
-  
+
   public Simple_fcn typeApply(List<StaticArg> args, BetterEnv e, HasAt x) {
     List<StaticParam> params = odefOrDecl.getStaticParams();
 
@@ -175,7 +176,7 @@ public String stringName() {
 
 /* (non-Javadoc)
  * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
- * 
+ *
  * Cut and paste from FGenericFunction
  */
 @Override
@@ -193,7 +194,7 @@ public List<FType> getDomain() {
                         FGenericFunction.symbolicStaticsByPartition.syncPutIfMissing(this,
                                 createSymbolicInstantiation(getWithin(),
                                         odefOrDecl.getStaticParams(),
-                                        Collections.<WhereClause>emptyList(),
+                                        FortressUtil.emptyWhereClause(),
                                         odefOrDecl));
                 }
                 symbolicInstantiation = make(symbolic_static_args, odefOrDecl);

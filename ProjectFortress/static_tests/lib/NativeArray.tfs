@@ -5,8 +5,9 @@
    _contract=(Contract @"":0:0)
    _name=(Id @"test_library/NativeArray.fsi":20:8~22 _text="PrimitiveArray")
    _params=(Some _value=[])
+   _where=(WhereClause @"":0:0)
    _extendsClause=[
-    (TraitTypeWhere @"":0:0
+    (TraitTypeWhere
      _type=(InstantiatedType @"test_library/NativeArray.fsi":20:46~66
       _name=(QualifiedIdName @20:46~52
        _name=(Id _text="Array1"))
@@ -19,9 +20,10 @@
          _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @20:58~61
         _type=(IdType _name=(QualifiedIdName @20:58~60
-          _name=(Id _text="s0"))))]))]
+          _name=(Id _text="s0"))))])
+     _where=(WhereClause @"":0:0))]
    _staticParams=[
-    (SimpleTypeParam @20:24~25
+    (SimpleTypeParam @"test_library/NativeArray.fsi":20:24~25
      _name=(Id _text="T"))
     (NatParam @20:27~33
      _name=(Id @20:31~33 _text="s0"))])
@@ -29,8 +31,9 @@
    _contract=(Contract @"":0:0)
    _name=(Id @"test_library/NativeArray.fsi":22:8~26 _text="PrimImmutableArray")
    _params=(Some _value=[])
+   _where=(WhereClause @"":0:0)
    _extendsClause=[
-    (TraitTypeWhere @"":0:0
+    (TraitTypeWhere
      _type=(InstantiatedType @"test_library/NativeArray.fsi":22:50~79
       _name=(QualifiedIdName @22:50~65
        _name=(Id _text="ImmutableArray1"))
@@ -43,9 +46,10 @@
          _val=(IntLiteralExpr _text="0" _val=0)))
        (TypeArg @22:71~74
         _type=(IdType _name=(QualifiedIdName @22:71~73
-          _name=(Id _text="s0"))))]))]
+          _name=(Id _text="s0"))))])
+     _where=(WhereClause @"":0:0))]
    _staticParams=[
-    (SimpleTypeParam @22:28~29
+    (SimpleTypeParam @"test_library/NativeArray.fsi":22:28~29
      _name=(Id _text="T"))
     (NatParam @22:31~37
      _name=(Id @22:35~37 _text="s0"))])])

@@ -45,7 +45,7 @@ public class NodeFactory {
                                           List<Param> params,
                                           Option<Type> returnType,
                                           Option<List<TraitType>> throwss,
-                                          List<WhereClause> where,
+                                          WhereClause where,
                                           Contract contract) {
         String selfName;
         if (optSelfName.isSome()) {
@@ -108,7 +108,7 @@ public class NodeFactory {
         }
         return makeInstantiatedType(span, isParenthesized, name, _args);
     }
-    
+
     public static InstantiatedType makeInstantiatedType(QualifiedIdName name, List<StaticArg> args) {
         return makeInstantiatedType(new Span(), false, name, args);
     }
@@ -118,17 +118,17 @@ public class NodeFactory {
                                           Option<List<TraitType>> throws_) {
         return new ArrowType(span, domain, range, throws_);
     }
-    
-    public static _RewriteGenericArrowType makeGenericArrowType(Span span, 
+
+    public static _RewriteGenericArrowType makeGenericArrowType(Span span,
                                                                 List<StaticParam> staticParams,
                                                                 Type domain,
                                                                 Type range,
                                                                 Option<List<TraitType>> throws_,
-                                                                List<WhereClause> where)
+                                                                WhereClause where)
     {
         return new _RewriteGenericArrowType(span, domain, range, throws_, staticParams, where);
     }
-    
+
     public static KeywordType makeKeywordType(Id name, Type type) {
         return new KeywordType(new Span(), name, type);
     }
@@ -308,7 +308,7 @@ public class NodeFactory {
                                    List<Param> params,
                                    Option<Type> returnType,
                                    Option<List<TraitType>> throwss,
-                                   List<WhereClause> where, Contract contract,
+                                   WhereClause where, Contract contract,
                                    Expr body) {
         String selfName;
         if (optSelfName.isSome()) {
@@ -448,7 +448,7 @@ public class NodeFactory {
                                             Option<List<Param>> params,
                                             List<TraitTypeWhere> traits,
                                             Option<List<TraitType>> throws_,
-                                            List<WhereClause> where,
+                                            WhereClause where,
                                             Contract contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
                               params, throws_, contract, defs2);
@@ -542,10 +542,10 @@ public class NodeFactory {
         return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
     }
-    
-    public static TupleType makeTupleType(Span span, List<Type> elements, 
-                                          List<KeywordType> keywordElements, 
-                                          Option<VarargsType> varargs) 
+
+    public static TupleType makeTupleType(Span span, List<Type> elements,
+                                          List<KeywordType> keywordElements,
+                                          Option<VarargsType> varargs)
     {
         return new TupleType(span, elements, varargs, keywordElements);
     }

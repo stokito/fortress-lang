@@ -78,7 +78,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * with a where clause
      * implemented by trait and object declarations in components or APIs
      */
-    interface HasWhere(List<WhereClause> where);
+    interface HasWhere(WhereClause where);
     /**
      * right-hand side of unit declarations
      * implemented by Expr and UnitExpr
@@ -93,7 +93,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
  */
 interface Applicable(SimpleName name, List<StaticParam> staticParams,
                      List<Param> params, Option<Type> returnType,
-                     List<WhereClause> where) extends HasAt;
+                     WhereClause where) extends HasAt;
 
 /**
  * intersections of interface types
@@ -189,8 +189,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                           = Collections.<StaticParam>emptyList(),
                                       List<TraitTypeWhere> extendsClause
                                           = Collections.<TraitTypeWhere>emptyList(),
-                                      List<WhereClause> where
-                                          = Collections.<WhereClause>emptyList(),
+                                      WhereClause where
+                                          = FortressUtil.emptyWhereClause(),
                                       List<? extends AbsDeclOrDecl> decls)
                                      implements HasWhere, GenericAbsDeclOrDecl;
         /**
@@ -368,8 +368,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                  = Option.<Type>none(),
                              Option<List<TraitType>> throwsClause
                                  = Option.<List<TraitType>>none(),
-                             List<WhereClause> where
-                                 = Collections.<WhereClause>emptyList(),
+                             WhereClause where
+                                 = FortressUtil.emptyWhereClause(),
                              Contract contract = new Contract(),
                              String selfName = NodeUtil.defaultSelfName)
                             implements Applicable, GenericDecl;
@@ -791,7 +791,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                    = Collections.<StaticParam>emptyList(),
                List<Param> params,
                Option<Type> returnType = Option.<Type>none(),
-               List<WhereClause> where = Collections.<WhereClause>emptyList(),
+               WhereClause where = FortressUtil.emptyWhereClause(),
                Option<List<TraitType>> throwsClause
                    = Option.<List<TraitType>>none(),
                Expr body)
@@ -1047,8 +1047,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             _RewriteGenericArrowType(List<StaticParam> staticParams
                                       = Collections.<StaticParam>emptyList(),
-                                  List<WhereClause> where
-                                      = Collections.<WhereClause>emptyList());
+                                     WhereClause where
+                                      = FortressUtil.emptyWhereClause());
         /**
          * nonarrow type
          */
@@ -1364,14 +1364,55 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             OpUnit(UnitExpr val, DimUnitOp op);
     /**
      * where clause used in trait, object, and functional declarations
-     * Where ::= where { WhereClauseList }
-     * CoercionWhere ::= where { CoercionWhereClauseList }
+     * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?
+     *         | where { WhereConstraintList }
      * e.g.) where { ninf AND NOT nan }
      */
-    abstract WhereClause();
+    WhereClause(List<WhereBinding> bindings
+                    = Collections.<WhereBinding>emptyList(),
+                List<WhereConstraint> constraints
+                    = Collections.<WhereConstraint>emptyList());
+    /**
+     * hidden type variable binding declared in where clauses
+     */
+    abstract WhereBinding();
         /**
          * hidden type variable declared in where clauses
-         * WhereClause ::= Id Extends
+         * WhereBinding ::= Id Extends?
+         * e.g.) T extends Object
+         */
+        WhereType(Id name, List<TraitType> supers);
+        /**
+         * nat parameter declared in where clauses
+         * WhereBinding ::= nat Id
+         * e.g.) nat length
+         */
+        WhereNat(Id name);
+        /**
+         * int parameter declared in where clauses
+         * WhereBinding ::= int Id
+         * e.g.) int length
+         */
+        WhereInt(Id name);
+        /**
+         * bool parameter declared in where clauses
+         * WhereBinding ::= bool Id
+         * e.g.) bool ninf
+         */
+        WhereBool(Id name);
+        /**
+         * unit parameter declared in where clauses
+         * WhereBinding ::= unit Id
+         * e.g.) unit U
+         */
+        WhereUnit(Id name);
+    /**
+     * hidden type variable constraint declared in where clauses
+     */
+    abstract WhereConstraint();
+        /**
+         * type variable constraint declared in where clauses
+         * WhereBinding ::= Id Extends
          * e.g.) T extends Object
          */
         WhereExtends(Id name, List<TraitType> supers);
@@ -1386,63 +1427,39 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                   Type type)
                  implements Decl, AbsDecl;
         /**
-         * nat parameter declared in where clauses
-         * WhereClause ::= nat Id
-         * e.g.) nat length
-         */
-        WhereNat(Id name);
-        /**
-         * int parameter declared in where clauses
-         * WhereClause ::= int Id
-         * e.g.) int length
-         */
-        WhereInt(Id name);
-        /**
-         * bool parameter declared in where clauses
-         * WhereClause ::= bool Id
-         * e.g.) bool ninf
-         */
-        WhereBool(Id name);
-        /**
-         * unit parameter declared in where clauses
-         * WhereClause ::= unit Id
-         * e.g.) unit U
-         */
-        WhereUnit(Id name);
-        /**
          * coercion constraint declared in where clauses
-         * WhereClause ::= Type coerces Type
+         * WhereConstraint ::= Type coerces Type
          * e.g.) T coerces Identity[\ODOT\]
          */
         WhereCoerces(Type left, Type right);
         /**
          * widening constraint declared in where clauses
-         * WhereClause ::= Type widens Type
+         * WhereConstraint ::= Type widens Type
          * e.g.) T widens S
          */
         WhereWidens(Type left, Type right);
         /**
          * widening coercion constraint declared in where clauses
-         * CoercionWhereClause ::= Type widens or coerces Type
+         * CoercionWhereConstraint ::= Type widens or coerces Type
          * e.g.) T widens or coerces S
          */
         WhereWidensCoerces(Type left, Type right);
         /**
          * DootedId equality constraint declared in where clauses
-         * WhereClause ::= QualifiedIdName = QualifiedIdName
+         * WhereConstraint ::= QualifiedIdName = QualifiedIdName
          * e.g.) m = n
          */
         WhereEquals(QualifiedIdName left, QualifiedIdName right);
         /**
          * unit constraint used in where clauses
-         * WhereClause ::= dimensionless = Id
+         * WhereConstraint ::= dimensionless = Id
          *               | Id = dimensionless
          * e.g.) U = dimensionless
          */
         UnitConstraint(Id name);
         /**
          * integer constraint used in where clauses
-         * WhereClause ::= IntConstraint
+         * WhereConstraint ::= IntConstraint
          */
         abstract IntConstraint();
             /**
@@ -1477,7 +1494,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             IEConstraint(IntExpr left, IntExpr right);
         /**
          * boolean constraint declared in where clauses
-         * WhereClause ::= BoolConstraint
+         * WhereConstraint ::= BoolConstraint
          * e.g.) pinf AND ninf
          */
         BoolConstraintExpr(BoolConstraint constraint);
@@ -1801,7 +1818,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * trait type with a where clause used in extends clauses
      * TraitTypeWhere ::= TraitType Where?
      */
-    TraitTypeWhere(TraitType type, List<WhereClause> where);
+    TraitTypeWhere(TraitType type, WhereClause where);
     /**
      * array dimensionality
      * ArraySize ::= ExtentRange(, ExtentRange)*

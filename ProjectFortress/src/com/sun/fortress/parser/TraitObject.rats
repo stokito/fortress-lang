@@ -40,8 +40,7 @@ TraitDecl TraitDecl =
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue =
         new TraitDecl(createSpan(yyStart,yyCount), a1, a2.getName(),
-                      a2.getStaticParams(), a2.getExtendsClause(),
-                      FortressUtil.getListVal(a3.getWhere()),
+                      a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
                       a3.getExcludes(), a3.getComprises(), a4);
      };
 
@@ -128,9 +127,8 @@ ObjectDecl ObjectDecl = a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w en
                                          FortressUtil.emptyContract());
        yyValue = new ObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(),
-            FortressUtil.getListVal(fhc.getWhereClause()), a2.getParams(),
-            fhc.getThrowsClause(), contract, a3);
+            a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
+            a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };
 
 /* ObjectHeader ::=
@@ -226,8 +224,7 @@ AbsTraitDecl AbsTraitDecl =
        if (a4 == null) a4 = Collections.<AbsDecl>emptyList();
        yyValue = new AbsTraitDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(),
-            FortressUtil.getListVal(a3.getWhere()),
+            a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
             a3.getExcludes(), a3.getComprises(), a4);
      };
 
@@ -310,8 +307,7 @@ AbsObjectDecl AbsObjectDecl =
                                          FortressUtil.emptyContract());
        yyValue = new AbsObjectDecl
            (createSpan(yyStart,yyCount), a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(),
-            FortressUtil.getListVal(fhc.getWhereClause()),
+            a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
             a2.getParams(), fhc.getThrowsClause(), contract, a3);
      };
 

@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.Useful;
 
@@ -37,42 +38,42 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GenericFunctionalMethod extends FGenericFunction implements HasSelfParameter {
 
-    
+
     int selfParameterIndex;
     private FTypeGeneric selfParameterType;
-  
+
     public GenericFunctionalMethod(BetterEnv e, FnAbsDeclOrDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
         super(e, fndef);
         this.selfParameterIndex = self_parameter_index;
         this.selfParameterType = self_parameter_type;
     }
-    
+
     protected Simple_fcn newClosure(BetterEnv clenv, List<FType> args) {
         // BUG IS HERE, NEED TO instantiate the selfParameterType! ;
-            
+
         FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDefOrDecl());
-        
+
         FunctionalMethod cl = FType.anyAreSymbolic(args) ?
                 new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :
             new FunctionalMethod(clenv, fndef, args, selfParameterIndex, instantiatedSelfType);
          cl.finishInitializing();
          return cl;
     }
-    
+
     @Override
     public  List<StaticParam> getStaticParams() {
         return selfParameterType.getDef().getStaticParams();
     }
-    
-    protected List<WhereClause> getWhere() {
+
+    protected WhereClause getWhere() {
         // TODO need to get where clause from generics, in general.
-        return Collections.<WhereClause>emptyList();
+        return FortressUtil.emptyWhereClause();
     }
 
     public int hashCode() {
         return getDef().hashCode() + selfParameterType.hashCode();
     }
-    
+
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
@@ -86,12 +87,12 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     public int getSelfParameterIndex() {
         return selfParameterIndex;
     }
-    
+
     public FTraitOrObjectOrGeneric getSelfParameterType() {
         return selfParameterType;
     }
 
-    
+
     public String toString() {
         FnAbsDeclOrDecl node = fndef;
         // Code lifted from ErrorMsgMaker.forFnAbsDeclOrDecl
