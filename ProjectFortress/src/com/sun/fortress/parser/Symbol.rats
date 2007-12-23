@@ -184,6 +184,16 @@ String closesquare = "]";
 String opensquare = "[":leftEncloser;
 String ellipses = "...";
 
+String lessthanequal    = "<=":op / "LE":op;
+String lessthan         = "<":op  / "LT":op;
+String greaterthanequal = ">=":op / "GE":op;
+String greaterthan      = ">":op  / "GT":op;
+
+String NOT     = "NOT":op;
+String OR      = "OR":op;
+String AND     = "AND":op;
+String IMPLIES = "->":op / "IMPLIES":op;
+
 transient void closecurly = "}";
 transient void closeangle = "|>";
 transient void closedoublesquare = "\\]";

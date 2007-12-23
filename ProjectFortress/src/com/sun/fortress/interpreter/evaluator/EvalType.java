@@ -389,8 +389,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 return IntNat.make(longify(n.getLeft()) - longify(n.getRight()));
             }
             public FType forProductConstraint(ProductConstraint n) {
-                return IntNat.make(longify(n.getMultiplier()) *
-                                   longify(n.getMultiplicand()));
+                return IntNat.make(longify(n.getLeft()) * longify(n.getRight()));
             }
             public FType defaultCase(Node x) {
                 return bug(x, "EvalType: " + x.getClass() +

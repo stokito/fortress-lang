@@ -679,13 +679,12 @@ public class NodeFactory {
                                            i.getRight());
             }
             public IntExpr forProductConstraint(ProductConstraint i) {
-                return new ProductConstraint(i.getSpan(), true,
-                                             i.getMultiplier(),
-                                             i.getMultiplicand());
+                return new ProductConstraint(i.getSpan(), true, i.getLeft(),
+                                             i.getRight());
             }
             public IntExpr forExponentConstraint(ExponentConstraint i) {
-                return new ExponentConstraint(i.getSpan(), true, i.getBase(),
-                                              i.getPower());
+                return new ExponentConstraint(i.getSpan(), true, i.getLeft(),
+                                              i.getRight());
             }
             public IntExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +

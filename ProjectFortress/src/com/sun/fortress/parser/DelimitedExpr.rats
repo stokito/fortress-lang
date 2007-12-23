@@ -45,7 +45,8 @@ import Spacing;
    | case w Expr (w Op)? w of w CaseClauses (w CaseElse)? w end
    | case w most w Op w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
-   | try w BlockElems (w Catch)? (w forbid w TraitTypes)? (w finally w BlockElems)? w end
+   | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
+       (w finally w BlockElems)? w end
  */
 Expr DelimitedExpr =
      TupleExpr
