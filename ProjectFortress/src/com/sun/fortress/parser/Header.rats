@@ -175,13 +175,13 @@ UnitConstraint UnitConstraint =
    | IntExpr w =  w IntExpr
  */
 private IntConstraint IntConstraint =
-     a1:IntExpr w "<=":op w a2:IntExpr
+     a1:IntExpr w lessthanequal w a2:IntExpr
      { yyValue = new LEConstraint(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:IntExpr w "<":op  w a2:IntExpr
+   / a1:IntExpr w lessthan w a2:IntExpr
      { yyValue = new LTConstraint(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:IntExpr w ">=":op w a2:IntExpr
+   / a1:IntExpr w greaterthanequal w a2:IntExpr
      { yyValue = new GEConstraint(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:IntExpr w ">":op  w a2:IntExpr
+   / a1:IntExpr w greaterthan w a2:IntExpr
      { yyValue = new GTConstraint(createSpan(yyStart,yyCount), a1, a2); }
    / a1:IntExpr w equals w a2:IntExpr
      { yyValue = new IEConstraint(createSpan(yyStart,yyCount), a1, a2); };
@@ -269,13 +269,13 @@ private BoolConstraint BoolConstraint =
      { yyValue = (BoolConstraint)apply(list, seed); };
 
 private BoolConstraint BoolConstraintFront =
-     "NOT":op w a1:BoolExpr
+     NOT w a1:BoolExpr
      { yyValue = new NotConstraint(createSpan(yyStart,yyCount), a1); }
-   / a1:BoolConstraintHead w "OR":op  w a2:BoolExpr
+   / a1:BoolConstraintHead w OR w a2:BoolExpr
      { yyValue = new OrConstraint(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:BoolConstraintHead w "AND":op w a2:BoolExpr
+   / a1:BoolConstraintHead w AND w a2:BoolExpr
      { yyValue = new AndConstraint(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:BoolConstraintHead w "IMPLIES":op  w a2:BoolExpr
+   / a1:BoolConstraintHead w IMPLIES w a2:BoolExpr
      { yyValue = new ImpliesConstraint(createSpan(yyStart,yyCount), a1, a2); }
    / a1:BoolConstraintHead w equals w a2:BoolExpr
      { yyValue = new BEConstraint(createSpan(yyStart,yyCount), a1, a2); };
@@ -293,7 +293,7 @@ private constant transient Action<BoolConstraint> BoolConstraintTail =
    ;
 
 private constant inline Action<BoolConstraint> OrBoolConstraint =
-     w "OR":op  w a1:BoolExpr
+     w OR w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new OrConstraint(createSpan(yyStart,yyCount),
@@ -302,7 +302,7 @@ private constant inline Action<BoolConstraint> OrBoolConstraint =
      };
 
 private constant inline Action<BoolConstraint> AndBoolConstraint =
-     w "AND":op w a1:BoolExpr
+     w AND w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new AndConstraint(createSpan(yyStart,yyCount),
@@ -311,7 +311,7 @@ private constant inline Action<BoolConstraint> AndBoolConstraint =
      };
 
 private constant inline Action<BoolConstraint> ImpliesBoolConstraint =
-     w "IMPLIES":op  w a1:BoolExpr
+     w IMPLIES w a1:BoolExpr
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                return new ImpliesConstraint(createSpan(yyStart,yyCount),
@@ -354,7 +354,7 @@ private BoolExpr BoolExprFront =
      BoolVal
    / openparen w a1:BoolExpr w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); }
-   / "NOT":op w a1:BoolExpr
+   / NOT w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new NotConstraint(span, a1);
      };
@@ -367,7 +367,7 @@ private constant transient Action<BoolExpr> BoolExprTail =
    ;
 
 private constant inline Action<BoolExpr> OrBoolExpr =
-     w "OR":op  w a1:BoolExpr
+     w OR w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
@@ -376,7 +376,7 @@ private constant inline Action<BoolExpr> OrBoolExpr =
      };
 
 private constant inline Action<BoolExpr> AndBoolExpr =
-     w "AND":op w a1:BoolExpr
+     w AND w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
@@ -385,7 +385,7 @@ private constant inline Action<BoolExpr> AndBoolExpr =
      };
 
 private constant inline Action<BoolExpr> ImpliesBoolExpr =
-     w "IMPLIES":op  w a1:BoolExpr
+     w IMPLIES w a1:BoolExpr
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);

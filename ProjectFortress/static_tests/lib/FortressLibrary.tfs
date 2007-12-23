@@ -13532,12 +13532,12 @@
          (IntArg @1430:61~66
           _parenthesized=true
           _val=(ProductConstraint @1430:63~66
-           _multiplicand=(IntRef @1430:64~66
-            _name=(QualifiedIdName
-             _name=(Id _text="s1")))
-           _multiplier=(IntRef @1430:61~66
+           _left=(IntRef @1430:61~66
             _name=(QualifiedIdName @1430:61~64
-             _name=(Id @1430:61~63 _text="s0")))))])
+             _name=(Id @1430:61~63 _text="s0")))
+           _right=(IntRef @1430:64~66
+            _name=(QualifiedIdName
+             _name=(Id _text="s1")))))])
        (VoidLiteralExpr @1430:70~1431:7 _text="")])
      _lhs=[
       (LValueBind @1430:5~39
@@ -13552,12 +13552,12 @@
           (IntArg @1430:29~34
            _parenthesized=true
            _val=(ProductConstraint @1430:31~34
-            _multiplicand=(IntRef @1430:32~34
-             _name=(QualifiedIdName
-              _name=(Id _text="s1")))
-            _multiplier=(IntRef @1430:29~34
+            _left=(IntRef @1430:29~34
              _name=(QualifiedIdName @1430:29~32
-              _name=(Id @1430:29~31 _text="s0")))))])))])
+              _name=(Id @1430:29~31 _text="s0")))
+            _right=(IntRef @1430:32~34
+             _name=(QualifiedIdName
+              _name=(Id _text="s1")))))])))])
     (FnDef @1431:5~76
      _body=(Do @1431:38~76
       _fronts=[
@@ -15284,12 +15284,12 @@
          (IntArg @1533:59~64
           _parenthesized=true
           _val=(ProductConstraint @1533:61~64
-           _multiplicand=(IntRef @1533:62~64
-            _name=(QualifiedIdName
-             _name=(Id _text="s1")))
-           _multiplier=(IntRef @1533:59~64
+           _left=(IntRef @1533:59~64
             _name=(QualifiedIdName @1533:59~62
-             _name=(Id @1533:59~61 _text="s0")))))])
+             _name=(Id @1533:59~61 _text="s0")))
+           _right=(IntRef @1533:62~64
+            _name=(QualifiedIdName
+             _name=(Id _text="s1")))))])
        (VoidLiteralExpr @1533:68~1534:5 _text="")])
      _lhs=[
       (LValueBind @1533:3~37
@@ -15304,12 +15304,12 @@
           (IntArg @1533:27~32
            _parenthesized=true
            _val=(ProductConstraint @1533:29~32
-            _multiplicand=(IntRef @1533:30~32
-             _name=(QualifiedIdName
-              _name=(Id _text="s1")))
-            _multiplier=(IntRef @1533:27~32
+            _left=(IntRef @1533:27~32
              _name=(QualifiedIdName @1533:27~30
-              _name=(Id @1533:27~29 _text="s0")))))])))])
+              _name=(Id @1533:27~29 _text="s0")))
+            _right=(IntRef @1533:30~32
+             _name=(QualifiedIdName
+              _name=(Id _text="s1")))))])))])
     (FnDef @1534:3~74
      _body=(Do @1534:36~74
       _fronts=[
@@ -19177,17 +19177,17 @@
          (IntArg @1758:61~71
           _parenthesized=true
           _val=(ProductConstraint @1758:63~71
-           _multiplicand=(ProductConstraint @1758:67~70
-            _multiplicand=(IntRef @1758:68~70
-             _name=(QualifiedIdName
-              _name=(Id _text="s2")))
-            _multiplier=(IntRef @1758:65~68
+           _left=(IntRef @1758:61~65
+            _name=(QualifiedIdName
+             _name=(Id @1758:61~63 _text="s0")))
+           _right=(ProductConstraint @1758:67~70
+            _left=(IntRef @1758:65~68
              _name=(QualifiedIdName
               _name=(Id @1758:65~67 _text="s1")))
-            _parenthesized=true)
-           _multiplier=(IntRef @1758:61~65
-            _name=(QualifiedIdName
-             _name=(Id @1758:61~63 _text="s0")))))])
+            _parenthesized=true
+            _right=(IntRef @1758:68~70
+             _name=(QualifiedIdName
+              _name=(Id _text="s2"))))))])
        (VoidLiteralExpr @1758:74~1760:3 _text="")])
      _lhs=[
       (LValueBind @1758:3~40
@@ -19202,17 +19202,17 @@
           (IntArg @1758:26~36
            _parenthesized=true
            _val=(ProductConstraint @1758:28~36
-            _multiplicand=(ProductConstraint @1758:32~35
-             _multiplicand=(IntRef @1758:33~35
-              _name=(QualifiedIdName
-               _name=(Id _text="s2")))
-             _multiplier=(IntRef @1758:30~33
+            _left=(IntRef @1758:26~30
+             _name=(QualifiedIdName
+              _name=(Id @1758:26~28 _text="s0")))
+            _right=(ProductConstraint @1758:32~35
+             _left=(IntRef @1758:30~33
               _name=(QualifiedIdName
                _name=(Id @1758:30~32 _text="s1")))
-             _parenthesized=true)
-            _multiplier=(IntRef @1758:26~30
-             _name=(QualifiedIdName
-              _name=(Id @1758:26~28 _text="s0")))))])))])
+             _parenthesized=true
+             _right=(IntRef @1758:33~35
+              _name=(QualifiedIdName
+               _name=(Id _text="s2"))))))])))])
     (FnDef @1760:3~1762:5
      _body=(OprExpr @1760:37~50
       _args=[

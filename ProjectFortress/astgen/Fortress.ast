@@ -206,8 +206,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
              *                  AbsGoInATrait? end
              * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
+             * ExtendsWhere ::= extends TraitTypeWheres
              * AbsTraitClause ::= Excludes | AbsComprises | Where
-             * Extends ::= extends TraitTypes
              * Excludes ::= excludes TraitTypes
              * AbsComprises ::= comprises ComprisingTypes
              * ComprisingTypes ::= TraitType | { ComprisingTypeList }
@@ -1065,7 +1065,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArrayType(Type element, Indices indices);
                 /**
                  * type name
-                 * TraitType ::= QualifiedIdName
+                 * TraitType ::= QualifiedName
                  * e.g.) T
                  */
                 IdType(QualifiedIdName name);
@@ -1078,7 +1078,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 MatrixType(Type element, List<ExtentRange> dimensions);
                 /**
                  * instantiated type
-                 * TraitType ::= QualifiedIdName [\StaticArgList\]
+                 * TraitType ::= QualifiedName [\StaticArgList\]
                  * e.g.) List[\ZZ32\]
                  */
                 InstantiatedType(QualifiedIdName name, List<StaticArg> args);
@@ -1122,7 +1122,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract StaticArg();
             /**
              * identifier used as static argument
-             * StaticArg ::= QualifiedIdName
+             * StaticArg ::= QualifiedName
              * e.g.) m
              */
             IdArg(QualifiedIdName name);
@@ -1185,6 +1185,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract StaticExpr(boolean parenthesized = false);
         /**
          * integer expression
+         * StaticExpr ::= IntExpr
          */
         abstract IntExpr();
             /**
@@ -1200,61 +1201,65 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 NumberConstraint(IntLiteralExpr val);
                 /**
                  * integer identiier
-                 * IntVal ::= QualifiedIdName
+                 * IntVal ::= QualifiedName
                  * e.g.) m
-             */
+                 */
                 IntRef(QualifiedIdName name);
             /**
-             * integer addition
-             * IntExpr ::= IntExpr + IntExpr
-             * e.g.) m + 2
+             * integer expression with an operator
              */
-            SumConstraint(IntExpr left, IntExpr right);
+            abstract IntOpExpr(IntExpr left, IntExpr right);
                 /**
-             * integer subtraction
-             * IntExpr ::= IntExpr - IntExpr
-             * e.g.) m - 2
+                 * integer addition
+                 * IntExpr ::= IntExpr + IntExpr
+                 * e.g.) m + 2
                  */
-            MinusConstraint(IntExpr left, IntExpr right);
+                SumConstraint();
                 /**
-             * integer multiplication
-             * IntExpr ::= IntExpr IntExpr
-             *           | IntExpr DOT IntExpr
-             * e.g.) m DOT n
+                 * integer subtraction
+                 * IntExpr ::= IntExpr - IntExpr
+                 * e.g.) m - 2
                  */
-            ProductConstraint(IntExpr multiplier, IntExpr multiplicand);
+                MinusConstraint();
                 /**
-             * integer exponentiation
-             * IntExpr ::= IntExpr caret IntVal
-             * e.g.) 2^b
+                 * integer multiplication
+                 * IntExpr ::= IntExpr IntExpr
+                 *           | IntExpr DOT IntExpr
+                 * e.g.) m DOT n
                  */
-            ExponentConstraint(IntExpr base, IntVal power);
+                ProductConstraint();
                 /**
+                 * integer exponentiation
+                 * IntExpr ::= IntExpr caret IntVal
+                 * e.g.) 2^b
+                 */
+                ExponentConstraint();
+        /**
          * boolean expression
          * StaticExpr ::= BoolExpr
-                 */
+         */
         abstract BoolExpr();
-                /**
+            /**
              * boolean value
              * BoolExpr ::= BoolVal
-                 */
+             */
             abstract BoolVal();
-            /**
+                /**
                  * boolean constant
                  * BoolVal ::= true | false
                  * e.g.) true
-             */
+                 */
                 BoolConstant(boolean bool);
                 /**
                  * boolean identiier
-                 * BoolVal ::= QualifiedIdName
+                 * BoolVal ::= QualifiedName
                  * e.g.) ninf
                  */
                 BoolRef(QualifiedIdName name);
-                /**
+            /**
              * boolean constraint
              * BoolExpr ::= BoolConstraint
-                 */
+             */
             abstract BoolConstraint();
                 /**
                  * boolean NOT constraint
@@ -1263,30 +1268,35 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 NotConstraint(BoolExpr bool);
                 /**
-                 * boolean OR constraint
-                 * BoolConstraint ::= BoolExpr OR BoolExpr
+                 * binary boolean constraint
                  * e.g.) ninf OR pinf
                  */
-                OrConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean AND constraint
-                 * BoolConstraint ::= BoolExpr AND BoolExpr
-                 * e.g.) ninf AND pinf
-                 */
-                AndConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean IMPLIES constraint
-                 * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
-                 * e.g.) ninf IMPLIES pinf
-                 */
-                ImpliesConstraint(BoolExpr left, BoolExpr right);
-                /**
-                 * boolean equality constraint
-                 * BoolConstraint ::= BoolExpr = BoolExpr
-                 * e.g.) ninf AND pinf = true
-                 */
-                BEConstraint(BoolExpr left, BoolExpr right);
-                /**
+                abstract BinaryBoolConstraint(BoolExpr left, BoolExpr right);
+                    /**
+                     * boolean OR constraint
+                     * BoolConstraint ::= BoolExpr OR BoolExpr
+                     * e.g.) ninf OR pinf
+                     */
+                    OrConstraint();
+                    /**
+                     * boolean AND constraint
+                     * BoolConstraint ::= BoolExpr AND BoolExpr
+                     * e.g.) ninf AND pinf
+                     */
+                    AndConstraint();
+                    /**
+                     * boolean IMPLIES constraint
+                     * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
+                     * e.g.) ninf IMPLIES pinf
+                     */
+                    ImpliesConstraint();
+                    /**
+                     * boolean equality constraint
+                     * BoolConstraint ::= BoolExpr = BoolExpr
+                     * e.g.) ninf AND pinf = true
+                     */
+                    BEConstraint();
+        /**
          * dimension expression
          */
         abstract DimExpr();
@@ -1296,7 +1306,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             BaseDim();
             /* dimension identifier
-             * DimExpr ::= QualifiedIdName
+             * DimExpr ::= QualifiedName
              * e.g.) com.sun.fortress.dim.Length
              */
             DimRef(QualifiedIdName name);
@@ -1322,9 +1332,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * DimExpr ::= DUPreOp DimExpr
              *           | DimExpr DUPostOp
              * e.g.) Time squared
-                 */
+             */
             OpDim(DimExpr val, DimUnitOp op);
-            /**
+        /**
          * unit expression
          */
         abstract UnitExpr() implements ExprOrUnitExpr;
@@ -1334,7 +1344,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             BaseUnit();
             /* unit identifier
-             * UnitExpr ::= QualifiedIdName
+             * UnitExpr ::= QualifiedName
              * e.g.) com.sun.fortress.dim.Length
              */
             UnitRef(QualifiedIdName name);
@@ -1379,6 +1389,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * hidden type variable declared in where clauses
          * WhereBinding ::= Id Extends?
+         * Extends ::= extends TraitTypes
          * e.g.) T extends Object
          */
         WhereType(Id name, List<TraitType> supers);
@@ -1412,7 +1423,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     abstract WhereConstraint();
         /**
          * type variable constraint declared in where clauses
-         * WhereBinding ::= Id Extends
+         * WhereConstraint ::= Id Extends
          * e.g.) T extends Object
          */
         WhereExtends(Id name, List<TraitType> supers);
@@ -1446,7 +1457,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         WhereWidensCoerces(Type left, Type right);
         /**
          * DootedId equality constraint declared in where clauses
-         * WhereConstraint ::= QualifiedIdName = QualifiedIdName
+         * WhereConstraint ::= QualifiedName = QualifiedName
          * e.g.) m = n
          */
         WhereEquals(QualifiedIdName left, QualifiedIdName right);
@@ -1461,37 +1472,37 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * integer constraint used in where clauses
          * WhereConstraint ::= IntConstraint
          */
-        abstract IntConstraint();
+        abstract IntConstraint(IntExpr left, IntExpr right);
             /**
              * less than equal constraint declared in where clauses
              * IntConstraint ::= IntExpr <= IntExpr
              * e.g.) b <= c
              */
-            LEConstraint(IntExpr left, IntExpr right);
+            LEConstraint();
             /**
              * less than constraint declared in where clauses
              * IntConstraint ::= IntExpr < IntExpr
              * e.g.) 0 < a
              */
-            LTConstraint(IntExpr left, IntExpr right);
+            LTConstraint();
             /**
              * greater than equal constraint declared in where clauses
-             * IntConstraint ::= IntExpr <= IntExpr
+             * IntConstraint ::= IntExpr >= IntExpr
              * e.g.) b >= c
              */
-            GEConstraint(IntExpr left, IntExpr right);
+            GEConstraint();
             /**
              * greater than constraint declared in where clauses
-             * IntConstraint ::= IntExpr < IntExpr
+             * IntConstraint ::= IntExpr > IntExpr
              * e.g.) a > 0
              */
-            GTConstraint(IntExpr left, IntExpr right);
+            GTConstraint();
             /**
              * integer equality constraint declared in where clauses
              * IntConstraint ::= IntExpr = IntExpr
              * e.g.) 8 = 2^3
              */
-            IEConstraint(IntExpr left, IntExpr right);
+            IEConstraint();
         /**
          * boolean constraint declared in where clauses
          * WhereConstraint ::= BoolConstraint
@@ -1666,7 +1677,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                SimpleName name);
             /**
              * qualified id name
-             * QualifiedIdName ::= Id(.Id)*
+             * QualifiedName ::= Id(.Id)*
              * e.g.) com.sun.fortress.nodes_util.getName
              */
             QualifiedIdName(Id name);
