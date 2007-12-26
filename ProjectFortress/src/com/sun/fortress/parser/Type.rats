@@ -199,20 +199,22 @@ TraitType TraitType =
  */
 Type TupleType =
      openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
-       a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
+     a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
+       Span span = createSpan(yyStart,yyCount);
        Option<VarargsType> ts2 = ((a2 != null)?
-                                   Option.some(new VarargsType(createSpan(yyStart,yyCount), a2)) :
+                                   Option.some(new VarargsType(span, a2)) :
                                    Option.<VarargsType>none());
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
-       yyValue = new TupleType(createSpan(yyStart,yyCount), ts1, ts2, ts3);
+       yyValue = new TupleType(span, ts1, ts2, ts3);
      }
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
+       Span span = createSpan(yyStart,yyCount);
        Option<VarargsType> ts2 =
-         Option.some(new VarargsType(createSpan(yyStart,yyCount),a2));
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount),ts1,ts2);
+         Option.some(new VarargsType(span, a2));
+       yyValue = NodeFactory.makeTupleType(span, ts1, ts2);
      }
    / SimpleTupleType ;
 
@@ -254,7 +256,7 @@ private DimType DimType =
    | DimExpr w / w DimExpr
    | DimExpr w per w DimExpr
    | 1 w / w DimExpr
-   | DimExpr ^ Number
+   | DimExpr ^ IntLiteralExpr
    | ( w DimExpr w )
    | DUPreOp sr DimExpr
    | DimExpr w DUPostOp
@@ -302,7 +304,7 @@ private constant inline Action<DimExpr> QuotientDim =
      };
 
 private constant inline Action<DimExpr> ExponentDim =
-     caret a1:Number
+     caret a1:IntLiteralExpr
      { yyValue = new Action<DimExpr>() {
            public DimExpr run(DimExpr base) {
                return new ExponentDim(createSpan(yyStart,yyCount), (DimExpr)base,
@@ -408,6 +410,3 @@ ExtentRange ExtentRange =
                                  Option.<StaticArg>none(),
                                  Option.some(a1));
      };
-
-/* Number */
-IntLiteralExpr Number = IntLiteralExpr ;

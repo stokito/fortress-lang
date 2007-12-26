@@ -64,7 +64,8 @@ constant inline Action<Expr> As =
      w as w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
+               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base,
+                                 a1);
            }};
      };
 
@@ -72,9 +73,14 @@ constant inline Action<Expr> AsIf =
      w asif w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), false, (Expr)base, a1);
+               return new AsIfExpr(createSpan(yyStart,yyCount), false,
+                                   (Expr)base, a1);
            }};
      };
+
+/* AssignExpr ::= AssignLefts w AssignOp w Expr */
+Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
+    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
 
 /* AssignLefts ::=
      ( w AssignLeft (w , w AssignLeft)* w )
@@ -127,10 +133,6 @@ constant inline Action<Expr> FieldSelectionAssign =
               return new FieldRef(createSpan(yyStart,yyCount), false, base, a1);
           }};
     };
-
-/* AssignExpr ::= AssignLefts w AssignOp w Expr */
-Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
-    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
 
 /* OpExpr ::=
      OpExprNoEnc
@@ -491,13 +493,13 @@ constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
 
 /* UnitExpr ::=
      dimensionless
-   | QualifiedIdName
+   | QualifiedName
    | UnitExpr w DOT w UnitExpr
    | UnitExpr sr UnitExpr
    | UnitExpr w / w UnitExpr
    | UnitExpr w per w UnitExpr
    | 1 w / w UnitExpr
-   | UnitExpr ^ Number
+   | UnitExpr ^ IntLiteralExpr
    | ( w UnitExpr w )
    | DUPreOp sr UnitExpr
    | UnitExpr w DUPostOp
@@ -545,7 +547,7 @@ private constant inline Action<UnitExpr> QuotientUnit =
      };
 
 private constant inline Action<UnitExpr> ExponentUnit =
-     caret a1:Number
+     caret a1:IntLiteralExpr
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                return new ExponentUnit(createSpan(yyStart,yyCount),

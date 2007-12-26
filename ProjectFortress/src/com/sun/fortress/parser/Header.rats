@@ -18,13 +18,14 @@
 /*
  * Definition of Fortress headers.
  */
-module com.sun.fortress.parser.Header(Other, Type, Expr, DelimitedExpr,
+module com.sun.fortress.parser.Header(Other, Type, Expr, DelimitedExpr, Literal,
                                       Identifier, Keyword, Symbol, Spacing);
 
 import Other;
 import Type;
 import Expr;
 import DelimitedExpr;
+import Literal;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -187,11 +188,11 @@ private IntConstraint IntConstraint =
      { yyValue = new IEConstraint(createSpan(yyStart,yyCount), a1, a2); };
 
 /* IntVal ::=
-     Number
+     IntLiteralExpr
    | QualifiedName
  */
 IntVal IntVal =
-     a1:Number
+     a1:IntLiteralExpr
      { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:QualifiedName
      { yyValue = new IntRef(createSpan(yyStart,yyCount), a1); };
