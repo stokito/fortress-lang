@@ -579,12 +579,13 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         ChangeUnitExpr(Expr val, UnitExpr unit);
         /**
          * assignment expression
-         * Expr ::= AssignLefts AssignOp Expr
+         * AssignExpr ::= AssignLefts AssignOp Expr
          * AssignLefts ::= ( AssignLeft(, AssignLeft)* )
          *               | AssignLeft
          * AssignLeft ::= SubscriptExpr
-         *              | MemberSelection
-         *              | Id
+         *              | FieldSelection
+         *              | QualifiedName
+         * FieldSelection ::= Primary . Id
          * AssignOp ::= := | Op=
          * e.g.) x += 1
          */
@@ -748,7 +749,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * atomic expression
              * FlowExpr ::= atomic AtomicBack
-             * AtomicBack ::= AssignLefts AssignOp Expr
+             * AtomicBack ::= AssignExpr
              *              | OpExpr
              *              | DelimitedExpr
              * e.g.) atomic sum += a[i]
@@ -1149,7 +1150,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * StaticArg ::= Op
              * e.g.) +
              */
-            OprArg(SimpleName name);
+            OprArg(Op name);
             /**
              * dimension used as static argument
              * StaticArg ::= DimExpr
@@ -1195,7 +1196,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             abstract IntVal();
                 /**
                  * integer number
-                 * IntVal ::= Number
+                 * IntVal ::= IntLiteralExpr
                  * e.g.) 8
                  */
                 NumberConstraint(IntLiteralExpr val);

@@ -53,8 +53,8 @@ instantiate com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier,
                                              Spacing)
             as AbsField;
 instantiate com.sun.fortress.parser.Header(OtherDecl, Type, Expression,
-                                           DelimitedExpr, Identifier, Keyword,
-                                           Symbol, Spacing)
+                                           DelimitedExpr, Literal, Identifier,
+                                           Keyword, Symbol, Spacing)
             as Header;
 instantiate com.sun.fortress.parser.OtherDecl(Parameter, Header, Type,
                                               NoNewlineExpr, Identifier, Keyword,
