@@ -32,7 +32,7 @@ import Spacing;
    | CharLiteralExpr
    | StringLiteralExpr
  */
-Expr Literal =
+Expr LiteralExpr =
      <VOID> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); }
    / <NUMERICAL> NumericLiteralExpr
@@ -86,7 +86,7 @@ StringLiteralExpr StringLiteralExpr = ["] a1:StringLiteralContent* ["]
      };
 private String StringLiteralContent =
      EscapeSequence
-   / a1:(!["\\] _)     { yyValue = String.valueOf(a1); };
+   / a1:(!["\\] _) { yyValue = String.valueOf(a1); };
 private String EscapeSequence = '\\' a1:[btnfr"\\]
      { switch (a1) {
            case 'b': { yyValue = "\b"; break; }
@@ -96,8 +96,8 @@ private String EscapeSequence = '\\' a1:[btnfr"\\]
            case 'r': { yyValue = "\r"; break; }
            case '"': { yyValue = "\""; break; }
            case '\\': { yyValue = "\\"; break; }
-           default:   { yyValue = ""; }
+           default: { yyValue = ""; }
        }
      };
 
-private transient String CharLiteralContent   = '\\' [btnfr"\\] / (!"'" _);
+private transient String CharLiteralContent = '\\' [btnfr"\\] / !"'" _;

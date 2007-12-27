@@ -293,7 +293,7 @@ PureList<PrecedenceOpExpr> LooseInfix =
    | QualifiedName [\ w StaticArgList w \]
    | NoKeyTuple
    | Parenthesized
-   | Literal
+   | LiteralExpr
    | QualifiedName
    | self
    | ArrayExpr
@@ -323,7 +323,7 @@ Expr PrimaryFront =
      { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
    / NoKeyTuple
    / Parenthesized
-   / Literal
+   / LiteralExpr
    / a1:QualifiedName
      { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
    / a1:self
@@ -431,14 +431,14 @@ constant inline Action<PureList<Expr>> ExponentExpr =
 /* Exponent ::=
      NoKeyTuple
    | Parenthesized
-   | Literal
+   | LiteralExpr
    | QualifiedName
    | self
  */
 private Expr Exponent =
      NoKeyTuple
    / Parenthesized
-   / Literal
+   / LiteralExpr
    / a1:QualifiedName
      { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
    / a1:self
