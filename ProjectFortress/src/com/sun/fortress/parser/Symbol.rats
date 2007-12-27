@@ -222,11 +222,9 @@ Option<Op> AssignOp =
      colonequals   { yyValue = Option.none(); }
    / a1:CompoundOp { yyValue = Option.some(a1); };
 
-transient String accumulator = "SUM" / "PROD" ;
-
-Op SUM = "SUM":accumulator
+Op SUM = "SUM"
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "BIG +"); };
-Op PROD = "PROD":accumulator
+Op PROD = "PROD"
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
                                     "BIG juxtaposition");
      };
