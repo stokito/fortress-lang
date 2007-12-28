@@ -42,10 +42,6 @@ Id BindId =
      Id
    / a1:"_" { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
-/* IdList ::= Id (w , w Id)* */
-List<Id> IdList = a1:Id a2s:(w comma w Id)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
 /* BindIdList ::= BindId (w , w BindId)* */
 List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
