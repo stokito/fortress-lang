@@ -84,7 +84,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     Annotations anns = new Annotations(fssFile);
-                    Option<CompilationUnit> _p = Driver.parseToJavaAst(fssFile, in);
+                    Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
 
                     if (_p.isNone()) {
                         error("Syntax error");

@@ -26,7 +26,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
@@ -165,7 +165,7 @@ public class InterpreterWrapper {
 	private Option<CompilationUnit> readAST(String filename, String component) throws IOException {
 		StringReader sr = new StringReader(component);
 		BufferedReader br = new BufferedReader(sr);
-		return Driver.readJavaAst(filename, br);
+		return ASTIO.readJavaAst(filename, br);
 	}
 
 }

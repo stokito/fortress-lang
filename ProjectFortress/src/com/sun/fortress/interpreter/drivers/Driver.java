@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.drivers;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,9 +34,6 @@ import java.util.Set;
 import java.util.Stack;
 import edu.rice.cs.plt.tuple.Option;
 
-import xtc.parser.ParseError;
-import xtc.parser.Result;
-import xtc.parser.SemanticValue;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
@@ -71,8 +67,6 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.parser.Fortress;
-import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
@@ -86,8 +80,6 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Printer;
-import com.sun.fortress.nodes_util.Unprinter;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -102,174 +94,7 @@ public class Driver {
    // private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
    // private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
 
-    public final static String COMP_SOURCE_SUFFIX = "fss";
-    public final static String COMP_TREE_SUFFIX = "tfs";
-    public final static String COMP_TREE_SUFFIX_NATIVE = "tfn";
-    public final static String API_SOURCE_SUFFIX = "fsi";
-    public final static String API_TREE_SUFFIX = "tfi";
-
     private Driver() {};
-
-    public static Option<CompilationUnit> readJavaAst(String fileName)
-            throws IOException {
-        BufferedReader br = Useful.utf8BufferedFileReader(fileName);
-        try { return readJavaAst(fileName, br); }
-        finally { br.close(); }
-    }
-
-    /**
-     * @param reportedFileName
-     * @param br
-     * @throws IOException
-     */
-    public static Option<CompilationUnit>
-        readJavaAst(String reportedFileName, BufferedReader br)
-        throws IOException
-    {
-        Lex lex = new Lex(br);
-        try {
-            Unprinter up = new Unprinter(lex);
-            lex.name();
-            CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            if (p == null) { return Option.none(); }
-            else { return Option.some(p); }
-        }
-        finally {
-            if (!lex.atEOF())
-                System.out.println("Parse of " + reportedFileName
-                        + " ended EARLY at line = " + lex.line()
-                        + ",  column = " + lex.column());
-        }
-    }
-
-    public static Option<CompilationUnit> parseToJavaAst (
-            String reportedFileName, BufferedReader in
-        )
-        throws IOException
-    {
-        Fortress p =
-            new Fortress(in,
-                         reportedFileName,
-                         (int) new File(reportedFileName).length());
-        Result r = p.pFile(0);
-
-        if (r.hasValue()) {
-            SemanticValue v = (SemanticValue) r;
-            CompilationUnit n = (CompilationUnit) v.value;
-            return Option.some(n);
-        }
-        else {
-            ParseError err = (ParseError) r;
-            if (-1 == err.index) {
-                System.err.println("  Parse error");
-            }
-            else {
-                System.err.println("  " + p.location(err.index) + ": "
-                        + err.msg);
-            }
-            return Option.none();
-        }
-    }
-
-    /**
-     * Convenience method for calling parseToJavaAst with a default BufferedReader.
-     */
-    public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
-        BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
-        try { return parseToJavaAst(reportedFileName, r); }
-        finally { r.close(); }
-    }
-
-
-    /**
-     * Runs a command and captures its output and errors streams.
-     *
-     * @param command
-     *            The command to run
-     * @param output
-     *            Output from the command is written here.
-     * @param errors
-     *            Errors from the command are written here.
-     * @param exceptions
-     *            If the execution of the command throws an exception, it is
-     *            stored here.
-     * @return true iff any errors were written.
-     * @throws IOException
-     */
-
-    /* This function has no callers.  I'd rather not create new threads unless we
-       have a good reason.  I'm commenting this out until someone squeals.
-       Christine
-    */
-//     public static boolean runCommand(String command, final PrintStream output,
-//             final IOException[] exceptions, PrintStream errors)
-//             throws IOException {
-//         Runtime runtime = Runtime.getRuntime();
-//         Process p = runtime.exec(command);
-//         final BufferedReader input_from_process = new BufferedReader(
-//                 new InputStreamReader(p.getInputStream()));
-//         final BufferedReader errors_from_process = new BufferedReader(
-//                 new InputStreamReader(p.getErrorStream()));
-
-//         boolean errors_encountered = false;
-//         Thread th = new Thread() {
-//             public void run() {
-//                 try {
-//                     try {
-//                         String line = input_from_process.readLine();
-//                         while (line != null) {
-//                             output.println(line);
-//                             line = input_from_process.readLine();
-//                         }
-//                     } finally {
-//                         output.close();
-//                         input_from_process.close();
-//                     }
-//                 } catch (IOException ex) {
-//                     exceptions[0] = ex;
-//                 }
-//             }
-//         };
-
-//         th.start();
-
-//         // Print errors, discarding any leading blank lines.
-//         String line = errors_from_process.readLine();
-//         boolean first = true;
-
-//         while (line != null) {
-//             if (!first || line.trim().length() > 0) {
-//                 errors.println(line);
-//                 first = false;
-//                 errors_encountered = true;
-//             }
-//             line = errors_from_process.readLine();
-//         }
-
-//         try {
-//             th.join();
-//         } catch (InterruptedException ex) {
-
-//         }
-//         return errors_encountered;
-//     }
-
-    public static void writeJavaAst(CompilationUnit p, String s)
-            throws IOException {
-        BufferedWriter fout = Useful.utf8BufferedFileWriter(s);
-        try { writeJavaAst(p, fout); }
-        finally { fout.close(); }
-    }
-
-    /**
-     * @param p
-     * @param fout
-     * @throws IOException
-     */
-    public static void writeJavaAst(CompilationUnit p, BufferedWriter fout)
-            throws IOException {
-        (new Printer()).dump(p, fout, 0);
-    }
 
     static public void runTests() {
     }
@@ -296,7 +121,7 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
-        ComponentWrapper comp = new ComponentWrapper((Component) p, false);
+        ComponentWrapper comp = new ComponentWrapper((Component) p);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -324,7 +149,7 @@ public class Driver {
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
-        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(), false);
+        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary());
         lib.getEnvironment().installPrimitives();
         lib.getExports(true);
         pile.push(lib);
@@ -928,19 +753,19 @@ public class Driver {
              */
             Api newapi = readTreeOrSourceApi(apiname, apiname, ProjectProperties.SOURCE_PATH);
             Component newcomp;
-            boolean is_native = false;
+            //boolean is_native = false;
             try {
                 newcomp = readTreeOrSourceComponent(apiname, apiname, ProjectProperties.SOURCE_PATH) ;
             } catch (Exception ex) {
                 try {
                     newcomp = readTreeOrSourceNativeComponent(apiname, apiname, ProjectProperties.SOURCE_PATH_NATIVE);
-                    is_native = true;
+                    //is_native = true;
                 } catch (Exception ex1) {
                     newcomp = error(errorMsg(ex, " AND ", ex1));
                 }
             }
-            ComponentWrapper apicw = new ComponentWrapper(newapi, false);
-            ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw, is_native);
+            ComponentWrapper apicw = new ComponentWrapper(newapi);
+            ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.getExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
@@ -1040,18 +865,18 @@ public class Driver {
     }
 
     public static Component readTreeOrSourceComponent(String key, String basename, Path p) throws IOException {
-        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
-                basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX, p);
+        return (Component) readTreeOrSource(key + "." + ProjectProperties.COMP_SOURCE_SUFFIX,
+                basename , ProjectProperties.COMP_SOURCE_SUFFIX, ProjectProperties.COMP_TREE_SUFFIX, p, false);
     }
 
     public static Component readTreeOrSourceNativeComponent(String key, String basename, Path p) throws IOException {
-        return (Component) readTreeOrSource(key + "." + COMP_SOURCE_SUFFIX,
-                basename , COMP_SOURCE_SUFFIX, COMP_TREE_SUFFIX_NATIVE, p);
+        return (Component) readTreeOrSource(key + "." + ProjectProperties.COMP_SOURCE_SUFFIX,
+                basename , ProjectProperties.COMP_SOURCE_SUFFIX, ProjectProperties.COMP_TREE_SUFFIX, p, true);
     }
 
     public static Api readTreeOrSourceApi(String key, String basename, Path p) throws IOException {
-        return (Api) readTreeOrSource(key + "." + API_SOURCE_SUFFIX,
-                basename ,  API_SOURCE_SUFFIX, API_TREE_SUFFIX, p);
+        return (Api) readTreeOrSource(key + "." + ProjectProperties.API_SOURCE_SUFFIX,
+                basename ,  ProjectProperties.API_SOURCE_SUFFIX, ProjectProperties.API_TREE_SUFFIX, p, false);
     }
 
     static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
@@ -1063,8 +888,8 @@ public class Driver {
      * @param librarySource
      * @param libraryTree
      */
-    public static CompilationUnit
-        readTreeOrSource(String key, String base, String source_suffix, String tree_suffix, Path p) throws IOException
+    private static CompilationUnit
+        readTreeOrSource(String key, String base, String source_suffix, String tree_suffix, Path p, boolean is_native) throws IOException
     {
         if (false && libraryCache.containsKey(key))
             return libraryCache.get(key);
@@ -1087,13 +912,13 @@ public class Driver {
             try {
                 // Because of the check above, we can retrieve the value of
                 // the Option immediately.
-                CompilationUnit c = Option.unwrap(parseToJavaAst(librarySource, r));
+                CompilationUnit c = Option.unwrap(ASTIO.parseToJavaAst(librarySource, r, is_native));
 
                 System.err.println
                     ("Parsed " + librarySource + ": "
                          + (System.currentTimeMillis() - begin)
                          + " milliseconds");
-                writeJavaAst(c, libraryTree);
+                ASTIO.writeJavaAst(c, libraryTree);
                 libraryCache.put(key, c);
                 return c;
             }
@@ -1101,7 +926,7 @@ public class Driver {
         }
         else {
             long begin = System.currentTimeMillis();
-            Option<CompilationUnit> c = readJavaAst(libraryTree);
+            Option<CompilationUnit> c = ASTIO.readJavaAst(libraryTree);
 
             System.err.println
                 ("Read " + libraryTree + ": "

@@ -31,7 +31,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -200,7 +200,7 @@ public class ActionCreater {
 	private String writeJavaAST(Component component) throws IOException {
 		StringWriter sw = new StringWriter();
 		BufferedWriter bw = new BufferedWriter(sw);
-		Driver.writeJavaAst(component, bw);
+		ASTIO.writeJavaAst(component, bw);
 		bw.flush();
 		bw.close();
 		return sw.getBuffer().toString();

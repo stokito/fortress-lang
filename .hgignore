@@ -19,8 +19,8 @@ ProjectFortress/TEST-RESULTS/*
 *.yy.cc
 *~
 *.jst
-*.tfs
-*.tfi
+ProjectFortress/*.tfs
+ProjectFortress/*.tfi
 fortress_*.zip
 ProjectFortress/.dependencies/dependencies.txt
 META
@@ -31,4 +31,8 @@ ProjectFortress/src/com/sun/fortress/parser/Fortress.java
 ProjectFortress/FortressLibrary.ast
 ProjectFortress/FortressLibrary.jst
 ProjectFortress/src/com/sun/fortress/parser_util/precedence_resolver/Operators.java
+ProjectFortress/src/com/sun/fortress/parser/preparser/PreFortress.java
 build/
+.fortress_cache/
+.fortress_cache_checked/
+ProjectFortress/testFile.txt
