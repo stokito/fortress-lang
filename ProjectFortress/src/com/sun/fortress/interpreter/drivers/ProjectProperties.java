@@ -28,13 +28,13 @@ import com.sun.fortress.useful.StringMap;
 import com.sun.fortress.useful.Useful;
 
 public class ProjectProperties {
-    
+
     private static String fortressHome() {
         String s = null;
         try {
             s = System.getProperty("fortress.home");
-           } catch (Throwable th) {
-               
+        } catch (Throwable th) {
+
         }
         if (s == null) {
             s = System.getenv("FORTRESS_HOME");
@@ -45,7 +45,7 @@ public class ProjectProperties {
             try {
                 f = p.findDir("../ProjectFortress");
                 try {
-                   s = (new File(f, "..")).getCanonicalPath();
+                    s = (new File(f, "..")).getCanonicalPath();
                 } catch (IOException ex) {
                     throw new Error("Failure to evaluate relative path .. from " + f);
                 }
@@ -54,9 +54,9 @@ public class ProjectProperties {
                     f = p.findDir("../../ProjectFortress/build");
                     try {
                         s = (new File(f, "../..")).getCanonicalPath();
-                     } catch (IOException ex) {
-                         throw new Error("Failure to evaluate relative path ../.. from " + f);
-                     }
+                    } catch (IOException ex) {
+                        throw new Error("Failure to evaluate relative path ../.. from " + f);
+                    }
                 } catch (FileNotFoundException ex2) {
                     throw new Error("Could not find fortress home using fortress.home, FORTRESS_HOME, or probing classpath.");
                 }
@@ -64,35 +64,8 @@ public class ProjectProperties {
         }
         return s;
     }
-    
-    private static String baseDir() {
-        String s = null;
-        
-        try {
-         s = System.getProperty("BASEDIR");
-        } catch (Throwable th) {
-            
-        }
-            
-        if (s == null) {
-            // This gave the wrong value under Eclipse with the old copy
-            // of the repository.  As a transitional crutch, specify the
-            // BASEDIR explicitly with a property instead.
-            
-//            s = new File(URI.create(ProjectProperties.class.getProtectionDomain().
-//                getCodeSource().getLocation().toExternalForm())).
-//                    getParent() ;
-            s= FORTRESS_HOME + File.separator + "ProjectFortress";
-        }
-        
-        s = s + File.separator;
-        
-        // It is a myth that Windows requires backslashes.  Only the DOS shell
-        // requires backslashes.
-        s = backslashToSlash(s);
-        return s;
-    }
-    
+
+
     /**
      * If the property is defined, return that value,
      * else return BASE_DIR + default_name .
@@ -102,30 +75,28 @@ public class ProjectProperties {
      * @return
      */
 
-   private static String someImplDir(String property_name, String default_name) {
+    private static String someImplDir(String property_name, String default_name) {
         String s = null;
-        
+
         try {
-         s = System.getProperty(property_name);
+            s = System.getProperty(property_name);
         } catch (Throwable th) {
-            
+
         }
-            
+
         if (s == null) {
             s = BASEDIR + default_name;
         }
-        
+
         s = s + File.separator;
-        
+
         // It is a myth that Windows requires backslashes.  Only the DOS shell
         // requires backslashes.
         s = backslashToSlash(s);
         return s;
     }
 
-   private static Properties sysProps = System.getProperties();
-    
-   
+
     /**
      * No-op right now.
      * 
@@ -141,17 +112,17 @@ public class ProjectProperties {
         //return s.replaceAll("\\\\", "/");
         return s;
     }
-    
+
     public static final String FORTRESS_HOME = fortressHome();
-    
+
     static final String home = System.getenv("HOME");
-    
+
     static final StringMap searchTail = new StringMap.ComposedMaps(
             new StringMap.FromFileProps(".fortress.properties"),
             new StringMap.FromFileProps(home+"/.fortress.properties"),
             new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
-             );
-    
+    );
+
     static final StringMap allProps = new StringMap.ComposedMaps(
             new StringMap.FromReflection(ProjectProperties.class),
             new StringMap.FromSysProps(), 
@@ -159,12 +130,15 @@ public class ProjectProperties {
             new StringMap.FromFileProps(".fortress.properties"),
             new StringMap.FromFileProps(home+"/.fortress.properties"),
             new StringMap.FromFileProps(FORTRESS_HOME+"/fortress.properties")
-             );
- 
+    );
+
     static final public String get(String s) {
-        return allProps.get(s);
+        String result =  allProps.get(s);
+        if (result != null)
+            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        return result;
     }
-    
+
     /**
      * Searches for property/environment definition in the following order
      * 
@@ -174,55 +148,80 @@ public class ProjectProperties {
      * ~/.fortress.properties .getProperty("fortress.cache")
      * ${FORTRESS_HOME}/fortress.properties .getProperty("fortress.cache") .
      */
-    
+
     private static String searchDef(String asProp, String asEnv, String defaultValue) {
         String result = null;
         result = System.getProperty(asProp);
-        if (result != null) return result;
-        result = System.getenv(asEnv);
-        if (result != null) return result;
-        result = searchTail.get(asProp);
+        if (result == null) 
+            result = System.getenv(asEnv);
+        if (result == null) 
+            result = searchTail.get(asProp);
         result =  result == null ? defaultValue : result;
         result = Useful.substituteVarsCompletely(result, allProps, 1000);
         return result;
     }
-    
+
     public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
+    public static final String CHECKED_CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache_checked";
     public static final Path FORTRESS_PATH = new Path(searchDef("fortress.path", "FORTRESS_PATH", "."));
-    
+
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
     // Note default of "." for native means nothing will be native if both defaults are used.
     public static final Path SOURCE_PATH_NATIVE = new Path(searchDef("fortress.source.path.native", "FORTRESS_SOURCE_PATH_NATIVE", "."));
-    
+
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
-        //baseDir();
-    
+
     //public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
     //public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
-    
+
     static {
-        File f = new File(CACHE_DIR);
+        ensureDirectoryExists(CACHE_DIR);
+        ensureDirectoryExists(CHECKED_CACHE_DIR);
+    }
+
+
+    private static void ensureDirectoryExists(String s) throws Error {
+        File f = new File(s);
         if (f.exists()) {
             if (f.isDirectory()) {
                 // ok
             } else {
-                throw new Error("Cache dir " + CACHE_DIR + " is not a directory");
+                throw new Error("Necessary 'directory' " + s + " is not a directory");
             }
         } else {
             if (f.mkdirs()) {
                 // ok
             } else {
-                throw new Error("Failed to create cache dir " + CACHE_DIR );
+                throw new Error("Failed to create directory " + s );
             }
         }
     }
-    
+
+    public final static String COMP_SOURCE_SUFFIX = "fss";
+
+    public final static String COMP_TREE_SUFFIX = "tfs";
+
+    public final static String API_SOURCE_SUFFIX = "fsi";
+
+    public final static String API_TREE_SUFFIX = "tfi";
+
 
     /** Creates a new instance of ProjectProperties */
     private ProjectProperties() {
+    }
+
+
+    public static String astSuffixForSource(String s) {
+        if (s.endsWith("." + COMP_SOURCE_SUFFIX))
+            return COMP_TREE_SUFFIX;
+
+        if (s.endsWith("." + API_SOURCE_SUFFIX))
+            return API_TREE_SUFFIX;
+
+        throw new Error("Unexpected suffix on Fortress(?) source file");
     }
 }

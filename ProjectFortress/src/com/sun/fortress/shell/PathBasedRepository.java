@@ -28,7 +28,7 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.IndexBuilder.ComponentResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -41,7 +41,9 @@ import edu.rice.cs.plt.tuple.Option;
 public class PathBasedRepository implements FortressRepository {
 
     final Path path;
+    final Path nativePath;
     IndexBuilder builder = new IndexBuilder();
+    FortressRepository writer;
     
     private final Map<APIName, ApiIndex> apis = 
         new HashMap<APIName, ApiIndex>();
@@ -49,17 +51,24 @@ public class PathBasedRepository implements FortressRepository {
     private final Map<APIName, ComponentIndex> components = 
         new HashMap<APIName, ComponentIndex>();
    
-    public PathBasedRepository(Path p) {
-        path = p;
+    public PathBasedRepository(Path p, Path native_p) {
+        this(p, native_p, new StubRepository());
+    }
+    
+    public PathBasedRepository(Path p, Path native_p, FortressRepository writer) {
+        this.path = p;
+        this.nativePath = native_p;
+        this.writer = writer;
     }
     
     public void addApi(APIName name, ApiIndex definition) {
-        throw new Error("Won't work");
+        apis.put(name, definition);
+        writer.addApi(name, definition);
     }
 
     public void addComponent(APIName name, ComponentIndex definition) {
-        throw new Error("Won't work");
-        
+        components.put(name, definition);
+        writer.addComponent(name, definition);
     }
 
     public Map<APIName, ApiIndex> apis() {
@@ -70,10 +79,13 @@ public class PathBasedRepository implements FortressRepository {
     public ApiIndex getApi(APIName name) throws IOException {
         if (apis.containsKey(name))
             return apis.get(name);
-        File fdot = findFile(name, ".fsi");
+        
+        boolean[] isNative = new boolean[1];
+        
+        File fdot = findFile(name, ".fsi", isNative);
         // Attempt to parse fdot.
         
-        Option<CompilationUnit> ocu = Driver.parseToJavaAst(fdot.getCanonicalPath());
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
@@ -97,10 +109,12 @@ public class PathBasedRepository implements FortressRepository {
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
         if (components.containsKey(name))
             return components.get(name);
-        File fdot = findFile(name, ".fss");
+        boolean[] isNative = new boolean[1];
+        
+        File fdot = findFile(name, ".fss", isNative);
         // Attempt to parse fdot.
         
-        Option<CompilationUnit> ocu = Driver.parseToJavaAst(fdot.getCanonicalPath());
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
@@ -119,16 +133,32 @@ public class PathBasedRepository implements FortressRepository {
         } 
     }
 
-    private File findFile(APIName name, String suffix) throws FileNotFoundException {
+    private File findFile(APIName name, String suffix, boolean[] isNative) throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll(".", "/");
         dotted = dotted + suffix;
         slashed = slashed + suffix;
         File fdot;
+        if (isNative != null)
+            isNative[0] = false;
         try {
             fdot = path.findFile(dotted);
         } catch (FileNotFoundException ex1) {
-            fdot = path.findFile(slashed);
+            try {
+                fdot = path.findFile(slashed);
+            } catch (FileNotFoundException ex2) {
+                try {
+                    fdot = nativePath.findFile(dotted);
+                } catch (FileNotFoundException ex3) {
+                    try {
+                        fdot = nativePath.findFile(slashed);
+                    } catch (FileNotFoundException ex4) {
+                        throw new FileNotFoundException("Could not find " + dotted + " or " + slashed + " on path or native path");
+                    }
+                }
+                if (isNative != null)
+                    isNative[0] = true;
+            }
         }
         return fdot;
     }
@@ -136,14 +166,14 @@ public class PathBasedRepository implements FortressRepository {
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         if (apis.containsKey(name))
             return apis.get(name).modifiedDate();
-        File fdot = findFile(name, ".fsi");
+        File fdot = findFile(name, ".fsi", null);
         return fdot.lastModified();
     }
 
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
         if (components.containsKey(name))
             return components.get(name).modifiedDate();
-        File fdot = findFile(name, ".fss");
+        File fdot = findFile(name, ".fss", null);
         return fdot.lastModified();
     }
 

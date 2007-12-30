@@ -51,7 +51,7 @@ import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
 import com.sun.fortress.useful.NI;
 
@@ -171,21 +171,21 @@ public class Parser {
                     if (cu instanceof Api) {
                         Api _cu = (Api) cu;
                         
-                        if (f.toString().endsWith(Driver.API_SOURCE_SUFFIX)) {
+                        if (f.toString().endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
                             return new Result(_cu, f.lastModified());
                         } else {
                             return new Result(StaticError.make
-                                ("Api files must have suffix " + Driver.API_SOURCE_SUFFIX,
+                                ("Api files must have suffix " + ProjectProperties.API_SOURCE_SUFFIX,
                                  _cu));
                         }
                     } else if (cu instanceof Component) {
                         Component _cu = (Component) cu;
                         
-                        if (f.toString().endsWith(Driver.COMP_SOURCE_SUFFIX)) {
+                        if (f.toString().endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
                             return new Result(_cu, f.lastModified());
                         } else {
                             return new Result(StaticError.make
-                                ("Component files must have suffix " + Driver.COMP_SOURCE_SUFFIX,
+                                ("Component files must have suffix " + ProjectProperties.COMP_SOURCE_SUFFIX,
                                  _cu));
                         }
                     } else {

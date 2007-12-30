@@ -71,5 +71,5 @@ public abstract class CompilationUnitIndex {
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
 
     public long modifiedDate() { return _modifiedDate; }
-
+    
 }

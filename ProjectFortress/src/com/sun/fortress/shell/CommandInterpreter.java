@@ -82,7 +82,7 @@ public class CommandInterpreter {
     }
     
     void run(String fileName) throws UserError, IOException, Throwable {
-        Driver.runProgram(Option.unwrap(Driver.readJavaAst(fileName)), new ArrayList<String>());
+        Driver.runProgram(Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
     }
     
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
@@ -125,7 +125,7 @@ public class CommandInterpreter {
             throw new UserError("Error: File " + fileName + " does not exist.");
         }   
         try {
-            return Driver.parseToJavaAst(fileName);
+            return ASTIO.parseToJavaAst(fileName, false);
         }
         catch (IOException e) {
             throw new ShellException(e);

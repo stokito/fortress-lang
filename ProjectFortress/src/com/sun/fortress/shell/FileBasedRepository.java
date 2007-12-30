@@ -56,7 +56,7 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
                 System.err.println("Loading " + file);
                 
                 Option<CompilationUnit> candidate = 
-                    Driver.readJavaAst(file.getCanonicalPath());
+                    ASTIO.readJavaAst(file.getCanonicalPath());
                 
                 if (candidate.isNone()) {
                     throw new RepositoryError ("Compilation aborted. " +

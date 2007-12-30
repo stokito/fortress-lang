@@ -56,8 +56,7 @@ public class ComponentWrapper {
     BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     
     Desugarer dis;
-    boolean isNative; 
-
+    
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
@@ -74,14 +73,13 @@ public class ComponentWrapper {
         }
     };
 
-    public ComponentWrapper(CompilationUnit comp, boolean is_native) {
+    public ComponentWrapper(CompilationUnit comp) {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
         BetterEnv e = BetterEnv.empty();
         e.setTopLevel();
-        isNative = is_native;
-        be = isNative ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
+        be = comp.is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
     }
 
     /**
@@ -89,8 +87,8 @@ public class ComponentWrapper {
      * @param comp
      * @param api
      */
-    public ComponentWrapper(Component comp, ComponentWrapper api, boolean is_native) {
-        this(comp, is_native);
+    public ComponentWrapper(Component comp, ComponentWrapper api) {
+        this(comp);
         
         exports.put(NodeUtil.nameString(api.getComponent().getName()), api);
     }

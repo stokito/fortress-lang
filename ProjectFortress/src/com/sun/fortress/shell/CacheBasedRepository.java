@@ -33,7 +33,8 @@ import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.drivers.fs;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -67,12 +68,12 @@ public class CacheBasedRepository implements FortressRepository {
         try {
             CompilationUnit ast = def.ast();
             if (ast instanceof Component) {
-                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-                                    DOT + Driver.COMP_TREE_SUFFIX);
+                ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + 
+                                    DOT + ProjectProperties.COMP_TREE_SUFFIX);
             }
             else { // ast instanceof Api
-                Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + 
-                                    DOT + Driver.API_TREE_SUFFIX);
+                ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + 
+                                    DOT + ProjectProperties.API_TREE_SUFFIX);
             }
         } catch (IOException e) {
             throw new ShellException(e);
@@ -91,7 +92,7 @@ public class CacheBasedRepository implements FortressRepository {
         
         try {
             CompilationUnit ast = def.ast();
-            Driver.writeJavaAst(ast, pwd + SEP + ast.getName() + fs.JAVA_AST_SUFFIX);
+            ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + DOT + ProjectProperties.COMP_TREE_SUFFIX);
         } catch (IOException e) {
             throw new ShellException(e);
         }

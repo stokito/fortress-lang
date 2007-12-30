@@ -34,9 +34,7 @@ import com.sun.fortress.useful.Useful;
 
 public class fs {
 
-    public static final String SXP_SUFFIX = ".sxp";
-    public static final String JAVA_AST_SUFFIX = ".tfs";
-
+  
     // Options set by main()
     private static boolean doAst = false;
     private static boolean verbose = false;
@@ -150,13 +148,13 @@ public class fs {
             BufferedReader in = Useful.utf8BufferedFileReader(s);
             Option<CompilationUnit> p = Option.none();
             try {
-                p = Driver.parseToJavaAst(s, in);
+                p = ASTIO.parseToJavaAst(s, in, false);
                 reportCompletion("Parsing " + s, begin);
             }
             finally { in.close(); }
 
             if (doAst && p.isSome()) {
-                String astFile = basename(s) + JAVA_AST_SUFFIX;
+                String astFile = basename(s) + "." + ProjectProperties.astSuffixForSource(s);
                 if (verbose) { System.err.println("Writing ast to " + astFile); }
                 BufferedWriter fout = Useful.utf8BufferedFileWriter(astFile);
                 try { new Printer(true, true, true).dump(Option.unwrap(p), fout, 0); }
