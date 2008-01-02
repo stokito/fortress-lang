@@ -35,6 +35,9 @@ import java.util.Stack;
 import edu.rice.cs.plt.tuple.Option;
 
 
+import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -99,14 +102,16 @@ public class Driver {
     static public void runTests() {
     }
 
-    public static BetterEnv evalComponent(CompilationUnit p) throws IOException {
-        return evalComponent(p, false);
+    public static BetterEnv evalComponent(CompilationUnit p,
+            FortressRepository fr) throws IOException {
+        return evalComponent(p, false, fr);
     }
 
     public static ArrayList<ComponentWrapper> components;
 
     public static BetterEnv evalComponent(CompilationUnit p,
-                                          boolean woLibrary) throws IOException {
+                                          boolean woLibrary,
+                                          FortressRepository fr) throws IOException {
 
         Init.initializeEverything();
 
@@ -149,7 +154,7 @@ public class Driver {
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
-        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary());
+        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(fr));
         lib.getEnvironment().installPrimitives();
         lib.getExports(true);
         pile.push(lib);
@@ -166,7 +171,7 @@ public class Driver {
             CompilationUnit c = cw.getComponent();
             List<Import> imports = c.getImports();
 
-            ensureImportsImplemented(linker, pile, imports);
+            ensureImportsImplemented(fr, linker, pile, imports);
         }
 
         // Desugarer needs to know about trait members.
@@ -708,6 +713,7 @@ public class Driver {
      * @param imports
      */
     private static void ensureImportsImplemented (
+            FortressRepository fr,
             HashMap<String, ComponentWrapper> linker,
             Stack<ComponentWrapper> pile,
             List<Import> imports
@@ -721,13 +727,13 @@ public class Driver {
                 List<AliasedAPIName> apis = ix.getApis();
                 for (AliasedAPIName adi : apis) {
                     APIName id = adi.getApi();
-                    ensureApiImplemented(linker, pile, id);
+                    ensureApiImplemented(fr, linker, pile, id);
                 }
             }
             else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
                 APIName source = ix.getApi();
-                ensureApiImplemented(linker, pile, source);
+                ensureApiImplemented(fr, linker, pile, source);
             }
             else {
                 bug(i, "Unrecognized import");
@@ -741,6 +747,7 @@ public class Driver {
      * @param id
      */
     private static void ensureApiImplemented(
+            FortressRepository fr,
             HashMap<String, ComponentWrapper> linker,
             Stack<ComponentWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
@@ -751,19 +758,12 @@ public class Driver {
              *
              * These few lines are what needs to be replaced by a real linker.
              */
-            Api newapi = readTreeOrSourceApi(apiname, apiname, ProjectProperties.SOURCE_PATH);
+            Api newapi = readTreeOrSourceApi(apiname, apiname, fr);
             Component newcomp;
             //boolean is_native = false;
-            try {
-                newcomp = readTreeOrSourceComponent(apiname, apiname, ProjectProperties.SOURCE_PATH) ;
-            } catch (Exception ex) {
-                try {
-                    newcomp = readTreeOrSourceNativeComponent(apiname, apiname, ProjectProperties.SOURCE_PATH_NATIVE);
-                    //is_native = true;
-                } catch (Exception ex1) {
-                    newcomp = error(errorMsg(ex, " AND ", ex1));
-                }
-            }
+            
+            newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
+            
             ComponentWrapper apicw = new ComponentWrapper(newapi);
             ComponentWrapper newwrapper = new ComponentWrapper(newcomp, apicw);
             newwrapper.getExports(true);
@@ -775,19 +775,20 @@ public class Driver {
             // ensureImportsImplemented(linker, pile, imports);
 
             imports = newapi.getImports();
-            ensureImportsImplemented(linker, pile, imports);
+            ensureImportsImplemented(fr, linker, pile, imports);
         }
     }
 
     // This runs the program from inside a task.
     public static FValue
         runProgramTask(CompilationUnit p, boolean runTests, boolean woLibrary,
-                       List<String> args, String toBeRun)
+                       List<String> args, String toBeRun,
+                       FortressRepository fr)
         throws IOException
     {
 
         FortressTests.reset();
-        BetterEnv e = evalComponent(p, woLibrary);
+        BetterEnv e = evalComponent(p, woLibrary, fr);
 
         Closure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
@@ -864,66 +865,41 @@ public class Driver {
         }
     }
 
-    public static Component readTreeOrSourceComponent(String key, String basename, Path p) throws IOException {
-        return (Component) readTreeOrSource(key + "." + ProjectProperties.COMP_SOURCE_SUFFIX,
-                basename , ProjectProperties.COMP_SOURCE_SUFFIX, ProjectProperties.COMP_TREE_SUFFIX, p, false);
-    }
-
-    public static Component readTreeOrSourceNativeComponent(String key, String basename, Path p) throws IOException {
-        return (Component) readTreeOrSource(key + "." + ProjectProperties.COMP_SOURCE_SUFFIX,
-                basename , ProjectProperties.COMP_SOURCE_SUFFIX, ProjectProperties.COMP_TREE_SUFFIX, p, true);
-    }
-
-    public static Api readTreeOrSourceApi(String key, String basename, Path p) throws IOException {
-        return (Api) readTreeOrSource(key + "." + ProjectProperties.API_SOURCE_SUFFIX,
-                basename ,  ProjectProperties.API_SOURCE_SUFFIX, ProjectProperties.API_TREE_SUFFIX, p, false);
-    }
-
-    static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
-
-    /**
-     * Attempts to read in preparsed program. Reparses if parsed form is missing
-     * or newer than preparsed form.
-     *
-     * @param librarySource
-     * @param libraryTree
-     */
-    private static CompilationUnit
-        readTreeOrSource(String key, String base, String source_suffix, String tree_suffix, Path p, boolean is_native) throws IOException
-    {
+    public static Component readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
+        
+        String name  = key;
+        APIName apiname = NodeFactory.makeAPIName(name);
+        
+        key = key + "." + ProjectProperties.COMP_SOURCE_SUFFIX;
+        
         if (false && libraryCache.containsKey(key))
-            return libraryCache.get(key);
+            return (Component) libraryCache.get(key);
 
-        String librarySource = base + "." + source_suffix;
+        String libraryTree = ProjectProperties.CACHE_DIR + "/" + basename + "." + ProjectProperties.COMP_TREE_SUFFIX;
 
-        File sourceFile = p.findFile(librarySource);
-        librarySource = sourceFile.getCanonicalPath();
-        String libraryTree = ProjectProperties.CACHE_DIR + "/" + base + "." + tree_suffix;
-
-        if (Useful.olderThanOrMissing(libraryTree, librarySource)) {
+        if (Useful.olderThanOrMissing(libraryTree, p.getModifiedDateForComponent(apiname))) {
 
             System.err.println("Missing or stale preparsed AST "
                                + libraryTree + ", rebuilding from source "
-                               + librarySource );
+                               + name );
 
             long begin = System.currentTimeMillis();
 
-            BufferedReader r = Useful.utf8BufferedFileReader(librarySource);
-            try {
-                // Because of the check above, we can retrieve the value of
-                // the Option immediately.
-                CompilationUnit c = Option.unwrap(ASTIO.parseToJavaAst(librarySource, r, is_native));
+           
+            // Because of the check above, we can retrieve the value of
+            // the Option immediately.
+                
+                ComponentIndex ci = p.getComponent(apiname);
+                CompilationUnit c = ci.ast();
 
                 System.err.println
-                    ("Parsed " + librarySource + ": "
+                    ("Parsed component" + name + ": "
                          + (System.currentTimeMillis() - begin)
                          + " milliseconds");
                 ASTIO.writeJavaAst(c, libraryTree);
                 libraryCache.put(key, c);
-                return c;
-            }
-            finally { r.close(); }
-        }
+                return (Component) c;
+                    }
         else {
             long begin = System.currentTimeMillis();
             Option<CompilationUnit> c = ASTIO.readJavaAst(libraryTree);
@@ -935,12 +911,74 @@ public class Driver {
 
             if (c.isSome()) {
                 libraryCache.put(key, Option.unwrap(c));
-                return Option.unwrap(c);
+                return (Component) Option.unwrap(c);
             }
             else {
-                return error("Could not read " + librarySource + " or " + libraryTree);
+                return error("Could not read " + name + " or " + libraryTree);
             }
         }
+        
+        
+
+        
     }
+
+
+    public static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
+        String name  = key;
+        APIName apiname = NodeFactory.makeAPIName(name);
+        
+        key = key + "." + ProjectProperties.API_SOURCE_SUFFIX;
+        
+        if (false && libraryCache.containsKey(key))
+            return (Api) libraryCache.get(key);
+
+        String libraryTree = ProjectProperties.CACHE_DIR + "/" + basename + "." + ProjectProperties.API_TREE_SUFFIX;
+
+        if (Useful.olderThanOrMissing(libraryTree, p.getModifiedDateForApi(apiname))) {
+
+            System.err.println("Missing or stale preparsed AST "
+                               + libraryTree + ", rebuilding from source "
+                               + name );
+
+            long begin = System.currentTimeMillis();
+
+           
+            // Because of the check above, we can retrieve the value of
+            // the Option immediately.
+                
+                ApiIndex ci = p.getApi(apiname);
+                CompilationUnit c = ci.ast();
+
+                System.err.println
+                    ("Parsed component" + name + ": "
+                         + (System.currentTimeMillis() - begin)
+                         + " milliseconds");
+                ASTIO.writeJavaAst(c, libraryTree);
+                libraryCache.put(key, c);
+                return (Api) c;
+                    }
+        else {
+            long begin = System.currentTimeMillis();
+            Option<CompilationUnit> c = ASTIO.readJavaAst(libraryTree);
+
+            System.err.println
+                ("Read " + libraryTree + ": "
+                     + (System.currentTimeMillis() - begin)
+                     + " milliseconds");
+
+            if (c.isSome()) {
+                libraryCache.put(key, Option.unwrap(c));
+                return (Api) Option.unwrap(c);
+            }
+            else {
+                return error("Could not read " + name + " or " + libraryTree);
+            }
+        }
+        
+        
+    }
+
+    static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();
 
 }

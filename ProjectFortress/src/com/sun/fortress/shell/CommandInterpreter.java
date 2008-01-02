@@ -78,7 +78,7 @@ public class CommandInterpreter {
     
     /* Runs a fortress source file directly.*/
     void script(String fileName) throws UserError, IOException { 
-        Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName))); 
+        Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName)), new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE)); 
     }
     
     void run(String fileName) throws UserError, IOException, Throwable {
