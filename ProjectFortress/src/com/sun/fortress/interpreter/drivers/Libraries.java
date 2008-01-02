@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.drivers;
 
 import java.io.IOException; 
 
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.Component;
@@ -37,9 +38,9 @@ public class Libraries {
   
     static String timestamp;
 
-    public static Component theLibrary() throws IOException {
+    public static Component theLibrary(FortressRepository fr) throws IOException {
         if (library == null) {
-            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename, ProjectProperties.SOURCE_PATH);
+            library = (Component) Driver.readTreeOrSourceComponent(libraryBasename, libraryBasename, fr);
         }
         return library;
     }

@@ -30,6 +30,7 @@ import junit.framework.TestSuite;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
@@ -94,7 +95,7 @@ public class FileTests {
 
                         if (anns.compile) {
                             // oldOut.print(" COMPILING"); oldOut.flush();
-                            Driver.evalComponent(p);
+                            Driver.evalComponent(p, new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE));
                         }
                         else {
                             // oldOut.print(" RUNNING"); oldOut.flush();

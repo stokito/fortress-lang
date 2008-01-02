@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
@@ -56,7 +58,7 @@ public class EvaluatorTask extends BaseTask {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.setCurrentTask(this);
         try {
-            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun);
+            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun, new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE));
         }
         catch (IOException e) {
             causedException = true;
