@@ -40,8 +40,20 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class PathBasedRepository implements FortressRepository {
 
+    /**
+     * Any components/APIs found on path are "regular" -- not native.
+     * path is searched before nativePath.
+     */
     final Path path;
+    /**
+     * Any components found on nativePath are "native" -- special semantics
+     * for objects.
+     */
     final Path nativePath;
+    /**
+     * If true, allows matching "a.b" against file containing "b", at path a/b.
+     */
+    boolean relaxedSearch;
     IndexBuilder builder = new IndexBuilder();
     FortressRepository writer;
     

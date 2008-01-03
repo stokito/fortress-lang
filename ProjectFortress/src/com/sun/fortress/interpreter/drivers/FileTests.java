@@ -27,8 +27,12 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
+import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.useful.Useful;
@@ -85,17 +89,18 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     Annotations anns = new Annotations(fssFile);
-                    Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
-
-                    if (_p.isNone()) {
-                        error("Syntax error");
-                    }
-                    else {
-                        CompilationUnit p = Option.unwrap(_p);
+                    FortressRepository fr = new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE);
+                    APIName apiname = NodeFactory.makeAPIName(f);
+                    ComponentIndex ci = fr.getComponent(apiname);
+                    
+                    //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
+                    
+                    {
+                        CompilationUnit p = ci.ast();
 
                         if (anns.compile) {
                             // oldOut.print(" COMPILING"); oldOut.flush();
-                            Driver.evalComponent(p, new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE));
+                            Driver.evalComponent(p, fr);
                         }
                         else {
                             // oldOut.print(" RUNNING"); oldOut.flush();
