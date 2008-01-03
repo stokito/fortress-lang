@@ -94,6 +94,7 @@ public class ThreadState {
     public String toString() {
         return
             "Thread" + Thread.currentThread().getName() + "["+
+            "transaction:" + transaction + "," +
             "committed: " + committed + "," +
             "aborted: " + ( total -  committed) +
             "depth: " + depth +
