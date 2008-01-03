@@ -42,9 +42,11 @@ Op RightEncloser = a1:rightEncloser
 Op ExponentOp = a1:exponentOp
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
-/* EncloserPair ::= (LeftEncloser | Encloser) w (RightEncloser | Encloser) */
+/* EncloserPair ::=
+     (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)
+ */
 Enclosing EncloserPair =
-     a1:(LeftEncloser / Encloser) w a2:(RightEncloser / Encloser)
+     a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
        else
