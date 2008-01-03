@@ -187,7 +187,7 @@ public class IndexBuilder {
                 buildFunction(d, functions);
             }
             @Override public void forDimUnitDecl(DimUnitDecl d) {
-                NI.nyi();
+                // NO-OP for now!
             }
             @Override public void forTypeAlias(TypeAlias d) {
                 NI.nyi();
