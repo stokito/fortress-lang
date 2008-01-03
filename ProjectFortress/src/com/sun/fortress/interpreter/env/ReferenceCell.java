@@ -145,17 +145,18 @@ public class ReferenceCell extends IndirectionCell {
                 if (other == null) {
 		    FValue the_value;
 		    // If I'm not in a current transaction and there is a transaction
-                    // writing this value.  I want the old value instead of the newly
-		    // written value.  This is different from DSTM2 semantics.
-                    if (me == null && writer.isActive()) 
-                        the_value = node.getOldValue();
-                     else 
+                    // writing this value.  The safest thing to do is to abort that transaction.
+                    if (me == null && writer.isActive()) {
+			writer.abort();
+		    } else {
                         the_value = node.getValue();
 
-                    if (the_value == null) {
-                        return error("Attempt to read uninitialized variable");
-                    }
-                    return the_value;
+                        if (the_value == null) {
+                            return error("Attempt to read uninitialized variable");
+                        }
+
+                        return the_value;
+		    }
                 }
             }
             manager.resolveConflict(me, other);
