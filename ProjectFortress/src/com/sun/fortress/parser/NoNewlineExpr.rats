@@ -27,9 +27,9 @@ import Spacing;
 
 /* NoNewlineExpr ::=
      NoNewlineAssignExpr
-   | NoNewlineFlowExpr
    | NoNewlineOpExpr
    | DelimitedExpr
+   | NoNewlineFlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w NoNewlineExpr
    | NoNewlineExpr s as w Type
    | NoNewlineExpr s asif w Type
