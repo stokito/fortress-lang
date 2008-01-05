@@ -35,4 +35,7 @@ ProjectFortress/src/com/sun/fortress/parser/preparser/PreFortress.java
 build/
 .fortress_cache/
 .fortress_cache_checked/
+.interpreter_cache/
+ProjectFortress/.interpreter_cache/
 ProjectFortress/testFile.txt
+testFile.txt

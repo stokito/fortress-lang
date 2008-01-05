@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.Printer;
@@ -128,7 +129,8 @@ public abstract class MainBase {
             }
         }
         if (interpret) {
-            Driver.runProgram(p, false, fortressArgs);
+            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            Driver.runProgram(fr, p, false, fortressArgs);
         }
     }
     
@@ -150,7 +152,8 @@ public abstract class MainBase {
             }
         }
         if (interpret) {
-            Driver.runProgram(Option.unwrap(p), false, fortressArgs);
+            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            Driver.runProgram(fr, Option.unwrap(p), false, fortressArgs);
         }
     }
 

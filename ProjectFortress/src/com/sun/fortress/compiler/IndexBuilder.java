@@ -40,6 +40,8 @@ import com.sun.fortress.useful.NI;
 
 public class IndexBuilder {
     
+    static public IndexBuilder builder = new IndexBuilder();
+    
     /** Result of {@link #buildApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Map<APIName, ApiIndex> _apis;

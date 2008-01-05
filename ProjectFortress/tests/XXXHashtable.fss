@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fortress.Standard.Hashtable
+component XXXHashtable
 export Error
 
 (* from the "Library" *)

@@ -34,6 +34,8 @@ import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
+import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
@@ -47,7 +49,8 @@ public class FileTests {
         String f;
         String dir;
         String name;
-
+        FortressRepository fr;
+        
         /**
          * If true, only print test output for unexpected results.
          */
@@ -57,7 +60,7 @@ public class FileTests {
         boolean printSuccess;
         boolean printFailure;
 
-        public FSSTest(String d, String s, boolean unexpected_only, boolean expect_failure) {
+        public FSSTest(FortressRepository repository, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
@@ -65,6 +68,7 @@ public class FileTests {
             this.unexpectedOnly = unexpected_only;
             this.printSuccess = !unexpected_only || expect_failure;
             this.printFailure = !unexpected_only || !expect_failure;
+            this.fr = repository;
         }
 
         public String getName() {
@@ -89,8 +93,7 @@ public class FileTests {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     Annotations anns = new Annotations(fssFile);
-                    FortressRepository fr = new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE);
-                    APIName apiname = NodeFactory.makeAPIName(f);
+                    APIName apiname = NodeFactory.makeAPIName(s);
                     ComponentIndex ci = fr.getComponent(apiname);
                     
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
@@ -110,10 +113,10 @@ public class FileTests {
                                 args.add(dir + "/tennis050307");
                                 args.add(dir + "/tennis051707");
                                 args.add(dir + "/tennisGames");
-                                Driver.runProgram(p, true, args);
+                                Driver.runProgram(fr, p, true, args);
                             }
                             else {
-                                Driver.runProgram(p, true, new ArrayList<String>());
+                                Driver.runProgram(fr, p, true, new ArrayList<String>());
                             }
                         }
                     }
@@ -201,11 +204,12 @@ public class FileTests {
         public void testFile() throws Throwable {
             System.out.println(s + " test");
             BufferedReader br = new BufferedReader(new FileReader(d + "/" + s + ".tfs"));
+            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
             Lex lex = new Lex(br);
             Unprinter up = new Unprinter(lex);
             lex.name(); // Inhale opening parentheses
             CompilationUnit p = (CompilationUnit) up.readNode(lex.name());
-            Driver.runProgram(p, true, new ArrayList<String>());
+            Driver.runProgram(fr, p, true, new ArrayList<String>());
         }
 
     }
@@ -222,13 +226,17 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
+        FortressRepository fr = new AutocachingRepository(
+                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir), ProjectProperties.SOURCE_PATH_NATIVE),
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                );
         for (int i = 0; i < files.length; i++) {
             String s = files[i];
             if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
-                    suite.addTest(new FSSTest(dirname, s.substring(0, l), failsOnly, expect_failure));
+                    suite.addTest(new FSSTest(fr, dirname, s.substring(0, l), failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");
                     suite.addTest(new JSTTest(dirname, s.substring(0, l)));

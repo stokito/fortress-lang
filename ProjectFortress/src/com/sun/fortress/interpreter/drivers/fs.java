@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.FortressError;
@@ -143,11 +144,16 @@ public class fs {
 //        boolean keepTemp = keep;
 
         try {
-            if (verbose)  { System.err.println("Parsing " + s); }
+            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            
+            if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();
             BufferedReader in = Useful.utf8BufferedFileReader(s);
+            
             Option<CompilationUnit> p = Option.none();
             try {
+                System.err.println("WARNING, using obsolete interface to parse " + s);
+                // TODO - Warning, this is old and obsolete to allow processing of components OR APIs!
                 p = ASTIO.parseToJavaAst(s, in, false);
                 reportCompletion("Parsing " + s, begin);
             }
@@ -173,7 +179,7 @@ public class fs {
                   System.err.println("Interpreting");
                 }
                 begin = System.currentTimeMillis();
-                Driver.runProgram(_p, test, libraryTest, woLibrary, listArgs);
+                Driver.runProgram(fr, _p, test, libraryTest, woLibrary, listArgs);
                 reportCompletion("Program execution", begin);
             }
 

@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 (* COMPILE *)
-component fortress.typeerror
+component XXXTypeError
 export Error
 
 x : ZZ32 = "hello"

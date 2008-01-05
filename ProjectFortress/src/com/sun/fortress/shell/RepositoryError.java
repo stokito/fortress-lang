@@ -18,12 +18,8 @@
 package com.sun.fortress.shell;
 
 public class RepositoryError extends RuntimeException {
-    private String message;
     RepositoryError(String _message) {
-        message = message;
+        super(_message);
     }
-    
-    public String getMessage() { 
-        return message;
-    }
+
 }

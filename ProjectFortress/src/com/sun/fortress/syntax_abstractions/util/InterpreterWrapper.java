@@ -27,6 +27,7 @@ import java.util.List;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
@@ -63,109 +64,109 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class InterpreterWrapper {
 
-	public class Result extends StaticPhaseResult {
-		
-		private FValue value;
+    public class Result extends StaticPhaseResult {
 
-		Result(FValue value, Iterable<? extends StaticError> errors) {
-			super(errors);
-			this.value = value;
-		}
+        private FValue value;
 
-		public FValue value() { return value; }
-	}
+        Result(FValue value, Iterable<? extends StaticError> errors) {
+            super(errors);
+            this.value = value;
+        }
 
-	public class Error extends StaticError {
+        public FValue value() { return value; }
+    }
 
-		private String description;
+    public class Error extends StaticError {
 
-		public Error(String description) {
-			this.description = description;
-		}
-		
-		@Override
-		public String at() {
-			return "---";
-		}
+        private String description;
 
-		@Override
-		public String description() {
-			return description;
-		}
-		
-	}
-	
-	public static final String FUNCTIONNAME = "transformation";
-	private static final boolean test = false;
-	private static final boolean libraryTest = false;
-	private static final boolean woLibrary = false;
-	private List<String> listArgs;
+        public Error(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String at() {
+            return "---";
+        }
+
+        @Override
+        public String description() {
+            return description;
+        }
+
+    }
+
+    public static final String FUNCTIONNAME = "transformation";
+    private static final boolean test = false;
+    private static final boolean libraryTest = false;
+    private static final boolean woLibrary = false;
+    private List<String> listArgs;
     private static int numThreads = Runtime.getRuntime().availableProcessors();
     static FortressTaskRunnerGroup group;
-    
-	public Result evalComponent(String productionName, String component) {
-		Collection<Error> errors = new LinkedList<Error>();
-		Option<CompilationUnit> cu = Option.none();
-		try {
-			cu = readAST(productionName, component);
-		} catch (IOException e1) {
-			errors.add(new Error("Could not read transformation expression from file: "+productionName+" "+e1.getMessage()));
-			return new Result(null, errors);
-		}
-		CompilationUnit compilationUnit = null;
-		if (cu.isNone()) {
-			errors.add(new Error("Could not read transformation expression from file: "+productionName));
-			return new Result(null, errors);
-		}
 
-		compilationUnit = Option.unwrap(cu);
-		
-		try {
-			return new Result(runFunction(compilationUnit), errors);
-		}	catch (FortressError e) {
-			System.err.println("\n--------Fortress error appears below--------\n");
-			e.printInterpreterStackTrace(System.err);
-			System.err.println();
-			System.err.println(e.getMessage());
-			System.err.println("Turn on -debug for Java-level error dump.");
-			System.exit(1);
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public Result evalComponent(String productionName, String component) {
+        Collection<Error> errors = new LinkedList<Error>();
+        Option<CompilationUnit> cu = Option.none();
+        try {
+            cu = readAST(productionName, component);
+        } catch (IOException e1) {
+            errors.add(new Error("Could not read transformation expression from file: "+productionName+" "+e1.getMessage()));
+            return new Result(null, errors);
+        }
+        CompilationUnit compilationUnit = null;
+        if (cu.isNone()) {
+            errors.add(new Error("Could not read transformation expression from file: "+productionName));
+            return new Result(null, errors);
+        }
 
-	private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
-		String numThreadsString = System.getenv("FORTRESS_THREADS");
-		if (numThreadsString != null)
-			numThreads = Integer.parseInt(numThreadsString);
+        compilationUnit = Option.unwrap(cu);
 
-		if (group == null)
-			group = new FortressTaskRunnerGroup(numThreads);
-		
-		if (listArgs == null) {
-			listArgs = new LinkedList<String>();
-		}
-		
-		EvaluatorTask evTask = new EvaluatorTask(compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
-		try {
-			group.invoke(evTask);
-		}
-		finally {
-//			group.interruptAll();
-		}
-		if (evTask.causedException()) {
-			throw evTask.taskException();
-		}
-		System.err.println("EvTask: "+evTask.result());
-		return evTask.result();
-	}
+        try {
+            return new Result(runFunction(compilationUnit), errors);
+        }	catch (FortressError e) {
+            System.err.println("\n--------Fortress error appears below--------\n");
+            e.printInterpreterStackTrace(System.err);
+            System.err.println();
+            System.err.println(e.getMessage());
+            System.err.println("Turn on -debug for Java-level error dump.");
+            System.exit(1);
+        } catch (Throwable e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	private Option<CompilationUnit> readAST(String filename, String component) throws IOException {
-		StringReader sr = new StringReader(component);
-		BufferedReader br = new BufferedReader(sr);
-		return ASTIO.readJavaAst(filename, br);
-	}
+    private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
+        String numThreadsString = System.getenv("FORTRESS_THREADS");
+        if (numThreadsString != null)
+            numThreads = Integer.parseInt(numThreadsString);
+
+        if (group == null)
+            group = new FortressTaskRunnerGroup(numThreads);
+
+        if (listArgs == null) {
+            listArgs = new LinkedList<String>();
+        }
+
+        EvaluatorTask evTask = new EvaluatorTask(Driver.DEFAULT_INTERPRETER_REPOSITORY, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
+        try {
+            group.invoke(evTask);
+        }
+        finally {
+//          group.interruptAll();
+        }
+        if (evTask.causedException()) {
+            throw evTask.taskException();
+        }
+        System.err.println("EvTask: "+evTask.result());
+        return evTask.result();
+    }
+
+    private Option<CompilationUnit> readAST(String filename, String component) throws IOException {
+        StringReader sr = new StringReader(component);
+        BufferedReader br = new BufferedReader(sr);
+        return ASTIO.readJavaAst(filename, br);
+    }
 
 }

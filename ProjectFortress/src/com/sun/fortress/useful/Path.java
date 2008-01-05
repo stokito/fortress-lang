@@ -30,9 +30,15 @@ public class Path {
 
     static String pathSep = File.pathSeparator;
 
-    List<File> dirs = new ArrayList<File>();
+    List<File> dirs;
 
     public Path(String path) {
+       this(stringToFiles(path));
+    }
+
+    private static List<File> stringToFiles(String path) {
+        List<File> dirs = new ArrayList<File>();
+        
         path = Useful.substituteVars(path);
         StringTokenizer st = new StringTokenizer(path, pathSep);
         while (st.hasMoreTokens()) {
@@ -42,6 +48,19 @@ public class Path {
                 dirs.add(f);
             }
         }
+        return dirs;
+    }
+    
+    public Path(List<File> dirs) {
+        this.dirs = dirs;
+    }
+    
+    public Path prepend (String s) {
+        return prepend(new File(s));
+    }
+    
+    public Path prepend(File f) {
+        return new Path(Useful.prepend(f, dirs));
     }
  
     public File findFile(String s) throws FileNotFoundException {

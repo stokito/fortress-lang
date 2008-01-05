@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component extendRR64
+component XXXextendRR64
 export Error
 
     object Mumble() extends { RR64 }

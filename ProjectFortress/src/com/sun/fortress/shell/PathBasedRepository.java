@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.IndexBuilder.ComponentResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.ASTIO;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -94,7 +95,7 @@ public class PathBasedRepository implements FortressRepository {
         
         boolean[] isNative = new boolean[1];
         
-        File fdot = findFile(name, ".fsi", isNative);
+        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX, isNative);
         // Attempt to parse fdot.
         
         Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
@@ -123,7 +124,7 @@ public class PathBasedRepository implements FortressRepository {
             return components.get(name);
         boolean[] isNative = new boolean[1];
         
-        File fdot = findFile(name, ".fss", isNative);
+        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX, isNative);
         // Attempt to parse fdot.
         
         Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
@@ -147,9 +148,9 @@ public class PathBasedRepository implements FortressRepository {
 
     private File findFile(APIName name, String suffix, boolean[] isNative) throws FileNotFoundException {
         String dotted = name.toString();
-        String slashed = dotted.replaceAll(".", "/");
-        dotted = dotted + suffix;
-        slashed = slashed + suffix;
+        String slashed = dotted.replaceAll("[.]", "/");
+        dotted = dotted + "." + suffix;
+        slashed = slashed + "." + suffix;
         File fdot;
         if (isNative != null)
             isNative[0] = false;
@@ -178,14 +179,14 @@ public class PathBasedRepository implements FortressRepository {
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         if (apis.containsKey(name))
             return apis.get(name).modifiedDate();
-        File fdot = findFile(name, ".fsi", null);
+        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX, null);
         return fdot.lastModified();
     }
 
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
         if (components.containsKey(name))
             return components.get(name).modifiedDate();
-        File fdot = findFile(name, ".fss", null);
+        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX, null);
         return fdot.lastModified();
     }
 

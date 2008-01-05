@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component tupleTypeParams2
+component tupleTypeParam2
 export executable
 
 trait A[\T\]

@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Tree
+component bogusNatParams
 export Executable
 
 (** Most of the code in this test now incorporated into the libraries. *)

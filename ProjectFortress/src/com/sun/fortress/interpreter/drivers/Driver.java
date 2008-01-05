@@ -71,6 +71,10 @@ import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
+import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.CacheBasedRepository;
+import com.sun.fortress.shell.FileBasedRepository;
+import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
@@ -94,6 +98,11 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
+    public static FortressRepository DEFAULT_INTERPRETER_REPOSITORY = new AutocachingRepository(
+            new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
+            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+            );
+    
    // private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
    // private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
 
@@ -817,7 +826,8 @@ public class Driver {
     static FortressTaskRunnerGroup group;
 
     // This creates the parallel context
-    public static void runProgram(CompilationUnit p,
+    public static void runProgram(FortressRepository fr,
+                                  CompilationUnit p,
                                   boolean runTests,
                                   boolean libraryTest,
                                   boolean woLibrary,
@@ -833,7 +843,7 @@ public class Driver {
 
            group = new FortressTaskRunnerGroup(numThreads);
 
-        EvaluatorTask evTask = new EvaluatorTask(p, runTests, woLibrary, "run", args);
+        EvaluatorTask evTask = new EvaluatorTask(fr, p, runTests, woLibrary, "run", args);
         try {
             group.invoke(evTask);
         }
@@ -845,14 +855,14 @@ public class Driver {
         }
     }
 
-    public static void runProgram(CompilationUnit p, boolean runTests,
+    public static void runProgram(FortressRepository fr, CompilationUnit p, boolean runTests,
             List<String> args) throws Throwable {
-        runProgram(p, runTests, false, false, args);
+        runProgram(fr, p, runTests, false, false, args);
     }
 
 
-    public static void runProgram(CompilationUnit p, List<String> args) throws Throwable {
-        runProgram(p, false, false, false, args);
+    public static void runProgram(FortressRepository fr, CompilationUnit p, List<String> args) throws Throwable {
+        runProgram(fr, p, false, false, false, args);
     }
 
     private static class Toplevel implements HasAt {
@@ -869,57 +879,10 @@ public class Driver {
         
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
-        
-        key = key + "." + ProjectProperties.COMP_SOURCE_SUFFIX;
-        
-        if (false && libraryCache.containsKey(key))
-            return (Component) libraryCache.get(key);
 
-        String libraryTree = ProjectProperties.CACHE_DIR + "/" + basename + "." + ProjectProperties.COMP_TREE_SUFFIX;
-
-        if (Useful.olderThanOrMissing(libraryTree, p.getModifiedDateForComponent(apiname))) {
-
-            System.err.println("Missing or stale preparsed AST "
-                               + libraryTree + ", rebuilding from source "
-                               + name );
-
-            long begin = System.currentTimeMillis();
-
-           
-            // Because of the check above, we can retrieve the value of
-            // the Option immediately.
-                
-                ComponentIndex ci = p.getComponent(apiname);
-                CompilationUnit c = ci.ast();
-
-                System.err.println
-                    ("Parsed component" + name + ": "
-                         + (System.currentTimeMillis() - begin)
-                         + " milliseconds");
-                ASTIO.writeJavaAst(c, libraryTree);
-                libraryCache.put(key, c);
-                return (Component) c;
-                    }
-        else {
-            long begin = System.currentTimeMillis();
-            Option<CompilationUnit> c = ASTIO.readJavaAst(libraryTree);
-
-            System.err.println
-                ("Read " + libraryTree + ": "
-                     + (System.currentTimeMillis() - begin)
-                     + " milliseconds");
-
-            if (c.isSome()) {
-                libraryCache.put(key, Option.unwrap(c));
-                return (Component) Option.unwrap(c);
-            }
-            else {
-                return error("Could not read " + name + " or " + libraryTree);
-            }
-        }
-        
-        
-
+        ComponentIndex ci = p.getComponent(apiname);
+        CompilationUnit c = ci.ast();
+        return (Component) c;
         
     }
 
@@ -927,56 +890,10 @@ public class Driver {
     public static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
-        
-        key = key + "." + ProjectProperties.API_SOURCE_SUFFIX;
-        
-        if (false && libraryCache.containsKey(key))
-            return (Api) libraryCache.get(key);
-
-        String libraryTree = ProjectProperties.CACHE_DIR + "/" + basename + "." + ProjectProperties.API_TREE_SUFFIX;
-
-        if (Useful.olderThanOrMissing(libraryTree, p.getModifiedDateForApi(apiname))) {
-
-            System.err.println("Missing or stale preparsed AST "
-                               + libraryTree + ", rebuilding from source "
-                               + name );
-
-            long begin = System.currentTimeMillis();
-
-           
-            // Because of the check above, we can retrieve the value of
-            // the Option immediately.
-                
-                ApiIndex ci = p.getApi(apiname);
-                CompilationUnit c = ci.ast();
-
-                System.err.println
-                    ("Parsed component" + name + ": "
-                         + (System.currentTimeMillis() - begin)
-                         + " milliseconds");
-                ASTIO.writeJavaAst(c, libraryTree);
-                libraryCache.put(key, c);
-                return (Api) c;
-                    }
-        else {
-            long begin = System.currentTimeMillis();
-            Option<CompilationUnit> c = ASTIO.readJavaAst(libraryTree);
-
-            System.err.println
-                ("Read " + libraryTree + ": "
-                     + (System.currentTimeMillis() - begin)
-                     + " milliseconds");
-
-            if (c.isSome()) {
-                libraryCache.put(key, Option.unwrap(c));
-                return (Api) Option.unwrap(c);
-            }
-            else {
-                return error("Could not read " + name + " or " + libraryTree);
-            }
-        }
-        
-        
+        ApiIndex ci = p.getApi(apiname);
+        CompilationUnit c = ci.ast();
+        return (Api) c;
+       
     }
 
     static Hashtable<String, CompilationUnit> libraryCache = new Hashtable<String, CompilationUnit>();

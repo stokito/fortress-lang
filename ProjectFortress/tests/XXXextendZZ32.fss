@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component extendZZ32
+component XXXextendZZ32
 export Error
 
     object Mumble() extends { ZZ32 }
