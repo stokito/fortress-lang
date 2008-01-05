@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.AlsoB.fss
+component Overview.Expression.Also.b.fss
 
 export Executable
 

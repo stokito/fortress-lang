@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.Sol
+component Overview.Sol
 
 export Executable
 

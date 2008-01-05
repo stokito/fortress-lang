@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.append
+component Overview.append
 
 export Executable
 

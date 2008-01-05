@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.Particle
+component Overview.p1
 
 export Executable
 

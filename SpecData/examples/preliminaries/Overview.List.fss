@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Overview.Expression.List
+component Overview.List
 
 export Executable
 
