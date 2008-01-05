@@ -34,9 +34,9 @@ import Spacing;
 
 /* Expr ::=
      AssignExpr
-   | FlowExpr
    | OpExpr
    | DelimitedExpr
+   | FlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w Expr
    | Expr w as w Type
    | Expr w asif w Type
@@ -45,9 +45,9 @@ Expr Expr =
      seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
 Expr ExprFront =
      AssignExpr
-   / <Flow> FlowExpr
    / OpExpr
    / DelimitedExpr
+   / <Flow> FlowExpr
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Option<Type> ty_opt = Option.wrap(a2);
        Option<List<TraitType>> tys = Option.wrap(a3);

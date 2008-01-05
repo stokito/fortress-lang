@@ -248,6 +248,11 @@ public final class FortressUtil {
         return false;
     }
 
+    public static boolean validId(String s) {
+        return (!FortressUtil.validOp(s) && !s.equals("_")
+                && !s.equals("SUM") && !s.equals("PROD"));
+    }
+
     private static boolean compoundOp(String s) {
         return (s.length() > 1 && s.endsWith("=")
                 && !s.equals("<=") && !s.equals(">=")
