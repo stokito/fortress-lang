@@ -28,14 +28,13 @@ var c = 0
 
 f(x,y,z) = (x,y,z)
 f(x,y) = (x,y)
-opr UPD(x) = x
 g() = do
 a = array1[\ZZ32,2\](1)
 i = 1
 (t,u,v) = (2,3,4)
-(a[i],b.x,c) UPD= f(t,u,v)
+(a[i],b.x,c) += f(t,u,v)
 (** EXAMPLE **)
-(a[i],c) UPD= f(t,u)
+(a[i],c) += f(t,u)
 (** END EXAMPLE **)
 end
 

@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component MemModel.Aliases
+component MemModel.Aliases.jkl
 
 export Executable
 

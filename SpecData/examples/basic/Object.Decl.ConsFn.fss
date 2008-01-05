@@ -17,7 +17,7 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Object.Decl.Cons
+component Object.Decl.ConsFn
 
 export Executable
 
