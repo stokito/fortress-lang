@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component monoidalPolymorphism
+component monoidal
 export Executable
 
 object Identity[\opr OPLUS\]()

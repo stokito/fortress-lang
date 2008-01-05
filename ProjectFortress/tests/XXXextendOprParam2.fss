@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ExtendReduction
+component XXXextendOprParam2
 export Executable
 
 trait Monoidish[\ T, opr OPLUS \]

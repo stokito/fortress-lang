@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component GenericOverload3
+component XXXGenericOverload3
 export Executable
 
 (* Should not compile *)

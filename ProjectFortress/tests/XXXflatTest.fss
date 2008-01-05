@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component flatTest
+component XXXflatTest
 export Executable
 
 two(x:ZZ32) = (x, x+x)

@@ -184,7 +184,7 @@ public class ProjectProperties {
     }
 
 
-    private static void ensureDirectoryExists(String s) throws Error {
+    public static String ensureDirectoryExists(String s) throws Error {
         File f = new File(s);
         if (f.exists()) {
             if (f.isDirectory()) {
@@ -199,6 +199,7 @@ public class ProjectProperties {
                 throw new Error("Failed to create directory " + s );
             }
         }
+        return s;
     }
 
     public final static String COMP_SOURCE_SUFFIX = "fss";

@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.tasks;
 import java.io.IOException;
 import java.util.List;
 
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -29,25 +30,28 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class EvaluatorTask extends BaseTask {
 
-    CompilationUnit p;
+    final CompilationUnit p;
 
-    boolean runTests = false;
+    final boolean runTests;
 
-    boolean woLibrary = false;
+    final boolean woLibrary;
 
-    List<String> args;
+    final List<String> args;
     
+    final String functionToRun;
+    
+    final FortressRepository fortressRepository;
+
     FValue theResult;
     
-    String functionToRun;
-
-    public EvaluatorTask(CompilationUnit prog, boolean tests, boolean library,
+    public EvaluatorTask(FortressRepository fr, CompilationUnit prog, boolean tests, boolean library,
             String toRun, List<String> args_) {
         p = prog;
         runTests = tests;
         woLibrary = library;
         args = args_;
         functionToRun = toRun;
+        fortressRepository = fr;
     }
 
     public void print() {
@@ -58,7 +62,7 @@ public class EvaluatorTask extends BaseTask {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.setCurrentTask(this);
         try {
-            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun, new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE));
+            theResult =  Driver.runProgramTask(p, runTests, woLibrary, args, functionToRun, fortressRepository);
         }
         catch (IOException e) {
             causedException = true;

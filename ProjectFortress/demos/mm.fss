@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component mm.fss
+component mm
 export Executable
 
 MA8(a:ZZ32[8,8],b:ZZ32[8,8]):ZZ32[8,8] = do

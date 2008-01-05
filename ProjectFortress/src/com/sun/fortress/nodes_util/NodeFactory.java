@@ -23,12 +23,14 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
@@ -205,8 +207,19 @@ public class NodeFactory {
         return new APIName(s.getSpan(), Useful.list(s));
     }
 
+    private static List<Id> stringToIds(String path) {
+        List<Id> ids = new ArrayList<Id>();
+        
+        StringTokenizer st = new StringTokenizer(path, ".");
+        while (st.hasMoreTokens()) {
+            String e = st.nextToken();           
+            ids.add(makeId(e));
+        }
+        return ids;
+    }
+    
     public static APIName makeAPIName(String s) {
-        return makeAPIName(makeId(s));
+        return makeAPIName(stringToIds(s));
     }
 
     public static APIName makeAPIName(Iterable<Id> ids) {

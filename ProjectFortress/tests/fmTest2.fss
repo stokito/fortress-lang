@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fmTest1
+component fmTest2
 export Executable
 
 opr OPLUS(x:ZZ32,y:ZZ32):ZZ32 = x+y

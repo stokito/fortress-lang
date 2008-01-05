@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component genericTest6
+component XXXgenericTest6
 export Executable
 
 trait List[\T\]

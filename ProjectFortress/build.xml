@@ -28,7 +28,9 @@
  <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
  <!-- Directories in the ${basedir} directory -->
- <property name="cache" location="${basedir}/../.fortress_cache"/>
+ <property name="cache1" location="${basedir}/../.fortress_cache"/>
+ <property name="cache2" location="${basedir}/../.interpreter_cache"/>
+ <property name="cache3" location="${basedir}/.interpreter_cache"/>
  <property name="astgen" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
@@ -169,7 +171,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <delete dir="${build}"/>
         <delete dir="${nodes}"/>
         <delete dir="${junit.dir}"/>
-        <delete dir="${cache}"/>
+        <delete dir="${cache1}"/>
+        <delete dir="${cache2}"/>
+        <delete dir="${cache3}"/>
 
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->

@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component chain0
+component XXXchain1
 export Executable
 
 t(x:Boolean) = println( if x then "PASS" else "FAIL" end )

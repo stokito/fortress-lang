@@ -82,7 +82,8 @@ public class CommandInterpreter {
     }
     
     void run(String fileName) throws UserError, IOException, Throwable {
-        Driver.runProgram(Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
+        Driver.runProgram(Driver.DEFAULT_INTERPRETER_REPOSITORY,
+                Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
     }
     
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }

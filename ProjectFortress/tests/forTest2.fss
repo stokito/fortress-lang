@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fortress.forTest2.fss
+component forTest2
 export Executable
 
 a() = do

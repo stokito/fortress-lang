@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ConditionalOp
+component conditionalOp
 
 export Executable
 

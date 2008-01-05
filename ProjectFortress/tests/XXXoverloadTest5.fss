@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component overloadTest5
+component XXXoverloadTest5
 export Executable
 
 (* This test should fail because of crossed overloading. *)

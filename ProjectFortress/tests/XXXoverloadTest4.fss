@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component overloadTest4
+component XXXoverloadTest4
 export Executable
 
 (* This test should fail because of overload between no-type

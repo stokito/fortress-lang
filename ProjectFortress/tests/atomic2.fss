@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ********************************************************************************)
 
-component fortress.executable
+component atomic2
 
 export executable
 

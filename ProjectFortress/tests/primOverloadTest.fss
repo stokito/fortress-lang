@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fortress.primOverloadTest
+component primOverloadTest
 export Executable
 
 opr -[\ T extends Number, nat n, nat m \]

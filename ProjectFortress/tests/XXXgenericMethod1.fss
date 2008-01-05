@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component genericMethod1
+component XXXgenericMethod1
 export Executable
 
 (* x = obj.meth[\T,U,V\](a1, a2) *)

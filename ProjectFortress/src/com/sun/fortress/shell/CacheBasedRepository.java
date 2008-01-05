@@ -58,15 +58,57 @@ public class CacheBasedRepository implements FortressRepository {
         pwd = _pwd;
     }
 
-    public Map<APIName, ApiIndex> apis() { return apis; }    
-    public ApiIndex getApi(APIName name) { return apis.get(name); }
-    public ComponentIndex getComponent(APIName name) { return components.get(name); }
+    public Map<APIName, ApiIndex> apis() { return apis; }
+    
+    public ApiIndex getApi(APIName name) throws FileNotFoundException,
+            IOException {
+        ApiIndex ci = apis.get(name);
+        if (ci != null)
+            return ci;
+        String s = apiFileName(name);
+
+        File f = new File(s);
+        if (!f.exists()) {
+            throw new FileNotFoundException(s);
+        }
+        Option<CompilationUnit> candidate = ASTIO.readJavaAst(s);
+        if (candidate.isNone()) {
+            throw new RepositoryError(
+                    "Could not deserialize contents of repository file " + s);
+        }
+        ci = IndexBuilder.builder.buildApiIndex((Api) Option
+                .unwrap(candidate), f.lastModified());
+        apis.put(name, ci);
+        return ci;
+    }
+    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
+        ComponentIndex ci = components.get(name);
+        if (ci != null)
+            return ci;
+        String s = compFileName(name);
+        
+        File f = new File(s);
+        if (! f.exists()) {
+            throw new FileNotFoundException(s);
+        }
+        Option<CompilationUnit> candidate = ASTIO.readJavaAst(s);
+        if (candidate.isNone()) {
+            throw new RepositoryError("Could not deserialize contents of repository file " + s);
+        }
+        ci = IndexBuilder.builder.buildComponentIndex((Component) Option.unwrap(candidate), f.lastModified());
+        components.put(name, ci);
+        return ci;
+        
+    }
 
     public void addApi(APIName name, ApiIndex def) {
+        CompilationUnit ast = def.ast();
+        checkName(name, ast);
+        
         apis.put(name, def);
         
         try {
-            CompilationUnit ast = def.ast();
+            
             if (ast instanceof Component) {
                 ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + 
                                     DOT + ProjectProperties.COMP_TREE_SUFFIX);
@@ -79,6 +121,15 @@ public class CacheBasedRepository implements FortressRepository {
             throw new ShellException(e);
         }
     }
+
+    private void checkName(APIName name, CompilationUnit ast)
+            throws RepositoryError {
+        APIName actual = ast.getName();
+        if (! actual.equals(name)) {
+            boolean flag = actual.equals(name);
+            throw new RepositoryError(ast.getName() + " cannot be cached under name " + name);
+        }
+    }
     
     public void addApis(Map<APIName, ApiIndex> newApis) {
         for (Map.Entry<APIName, ApiIndex> entry: newApis.entrySet()) {
@@ -87,23 +138,53 @@ public class CacheBasedRepository implements FortressRepository {
     }
     
     public void addComponent(APIName name, ComponentIndex def) {
+        CompilationUnit ast = def.ast();
+        checkName(name, ast);
         // Cache component for quick retrieval.
         components.put(name, def);
         
         try {
-            CompilationUnit ast = def.ast();
-            ASTIO.writeJavaAst(ast, pwd + SEP + ast.getName() + DOT + ProjectProperties.COMP_TREE_SUFFIX);
+            name = ast.getName();
+            ASTIO.writeJavaAst(ast, compFileName(name));
         } catch (IOException e) {
             throw new ShellException(e);
         }
     }
 
-    public long getModifiedDateForApi(APIName name) {
-        return apis.get(name).modifiedDate();
-       
+    private String compFileName(APIName name) {
+        return pwd + SEP + name + DOT + ProjectProperties.COMP_TREE_SUFFIX;
     }
 
-    public long getModifiedDateForComponent(APIName name) {
-        return components.get(name).modifiedDate();
+    private String apiFileName(APIName name) {
+        return pwd + SEP + name + DOT + ProjectProperties.API_TREE_SUFFIX;
+    }
+
+    private long dateFromFile(APIName name, String s, String tag)
+            throws FileNotFoundException {
+        File f = new File(s);
+            if (! f.exists())
+                throw new FileNotFoundException(tag + name.toString() + " (file " + s + ")");
+            return f.lastModified();
+    }
+
+    public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
+        ApiIndex i = apis.get(name);
+        
+        if (i != null)
+            return i.modifiedDate();
+        
+       String s = apiFileName(name);
+       String tag = "API ";
+       return dateFromFile(name, s, tag);
+    }
+
+    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
+        ComponentIndex i = components.get(name);
+        if (i != null)
+            return i.modifiedDate();
+        
+       String s = compFileName(name);
+       String tag = "Component ";
+       return dateFromFile(name, s, tag);
     }
 }

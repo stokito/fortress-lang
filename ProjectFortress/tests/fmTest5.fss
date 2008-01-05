@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component fmTest4
+component fmTest5
 export Executable
 
 trait Mumble[\T\]
