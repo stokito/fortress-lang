@@ -50,22 +50,30 @@ end
 testManyClauses() = do
     res:ZZ32 := 0
     atomic do
-        res += 1
+        res += 9
     also atomic do
-        res += 10
+        res += 80
     also atomic do
-        res += 100
+        res += 700
     also atomic do
-        res += 1000
+        res += 6000
     also atomic do
-        res += 10000
+        res += 50000
+    also atomic do
+        res += 400000
+    also atomic do
+        res += 3000000
+    also atomic do
+        res += 20000000
+    also atomic do
+        res += 100000000
     end
-    assert(res, 11111, "Many atomic clauses failed")
+    assert(res, 123456789, "Many atomic clauses failed")
 end
 
 run(args:String...):()=do
-    assert(fib(5), 8, "fib(5)=8")
- (*   testAtomicAlso() *)
+    assert(fib(5), 8, "fib(5)=8") 
+    testAtomicAlso() 
     testManyClauses()
 end
 end
