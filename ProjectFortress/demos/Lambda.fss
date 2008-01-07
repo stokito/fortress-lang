@@ -15,6 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component Lambda
+import OneShotFlag.{...}
 import Map.{...}
 import ArrayList.{...}
 import File.{...}
@@ -175,6 +176,8 @@ forms(t:Term): () = do
     println(w " -->>>")
     println(w.nf())
   end
+
+_ = noShot (* cheap hack to break a dependence *)
 
 digits : List[\String\] =
     <| "" "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" |>
