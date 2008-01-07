@@ -26,6 +26,6 @@ trait Exception comprises { CheckedException, UncheckedException }
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end
