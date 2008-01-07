@@ -17,18 +17,15 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Exceptions
+component ConditionalOps
 
 export Executable
 
-trait Exception comprises { CheckedException, UncheckedException }
-end
 (** EXAMPLE **)
-trait CheckedException extends Exception excludes UncheckedException
-end
-
-trait UncheckedException extends Exception excludes CheckedException
-end
+opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
 (** END EXAMPLE **)
 
 run() = ()
