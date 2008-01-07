@@ -42,5 +42,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return new TypeCheckerResult(that, IterUtil.<StaticError>empty());
     }
     
-    public TypeCheckerResult forFnDecl(FnDecl that) { return null;}
+    public TypeCheckerResult forFnDecl(FnDecl that) {
+        TypeEnv localEnv = params.extend(that.getParams());
+        return null;
+    }
 }

@@ -20,10 +20,12 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
 import com.sun.fortress.compiler.index.DeclaredVariable;
+import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
@@ -230,5 +232,15 @@ public abstract class TypeEnv {
     public final TypeEnv extend(Map<Id, Variable> vars) {
         if (vars.size() == 0) { return this; }
         else { return new VarTypeEnv(vars, this); }
+    }
+    
+    public final TypeEnv extend(Relation<SimpleName, Function> fns) {
+        if (fns.size() == 0) { return this; }
+        else { return new FnTypeEnv(fns, this); }
+    }
+    
+    public final TypeEnv extend(List<Param> params) {
+        if (params.size() == 0) { return this; }
+        else { return new ParamTypeEnv(params, this); }
     }
 }
