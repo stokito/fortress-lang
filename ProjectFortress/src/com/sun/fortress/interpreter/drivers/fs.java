@@ -79,7 +79,7 @@ public class fs {
                   parseOnly = true;
                 } else if ("-libraryTest".equalsIgnoreCase(s)) {
                   libraryTest = true;
-                } else if ("-woLibrary".equalsIgnoreCase(s)) {
+                } else if ("-nolib".equalsIgnoreCase(s)) {
                   woLibrary = true;
                 } else if ("-v".equalsIgnoreCase(s)) {
                     verbose = true;

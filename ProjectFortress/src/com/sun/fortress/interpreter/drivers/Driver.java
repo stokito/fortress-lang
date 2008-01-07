@@ -163,11 +163,16 @@ public class Driver {
         /*
          * This is a patch; eventually, it will all be done explicitly.
          */
-        ComponentWrapper lib = new ComponentWrapper(Libraries.theLibrary(fr));
-        lib.getEnvironment().installPrimitives();
-        lib.getExports(true);
-        pile.push(lib);
-
+        ComponentWrapper lib = null;
+        if (!woLibrary) {
+            lib = new ComponentWrapper(Libraries.theLibrary(fr));
+            lib.getEnvironment().installPrimitives();
+            lib.getExports(true);
+            pile.push(lib);
+        } else {
+            comp.getEnvironment().installPrimitives();
+        }
+        
         /*
          * This performs closure over APIs and components, ensuring that all are
          * initialized through phase one of building environments.
@@ -196,12 +201,13 @@ public class Driver {
                 change |= injectTraitMembersForDesugaring(linker, cw);
             }
 
-            for (ComponentWrapper cw : components) {
-                for (String s : lib.dis.getTopLevelRewriteNames()) {
-                    if (!cw.isOwnName(s))
-                        change |= cw.dis.injectAtTopLevel(s, s, lib.dis, cw.excludedImportNames);
+            if (!woLibrary)
+                for (ComponentWrapper cw : components) {
+                    for (String s : lib.dis.getTopLevelRewriteNames()) {
+                        if (!cw.isOwnName(s))
+                            change |= cw.dis.injectAtTopLevel(s, s, lib.dis, cw.excludedImportNames);
+                    }
                 }
-            }
         }
 
         /*
