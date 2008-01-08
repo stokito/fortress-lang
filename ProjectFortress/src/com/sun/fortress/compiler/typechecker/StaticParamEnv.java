@@ -21,6 +21,9 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.util.Arrays;
+import java.util.List;
+
 public abstract class StaticParamEnv {
     public static StaticParamEnv make(StaticParam... params) {
         return EmptyStaticParamEnv.ONLY.extend(params);
@@ -37,8 +40,12 @@ public abstract class StaticParamEnv {
     }
 
     public StaticParamEnv extend(StaticParam... params) {
-        if (params.length == 0) { return EmptyStaticParamEnv.ONLY; }
-        else { return new NonEmptyStaticParamEnv(params, EmptyStaticParamEnv.ONLY); }
+        return this.extend(Arrays.asList(params));
+    }
+    
+    public StaticParamEnv extend(List<StaticParam> params) {
+        if (params.size() == 0) { return this; }
+        else { return new NonEmptyStaticParamEnv(params, this); }
     }
 
 //    public abstract Option<OperatorParam> operatorParam(Op name);
