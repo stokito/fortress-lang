@@ -17,22 +17,21 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Types.Arrow
-
+component TestFactorial
 export Executable
 
-ff(x: RR64, y: RR64) = x + y
-gg(x: ZZ32) = (x, x)
-
-run(args:String...) = do
-(** EXAMPLE **)
-  f: (RR64, RR64) -> RR64
-  g: ZZ32 -> (ZZ32, ZZ32)
-(** END EXAMPLE **)
-(*  g: ZZ32 -> (ZZ32, ZZ32) throws IOFailure *)
-  f = ff
-  g = gg
-  println (f(g 3))
+fact(x:ZZ32) = do
+   if (x = 0) then 1 else x fact(x-1) end
 end
+
+(** EXAMPLE **)
+test testFactorial1() = do
+   assert(fact(0) = 1)
+   assert(fact(5) = 120)
+   println("testFactorial1 passed");
+end
+(** END EXAMPLE **)
+
+run(args:String...) = ()
 
 end
