@@ -19,14 +19,15 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
+import java.util.List;
 
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class NonEmptyStaticParamEnv extends StaticParamEnv {
-    private StaticParam[] entries;
+    private List<StaticParam> entries;
     private StaticParamEnv parent;
     
-    public NonEmptyStaticParamEnv(StaticParam[] _entries, StaticParamEnv _parent) {
+    public NonEmptyStaticParamEnv(List<StaticParam> _entries, StaticParamEnv _parent) {
         entries = _entries;
         parent = _parent;
     }

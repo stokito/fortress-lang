@@ -555,6 +555,10 @@ public class NodeFactory {
         return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
     }
+    
+    public static TupleType makeTupleType(List<Type> elements) {
+        return new TupleType(new Span(), elements, Option.<VarargsType>none(), Collections.<KeywordType>emptyList());
+    }
 
     public static TupleType makeTupleType(Span span, List<Type> elements,
                                           List<KeywordType> keywordElements,

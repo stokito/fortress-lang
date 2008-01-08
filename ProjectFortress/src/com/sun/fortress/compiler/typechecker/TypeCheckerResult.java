@@ -21,17 +21,46 @@ import java.util.*;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Node;
-
+import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class TypeCheckerResult extends StaticPhaseResult {
-    private final Node _ast;
-    public TypeCheckerResult(Node ast, 
-                             Iterable<? extends StaticError> errors) {
-        super(errors);
-        _ast = ast;
+    private final Node ast;
+    private final Option<Type> type;
+    
+    public TypeCheckerResult(Node _ast, Type _type,
+                             Iterable<? extends StaticError> _errors) {
+        super(_errors);
+        ast = _ast;
+        type = Option.wrap(_type);
     }
-    public Node ast() { return _ast; }
+    
+    public TypeCheckerResult(Node _ast, 
+                             Iterable<? extends StaticError> _errors) {
+        super(_errors);
+        ast = _ast;
+        type = Option.none();
+    }
+    
+    public TypeCheckerResult(Node _ast) {
+        super();
+        ast = _ast;
+        type = Option.none();
+    }
+    
+    public TypeCheckerResult(Node _ast, Type _type) {
+        super();
+        ast = _ast;
+        type = Option.wrap(_type);
+    }
+    
+    public TypeCheckerResult(Node _ast, StaticError _error) {
+        super(IterUtil.make(_error));
+        ast = _ast;
+        type = Option.none();
+    }
+    
+    public Node ast() { return ast; }
+    public Option<Type> type() { return type; }
 }
