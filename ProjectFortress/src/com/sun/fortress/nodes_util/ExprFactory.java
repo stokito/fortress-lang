@@ -338,6 +338,14 @@ public class ExprFactory {
                             receiver, field);
     }
 
+    public static Expr makeReceiver(Iterable<Id> ids) {
+        Expr expr = makeVarRef(IterUtil.first(ids));
+        for (Id id : IterUtil.skipFirst(ids)) {
+            expr = new FieldRef(FortressUtil.spanTwo(expr, id), expr, id);
+        }
+        return expr;
+    }
+
     /** Alternatively, you can invoke the VoidLiteralExpr constructor without parenthesized or text */
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
         return new VoidLiteralExpr(span, false, "");
@@ -514,11 +522,12 @@ public class ExprFactory {
             }
             public Expr forFieldRef(FieldRef e) {
                 return new FieldRef(e.getSpan(), true, e.getObj(),
-                                          e.getField());
+                                    e.getField());
             }
             public Expr forMethodInvocation(MethodInvocation e) {
-                return new MethodInvocation(e.getSpan(), true, e.getObj(), e.getMethod(),
-                                            e.getStaticArgs(), e.getArg());
+                return new MethodInvocation(e.getSpan(), true, e.getObj(),
+                                            e.getMethod(), e.getStaticArgs(),
+                                            e.getArg());
             }
             public Expr forLooseJuxt(LooseJuxt e) {
                 return new LooseJuxt(e.getSpan(), true, e.getExprs());
@@ -527,7 +536,8 @@ public class ExprFactory {
                 return new TightJuxt(e.getSpan(), true, e.getExprs());
             }
             public Expr forFnRef(FnRef e) {
-                return new FnRef(e.getSpan(), true, e.getFns(), e.getStaticArgs());
+                return new FnRef(e.getSpan(), true, e.getFns(),
+                                 e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {
                 return new SubscriptExpr(e.getSpan(), true, e.getObj(),

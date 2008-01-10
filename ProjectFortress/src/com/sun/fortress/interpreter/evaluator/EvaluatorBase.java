@@ -43,6 +43,7 @@ import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.LatticeIntervalMap;
 import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
@@ -56,6 +57,11 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     protected EvaluatorBase(BetterEnv e) {
         this.e = e;
+    }
+
+    protected FValue functionInvocation(FValue arg, FValue foo,
+                                        AbstractNode loc) {
+        return functionInvocation(Useful.list(arg), foo, loc);
     }
 
     protected FValue functionInvocation(List<FValue> args, FValue foo,

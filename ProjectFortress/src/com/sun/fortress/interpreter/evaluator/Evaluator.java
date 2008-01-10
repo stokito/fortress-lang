@@ -111,6 +111,14 @@ import com.sun.fortress.nodes.ArrayExpr;
 import com.sun.fortress.nodes.ArrayElement;
 import com.sun.fortress.nodes.ArrayElements;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.MathPrimary;
+import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.ExprMI;
+import com.sun.fortress.nodes.ParenthesisDelimitedMI;
+import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
+import com.sun.fortress.nodes.NonExprMI;
+import com.sun.fortress.nodes.ExponentiationMI;
+import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes._RewriteFieldRef;
@@ -151,8 +159,9 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MatchFailure;
 import com.sun.fortress.useful.NI;
@@ -1100,7 +1109,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Should evaluate obj.[](subs, getText)
         FValue arr = obj.accept(this);
         if (!(arr instanceof FObject)) {
-            error(obj, errorMsg("Value should be an object; got " + arr));
+            error(obj, errorMsg("Value should be an object; got ", arr));
         }
         FObject array = (FObject) arr;
         String opString;
@@ -1147,6 +1156,173 @@ public class Evaluator extends EvaluatorBase<FValue> {
                          errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
                                   cl));
         }
+    }
+
+    private boolean isFunction(FValue val) { return (val instanceof Fcn); }
+    private boolean isExpr(MathItem mi)    { return (mi instanceof ExprMI); }
+    private boolean isParenthesisDelimited(MathItem mi) {
+        return (mi instanceof ParenthesisDelimitedMI);
+    }
+    private MathItem dummyExpr() {
+        Span span = new Span();
+        Expr dummyE = ExprFactory.makeVoidLiteralExpr(span);
+        return new NonParenthesisDelimitedMI(span, dummyE);
+    }
+
+    private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs) {
+        if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
+        else if (vs.size() == 1) return vs;
+        else { // vs.size() > 1
+            int ftnInd = 0;
+            FValue ftn = vs.get(ftnInd).getB();
+            FValue arg;
+            MathItem argE;
+            for (Pair<MathItem,FValue> pair : IterUtil.skipFirst(vs)) {
+                // 2. If some function element is immediately followed by
+                // an expression element then, find the first such function
+                // element, and call the next element the argument.
+                argE = pair.getA();
+                if (isFunction(ftn) && isExpr(argE)) {
+                    arg = pair.getB();
+                    // It is a static error if either the argument is not
+                    // parenthesized, or the argument is immediately followed by
+                    // a non-expression element.
+                    if (!isParenthesisDelimited(argE) ||
+                        (ftnInd+2 < vs.size() &&
+                         !isExpr(vs.get(ftnInd+2).getA())))
+                       return error(argE, "It is a static error if either the " +
+                                    "argument is not parenthesized, or the " +
+                                    "argument is immediately followed by a " +
+                                    "non-expression element.");
+                    // Otherwise, replace the function and argument with a
+                    // single element that is the application of the function to
+                    // the argument.  This new element is an expression.
+                    Pair<MathItem,FValue> app =
+                        new Pair(dummyExpr(), functionInvocation(arg,ftn,argE));
+                    vs.set(ftnInd, app);
+                    vs.remove(ftnInd+1);
+                    // Reassociate the resulting sequence (which is one element
+                    // shorter).
+                    return reassociate(vs);
+                }
+                ftn = pair.getB();
+                ftnInd++;
+            }
+            return vs;
+        }
+    }
+
+    private FValue mathItemApplication(NonExprMI opr, FValue front,
+                                       MathItem loc) {
+        if (opr instanceof ExponentiationMI) {
+            Op op = ((ExponentiationMI)opr).getOp();
+            FValue fvalue = op.accept(this);
+            if (!isFunction(fvalue))
+                return error(op, errorMsg("Operator ", op.stringName(),
+                                          " has a non-function value ", fvalue));
+            Option<Expr> expr = ((ExponentiationMI)opr).getExpr();
+            if (expr.isSome()) { // ^ Exponent
+                FValue exponent = Option.unwrap(expr).accept(this);
+                return functionInvocation(Useful.list(front, exponent),
+                                          (Fcn)fvalue, op);
+            } else { // ExponentOp
+                return functionInvocation(Useful.list(front), (Fcn)fvalue, op);
+            }
+        } else { // opr instanceof SubscriptingMI
+            Enclosing op = ((SubscriptingMI)opr).getOp();
+            List<Expr> subs = ((SubscriptingMI)opr).getExprs();
+            if (!(front instanceof FObject))
+                error(loc, errorMsg("Value should be an object; got ", front));
+            FObject array = (FObject)front;
+            String opString = NodeUtil.nameString(op);
+            FValue ixing = array.getSelfEnv().getValueNull(opString);
+            if (ixing == null || !(ixing instanceof Method))
+                error(loc, errorMsg("Could not find appropriate definition of ",
+                                    "the operator ", opString, " on ", array));
+            Method cl = (Method)ixing;
+            List<FValue> subscripts = evalExprListParallel(subs);
+            return cl.applyMethod(subscripts, array, loc, e);
+        }
+    }
+
+    private List<Pair<MathItem,FValue>> stepThree(List<Pair<MathItem,FValue>> vs) {
+        if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
+        else if (vs.size() == 1) return vs;
+        else { // vs.size() > 1
+            int frontInd = 0;
+            FValue front = vs.get(frontInd).getB();
+            MathItem opr;
+            for (Pair<MathItem,FValue> pair : IterUtil.skipFirst(vs)) {
+                // 3. If there is any non-expression element (it cannot be the
+                // first element)
+                opr = pair.getA();
+                if (!isExpr(opr)) {
+                    // then replace the first such element and the element
+                    // immediately preceding it (which must be an expression)
+                    // with a single element that does the appropriate operator
+                    // application.  This new element is an expression.
+                    Pair<MathItem,FValue> app =
+                        new Pair(dummyExpr(),
+                                 mathItemApplication((NonExprMI)opr,front,opr));
+                    vs.set(frontInd, app);
+                    vs.remove(frontInd+1);
+                    // Reassociate the resulting sequence (which is one element
+                    // shorter).
+                    return reassociate(vs);
+                }
+                front = pair.getB();
+                frontInd++;
+            }
+            return vs;
+        }
+    }
+
+    private List<Pair<MathItem,FValue>> reassociate(List<Pair<MathItem,FValue>> vs) {
+        return stepThree(stepTwo(vs));
+    }
+
+    private FValue tightJuxt(FValue first, FValue second, MathItem loc) {
+        if (isFunction(first)) return functionInvocation(second, first, loc);
+        else return functionInvocation(Useful.list(first, second),
+                                       e.getValue("juxtaposition"), loc);
+    }
+
+    private FValue leftAssociate(List<Pair<MathItem,FValue>> vs) {
+        // vs.size() > 1
+        FValue result = vs.get(0).getB();
+        for (Pair<MathItem,FValue> i : IterUtil.skipFirst(vs)) {
+            result = tightJuxt(result, i.getB(), i.getA());
+        }
+        return result;
+    }
+
+    public FValue forMathPrimary(MathPrimary x) {
+        Expr front = x.getFront();
+        Option<Op> postfixOp = x.getPostfixOp();
+
+        List<Pair<MathItem,FValue>> vs = new ArrayList<Pair<MathItem,FValue>>();
+        vs.add(new Pair(null, front.accept(this)));
+        for (MathItem mi : x.getRest()) {
+            if (mi instanceof ExprMI)
+                vs.add(new Pair(mi, ((ExprMI)mi).getExpr().accept(this)));
+            else // mi instanceof NonExprMI
+                vs.add(new Pair(mi, null));
+        }
+        vs = reassociate(vs);
+        FValue fval;
+        if (vs.size() == 1) fval = vs.get(0).getB();
+        else // vs.size() > 1
+            // 4. Otherwise, left-associate the sequence, which has only
+            //    expression elements, only the last of which may be a function.
+            fval = leftAssociate(vs);
+        if (postfixOp.isSome()) {
+            Op op = Option.unwrap(postfixOp);
+            FValue fvalue = op.accept(this);
+            if (!isFunction(fvalue))
+                error(op, errorMsg("Operator ", op.stringName(), " has a non-",
+                                   "function value ", fvalue));
+            return functionInvocation(fval, fvalue, front);
+        } else return fval;
     }
 
     Name fldName(AbstractFieldRef arf) {

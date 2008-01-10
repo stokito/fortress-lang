@@ -320,6 +320,10 @@ private constant inline Action<DimExpr> OpDim =
            }};
      };
 
+/* StaticArgs ::= [\ w StaticArgList w \] */
+List<StaticArg> StaticArgs =
+    opendoublesquare w StaticArgList w closedoublesquare ;
+
 /* StaticArgList ::= StaticArg (w , w StaticArg)*  */
 List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
