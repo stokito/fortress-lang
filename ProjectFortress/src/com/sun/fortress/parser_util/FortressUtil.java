@@ -694,6 +694,10 @@ public final class FortressUtil {
         return new Span(s1.getSpan().getBegin(), s2.getSpan().getEnd());
     }
 
+    public static Span spanTwo(Span s1, Span s2) {
+        return new Span(s1.getBegin(), s2.getEnd());
+    }
+
 // let rec span_all (com.sun.fortress.interpreter.nodes : 'a node list) : span =
 //   match com.sun.fortress.interpreter.nodes with
 //     | [] -> None

@@ -934,6 +934,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     TightJuxt();
                 /**
+                 * primary expression without any dots
+                 * MathPrimary ::= PrimaryFront MathItem* PostfixOp?
+                 */
+                MathPrimary(Expr front, List<MathItem> rest,
+                            Option<Op> postfixOp);
+                /**
                  * chain expression
                  * Certain infix mathematical operators that are traditionally
                  * regarded as relational operators, delivering boolean results,
@@ -1856,4 +1862,38 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) grams per cubic centimeter
          */
         InverseDimUnit();
+    /**
+     * mathematical item
+     */
+    abstract MathItem();
+        /**
+         * mathematical item that is an expression element
+         */
+        abstract ExprMI(Expr expr);
+            /**
+             * mathematical item that is a parenthesis delimited expression
+             * MathItem ::= ParenthesisDelimited
+             */
+            ParenthesisDelimitedMI();
+            /**
+             * mathematical item that is not a parenthesis delimited expression
+             * MathItem ::= VarOrFnRef
+             *            | LiteralExpr
+             *            | self
+             */
+            NonParenthesisDelimitedMI();
+        /**
+         * mathematical item that is a non-expression element
+         */
+        abstract NonExprMI();
+            /**
+             * mathematical item that is an exponentiation
+             * MathItem ::= Exponentiation
+             */
+            ExponentiationMI(Op op, Option<Expr> expr);
+            /**
+             * mathematical item that is a subscripting
+             * MathItem ::= Subscripting
+             */
+            SubscriptingMI(Enclosing op, List<Expr> exprs);
 end;
