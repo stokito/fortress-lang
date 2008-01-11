@@ -18,17 +18,24 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.Map;
+import java.util.List;
 
 import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
 
-public abstract class TypeAliasIndex {
+public class TypeAliasIndex extends TypeConsIndex {
     
     private final TypeAlias _ast;
     
     public TypeAliasIndex(TypeAlias ast) {
         _ast = ast;
     }
+    
+    public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
+    
+    public Type type() { return _ast.getType(); }
 
 }

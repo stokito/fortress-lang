@@ -28,14 +28,7 @@ import com.sun.fortress.useful.NI;
  * {@link TraitIndex} and {@link TypeAliasIndex}.
  */
 public abstract class TypeConsIndex {
-    private List<StaticParam> _staticParams;
-    
-    public TypeConsIndex(List<StaticParam> staticParams) {
-        _staticParams = staticParams;
-    }
 
-    public List<StaticParam> staticParameters() {
-        return _staticParams;
-    }
+    public abstract List<StaticParam> staticParameters();
     
 }
