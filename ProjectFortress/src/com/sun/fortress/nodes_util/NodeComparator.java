@@ -273,8 +273,8 @@ public class NodeComparator {
         if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
             return left.getThrowsClause().isSome() ? 1 : -1;
         if (left.getThrowsClause().isSome())
-            return traitTypeListComparer.compare(Option.unwrap(left.getThrowsClause()),
-                                                 Option.unwrap(right.getThrowsClause()));
+            return typeListComparer.compare(Option.unwrap(left.getThrowsClause()),
+                                            Option.unwrap(right.getThrowsClause()));
         return 0;
     }
 

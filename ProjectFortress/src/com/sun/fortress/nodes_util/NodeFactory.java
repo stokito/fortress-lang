@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -104,21 +105,31 @@ public class NodeFactory {
 
     public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
                                                         QualifiedIdName name, StaticArg... args) {
-        List<StaticArg> _args = new ArrayList<StaticArg>();
-        for (StaticArg arg: args) {
-            _args.add(arg);
-        }
-        return makeInstantiatedType(span, isParenthesized, name, _args);
+        return makeInstantiatedType(span, isParenthesized, name, Arrays.asList(args));
     }
 
     public static InstantiatedType makeInstantiatedType(QualifiedIdName name, List<StaticArg> args) {
         return makeInstantiatedType(new Span(), false, name, args);
     }
+    
+    public static InstantiatedType makeInstantiatedType(QualifiedIdName name, StaticArg... args) {
+        return makeInstantiatedType(new Span(), false, name, Arrays.asList(args));
+    }
+    
+    /** Signature separates the first element in order to guarantee a non-empty arg list. */
+    public static InstantiatedType makeInstantiatedType(String nameFirst, String... nameRest) {
+        return makeInstantiatedType(new Span(), false, makeQualifiedIdName(nameFirst, nameRest),
+                                    Collections.<StaticArg>emptyList());
+    }
 
     public static ArrowType makeArrowType(Span span, Type domain,
                                           Type range,
                                           Option<List<TraitType>> throws_) {
-        return new ArrowType(span, domain, range, throws_);
+        Option<List<Type>> throwsAsTypeList =
+            throws_.isSome() ?
+            Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
+            Option.<List<Type>>none();
+        return new ArrowType(span, domain, range, throwsAsTypeList);
     }
 
     public static _RewriteGenericArrowType makeGenericArrowType(Span span,
@@ -126,9 +137,12 @@ public class NodeFactory {
                                                                 Type domain,
                                                                 Type range,
                                                                 Option<List<TraitType>> throws_,
-                                                                WhereClause where)
-    {
-        return new _RewriteGenericArrowType(span, domain, range, throws_, staticParams, where);
+                                                                WhereClause where) {
+        Option<List<Type>> throwsAsTypeList =
+            throws_.isSome() ?
+            Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
+            Option.<List<Type>>none();
+        return new _RewriteGenericArrowType(span, domain, range, throwsAsTypeList, staticParams, where);
     }
 
     public static KeywordType makeKeywordType(Id name, Type type) {
@@ -302,6 +316,13 @@ public class NodeFactory {
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> ids) {
         return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
+    
+    /** Signature separates the first element in order to guarantee a non-empty arg list. */
+    public static QualifiedIdName makeQualifiedIdName(String nameFirst, String... nameRest) {
+        Iterable<Id> ids = IterUtil.compose(makeId(nameFirst),
+                                            IterUtil.map(IterUtil.make(nameRest), STRING_TO_ID));
+        return makeQualifiedIdName(ids);
+    }
 
     public static QualifiedIdName makeQualifiedIdName(APIName api, Id name) {
         return new QualifiedIdName(FortressUtil.spanTwo(api, name), Option.some(api),
@@ -336,6 +357,10 @@ public class NodeFactory {
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
+    
+    public static final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {
+        public Id value(String arg) { return makeId(arg); }
+    };
 
     public static IdType makeIdType(String string) {
         return makeIdType(new Span(), makeId(string));
@@ -741,7 +766,7 @@ public class NodeFactory {
         return ty.accept(new NodeAbstractVisitor<Type>() {
             public Type forArrowType(ArrowType t) {
                 return new ArrowType(t.getSpan(), true, t.getDomain(),
-                                     t.getRange(), t.getThrowsClause());
+                                     t.getRange(), t.getThrowsClause(), t.isIo());
             }
             public Type forArrayType(ArrayType t) {
                 return new ArrayType(t.getSpan(), true, t.getElement(),

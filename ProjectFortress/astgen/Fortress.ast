@@ -27,12 +27,10 @@ generateEquals yes;
 generateSerializers yes;
 
 package com.sun.fortress.nodes;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.*;
 import com.sun.fortress.useful.*;
@@ -1048,7 +1046,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) (String, NN..., p = Printer) -> NN throws IOException
          */
         ArrowType(Type domain, Type range,
-                  Option<List<TraitType>> throwsClause);
+                  Option<List<Type>> throwsClause,
+                  boolean io = false);
             /**
              * type of a generic function, used during static checking
              */
@@ -1060,6 +1059,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * nonarrow type
          */
         abstract NonArrowType();
+            BottomType();
             /**
              * trait type
              */
@@ -1076,6 +1076,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) T
                  */
                 IdType(QualifiedIdName name);
+                
+                InferenceVarType(Object id);
                 /**
                  * matrix type
                  * TraitType ::= Type ^ StaticArg
@@ -1107,6 +1109,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) ()
              */
             VoidType();
+            
+            IntersectionType(Set<Type> elements);
+            UnionType(Set<Type> elements);
+            AndType(Type first, Type second);
+            OrType(Type first, Type second);
             /**
              * dimension type
              */
@@ -1207,7 +1214,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 NumberConstraint(IntLiteralExpr val);
                 /**
-                 * integer identiier
+                 * integer identifier
                  * IntVal ::= QualifiedName
                  * e.g.) m
                  */

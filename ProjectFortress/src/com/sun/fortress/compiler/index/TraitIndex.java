@@ -19,7 +19,9 @@ package com.sun.fortress.compiler.index;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Pair;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -47,7 +49,6 @@ public abstract class TraitIndex extends TypeConsIndex {
                       Set<Function> coercions,
                       Relation<SimpleName, Method> dottedMethods,
                       Relation<SimpleName, FunctionalMethod> functionalMethods) {
-        super(ast.getStaticParams());
         _ast = ast;
         _getters = getters;
         _setters = setters;
@@ -56,6 +57,16 @@ public abstract class TraitIndex extends TypeConsIndex {
         _functionalMethods = functionalMethods;
     }
     
+    public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
+    
+    public List<Id> hiddenParameters() { return NI.nyi(); }
+    
+    /**
+     * Return all subtype relationships described by parameter bounds and where clauses.
+     * Each pair {@code p} in the list is an assertion that {@code p.first()} is a subtype
+     * of {@code p.second()}.
+     */
+    public Iterable<Pair<Type, Type>> typeConstraints() { return NI.nyi(); }
     
     public Set<Type> extendsTypes() {
         return NI.nyi();
