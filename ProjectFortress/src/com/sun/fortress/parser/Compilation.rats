@@ -147,7 +147,7 @@ private List<Import> ImportedNames =
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
 private List<SimpleName> SimpleNames =
      a1:SimpleName { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w SimpleNameList w closecurly ;
+   / void:opencurly w SimpleNameList w void:closecurly ;
 
 /* SimpleNameList ::= SimpleName (w , w SimpleName)* */
 private List<SimpleName> SimpleNameList =
@@ -193,7 +193,7 @@ private List<AliasedSimpleName> AliasedSimpleNameList =
  */
 private List<AliasedAPIName> AliasedAPINames =
      a1:AliasedAPIName { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w AliasedAPINameList w closecurly ;
+   / void:opencurly w AliasedAPINameList w void:closecurly ;
 
 /* AliasedAPIName ::= APIName (w as w Id)? */
 private AliasedAPIName AliasedAPIName =
@@ -224,7 +224,7 @@ private Export Export = export w a1:APINames
  */
 List<APIName> APINames =
      a1:APIName { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w APINameList w closecurly ;
+   / void:opencurly w APINameList w void:closecurly ;
 
 /* APINameList ::= APIName (w , w APIName)* */
 private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*

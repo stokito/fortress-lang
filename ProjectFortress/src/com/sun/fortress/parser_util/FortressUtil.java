@@ -154,6 +154,43 @@ public final class FortressUtil {
         });
     }
 
+    public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
+                                        String left, String right,
+                                        Expr base, List<Expr> args) {
+        Op open  = NodeFactory.makeOp(spanOpen, left);
+        Op close = NodeFactory.makeOp(spanClose, right);
+        return makeSubscripting(span, base, open, close, args);
+    }
+
+    public static Expr makeSubscripting(Span span, Expr base, Op open,
+                                        Op close, List<Expr> args) {
+        Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
+                                     open, close);
+        List<Expr> es;
+        if (args == null) es = FortressUtil.emptyExprs();
+        else              es = args;
+        return new SubscriptExpr(span, false, base, es, Option.some(op));
+    }
+
+    public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
+                                        String left, String right,
+                                        PureList<Expr> base, List<Expr> args) {
+        Op open  = NodeFactory.makeOp(spanOpen, left);
+        Op close = NodeFactory.makeOp(spanClose, right);
+        return makeSubscripting(span, base, open, close, args);
+    }
+
+    public static Expr makeSubscripting(Span span, PureList<Expr> base, Op open,
+                                        Op close, List<Expr> args) {
+        Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
+                                     open, close);
+        Expr arr = buildPrimary((PureList<Expr>)base);
+        List<Expr> es;
+        if (args == null) es = FortressUtil.emptyExprs();
+        else              es = args;
+        return new SubscriptExpr(span, false, arr, es, Option.some(op));
+    }
+
     private static void multiple(Modifier m) {
         resetMods();
         error(m, "A modifier must not occur multiple times");

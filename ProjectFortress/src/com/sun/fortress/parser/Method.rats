@@ -181,7 +181,7 @@ private FnHeaderClause CoercionClauses =
  */
 private WhereClause CoercionWhere =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
-     a2:(w opencurly w CoercionWhereConstraintList w closecurly)?
+     a2:(w void:opencurly w CoercionWhereConstraintList w void:closecurly)?
      { if (a2 == null)
          yyValue = new WhereClause(a1, Collections.<WhereConstraint>emptyList());
        else
