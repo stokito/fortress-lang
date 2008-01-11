@@ -41,7 +41,7 @@ List<QualifiedIdName> GrammarExtends = extends w QualifiedNames ;
 /* QualifiedNames ::= QualifiedName | { w QualifiedNameList w } */
 List<QualifiedIdName> QualifiedNames =
      a1:QualifiedName { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w QualifiedNameList w closecurly ;
+   / void:opencurly w QualifiedNameList w void:closecurly ;
 
 /* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
 private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedName)*

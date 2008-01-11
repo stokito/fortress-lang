@@ -37,7 +37,7 @@ List<TraitTypeWhere> ExtendsWhere = extends w TraitTypeWheres ;
 /* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
 private List<TraitTypeWhere> TraitTypeWheres =
      a1:TraitTypeWhere { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w TraitTypeWhereList w closecurly ;
+   / void:opencurly w TraitTypeWhereList w void:closecurly ;
 
 /* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
 private List<TraitTypeWhere> TraitTypeWhereList =
@@ -66,7 +66,7 @@ List<TraitType> AbsComprises = comprises w ComprisingTypes ;
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<TraitType> TraitTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w TraitTypeList w closecurly ;
+   / void:opencurly w TraitTypeList w void:closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
 private List<TraitType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
@@ -75,7 +75,7 @@ private List<TraitType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
 private List<TraitType> ComprisingTypes =
      a1:TraitType { yyValue = FortressUtil.mkList(a1); }
-   / opencurly w ComprisingTypeList w closecurly ;
+   / void:opencurly w ComprisingTypeList w void:closecurly ;
 
 /* ComprisingTypeList ::=
      ...
@@ -93,7 +93,7 @@ private List<TraitType> ComprisingTypeList =
  */
 WhereClause Where =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
-     a2:(w opencurly w WhereConstraintList w closecurly)?
+     a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
      { if (a2 == null)
          yyValue = new WhereClause(a1, Collections.<WhereConstraint>emptyList());
        else

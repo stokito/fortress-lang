@@ -418,6 +418,10 @@ public class ExprFactory {
             public Expr forLabel(Label e) {
                 return new Label(e.getSpan(), true, e.getName(), e.getBody());
             }
+            public Expr forMathPrimary(MathPrimary e) {
+                return new MathPrimary(e.getSpan(), true, e.getFront(),
+                                       e.getRest(), e.getPostfixOp());
+            }
             public Expr forObjectExpr(ObjectExpr e) {
                 return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
                                       e.getDecls());
