@@ -163,7 +163,7 @@ public class ProjectProperties {
 
     public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
     public static final String CHECKED_CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache_checked";
-    public static final Path FORTRESS_PATH = new Path(searchDef("fortress.path", "FORTRESS_PATH", "."));
+    public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
     // Note default of "." for native means nothing will be native if both defaults are used.
