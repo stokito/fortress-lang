@@ -17,6 +17,11 @@
 
 api List
 
+(** DEPRACATED.  Please use PureList or ArrayList instead.
+    Those offer a Generator implementation and indexability.
+    If you are using union/intersection/difference use Set instead.
+ **)
+
 trait List[\alpha\] comprises {Cons[\alpha\], Empty[\alpha\]}
    length(): ZZ32
    cons(x: alpha): List[\alpha\]
