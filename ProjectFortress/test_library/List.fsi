@@ -44,7 +44,6 @@ trait List[\alpha\] comprises {Cons[\alpha\], Empty[\alpha\]}
    exists(p: alpha -> Boolean): Boolean
    subList(m: ZZ32, n: ZZ32): List[\alpha\]
    reverse(): List[\alpha\]
-   asArray(): Array[\alpha\]
 end
 
 object Cons[\alpha\](hd':alpha, tl':List[\alpha\]) extends List[\alpha\]
