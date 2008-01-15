@@ -56,13 +56,13 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		/*
 		 *  Disambiguation of item symbols
 		 */
-		ItemDisambiguator.Result er = ItemDisambiguator.disambiguateEnv(mrr.modules());
-		if (!er.isSuccessful()) { return new Result(null, er.errors()); }			
+//		ItemDisambiguator.Result er = ItemDisambiguator.disambiguateSymbols(mrr.modules());
+//		if (!er.isSuccessful()) { return new Result(null, er.errors()); }			
 	
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */
-		GrammarTranslator.Result gtr = GrammarTranslator.translate(er.modules());
+		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
 		if (!gtr.isSuccessful()) { return new Result(null, gtr.errors()); }
 		
 		/*

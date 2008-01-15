@@ -94,12 +94,9 @@ public class Disambiguator {
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) api.accept(td);
             if (newErrs.isEmpty()) {
-    			ProductionDisambiguator pd = 
-    				new ProductionDisambiguator(env, newErrs);
-    			Api pdResult = (Api) tdResult.accept(pd);
             	ExprDisambiguator ed = 
                     new ExprDisambiguator(env, onDemandImports, newErrs);
-                Api edResult = (Api) pdResult.accept(ed);
+                Api edResult = (Api) tdResult.accept(ed);
                 if (newErrs.isEmpty()) { results.add(edResult); }
             }
             
@@ -107,11 +104,35 @@ public class Disambiguator {
                 errors.addAll(newErrs); 
             }
         }
+        results = disambiguateProductions(results, errors, globalEnv); 
         return new ApiResult(results, errors);
     }
     
     
-    /** Result of {@link #disambiguateComponents}. */
+    private static List<Api> disambiguateProductions(Iterable<Api> apis,
+    												 List<StaticError> errors,
+    												 GlobalEnvironment globalEnv) {
+        List<Api> results = new ArrayList<Api>();
+        for (Api api : apis) {
+            ApiIndex index = globalEnv.api(api.getName());
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+            List<StaticError> newErrs = new ArrayList<StaticError>();
+			ProductionDisambiguator pd = 
+				new ProductionDisambiguator(env, newErrs);
+			Api pdResult = (Api) api.accept(pd);
+            if (newErrs.isEmpty()) {
+            	results.add(pdResult);
+            }
+            
+            if (!newErrs.isEmpty()) { 
+                errors.addAll(newErrs); 
+            }
+        }
+        return results;
+	}
+
+
+	/** Result of {@link #disambiguateComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Iterable<Component> _components;
         public ComponentResult(Iterable<Component> components,

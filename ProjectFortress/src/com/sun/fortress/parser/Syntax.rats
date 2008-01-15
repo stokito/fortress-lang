@@ -78,64 +78,104 @@ List<SyntaxSymbol> SyntaxSymbols =
       { yyValue = FortressUtil.mkList(a1, a1s.list()); };
 
 /*
-SyntaxSymbol SyntaxSymbol =
-         a1:SyntaxSymbol questionmark
-         {yyValue = new OptionalSymbol(a1); }
-      / a1:SyntaxSymbol star
-         {yyValue = new RepeatSymbol(a1); }
-      / a1:SyntaxSymbol plus
-         {yyValue = new RepeatOneOrMoreSymbol(a1); }
-      / a1:SyntaxSymbol comma
-         {yyValue = new WhitespaceSymbol(a1); }
-      / a1:Item
-         {yyValue = new ItemSymbol(a1); };
+SyntaxSymbol            ::= (Id ":" )? Symbol 
+                   | Whitespace
+                   | br
+Symbol      ::= BasicSymbol "?" 
+                   | BasicSymbol "*" 
+                   | BasicSymbol "+" 
+                   | BasicSymbol "#" 
+                   | BasicSymbol
+BasicSymbol       ::= ItemSymbol
+                   | PredicateSymbol
+ItemSymbol        ::= KeywordSymbol 
+                   | TokenSymbol
+                   | NonterminalSymbol
+PredicateSymbol   ::= "NOT" ItemSymbol 
+                   | "\land" ItemSymbol
 */
 SyntaxSymbol SyntaxSymbol =
-      a1:Item list:SyntaxSymbolTail*
-      {yyValue = (SyntaxSymbol) apply(list, (SyntaxSymbol) a1); };
+      a1:(Id void:colon)? s:Symbol
+      { Option<Id> prefix = Option.none();
+        if (a1 != null) prefix = Option.some(a1);
+        yyValue = new PrefixedSymbol(prefix, s); };
 
-Action<SyntaxSymbol> SyntaxSymbolTail =
-      questionmark rest:SyntaxSymbolTail?
-         { yyValue = new Action<SyntaxSymbol>() {
-            public SyntaxSymbol run(SyntaxSymbol base) {
-               return new OptionalSymbol(createSpan(yyStart,yyCount), base);
-            }}; }
-      / star SyntaxSymbolTail?
-         { yyValue = new Action<SyntaxSymbol>() {
-            public SyntaxSymbol run(SyntaxSymbol base) {
-               return new RepeatSymbol(createSpan(yyStart,yyCount), base);
-            }}; }
-      / plus SyntaxSymbolTail?
-         { yyValue = new Action<SyntaxSymbol>() {
-            public SyntaxSymbol run(SyntaxSymbol base) {
-               return new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), base);
-            }}; }
-      / comma SyntaxSymbolTail?
-         { yyValue = new Action<SyntaxSymbol>() {
-            public SyntaxSymbol run(SyntaxSymbol base) {
-               return new WhitespaceSymbol(createSpan(yyStart,yyCount), base);
-            }}; };
+SyntaxSymbol Symbol =
+     "NOT" w s1:Suffix
+     { SyntaxSymbol tmp = null;
+       if (s1 instanceof OptionalSymbol) {
+          tmp = ((OptionalSymbol) s1).getSymbol();
+          s1 = new OptionalSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof RepeatSymbol) {
+          tmp = ((RepeatSymbol) s1).getSymbol();
+          s1 = new RepeatSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof RepeatOneOrMoreSymbol) {
+          tmp = ((RepeatOneOrMoreSymbol) s1).getSymbol();
+          s1 = new RepeatOneOrMoreSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof WhitespaceSymbol) {
+          tmp = ((WhitespaceSymbol) s1).getSymbol();
+          s1 = new WhitespaceSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       }
+       if (tmp != null) {
+         yyValue = s1;
+       }
+       else {
+         yyValue = new NotPredicateSymbol(createSpan(yyStart,yyCount), s1);
+       }
+     }
+     / "AND" w s1:Suffix
+     { SyntaxSymbol tmp = null;
+       if (s1 instanceof OptionalSymbol) {
+          tmp = ((OptionalSymbol) s1).getSymbol();
+          s1 = new OptionalSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof RepeatSymbol) {
+          tmp = ((RepeatSymbol) s1).getSymbol();
+          s1 = new RepeatSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof RepeatOneOrMoreSymbol) {
+          tmp = ((RepeatOneOrMoreSymbol) s1).getSymbol();
+          s1 = new RepeatOneOrMoreSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof WhitespaceSymbol) {
+          tmp = ((WhitespaceSymbol) s1).getSymbol();
+          s1 = new WhitespaceSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       }
 
-/* Disambiguation of e.g. ??? is taken to mean a token of 3 consecutive
-    questionmarks. Because if you meant two consecutive questionmarks
-    which are optional then you can move them to another production
-    and make the non-terminal referencing that production optional.
-    Similar if you have a token which is abc?? then we take it to mean
-    the token "absc??" for the same reasons. */
+       if (tmp != null) {
+         yyValue = s1;
+       }
+       else {
+         yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
+       }
+     }
+     / Suffix;
+
+SyntaxSymbol Suffix = 
+     a1:Item w questionmark
+     { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
+     / a1:Item w star
+     { yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), a1); }
+     / a1:Item w plus
+     { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
+     / a1:Item w hash
+     { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+     / a1:Item
+     { yyValue = a1; };
+
 SyntaxSymbol Item =
        !(w doublerightarrow) s:ItemText
-       { yyValue = new ItemSymbol(s); }
-     / !(w doublerightarrow) s1:questionmark s2:questionmark*
-       { yyValue = new ItemSymbol(s1+s2); }
-     / !(w doublerightarrow) s1:"*" s2:"*"*
-       { yyValue = new ItemSymbol(s1+s2); }
-     / !(w doublerightarrow) s1:"+" s2:"+"*
-       { yyValue = new ItemSymbol(s1+s2); }
-     / !(w doublerightarrow) s1:"," s2:","*
-       { yyValue = new ItemSymbol(s1+s2); };
+       { yyValue = new ItemSymbol(s); };
+
+String SpecialSymbol = questionmark / star / plus / hash;
+
+String EscapedSymbols =
+     doublerightarrow doublerightarrow
+     / questionmark questionmark
+     / star star
+     / plus plus;
+
 
 String ItemText = s1:(Unicode Unicode*);
 String Unicode = UnicodeIdStart / "-" / ">" / "." / UnicodeIdRest;
 
 transient String questionmark = "?";
+transient String hash = "#";
 transient void doublerightarrow = "-->";
