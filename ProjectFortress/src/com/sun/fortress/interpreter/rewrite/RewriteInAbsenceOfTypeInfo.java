@@ -21,11 +21,14 @@ import java.util.List;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Juxt;
+import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
@@ -119,6 +122,10 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
             return visit(translateJuxtOfDotted((Juxt) node));
         }
 
+        if (node instanceof MathPrimary && looksLikeMethodInvocation((MathPrimary) node)) {
+            return visit(translateJuxtOfDotted((MathPrimary) node));
+        }
+
 
         return visitNode(node);
     }
@@ -136,10 +143,36 @@ public class RewriteInAbsenceOfTypeInfo extends Rewrite {
                                     new TupleExpr(exprs.subList(1, exprs.size())));
     }
 
+    private AbstractNode translateJuxtOfDotted(MathPrimary node) {
+        List<MathItem> exprs = node.getRest();
+        VarRef first = (VarRef) node.getFront();
+        QualifiedIdName qidn = first.getVar();
+        List<Id> ids = Option.unwrap(qidn.getApi()).getIds();
+
+        return new MethodInvocation(node.getSpan(),
+                                false,
+                                translateQualifiedToFieldRef(ids),
+                                    qidn.getName(),
+                                    ((ExprMI)exprs.get(0)).getExpr()
+                                    /*
+                                    exprs.size() == 1 ? exprs.get(1) :
+                                    new TupleExpr(exprs.subList(1, exprs.size()))
+                                    */
+                                    );
+    }
+
     private boolean looksLikeMethodInvocation(Juxt node) {
         Expr first = node.getExprs().get(0);
         return (first instanceof VarRef && ! first.isParenthesized() &&
                 ((VarRef)first).getVar().getApi().isSome());
+    }
+
+    private boolean looksLikeMethodInvocation(MathPrimary node) {
+        Expr first = node.getFront();
+        List<MathItem> exprs = node.getRest();
+        return (first instanceof VarRef && ! first.isParenthesized() &&
+                ((VarRef)first).getVar().getApi().isSome() &&
+                exprs.size() == 1 && exprs.get(0) instanceof ExprMI);
     }
 
 }

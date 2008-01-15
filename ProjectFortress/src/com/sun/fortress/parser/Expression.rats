@@ -288,280 +288,279 @@ PureList<PrecedenceOpExpr> LooseInfix =
    / <Left> a1:Op wr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
+///////////////////////////////////////////////////////////////////////////////
 /* Primary ::=
-     Comprehension
-   | QualifiedName [\ w StaticArgList w \]
-   | NoKeyTuple
-   | Parenthesized
-   | LiteralExpr
-   | QualifiedName
-   | self
-   | ArrayExpr
-   | LeftEncloser (w ExprList)? w RightEncloser
-   | Primary LeftEncloser (w ExprList)? w RightEncloser
-   | Primary . Id ([\ w StaticArgList w \])? TupleExpr
-   | Primary . Id ([\ w StaticArgList w \])? Parenthesized
-   | Primary . Id ([\ w StaticArgList w \])? ( w )
-   | Primary . Id
-   | Primary ^ Exponent
-   | Primary ExponentOp
-   | Primary w dimensionless
-   | Primary w per w UnitExpr
-   | Primary w in w UnitExpr
-   | Primary TupleExpr
-   | Primary Parenthesized
-   | Primary ( w )
-   | Primary Primary
+     LeftAssociatedPrimary
+   | MathPrimary
  */
 constant PureList<Expr> Primary =
-     seed:PrimaryFront list:PrimaryTail*
-     { yyValue = (PureList<Expr>)apply(list, PureList.make(seed)); };
+     a1:(LeftAssociatedPrimary / MathPrimary)
+     { yyValue = PureList.make(a1); };
 
+/* LeftAssociatedPrimary ::=
+     DottedIdChain StaticArgs? Subscripting* ParenthesisDelimited* Selector*
+   | PrimaryFront Subscripting* ParenthesisDelimited* Selector+
+ */
+constant Expr LeftAssociatedPrimary =
+     a1:DottedIdChain a2:StaticArgs a3:ParenthesisDelimited
+     a4s:ParenthesisDelimitedLeft* a5s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Span span = FortressUtil.spanTwo(receiver,a3);
+       Expr e1 = new MethodInvocation(span, receiver, last, a2, a3);
+       Expr e2 = (Expr)apply(a4s, e1);
+       yyValue = (Expr)apply(a5s, e2);
+     }
+   / a1:DottedIdChain a2s:SubscriptingLeft+ a3s:ParenthesisDelimitedLeft*
+     a4s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Span span = FortressUtil.spanTwo(receiver,last);
+       Expr e1 = new FieldRef(span, receiver, last);
+       Expr e2 = (Expr)apply(a2s, e1);
+       Expr e3 = (Expr)apply(a3s, e2);
+       yyValue = (Expr)apply(a4s, e3);
+     }
+   / a1:DottedIdChain a2:ParenthesisDelimited a3s:ParenthesisDelimitedLeft+
+     a4s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Span span = FortressUtil.spanTwo(receiver,a2);
+       Expr e1 = new MethodInvocation(span, receiver, last, a2);
+       Expr e2 = (Expr)apply(a3s, e1);
+       yyValue = (Expr)apply(a4s, e2);
+     }
+   / a1:DottedIdChain a2s:ParenthesisDelimitedLeft* a3s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Span span = FortressUtil.spanTwo(receiver,last);
+       Expr e1 = new FieldRef(span, receiver, last);
+       Expr e2 = (Expr)apply(a2s, e1);
+       yyValue = (Expr)apply(a3s, e2);
+     }
+   / a1:PrimaryFront a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
+     a4s:Selector+
+     { Expr e1 = (Expr)apply(a2s, a1);
+       Expr e2 = (Expr)apply(a3s, e1);
+       yyValue = (Expr)apply(a4s, e2);
+     };
+
+/* QualifiedName is not yet implemented in the interpreter. */
+/* DottedIdChain ::= Id(. w Id)+ */
+List<Id> DottedIdChain = a1:Id a2s:(dot w Id)+
+    { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* MathPrimary ::= PrimaryFront MathItem* ExponentOp? */
+constant Expr MathPrimary =
+    a1:PrimaryFront a2s:MathItem* a3:ExponentOp?
+    { Span span = createSpan(yyStart,yyCount);
+      List<MathItem> mis = a2s.list();
+      if (mis.size() == 0) {
+          if (a3 == null) yyValue = a1;
+          else {
+              PostFix opr = new PostFix(a3.getSpan(), a3.getText());
+              yyValue = ExprFactory.makeOprExpr(span, opr, a1);
+          }
+      } else if (mis.size() == 1) {
+          MathItem mi = mis.get(0);
+          if (a3 == null)
+              yyValue = ExprFactory.simplifyMathPrimary(span, a1, mi);
+          else // a3 != null
+              yyValue = ExprFactory.simplifyMathPrimary(span, a1, mi, a3);
+      } else { // mis.size() > 1
+          Option<Op> op;
+          if (a3 == null) op = Option.<Op>none();
+          else            op = Option.wrap(a3);
+          yyValue = new MathPrimary(span, a1, mis, op);
+      }
+    };
+
+/* PrimaryFront ::=
+     Comprehension
+   | ArrayExpr
+   | LeftEncloser (w ExprList)? w RightEncloser
+   | Parenthesized
+   | NoKeyTuple
+   | VarOrFnRef
+   | LiteralExpr
+   | self
+ */
 Expr PrimaryFront =
      Comprehension
-   / a1:QualifiedName opendoublesquare w a2:StaticArgList w closedoublesquare
-     { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
-   / NoKeyTuple
-   / Parenthesized
-   / LiteralExpr
-   / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
-   / a1:self
-     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
    / ArrayExpr
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
-     };
-
-constant transient Action<PureList<Expr>> PrimaryTail =
-     SubscriptExpr
-   / MethodInvocation
-   / FieldSelection
-   / ExponentExpr
-   / TaggedUnitExpr
-   / TightJuxtaposition
+     }
+   / Parenthesized
+   / NoKeyTuple
+   / VarOrFnRef
+   / LiteralExpr
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
    ;
 
-constant inline Action<PureList<Expr>> SubscriptExpr =
-     a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Span span = createSpan(yyStart,yyCount);
-               Expr arr = FortressUtil.buildPrimary((PureList<Expr>)base);
-               List<Expr> es;
-               if (a2 == null) es = FortressUtil.emptyExprs();
-               else            es = a2;
-               Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3),a1,a3);
-               return PureList.make((Expr)new SubscriptExpr(span, false, arr, es,
-                                                            Option.some(op)));
-           }};
+/* ArrayExpr is defined in Literal.rats */
+
+/* VarOrFnRef ::= Id StaticArgs? */
+Expr VarOrFnRef = a1:Id a2:StaticArgs?
+     { QualifiedIdName name = NodeFactory.makeQualifiedIdName(a1.getSpan(), a1);
+       if (a2 == null)
+            yyValue = new VarRef(createSpan(yyStart,yyCount),false,name);
+       else yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount),name,a2);
      };
 
-constant inline Action<PureList<Expr>> MethodInvocation = /* REVERSE ORDER */
-     dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
-     a3:(TupleExpr / Parenthesized)
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               List<StaticArg> sargs;
-               if (a2 == null) sargs = Collections.<StaticArg>emptyList();
-               else            sargs = a2;
-               Expr inv = new MethodInvocation(FortressUtil.spanTwo(rcv,a3),
-                                               false, rcv, a1, sargs, a3);
-               return PureList.make(inv);
-           }};
-     }
-   / dot a1:Id a2:(opendoublesquare w StaticArgList w closedoublesquare)?
-     openparen w closeparen
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Expr arg = ExprFactory.makeVoidLiteralExpr(a1.getSpan());
-               Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               List<StaticArg> sargs;
-               if (a2 == null) sargs = Collections.<StaticArg>emptyList();
-               else            sargs = a2;
-               Expr inv = new MethodInvocation(createSpan(yyStart,yyCount),
-                                               false, rcv, a1, sargs, arg);
-               return PureList.make(inv);
-           }};
-     };
-
-constant inline Action<PureList<Expr>> FieldSelection =
-     dot a1:Id
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               Span span = createSpan(yyStart,yyCount);
-               Expr rcv = FortressUtil.buildPrimary((PureList<Expr>)base);
-               return PureList.make((Expr)new FieldRef(span,false,rcv, a1));
-           }};
-     };
-
-constant inline Action<PureList<Expr>> ExponentExpr =
-     a1:caret a2:Exponent
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               PureList<Expr> primary = (PureList<Expr>)base;
-               if (primary.isEmpty()) {
-                   return error(a2, "Exponentiation on an empty primary.");
-               } else { // !primary.isEmpty()
-                   Expr last = ((Cons<Expr>)primary).getFirst();
-                   PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
-                   Span span = FortressUtil.spanTwo(last, a2);
-                   Op op = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1);
-                   return rest.cons(ASTUtil.infix(span, last, op, a2));
-               }
-           }};
-     }
-   / a1:ExponentOp
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               PureList<Expr> primary = (PureList<Expr>)base;
-               if (primary.isEmpty()) {
-                   return error(a1, "Exponentiation on an empty primary.");
-               } else { // !primary.isEmpty()
-                   Expr last = ((Cons<Expr>)primary).getFirst();
-                   PureList<Expr> rest = ((Cons<Expr>)primary).getRest();
-                   Span span = FortressUtil.spanTwo(last, a1);
-                   return rest.cons(ASTUtil.postfix(span, last, a1));
-               }
-           }};
-     };
-
-/* Exponent ::=
-     NoKeyTuple
-   | Parenthesized
-   | LiteralExpr
-   | QualifiedName
-   | self
+/* Subscripting ::=
+     [ (w ExprList)? w ]
+   | { (w ExprList)? w }
+   | LeftEncloser (w ExprList)? w RightEncloser
  */
-private Expr Exponent =
-     NoKeyTuple
-   / Parenthesized
-   / LiteralExpr
-   / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1); }
-   / a1:self
-     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
+constant inline Action<Expr> SubscriptingLeft =
+     a1:(opensquare / opencurly) a2:(w ExprList)? w a3:(closesquare / closecurly)
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               if (PrecedenceMap.ONLY.matchedBrackets(a1, a3)) {
+                   Span span = createSpan(yyStart,yyCount);
+                   Span spanOpen = createSpan(yyStart, yyStart+1);
+                   Span spanClose = createSpan(yyCount-1,1);
+                   return FortressUtil.makeSubscripting(span,spanOpen,spanClose,
+                                                        a1, a3, base, a2);
+               } else return error("Mismatched subscripting operator: " + a1 +
+                                   " and " + a3);
+           }};
+     }
+   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Span span = createSpan(yyStart,yyCount);
+               return FortressUtil.makeSubscripting(span, base, a1, a3, a2);
+           }};
+     };
 
-constant inline Action<PureList<Expr>> TaggedUnitExpr =
-     w "dimensionless"
-    { yyValue = new Action<PureList<Expr>>() {
-          public PureList<Expr> run(PureList<Expr> base) {
-              Span span = createSpan(yyStart,yyCount);
-              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
-              return PureList.make((Expr)new ProductUnitExpr(span,false,val,
-                                                             new BaseUnit(span)));
-          }};
-    }
-  / w per w a1:UnitExpr
-    { yyValue = new Action<PureList<Expr>>() {
-          public PureList<Expr> run(PureList<Expr> base) {
-              Span span = createSpan(yyStart,yyCount);
-              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
-              return PureList.make((Expr)new QuotientUnitExpr(span,false,val,a1));
-          }};
-    }
-  / w in w a1:UnitExpr
-    { yyValue = new Action<PureList<Expr>>() {
-          public PureList<Expr> run(PureList<Expr> base) {
-              Span span = createSpan(yyStart,yyCount);
-              Expr val = FortressUtil.buildPrimary((PureList<Expr>)base);
-              return PureList.make((Expr)new ChangeUnitExpr(span,false,val,a1));
+/* ParenthesisDelimited ::=
+     Parenthesized
+   | TupleExpr
+   | ( w )
+ */
+constant inline Action<Expr> ParenthesisDelimitedLeft =
+    a1:ParenthesisDelimited
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              List<Expr> exprs = FortressUtil.mkList(base, a1);
+              return new TightJuxt(FortressUtil.spanTwo(base, a1), false, exprs);
           }};
     };
 
-constant inline Action<PureList<Expr>> TightJuxtaposition = /* REVERSE ORDER */
-     a1:(TupleExpr / Parenthesized)
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               return base.cons(a1);
-           }};
-     }
+Expr ParenthesisDelimited =
+     Parenthesized
+   / TupleExpr
    / openparen w closeparen
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               return base.cons(ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)));
-           }};
-     }
-   / a1:Primary
-     { yyValue = new Action<PureList<Expr>>() {
-           public PureList<Expr> run(PureList<Expr> base) {
-               return a1.append(base);
-           }};
-     };
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
 
-/* UnitExpr ::=
-     dimensionless
-   | QualifiedName
-   | UnitExpr w DOT w UnitExpr
-   | UnitExpr sr UnitExpr
-   | UnitExpr w / w UnitExpr
-   | UnitExpr w per w UnitExpr
-   | 1 w / w UnitExpr
-   | UnitExpr ^ IntLiteralExpr
-   | ( w UnitExpr w )
-   | DUPreOp sr UnitExpr
-   | UnitExpr w DUPostOp
+/* Selector ::=
+     MethodInvocation ParenthesisDeliited*
+   | FieldSelection Subscripting* ParenthesisDelimited*
+   MethodInvocation ::= . w Id StaticArgs? ParenthesisDelimited
+   FieldSelection ::= . w Id
  */
-UnitExpr UnitExpr =
-     seed:UnitExprFront list:UnitExprTail*
-     { yyValue = (UnitExpr)apply(list, seed); };
-
-private UnitExpr UnitExprFront =
-     "dimensionless"
-     { yyValue = new BaseUnit(createSpan(yyStart,yyCount)); }
-   / a1:QualifiedName
-     { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1); }
-   / one w slash w a1:UnitExpr
-     { yyValue = new QuotientUnit(createSpan(yyStart,yyCount),
-                                  new BaseUnit(createSpan(yyStart,1)), a1); }
-   / openparen w a1:UnitExpr w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
-   / a1:DUPreOp sr a2:UnitExpr
-     { yyValue = new OpUnit(createSpan(yyStart,yyCount), a2, a1); };
-
-private constant transient Action<UnitExpr> UnitExprTail =
-     ProductUnit
-   / QuotientUnit
-   / ExponentUnit
-   / OpUnit
+constant transient Action<Expr> Selector =
+     MethodInvocationSelector
+   / FieldSelectionSelector
    ;
 
-private constant inline Action<UnitExpr> ProductUnit =
-     (w DOT w / sr) a1:UnitExpr
-     { yyValue = new Action<UnitExpr>() {
-           public UnitExpr run(UnitExpr base) {
-               return new ProductUnit(createSpan(yyStart,yyCount),
-                                      (UnitExpr)base, a1);
+constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
+     dot w a1:Id a2:StaticArgs? a3:ParenthesisDelimited
+     a4s:ParenthesisDelimitedLeft*
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               List<StaticArg> sargs;
+               if (a2 == null) sargs = Collections.<StaticArg>emptyList();
+               else            sargs = a2;
+               Expr mtdInv = new MethodInvocation(FortressUtil.spanTwo(base, a3),
+                                                  false, base, a1, sargs, a3);
+               return (Expr)apply(a4s, mtdInv);
            }};
      };
 
-private constant inline Action<UnitExpr> QuotientUnit =
-     w (slash / per) w a1:UnitExpr
-     { yyValue = new Action<UnitExpr>() {
-           public UnitExpr run(UnitExpr base) {
-               return new QuotientUnit(createSpan(yyStart,yyCount),
-                                       (UnitExpr)base, a1);
+constant inline Action<Expr> FieldSelectionSelector =
+     dot w a1:Id a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Expr fldSel = new FieldRef(createSpan(yyStart,yyCount), false,
+                                          base, a1);
+               return (Expr)apply(a3s, (Expr)apply(a2s, fldSel));
            }};
      };
 
-private constant inline Action<UnitExpr> ExponentUnit =
-     caret a1:IntLiteralExpr
-     { yyValue = new Action<UnitExpr>() {
-           public UnitExpr run(UnitExpr base) {
-               return new ExponentUnit(createSpan(yyStart,yyCount),
-                                       (UnitExpr)base, a1);
-           }};
+/* MathItem ::=
+     Subscripting
+   | Exponentiation
+   | ParenthesisDelimited
+   | VarOrFnRef
+   | LiteralExpr
+   | self
+ */
+MathItem MathItem =
+     Subscripting
+   / Exponentiation
+   / a1:ParenthesisDelimited { yyValue = new ParenthesisDelimitedMI(a1); }
+   / a1:VarOrFnRef           { yyValue = new NonParenthesisDelimitedMI(a1); }
+   / a1:LiteralExpr          { yyValue = new NonParenthesisDelimitedMI(a1); }
+   / a1:self
+     { Expr expr = ExprFactory.makeVarRef(createSpan(yyStart,yyCount),a1);
+       yyValue = new NonParenthesisDelimitedMI(expr);
      };
 
-private constant inline Action<UnitExpr> OpUnit =
-     w a1:DUPostOp
-     { yyValue = new Action<UnitExpr>() {
-           public UnitExpr run(UnitExpr base) {
-               return new OpUnit(createSpan(yyStart,yyCount),(UnitExpr)base,a1);
-           }};
+/* Subscripting ::=
+     [ (w ExprList)? w ]
+   | { (w ExprList)? w }
+   | LeftEncloser (w ExprList)? w RightEncloser
+ */
+SubscriptingMI Subscripting =
+     a1:(opensquare / opencurly) a2:(w ExprList)? w a3:(closesquare / closecurly)
+     { if (PrecedenceMap.ONLY.matchedBrackets(a1, a3)) {
+         Span span = createSpan(yyStart,yyCount);
+         Span spanOpen = createSpan(yyStart, yyStart+1);
+         Span spanClose = createSpan(yyCount-1,1);
+         Op open  = NodeFactory.makeOp(spanOpen, a1);
+         Op close = NodeFactory.makeOp(spanClose, a3);
+         Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
+                                      open,close);
+         yyValue = new SubscriptingMI(op, a2);
+        } else return error("Mismatched subscripting operator: " + a1 + " and "
+                            + a3);
+     }
+   / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Enclosing op = new Enclosing(FortressUtil.spanTwo(a1,a3),a1,a3);
+       yyValue = new SubscriptingMI(op, a2);
      };
+
+/* Exponentiation ::=
+     ^ Exponent
+   | ExponentOp
+ */
+ExponentiationMI Exponentiation =
+     a1:caret a2:Exponent
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new ExponentiationMI(span, NodeFactory.makeOp(span, a1),
+                                      Option.wrap(a2));
+     }
+   / a1:ExponentOp
+     { yyValue = new ExponentiationMI(a1.getSpan(), a1, Option.<Expr>none()); };
+
+/* Exponent ::=
+     Id
+   | ParenthesisDelimited
+   | LiteralExpr
+   | self
+ */
+Expr Exponent =
+     a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
+   / ParenthesisDelimited
+   / LiteralExpr
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?

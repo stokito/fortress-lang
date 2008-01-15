@@ -28,9 +28,12 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.ExprMI;
+import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TightJuxt;
@@ -130,11 +133,23 @@ public abstract class NativeApp implements Applicable {
         Option<Expr> optBody = NodeUtil.getBody(defn);
         if (optBody.isNone()) return defn;
         Expr body = Option.unwrap(optBody);
-        if (!(body instanceof TightJuxt)) return defn;
-        List<Expr> juxts = ((TightJuxt)body).getExprs();
-        if (juxts.size()!=2) return defn;
-        Expr fn = juxts.get(0);
-        Expr arg = juxts.get(1);
+        Expr fn;
+        Expr arg;
+        if (body instanceof TightJuxt) {
+            List<Expr> juxts = ((TightJuxt)body).getExprs();
+            if (juxts.size()!=2) return defn;
+            fn = juxts.get(0);
+            arg = juxts.get(1);
+        } else if (body instanceof MathPrimary) {
+            MathPrimary mp = (MathPrimary)body;
+            List<MathItem> args = mp.getRest();
+            if (args.size()!=1) return defn;
+            fn = mp.getFront();
+            MathItem mi = args.get(0);
+            if (mi instanceof ExprMI) arg = ((ExprMI)mi).getExpr();
+            else return defn;
+        } else // (!(body instanceof TightJuxt || body instanceof MathPrimary))
+            return defn;
         if (!(fn instanceof VarRef)) return defn;
         if (!(arg instanceof StringLiteralExpr)) return defn;
         QualifiedIdName name = ((VarRef)fn).getVar();
@@ -146,23 +161,22 @@ public abstract class NativeApp implements Applicable {
             NativeApp res = cache.get(key);
             if (res != null)
                 return res;
-        try {
-            // System.err.println("Loading primitive class "+str);
-            Class nativeAct = Class.forName(str);
-            res = (NativeApp)nativeAct.newInstance();
-            res.init(defn);
-            cache.put(key, res);
-            return res;
-        } catch (java.lang.ClassNotFoundException x) {
-            return bug(defn,"Native class "+str +" not found.",x);
-        } catch (java.lang.InstantiationException x) {
-            return bug(defn,"Native class "+str +" has no nullary constructor.",x);
-        } catch (java.lang.IllegalAccessException x) {
-            return bug(defn,"Native class "+str +" cannot be accessed.",x);
-        } catch (java.lang.ClassCastException x) {
-            return bug(defn,"Native class "+str +" is not a NativeApp.",x);
-
-        }
+            try {
+                // System.err.println("Loading primitive class "+str);
+                Class nativeAct = Class.forName(str);
+                res = (NativeApp)nativeAct.newInstance();
+                res.init(defn);
+                cache.put(key, res);
+                return res;
+            } catch (java.lang.ClassNotFoundException x) {
+                return bug(defn,"Native class "+str +" not found.",x);
+            } catch (java.lang.InstantiationException x) {
+                return bug(defn,"Native class "+str +" has no nullary constructor.",x);
+            } catch (java.lang.IllegalAccessException x) {
+                return bug(defn,"Native class "+str +" cannot be accessed.",x);
+            } catch (java.lang.ClassCastException x) {
+                return bug(defn,"Native class "+str +" is not a NativeApp.",x);
+            }
         }
     }
     static public void reset() {

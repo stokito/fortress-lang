@@ -27,9 +27,6 @@ body {
     add(FORTRESS_KEYWORDS, new String[] {
         "FORALL",
 
-        "cubed",        "cubic",        "inverse",      "per",
-        "square",       "squared",
-
         "goto",         "idiom",        "public",       "pure",
         "reciprocal",   "static",
 

@@ -45,7 +45,7 @@ trait CovariantCollection[\T\]
     getter indices(): Generator[\ZZ32\] = bounds()
 
     opr[rng:Range[\ZZ32\]]: CovariantCollection[\T\] =
-        self[bounds()[rng]]
+        self[(bounds())[rng]]
 end
 
 object CVJoin[\T, U extends T, V extends T\](

@@ -43,7 +43,7 @@ public abstract class TypeEnv {
     public static TypeEnv make(LValueBind... entries) {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
-    
+
     /**
      * Construct a new TypeEnv from the given bindings.
      */
@@ -51,19 +51,19 @@ public abstract class TypeEnv {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
 
-    /** 
+    /**
      * Get a type from a Param.
      */
     protected static Option<Type> typeFromParam(Param param) {
         if (param instanceof NormalParam) {
             NormalParam _param = (NormalParam) param;
             return _param.getType();
-        } else { // param instanceof VarargsParam 
+        } else { // param instanceof VarargsParam
             // Convert the declared VarargsType into a reference to
             // FortressBuiltin.ImmutableHeapSequence.
             VarargsParam _param = (VarargsParam) param;
-            
-            Type result = 
+
+            Type result =
                 makeInstantiatedType(_param.getVarargsType().getSpan(),
                                      false,
                                      makeQualifiedIdName
@@ -73,7 +73,7 @@ public abstract class TypeEnv {
             return some(result);
         }
     }
-    
+
     /**
      * Get a type from a list of params.
      */
@@ -81,12 +81,12 @@ public abstract class TypeEnv {
         List<Type> paramTypes = new ArrayList<Type>();
         List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
         Option<VarargsType> varargsType = none();
-        
+
         for (Param param: params) {
             if (param instanceof NormalParam) {
                 NormalParam _param = (NormalParam) param;
                 Option<Type> maybeType = _param.getType();
-                
+
                 if (maybeType.isSome()) { // An explicit type is declared.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
                         keywordTypes.add(makeKeywordType(_param.getName(), unwrap(maybeType)));
@@ -95,7 +95,7 @@ public abstract class TypeEnv {
                     }
                 } else { // No type is explicitly declared for this parameter.
                     if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), new _RewriteImplicitType()));                   
+                        keywordTypes.add(makeKeywordType(_param.getName(), new _RewriteImplicitType()));
                     } else { // We have an ordinary param.
                         paramTypes.add(new _RewriteImplicitType());
                     }
@@ -107,10 +107,10 @@ public abstract class TypeEnv {
         }
         return makeTupleType(new Span(), paramTypes, keywordTypes, varargsType);
     }
-    
+
     protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
         List<StaticArg> result = new ArrayList<StaticArg>();
-        
+
         for (StaticParam param: params) {
             result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
                 public StaticArg forOperatorParam(OperatorParam that) {
@@ -135,89 +135,89 @@ public abstract class TypeEnv {
                     return new IdArg(new Span(), makeQualifiedIdName(that.getName()));
                 }
                 public StaticArg forUnitParam(UnitParam that) {
-                    return new UnitArg(new Span(), new UnitRef(new Span(), makeQualifiedIdName(that.getName())));
+                    return new UnitArg(new Span(), new VarRef(new Span(), makeQualifiedIdName(that.getName())));
                 }
             }));
         }
         return result;
     }
-               
-    
+
+
     /**
      * Return an LValueBind that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
     public abstract Option<LValueBind> binding(Id var);
-    
+
     /**
      * Return the type of the given Id (if the given Id is in
      * this type environment).
      */
-    public final Option<Type> type(Id var) { 
+    public final Option<Type> type(Id var) {
         Option<LValueBind> _binding = binding(var);
         if (_binding.isSome()) {
             Option<Type> type = unwrap(_binding).getType();
             if (type.isSome()) {
                 return type;
             } else {
-                // When an explicit type is not given in the source code, the 
+                // When an explicit type is not given in the source code, the
                 // type environment returns a fresh implicit type. Note that
-                // a distinct implicit type is returned each time type() is 
+                // a distinct implicit type is returned each time type() is
                 // called. This is necessary because TypeEnvs are immutable.
                 // It's up to the type checker to accumulate the constraints
-                // on implicit types. 
+                // on implicit types.
                 return Option.<Type>wrap(new _RewriteImplicitType());
             }
         } else {
             return Option.none();
         }
     }
-    
-    
+
+
     /**
      * Return the list of modifiers for the given Id (if that
      * Id is in this type environment).
      */
-    public final Option<List<Modifier>> mods(Id var) { 
+    public final Option<List<Modifier>> mods(Id var) {
         Option<LValueBind> binding = binding(var);
-        
+
         if (binding.isSome()) { return wrap(unwrap(binding).getMods()); }
         else { return Option.none(); }
     }
-    
+
     /**
      * Indicate whether the given Id is bound as a mutable
      * variable (if the given Id is in this type environment).
      */
-    public final Option<Boolean> mutable(Id var) { 
+    public final Option<Boolean> mutable(Id var) {
         Option<LValueBind> binding = binding(var);
-        
+
         if (binding.isSome()) { return wrap(unwrap(binding).isMutable()); }
         else { return Option.none(); }
-    }     
+    }
 
     /**
-     * Convenience method that takes a String and returns the type of the 
+     * Convenience method that takes a String and returns the type of the
      * corresponding Id in this type environment.
      */
     public final Option<Type> type(String var) { return type(makeId(var)); }
-      
+
     /**
-     * Convenience method that takes a String and returns the modifiers for the 
-     * corresponding Id in this type environment.
-     */  
-    public final Option<List<Modifier>> mods(String var) { 
-        return mods(makeId(var)); 
-    }
-    
-    /**
-     * Convenience method that takes a String and indicates whether the 
+     * Convenience method that takes a String and returns the modifiers for the
      * corresponding Id in this type environment.
      */
-    public final Option<Boolean> mutable(String var) { 
-        return mutable(makeId(var)); 
+    public final Option<List<Modifier>> mods(String var) {
+        return mods(makeId(var));
     }
-        
+
+    /**
+     * Convenience method that takes a String and indicates whether the
+     * corresponding Id in this type environment.
+     */
+    public final Option<Boolean> mutable(String var) {
+        return mutable(makeId(var));
+    }
+
     /**
      * Produce a new type environment extending this with the given variable bindings.
      */
@@ -233,12 +233,12 @@ public abstract class TypeEnv {
         if (vars.size() == 0) { return this; }
         else { return new VarTypeEnv(vars, this); }
     }
-    
+
     public final TypeEnv extend(Relation<SimpleName, Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
     }
-    
+
     public final TypeEnv extend(List<Param> params) {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
