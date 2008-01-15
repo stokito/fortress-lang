@@ -607,7 +607,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         other choices of lower bounds.  The easiest way to write the
         index by ranges operation for an instance of Indexed is to
         take advantage of indexing on the ranges themselves by writing
-        bounds()[r] in order to narrow and bounds check the range r
+        (bounds())[r] in order to narrow and bounds check the range r
         and obtain a closed range of indices on the underlying
         data. **)
     abstract opr[r:Range[\I\]] : Indexed[\E,I\]

@@ -111,11 +111,11 @@ public class NodeFactory {
     public static InstantiatedType makeInstantiatedType(QualifiedIdName name, List<StaticArg> args) {
         return makeInstantiatedType(new Span(), false, name, args);
     }
-    
+
     public static InstantiatedType makeInstantiatedType(QualifiedIdName name, StaticArg... args) {
         return makeInstantiatedType(new Span(), false, name, Arrays.asList(args));
     }
-    
+
     /** Signature separates the first element in order to guarantee a non-empty arg list. */
     public static InstantiatedType makeInstantiatedType(String nameFirst, String... nameRest) {
         return makeInstantiatedType(new Span(), false, makeQualifiedIdName(nameFirst, nameRest),
@@ -185,12 +185,12 @@ public class NodeFactory {
                                               Option<Id> defaultId) {
         return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
                                false, Collections.<Id>emptyList(),
-                               Option.<ExprOrUnitExpr>none());
+                               Option.<Expr>none());
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
                                               String unit, List<Id> ids,
-                                              Option<ExprOrUnitExpr> def) {
+                                              Option<Expr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
@@ -201,7 +201,7 @@ public class NodeFactory {
     public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
                                               Option<DimExpr> derived,
                                               String unit, List<Id> ids,
-                                              Option<ExprOrUnitExpr> def) {
+                                              Option<Expr> def) {
         boolean si_unit;
         if (unit.equals("SI_unit")) si_unit = true;
         else                        si_unit = false;
@@ -223,15 +223,15 @@ public class NodeFactory {
 
     private static List<Id> stringToIds(String path) {
         List<Id> ids = new ArrayList<Id>();
-        
+
         StringTokenizer st = new StringTokenizer(path, ".");
         while (st.hasMoreTokens()) {
-            String e = st.nextToken();           
+            String e = st.nextToken();
             ids.add(makeId(e));
         }
         return ids;
     }
-    
+
     public static APIName makeAPIName(String s) {
         return makeAPIName(stringToIds(s));
     }
@@ -316,7 +316,7 @@ public class NodeFactory {
     public static QualifiedIdName makeQualifiedIdName(Iterable<Id> ids) {
         return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
-    
+
     /** Signature separates the first element in order to guarantee a non-empty arg list. */
     public static QualifiedIdName makeQualifiedIdName(String nameFirst, String... nameRest) {
         Iterable<Id> ids = IterUtil.compose(makeId(nameFirst),
@@ -357,7 +357,7 @@ public class NodeFactory {
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
-    
+
     public static final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {
         public Id value(String arg) { return makeId(arg); }
     };
@@ -580,7 +580,7 @@ public class NodeFactory {
         return new TupleType(span, elements, varargs,
                              Collections.<KeywordType>emptyList());
     }
-    
+
     public static TupleType makeTupleType(List<Type> elements) {
         return new TupleType(new Span(), elements, Option.<VarargsType>none(), Collections.<KeywordType>emptyList());
     }
@@ -670,36 +670,6 @@ public class NodeFactory {
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
          " is not a subtype of DimExpr.");
-            }
-        });
-    }
-
-    public static UnitExpr makeInParentheses(UnitExpr dim) {
-        return dim.accept(new NodeAbstractVisitor<UnitExpr>() {
-            public UnitExpr forBaseUnit(BaseUnit t) {
-                return new BaseUnit(t.getSpan(), true);
-            }
-            public UnitExpr forUnitId(UnitRef t) {
-                return new UnitRef(t.getSpan(), true, t.getName());
-            }
-            public UnitExpr forProductUnit(ProductUnit t) {
-                return new ProductUnit(t.getSpan(), true, t.getMultiplier(),
-                                       t.getMultiplicand());
-            }
-            public UnitExpr forQuotientUnit(QuotientUnit t) {
-                return new QuotientUnit(t.getSpan(), true, t.getNumerator(),
-                                        t.getDenominator());
-            }
-            public UnitExpr forExponentUnit(ExponentUnit t) {
-                return new ExponentUnit(t.getSpan(), true, t.getBase(),
-                                        t.getPower());
-            }
-            public UnitExpr forOpUnit(OpUnit t) {
-                return new OpUnit(t.getSpan(), true, t.getVal(), t.getOp());
-            }
-            public UnitExpr defaultCase(Node x) {
-                return bug(x, "makeInParentheses: " + x.getClass() +
-         " is not a subtype of UnitExpr.");
             }
         });
     }

@@ -2,15 +2,15 @@
   Copyright 2008 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
-  
+
   U.S. Government Rights - Commercial software.
   Government users are subject to the Sun Microsystems, Inc. standard
   license agreement and applicable provisions of the FAR and its supplements.
-  
+
   Use is subject to license terms.
-  
+
   This distribution may include materials developed by third parties.
-  
+
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
   ******************************************************************************/
@@ -34,7 +34,7 @@ import com.sun.fortress.compiler.index.TypeAliasIndex;
 
 
 public class Types {
-    
+
     public static boolean subtype(StaticParamEnv env, Type t1, Type t2) {
         return true;
         // To hook up to the subtype implementation when we're ready:
@@ -42,33 +42,33 @@ public class Types {
         // The problem with this interface, though, is that cached information
         // in the Types object is immediately discarded.
     }
-    
+
     private static class StubEnv {
         public TypeConsIndex typeCons(QualifiedIdName name) {
             throw new RuntimeException("environments aren't implemented");
         }
-    }    
-    
+    }
+
     public static final Type BOTTOM = new BottomType();
     public static final Type ANY = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Any");
     public static final Type OBJECT = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Object");
     public static final Type TUPLE = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Tuple");
-    
+
     private static final int MAX_SUBTYPE_DEPTH = 12;
-    
+
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(BOTTOM));
-    
+
     private final StubEnv _env;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
-    
+
     public Types(StubEnv env) {
         _env = env;
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
-    
+
     public ConstraintFormula subtype(Type s, final Type t, SubtypeHistory history) {
         if (s instanceof InferenceVarType && t instanceof InferenceVarType) {
             ConstraintFormula f = ConstraintFormula.upperBound((InferenceVarType) s, t, history);
@@ -87,23 +87,23 @@ public class Types {
         else {
             final SubtypeHistory h = history.extend(s, t);
             ConstraintFormula result = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                
+
                 @Override public ConstraintFormula forBottomType(BottomType s) {
                     return ConstraintFormula.TRUE;
                 }
-                
+
                 @Override public ConstraintFormula forIdType(IdType s) {
                     if (s.equals(t)) { return ConstraintFormula.TRUE; }
                     else { return ConstraintFormula.FALSE; }
                 }
-                
+
                 @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
                     ConstraintFormula result;
                     if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
                         result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
                     }
                     else { result = ConstraintFormula.FALSE; }
-                    
+
                     if (!result.isTrue()) {
                         TypeConsIndex index = _env.typeCons(s.getName());
                         if (index instanceof TraitIndex) {
@@ -131,7 +131,7 @@ public class Types {
                     }
                     return result;
                 }
-                
+
                 @Override public ConstraintFormula forTupleType(TupleType s) {
                     ConstraintFormula result;
                     if (t instanceof TupleType && compatibleTuples(s, (TupleType) t)) {
@@ -147,7 +147,7 @@ public class Types {
                         }
                     }
                     else { result = ConstraintFormula.FALSE; }
-                    
+
                     if (!result.isTrue()) {
                         // extends Tuple
                         result = result.or(subtype(TUPLE, t, h), h);
@@ -217,7 +217,7 @@ public class Types {
                     }
                     return result;
                 }
-                
+
                 @Override public ConstraintFormula forVoidType(VoidType s) {
                     if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
                     else {
@@ -225,7 +225,7 @@ public class Types {
                         return subtype(ANY, t, h);
                     }
                 }
-                
+
                 @Override public ConstraintFormula forArrowType(ArrowType s) {
                     ConstraintFormula result;
                     Type throwsType = throwsType(s);
@@ -241,7 +241,7 @@ public class Types {
                         }
                     }
                     else { result = ConstraintFormula.FALSE; }
-                    
+
                     if (!result.isTrue()) {
                         // extends Object
                         result = result.or(subtype(OBJECT, t, h), h);
@@ -302,7 +302,7 @@ public class Types {
                     }
                     return result;
                 }
-                
+
                 @Override public ConstraintFormula forOrType(OrType s) {
                     ConstraintFormula result;
                     if (t instanceof OrType) {
@@ -312,7 +312,7 @@ public class Types {
                         }
                     }
                     else { result = ConstraintFormula.FALSE; }
-                    
+
                     if (!result.isTrue()) {
                         // common supertype
                         ConstraintFormula f = subtype(s.getFirst(), t, h);
@@ -348,7 +348,7 @@ public class Types {
                     }
                     return result;
                 }
-                
+
                 @Override public ConstraintFormula forAndType(AndType s) {
                     ConstraintFormula result;
                     if (t instanceof AndType) {
@@ -358,7 +358,7 @@ public class Types {
                         }
                     }
                     else { result = ConstraintFormula.FALSE; }
-                    
+
                     if (!result.isTrue()) {
                         // extends its first element
                         result = result.or(subtype(s.getFirst(), t, h), h);
@@ -515,19 +515,19 @@ public class Types {
                     }
                     return result;
                 }
-                
+
             });
-            
+
             // match where declarations
             // reverse aliases
             return result;
         }
     }
-    
+
     public ConstraintFormula equivalent(Type s, Type t, SubtypeHistory history) {
         return subtype(s, t, history).and(subtype(t, s, history), history);
     }
-    
+
     public ConstraintFormula equivalent(StaticArg a1, final StaticArg a2,
                                         final SubtypeHistory history) {
         return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
@@ -581,24 +581,24 @@ public class Types {
             }
         });
     }
-    
+
     public ConstraintFormula excludes(Type s, Type t, SubtypeHistory history) {
         return ConstraintFormula.FALSE;
     }
-    
+
     public Type meet(Type s, Type t, SubtypeHistory history) {
         if (subtype(s, t, history).isTrue()) { return s; }
         else if (subtype(t, s, history).isTrue()) { return t; }
         else { return new AndType(s, t); }
     }
-    
+
     public Type join(Type s, Type t, SubtypeHistory history) {
         if (subtype(s, t, history).isTrue()) { return t; }
         else if (subtype(t, s, history).isTrue()) { return s; }
         else { return new OrType(s, t); }
     }
-    
-    
+
+
     private Lambda<Type, Type> makeSubstitution(Iterable<? extends StaticParam> params,
                                                 Iterable<? extends StaticArg> args) {
         return makeSubstitution(params, args, IterUtil.<Id>empty());
@@ -613,7 +613,7 @@ public class Types {
         final Map<QualifiedIdName, IntExpr> intSubs = new HashMap<QualifiedIdName, IntExpr>();
         final Map<QualifiedIdName, BoolExpr> boolSubs = new HashMap<QualifiedIdName, BoolExpr>();
         final Map<QualifiedIdName, DimExpr> dimSubs = new HashMap<QualifiedIdName, DimExpr>();
-        final Map<QualifiedIdName, UnitExpr> unitSubs = new HashMap<QualifiedIdName, UnitExpr>();
+        final Map<QualifiedIdName, Expr> unitSubs = new HashMap<QualifiedIdName, Expr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
@@ -644,17 +644,17 @@ public class Types {
                     unitSubs.put(NodeFactory.makeQualifiedIdName(p.getName()),
                                  ((UnitArg) a).getUnit());
                 }
-                
+
             });
         }
         for (Id id : hiddenParams) {
             typeSubs.put(NodeFactory.makeQualifiedIdName(id), newInferenceVar());
         }
-        
+
         return new Lambda<Type, Type>() {
             public Type value(Type t) {
                 return (Type) t.accept(new NodeUpdateVisitor() {
-                    
+
                     /** Handle type variables */
                     @Override public Type forIdType(IdType n) {
                         if (typeSubs.containsKey(n.getName())) {
@@ -662,7 +662,7 @@ public class Types {
                         }
                         else { return n; }
                     }
-                    
+
                     /** Handle arguments to opr parameters */
                     @Override public OprArg forOprArg(OprArg n) {
                         if (opSubs.containsKey(n.getName())) {
@@ -671,7 +671,7 @@ public class Types {
                         }
                         else { return n; }
                     }
-                    
+
                     /** Handle names in IntExprs */
                     @Override public IntExpr forIntRef(IntRef n) {
                         if (intSubs.containsKey(n.getName())) {
@@ -679,7 +679,7 @@ public class Types {
                         }
                         else { return n; }
                     }
-                    
+
                     /** Handle names in BoolExprs */
                     @Override public BoolExpr forBoolRef(BoolRef n) {
                         if (boolSubs.containsKey(n.getName())) {
@@ -687,7 +687,7 @@ public class Types {
                         }
                         else { return n; }
                     }
-                    
+
                     /** Handle names in DimExprs */
                     @Override public DimExpr forDimRef(DimRef n) {
                         if (dimSubs.containsKey(n.getName())) {
@@ -695,20 +695,12 @@ public class Types {
                         }
                         else { return n; }
                     }
-                    
-                    /** Handle names in UnitExprs */
-                    @Override public UnitExpr forUnitRef(UnitRef n) {
-                        if (unitSubs.containsKey(n.getName())) {
-                            return unitSubs.get(n.getName());
-                        }
-                        else { return n; }
-                    }
                 });
             }
         };
     }
-    
-    
+
+
     /** Assumes type lists have the same length. */
     private ConstraintFormula subtype(Iterable<? extends Type> ss, Iterable<? extends Type> ts,
                                       SubtypeHistory history) {
@@ -718,7 +710,7 @@ public class Types {
         }
         return result;
     }
-    
+
     /** Assumes the options are consistent -- either both some or both none. */
     private ConstraintFormula subtype(Option<VarargsType> v1, Option<VarargsType> v2,
                                       SubtypeHistory history) {
@@ -727,12 +719,12 @@ public class Types {
         }
         else { return ConstraintFormula.TRUE; }
     }
-    
-    
+
+
     private InferenceVarType newInferenceVar() {
         return new InferenceVarType(new Object());
     }
-    
+
     private List<Type> newInferenceVars(int size) {
         List<Type> result = new ArrayList<Type>(size);
         for (int i = 0; i < size; i++) { result.add(newInferenceVar()); }
@@ -743,7 +735,7 @@ public class Types {
         if (varargs.isSome()) { return Option.some(new VarargsType(newInferenceVar())); }
         else { return Option.none(); }
     }
-    
+
     private List<KeywordType> newInferenceVars(List<KeywordType> keys) {
         List<KeywordType> result = new ArrayList<KeywordType>(keys.size());
         for (KeywordType k : keys) {
@@ -752,8 +744,8 @@ public class Types {
         return result;
     }
 
-    
-    
+
+
     /** Assumes arg lists have the same length. */
     private ConstraintFormula equivalent(Iterable<? extends StaticArg> a1s,
                                          Iterable<? extends StaticArg> a2s,
@@ -764,26 +756,26 @@ public class Types {
         }
         return result;
     }
-    
-    
+
+
     public ArrowType makeArrow(Type domain, Type range, Type throwsT, boolean io) {
         return new ArrowType(domain, range,
                              Option.some(Collections.singletonList(throwsT)), io);
     }
-    
+
     public Type throwsType(ArrowType t) {
         return IterUtil.first(Option.unwrap(t.getThrowsClause()));
     }
-    
+
     public Iterable<Type> keywordTypes(Iterable<? extends KeywordType> keys) {
         return IterUtil.map(keys, KEYWORD_TO_TYPE);
     }
-    
+
     private static final Lambda<KeywordType, Type> KEYWORD_TO_TYPE =
         new Lambda<KeywordType, Type>() {
         public Type value(KeywordType k) { return k.getType(); }
     };
-    
+
     /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
     private boolean compatibleTuples(TupleType s, TupleType t) {
         if (s.getElements().size() == t.getElements().size() &&
@@ -799,10 +791,10 @@ public class Types {
         }
         else { return false; }
     }
-    
-    
-    
-    
+
+
+
+
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
@@ -819,10 +811,10 @@ public class Types {
         public Type meet(Type s, Type t) { return Types.this.meet(s, t, this); }
         public Type join(Type s, Type t) { return Types.this.join(s, t, this); }
     }
-    
+
     private static class SubtypeCache {
         public boolean contains(Type s, Type t) { return false; }
         public ConstraintFormula value(Type s, Type t) { throw new IllegalArgumentException(); }
     }
-    
+
 }

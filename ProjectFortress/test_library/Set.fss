@@ -89,7 +89,7 @@ object EmptySet[\E\]() extends TreeSet[\E\]
    getter isEmpty():Boolean = true
    opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
    opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
-      r' = bounds()[r]
+      r' = (bounds())[r]
       self
    end
    generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
@@ -128,7 +128,7 @@ object NodeSet[\E\](val:E,  left:TreeSet[\E\], right:TreeSet[\E\]) extends TreeS
    opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
                    else fail(self "[" i "] is out of bounds.") end
    opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
-      r' = bounds()[r]
+      r' = (bounds())[r]
       (lside,rside) = splitIndex( r'.lower() )
       (lside',rside') = rside.splitIndex( r'.size())
       lside'

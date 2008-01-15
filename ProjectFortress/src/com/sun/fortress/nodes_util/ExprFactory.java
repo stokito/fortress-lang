@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.parser_util.precedence_resolver.ASTUtil;
 import com.sun.fortress.parser_util.FortressUtil;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -381,18 +382,6 @@ public class ExprFactory {
             public Expr forAsIfExpr(AsIfExpr e) {
                 return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
             }
-            public Expr forProductUnitExpr(ProductUnitExpr e) {
-                return new ProductUnitExpr(e.getSpan(), true, e.getVal(),
-                                           e.getUnit());
-            }
-            public Expr forQuotientUnitExpr(QuotientUnitExpr e) {
-                return new QuotientUnitExpr(e.getSpan(), true, e.getVal(),
-                                            e.getUnit());
-            }
-            public Expr forChangeUnitExpr(ChangeUnitExpr e) {
-                return new ChangeUnitExpr(e.getSpan(), true, e.getVal(),
-                                          e.getUnit());
-            }
             public Expr forAssignment(Assignment e) {
                 return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
                                       e.getRhs());
@@ -553,4 +542,30 @@ public class ExprFactory {
             }
         });
     }
+
+    public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi) {
+        if (mi instanceof ExprMI) {
+            Expr expr = ((ExprMI)mi).getExpr();
+            return new TightJuxt(span, Useful.list(front, expr));
+        } else if (mi instanceof ExponentiationMI) {
+            ExponentiationMI expo = (ExponentiationMI)mi;
+            Option<Expr> expr = expo.getExpr();
+            if (expr.isSome()) // ^ Exponent
+                return ASTUtil.infix(span, front, expo.getOp(),
+                                     Option.unwrap(expr));
+            else // ExponentOp
+                return ASTUtil.postfix(span, front, expo.getOp());
+        } else { // mi instanceof SubscriptingMI
+            SubscriptingMI sub = (SubscriptingMI)mi;
+            return makeSubscriptExpr(span, front, sub.getExprs(),
+                                     Option.wrap(sub.getOp()));
+        }
+    }
+
+    public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi,
+                                           Op op) {
+        Expr expr = simplifyMathPrimary(span, front, mi);
+        return ASTUtil.postfix(span, expr, op);
+    }
+
 }

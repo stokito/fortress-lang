@@ -64,6 +64,10 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         return functionInvocation(Useful.list(arg), foo, loc);
     }
 
+    protected FValue functionInvocation(FValue arg, Fcn foo, AbstractNode loc) {
+        return functionInvocation(Useful.list(arg), foo, loc);
+    }
+
     protected FValue functionInvocation(List<FValue> args, FValue foo,
                                         AbstractNode loc) {
         if (foo instanceof Fcn) {

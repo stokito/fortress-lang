@@ -77,11 +77,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * implemented by trait and object declarations in components or APIs
      */
     interface HasWhere(WhereClause where);
-    /**
-     * right-hand side of unit declarations
-     * implemented by Expr and UnitExpr
-     */
-    interface ExprOrUnitExpr();
 
 /**
  * functional declaration or function expression
@@ -426,10 +421,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * DimUnitDecl may represent a single dimension declaration, a single
      * unit declaration, or both dimension and unit declarations.
      * DimUnitDecl ::= dim Id (= DimExpr)? (unit | SI_unit) Id+ (= Expr)?
-     *               | dim Id (= DimExpr)? (unit | SI_unit) Id+ (= UnitExpr)?
      *               | dim Id (= DimExpr)? (default Id)?
      *               | (unit | SI_unit) Id+ (: DimExpr)? (= Expr)?
-     *               | (unit | SI_unit) Id+ (: DimExpr)? (= UnitExpr)?
      * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
@@ -438,7 +431,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 Option<Id> default = Option.<Id>none(),
                 boolean si_unit = false,
                 List<Id> units = Collections.<Id>emptyList(),
-                Option<ExprOrUnitExpr> def)
+                Option<Expr> def)
                implements Decl, AbsDecl;
     /**
      * test declaration
@@ -540,7 +533,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     /**
      * expression
      */
-    abstract Expr(boolean parenthesized = false) implements ExprOrUnitExpr;
+    abstract Expr(boolean parenthesized = false);
         /**
          * type ascription expression
          * Expr ::= Expr as Type
@@ -553,28 +546,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * e.g.) Empty asif List[\String\]
          */
         AsIfExpr(Expr expr, Type type);
-        /**
-         * expression with a unit
-         */
-        abstract TaggedUnitExpr(Expr val, UnitExpr unit);
-            /**
-             * unit multiplication
-             * Expr ::= Expr dimensionless
-             * e.g.) 32 dimensionless
-             */
-            ProductUnitExpr();
-            /**
-             * unit division
-             * Expr ::= Expr per UnitExpr
-             * e.g.) meter per second
-             */
-            QuotientUnitExpr();
-        /**
-         * unit change
-         * Expr ::= Expr in UnitExpr
-         * e.g.) 1.3 m in nm
-         */
-        ChangeUnitExpr(Expr val, UnitExpr unit);
         /**
          * assignment expression
          * AssignExpr ::= AssignLefts AssignOp Expr
@@ -1076,7 +1047,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) T
                  */
                 IdType(QualifiedIdName name);
-                
+
                 InferenceVarType(Object id);
                 /**
                  * matrix type
@@ -1109,7 +1080,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) ()
              */
             VoidType();
-            
+
             IntersectionType(Set<Type> elements);
             UnionType(Set<Type> elements);
             AndType(Type first, Type second);
@@ -1120,16 +1091,16 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             abstract DimType(Type type);
                 /**
                  * type with dimension
-                 * DimType ::= Type DimExpr (in UnitExpr)?
+                 * DimType ::= Type DimExpr (in Expr)?
                  * e.g.) RR64 Length
                  */
-                TaggedDimType(DimExpr dim, Option<UnitExpr> unit);
+                TaggedDimType(DimExpr dim, Option<Expr> unit);
                 /**
                  * type with unit
-                 * DimType ::= Type UnitExpr
+                 * DimType ::= Type Expr
                  * e.g.) RR64 meter
                  */
-                TaggedUnitType(UnitExpr unit);
+                TaggedUnitType(Expr unit);
         /**
          * static argument
          */
@@ -1172,10 +1143,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             DimArg(DimExpr dim);
             /**
              * unit used as static argument
-             * StaticArg ::= UnitExpr
+             * StaticArg ::= Expr
              * e.g.) dimensionless
              */
-            UnitArg(UnitExpr unit);
+            UnitArg(Expr unit);
         /**
          * a fresh type variable, used by type inference
          */
@@ -1348,44 +1319,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) Time squared
              */
             OpDim(DimExpr val, DimUnitOp op);
-        /**
-         * unit expression
-         */
-        abstract UnitExpr() implements ExprOrUnitExpr;
-            /* base unit
-             * UnitExpr ::= dimensionless
-             * e.g.) dimensionless
-             */
-            BaseUnit();
-            /* unit identifier
-             * UnitExpr ::= QualifiedName
-             * e.g.) com.sun.fortress.dim.Length
-             */
-            UnitRef(QualifiedIdName name);
-            /* unit multiplication
-             * UnitExpr ::= UnitExpr DOT UnitExpr
-             *            | UnitExpr UnitExpr
-             * e.g.) Length Mass
-             */
-            ProductUnit(UnitExpr multiplier, UnitExpr multiplicand);
-            /* unit division
-             * UnitExpr ::= UnitExpr / UnitExpr
-             *            | UnitExpr per UnitExpr
-             *            | 1 / UnitExpr
-             * e.g.) Length / Time
-             */
-            QuotientUnit(UnitExpr numerator, UnitExpr denominator);
-            /* unit exponentiation
-             * UnitExpr ::= UnitExpr ^ IntLiteralExpr
-             * e.g.) Time^2
-             */
-            ExponentUnit(UnitExpr base, IntLiteralExpr power);
-            /* unit with operator
-             * UnitExpr ::= DUPreOp UnitExpr
-             *            | UnitExpr DUPostOp
-             * e.g.) Time squared
-             */
-            OpUnit(UnitExpr val, DimUnitOp op);
     /**
      * where clause used in trait, object, and functional declarations
      * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?

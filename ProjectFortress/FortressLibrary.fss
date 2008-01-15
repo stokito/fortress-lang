@@ -725,7 +725,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         other choices of lower bounds.  The easiest way to write the
         index by ranges operation for an instance of Indexed is to
         take advantage of indexing on the ranges themselves by writing
-        bounds()[r] in order to narrow and bounds check the range r
+        (bounds())[r] in order to narrow and bounds check the range r
         and obtain a closed range of indices on the underlying
         data. **)
     opr[r:Range[\I\]] : Indexed[\E,I\]
@@ -1087,7 +1087,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
-        r' = bounds()[r]
+        r' = (bounds())[r]
         z = N[\0\]()
         s = reflect(r'.size())
         l = reflect(r'.lower())
@@ -1102,7 +1102,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = bounds()[o#s]
+        boundsCheck = (bounds())[o#s]
         __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1139,7 +1139,7 @@ trait Array1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
-        r' = bounds()[r]
+        r' = (bounds())[r]
         z = N[\0\]()
         s = reflect(r'.size())
         l = reflect(r'.lower())
@@ -1154,7 +1154,7 @@ trait Array1[\T, nat b0, nat s0\]
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      boundsCheck = bounds()[o#s]
+      boundsCheck = (bounds())[o#s]
       __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1199,7 +1199,7 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-        boundsCheck = bounds()[o#s]
+        boundsCheck = (bounds())[o#s]
         o_n : ZZ32 = o - b0
         __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -1214,7 +1214,7 @@ object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = bounds()[o#s]
+        boundsCheck = (bounds())[o#s]
         o_n : ZZ32 = o - b0
         __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -1372,7 +1372,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
-      r' = bounds()[r]
+      r' = (bounds())[r]
       (z0,z1) = r'.extent()
       (l0,l1) = r'.lower()
       __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
@@ -1397,7 +1397,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\] = do
-      boundsCheck = bounds()[ (o0,o1)#(so0,so1) ]
+      boundsCheck = (bounds())[ (o0,o1)#(so0,so1) ]
       SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
     end
 
@@ -1697,7 +1697,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
     opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
-        r' = bounds()[r]
+        r' = (bounds())[r]
         (z0,z1,z2) = r'.size()
         (l0,l1,l2) = r'.lower()
         __subarray(N[\0\](),reflect(z0), N[\0\](),reflect(z1),
@@ -1724,7 +1724,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
               nat o0, nat o1, nat o2\]
             (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
-        boundsCheck = bounds()[ (o0,o1,o2)#(so0,so1,so2) ]
+        boundsCheck = (bounds())[ (o0,o1,o2)#(so0,so1,so2) ]
         SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\]
                  (self,1,o0,1,o1,1,o2)
       end

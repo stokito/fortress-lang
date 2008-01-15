@@ -62,6 +62,8 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.Juxt;
+import com.sun.fortress.nodes.MathItem;
+import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NormalParam;
@@ -71,6 +73,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnDef;
@@ -626,6 +629,13 @@ public class Desugarer extends Rewrite {
 
                 } else if (node instanceof TightJuxt&& looksLikeMethodInvocation((Juxt) node)) {
                     return translateJuxtOfDotted((Juxt) node);
+
+                  // This is a duplicate of the rewriting that occurs
+                  // in RewriteInAbsenceOfTypeInfo
+
+
+                } else if (node instanceof MathPrimary&& looksLikeMethodInvocation((MathPrimary) node)) {
+                    return translateJuxtOfDotted((MathPrimary) node);
 
                   // This is a duplicate of the rewriting that occurs
                   // in RewriteInAbsenceOfTypeInfo
@@ -1243,6 +1253,30 @@ public class Desugarer extends Rewrite {
                                     new TupleExpr(visitedArgs));
     }
 
+    private AbstractNode translateJuxtOfDotted(MathPrimary node) {
+        VarRef first = (VarRef) node.getFront();
+        QualifiedIdName qidn = first.getVar();
+
+        // Optimistic casts here, will need revisiting in the future,
+        // perhaps FieldRefs are too general
+        // Recursive visits here
+        _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
+        //        List<MathItem> visitedArgs = visitList(exprs);
+        AbstractNode arg = visit(((ExprMI)node.getRest().get(0)).getExpr());
+
+        return new MethodInvocation(node.getSpan(),
+                                false,
+                                selfDotSomething.getObj(), // this will rewrite in the future.
+                                (Id) selfDotSomething.getField(),
+                                    (Expr)arg
+                                    /*
+                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                                visitedArgs.size() == 1 ? visitedArgs.get(0) :
+                                    new TupleExpr(visitedArgs)
+                                    */
+                                    );
+    }
+
     private AbstractNode translateSpawn(Spawn s) {
         Expr body = s.getBody();
         Span sp   = s.getSpan();
@@ -1274,6 +1308,19 @@ public class Desugarer extends Rewrite {
             VarRef vr = (VarRef) first;
             String s = vrToString(vr);
             if (rewrites.get(s) instanceof Member && ! arrows.contains(s))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean looksLikeMethodInvocation(MathPrimary node) {
+        Expr first = node.getFront();
+        if (first instanceof VarRef) {
+            VarRef vr = (VarRef) first;
+            String s = vrToString(vr);
+            if (rewrites.get(s) instanceof Member && ! arrows.contains(s) &&
+                node.getRest().size() == 1 &&
+                node.getRest().get(0) instanceof ExprMI)
                 return true;
         }
         return false;

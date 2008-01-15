@@ -54,8 +54,8 @@ Type IsType = void:colon w Type ;
    | QualifiedName (w [\ w StaticArgList w \])?
 
    DimType ::=
-     Type sr DimExpr (w in w UnitExpr)?
-   | Type sr UnitExpr
+     Type sr DimExpr (w in w Expr)?
+   | Type sr Expr
  */
 constant transient Type Type =
      seed:TypeFront list:TypeTail*
@@ -123,23 +123,25 @@ private constant transient Action<Type> TypeTail =
                                                      ty, a3.getRange(),
                                                      a3.getThrows());
            }};
+/* ****************************************************************************
      }
-   / sr a1:DimExpr a2:(w in w UnitExpr)?
+   / sr a1:DimExpr a2:(w in w Expr)?
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Option<UnitExpr> unit;
-               if (a2 == null) unit = Option.<UnitExpr>none();
-               else            unit = Option.<UnitExpr>some(a2);
+               Option<Expr> unit;
+               if (a2 == null) unit = Option.<Expr>none();
+               else            unit = Option.<Expr>some(a2);
                return new TaggedDimType(createSpan(yyStart,yyCount),
                                         (Type)base, a1, unit);
            }};
      }
-   / sr a1:UnitExpr
+   / sr a1:Expr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                return new TaggedUnitType(createSpan(yyStart,yyCount),
                                          (Type)base, a1);
            }};
+*****************************************************************************/
      };
 
 private ArrowTypeTail ArrowTypeTail =
@@ -161,7 +163,9 @@ private NonArrowType NonArrowType =
    / TupleType
    / openparen w closeparen
      { yyValue = new VoidType(createSpan(yyStart,yyCount)); }
+/* ****************************************************************************
    / DimType
+******************************************************************************/
    ;
 
 /* TraitType ::=
@@ -235,17 +239,17 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* DimType ::=
-     Type sr DimExpr (w in w UnitExpr)?
-   | Type sr UnitExpr
+     Type sr DimExpr (w in w Expr)?
+   | Type sr Expr
  */
 private DimType DimType =
-     a1:Type sr a2:DimExpr a3:(w in w UnitExpr)?
-     { Option<UnitExpr> unit;
-       if (a3 == null) unit = Option.<UnitExpr>none();
-       else            unit = Option.<UnitExpr>some(a3);
+     a1:Type sr a2:DimExpr a3:(w in w Expr)?
+     { Option<Expr> unit;
+       if (a3 == null) unit = Option.<Expr>none();
+       else            unit = Option.<Expr>some(a3);
        yyValue = new TaggedDimType(createSpan(yyStart,yyCount), a1, a2, unit);
      }
-   / a1:Type sr a2:UnitExpr
+   / a1:Type sr a2:Expr
      { yyValue = new TaggedUnitType(createSpan(yyStart,yyCount), a1, a2); };
 
 /* DimExpr ::=
@@ -335,7 +339,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
    | BoolExpr
    | Type
    | DimExpr
-   | UnitExpr
+   | Expr
  */
 private StaticArg StaticArg =
      a1:Op
@@ -344,9 +348,9 @@ private StaticArg StaticArg =
      { Span span = createSpan(yyStart,yyCount);
        yyValue = new DimArg(span, new BaseDim(span));
      }
-   / "dimensionless"
+   / a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitArg(span, new BaseUnit(span));
+       yyValue = new UnitArg(span, ExprFactory.makeVarRef(new Id(span, a1)));
      }
    / one w slash w a1:DimExpr
      { Span span = createSpan(yyStart,1);
@@ -372,7 +376,7 @@ private StaticArg StaticArg =
      { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
    / a1:DimExpr
      { yyValue = new DimArg(createSpan(yyStart,yyCount), a1); }
-   / a1:UnitExpr
+   / a1:Expr
      { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
    ;
 

@@ -1190,7 +1190,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     if (!isParenthesisDelimited(argE) ||
                         (ftnInd+2 < vs.size() &&
                          !isExpr(vs.get(ftnInd+2).getA())))
-                       return error(argE, "It is a static error if either the " +
+                       return error(((ExprMI)argE).getExpr(),
+                                    "It is a static error if either the " +
                                     "argument is not parenthesized, or the " +
                                     "argument is immediately followed by a " +
                                     "non-expression element.");
@@ -1198,7 +1199,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // single element that is the application of the function to
                     // the argument.  This new element is an expression.
                     Pair<MathItem,FValue> app =
-                        new Pair(dummyExpr(), functionInvocation(arg,ftn,argE));
+                        new Pair(dummyExpr(),
+                                 functionInvocation(arg,(Fcn)ftn,argE));
                     vs.set(ftnInd, app);
                     vs.remove(ftnInd+1);
                     // Reassociate the resulting sequence (which is one element
@@ -1215,22 +1217,24 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private FValue mathItemApplication(NonExprMI opr, FValue front,
                                        MathItem loc) {
         if (opr instanceof ExponentiationMI) {
-            Op op = ((ExponentiationMI)opr).getOp();
+            ExponentiationMI expo = (ExponentiationMI)opr;
+            Op op = expo.getOp();
             FValue fvalue = op.accept(this);
             if (!isFunction(fvalue))
                 return error(op, errorMsg("Operator ", op.stringName(),
                                           " has a non-function value ", fvalue));
-            Option<Expr> expr = ((ExponentiationMI)opr).getExpr();
+            Option<Expr> expr = expo.getExpr();
+            Fcn fcn = (Fcn)fvalue;
             if (expr.isSome()) { // ^ Exponent
                 FValue exponent = Option.unwrap(expr).accept(this);
-                return functionInvocation(Useful.list(front, exponent),
-                                          (Fcn)fvalue, op);
+                return functionInvocation(Useful.list(front, exponent), fcn, op);
             } else { // ExponentOp
-                return functionInvocation(Useful.list(front), (Fcn)fvalue, op);
+                return functionInvocation(Useful.list(front), fcn, op);
             }
         } else { // opr instanceof SubscriptingMI
-            Enclosing op = ((SubscriptingMI)opr).getOp();
-            List<Expr> subs = ((SubscriptingMI)opr).getExprs();
+            SubscriptingMI sub = (SubscriptingMI)opr;
+            Enclosing op = sub.getOp();
+            List<Expr> subs = sub.getExprs();
             if (!(front instanceof FObject))
                 error(loc, errorMsg("Value should be an object; got ", front));
             FObject array = (FObject)front;
@@ -1239,9 +1243,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (ixing == null || !(ixing instanceof Method))
                 error(loc, errorMsg("Could not find appropriate definition of ",
                                     "the operator ", opString, " on ", array));
-            Method cl = (Method)ixing;
-            List<FValue> subscripts = evalExprListParallel(subs);
-            return cl.applyMethod(subscripts, array, loc, e);
+            return ((Method)ixing).applyMethod(evalExprListParallel(subs), array,
+                                               loc, e);
         }
     }
 
@@ -1278,11 +1281,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     private List<Pair<MathItem,FValue>> reassociate(List<Pair<MathItem,FValue>> vs) {
-        return stepThree(stepTwo(vs));
+        if (vs.size() == 1) return vs;
+        List<Pair<MathItem,FValue>> vs2 = stepTwo(vs);
+        return stepThree(vs2);
     }
 
     private FValue tightJuxt(FValue first, FValue second, MathItem loc) {
-        if (isFunction(first)) return functionInvocation(second, first, loc);
+        if (isFunction(first)) return functionInvocation(second,(Fcn)first,loc);
         else return functionInvocation(Useful.list(first, second),
                                        e.getValue("juxtaposition"), loc);
     }
@@ -1299,29 +1304,31 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forMathPrimary(MathPrimary x) {
         Expr front = x.getFront();
         Option<Op> postfixOp = x.getPostfixOp();
-
-        List<Pair<MathItem,FValue>> vs = new ArrayList<Pair<MathItem,FValue>>();
-        vs.add(new Pair(null, front.accept(this)));
-        for (MathItem mi : x.getRest()) {
-            if (mi instanceof ExprMI)
-                vs.add(new Pair(mi, ((ExprMI)mi).getExpr().accept(this)));
-            else // mi instanceof NonExprMI
-                vs.add(new Pair(mi, null));
+        FValue fval = front.accept(this);
+        List<MathItem> rest = x.getRest();
+        if (!rest.isEmpty()) {
+            List<Pair<MathItem,FValue>> vs =
+                Useful.list(new Pair<MathItem,FValue>(null, fval));
+            for (MathItem mi : rest) {
+                if (mi instanceof ExprMI)
+                    vs.add(new Pair(mi, ((ExprMI)mi).getExpr().accept(this)));
+                else // mi instanceof NonExprMI
+                    vs.add(new Pair(mi, null));
+            }
+            if (vs.size() == 1) fval = vs.get(0).getB();
+            else
+                // vs.size() > 1
+                // 4. Otherwise, left-associate the sequence, which has only
+                // expression elements, only the last of which may be a function.
+                fval = leftAssociate(reassociate(vs));
         }
-        vs = reassociate(vs);
-        FValue fval;
-        if (vs.size() == 1) fval = vs.get(0).getB();
-        else // vs.size() > 1
-            // 4. Otherwise, left-associate the sequence, which has only
-            //    expression elements, only the last of which may be a function.
-            fval = leftAssociate(vs);
         if (postfixOp.isSome()) {
             Op op = Option.unwrap(postfixOp);
             FValue fvalue = op.accept(this);
             if (!isFunction(fvalue))
                 error(op, errorMsg("Operator ", op.stringName(), " has a non-",
                                    "function value ", fvalue));
-            return functionInvocation(fval, fvalue, front);
+            return functionInvocation(fval, (Fcn)fvalue, front);
         } else return fval;
     }
 
