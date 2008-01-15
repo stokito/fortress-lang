@@ -503,6 +503,10 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
       */
     SyntaxSymbol();
         /**
+         * prefixed syntax symbol
+         */
+        PrefixedSymbol(Option<Id> id, SyntaxSymbol symbol);
+        /**
          * optional syntax symbol
          */
         OptionalSymbol(SyntaxSymbol symbol);
@@ -523,13 +527,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         ItemSymbol(String item);
         /**
+         * non-terminal syntax symbol
+         */
+        NonterminalSymbol(QualifiedName nonterminal);
+        /**
+         * keyword syntax symbol
+         */
+        KeywordSymbol(String token);
+        /**
          * token syntax symbol
          */
         TokenSymbol(String token);
         /**
-         * non-terminal syntax symbol
+         * not predicate syntax symbol
          */
-        NonterminalSymbol(QualifiedName nonterminal);
+        NotPredicateSymbol(SyntaxSymbol symbol);
+        /**
+         * and predicate syntax symbol
+         */
+        AndPredicateSymbol(SyntaxSymbol symbol);
     /**
      * expression
      */

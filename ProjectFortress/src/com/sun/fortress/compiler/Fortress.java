@@ -50,8 +50,8 @@ public class Fortress {
     public Iterable<? extends StaticError> compile(Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
         
-        // FortressParser.Result pr = FortressParser.parse(files, env);
-        Parser.Result pr = Parser.parse(files, env);
+        FortressParser.Result pr = FortressParser.parse(files, env);
+        // Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
         System.out.println("Parsing done.");
         

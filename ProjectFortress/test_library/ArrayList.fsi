@@ -55,7 +55,7 @@ api ArrayList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
+trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]

@@ -47,7 +47,7 @@ public interface StringMap {
    
    static public class FromSysProps implements StringMap {
        public String get(String s) {
-           return System.getProperty(s);
+    	   return System.getProperty(s);
        }
        public boolean isEmpty() { return false; }
    }
