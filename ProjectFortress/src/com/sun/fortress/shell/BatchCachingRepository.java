@@ -57,11 +57,37 @@ public class BatchCachingRepository implements FortressRepository {
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
 
-    public void addRoots(APIName... roots) {
+    public void addRootComponents(APIName... roots) {
+        boolean anyChange = false;
         for (APIName n : roots) {
-            if (!alreadyCachedComponent.contains(n))
+            if (!alreadyCachedComponent.contains(n)) {
+                anyChange = true;
                 ru.addComponent(n);
+            }
         }
+        if (anyChange) {
+            refreshCache();
+        }
+    }
+
+    public void addRootApis(APIName... roots) {
+        boolean anyChange = false;
+        for (APIName n : roots) {
+            if (!alreadyCachedApi.contains(n)) {
+                anyChange = true;
+                ru.addApi(n);
+            }
+        }
+        if (anyChange) {
+            refreshCache();
+        }
+    }
+
+    /**
+     * Updates the derived repository with new versions of ASTs
+     * identified as "stale" by the repository updater.
+     */
+    private void refreshCache() {
         try {
             for (APIName name : ru.staleApis) {
                 if (!alreadyCachedApi.contains(name)) {
@@ -77,7 +103,7 @@ public class BatchCachingRepository implements FortressRepository {
             }
         } catch (IOException ex) {
             /* Any exceptions seen here are reported elsewhere. */
-
+   
         }
     }
 
@@ -110,6 +136,7 @@ public class BatchCachingRepository implements FortressRepository {
 
     public ApiIndex getApi(APIName name) throws FileNotFoundException,
             IOException {
+        addRootApis(name);
         Throwable th = ru.apiExceptions.get(name);
         resurrectException(th);
         return derived.getApi(name);
@@ -117,7 +144,7 @@ public class BatchCachingRepository implements FortressRepository {
 
     public ComponentIndex getComponent(APIName name)
             throws FileNotFoundException, IOException {
-
+        addRootComponents(name);
         Throwable th = ru.componentExceptions.get(name);
         resurrectException(th);
         return derived.getComponent(name);

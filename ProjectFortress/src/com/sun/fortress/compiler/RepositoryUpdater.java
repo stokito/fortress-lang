@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.shell.RepositoryError;
 import com.sun.fortress.useful.MinimalMap;
 import com.sun.fortress.useful.MultiMap;
 
@@ -125,6 +126,9 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
             ComponentIndex ci =
                 isStaleComponent.isStale(c) ? source.getComponent(c) : derived.getComponent(c);
             CompilationUnit cu = ci.ast();
+            if (!c.equals(cu.getName())) {
+                throw new RepositoryError("File " + c + " actually contains component " + cu.getName());
+            }
             iterateStaleTillStable(cu);
         } catch (Throwable ex) {
             componentExceptions.put(c , ex);
@@ -137,6 +141,9 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
              isStaleApi.isStale(c) ? source.getApi(c) : derived.getApi(c);
 
              CompilationUnit cu = ci.ast();
+             if (!c.equals(cu.getName())) {
+                 throw new RepositoryError("File " + c + " actually contains api " + cu.getName());
+             }
              iterateStaleTillStable(cu);
          } catch (Throwable ex) {
              apiExceptions.put(c , ex);

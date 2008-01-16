@@ -239,7 +239,7 @@ public class FileTests {
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
        
-        fr.addRoots(NodeFactory.makeAPIName("FortressLibrary"));
+        //fr.addRootComponents(NodeFactory.makeAPIName("FortressLibrary"));
         
         for (int i = 0; i < files.length; i++) {
             String s = files[i];
@@ -248,7 +248,7 @@ public class FileTests {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
                     String testname = s.substring(0, l);
-                    fr.addRoots(NodeFactory.makeAPIName(testname));
+                    //fr.addRootComponents(NodeFactory.makeAPIName(testname));
                     suite.addTest(new FSSTest(fr, dirname, testname, failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");
