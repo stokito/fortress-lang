@@ -123,6 +123,13 @@ public class Driver {
         return evalComponent(p, false, fr);
     }
 
+    public static FortressRepository extendedRepository(String s) {
+        return new BatchCachingRepository(
+                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(s), ProjectProperties.SOURCE_PATH_NATIVE),
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                );
+    }
+    
     public static ArrayList<ComponentWrapper> components;
 
     public static BetterEnv evalComponent(CompilationUnit p,

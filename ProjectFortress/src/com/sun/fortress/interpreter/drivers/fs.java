@@ -147,31 +147,39 @@ public class fs {
 //        boolean keepTemp = keep;
 
         try {
-            BatchCachingRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            FortressRepository fr;
+            // Need to replace \ with / in the path.
+            if (s.contains("/")) {
+                String head = s.substring(0, s.lastIndexOf("/"));
+                s = s.substring(s.lastIndexOf("/")+1, s.length());
+                fr = Driver.extendedRepository(head);
+            } else {
+                fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            }
             
             if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();
             
             Option<CompilationUnit> p = Option.none();
             
-            if (! woLibrary)
-                fr.addRoots(NodeFactory.makeAPIName("FortressLibrary"));
+//            if (! woLibrary)
+//                fr.addRootComponents(NodeFactory.makeAPIName("FortressLibrary"));
             try {
                 if (s.endsWith("." + ProjectProperties.API_SOURCE_SUFFIX)) {
                     APIName name =
                         NodeFactory.makeAPIName(s.substring(0,s.length() -
                        (1 + ProjectProperties.API_SOURCE_SUFFIX.length())));
-                    fr.addRoots(name);
+                    //fr.addRootComponents(name);
                     p = Option.wrap(fr.getComponent(name).ast());
                 } else if (s.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
                     APIName name =
                         NodeFactory.makeAPIName(s.substring(0,s.length() -
                        (1 + ProjectProperties.COMP_SOURCE_SUFFIX.length())));
-                    fr.addRoots(name);
+                    //fr.addRootComponents(name);
                     p = Option.wrap(fr.getComponent(name).ast());
                 } else {
                     APIName name = NodeFactory.makeAPIName(s);
-                    fr.addRoots(name);
+                    //fr.addRootComponents(name);
                     p = Option.wrap(fr.getComponent(name).ast());
                 }
                 //System.err.println("WARNING, using obsolete interface to parse " + s);
