@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -72,6 +72,7 @@ import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.FileBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
@@ -98,10 +99,16 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
-    public static FortressRepository DEFAULT_INTERPRETER_REPOSITORY = new AutocachingRepository(
-            new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
-            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-            );
+    public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
+        new BatchCachingRepository(
+                new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                );
+        
+//        new AutocachingRepository(
+//            new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
+//            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+//            );
     
    // private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
    // private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
@@ -203,9 +210,9 @@ public class Driver {
 
             if (!woLibrary)
                 for (ComponentWrapper cw : components) {
-                    for (String s : lib.dis.getTopLevelRewriteNames()) {
+                    for (String s : lib.desugarer.getTopLevelRewriteNames()) {
                         if (!cw.isOwnName(s))
-                            change |= cw.dis.injectAtTopLevel(s, s, lib.dis, cw.excludedImportNames);
+                            change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
                     }
                 }
         }
@@ -434,9 +441,9 @@ public class Driver {
                          * it with plain old name.
                          */
                         /* probable bug: need to insert into ownNonFunction names */
-                        change |= cw.dis.injectAtTopLevel(Option.unwrap(alias, name).stringName(),
+                        change |= cw.desugarer.injectAtTopLevel(Option.unwrap(alias, name).stringName(),
                                 name.stringName(),
-                                api_cw.dis,
+                                api_cw.desugarer,
                                 cw.excludedImportNames);
 
                     }
@@ -454,11 +461,11 @@ public class Driver {
                             },
                             new HashSet<String>());
 
-                    for (String s : api_cw.dis.getTopLevelRewriteNames()) {
+                    for (String s : api_cw.desugarer.getTopLevelRewriteNames()) {
                         if (! except_names.contains(s) &&
                                 !cw.isOwnName(s) &&
                                 !cw.excludedImportNames.contains(s)) {
-                            change |= cw.dis.injectAtTopLevel(s, s, api_cw.dis, cw.excludedImportNames);
+                            change |= cw.desugarer.injectAtTopLevel(s, s, api_cw.desugarer, cw.excludedImportNames);
                         }
                     }
                 }

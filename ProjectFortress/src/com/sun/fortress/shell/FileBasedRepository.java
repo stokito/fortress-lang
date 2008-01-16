@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -45,7 +45,11 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
 
     private void initialize() throws IOException { 
         
-        List<File> files = Arrays.asList(Files.ls(path));
+         File[] fileArray = Files.ls(path);
+        if (fileArray == null) {
+            throw new IOException("Apparently no files in " + path);
+        }
+        List<File> files = Arrays.asList(fileArray);
         
         for (File file: files) {
             

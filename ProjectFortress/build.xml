@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <!--
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -79,7 +79,7 @@
 
     <target name="help">
         <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
-checkParserUptodate, clean, compile, compileCommon, compileCommonLint,
+checkParserUptodate, clean, cleanCache, compile, compileCommon, compileCommonLint,
 compileLint, doc, help, init, interpreter-jar, makeAST, operatorsGen,
 fortressparser, preparser, parser, reportNotPassing, systemProperties,
 test, testAll, testDemos, testSystem,
@@ -166,14 +166,11 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
         <mkdir dir="${junit.dir}"/>
     </target>
 
-    <target name="clean"
+    <target name="clean" depends="cleanCache"
             description="Delete the ${build} directory tree and generated files.">
         <delete dir="${build}"/>
         <delete dir="${nodes}"/>
         <delete dir="${junit.dir}"/>
-        <delete dir="${cache1}"/>
-        <delete dir="${cache2}"/>
-        <delete dir="${cache3}"/>
 
         <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
@@ -192,6 +189,14 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <fileset dir="static_tests" includes="*.tfs" />
             <fileset dir="static_tests" includes="*.tfi" />
         </delete>
+    </target>
+
+    <target name="cleanCache"
+            description="Delete any cached Fortress ASTs in the development tree">
+        <delete dir="${cache1}"/>
+        <delete dir="${cache2}"/>
+        <delete dir="${cache3}"/>
+       
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.

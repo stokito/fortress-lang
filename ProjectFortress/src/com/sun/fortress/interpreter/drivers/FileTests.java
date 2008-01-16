@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,6 +35,7 @@ import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
 import com.sun.fortress.useful.Useful;
@@ -226,17 +227,29 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
-        FortressRepository fr = new AutocachingRepository(
-                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir), ProjectProperties.SOURCE_PATH_NATIVE),
+//        FortressRepository fr = new AutocachingRepository(
+//                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir),
+//                                        ProjectProperties.SOURCE_PATH_NATIVE),
+//                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+//                );
+        
+        BatchCachingRepository fr = new BatchCachingRepository(
+                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir),
+                                        ProjectProperties.SOURCE_PATH_NATIVE),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
+       
+        fr.addRoots(NodeFactory.makeAPIName("FortressLibrary"));
+        
         for (int i = 0; i < files.length; i++) {
             String s = files[i];
             if (!s.startsWith(".")) {
                 if (s.endsWith(".fss")) {
                     int l = s.lastIndexOf(".fss");
                     //System.err.println("Adding " + s);
-                    suite.addTest(new FSSTest(fr, dirname, s.substring(0, l), failsOnly, expect_failure));
+                    String testname = s.substring(0, l);
+                    fr.addRoots(NodeFactory.makeAPIName(testname));
+                    suite.addTest(new FSSTest(fr, dirname, testname, failsOnly, expect_failure));
                 } else if (s.endsWith(".tfs")) {
                     int l = s.lastIndexOf(".tfs");
                     suite.addTest(new JSTTest(dirname, s.substring(0, l)));
