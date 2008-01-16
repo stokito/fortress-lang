@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,8 +29,11 @@ import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.FortressError;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Printer;
+import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.useful.Useful;
 
 public class fs {
@@ -144,20 +147,38 @@ public class fs {
 //        boolean keepTemp = keep;
 
         try {
-            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            BatchCachingRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
             
             if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();
-            BufferedReader in = Useful.utf8BufferedFileReader(s);
             
             Option<CompilationUnit> p = Option.none();
+            
+            if (! woLibrary)
+                fr.addRoots(NodeFactory.makeAPIName("FortressLibrary"));
             try {
-                System.err.println("WARNING, using obsolete interface to parse " + s);
+                if (s.endsWith("." + ProjectProperties.API_SOURCE_SUFFIX)) {
+                    APIName name =
+                        NodeFactory.makeAPIName(s.substring(0,s.length() -
+                       (1 + ProjectProperties.API_SOURCE_SUFFIX.length())));
+                    fr.addRoots(name);
+                    p = Option.wrap(fr.getComponent(name).ast());
+                } else if (s.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
+                    APIName name =
+                        NodeFactory.makeAPIName(s.substring(0,s.length() -
+                       (1 + ProjectProperties.COMP_SOURCE_SUFFIX.length())));
+                    fr.addRoots(name);
+                    p = Option.wrap(fr.getComponent(name).ast());
+                } else {
+                    APIName name = NodeFactory.makeAPIName(s);
+                    fr.addRoots(name);
+                    p = Option.wrap(fr.getComponent(name).ast());
+                }
+                //System.err.println("WARNING, using obsolete interface to parse " + s);
                 // TODO - Warning, this is old and obsolete to allow processing of components OR APIs!
-                p = ASTIO.parseToJavaAst(s, in, false);
                 reportCompletion("Parsing " + s, begin);
             }
-            finally { in.close(); }
+            finally { }
 
             if (doAst && p.isSome()) {
                 String astFile = basename(s) + "." + ProjectProperties.astSuffixForSource(s);

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -1307,6 +1307,11 @@ public class Desugarer extends Rewrite {
         if (first instanceof VarRef) {
             VarRef vr = (VarRef) first;
             String s = vrToString(vr);
+            /*
+             * If the var ref will be rewritten to self.var (or self.parent.var,
+             * etc) and if the var ref IS NOT an arrow type (a function), then
+             * it looks like a method invocation.
+             */
             if (rewrites.get(s) instanceof Member && ! arrows.contains(s))
                 return true;
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -55,7 +55,7 @@ public class ComponentWrapper {
     BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     
-    Desugarer dis;
+    Desugarer desugarer;
     
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
@@ -120,7 +120,7 @@ public class ComponentWrapper {
         
         visitState = IMPORTED;
 
-        dis = new Desugarer(isLibrary);
+        desugarer = new Desugarer(isLibrary);
         
         for (ComponentWrapper api: exports.values()) {
             api.getExports(isLibrary);
@@ -129,12 +129,12 @@ public class ComponentWrapper {
 
     public void preloadTopLevel() {
         
-        dis.preloadTopLevel(p);
+        desugarer.preloadTopLevel(p);
         /* Need to capture these names early so that rewriter
          * name injection will follow the same no-duplicates
          * rules as other name visibility.
          */
-        ownNames.addAll(dis.getTopLevelRewriteNames());
+        ownNames.addAll(desugarer.getTopLevelRewriteNames());
         for (ComponentWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
@@ -153,7 +153,7 @@ public class ComponentWrapper {
         CompilationUnit cu = p;
         
         cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
-        cu = (CompilationUnit) dis.visit(cu); // Rewrites p!
+        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.
@@ -203,7 +203,7 @@ public class ComponentWrapper {
                 /*
                  * TODO Need to figure out why this works (or seems to).
                  */
-            dis.registerObjectExprs(be.getEnvironment());
+            desugarer.registerObjectExprs(be.getEnvironment());
 
         } else if (visitState == UNVISITED)
             throw new IllegalStateException("Must be populated, typed, and functioned before init vars");
