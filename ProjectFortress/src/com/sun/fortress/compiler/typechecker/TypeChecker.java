@@ -29,9 +29,11 @@ import java.util.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
-    private GlobalEnvironment globals;
-    private StaticParamEnv staticParams;
-    private TypeEnv params; 
+    private final GlobalEnvironment globals;
+    private final StaticParamEnv staticParams;
+    private final TypeEnv params; 
+    private final TypeAnalyzer.StubEnv traits;
+    private final TypeAnalyzer analyzer;
     
     public TypeChecker(GlobalEnvironment _globals, 
                        StaticParamEnv _staticParams,
@@ -40,6 +42,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         globals = _globals;
         staticParams = _staticParams;
         params = _params;
+        traits = new TypeAnalyzer.StubEnv();
+        analyzer = new TypeAnalyzer(traits);
     }
     
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
@@ -90,7 +94,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Option<Type> varType = var.getType();
             if (varType.isSome()) {
                 // The result of checking an Expr should always include a type.
-                if (Types.subtype(staticParams, unwrap(initResult.type()), unwrap(varType))) {
+                if (analyzer.subtype(unwrap(initResult.type()), unwrap(varType)).isTrue()) {
                     return new TypeCheckerResult(that);
                 } else {
                     StaticError error = 
@@ -104,7 +108,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         } else { // lhs.size() >= 2
             Type varType = typeFromLValueBinds(lhs); 
-            if (Types.subtype(staticParams, unwrap(initResult.type()), varType)) {
+            if (analyzer.subtype(unwrap(initResult.type()), varType).isTrue()) {
                 return new TypeCheckerResult(that);
             } else {
                 StaticError error = 
