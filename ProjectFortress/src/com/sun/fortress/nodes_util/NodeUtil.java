@@ -120,7 +120,6 @@ public class NodeUtil {
             }
         public String forId(Id n) { return n.getText(); }
         public String forOp(Op n) { return n.getText(); }
-        public String forPostFix(PostFix n) { return n.getText(); }
         public String forEnclosing(Enclosing n) {
             return n.getOpen().getText() + " " + n.getClose().getText();
         }

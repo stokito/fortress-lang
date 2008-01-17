@@ -500,6 +500,9 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name));
     }
 
+    public static Op makeOp(Span span, String name, boolean isPostfixOp) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name), isPostfixOp);
+    }
 
     public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);

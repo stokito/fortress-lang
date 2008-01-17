@@ -40,7 +40,7 @@ Op RightEncloser = a1:rightEncloser
      { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
 
 Op ExponentOp = a1:exponentOp
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1, true); };
 
 /* EncloserPair ::=
      (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)

@@ -128,7 +128,6 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
@@ -1001,12 +1000,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return getOp(x);
     }
 
-    public FValue forPostFix(PostFix x) {
-        return getOp(x);
-    }
-
     public FValue forOp(Op op) {
         return getOp(op);
+    }
+
+    private boolean isExponentiation(OprExpr expr) {
+        if (expr.getOps().size() != 1) return false;
+        else {
+            OpName name = expr.getOps().get(0).getName();
+            if (!(name instanceof Op)) return false;
+            else return (((Op)name).getText().equals("^") ||
+                         ((Op)name).isPostfix());
+        }
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the
@@ -1017,12 +1022,33 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return bug(x, errorMsg("OprExpr with multiple operators ",x));
         }
         QualifiedOpName op = x.getOps().get(0);
+        OpName name = op.getName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);
         // Evaluate actual parameters.
         int s = args.size();
         FValue res = evVoid;
-        List<FValue> vargs = evalExprListParallel(args);
+        List<FValue> vargs;
+
+        if (name instanceof Op && ((Op)name).isPostfix() &&
+            args.size() == 1) {
+        // It is a static error if the function argument is immediately followed
+        // by a non-expression element.  For example, f(x)!
+        // It is a static error if an exponentiation is immediately followed
+        // by a non-expression element.  For example, a^b!
+            Expr arg = args.get(0);
+            if (arg instanceof OprExpr &&
+                isExponentiation((OprExpr)arg)) { // a^b!
+                vargs = error(arg,
+                              "It is a static error if an exponentiation is " +
+                              "immediately followed by a non-expression " +
+                              "element.");
+            } else if (arg instanceof TightJuxt) { // f(x)!
+                vargs = Useful.list(forTightJuxt((TightJuxt)arg, true));
+            } else if (arg instanceof MathPrimary) { // f(x)^y! y[a](x)!
+                vargs = Useful.list(forMathPrimary((MathPrimary)arg, true));
+            } else vargs = evalExprListParallel(args);
+        } else vargs = evalExprListParallel(args);
 
         /*
          * It *seems* that the reason we have to have our own version of
@@ -1301,19 +1327,31 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return result;
     }
 
+    private FValue forMathPrimary(MathPrimary x, boolean isPostfix) {
+        return forMathPrimary(x);
+    }
+
     public FValue forMathPrimary(MathPrimary x) {
         Expr front = x.getFront();
-        Option<Op> postfixOp = x.getPostfixOp();
         FValue fval = front.accept(this);
         List<MathItem> rest = x.getRest();
         if (!rest.isEmpty()) {
             List<Pair<MathItem,FValue>> vs =
                 Useful.list(new Pair<MathItem,FValue>(null, fval));
+            // It is a static error if an exponentiation is immediately followed
+            // by a subcripting or an exponentiation.
+            boolean isExponentiation = false;
             for (MathItem mi : rest) {
                 if (mi instanceof ExprMI)
                     vs.add(new Pair(mi, ((ExprMI)mi).getExpr().accept(this)));
-                else // mi instanceof NonExprMI
+                else { // mi instanceof NonExprMI
+                    if (isExponentiation)
+                       return error(x, "It is a static error if an " +
+                                    "exponentiation is immediately followed " +
+                                    "by a subcripting or an exponentiation.");
                     vs.add(new Pair(mi, null));
+                    isExponentiation = (mi instanceof ExponentiationMI);
+                }
             }
             if (vs.size() == 1) fval = vs.get(0).getB();
             else
@@ -1322,14 +1360,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // expression elements, only the last of which may be a function.
                 fval = leftAssociate(reassociate(vs));
         }
-        if (postfixOp.isSome()) {
-            Op op = Option.unwrap(postfixOp);
-            FValue fvalue = op.accept(this);
-            if (!isFunction(fvalue))
-                error(op, errorMsg("Operator ", op.stringName(), " has a non-",
-                                   "function value ", fvalue));
-            return functionInvocation(fval, (Fcn)fvalue, front);
-        } else return fval;
+        return fval;
     }
 
     Name fldName(AbstractFieldRef arf) {
@@ -1346,6 +1377,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         return bug("Unexpected AbstractFieldRef " + arf);
 
+    }
+
+    private FValue forTightJuxt(TightJuxt x, boolean isPostfix) {
+        return forTightJuxt(x);
     }
 
     /** Assumes wrapped FnRefs have ids fields of length 1. */

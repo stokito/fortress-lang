@@ -409,7 +409,7 @@ public class ExprFactory {
             }
             public Expr forMathPrimary(MathPrimary e) {
                 return new MathPrimary(e.getSpan(), true, e.getFront(),
-                                       e.getRest(), e.getPostfixOp());
+                                       e.getRest());
             }
             public Expr forObjectExpr(ObjectExpr e) {
                 return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
@@ -560,12 +560,6 @@ public class ExprFactory {
             return makeSubscriptExpr(span, front, sub.getExprs(),
                                      Option.wrap(sub.getOp()));
         }
-    }
-
-    public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi,
-                                           Op op) {
-        Expr expr = simplifyMathPrimary(span, front, mi);
-        return ASTUtil.postfix(span, expr, op);
     }
 
 }
