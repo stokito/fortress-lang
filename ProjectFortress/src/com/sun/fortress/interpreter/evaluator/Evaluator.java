@@ -1032,7 +1032,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         if (name instanceof Op && ((Op)name).isPostfix() &&
             args.size() == 1) {
-        // It is a static error if the function argument is immediately followed
+        // It is a static error if a function argument is immediately followed
         // by a non-expression element.  For example, f(x)!
         // It is a static error if an exponentiation is immediately followed
         // by a non-expression element.  For example, a^b!
@@ -1195,14 +1195,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return new NonParenthesisDelimitedMI(span, dummyE);
     }
 
-    private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs) {
+    private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs,
+                                                boolean isPostfix) {
         if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
         else if (vs.size() == 1) return vs;
         else { // vs.size() > 1
             int ftnInd = 0;
             FValue ftn = vs.get(ftnInd).getB();
             FValue arg;
-            MathItem argE;
+            MathItem argE = vs.get(ftnInd+1).getA();
             for (Pair<MathItem,FValue> pair : IterUtil.skipFirst(vs)) {
                 // 2. If some function element is immediately followed by
                 // an expression element then, find the first such function
@@ -1229,9 +1230,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                  functionInvocation(arg,(Fcn)ftn,argE));
                     vs.set(ftnInd, app);
                     vs.remove(ftnInd+1);
+                    // It is a static error if a function argument is immediately
+                    // followed by a postfix operator.  For example, y[a](x)!
+                    if (isPostfix && vs.size() == 2 &&
+                        isFunction(vs.get(0).getB()) && isExpr(vs.get(1).getA()))
+                        return error(((ExprMI)vs.get(1).getA()).getExpr(),
+                                     "It is a static error if a " +
+                                     "function argument is immediately " +
+                                     "followed by a postfix operator.");
                     // Reassociate the resulting sequence (which is one element
                     // shorter).
-                    return reassociate(vs);
+                    return reassociate(vs, isPostfix);
                 }
                 ftn = pair.getB();
                 ftnInd++;
@@ -1274,7 +1283,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    private List<Pair<MathItem,FValue>> stepThree(List<Pair<MathItem,FValue>> vs) {
+    private List<Pair<MathItem,FValue>> stepThree(List<Pair<MathItem,FValue>> vs,
+                                                  boolean isPostfix) {
         if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
         else if (vs.size() == 1) return vs;
         else { // vs.size() > 1
@@ -1297,7 +1307,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     vs.remove(frontInd+1);
                     // Reassociate the resulting sequence (which is one element
                     // shorter).
-                    return reassociate(vs);
+                    return reassociate(vs, isPostfix);
                 }
                 front = pair.getB();
                 frontInd++;
@@ -1306,10 +1316,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    private List<Pair<MathItem,FValue>> reassociate(List<Pair<MathItem,FValue>> vs) {
+    private List<Pair<MathItem,FValue>> reassociate(List<Pair<MathItem,FValue>> vs, boolean isPostfix) {
         if (vs.size() == 1) return vs;
-        List<Pair<MathItem,FValue>> vs2 = stepTwo(vs);
-        return stepThree(vs2);
+        return stepThree(stepTwo(vs, isPostfix), isPostfix);
     }
 
     private FValue tightJuxt(FValue first, FValue second, MathItem loc) {
@@ -1327,11 +1336,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return result;
     }
 
-    private FValue forMathPrimary(MathPrimary x, boolean isPostfix) {
-        return forMathPrimary(x);
+    public FValue forMathPrimary(MathPrimary x) {
+        return forMathPrimary(x, false);
     }
 
-    public FValue forMathPrimary(MathPrimary x) {
+    private FValue forMathPrimary(MathPrimary x, boolean isPostfix) {
         Expr front = x.getFront();
         FValue fval = front.accept(this);
         List<MathItem> rest = x.getRest();
@@ -1339,7 +1348,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             List<Pair<MathItem,FValue>> vs =
                 Useful.list(new Pair<MathItem,FValue>(null, fval));
             // It is a static error if an exponentiation is immediately followed
-            // by a subcripting or an exponentiation.
+            // by a non-expression element.
             boolean isExponentiation = false;
             for (MathItem mi : rest) {
                 if (mi instanceof ExprMI)
@@ -1348,17 +1357,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     if (isExponentiation)
                        return error(x, "It is a static error if an " +
                                     "exponentiation is immediately followed " +
-                                    "by a subcripting or an exponentiation.");
+                                    "by a subscripting or an exponentiation.");
                     vs.add(new Pair(mi, null));
                     isExponentiation = (mi instanceof ExponentiationMI);
                 }
+            }
+            if (isPostfix && isExponentiation) {
+                return error(x, "It is a static error if an exponentiation is " +
+                             "immediately followed by a postfix operator.");
             }
             if (vs.size() == 1) fval = vs.get(0).getB();
             else
                 // vs.size() > 1
                 // 4. Otherwise, left-associate the sequence, which has only
                 // expression elements, only the last of which may be a function.
-                fval = leftAssociate(reassociate(vs));
+                fval = leftAssociate(reassociate(vs, isPostfix));
         }
         return fval;
     }
@@ -1379,14 +1392,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    private FValue forTightJuxt(TightJuxt x, boolean isPostfix) {
-        return forTightJuxt(x);
-    }
-
     /** Assumes wrapped FnRefs have ids fields of length 1. */
     public FValue forTightJuxt(TightJuxt x) {
-        // Assume for now that tight juxtaposition is function application fixme
-        // chf
+        return forTightJuxt(x, false);
+    }
+
+    private FValue forTightJuxt(TightJuxt x, boolean isPostfix) {
         List<Expr> exprs = x.getExprs();
         if (exprs.size() == 0)
             bug(x,e,"empty juxtaposition");
@@ -1448,10 +1459,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
             return bug(x,"Unexpected application of " + fcnExpr);
+        } else if (fnVal instanceof Fcn) {
+            if (isPostfix) {
+                // It is a static error if a function argument is immediately
+                // followed by a non-expression element.  For example, f(x)!
+                return error(x, "It is a static error if a function argument " +
+                             "is immediately followed by a non-expression " +
+                             "element.");
+            } else {
+                return finishFunctionInvocation(exprs, fnVal, x);
+            }
         } else {
-            return finishFunctionInvocation(exprs, fnVal, x);
+            // When a tight juxtaposition is not a function application,
+            // fake it as a loose juxtaposition.  It's clearly a hack.
+            // Please fix it if you know how to do it.  -- Sukyoung
+            return forLooseJuxt(new LooseJuxt(x.getSpan(), x.getExprs()));
         }
-
     }
 
     /**
