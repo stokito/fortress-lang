@@ -9,7 +9,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.InferenceVarType;
 
-import com.sun.fortress.compiler.typechecker.Types.SubtypeHistory;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
     
 public abstract class ConstraintFormula {
     
@@ -93,7 +93,7 @@ public abstract class ConstraintFormula {
     
     
     public static ConstraintFormula upperBound(InferenceVarType var, Type bound, SubtypeHistory history) {
-        if (history.subtype(Types.ANY, bound).isTrue()) { return TRUE; }
+        if (history.subtype(TypeAnalyzer.ANY, bound).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.singletonMap(var, bound),
                                      Collections.<InferenceVarType, Type>emptyMap());
@@ -101,7 +101,7 @@ public abstract class ConstraintFormula {
     }
     
     public static ConstraintFormula lowerBound(InferenceVarType var, Type bound, SubtypeHistory history) {
-        if (history.subtype(bound, Types.BOTTOM).isTrue()) { return TRUE; }
+        if (history.subtype(bound, TypeAnalyzer.BOTTOM).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.<InferenceVarType, Type>emptyMap(),
                                      Collections.singletonMap(var, bound));

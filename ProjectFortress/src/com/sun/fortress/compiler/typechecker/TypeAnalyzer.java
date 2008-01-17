@@ -33,26 +33,18 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeAliasIndex;
 
 
-public class Types {
+public class TypeAnalyzer {
 
-    public static boolean subtype(StaticParamEnv env, Type t1, Type t2) {
-        return true;
-        // To hook up to the subtype implementation when we're ready:
-        // return new Types(env).subtype(t1, t2).isTrue();
-        // The problem with this interface, though, is that cached information
-        // in the Types object is immediately discarded.
-    }
-
-    private static class StubEnv {
+    public static class StubEnv {
         public TypeConsIndex typeCons(QualifiedIdName name) {
             throw new RuntimeException("environments aren't implemented");
         }
     }
 
     public static final Type BOTTOM = new BottomType();
-    public static final Type ANY = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Any");
-    public static final Type OBJECT = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Object");
-    public static final Type TUPLE = NodeFactory.makeInstantiatedType("Fortress", "Standard", "Tuple");
+    public static final Type ANY = NodeFactory.makeInstantiatedType("FortressBuiltin", "Any");
+    public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
+    public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
     private static final int MAX_SUBTYPE_DEPTH = 12;
 
@@ -63,13 +55,19 @@ public class Types {
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
 
-    public Types(StubEnv env) {
+    public TypeAnalyzer(StubEnv env) {
         _env = env;
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
+    
+    public ConstraintFormula subtype(Type s, Type t) {
+        return ConstraintFormula.TRUE;
+        // Commented out until it's ready for heavy lifting:
+        //return subtype(s, t, _emptyHistory);
+    }
 
-    public ConstraintFormula subtype(Type s, final Type t, SubtypeHistory history) {
+    private ConstraintFormula subtype(Type s, final Type t, SubtypeHistory history) {
         if (s instanceof InferenceVarType && t instanceof InferenceVarType) {
             ConstraintFormula f = ConstraintFormula.upperBound((InferenceVarType) s, t, history);
             return f.and(ConstraintFormula.lowerBound((InferenceVarType) t, s, history), history);
@@ -807,9 +805,9 @@ public class Types {
             newEntries.addAll(_entries);
             return new SubtypeHistory(newEntries);
         }
-        public ConstraintFormula subtype(Type s, Type t) { return Types.this.subtype(s, t, this); }
-        public Type meet(Type s, Type t) { return Types.this.meet(s, t, this); }
-        public Type join(Type s, Type t) { return Types.this.join(s, t, this); }
+        public ConstraintFormula subtype(Type s, Type t) { return TypeAnalyzer.this.subtype(s, t, this); }
+        public Type meet(Type s, Type t) { return TypeAnalyzer.this.meet(s, t, this); }
+        public Type join(Type s, Type t) { return TypeAnalyzer.this.join(s, t, this); }
     }
 
     private static class SubtypeCache {
