@@ -19,34 +19,40 @@ package com.sun.fortress.syntax_abstractions;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.StaticError;
-import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.index.GrammarIndex;
 
 public class GrammarEnv {
 
+	private Map<GrammarIndex, Boolean> grammars;
+
 	public GrammarEnv() {
-		// TODO Auto-generated constructor stub
+		this.grammars = new HashMap<GrammarIndex, Boolean>();
 	}
 
 	public GrammarEnv(Collection<GrammarIndex> gs, boolean isTopLevel) {
-		// TODO Auto-generated constructor stub
+		this();
+		for (GrammarIndex g: gs) {
+			this.addGrammar(g, isTopLevel);
+		}
 	}
 
 	public void addGrammar(GrammarIndex grammar, boolean isTopLevel) {
-		// TODO Auto-generated method stub
-
+		this.grammars.put(grammar, isTopLevel);
 	}
 
+	public Collection<GrammarIndex> getGrammars() {
+		return this.grammars.keySet();
+	}
+
+	public boolean isToplevel(GrammarIndex g) {
+		if (this.grammars.containsKey(g)) {
+			return this.grammars.get(g);
+		}
+		return false;
+	}
+	
 //	@SuppressWarnings("serial")
 //	public class Error extends StaticError {
 //

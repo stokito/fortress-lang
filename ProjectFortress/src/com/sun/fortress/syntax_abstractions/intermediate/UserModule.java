@@ -17,6 +17,16 @@
 
 package com.sun.fortress.syntax_abstractions.intermediate;
 
+import java.util.Collection;
+
+import com.sun.fortress.compiler.index.ProductionIndex;
+
 public class UserModule extends Module {
+
+	public UserModule() {}
+	
+	public UserModule(String name, Collection<ProductionIndex> productions) {
+		super(name, productions);
+	}
 
 }

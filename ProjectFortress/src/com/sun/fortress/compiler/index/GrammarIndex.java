@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
@@ -39,6 +40,7 @@ public class GrammarIndex {
 	public GrammarIndex(Option<GrammarDef> ast, Map<QualifiedIdName, ProductionIndex> productions) {
 		this.ast = ast;
 		this.productions = productions;
+		this.gs = new LinkedList<GrammarIndex>();
 	}
 
 	public Option<GrammarDef> ast() {
@@ -68,4 +70,12 @@ public class GrammarIndex {
 	public ProductionEnv env() {
 		return this.env;
 	}
+
+	public QualifiedIdName getName() {
+		if (this.ast().isSome()) {
+			return Option.unwrap(this.ast()).getName();
+		}
+		throw new RuntimeException("No name for grammar: "+this.hashCode());
+	}
+
 }

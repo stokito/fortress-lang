@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.nodes.QualifiedName;
-import com.sun.fortress.syntax_abstractions.intermediate.CoreModule;
+import com.sun.fortress.syntax_abstractions.intermediate.FortressModule;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
@@ -158,9 +158,9 @@ public class ModuleInfo {
 
 	public static ProductionEnum getProductionEnum(String name) {
 		Map<String, ProductionEnum> productionFromSyntaxParamType = new HashMap<String, ProductionEnum>();  
-		productionFromSyntaxParamType.put("Literal",         ProductionEnum.LITERAL);
-		productionFromSyntaxParamType.put("DelimitedExpr",   ProductionEnum.DELIMITEDEXPR);
-		productionFromSyntaxParamType.put("Expr",            ProductionEnum.EXPRESSION);
+		productionFromSyntaxParamType.put("FortressSyntax.Literal.Literal",         ProductionEnum.LITERAL);
+		productionFromSyntaxParamType.put("FortressSyntax.DelimitedExpr",   ProductionEnum.DELIMITEDEXPR);
+		productionFromSyntaxParamType.put("FortressSyntax.Expr",            ProductionEnum.EXPRESSION);
 		// TODO: Add more
 		ProductionEnum result = productionFromSyntaxParamType.get(name); 
 		if (result == null) {
@@ -243,7 +243,7 @@ public class ModuleInfo {
 		fortressModules.add("Symbol");
 		fortressModules.add("Spacing");
 		fortressModules.add("Unicode");
-		fortressModules.add("Literal");
+		fortressModules.add("FortressSyntax.Literal");
 		fortressModules.add("Keyword");
 		fortressModules.add("Identifier");
 		return fortressModules.contains(name);
@@ -251,7 +251,7 @@ public class ModuleInfo {
 	
 	public static boolean isCoreProduction(String s) {
 		Map<String, Module> coreProductionAndModules = new HashMap<String, Module>();
-		Module literal = new CoreModule();
+		Module literal = new FortressModule();
 		literal.setName(s);
 		coreProductionAndModules.put("Literal", literal);
 		// TODO: create the map on the fly from Rats! files
@@ -260,7 +260,7 @@ public class ModuleInfo {
 	
 	public static Module getCoreModule(String s) {
 		Map<String, Module> coreProductionAndModules = new HashMap<String, Module>();
-		Module literal = new CoreModule();
+		Module literal = new FortressModule();
 		literal.setName(s);
 		coreProductionAndModules.put("Literal", literal);
 		// TODO: create the map on the fly from Rats! files
@@ -292,14 +292,14 @@ public class ModuleInfo {
 		return result;
 	}
 
-	public static String getExtensionPoint(ProductionEnum production) {
-		Map<ProductionEnum, String> produtionEnumToExtensionPoint = new HashMap<ProductionEnum, String>();
-		produtionEnumToExtensionPoint.put(ProductionEnum.LITERAL,  	      "STRING");
-		produtionEnumToExtensionPoint.put(ProductionEnum.DELIMITEDEXPR,   "TRY");
+	public static String getExtensionPoint(String name) {
+		Map<String, String> produtionEnumToExtensionPoint = new HashMap<String, String>();
+		produtionEnumToExtensionPoint.put("FortressSyntax.Literal.Literal",  	      "STRING");
+		produtionEnumToExtensionPoint.put("FortressSyntax.DelimitedExpr.DelimitedExpr",   "TRY");
 		// TODO: Add more
-		String result =  produtionEnumToExtensionPoint.get(production);
+		String result =  produtionEnumToExtensionPoint.get(name);
 		if (result == null) {
-			throw new RuntimeException("NYI: "+production);
+			throw new RuntimeException("NYI: "+name);
 		}
 		return result;
 	}

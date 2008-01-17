@@ -42,6 +42,7 @@ import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+// TODO: add whitespace in between symbols.
 public class ProductionDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;

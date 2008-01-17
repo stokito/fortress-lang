@@ -116,11 +116,13 @@ public class PreParser {
 		// TODO: Check that result only contains at most one component
 
 		ImportedApiCollector namesAndImports = new ImportedApiCollector(env);
+		ImportedApiCollector.Result result = namesAndImports.new Result(new LinkedList<GrammarEnv>());
 		for (Component c: pr.components()) {
-			c.accept(namesAndImports);
+			result = result.add(namesAndImports.collectApis(c));
 		}
+		if (!pr.isSuccessful()) { return new Result(result.errors()); }
 
-		return new Result(namesAndImports.getGrammars());
+		return new Result(result.grammars());
 	}
 	
 	private static Parser.Result parseFile(File f) {

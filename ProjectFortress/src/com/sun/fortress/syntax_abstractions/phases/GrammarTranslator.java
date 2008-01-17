@@ -38,13 +38,12 @@ import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.SequenceName;
 
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.nodes.ProductionDef;
-import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
-import com.sun.fortress.syntax_abstractions.phases.ProductionTranslator.Result;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleEnum;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
@@ -70,35 +69,39 @@ public class GrammarTranslator {
 		public Set<String> keywords() { return keywords; }
 	}
 
-	public static Result translate(Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules) {
+	public static Result translate(Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules,
+			GlobalEnvironment env) {
 		GrammarTranslator grammarTranslator = new GrammarTranslator();
 		Collection<Module> ratsModules = new LinkedList<Module>();
 		Set<String> keywords = new HashSet<String>();
 		Iterable<? extends StaticError> errors = new LinkedList<StaticError>();
-		
-		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
-			Module m = RatsUtil.makeExtendingRatsModule(module);
 
-			ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDefinedProductions());
-			if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, ptr.errors()); }
-		
-			m.productions = ptr.productions();
-			ratsModules.add(m);
-			
-			Collection<? extends String> kws = resolveKeywords(module.getTokens());
-			if (!kws.isEmpty()) {
-				List<ModuleName> parameters = m.parameters.names;
-				parameters.add(new ModuleName("Keyword"));
-		//		parameters.add(new ModuleName("Spacing"));
-				m.dependencies.add(new ModuleImport(new ModuleName("Keyword")));
-		//		m.dependencies.add(new ModuleImport(new ModuleName("Spacing")));
-			}			
-			keywords.addAll(kws);
+		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
+			if (module instanceof UserModule) {
+				Module m = RatsUtil.makeExtendingRatsModule(module);
+
+				ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDefinedProductions(), env);
+				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, ptr.errors()); }
+				
+				m.productions = ptr.productions();
+				ratsModules.add(m);
+
+				Collection<? extends String> kws = resolveKeywords(module.getTokens());
+				if (!kws.isEmpty()) {
+					List<ModuleName> parameters = m.parameters.names;
+					parameters.add(new ModuleName("Keyword"));
+					//		parameters.add(new ModuleName("Spacing"));
+					m.dependencies.add(new ModuleImport(new ModuleName("Keyword")));
+					//		m.dependencies.add(new ModuleImport(new ModuleName("Spacing")));
+				}			
+				keywords.addAll(kws);
+				m.documentation = RatsUtil.getComment();
+			}
 		}
-		
+
 		return grammarTranslator.new Result(ratsModules, keywords, errors);
 	}
-	
+
 	private static Collection<? extends String> resolveKeywords(Collection<Set<TokenSymbol>> tokens) {
 		Collection<String> keywords = new LinkedList<String>();
 		for (Set<TokenSymbol> tokenSet: tokens) {
@@ -116,7 +119,7 @@ public class GrammarTranslator {
 	 */
 	private Module createRatsModule(ModuleEnum e, Collection<RatsMacroDecl> ratsMacroDecls) {
 		Module m = null; //RatsUtil.makeEmptyExtendingRatsModule(e);
-	
+
 		// Get the parameter which the Fortress grammar Rats! files use
 		List<ModuleName> parameters = ModuleInfo.getParameters(e);
 		List<ModuleDependency> dependencies = ModuleInfo.getModuleModification(e);
@@ -128,7 +131,7 @@ public class GrammarTranslator {
 			// Add any additional parameters and dependencies to the module:
 			parameters.addAll(ratsMacroDecl.getParameters());
 			m.parameters = new ModuleList(removeDuplicates(parameters));
-			
+
 			dependencies.addAll(ratsMacroDecl.getDependencies());
 			m.dependencies = removeDuplicates(dependencies);
 
@@ -140,7 +143,7 @@ public class GrammarTranslator {
 						new AlternativeAddition(ModuleInfo.getProductionReturnType(ratsMacroDecl.getProduction()),
 								new NonTerminal(ModuleInfo.getProductionName(ratsMacroDecl.getProduction())),
 								new OrderedChoice(ratsMacroDecl.getSequence()), 
-								new SequenceName(ModuleInfo.getExtensionPoint(ratsMacroDecl.getProduction())),false));
+								new SequenceName(ModuleInfo.getExtensionPoint(ratsMacroDecl.getProduction().name())),false));
 			}
 			else {
 				/*
@@ -149,9 +152,9 @@ public class GrammarTranslator {
 				// TODO
 //				AlternativeAddition oldChoice = prods.get(ratsMacroDecl.getProduction()).choice;
 //				OrderedChoice choice = new AlternativeAddition(oldChoice.getName(),
-//															   oldChoice.name,
-//															   oldChoice.choice
-//															   oldChoice.sequence);
+//				oldChoice.name,
+//				oldChoice.choice
+//				oldChoice.sequence);
 //				choice.add(ratsMacroDecl.getSequence());
 //				prods.get(ratsMacroDecl.getProduction()).choice = choice ;
 			}
@@ -159,7 +162,7 @@ public class GrammarTranslator {
 		List<Production> productions = new LinkedList<Production>();
 		productions.addAll(prods.values());
 		m.productions = productions;
-		
+
 		return m;
 	}
 
