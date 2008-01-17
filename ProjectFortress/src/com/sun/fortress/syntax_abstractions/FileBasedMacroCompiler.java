@@ -26,29 +26,28 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
 
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
 import com.sun.fortress.syntax_abstractions.phases.GrammarTranslator;
-import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 
 public class FileBasedMacroCompiler implements MacroCompiler {
 
-	public Result compile(Collection<GrammarEnv> env) {
+	public Result compile(Collection<GrammarEnv> envs, GlobalEnvironment env) {
 		
 	
 		/* 
 		 * Resolve grammar extensions and production extensions, but leave the 
 		 * the content of the productions untouched
 		 */
-		ModuleTranslator.Result mrr = ModuleTranslator.resolve(env);
+		ModuleTranslator.Result mrr = ModuleTranslator.resolve(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
+		for (Module m: mrr.modules()) {
+			System.err.println(m.toString());
+		}
 //		for (Module m: mrr.modules()) {
 //			System.err.print(m);
 //		}
@@ -62,7 +61,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */
-		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules());
+		GrammarTranslator.Result gtr = GrammarTranslator.translate(mrr.modules(), env);
 		if (!gtr.isSuccessful()) { return new Result(null, gtr.errors()); }
 		
 		/*

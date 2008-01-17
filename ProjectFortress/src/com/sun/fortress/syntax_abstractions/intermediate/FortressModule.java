@@ -17,6 +17,18 @@
 
 package com.sun.fortress.syntax_abstractions.intermediate;
 
-public class CoreModule extends Module {
+import java.util.Collection;
+
+import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ProductionIndex;
+
+public class FortressModule extends Module {
+
+	public FortressModule() {}
+	
+	public FortressModule(String name, Collection<ProductionIndex> productions) {
+		super(name, productions);
+	}
 
 }

@@ -112,7 +112,7 @@ public abstract class RatsUtil {
 		try {
 			String name = RatsUtil.getModulePath(module.name.name);
 			fo = new FileOutputStream(tempDir+name+".rats");		
-			PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(), false);
+			PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(), true);
 			pp.visit(module);
 			pp.flush();
 			fo.flush();
@@ -211,7 +211,6 @@ public abstract class RatsUtil {
 	public static Module makeExtendingRatsModule(com.sun.fortress.syntax_abstractions.intermediate.Module module) {
 		Module m = new Module();
 		m.name = new ModuleName(RatsUtil.getModuleNamePrefix()+module.getName());
-		m.documentation = getComment();
 		m.productions = new LinkedList<Production>();
 
 		List<ModuleName> parameters = new LinkedList<ModuleName>();
@@ -219,15 +218,8 @@ public abstract class RatsUtil {
 		// If we modify a core Fortress module then we need a lot of boiler plate 
 		if (module.getModify() != null) {
 			String modifyName = module.getModify().getName();
-			ModuleEnum moduleEnum = ModuleInfo.getModuleFromProduction(ModuleInfo.getProductionEnum(modifyName));
-
-			// Get the parameter which the Fortress grammar Rats! files use
-			if (ModuleInfo.isFortressModule(modifyName)) {
-				parameters = ModuleInfo.getParameters(moduleEnum);
-				dependencies = ModuleInfo.getModuleModification(moduleEnum);
-			}
-			ModuleList args = new ModuleList(ModuleInfo.getParameters(moduleEnum));
-			ModuleName moduleName = ModuleInfo.getExtendedModuleName(moduleEnum );
+			ModuleList args = new ModuleList(module.getModify().getParameters());
+			ModuleName moduleName = new ModuleName(modifyName);
 			m.modification = new ModuleModification(moduleName, args, null);
 		}
 
@@ -238,7 +230,7 @@ public abstract class RatsUtil {
 		m.parameters = new ModuleList(parameters);
 		m.dependencies = dependencies;
 
-
+		m.documentation = getComment();
 		return m;
 	}
 

@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.ModuleName;
+
+import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -37,33 +41,39 @@ import edu.rice.cs.plt.tuple.Option;
 
 public abstract class Module {
 
-	Collection<ProductionDef> productions;
-	Collection<Module> imports;
-	Module modify;
-	private String name;
-	// private Map<String, ProductionDef> names;
-	// private Map<String, ProductionDef> productionsExtendsMap;
+	protected String name;
 	private boolean isTopLevel;
-	private Collection<Module> extendedModules;
+	
+	protected Collection<Module> imports;
+	protected Module modify;
+	protected Collection<Module> extendedModules;
 	private Map<QualifiedName, Set<TokenSymbol>> tokenMap;
 	
+	protected Collection<ProductionIndex> productions;
+	protected ProductionEnv productionEnv;
+	protected List<ModuleName> parameters;
+	
 	public Module() {
-		super();
-		this.productions = new LinkedList<ProductionDef>();
 		this.imports = new LinkedList<Module>();
-		//this.names = new HashMap<String, ProductionDef>();
-		//this.productionsExtendsMap = new HashMap<String, ProductionDef>();
 		this.extendedModules = new LinkedList<Module>();
 		this.tokenMap = new HashMap<QualifiedName, Set<TokenSymbol>>();
+		
+		this.productions = new LinkedList<ProductionIndex>();
 	}
 
-	public Collection<ProductionDef> getDefinedProductions() {
+	public Module(String name, Collection<ProductionIndex> productions) {
+		this();
+		this.name = name;
+		this.productions.addAll(productions);
+	}
+
+	public Collection<ProductionIndex> getDefinedProductions() {
 		return this.productions;
 	}
 	
-	public Collection<ProductionDef> getProductions() {
-		List<ProductionDef> productions = new LinkedList<ProductionDef>();
-		for (ProductionDef p: this.productions) {
+	public Collection<ProductionIndex> getProductions() {
+		List<ProductionIndex> productions = new LinkedList<ProductionIndex>();
+		for (ProductionIndex p: this.productions) {
 			// Test for privacy of production here
 			productions.add(p);
 		}
@@ -74,9 +84,9 @@ public abstract class Module {
 		return productions;
 	}
 
-	public boolean containsProduction(ProductionDef p, String name) {
+	public boolean containsProduction(ProductionIndex p, String name) {
 		// System.err.println("***");
-		for (ProductionDef production: this.getProductions()) {
+		for (ProductionIndex production: this.getProductions()) {
 			// System.err.println("Matching: "+production.getName().toString()+" - "+name);
 			if ((production.getName().toString().equals(name)) &&
 				(!p.equals(production))) {
@@ -86,23 +96,23 @@ public abstract class Module {
 		return false;
 	}
 	
-	public void setProductions(Collection<ProductionDef> productions) {
+	public void setProductions(Collection<ProductionIndex> productions) {
 		this.productions = productions;
 	}
 	
-	public void addProductions(Collection<? extends ProductionDef> productions) {
-		for (ProductionDef p: productions) {
+	public void addProductions(Collection<? extends ProductionIndex> productions) {
+		for (ProductionIndex p: productions) {
 			this.addProduction(p.getName().toString(), p);
 		}
 	}
 	
-	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionDef> productions) {
-		for (ProductionDef p: productions) {
+	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionIndex> productions) {
+		for (ProductionIndex p: productions) {
 			this.addProduction(p.getName().toString(), p);
 		}		
 	}
 	
-	private void addProduction(String name, ProductionDef p) {
+	private void addProduction(String name, ProductionIndex p) {
 //		if (p.getExtends().isSome() &&
 //			this.productionsExtendsMap.keySet().contains(Option.unwrap(p.getExtends()).getName())) {
 //			ProductionDef pd = this.productionsExtendsMap.get(Option.unwrap(p.getExtends()).getName());
@@ -123,16 +133,16 @@ public abstract class Module {
 	 * TODO: If more than one production extends the same core production, then what???
 	 * TODO: It is a hack to use the core modules to transport imports
 	 */
-	public Map<Module, Set<ProductionDef>> getExtendedCoreModules() {
-		Map<Module, Set<ProductionDef>> extendedCoreModules = 
-			                            new HashMap<Module, Set<ProductionDef>>();
-		List<ProductionDef> lsp = new LinkedList<ProductionDef>(); 
-		for (ProductionDef production: this.productions) {
+	public Map<Module, Set<ProductionIndex>> getExtendedCoreModules() {
+		Map<Module, Set<ProductionIndex>> extendedCoreModules = 
+			                            new HashMap<Module, Set<ProductionIndex>>();
+		List<ProductionIndex> lsp = new LinkedList<ProductionIndex>(); 
+		for (ProductionIndex production: this.productions) {
 			String name = "";
 			if (production.getExtends().isSome() &&
 				ModuleInfo.isCoreProduction((name = Option.unwrap(production.getExtends()).getName().toString()))) {
 				Module module = ModuleInfo.getCoreModule(name);
-				Set<ProductionDef> productions = new HashSet<ProductionDef>();
+				Set<ProductionIndex> productions = new HashSet<ProductionIndex>();
 				if (extendedCoreModules.containsKey(module)) {
 					productions = extendedCoreModules.get(module);
 				}
@@ -215,7 +225,7 @@ public abstract class Module {
 		s+= indent+"* Locally defined productions\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionDef> pit = this.productions.iterator();
+		Iterator<ProductionIndex> pit = this.productions.iterator();
 		while (pit.hasNext()) {
 			s+= indent+"- "+pit.next().getName()+"\n";
 		}
@@ -241,5 +251,13 @@ public abstract class Module {
 
 	public void setExtendedModules(Collection<Module> extendedModules) {
 		this.extendedModules = extendedModules;		
+	}
+
+	public void setToplevel(boolean b) {
+		this.isTopLevel = b;		
+	}
+
+	public List<ModuleName> getParameters() {
+		return this.parameters;
 	}
 }

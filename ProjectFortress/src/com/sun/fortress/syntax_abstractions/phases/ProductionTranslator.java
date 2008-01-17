@@ -34,11 +34,18 @@ import xtc.tree.Attribute;
 import xtc.tree.Node;
 import xtc.type.Type;
 
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
+import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
@@ -47,6 +54,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.WhitespaceSymbol;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
@@ -71,16 +79,17 @@ public class ProductionTranslator {
 
 	/**
 	 * Translate a collection of Fortress productions to Rats! productions
-	 * @param productions
+	 * @param 
+	 * @param env 
 	 * @return
 	 */
-	public static Result translate(Collection<ProductionDef> productions) {
+	public static Result translate(Collection<ProductionIndex> productions, GlobalEnvironment env) {
 		ProductionTranslator pt = new ProductionTranslator();
 		List<Production> ratsProductions = new LinkedList<Production>();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 		
-		for (ProductionDef production: productions) {
-			Result result = pt.translate(production);
+		for (ProductionIndex production: productions) {
+			Result result = pt.translate(production, env);
 			for (StaticError se: result.errors()) {
 				errors.add(se);
 			}
@@ -95,32 +104,53 @@ public class ProductionTranslator {
 	 * @param production
 	 * @return
 	 */
-	private Result translate(ProductionDef production) {
+	private Result translate(ProductionIndex production, GlobalEnvironment env) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 		
 		List<Sequence> sequence = new LinkedList<Sequence>();
 		
+		// First translate the syntax definitions
 		for (SyntaxDef syntaxDef: production.getSyntaxDefs()) {
 			List<Element> elms = new LinkedList<Element>();
+			
+			// Translate the symbols
 			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 				elms.addAll(sym.accept(new SymbolTranslator()));
-				elms.add(new NonTerminal("w")); // Todo: implement all the symbols
+				elms.add(new NonTerminal("w")); // Todo: implement in the disambiguator
 			}
+			
 			String productionName = FreshName.getFreshName(production.getName().toString()).toUpperCase();
-			ActionCreater.Result acr = ActionCreater.create(productionName ,syntaxDef.getTransformationExpression(), production.getType().toString());
+			ActionCreater.Result acr = ActionCreater.create(productionName, syntaxDef.getTransformationExpression(), production.getType().toString());
 			if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
 			elms.add(acr.action());
 			sequence.add(new Sequence(new SequenceName(productionName), elms));		
 		}
 		
+		// Then translate the nonterminal definition
 		Production ratsProduction = null;
 		if (production.getExtends().isSome()) {
-			ProductionEnum productionEnum = ModuleInfo.getProductionEnum(Option.unwrap(production.getExtends()).getName().stringName());
-			ratsProduction = new AlternativeAddition(ModuleInfo.getProductionReturnType(productionEnum),
-							 new NonTerminal(ModuleInfo.getProductionName(productionEnum)),
-							 new OrderedChoice(sequence), 
-							 new SequenceName(ModuleInfo.getExtensionPoint(productionEnum)),false);
-			ratsProduction.name = new NonTerminal(production.getName().toString());
+			// If we extend something...
+			QualifiedIdName otherQualifiedName = Option.unwrap(production.getExtends());
+			List<Id> ids = new LinkedList<Id>();
+			ids.addAll(Option.unwrap(otherQualifiedName.getApi()).getIds());
+			Id otherId = null;
+			if (ids.size() > 1) {
+				otherId = ids.remove(ids.size()-1);
+			}
+			APIName apiName = NodeFactory.makeAPIName(ids);
+			ApiIndex otherApi = env.api(apiName);
+			GrammarIndex otherGrammar = otherApi.grammars().get(otherId);
+			
+			String currentName = production.getName().toString();
+			String otherName = otherQualifiedName.getName().toString();
+
+			String otherType = otherGrammar.productions().get(otherQualifiedName).getType().toString();
+			
+			ratsProduction = new AlternativeAddition(otherType,
+							 						 new NonTerminal(otherName),
+							 						 new OrderedChoice(sequence), 
+							 						 new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName.toString())),false);
+			ratsProduction.name = new NonTerminal(currentName);
 		}
 		else {
 			List<Attribute> attr = new LinkedList<Attribute>();
@@ -149,6 +179,13 @@ public class ProductionTranslator {
 			return mkList(new NonTerminal(that.getNonterminal().getName().stringName()));
 		}
 
+		
+		@Override
+		public List<Element> forPrefixedSymbol(PrefixedSymbol that) {
+			// TODO Auto-generated method stub
+			return super.forPrefixedSymbol(that);
+		}
+		
 		@Override
 		public List<Element> forOptionalSymbol(OptionalSymbol that) {
 			// TODO Auto-generated method stub
@@ -195,15 +232,12 @@ public class ProductionTranslator {
 
 		@Override
 		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forWhitespaceSymbol(that);
+			return mkList(new NonTerminal("w"));
 		}
 
 		@Override
-		public List<Element> forWhitespaceSymbolOnly(WhitespaceSymbol that,
-				List<Element> symbol_result) {
-			// TODO Auto-generated method stub
-			return super.forWhitespaceSymbolOnly(that, symbol_result);
+		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
+			return new LinkedList<Element>();
 		}
 		
 	}
