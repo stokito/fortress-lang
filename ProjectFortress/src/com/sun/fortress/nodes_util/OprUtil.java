@@ -21,7 +21,6 @@ import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes.QualifiedOpName;
 
 public final class OprUtil {
@@ -47,7 +46,7 @@ public final class OprUtil {
         } else if (isEnclosing(op)) {
             return ((Enclosing)op).getOpen();
         } else {
-            return (PostFix)op;
+            return (Op)op;
         }
     }
 

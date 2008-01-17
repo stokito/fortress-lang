@@ -350,28 +350,17 @@ constant Expr LeftAssociatedPrimary =
 List<Id> DottedIdChain = a1:Id a2s:(dot w Id)+
     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* MathPrimary ::= PrimaryFront MathItem* ExponentOp? */
+/* MathPrimary ::= PrimaryFront MathItem* */
 constant Expr MathPrimary =
-    a1:PrimaryFront a2s:MathItem* a3:ExponentOp?
+    a1:PrimaryFront a2s:MathItem*
     { Span span = createSpan(yyStart,yyCount);
       List<MathItem> mis = a2s.list();
       if (mis.size() == 0) {
-          if (a3 == null) yyValue = a1;
-          else {
-              PostFix opr = new PostFix(a3.getSpan(), a3.getText());
-              yyValue = ExprFactory.makeOprExpr(span, opr, a1);
-          }
+          yyValue = a1;
       } else if (mis.size() == 1) {
-          MathItem mi = mis.get(0);
-          if (a3 == null)
-              yyValue = ExprFactory.simplifyMathPrimary(span, a1, mi);
-          else // a3 != null
-              yyValue = ExprFactory.simplifyMathPrimary(span, a1, mi, a3);
+          yyValue = ExprFactory.simplifyMathPrimary(span, a1, mis.get(0));
       } else { // mis.size() > 1
-          Option<Op> op;
-          if (a3 == null) op = Option.<Op>none();
-          else            op = Option.wrap(a3);
-          yyValue = new MathPrimary(span, a1, mis, op);
+          yyValue = new MathPrimary(span, a1, mis);
       }
     };
 

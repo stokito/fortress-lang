@@ -1644,7 +1644,7 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
     only be consistent with the cross product of these orderings (see
     Generator.cross()). **)
 trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
-    extends { Indexed1 [\s0\], Indexed2 [\s1\], Indexed3 [\s2\], Rank3,
+    extends { Indexed1[\s0\], Indexed2[\s1\], Indexed3[\s2\], Rank3,
               StandardMutableArrayType[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,
                                         (ZZ32,ZZ32,ZZ32)\] }
     excludes { Number, String }

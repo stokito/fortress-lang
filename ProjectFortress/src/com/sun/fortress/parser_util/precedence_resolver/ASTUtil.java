@@ -35,7 +35,6 @@ import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.PostFix;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -67,11 +66,14 @@ public class ASTUtil {
         return ExprFactory.makeOprExpr(arg.getSpan(), op, arg);
     }
 
+    public static Op postfixOp(Op op) {
+        return new Op(op.getSpan(), op.getText(), true);
+    }
+
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return ExprFactory.makeOprExpr(span, new PostFix(op.getSpan(),
-                                                         op.getText()), arg);
+        return ExprFactory.makeOprExpr(span, postfixOp(op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =

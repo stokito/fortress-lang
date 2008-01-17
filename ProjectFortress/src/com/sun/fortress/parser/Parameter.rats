@@ -109,9 +109,9 @@ FnHeaderFront OpHeaderFront =
    / opr a1:(w StaticParams)? w a2:ValParam w a3:(Op / ExponentOp)
      { Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
-           yyValue = new FnHeaderFront(new PostFix(span,a3.getText()), a2);
+           yyValue = new FnHeaderFront(ASTUtil.postfixOp(a3), a2);
        else
-           yyValue = new FnHeaderFront(new PostFix(span,a3.getText()), a1, a2);
+           yyValue = new FnHeaderFront(ASTUtil.postfixOp(a3), a1, a2);
      }
    / opr big:(w BIG)? w
      a1:(Op

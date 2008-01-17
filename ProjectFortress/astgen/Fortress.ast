@@ -920,10 +920,9 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     TightJuxt();
                 /**
                  * primary expression without any dots
-                 * MathPrimary ::= PrimaryFront MathItem* PostfixOp?
+                 * MathPrimary ::= PrimaryFront MathItem*
                  */
-                MathPrimary(Expr front, List<MathItem> rest,
-                            Option<Op> postfixOp);
+                MathPrimary(Expr front, List<MathItem> rest);
                 /**
                  * chain expression
                  * Certain infix mathematical operators that are traditionally
@@ -1671,12 +1670,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) COMPOSE
                  * e.g.) ===
                  */
-                Op(String text);
-                    /**
-                     * postfix operator
-                     * e.g.) 3!
-                     */
-                    PostFix();
+                Op(String text, boolean postfix = false);
                 /**
                  * pair of enclosing operators
                  * EncloserPair ::= (LeftEncloser | Encloser)
