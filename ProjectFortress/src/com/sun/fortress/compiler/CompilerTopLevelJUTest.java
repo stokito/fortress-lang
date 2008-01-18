@@ -48,6 +48,7 @@ public class CompilerTopLevelJUTest extends TestCase {
     private static String staticTests = baseDir + "static_tests/";
 
     private static final List<String> NOT_PASSING = Arrays.asList(
+        staticTests + "XXXMaltypedTopLevelVar.fss",                                                          
         staticTests + "XXXMultipleRefErrors.fss",
         staticTests + "XXXUndefinedArrayRef.fss",
         staticTests + "XXXUndefinedInitializer.fss",
@@ -62,7 +63,7 @@ public class CompilerTopLevelJUTest extends TestCase {
         staticTests + "XXXSyntaxMultipleProductionsWithSameName.fsi",
         staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi",
         // really not working:
-        staticTests + "XXXSyntaxNoFortressAstImport.fsi",
+        // staticTests + "XXXSyntaxNoFortressAstImport.fsi",
         staticTests + "stub to eliminate comma trouble"
     );
 

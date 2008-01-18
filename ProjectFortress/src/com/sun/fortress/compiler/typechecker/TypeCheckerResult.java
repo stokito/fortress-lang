@@ -29,6 +29,40 @@ public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
     
+    private static Iterable<? extends StaticError> collectErrors(Iterable<? extends TypeCheckerResult> results) {
+        Iterable<? extends StaticError> allErrors = new ArrayList<StaticError>();
+        
+        for (TypeCheckerResult result: results) {
+            allErrors = IterUtil.compose(allErrors, result.errors());
+        }
+        return allErrors;
+    }
+    
+    public static TypeCheckerResult compose(Node _ast,
+                                            TypeCheckerResult... results) {
+        return new TypeCheckerResult(_ast,
+                                     Option.<Type>none(),
+                                     collectErrors(Arrays.asList(results)));
+    }
+    
+    public static TypeCheckerResult compose(Node _ast, List<TypeCheckerResult> results) {
+        return new TypeCheckerResult(_ast,
+                                     Option.<Type>none(),
+                                     collectErrors(results));
+    }       
+    
+    public static TypeCheckerResult compose(Node _ast, Option<List<TypeCheckerResult>> results) {
+        if (results.isSome()) {
+            Iterable<? extends StaticError> allErrors = collectErrors(Option.unwrap(results));
+            
+            return new TypeCheckerResult(_ast,
+                                         Option.<Type>none(),
+                                         allErrors);
+        } else {
+            return new TypeCheckerResult(_ast);
+        }
+    }
+    
     public TypeCheckerResult(Node _ast, Type _type,
                              Iterable<? extends StaticError> _errors) {
         super(_errors);
@@ -42,7 +76,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         ast = _ast;
         type = Option.none();
     }
-    
+                           
     public TypeCheckerResult(Node _ast) {
         super();
         ast = _ast;
@@ -53,6 +87,18 @@ public class TypeCheckerResult extends StaticPhaseResult {
         super();
         ast = _ast;
         type = Option.wrap(_type);
+    }
+    
+    public TypeCheckerResult(Node _ast, Option<Type> _type) {
+        super();
+        ast = _ast;
+        type = _type;
+    }
+    
+    public TypeCheckerResult(Node _ast, Option<Type> _type, Iterable<? extends StaticError> _errors) {
+        super(_errors);
+        ast = _ast;
+        type = _type;
     }
     
     public TypeCheckerResult(Node _ast, StaticError _error) {

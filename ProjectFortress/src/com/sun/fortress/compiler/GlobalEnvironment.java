@@ -22,6 +22,12 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeUtil;
 
+/**
+ * Environment for mapping APINames to ApiIndices.
+ * Before looking up an APIName, the client is required to first ensure that
+ * the APIName is in the environment. This can be done by calling the 
+ * definesApi method. 
+ */
 public class GlobalEnvironment {
     private Map<APIName, ApiIndex> _apis;
     

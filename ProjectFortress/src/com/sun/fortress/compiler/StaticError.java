@@ -17,10 +17,15 @@
 
 package com.sun.fortress.compiler;
 
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
 public abstract class StaticError extends RuntimeException implements HasAt {
-
+    public static String errorMsg(Object... messages) {
+        return ErrorMsgMaker.errorMsg(messages);
+    }
+    
     public abstract String description();
 
     public abstract String at();

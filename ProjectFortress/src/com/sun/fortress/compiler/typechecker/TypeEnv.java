@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.ParamVariable;
@@ -37,6 +38,23 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * mapping bound variables to their types.
  */
 public abstract class TypeEnv {
+    
+    /** 
+     * Construct a new TypeEnv for a given ApiIndex.
+     */
+    public static TypeEnv make(CompilationUnitIndex cu) {
+        TypeEnv typeEnv = TypeEnv.make();
+        
+        // Add all top-level function names to the component-level environment.
+        //typeEnv.extend(component.functions());
+        
+        // Iterate over top-level variables, adding each to the component-level environment.
+        typeEnv = typeEnv.extend(cu.variables());
+        
+        return typeEnv;
+    }
+    
+    
     /**
      * Construct a new TypeEnv from the given bindings.
      */

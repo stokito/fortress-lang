@@ -44,10 +44,9 @@ public class FileBasedRepository extends CacheBasedRepository implements Fortres
     }
 
     private void initialize() throws IOException { 
-        
          File[] fileArray = Files.ls(path);
         if (fileArray == null) {
-            throw new IOException("Apparently no files in " + path);
+            throw new IOException("Apparently there are no files in " + path);
         }
         List<File> files = Arrays.asList(fileArray);
         
