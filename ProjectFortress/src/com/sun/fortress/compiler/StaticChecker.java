@@ -90,7 +90,7 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component, 
                                                    GlobalEnvironment env) 
     {
-        TypeEnv typeEnv = TypeEnv.make();
+        TypeEnv typeEnv = TypeEnv.make(component);
         
         // Add all top-level function names to the component-level environment.
         //typeEnv.extend(component.functions());

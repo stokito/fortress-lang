@@ -60,9 +60,10 @@ public final class Shell {
     
     public static String fortressLocation() {
         try {
-            String s =  ProjectProperties.get("FORTRESS_PATH");
+            String FORTRESS_PATH = "FORTRESS_PATH";
+            String s =  ProjectProperties.get(FORTRESS_PATH);
             if (s == null)
-                throw new Error("FORTRESS_PATH must be set, somehow.");
+                throw new Error(FORTRESS_PATH + " must be set, somehow.");
             return s;
         }
         catch (Exception e) {

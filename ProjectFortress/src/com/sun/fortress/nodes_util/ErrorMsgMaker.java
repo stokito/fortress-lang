@@ -28,6 +28,19 @@ import com.sun.fortress.useful.*;
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
+    public static String errorMsg(Object... messages) {
+        StringBuffer fullMessage = new StringBuffer();
+        for (Object message : messages) {
+            if (message instanceof AbstractNode) {
+                fullMessage.append(makeErrorMsg((AbstractNode)message));
+            }
+            else {
+                fullMessage.append(message.toString());
+            }
+        }
+        return fullMessage.toString();
+    }
+
     public static String makeErrorMsg(AbstractNode node) {
         return node.accept(ErrorMsgMaker.ONLY);
     }

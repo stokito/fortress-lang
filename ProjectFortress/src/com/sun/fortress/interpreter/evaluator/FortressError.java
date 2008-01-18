@@ -24,9 +24,9 @@ import java.util.ArrayList;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
-import static com.sun.fortress.nodes_util.ErrorMsgMaker.makeErrorMsg;
 
 public abstract class FortressError extends RuntimeException {
 
@@ -41,16 +41,7 @@ public abstract class FortressError extends RuntimeException {
     private Environment within;
 
     public static String errorMsg(Object... messages) {
-        StringBuffer fullMessage = new StringBuffer();
-        for (Object message : messages) {
-            if (message instanceof AbstractNode) {
-                fullMessage.append(makeErrorMsg((AbstractNode)message));
-            }
-            else {
-                fullMessage.append(message.toString());
-            }
-        }
-        return fullMessage.toString();
+        return ErrorMsgMaker.errorMsg(messages);
     }
 
     public FortressError setWhere(HasAt where) {
