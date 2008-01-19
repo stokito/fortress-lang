@@ -13,8 +13,8 @@
        _name=(Id @24:47~54 _text="Literal")))
      _name=(QualifiedIdName @24:18~28
       _name=(Id _text="helloworld"))
-     _type=(IdType @24:31~46 _name=(QualifiedIdName @24:31~39
-       _name=(Id @24:31~38 _text="Literal")))
+     _type=(Some _value=(IdType @24:31~46 _name=(QualifiedIdName @24:31~39
+       _name=(Id @24:31~38 _text="Literal"))))
      _syntaxDefs=[
       (SyntaxDef @25:10~26:10
        _transformationExpression=(TightJuxt @25:26~52
