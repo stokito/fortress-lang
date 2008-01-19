@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -79,18 +80,24 @@ public class ProductionEnv {
 	}
 
 	public Option<APIName> grammarName(APIName name) {
-		APIName api = getApi(name);
-		Option<APIName> realApi = _typeEnv.apiName(api);
-		Id grammarName = getGrammar(name);
-		GrammarDecl currentGrammar = Option.unwrap(_current.ast());
-		if (currentGrammar.getName().getName().equals(grammarName) &&
-			realApi.isSome()) {
-			Collection<Id> ids = new LinkedList<Id>();
-			ids.addAll(Option.unwrap(realApi).getIds());
-			ids.add(grammarName);
-			return Option.some(NodeFactory.makeAPIName(ids));
+		List<Id> ids = new LinkedList<Id>();
+		Iterator<Id> it = name.getIds().iterator();
+		boolean foundApi = false;
+		while (it.hasNext() && !foundApi) {
+			ids.add(it.next());
+			Option<APIName> realApi = _typeEnv.apiName(NodeFactory.makeAPIName(ids));
+			if (realApi.isSome()) {
+				foundApi = true;
+			}
 		}
-		return Option.none();
+		if (!foundApi || !it.hasNext()) {
+			return Option.none();
+		}
+		Id grammarName = it.next();
+		Collection<Id> aids = new LinkedList<Id>();
+		aids.addAll(ids);
+		aids.add(grammarName);
+		return Option.some(NodeFactory.makeAPIName(aids));
 	}
 
 	private Id getGrammar(APIName name) {
@@ -101,7 +108,10 @@ public class ProductionEnv {
 		if (name.getIds().size() <= 1) {
 			return NodeFactory.makeAPIName(new LinkedList<Id>());
 		}
-		return NodeFactory.makeAPIName(name.getIds().remove(name.getIds().size()-1));
+		List<Id> ids = new LinkedList<Id>();
+		ids.addAll(name.getIds());
+		ids.remove(ids.size()-1);
+		return NodeFactory.makeAPIName(ids);
 	}
 
     /**
@@ -109,11 +119,15 @@ public class ProductionEnv {
      * determine whether a production exists.  Assumes {@code name.getApi().isSome()}.
      */
 	public boolean hasQualifiedProduction(QualifiedIdName name) {
-        APIName api = getApi(Option.unwrap(name.getApi()));
+		APIName api = getApi(Option.unwrap(name.getApi()));
         Id gname = getGrammar(Option.unwrap(name.getApi()));
         QualifiedIdName grammarName = NodeFactory.makeQualifiedIdName(api, gname);
         if (this._typeEnv.hasQualifiedGrammar(grammarName)) {
-            return this._current.productions().containsKey(name.getName());
+        	Set<QualifiedIdName> names = this.declaredProductionNames(name);
+        	if (names.isEmpty()) {
+        		names = this.inheritedProductionNames(name);
+        	}
+        	return !names.isEmpty();
         }
         else { return false; }
 

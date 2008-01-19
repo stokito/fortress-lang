@@ -86,9 +86,12 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 	@Override
 	public Node forProductionDefOnly(ProductionDef that,
 									 Option<? extends Modifier> modifier_result,
-									 QualifiedIdName name_result, TraitType type_result,
+									 QualifiedIdName name_result, Option<TraitType> type_result,
 									 Option<QualifiedIdName> extends_result,
 									 List<SyntaxDef> syntaxDefs_result) {
+		if (type_result.isNone()) {
+			throw new RuntimeException("Type inference is not supported yet!");
+		}
 		ProductionNameDisambiguator pnd = new ProductionNameDisambiguator();
 		Option<QualifiedIdName> extended = Option.none();
 		if (that.getExtends().isSome()) {
@@ -126,7 +129,7 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 				QualifiedIdName newN;
 				if (originalApiGrammar == realApiGrammar) { newN = name; }
 				else { newN = NodeFactory.makeQualifiedIdName(realApiGrammar, name.getName()); }
-
+				
 				if (!currentEnv.hasQualifiedProduction(newN)) {
 					error("Undefined production: " + NodeUtil.nameString(newN), newN);
 					return name;

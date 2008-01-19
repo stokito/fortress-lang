@@ -51,15 +51,19 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private ProductionDef ProductionDef =
-      m1:(GrammarMod w)? production w a1:Id w colon w a2:TraitType a3:(w Extends)? w end
+      m1:(GrammarMod w)? production w a1:Id w a2:(void:colon w TraitType)? a3:(w Extends)? w end
       { if (a3 == null) a3 = Option.none();
+        Option<TraitType> type = Option.none();
+        if (a2 != null) type = Option.some(a2);
         List<SyntaxDef> a4 = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
-        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), a2, a3, a4); }
-    /m1:(GrammarMod w)? production w a1:Id w colon w a2:TraitType a3:(w Extends)? w a4:SyntaxDef  a4s:(br SyntaxDefOr)* w end
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, a3, a4); }
+    /m1:(GrammarMod w)? production w a1:Id w a2:(void:colon w TraitType)? a3:(w Extends)? w a4:SyntaxDef  a4s:(br SyntaxDefOr)* w end
       { if ( a3 == null) a3 = Option.none();
+        Option<TraitType> type = Option.none();
+        if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
-        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), a2, a3, FortressUtil.mkList(a4, a4s.list())); };
+        yyValue = new ProductionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, a3, FortressUtil.mkList(a4, a4s.list())); };
 
 private Option<ModifierPrivate> GrammarMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
@@ -70,18 +74,18 @@ SyntaxDef SyntaxDef =
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 SyntaxDef SyntaxDefOr =
-       or a1s:SyntaxSymbols w doublerightarrow w a2:Expr
+       bar a1s:SyntaxSymbols w doublerightarrow w a2:Expr
        {yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 List<SyntaxSymbol> SyntaxSymbols =
-      a1:SyntaxSymbol a1s:(w SyntaxSymbol)* &(w doublerightarrow)
+      a1:SyntaxSymbol a1s:SyntaxSymbol* &(w doublerightarrow)
       { yyValue = FortressUtil.mkList(a1, a1s.list()); };
 
 /*
-SyntaxSymbol            ::= (Id ":" )? Symbol 
+SyntaxSymbol      ::= (Id ":" )? Symbol 
                    | Whitespace
                    | br
-Symbol      ::= BasicSymbol "?" 
+Symbol            ::= BasicSymbol "?" 
                    | BasicSymbol "*" 
                    | BasicSymbol "+" 
                    | BasicSymbol "#" 
@@ -95,10 +99,17 @@ PredicateSymbol   ::= "NOT" ItemSymbol
                    | "\land" ItemSymbol
 */
 SyntaxSymbol SyntaxSymbol =
-      a1:(Id void:colon)? s:Symbol
+      a1:(Id w void:colon w)? s:Symbol
       { Option<Id> prefix = Option.none();
         if (a1 != null) prefix = Option.some(a1);
-        yyValue = new PrefixedSymbol(prefix, s); };
+        yyValue = new PrefixedSymbol(prefix, s); }
+    / a1:sr
+      { yyValue = new WhitespaceSymbol(a1); }
+    /  a1:Tab
+      { yyValue = new TabSymbol(); }
+    /  a1:Newline
+      { yyValue = new BreaklineSymbol(a1); };
+
 
 SyntaxSymbol Symbol =
      "NOT" w s1:Suffix
@@ -112,9 +123,8 @@ SyntaxSymbol Symbol =
        } else if (s1 instanceof RepeatOneOrMoreSymbol) {
           tmp = ((RepeatOneOrMoreSymbol) s1).getSymbol();
           s1 = new RepeatOneOrMoreSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
-       } else if (s1 instanceof WhitespaceSymbol) {
-          tmp = ((WhitespaceSymbol) s1).getSymbol();
-          s1 = new WhitespaceSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+       } else if (s1 instanceof NoWhitespaceSymbol) {
+          s1 = new NoWhitespaceSymbol(new NotPredicateSymbol(createSpan(yyStart,yyCount), tmp));
        }
        if (tmp != null) {
          yyValue = s1;
@@ -135,10 +145,9 @@ SyntaxSymbol Symbol =
           tmp = ((RepeatOneOrMoreSymbol) s1).getSymbol();
           s1 = new RepeatOneOrMoreSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
        } else if (s1 instanceof WhitespaceSymbol) {
-          tmp = ((WhitespaceSymbol) s1).getSymbol();
-          s1 = new WhitespaceSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
+          tmp = ((NoWhitespaceSymbol) s1).getSymbol();
+          s1 = new NoWhitespaceSymbol(s1.getSpan(), new AndPredicateSymbol(createSpan(yyStart,yyCount), tmp));
        }
-
        if (tmp != null) {
          yyValue = s1;
        }
@@ -156,7 +165,7 @@ SyntaxSymbol Suffix =
      / a1:Item w plus
      { yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), a1); }
      / a1:Item w hash
-     { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / a1:Item
      { yyValue = a1; };
 
@@ -179,3 +188,10 @@ String Unicode = UnicodeIdStart / "-" / ">" / "." / UnicodeIdRest;
 transient String questionmark = "?";
 transient String hash = "#";
 transient void doublerightarrow = "-->";
+transient void bar = "|" (!op);
+
+
+String sr  = Space+; // significant space
+private String Space      = " " / "\f";
+private String Newline    = "\r\n" / "\r" / "\n";
+private String Tab = "TAB";      // tabulator

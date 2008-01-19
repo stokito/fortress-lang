@@ -81,28 +81,6 @@ public class ActionCreater {
 
 	}
 
-	private class Error extends StaticError {
-
-		private String description;
-		private Span location;
-
-		public Error(Span span, String description) {
-			this.location = span;
-			this.description = description;
-		}
-
-		@Override
-		public String at() {
-			return this.location.toString();
-		}
-
-		@Override
-		public String description() {
-			return this.description;
-		}
-
-	}
-
 	private static final Id ANY = new Id("Any");
 	private static final Id STRING = new Id("String");
 
@@ -116,7 +94,7 @@ public class ActionCreater {
 			serializedComponent = ac.writeJavaAST(component);
 		} catch (IOException e1) {
 			System.err.println(e1.getMessage());
-			errors.add(ac.new Error(e.getSpan(), e1.getMessage()));
+			errors.add(StaticError.make(e1.getMessage(), e.getSpan().toString()));
 		}
 
 		List<Integer> indents = new LinkedList<Integer>();
@@ -148,7 +126,10 @@ public class ActionCreater {
 			code.add(s);
 		}
 		indents.add(3);
+		code.add("System.err.println(\"Parsing... production: "+productionName+"\");");
+		indents.add(3);
 		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(\""+productionName+"\", code).value());");
+		System.err.println(code);
 		Action a = new Action(code, indents);
 
 		return ac.new Result(a, errors);
@@ -163,7 +144,7 @@ public class ActionCreater {
 		List<Export> exports = new LinkedList<Export>();
 		List<APIName> exportApis = new LinkedList<APIName>();
 		exportApis.add(makeAPIName("Executable"));
-		exports.add(new Export(exportApis ));
+		exports.add(new Export(exportApis));
 
 		// Decls:
 		List<Decl> decls = new LinkedList<Decl>();

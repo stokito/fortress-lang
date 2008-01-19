@@ -17,6 +17,8 @@
 
 api FortressAst
 
+   import ArrayList.{List}
+
    (* Fortress representation of Fortress AST nodes *)
    trait Node
       toString():String

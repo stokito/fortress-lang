@@ -60,10 +60,13 @@ public class ModuleTranslator {
 
 	public class Result extends StaticPhaseResult {
 		Collection<Module> modules;
+		private Map<String, String> modulesReplacingFortressModules;
 
-		public Result(Collection<Module> modules) {
+		public Result(Collection<Module> modules, 
+					  Map<String, String> modulesReplacingFortressModules) {
 			super();
 			this.modules = modules;
+			this.modulesReplacingFortressModules = modulesReplacingFortressModules;
 		}
 
 		public Result(Collection<Module> modules,
@@ -73,29 +76,25 @@ public class ModuleTranslator {
 		}
 
 		public Collection<Module> modules() { return modules; }
+		public Map<String, String> modulesReplacingFortressModules() { return this.modulesReplacingFortressModules; }
 	}
 
 	public static Result resolve(Collection<GrammarEnv> environments) {
 		Map<GrammarIndex, Module> grammarToModules = new HashMap<GrammarIndex, Module>();
- 
-		//TODO: HACK:
-		Module helloworld = null;
+		Map<String, String> modulesReplacingFortressModules = new HashMap<String, String>(); 
+		
 		for (GrammarEnv env: environments) {
 			for (GrammarIndex g: env.getGrammars()) {			
 				Module m = newModule(g, grammarToModules);
-
-				if (helloworld == null) {
-					helloworld = m;
-				}
-				if (m instanceof FortressModule) {
-					helloworld.setModify(m);
-				}
 				
 				initializeNewModule(m, g.productions().values(), new LinkedList<Module>());
-				if (!g.getExtendedGrammars().isEmpty()) {	
+				if (!g.getExtendedGrammars().isEmpty()) {
 					Module modify = newModule(IterUtil.first(g.getExtendedGrammars()),
-							                  grammarToModules);
+								              grammarToModules);					
 					m.setModify(modify);
+					if (modify instanceof FortressModule) { // TODO: Revise this when implementing multiple extension
+						modulesReplacingFortressModules.put(m.getName(), modify.getName());
+					}
 				}
 
 				if (env.isToplevel(g)) {
@@ -108,7 +107,7 @@ public class ModuleTranslator {
 			}
 		}
 
-		return new ModuleTranslator().new Result(grammarToModules.values());
+		return new ModuleTranslator().new Result(grammarToModules.values(), modulesReplacingFortressModules);
 	}
 
 //	private static Collection<Module> expand(Collection<Module> modules) {

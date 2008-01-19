@@ -532,7 +532,7 @@ public class Driver {
      * @param except_names
      *
      * The current import process can attempt to import some entities
-     * twice into the same component.  This happesn in the case of
+     * twice into the same component.  This happens in the case of
      * certain kinds of recursive api import, and also (more
      * importantly) when there are imports in FortressLibrary.fss.
      * Eventually fixes elsewhere in the system should eliminate this
