@@ -18,10 +18,17 @@
 package com.sun.fortress.syntax_abstractions.intermediate;
 
 import java.util.Collection;
+import java.util.List;
+
+import xtc.parser.ModuleDependency;
+import xtc.parser.ModuleName;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class FortressModule extends Module {
 
@@ -29,6 +36,21 @@ public class FortressModule extends Module {
 	
 	public FortressModule(String name, Collection<ProductionIndex> productions) {
 		super(name, productions);
+		initialize();
+	}
+
+	private void initialize() {
+		Option<xtc.parser.Module> om = RatsUtil.parseRatsModule(RatsUtil.getFortressSrcDir()+RatsUtil.getModulePath()+name+".rats");
+		if (om.isSome()) {
+			xtc.parser.Module m = Option.unwrap(om);
+			for (ModuleName name: m.parameters.names) {
+				this.parameters.add(name);
+			}
+			
+			for (ModuleDependency dep: m.dependencies) {
+				this.dependencies.add(dep);
+			}
+		}
 	}
 
 }

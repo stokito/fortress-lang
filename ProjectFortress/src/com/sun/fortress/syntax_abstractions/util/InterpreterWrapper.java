@@ -76,26 +76,6 @@ public class InterpreterWrapper {
         public FValue value() { return value; }
     }
 
-    public class Error extends StaticError {
-
-        private String description;
-
-        public Error(String description) {
-            this.description = description;
-        }
-
-        @Override
-        public String at() {
-            return "---";
-        }
-
-        @Override
-        public String description() {
-            return description;
-        }
-
-    }
-
     public static final String FUNCTIONNAME = "transformation";
     private static final boolean test = false;
     private static final boolean libraryTest = false;
@@ -105,23 +85,24 @@ public class InterpreterWrapper {
     static FortressTaskRunnerGroup group;
 
     public Result evalComponent(String productionName, String component) {
-        Collection<Error> errors = new LinkedList<Error>();
+        Collection<StaticError> errors = new LinkedList<StaticError>();
         Option<CompilationUnit> cu = Option.none();
         try {
             cu = readAST(productionName, component);
         } catch (IOException e1) {
-            errors.add(new Error("Could not read transformation expression from file: "+productionName+" "+e1.getMessage()));
+            errors.add(StaticError.make("Could not read transformation expression from file: "+productionName+" "+e1.getMessage(), productionName));
             return new Result(null, errors);
         }
         CompilationUnit compilationUnit = null;
         if (cu.isNone()) {
-            errors.add(new Error("Could not read transformation expression from file: "+productionName));
+            errors.add(StaticError.make("Could not read transformation expression from file: "+productionName, productionName));
             return new Result(null, errors);
         }
 
         compilationUnit = Option.unwrap(cu);
 
         try {
+        	System.err.println("Running interpreter...");
             return new Result(runFunction(compilationUnit), errors);
         }	catch (FortressError e) {
             System.err.println("\n--------Fortress error appears below--------\n");

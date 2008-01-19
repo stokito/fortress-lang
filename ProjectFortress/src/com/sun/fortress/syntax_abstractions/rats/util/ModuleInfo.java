@@ -158,7 +158,7 @@ public class ModuleInfo {
 
 	public static ProductionEnum getProductionEnum(String name) {
 		Map<String, ProductionEnum> productionFromSyntaxParamType = new HashMap<String, ProductionEnum>();  
-		productionFromSyntaxParamType.put("FortressSyntax.Literal.Literal",         ProductionEnum.LITERAL);
+		productionFromSyntaxParamType.put("FortressSyntax.Literal.LiteralExpr",         ProductionEnum.LITERAL);
 		productionFromSyntaxParamType.put("FortressSyntax.DelimitedExpr",   ProductionEnum.DELIMITEDEXPR);
 		productionFromSyntaxParamType.put("FortressSyntax.Expr",            ProductionEnum.EXPRESSION);
 		// TODO: Add more
@@ -294,7 +294,7 @@ public class ModuleInfo {
 
 	public static String getExtensionPoint(String name) {
 		Map<String, String> produtionEnumToExtensionPoint = new HashMap<String, String>();
-		produtionEnumToExtensionPoint.put("FortressSyntax.Literal.Literal",  	      "STRING");
+		produtionEnumToExtensionPoint.put("FortressSyntax.Literal.LiteralExpr",  	      "STRING");
 		produtionEnumToExtensionPoint.put("FortressSyntax.DelimitedExpr.DelimitedExpr",   "TRY");
 		// TODO: Add more
 		String result =  produtionEnumToExtensionPoint.get(name);
@@ -304,22 +304,4 @@ public class ModuleInfo {
 		return result;
 	}
 	
-//	public static ModuleDependency getModuleImport(String moduleName) {
-//		Map<String, ModuleDependency> moduleNameToImportDependency = new HashMap<String, ModuleDependency>();
-//		moduleNameToImportDependency.put("DelimitedExpr", DelimitedExprAttr);
-//		moduleNameToImportDependency.put("NoSpaceExpr", NoSpaceExprAttr);
-//		moduleNameToImportDependency.put("Symbol", SymbolAttr);
-//		moduleNameToImportDependency.put("Spacing", SpacingAttr);
-//		moduleNameToImportDependency.put("Keyword", KeywordAttr);
-//		moduleNameToImportDependency.put("Identifier", IdentifierAttr);		
-//		moduleNameToImportDependency.put("Literal", LiteralAttr);
-//		moduleNameToImportDependency.put("LocalDecl", LocalDeclAttr);		
-//		moduleNameToImportDependency.put("Expression", ExprAttr);
-//		moduleNameToImportDependency.put("Type", TypeAttr);
-//		moduleNameToImportDependency.put("Header", HeaderAttr);
-//		moduleNameToImportDependency.put("TraitObject", TraitObjectAttr);	
-//		
-//		return moduleNameToImportDependency.get(moduleName);
-//	}
-
 }

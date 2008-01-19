@@ -61,8 +61,7 @@ public class KeywordModule {
 		for (String keyword: keywords) {
 			if (!com.sun.fortress.parser.Fortress.FORTRESS_KEYWORDS.contains(keyword)) {
 				List<Attribute> attributes = new LinkedList<Attribute>();
-				attributes.add(new Attribute("transient"));
-				attributes.add(new Attribute("void"));
+				attributes.add(new Attribute("String"));
 
 				List<Sequence> sequence = new LinkedList<Sequence>();
 				List<Element> elements = new LinkedList<Element>();

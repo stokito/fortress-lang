@@ -38,9 +38,9 @@ public class ProductionIndex {
 		return this.ast;
 	}
 
-	public String getName() {
+	public QualifiedIdName getName() {
 		if (this.ast().isSome()) {
-			return Option.unwrap(this.ast()).getName().toString();
+			return Option.unwrap(this.ast()).getName();
 		}
 		throw new RuntimeException("Production index without ast and thus no name");
 	}
@@ -61,7 +61,11 @@ public class ProductionIndex {
 
 	public TraitType getType() {
 		if (this.ast().isSome()) {
-			return Option.unwrap(this.ast()).getType();
+			Option<TraitType> type = Option.unwrap(this.ast()).getType();
+			if (type.isSome()) {
+				return Option.unwrap(type);
+			}
+			throw new RuntimeException("Production index without type, type inference is not implemented yet!");
 		}
 		throw new RuntimeException("Production index without ast and thus no type");
 	}

@@ -26,12 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleName;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.KeywordSymbol;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedName;
+import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
 import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
@@ -47,18 +51,21 @@ public abstract class Module {
 	protected Collection<Module> imports;
 	protected Module modify;
 	protected Collection<Module> extendedModules;
-	private Map<QualifiedName, Set<TokenSymbol>> tokenMap;
+	private Map<String, Set<SyntaxSymbol>> tokenMap;
 	
 	protected Collection<ProductionIndex> productions;
 	protected ProductionEnv productionEnv;
 	protected List<ModuleName> parameters;
+	protected List<ModuleDependency> dependencies;
 	
 	public Module() {
 		this.imports = new LinkedList<Module>();
 		this.extendedModules = new LinkedList<Module>();
-		this.tokenMap = new HashMap<QualifiedName, Set<TokenSymbol>>();
+		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		
 		this.productions = new LinkedList<ProductionIndex>();
+		this.parameters = new LinkedList<ModuleName>();
+		this.dependencies = new LinkedList<ModuleDependency>();
 	}
 
 	public Module(String name, Collection<ProductionIndex> productions) {
@@ -241,12 +248,34 @@ public abstract class Module {
 		return s;
 	}
 
-	public void addTokens(QualifiedName name, Set<TokenSymbol> tokens) {
-		this.tokenMap.put(name, tokens);		
+	public Set<String> getKeywords() {
+		final Set<String> keywords = new HashSet<String>();
+		for (ProductionIndex p: this.getProductions()) {
+			if (p.ast().isSome()) {
+				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+					@Override
+					public void forKeywordSymbol(KeywordSymbol that) {
+						keywords.add(that.getToken());
+					}
+				});
+				}
+			}
+		return keywords;
 	}
-
-	public Collection<Set<TokenSymbol>> getTokens() {
-		return this.tokenMap.values();
+	
+	public Set<String> getTokens() {
+		final Set<String> tokens = new HashSet<String>();
+		for (ProductionIndex p: this.getProductions()) {
+			if (p.ast().isSome()) {
+				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+					@Override
+					public void forTokenSymbol(TokenSymbol that) {
+						tokens.add(that.getToken());
+					}
+				});
+				}
+			}
+		return tokens;
 	}
 
 	public void setExtendedModules(Collection<Module> extendedModules) {
@@ -259,5 +288,9 @@ public abstract class Module {
 
 	public List<ModuleName> getParameters() {
 		return this.parameters;
+	}
+
+	public Collection<? extends ModuleDependency> getDependencies() {
+		return this.dependencies;
 	}
 }

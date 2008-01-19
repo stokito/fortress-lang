@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
+
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleInstantiation;
@@ -36,6 +38,45 @@ import xtc.tree.Attribute;
 
 public class FortressModule {
 	
+	/**
+	 * A set which preserves the order of the elements
+	 * @param <T>
+	 */
+	public class LinkedSet<T> {
+
+		private LinkedList<T> elms;
+
+		public LinkedSet() {
+			this.elms = new LinkedList<T>();
+		}
+		
+		public void addAll(List<T> elms) {
+			for (T elm: elms) {
+				this.add(elm);
+			}			
+		}
+
+		public void add(int i, T elm) {
+			if (!this.elms.contains(elm)) {
+				this.elms.add(i, elm);
+			}			
+		}
+
+		public void add(T elm) {
+			if (!this.elms.contains(elm)) {
+				this.elms.add(elm);
+			}			
+		}
+
+		public List<T> asList() {
+			return this.elms;
+		}
+
+		public String toString() {
+			return this.elms.toString();
+		}
+	}
+
 	private Map<String, Module> moduleNamesToExt;
 	private String freshName;
 
@@ -44,61 +85,73 @@ public class FortressModule {
 		this.freshName = freshName;
 	}
 
-	public void addModuleNames(Collection<Module> modules, String tempDir) {
+	public void addModuleNames(String tempDir, 
+							   Collection<Module> modules,
+							   Collection<Module> keywordModules,
+							   Map<String, String> modulesReplacingFortressModules) {
 		String filename = tempDir+RatsUtil.getModulePath()+"Fortress.rats";
 		Module fortressModule = RatsUtil.getRatsModule(filename);
 
 		moduleNamesToExt = new HashMap<String, Module>();
 		for (Module module: modules) {
-			String moduleName = module.name.name;
-			if (moduleName.endsWith("Ext")) {
-				String originalName = moduleName.substring(0, moduleName.length()-3);
-				moduleNamesToExt.put(originalName, module);
+			String qualifiedName = module.name.name;
+			String moduleName = qualifiedName.substring(qualifiedName.lastIndexOf('.')+1);
+			if (modulesReplacingFortressModules.containsKey(moduleName)) {
+				String modifiedModule = modulesReplacingFortressModules.get(moduleName);
+				modifiedModule = qualifiedName.substring(0, qualifiedName.lastIndexOf('.')+1)+ modifiedModule;
+				moduleNamesToExt.put(modifiedModule, module);
 			}
 		}
-		
-		/* Rename all module name instantiations which have been extended and
-		 * add all new dependencies
+ 
+		/* 
+		 * Add new arguments and dependencies
 		 */
+		Collection<ModuleDependency> newDependencies = new LinkedList<ModuleDependency>();
 		for (ModuleDependency moduleDependency: fortressModule.dependencies) {
 		
 			if (moduleDependency instanceof ModuleInstantiation) {
-				ModuleInstantiation moduleInstantiation =  (ModuleInstantiation) moduleDependency;
-
-				// Rename all the arguments to the module instantiation
-				List<ModuleName> newModuleNames = new LinkedList<ModuleName>();
-				newModuleNames.addAll(moduleInstantiation.arguments.names);
+				ModuleInstantiation moduleInstantiation = (ModuleInstantiation) moduleDependency;
 				
-				if (moduleNamesToExt.keySet().contains(moduleInstantiation.module.name)) {
-					// Add additional arguments
+				LinkedSet<ModuleName> newModuleNames = new LinkedSet<ModuleName>();
+				newModuleNames.addAll(moduleInstantiation.arguments.names);
+
+				if (moduleNamesToExt.containsKey(moduleInstantiation.module.name)) {
 					String originalModuleName = moduleInstantiation.module.name;
-					int numberOfOriginalArguments = moduleInstantiation.arguments.size();
-					int numberOfNewArguments = moduleNamesToExt.get(originalModuleName).parameters.size();
-					if (numberOfOriginalArguments  < numberOfNewArguments) {
-						for (int inx=numberOfOriginalArguments; inx < numberOfNewArguments; inx++) {
-							String name = moduleNamesToExt.get(originalModuleName).parameters.names.get(inx).name;
-							newModuleNames.add(new ModuleName(name));	
-						}
+					ModuleName extendedName = new ModuleName(originalModuleName.substring(originalModuleName.lastIndexOf('.')+1)+ModuleInfo.MODULE_NAME_EXTENSION);
+					
+					List<ModuleName> ls = new LinkedList<ModuleName>();
+					ls.addAll(moduleInstantiation.arguments.names);
+					newDependencies.add(new ModuleInstantiation(moduleInstantiation.module, new ModuleList(ls), extendedName));
+					
+					// Add additional arguments
+					Module otherModule = moduleNamesToExt.get(originalModuleName);
+//					newModuleNames.add(0, extendedName);
+					newModuleNames.addAll(otherModule.parameters.names);
+//					int numberOfOriginalArguments = moduleInstantiation.arguments.size();
+//					int numberOfNewArguments = otherModule.parameters.size()-1; // We have already handled the extended one
+//					if (numberOfOriginalArguments  < numberOfNewArguments) {
+//						for (int inx=numberOfOriginalArguments; inx < numberOfNewArguments; inx++) {
+//							System.err.println(originalModuleName);
+//							String name = otherModule.parameters.names.get(inx).name;
+//							newModuleNames.add(new ModuleName(name));	
+//						}
+//					}
+					
+					Module module = moduleNamesToExt.get(moduleInstantiation.module.name);
+					// Add any introduced dependency on Keywords.rats
+					if (keywordModules.contains(module)) {
+						newModuleNames.add(new ModuleName("Keyword"));
 					}
 					
 					// Rename the module
-					moduleInstantiation.module = getModuleName(moduleNamesToExt.get(moduleInstantiation.module.name));
+					moduleInstantiation.module = new ModuleName(module.name.name);
+					
 				}
-				moduleInstantiation.arguments = new ModuleList(newModuleNames);
+				moduleInstantiation.arguments = new ModuleList(newModuleNames.asList());
 			}
 		}
 		
-		List<ModuleDependency> ls = fortressModule.dependencies;
-		ModuleName name = new ModuleName("com.sun.fortress.parser.A");
-		ModuleName name2 = new ModuleName("A");
-		List<ModuleName> dependencies = new LinkedList<ModuleName>();
-		dependencies.add(new ModuleName("Keyword"));
-		dependencies.add(new ModuleName("Spacing"));
-		//ls.add(new ModuleInstantiation(name , new ModuleList(dependencies), name2));
-		name = new ModuleName("com.sun.fortress.parser.B");
-		name2 = new ModuleName("B");
-		//ls.add(new ModuleInstantiation(name , new ModuleList(dependencies), name2));
-		
+		fortressModule.dependencies.addAll(newDependencies);	
 		
 		/*
 		 * Rename the name of the generated java file
@@ -118,10 +171,5 @@ public class FortressModule {
 		
 		RatsUtil.writeRatsModule(fortressModule, tempDir);
 	}
-
-	private ModuleName getModuleName(Module module) {
-		return new ModuleName(module.name.name);
-	}
-	
 
 }

@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import xtc.parser.AlternativeAddition;
+import xtc.parser.Binding;
 import xtc.parser.Element;
 import xtc.parser.FullProduction;
 import xtc.parser.NonTerminal;
@@ -42,6 +43,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
@@ -60,6 +62,7 @@ import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
 
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ProductionTranslator {
@@ -71,6 +74,11 @@ public class ProductionTranslator {
 				Iterable<? extends StaticError> errors) {
 			super(errors);
 			this.productions = productions;
+		}
+
+		public Result(Collection<StaticError> errors) {
+			super(errors);
+			this.productions = new LinkedList<Production>();
 		}
 
 		public List<Production> productions() { return productions; }
@@ -117,9 +125,8 @@ public class ProductionTranslator {
 			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 				elms.addAll(sym.accept(new SymbolTranslator()));
 				elms.add(new NonTerminal("w")); // Todo: implement in the disambiguator
-			}
-			
-			String productionName = FreshName.getFreshName(production.getName().toString()).toUpperCase();
+			}		
+			String productionName = FreshName.getFreshName(production.getName().getName().toString()).toUpperCase();
 			ActionCreater.Result acr = ActionCreater.create(productionName, syntaxDef.getTransformationExpression(), production.getType().toString());
 			if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
 			elms.add(acr.action());
@@ -128,6 +135,7 @@ public class ProductionTranslator {
 		
 		// Then translate the nonterminal definition
 		Production ratsProduction = null;
+		String currentName = production.getName().getName().toString();
 		if (production.getExtends().isSome()) {
 			// If we extend something...
 			QualifiedIdName otherQualifiedName = Option.unwrap(production.getExtends());
@@ -138,10 +146,16 @@ public class ProductionTranslator {
 				otherId = ids.remove(ids.size()-1);
 			}
 			APIName apiName = NodeFactory.makeAPIName(ids);
-			ApiIndex otherApi = env.api(apiName);
+			ApiIndex otherApi = null;
+			if (env.definesApi(apiName)) {
+				otherApi = env.api(apiName);
+			}
+			else {
+				Collection<StaticError> cs = new LinkedList<StaticError>();
+				cs.add(StaticError.make("Undefined api: "+apiName, otherQualifiedName));
+				return new Result(cs);
+			}
 			GrammarIndex otherGrammar = otherApi.grammars().get(otherId);
-			
-			String currentName = production.getName().toString();
 			String otherName = otherQualifiedName.getName().toString();
 
 			String otherType = otherGrammar.productions().get(otherQualifiedName).getType().toString();
@@ -156,7 +170,7 @@ public class ProductionTranslator {
 			List<Attribute> attr = new LinkedList<Attribute>();
 			String type = production.getType().toString();
 			ratsProduction = new FullProduction(attr, type,
-							 new NonTerminal(production.getName().toString()),
+							 new NonTerminal(currentName),
 							 new OrderedChoice(sequence));
 			ratsProduction.name = new NonTerminal(production.getName().toString());
 		}
@@ -177,54 +191,13 @@ public class ProductionTranslator {
 		@Override
 		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
 			return mkList(new NonTerminal(that.getNonterminal().getName().stringName()));
-		}
+		}	
 
-		
 		@Override
-		public List<Element> forPrefixedSymbol(PrefixedSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forPrefixedSymbol(that);
+		public List<Element> forKeywordSymbol(KeywordSymbol that) {
+			return mkList(new NonTerminal(that.getToken()));
 		}
 		
-		@Override
-		public List<Element> forOptionalSymbol(OptionalSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forOptionalSymbol(that);
-		}
-
-		@Override
-		public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
-				List<Element> symbol_result) {
-			// TODO Auto-generated method stub
-			return super.forOptionalSymbolOnly(that, symbol_result);
-		}
-
-		@Override
-		public List<Element> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forRepeatOneOrMoreSymbol(that);
-		}
-
-		@Override
-		public List<Element> forRepeatOneOrMoreSymbolOnly(
-				RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
-			// TODO Auto-generated method stub
-			return super.forRepeatOneOrMoreSymbolOnly(that, symbol_result);
-		}
-
-		@Override
-		public List<Element> forRepeatSymbol(RepeatSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forRepeatSymbol(that);
-		}
-
-		@Override
-		public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
-				List<Element> symbol_result) {
-			// TODO Auto-generated method stub
-			return super.forRepeatSymbolOnly(that, symbol_result);
-		}
-
 		@Override
 		public List<Element> forTokenSymbol(TokenSymbol that) {
 			return mkList(new NonTerminal(that.getToken()));
@@ -233,6 +206,52 @@ public class ProductionTranslator {
 		@Override
 		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
 			return mkList(new NonTerminal("w"));
+		}
+		
+		// TODO: do we need tab and breakline as well?
+
+		@Override
+		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
+				Option<List<Element>> id_result, List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new Binding(Option.unwrap(that.getId()).getText(), e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> forOptionalSymbolOnly(OptionalSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Option(e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> forRepeatOneOrMoreSymbolOnly(
+				RepeatOneOrMoreSymbol that, List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Repetition(true, e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> forRepeatSymbolOnly(RepeatSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new xtc.parser.Repetition(false, e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
 		}
 
 		@Override

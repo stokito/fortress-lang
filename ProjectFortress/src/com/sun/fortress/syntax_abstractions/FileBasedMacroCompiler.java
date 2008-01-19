@@ -26,6 +26,7 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.Collection;
+import java.util.Map;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.syntax_abstractions.intermediate.Module;
@@ -37,27 +38,25 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 
 	public Result compile(Collection<GrammarEnv> envs, GlobalEnvironment env) {
 		
-	
+		/*
+		 * Initialize GrammarIndex
+		 */
+		GrammarIndexInitializer.Result geir = GrammarIndexInitializer.init(envs); 
+		if (!geir.isSuccessful()) { return new Result(null, geir.errors()); }
+		
 		/* 
-		 * Resolve grammar extensions and production extensions, but leave the 
-		 * the content of the productions untouched
+		 * Resolve grammar extensions and extensions of nonterminal definitions, but leave the 
+		 * the content of the nonterminals untouched
 		 */
 		ModuleTranslator.Result mrr = ModuleTranslator.resolve(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
+		Map<String, String> modulesReplacingFortressModules = mrr.modulesReplacingFortressModules();
+		
 		for (Module m: mrr.modules()) {
 			System.err.println(m.toString());
 		}
-//		for (Module m: mrr.modules()) {
-//			System.err.print(m);
-//		}
-		
-		/*
-		 *  Disambiguation of item symbols
-		 */
-//		ItemDisambiguator.Result er = ItemDisambiguator.disambiguateSymbols(mrr.modules());
-//		if (!er.isSuccessful()) { return new Result(null, er.errors()); }			
-	
+			
 		/*
 		 * Translate each grammar to a corresponding Rats! module
 		 */
@@ -68,40 +67,16 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 * For each changed module write it to a file and run Rats! to 
 		 * generate a temporary parser.
 		 */
-		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules(), gtr.keywords());
+		RatsParserGenerator.Result rpgr = RatsParserGenerator.generateParser(gtr.modules(), 
+																			 gtr.keywords(),
+																			 gtr.keywordModules(),
+																			 modulesReplacingFortressModules);
 		if (!rpgr.isSuccessful()) { return new Result(null, rpgr.errors()); }
 
 		/*
 		 * Return the temporary parser
 		 */
 		return new Result(rpgr.parserClass());
-
-//		/*
-//		 * Translate each macro declaration and add it to a macro table
-//		 */					
-//		RatsMacroTable syntaxTable = new RatsMacroTable();
-//		RatsMacroTranslator ratsMacroTranslator = new RatsMacroTranslator();
-////		for (SyntaxDef syntaxDef: syntaxDefs ) {
-////				syntaxDef.accept(ratsMacroTranslator);
-////				syntaxTable.add(ratsMacroTranslator.getMacroDecl());				
-////		}
-//
-//		RuleTranslator ruleTranslator = new RuleTranslator();
-//		for (RatsMacroDecl ratsMacroDecl: syntaxTable.getAllMacroDecls()) {
-//			ruleTranslator.applyRules(ratsMacroDecl.getRules());			
-//		}
-//		ruleTranslator.saveModules();
-//		
-//		
-//		/* Run through all the Rats! modules from the Fortress grammar
-//		 * which have been extended and generate the extending Rats! module.
-//		 * For all the modules which are extended we need to change the
-//		 * name used in Fortress.rats.
-//		 */
-//		List<Module> modules = new LinkedList<Module>();
-//		for (ModuleEnum e: syntaxTable.getModules()) { 
-//			modules.add(createRatsModule(e, syntaxTable.getMacroDecls(e)));
-//		}
 
 	}
 

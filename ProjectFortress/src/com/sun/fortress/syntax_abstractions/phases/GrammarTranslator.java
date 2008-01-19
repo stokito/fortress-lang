@@ -37,10 +37,12 @@ import xtc.parser.NonTerminal;
 import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.SequenceName;
+import xtc.tree.Node;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
 import com.sun.fortress.syntax_abstractions.old.RatsMacroDecl;
@@ -56,17 +58,21 @@ public class GrammarTranslator {
 	public class Result extends StaticPhaseResult {
 		private Collection<Module> modules;
 		private Set<String> keywords;
+		private Collection<Module> keywordModules;
 
 		public Result(Collection<Module> modules, Set<String> keywords,
-				Iterable<? extends StaticError> errors) {
+				Collection<Module> keywordModules, Iterable<? extends StaticError> errors) {
 			super(errors);
 			this.modules = modules;
 			this.keywords = keywords;
+			this.keywordModules = keywordModules;
 		}
 
 		public Collection<Module> modules() { return modules; }
 
 		public Set<String> keywords() { return keywords; }
+		
+		public Collection<Module> keywordModules() { return this.keywordModules; }
 	}
 
 	public static Result translate(Collection<com.sun.fortress.syntax_abstractions.intermediate.Module> modules,
@@ -74,6 +80,10 @@ public class GrammarTranslator {
 		GrammarTranslator grammarTranslator = new GrammarTranslator();
 		Collection<Module> ratsModules = new LinkedList<Module>();
 		Set<String> keywords = new HashSet<String>();
+		Set<String> tokens = new HashSet<String>();
+		List<Module> keywordModules = new LinkedList<Module>();
+		List<Module> tokenModules = new LinkedList<Module>();
+		
 		Iterable<? extends StaticError> errors = new LinkedList<StaticError>();
 
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module module: modules) {
@@ -81,35 +91,27 @@ public class GrammarTranslator {
 				Module m = RatsUtil.makeExtendingRatsModule(module);
 
 				ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDefinedProductions(), env);
-				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, ptr.errors()); }
+				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, keywordModules, ptr.errors()); }
 				
 				m.productions = ptr.productions();
 				ratsModules.add(m);
 
-				Collection<? extends String> kws = resolveKeywords(module.getTokens());
+				Collection<? extends String> kws = module.getKeywords();
 				if (!kws.isEmpty()) {
 					List<ModuleName> parameters = m.parameters.names;
-					parameters.add(new ModuleName("Keyword"));
-					//		parameters.add(new ModuleName("Spacing"));
-					m.dependencies.add(new ModuleImport(new ModuleName("Keyword")));
-					//		m.dependencies.add(new ModuleImport(new ModuleName("Spacing")));
-				}			
-				keywords.addAll(kws);
-				m.documentation = RatsUtil.getComment();
+					
+					ModuleName keyword = new ModuleName("Keyword");
+					if (!parameters.contains(keyword)) {
+						parameters.add(keyword );
+						m.dependencies.add(new ModuleImport(keyword));
+						keywordModules.add(m);
+					}
+					keywords.addAll(kws);
+				}
 			}
 		}
 
-		return grammarTranslator.new Result(ratsModules, keywords, errors);
-	}
-
-	private static Collection<? extends String> resolveKeywords(Collection<Set<TokenSymbol>> tokens) {
-		Collection<String> keywords = new LinkedList<String>();
-		for (Set<TokenSymbol> tokenSet: tokens) {
-			for (TokenSymbol token: tokenSet) {
-				keywords.add(token.getToken());
-			}
-		}
-		return keywords;
+		return grammarTranslator.new Result(ratsModules, keywords, keywordModules, errors);
 	}
 
 	/**

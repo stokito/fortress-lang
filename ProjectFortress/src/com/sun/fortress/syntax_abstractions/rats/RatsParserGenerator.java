@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.StaticError;
@@ -83,7 +84,10 @@ public class RatsParserGenerator {
 	}
 
 	
-	public static Result generateParser(Collection<Module> modules, Set<String> keywords) {
+	public static Result generateParser(Collection<Module> modules, 
+										Set<String> keywords, 
+										Collection<Module> keywordModules,
+										Map<String, String> modulesReplacingFortressModules) {
 		List<ParserGeneratorError> errors = new LinkedList<ParserGeneratorError>();
 		String temporaryParserName = FreshName.getFreshName("FortressTemporaryParser");
 		String tempDir = RatsUtil.getTempDir();
@@ -96,7 +100,10 @@ public class RatsParserGenerator {
 		}	
 
 		FortressModule fortressModule = new FortressModule(temporaryParserName);
-		fortressModule.addModuleNames(modules, tempDir);
+		fortressModule.addModuleNames(tempDir,
+									  modules, 
+									  keywordModules,
+									  modulesReplacingFortressModules);
 		KeywordModule keywordModule = new KeywordModule();
 		keywordModule.addKeywords(keywords, tempDir);
 

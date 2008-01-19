@@ -215,18 +215,24 @@ public abstract class RatsUtil {
 
 		List<ModuleName> parameters = new LinkedList<ModuleName>();
 		List<ModuleDependency> dependencies = new LinkedList<ModuleDependency>();
-		// If we modify a core Fortress module then we need a lot of boiler plate 
-		if (module.getModify() != null) {
-			String modifyName = module.getModify().getName();
-			ModuleList args = new ModuleList(module.getModify().getParameters());
-			ModuleName moduleName = new ModuleName(modifyName);
-			m.modification = new ModuleModification(moduleName, args, null);
-		}
-
+		
 		for (com.sun.fortress.syntax_abstractions.intermediate.Module imported: module.getImports()) {
 			parameters.add(new ModuleName(imported.getName()));
 			dependencies.add(new ModuleImport(new ModuleName(imported.getName())));
 		}
+		
+		// If we modify a core Fortress module then we need a lot of boiler plate 
+		if (module.getModify() != null) {
+			parameters.addAll(module.getModify().getParameters());
+			dependencies.addAll(module.getModify().getDependencies());
+			
+			String modifyName = module.getModify().getName();
+			ModuleList args = new ModuleList(new LinkedList<ModuleName>());
+			ModuleName moduleName = new ModuleName(modifyName+ModuleInfo.MODULE_NAME_EXTENSION);
+			dependencies.add(new ModuleModification(moduleName, args, null));
+			parameters.add(moduleName);
+		}
+		
 		m.parameters = new ModuleList(parameters);
 		m.dependencies = dependencies;
 

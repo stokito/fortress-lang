@@ -483,7 +483,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * production declaration
      */
     abstract ProductionDecl(Option<? extends Modifier> modifier,
-                            QualifiedIdName name, TraitType type,
+                            QualifiedIdName name, Option<TraitType> type,
                             Option<QualifiedIdName> extends) implements AbsDecl;
         /**
          * production definition in production declarations
@@ -521,7 +521,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * whitespace syntax symbol
          */
-        WhitespaceSymbol(SyntaxSymbol symbol);
+        WhitespaceSymbol(String s);
+        /**
+         * ignore following whitespace syntax symbol
+         */
+        NoWhitespaceSymbol(SyntaxSymbol symbol);
+        /**
+         * tab syntax symbol
+         */
+        TabSymbol();
+        /**
+         * breakline syntax symbol
+         */
+        BreaklineSymbol(String s);
         /**
          * item syntax symbol
          */
