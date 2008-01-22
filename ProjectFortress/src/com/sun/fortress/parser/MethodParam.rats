@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -43,14 +43,14 @@ NormalParam Param :=
                                               "self")); };
 
 /* OpMdHeaderFront ::=
-     opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
+     opr (w BIG)? (w StaticParams)? w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
    | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
    | opr (w BIG)? w (Op | ^ | Encloser) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront :=
      <Enclosing>
-     opr opa1:(w StaticParams)? big:(w BIG)? w opa2:(LeftEncloser / Encloser) w
+     opr big:(w BIG)? opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w
      opa3:Params w opa4:(RightEncloser / Encloser) opa5:(w void:colonequals w
      openparen w SubscriptAssignParam w closeparen)?
      { SimpleName name;
