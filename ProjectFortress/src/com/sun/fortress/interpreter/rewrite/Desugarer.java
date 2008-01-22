@@ -939,6 +939,7 @@ public class Desugarer extends Rewrite {
         VarRef unitVar = ExprFactory.makeVarRef(unitFn);
         int i = gens.size();
         if (i==0) {
+            /* Boolean guard */
             body = new TightJuxt(span, false,
                              Useful.list(GENERATE_NAME,body,redVar,unitVar));
         } else {

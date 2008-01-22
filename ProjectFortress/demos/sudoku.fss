@@ -22,12 +22,12 @@ export Executable
 
 emptySet = EmptySet[\ZZ32\]()
 
-initialSet(): TreeSet[\ZZ32\] = set(1#9)
+initialSet(): Set[\ZZ32\] = set(1#9)
 
 (* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
-removeElement(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
-   s:TreeSet[\ZZ32\] = b[i,j]
-   if s.member(elem) then      (* Don't delete the element being removed! *)
+removeElement(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
+   s:Set[\ZZ32\] = b[i,j]
+   if elem IN s then      (* Don't delete the element being removed! *)
       r = s.delete(elem)
       if NOT r.isEmpty() then
          b[i,j] := r
@@ -35,18 +35,18 @@ removeElement(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
    end
 end
 
-propagateRow(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+propagateRow(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
       removeElement(b,i,k,elem)
    end
 
 
-propagateColumn(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+propagateColumn(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
    for k <- 0#9 do
      removeElement(b,k,j,elem)
    end
 
-propagateSquare(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
+propagateSquare(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
    starti:ZZ32 = narrow(truncate(i/3)) 3
    startj:ZZ32 = narrow(truncate(j/3)) 3
    for k <-starti#3, l <- startj#3 do
@@ -54,14 +54,14 @@ propagateSquare(b:TreeSet[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
    end
 end
 
-propagateSingleton(board:TreeSet[\ZZ32\][9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
+propagateSingleton(board:Set[\ZZ32\][9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
    propagateRow(board, i, j, elem)
    propagateColumn(board, i, j, elem)
    propagateSquare(board, i, j, elem)
 end
 
 (* This version involves a barrier between propagation steps. *)
-propagate(board:TreeSet[\ZZ32\][9,9]):() = do
+propagate(board:Set[\ZZ32\][9,9]):() = do
    prevUnsolved : ZZ32 := 82
    unsolved : ZZ32 := 81
    while 0 < unsolved < prevUnsolved do
@@ -83,15 +83,15 @@ end
 
 run(args:String...):()=do
    init = initialSet()
-   board:TreeSet[\ZZ32\][9,9] = [{8}  init {6}  {1}  init {9}  {3}  init {5} ;
-                                 init {9}  init init {8}  init {4}  init init;
-                                 init {7}  {1}  init init init init init {6} ;
-                                 init init init {9}  {2}  init {5}  {3}  init;
-                                 init init {9}  init {6}  init {7}  init init;
-                                 init {3}  {4}  init {7}  {8}  init init init;
-                                 {3}  init init init init init {1}  {4}  init;
-                                 init init {5}  init {1}  init init {9}  init;
-                                 {9}  init {7}  {8}  init {4}  {6}  init {2} ]
+   board:Set[\ZZ32\][9,9] = [{8}  init {6}  {1}  init {9}  {3}  init {5} ;
+                             init {9}  init init {8}  init {4}  init init;
+                             init {7}  {1}  init init init init init {6} ;
+                             init init init {9}  {2}  init {5}  {3}  init;
+                             init init {9}  init {6}  init {7}  init init;
+                             init {3}  {4}  init {7}  {8}  init init init;
+                             {3}  init init init init init {1}  {4}  init;
+                             init init {5}  init {1}  init init {9}  init;
+                             {9}  init {7}  {8}  init {4}  {6}  init {2} ]
    println(board.toString())
    println("Starting parallel sudoku solver")
    recordTime(6.847)

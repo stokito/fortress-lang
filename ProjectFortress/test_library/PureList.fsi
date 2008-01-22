@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api PureList
+import CovariantCollection.{...}
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
     16:2 2006.
@@ -37,7 +38,7 @@ api PureList
     reuse of the Generator won't increase asymptotic complexity, but
     return a List in cases (such as map and filter) where it will.
 *)
-trait List[\E\] extends { Equality, ZeroIndexed[\E\] }
+trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
         excludes { Number, HasRank }
   getter left():Maybe[\E\]
   getter right():Maybe[\E\]
@@ -59,6 +60,9 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants *)
 opr [\E\]<| xs: E... |>: List[\E\]
+opr BIG [\T,U\]<|g: ( Reduction[\SomeCovariantCollection\],
+                      T -> SomeCovariantCollection) ->
+                    SomeCovariantCollection|>: List[\U\]
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

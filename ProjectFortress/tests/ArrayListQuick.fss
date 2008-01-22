@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,22 +19,29 @@ component ArrayListQuick
 import ArrayList.{...}
 export Executable
 
-assertStr(a:ZZ32, b:ZZ32, s:String, l: List[\ZZ32\]) =
+assertStr[\T\](a:ZZ32, b:ZZ32, s:String, l: List[\T\]) =
   if a=/=b then
     fail(a "=/=" b ": " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: List[\ZZ32\]) =
+assertStr[\T\](a:Boolean, s:String, l: List[\T\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString())
   end
 
-assertStr(a:Boolean, s:String, l: List[\ZZ32\], r: List[\ZZ32\]) =
+assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
   if NOT a then
     fail("Failed assertion: " s l.toString() " and " r.toString())
   end
 
-chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
+chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
+  typecase l of
+    List[\ZZ32\] => chkPopZ(l,fro,sz,by)
+    else =>
+      assertStr(sz=0 AND: l.size()=0," special case for empty comprehension",l)
+  end
+
+chkPopZ(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(sz,l.size()," .size() mismatch in ",l)
   n : ZZ32 := fro
   for e <- seq(l) do
@@ -44,9 +51,9 @@ chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
   assertStr(n, fro + sz by," size mismatch in ",l)
 end
 
-chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPop(l,fro,sz,1)
+chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPopZ(l,fro,sz,1)
 
-chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPop(l,0,sz,1)
+chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPopZ(l,0,sz,1)
 
 chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
   ll : List[\ZZ32\] := l
@@ -90,6 +97,12 @@ run(args:String...):() = do
       print(".")
       chkPop(fli,0,(i+1) DIV 2,2)
       print(".")
+(* Boolean guards currently broken
+      flii = <| x+3 | x <- li, x REM 2 = 0 |>
+      print(".")
+      chkPop(flii,3,(i+1) DIV 2,2)
+      print(".")
+*)
       mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
       chkPop(mli,17,i)
       print(".")
@@ -98,6 +111,10 @@ run(args:String...):() = do
       cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x, 2 x + 1|>)
       print(".")
       chkPop(cmli,2 i)
+      print(".")
+      cmlii = <| e+3 | x <- li, e <- <|2 x, 2 x + 1|> |>
+      print(".")
+      chkPop(cmlii,3,2 i,1)
       print(".")
       ivli = li.ivmap[\ZZ32\](fn (x,y) => x+y)
       chkPop(ivli,0,i,2)
