@@ -68,23 +68,34 @@ private CompilationUnit CompilationUnit =
    / Api ;
 
 /* Component ::=
-   component w APIName (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w end
+     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
+     (w Decls w ;?)? w end
  */
 private Component Component =
-     component w a1:APIName a2:(w yyValue:Imports w semicolon?)? w
-     a3:Exports w semicolon? a4:(w yyValue:Decls w semicolon?)? w end
-     { if (a2 == null) a2 = Collections.<Import>emptyList();
-       if (a4 == null) a4 = Collections.<Decl>emptyList();
-       yyValue = new Component(createSpan(yyStart,yyCount), a1, a2, a3, a4);
+     a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w
+     a4:Exports w semicolon? a5:(w yyValue:Decls w semicolon?)? w end
+     { if (a3 == null) a3 = Collections.<Import>emptyList();
+       if (a5 == null) a5 = Collections.<Decl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       if (a1 == null)
+           yyValue = new Component(span, a2, a3, a4, a5);
+       else
+           yyValue = new Component(span, true, a2, a3, a4, a5);
      };
 
-/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
+/* Api ::=
+     (native w)? api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+ */
 private Api Api =
-     api w a1:APIName a2:(w yyValue:Imports w semicolon?)?
-     a3:(w yyValue:AbsDecls w semicolon?)? w end
-     { if (a2 == null) a2 = Collections.<Import>emptyList();
-       if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
-       yyValue = new Api(createSpan(yyStart,yyCount), a1, a2, a3);
+     a1:(native w)? api w a2:APIName a3:(w yyValue:Imports w semicolon?)?
+     a4:(w yyValue:AbsDecls w semicolon?)? w end
+     { if (a3 == null) a3 = Collections.<Import>emptyList();
+       if (a4 == null) a4 = Collections.<AbsDecl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       if (a1 == null)
+           yyValue = new Api(span, a2, a3, a4);
+       else
+           yyValue = new Api(span, true, a2, a3, a4);
      };
 
 /* Imports ::= Import (br Import)* */

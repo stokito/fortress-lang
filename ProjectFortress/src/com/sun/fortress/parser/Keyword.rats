@@ -41,15 +41,15 @@ body {
         "forbid",       "getter",       "grammar",      "hidden",
         "if",           "import",       "in",           "int",
         "invariant",    "io",           "label",        "most",
-        "nat",          "object",       "of",           "opr",
-        "or",           "override",     "private",      "production",
-        "property",     "provided",     "requires",     "self",
-        "settable",     "setter",       "spawn",        "syntax",
-        "test",         "then",         "throw",        "throws",
-        "trait",        "transient",    "try",          "tryatomic",
-        "type",         "typecase",     "unit",         "value",
-        "var",          "where",        "while",        "widens",
-        "with",         "wrapped"
+        "nat",          "native",       "object",       "of",
+        "opr",          "or",           "override",     "private",
+        "production",   "property",     "provided",     "requires",
+        "self",         "settable",     "setter",       "spawn",
+        "syntax",       "test",         "then",         "throw",
+        "throws",       "trait",        "transient",    "try",
+        "tryatomic",    "type",         "typecase",     "unit",
+        "value",        "var",          "where",        "while",
+        "widens",       "with",         "wrapped"
     });
   }
 }
@@ -137,6 +137,7 @@ String getter = "getter" !(idrest);
 String grammar = "grammar" !(idrest);
 String hidden = "hidden" !(idrest);
 String io = "io" !(idrest);
+String native = "native" !(idrest);
 String override = "override" !(idrest);
 String private = "private" !(idrest);
 String production = "production" !(idrest);
