@@ -81,14 +81,14 @@ NormalParam PlainParam =
 NormalParam Param = PlainParam ;
 
 /* OpHeaderFront ::=
-     opr (w StaticParams)? (w BIG)? w (LeftEncloser | Encloser) w Params w
+     opr (w BIG)? (w StaticParams)? w (LeftEncloser | Encloser) w Params w
      (RightEncloser | Encloser)
    | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
      <Enclosing>
-     opr opa1:(w StaticParams)? big:(w BIG)? w opa2:(LeftEncloser / Encloser) w
+     opr big:(w BIG)? opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w
      opa3:Params w opa4:(RightEncloser / Encloser)
      { SimpleName name;
        Span span = createSpan(yyStart,yyCount);
