@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api ArrayList
+import CovariantCollection.{...}
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).
 
@@ -77,6 +78,9 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants *)
 opr [\E\]<| xs: E... |>: List[\E\]
+opr BIG [\T,U\]<|g: ( Reduction[\SomeCovariantCollection\],
+                      T -> SomeCovariantCollection) ->
+                    SomeCovariantCollection|>: List[\U\]
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

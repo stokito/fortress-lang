@@ -104,12 +104,11 @@ readWord(line: String) =
 
 twoToStr(rank) = if rank < 10 then " " rank else rank end
 
-(* String juxtaposition avoids TreeSet[\StringLiteral\] *)
+(* String juxtaposition avoids Set[\StringLiteral\] *)
 digits = {"" "0","1","2","3","4","5","6","7","8","9"}
-opr EXISTS[\T\](x:T, set:TreeSet[\T\]) = set.member(x)
 
 isDigit(s: String) =
-  case s EXISTS of
+  case s IN of
     digits => true
     else   => false
   end

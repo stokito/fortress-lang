@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component PureList
+import CovariantCollection.{...}
 export PureList
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
@@ -76,8 +77,12 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
                 fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
-(** Vararg factory for lists; provides aggregate list constants *)
-opr [\E\]<| xs: E... |>: List[\E\] = list[\E\](xs)
+(** Vararg factory for lists; provides aggregate list constants **)
+opr [\E\]<| xs: E... |>: List[\E\] = list(xs)
+opr BIG [\T,U\]<|g: ( Reduction[\SomeCovariantCollection\],
+                      T -> SomeCovariantCollection) ->
+                    SomeCovariantCollection|>: List[\U\] =
+    list(g(CVReduction,fn x=>CVUnit(x)))
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

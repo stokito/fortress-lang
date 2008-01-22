@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,16 +19,20 @@ component SetTest
 import Set.{...}
 export Executable
 
-  assertStr(a: TreeSet[\ZZ32\], b:TreeSet[\ZZ32\], s:String) =
+  assertStr(a: Set[\ZZ32\], b:Set[\ZZ32\], s:String) =
   if a.toString() =/= b.toString() then
     fail(a "=/=" b ": " s)
   end
 
 
   run(args:String...):() = do
-    a: TreeSet[\ZZ32\] = set[\ZZ32\]()
-    b: TreeSet[\ZZ32\] = set[\ZZ32\](1#10)
+    a: Set[\ZZ32\] = set[\ZZ32\]()
+    b: Set[\ZZ32\] = set[\ZZ32\](1#10)
+    c: Set[\ZZ32\] = { 1 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+    d: Set[\ZZ32\] = { e | i <- 1#5, e <- {2 i, 2 i - 1} }
 
+    assertStr(b,c,"sets 1#10 are different")
+    assertStr(c,d,"set 1#10 and comprehension are different")
     assertStr(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
     assertStr(b[:], b, "subscript operator[:] incorrect for tree set")
     assertStr(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")

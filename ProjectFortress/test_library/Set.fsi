@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,37 +16,41 @@
  ******************************************************************************)
 
 api Set
+import CovariantCollection.{...}
 
 (**
  * Sets represented using a tree structure.  The underlying type E
  * must support comparison using < and =.  When generated these sets
  * produce their elements in sorted order.
  **)
-trait TreeSet[\E\] extends Generator[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
+trait Set[\E\] extends Indexed[\E,ZZ32\] comprises {NodeSet[\E\], EmptySet[\E\]}
    getVal():E  (* DEPRACATED *)
    printTree():()
    toString():String
-   member(x:E):Boolean
+   contains(x:E):Boolean
    minimum():E
    maximum():E
-   deleteMinimum():TreeSet[\E\]
-   deleteMaximum():TreeSet[\E\]
-   removeMinimum():(E, TreeSet[\E\])
-   removeMaximum():(E, TreeSet[\E\])
-   add(x:E):TreeSet[\E\]
-   delete(x:E):TreeSet[\E\]
-   union(t2:TreeSet[\E\]):TreeSet[\E\]
-   intersection(t2:TreeSet[\E\]):TreeSet[\E\]
-   difference(t2:TreeSet[\E\]):TreeSet[\E\]
-   splitAt(e:E):(TreeSet[\E\],Boolean,TreeSet[\E\])
+   deleteMinimum():Set[\E\]
+   deleteMaximum():Set[\E\]
+   removeMinimum():(E, Set[\E\])
+   removeMaximum():(E, Set[\E\])
+   add(x:E):Set[\E\]
+   delete(x:E):Set[\E\]
+   opr UNION(self,t2:Set[\E\]):Set[\E\]
+   opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]
+   opr DIFFERENCE(self,t2:Set[\E\]):Set[\E\]
+   splitAt(e:E):(Set[\E\],Boolean,Set[\E\])
 end
 
-singleton[\E\](x:E): TreeSet[\E\]
-set[\E\](g: Generator[\E\]): TreeSet[\E\]
-opr [\E\]{ es: E... }: TreeSet[\E\]
+singleton[\E\](x:E): Set[\E\]
+set[\E\](g: Generator[\E\]): Set[\E\]
+opr [\E\]{ es: E... }: Set[\E\]
+opr BIG [\T,U\]{ g: ( Reduction[\SomeCovariantCollection\],
+                      T -> SomeCovariantCollection) ->
+                    SomeCovariantCollection } : Set[\U\]
 
-object Union[\E\]() extends Reduction[\TreeSet[\E\]\] end
+object Union[\E\]() extends Reduction[\Set[\E\]\] end
 
-object EmptySet[\E\]() extends TreeSet[\E\] end
+object EmptySet[\E\]() extends Set[\E\] end
 
 end
