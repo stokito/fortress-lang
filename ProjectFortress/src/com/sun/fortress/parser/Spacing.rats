@@ -78,11 +78,3 @@ Integer RectSeparator =
      a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
    / sr                   { yyValue = 1; }
    / nl                   { yyValue = 2; };
-
-
-private String space = " ";
-private String return = "\r";
-private String newline = "\n";
-private String formfeed = "\f";
-private String backspace = '\u2408';
-private String tab = '\u000B';
