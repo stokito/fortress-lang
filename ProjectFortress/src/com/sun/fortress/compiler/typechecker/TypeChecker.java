@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
@@ -34,22 +35,23 @@ import static edu.rice.cs.plt.tuple.Option.*;
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private static final Type VOID = NodeFactory.makeTupleType(new ArrayList<Type>());
     
+    private ComponentIndex currentComponent;
     private GlobalEnvironment globals;
     private StaticParamEnv staticParams;
     private TypeEnv params; 
-    private final TypeAnalyzer.StubEnv traits;
     private final TypeAnalyzer analyzer;
     
     
-    public TypeChecker(GlobalEnvironment _globals, 
+    public TypeChecker(ComponentIndex _currentComponent,
+                       GlobalEnvironment _globals, 
                        StaticParamEnv _staticParams,
                        TypeEnv _params) 
     {
+        currentComponent = _currentComponent;
         globals = _globals;
         staticParams = _staticParams;
         params = _params;
-        traits = new TypeAnalyzer.StubEnv();
-        analyzer = new TypeAnalyzer(traits);
+        analyzer = new TypeAnalyzer(currentComponent, globals);
     }
     
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
@@ -69,7 +71,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forFnDef(FnDef that) {
         StaticParamEnv newStatics = staticParams.extend(that.getStaticParams());
         TypeEnv newParams = params.extend(that.getParams());
-        TypeChecker newChecker = new TypeChecker(globals, staticParams, newParams);
+        TypeChecker newChecker = new TypeChecker(currentComponent, globals, staticParams, newParams);
         
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
