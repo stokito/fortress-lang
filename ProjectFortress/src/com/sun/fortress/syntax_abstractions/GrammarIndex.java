@@ -28,7 +28,8 @@ import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -38,7 +39,7 @@ import com.sun.fortress.parser_util.FortressUtil;
 public class GrammarIndex {
 
 	private GrammarDef grammar;
-	private Map<QualifiedName, ProductionDef> productions;
+	private Map<QualifiedName, NonterminalDecl> productions;
 	private LinkedList<GrammarIndex> extendsGrammars;
 	private boolean initialized;
 	private boolean isTopLevel;
@@ -56,9 +57,9 @@ public class GrammarIndex {
 	public void setGrammar(GrammarDef grammar, boolean isTopLevel) {
 		this.isTopLevel = isTopLevel;
 		this.grammar = grammar;
-		this.productions = new HashMap<QualifiedName, ProductionDef>();
+		this.productions = new HashMap<QualifiedName, NonterminalDecl>();
 		this.extendsGrammars = new LinkedList<GrammarIndex>();
-		for (ProductionDef p: grammar.getProductions()) {
+		for (NonterminalDecl p: grammar.getNonterminals()) {
 			this.productions.put(p.getName(), p);
 		}
 		this.qualifiedName = qualifiedName;
@@ -85,7 +86,7 @@ public class GrammarIndex {
 		return this.extendsGrammars;
 	}
 
-	public Collection<? extends ProductionDef> getProductions() {
+	public Collection<? extends NonterminalDecl> getProductions() {
 		return this.productions.values();
 	}
 

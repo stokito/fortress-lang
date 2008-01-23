@@ -33,7 +33,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -114,9 +114,9 @@ public class ModuleTranslator {
 //		// Move extending toplevel productions to their own module
 //		Collection<Module> ls = new LinkedList<Module>();
 //		for (Module module: modules) {
-//			Map<Module, Set<ProductionDef>> newModules = new HashMap<Module, Set<ProductionDef>>();
-//			Collection<ProductionDef> removeProductions = new LinkedList<ProductionDef>();
-//			for (ProductionDef p: module.getDefinedProductions()) {
+//			Map<Module, Set<NonterminalDef>> newModules = new HashMap<Module, Set<NonterminalDef>>();
+//			Collection<NonterminalDef> removeProductions = new LinkedList<NonterminalDef>();
+//			for (NonterminalDef p: module.getDefinedProductions()) {
 //				if (p.getExtends().isSome()) {
 //					removeProductions.add(p);
 //					Module m = lookupModule(modules, Option.unwrap(p.getExtends()));
@@ -127,7 +127,7 @@ public class ModuleTranslator {
 //						newModules.get(m).add(p);
 //					}
 //					else {
-//						Set<ProductionDef> set = new HashSet<ProductionDef>();
+//						Set<NonterminalDef> set = new HashSet<NonterminalDef>();
 //						set.add(p);
 //						newModules.put(m, set );
 //					}
@@ -169,7 +169,7 @@ public class ModuleTranslator {
 	}
 	
 //	private static Collection<? extends Module> generateNewModules(
-//			Map<Module, Set<ProductionDef>> newModules, Module orginalModule) {
+//			Map<Module, Set<NonterminalDef>> newModules, Module orginalModule) {
 //		Collection<Module> ms = new LinkedList<Module>();
 //		for (Module module: newModules.keySet()) {
 //			Module m = new UserModule();
@@ -192,12 +192,12 @@ public class ModuleTranslator {
 		return null;
 	}
 
-//	public static ProductionDef renameProduction(final ProductionDef production, final String newName) {
-//		return (ProductionDef) production.accept(new NodeUpdateVisitor() {						
+//	public static NonterminalDef renameProduction(final NonterminalDef production, final String newName) {
+//		return (NonterminalDef) production.accept(new NodeUpdateVisitor() {						
 //			@Override
-//			public Node forProductionDefOnly(ProductionDef that, Option<? extends Modifier> modifier_result, QualifiedIdName name_result, TraitType type_result, Option<? extends QualifiedIdName> extends_result, List<SyntaxDef> syntaxDefs_result) {
+//			public Node forNonterminalDefOnly(NonterminalDef that, Option<? extends Modifier> modifier_result, QualifiedIdName name_result, TraitType type_result, Option<? extends QualifiedIdName> extends_result, List<SyntaxDef> syntaxDefs_result) {
 //				name_result = new QualifiedIdName(new Id(new Id(newName)));
-//				return new ProductionDef(that.getSpan(), modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
+//				return new NonterminalDef(that.getSpan(), modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
 //			}		
 //		});
 //	}

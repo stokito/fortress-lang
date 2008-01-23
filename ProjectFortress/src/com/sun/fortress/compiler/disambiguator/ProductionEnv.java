@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.GrammarIndex;
@@ -253,6 +254,23 @@ public class ProductionEnv {
 	private Set<QualifiedIdName> allDeclaredProductionNames() {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
 		rs.addAll(_current.productions().keySet());
+        return rs;
+	}
+
+    /**
+     * Produce the set of inherited production index's with the given name.
+     * An undefined name produces an empty set, and an ambiguous name 
+     * produces a set of size greater than 1.
+     */
+	public Set<ProductionIndex> getExtendedNonterminal(Id name) {
+		Set<ProductionIndex> rs = new HashSet<ProductionIndex>();
+		for (GrammarIndex g: _current.getExtendedGrammars()) {
+			for (Entry<QualifiedIdName, ProductionIndex> entry: g.productions().entrySet()) {
+				if (entry.getKey().getName().equals(name)) {
+					rs.add(entry.getValue());
+				}
+			}
+		}
         return rs;
 	}
 }

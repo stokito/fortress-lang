@@ -299,7 +299,7 @@ public final class FortressUtil {
                 && !s.equals("=/=") && !s.equals("==="));
     }
     private static boolean validOpChar(char c) {
-        return (c == '_' || Character.isUpperCase(c));
+        return (c == '_' || java.lang.Character.isUpperCase(c));
     }
     public static boolean validOp(String s) {
         if (s.equals("juxtaposition") || s.equals("per") ||

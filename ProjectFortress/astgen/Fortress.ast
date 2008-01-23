@@ -478,17 +478,21 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * grammar definition in grammar declarations
          */
-        GrammarDef(List<ProductionDef> productions);
+        GrammarDef(List<NonterminalDecl> nonterminals);
     /**
-     * production declaration
+     * nonterminal declaration
      */
-    abstract ProductionDecl(Option<? extends Modifier> modifier,
+    abstract NonterminalDecl(Option<? extends Modifier> modifier,
                             QualifiedIdName name, Option<TraitType> type,
-                            Option<QualifiedIdName> extends) implements AbsDecl;
+                            List<SyntaxDef> syntaxDefs) implements AbsDecl;
         /**
-         * production definition in production declarations
+         * nonterminal definition in nonterminal declarations
          */
-        ProductionDef(List<SyntaxDef> syntaxDefs);
+        NonterminalDef();
+        /**
+         * nonterminal extending definition in nonterminal declarations
+         */
+        NonterminalExtensionDef();
     /**
      * syntax declaration
      */
@@ -531,6 +535,22 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         TabSymbol();
         /**
+         * formfeed syntax symbol
+         */
+        FormfeedSymbol();
+        /**
+         * carriage return syntax symbol
+         */
+        CarriageReturnSymbol();
+        /**
+         * backspace syntax symbol
+         */
+        BackspaceSymbol();
+        /**
+         * newline syntax symbol
+         */
+        NewlineSymbol();
+        /**
          * breakline syntax symbol
          */
         BreaklineSymbol(String s);
@@ -558,6 +578,22 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * and predicate syntax symbol
          */
         AndPredicateSymbol(SyntaxSymbol symbol);
+        /**
+         * character class syntax symbol
+         */
+        CharacterClassSymbol(List<CharacterSymbol> characters);
+        /**
+         * character symbols
+         */
+        CharacterSymbol();
+            /**
+             * character
+             */
+            CharSymbol(String s);
+            /**
+             * character interval
+             */
+            CharacterInterval(String begin, String end);
     /**
      * expression
      */

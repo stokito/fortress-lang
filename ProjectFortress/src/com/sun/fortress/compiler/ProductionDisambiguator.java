@@ -17,32 +17,38 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
+import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.NoWhitespaceSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.ProductionDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
-// TODO: add whitespace in between symbols.
 public class ProductionDisambiguator extends NodeUpdateVisitor {
 
 	private NameEnv _env;
@@ -52,21 +58,21 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 	public ProductionDisambiguator() {
 		_errors = new LinkedList<StaticError>();
 	}
-	
+
 	public ProductionDisambiguator(NameEnv env, List<StaticError> newErrs) {
 		this._env = env;
 		this._errors = newErrs;
 	}
-	
+
 	private void error(String msg, HasAt loc) {
 		this._errors.add(StaticError.make(msg, loc));
 	}
-	
+
 	@Override
-	public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result, List<QualifiedIdName> extends_result, List<ProductionDef> productions_result) {
-		return new GrammarDef(name_result, extends_result, productions_result);
+	public Node forGrammarDefOnly(GrammarDef that, QualifiedIdName name_result, List<QualifiedIdName> extends_result, List<NonterminalDecl> nonterminal_result) {
+		return new GrammarDef(name_result, extends_result, nonterminal_result);
 	}
-	
+
 	@Override
 	public Node forGrammarDef(GrammarDef that) {
 		if (this._env.grammarIndex(that.getName()).isSome()) {
@@ -79,42 +85,62 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forProductionDef(ProductionDef that) {
-		return super.forProductionDef(that);
-	}
-	
-	@Override
-	public Node forProductionDefOnly(ProductionDef that,
-									 Option<? extends Modifier> modifier_result,
-									 QualifiedIdName name_result, Option<TraitType> type_result,
-									 Option<QualifiedIdName> extends_result,
-									 List<SyntaxDef> syntaxDefs_result) {
+	public Node forNonterminalDefOnly(NonterminalDef that,
+			Option<? extends Modifier> modifier_result,
+			QualifiedIdName name_result, Option<TraitType> type_result,
+			List<SyntaxDef> syntaxDefs_result) {
 		if (type_result.isNone()) {
 			throw new RuntimeException("Type inference is not supported yet!");
 		}
 		ProductionNameDisambiguator pnd = new ProductionNameDisambiguator();
-		Option<QualifiedIdName> extended = Option.none();
-		if (that.getExtends().isSome()) {
-			extended = Option.wrap(pnd.handleProductionName(_currentEnv, Option.unwrap(that.getExtends())));
-		}
 		QualifiedIdName name = pnd.handleProductionName(_currentEnv, that.getName());
-		
-		return new ProductionDef(that.getModifier(),name,that.getType(), extended, syntaxDefs_result);
+		return new NonterminalDef(that.getModifier(),name,that.getType(), syntaxDefs_result);
+	}
+	
+	
+	@Override
+	public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
+			Option<? extends Modifier> modifier_result,
+			QualifiedIdName name_result, Option<TraitType> type_result,
+			List<SyntaxDef> syntaxDefs_result) {
+		Set<ProductionIndex> otherNonterminal = _currentEnv.getExtendedNonterminal(name_result.getName());
+		if (otherNonterminal.isEmpty()) {
+			error("No inherited productions with name: "+name_result.getName(), that);
+		}
+		if (otherNonterminal.size() > 1) {
+			error("Ambiguous extension, productions with same name found in: "+IterUtil.toString(otherNonterminal), that);
+		}
+
+		ProductionNameDisambiguator pnd = new ProductionNameDisambiguator();
+		QualifiedIdName name = pnd.handleProductionName(_currentEnv, that.getName());
+		return new NonterminalExtensionDef(that.getModifier(),name,that.getType(), syntaxDefs_result);
 	}
 
 	@Override
 	public Node forSyntaxDef(SyntaxDef that) {
 		List<SyntaxSymbol> ls = new LinkedList<SyntaxSymbol>();
-		for (SyntaxSymbol symbol: that.getSyntaxSymbols()) {
-			ItemDisambiguator id = new ItemDisambiguator(_currentEnv);
-			SyntaxSymbol n = (SyntaxSymbol) symbol.accept(id);
-			ls.add(n);
+		Iterator<SyntaxSymbol> it = that.getSyntaxSymbols().iterator();
+		boolean ignoreWhitespace = false;
+		while (it.hasNext()) {
+			SyntaxSymbol symbol = it.next();
+			if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {			
+				if (symbol instanceof NoWhitespaceSymbol) {
+					symbol = ((NoWhitespaceSymbol) symbol).getSymbol();
+					ignoreWhitespace = true;
+				}
+				else {
+					ignoreWhitespace = false;
+				}
+				ItemDisambiguator id = new ItemDisambiguator(_currentEnv);
+				SyntaxSymbol n = (SyntaxSymbol) symbol.accept(id);
+				ls.add(n);
+			}
 		}
 		return new SyntaxDef(that.getSpan(),ls, that.getTransformationExpression());
 	}
 
 	public class ProductionNameDisambiguator {
-		
+
 		public QualifiedIdName handleProductionName(ProductionEnv currentEnv, QualifiedIdName name) {
 			// If it is already fully qualified
 			if (name.getApi().isSome()) {
@@ -129,7 +155,7 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 				QualifiedIdName newN;
 				if (originalApiGrammar == realApiGrammar) { newN = name; }
 				else { newN = NodeFactory.makeQualifiedIdName(realApiGrammar, name.getName()); }
-				
+
 				if (!currentEnv.hasQualifiedProduction(newN)) {
 					error("Undefined production: " + NodeUtil.nameString(newN), newN);
 					return name;
@@ -164,7 +190,7 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 						error("Undefined production: " + NodeUtil.nameString(name), name);
 						return name;
 					}
-					
+
 					// If too many are found we are not sure which one is the right...
 					if (productions.size() > 1) {
 						error("Production name may refer to: " + NodeUtil.namesString(productions), name);

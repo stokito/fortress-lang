@@ -441,7 +441,7 @@ public class IndexBuilder {
     private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
         final Id name = ast.getName().getName();
         final Map<QualifiedIdName, ProductionIndex> productions = new HashMap<QualifiedIdName, ProductionIndex>();
-        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getProductions(), productions));
+        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getNonterminals(), productions));
         if (grammars.containsKey(name)) {
             error("Grammar declared twice: "+name, ast);
         }
@@ -450,9 +450,9 @@ public class IndexBuilder {
     
     
     private Map<QualifiedIdName, ProductionIndex> buildProductions(
-                                                                   List<ProductionDef> productions,
+                                                                   List<NonterminalDecl> productions,
                                                                    Map<QualifiedIdName, ProductionIndex> productionMap) {
-        for (ProductionDef p: productions) {
+        for (NonterminalDecl p: productions) {
             if (productionMap.containsKey(p.getName())) {
                 error("Production declared twice: "+p.getName(), p);
             }

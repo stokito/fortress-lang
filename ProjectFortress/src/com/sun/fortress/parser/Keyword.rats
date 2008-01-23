@@ -43,7 +43,7 @@ body {
         "invariant",    "io",           "label",        "most",
         "nat",          "native",       "object",       "of",
         "opr",          "or",           "override",     "private",
-        "production",   "property",     "provided",     "requires",
+        "property",     "provided",     "requires",
         "self",         "settable",     "setter",       "spawn",
         "syntax",       "test",         "then",         "throw",
         "throws",       "trait",        "transient",    "try",
@@ -140,7 +140,6 @@ String io = "io" !(idrest);
 String native = "native" !(idrest);
 String override = "override" !(idrest);
 String private = "private" !(idrest);
-String production = "production" !(idrest);
 String self = "self" !(idrest);
 String settable = "settable" !(idrest);
 String setter = "setter" !(idrest);

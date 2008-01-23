@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -85,7 +86,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
-		if (isValidId(item.getItem())) {
+		if (FortressUtil.validId(item.getItem())) { //TODO A more aquarate method to decide id well formedness
 
 			QualifiedIdName name = makeQualifiedIdName(item.getSpan(), item.getItem());
 			//name = ((new ProductionDisambiguator()).new ProductionNameDisambiguator()).handleProductionName(_currentEnv, name);
@@ -124,11 +125,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		return new TokenSymbol(item.getSpan(), item.getItem());
 	}
 
-	private boolean isValidId(String name) {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
 	private static QualifiedIdName makeQualifiedIdName(Span span, String item) {
 		int lastIndexOf = item.lastIndexOf('.');
 		if (lastIndexOf != -1) {
@@ -141,13 +137,43 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forPrefixedSymbol(PrefixedSymbol that) {
-		Id var = NodeFactory.makeId(((ItemSymbol) that.getSymbol()).getItem());
-		PrefixedSymbol prefixed = (PrefixedSymbol) super.forPrefixedSymbol(that);
-		if (that.getId().isNone()) {
-			return new PrefixedSymbol(prefixed.getSpan(), Option.wrap(var),prefixed.getSymbol());
+	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
+			final Option<Id> id_result, SyntaxSymbol symbol_result) {
+		
+		SyntaxSymbol s = symbol_result;
+		Node n = s.accept(new NodeUpdateVisitor(){
+			@Override
+			public Node forItemSymbol(ItemSymbol that) {
+				return handle(that, that.getItem());
+			}
+			
+			@Override
+			public Node forKeywordSymbol(KeywordSymbol that) {
+				return handle(that, that.getToken());
+			}
+			
+			@Override
+			public Node forTokenSymbol(TokenSymbol that) {
+				return handle(that, that.getToken());
+			}
+
+			private Node handle(SyntaxSymbol that, String s) {
+				if (id_result.isNone()) {
+					Id var = NodeFactory.makeId(s);
+					return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var),that);
+				}
+				else {
+					return new PrefixedSymbol(prefix.getSpan(), id_result,that);
+				}
+			}
+		});
+		if (n instanceof SyntaxSymbol) {
+			s = (SyntaxSymbol) n; 
+			s.getSpan().begin = prefix.getSpan().begin;
+			s.getSpan().end = prefix.getSpan().end;
+			return s;
 		}
-		return prefixed;
+		throw new RuntimeException("Prefix symbol contained something different than a syntax symbol: "+ n.getClass().toString());
 	}
 
 }
