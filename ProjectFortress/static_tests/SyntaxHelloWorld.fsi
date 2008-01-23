@@ -21,9 +21,12 @@ api SyntaxHelloWorld
   import FortressSyntax.Literal
 
   grammar helloworld extends Literal
-      production helloworld : Literal extends Literal
-         hello world --> StringLiteral("Hello world")
-      end
+    helloworld :LiteralExpr:=
+      hello world 
+        do
+          StringLiteral("Hello world")
+        end
+    end
   end
 
 end

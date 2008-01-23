@@ -33,7 +33,7 @@ import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -122,7 +122,7 @@ public abstract class Module {
 	private void addProduction(String name, ProductionIndex p) {
 //		if (p.getExtends().isSome() &&
 //			this.productionsExtendsMap.keySet().contains(Option.unwrap(p.getExtends()).getName())) {
-//			ProductionDef pd = this.productionsExtendsMap.get(Option.unwrap(p.getExtends()).getName());
+//			NonterminalDef pd = this.productionsExtendsMap.get(Option.unwrap(p.getExtends()).getName());
 //			List<SyntaxDef> syntaxDefs = p.getSyntaxDefs();
 //			syntaxDefs.addAll(pd.getSyntaxDefs());
 //			pd.getSyntaxDefs().clear();
@@ -146,21 +146,22 @@ public abstract class Module {
 		List<ProductionIndex> lsp = new LinkedList<ProductionIndex>(); 
 		for (ProductionIndex production: this.productions) {
 			String name = "";
-			if (production.getExtends().isSome() &&
-				ModuleInfo.isCoreProduction((name = Option.unwrap(production.getExtends()).getName().toString()))) {
-				Module module = ModuleInfo.getCoreModule(name);
-				Set<ProductionIndex> productions = new HashSet<ProductionIndex>();
-				if (extendedCoreModules.containsKey(module)) {
-					productions = extendedCoreModules.get(module);
-				}
-				// Rename production if it extends a core production
-				//productions.add(ModuleTranslator.renameProduction(production, name));
-				module.setImports(this.getExtendedModules());
-				extendedCoreModules.put(module, productions);
-			}
-			else {
-				lsp.add(production);
-			}
+			// TODO: fix extends
+//			if (production.getExtends().isSome() &&
+//				ModuleInfo.isCoreProduction((name = Option.unwrap(production.getExtends()).getName().toString()))) {
+//				Module module = ModuleInfo.getCoreModule(name);
+//				Set<ProductionIndex> productions = new HashSet<ProductionIndex>();
+//				if (extendedCoreModules.containsKey(module)) {
+//					productions = extendedCoreModules.get(module);
+//				}
+//				// Rename production if it extends a core production
+//				//productions.add(ModuleTranslator.renameProduction(production, name));
+//				module.setImports(this.getExtendedModules());
+//				extendedCoreModules.put(module, productions);
+//			}
+//			else {
+//				lsp.add(production);
+//			}
 		}
 		this.setProductions(lsp);
 		return extendedCoreModules;

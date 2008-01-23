@@ -341,7 +341,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		}
 		QualifiedIdName name = handleGrammarName(that.getName());
 
-		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,ls,that.getProductions());
+		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,ls,that.getNonterminals());
 
 		List<StaticError> newErrs = new ArrayList<StaticError>();
 		Option<GrammarIndex> grammar = this._env.grammarIndex(name);

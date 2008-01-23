@@ -42,18 +42,27 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.BackspaceSymbol;
+import com.sun.fortress.nodes.BreaklineSymbol;
+import com.sun.fortress.nodes.CarriageReturnSymbol;
+import com.sun.fortress.nodes.CharacterClassSymbol;
+import com.sun.fortress.nodes.CharacterInterval;
+import com.sun.fortress.nodes.CharacterSymbol;
+import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
+import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.ProductionDef;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -124,7 +133,6 @@ public class ProductionTranslator {
 			// Translate the symbols
 			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 				elms.addAll(sym.accept(new SymbolTranslator()));
-				elms.add(new NonTerminal("w")); // Todo: implement in the disambiguator
 			}		
 			String productionName = FreshName.getFreshName(production.getName().getName().toString()).toUpperCase();
 			ActionCreater.Result acr = ActionCreater.create(productionName, syntaxDef.getTransformationExpression(), production.getType().toString());
@@ -136,44 +144,45 @@ public class ProductionTranslator {
 		// Then translate the nonterminal definition
 		Production ratsProduction = null;
 		String currentName = production.getName().getName().toString();
-		if (production.getExtends().isSome()) {
-			// If we extend something...
-			QualifiedIdName otherQualifiedName = Option.unwrap(production.getExtends());
-			List<Id> ids = new LinkedList<Id>();
-			ids.addAll(Option.unwrap(otherQualifiedName.getApi()).getIds());
-			Id otherId = null;
-			if (ids.size() > 1) {
-				otherId = ids.remove(ids.size()-1);
-			}
-			APIName apiName = NodeFactory.makeAPIName(ids);
-			ApiIndex otherApi = null;
-			if (env.definesApi(apiName)) {
-				otherApi = env.api(apiName);
-			}
-			else {
-				Collection<StaticError> cs = new LinkedList<StaticError>();
-				cs.add(StaticError.make("Undefined api: "+apiName, otherQualifiedName));
-				return new Result(cs);
-			}
-			GrammarIndex otherGrammar = otherApi.grammars().get(otherId);
-			String otherName = otherQualifiedName.getName().toString();
-
-			String otherType = otherGrammar.productions().get(otherQualifiedName).getType().toString();
-			
-			ratsProduction = new AlternativeAddition(otherType,
-							 						 new NonTerminal(otherName),
-							 						 new OrderedChoice(sequence), 
-							 						 new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName.toString())),false);
-			ratsProduction.name = new NonTerminal(currentName);
-		}
-		else {
-			List<Attribute> attr = new LinkedList<Attribute>();
-			String type = production.getType().toString();
-			ratsProduction = new FullProduction(attr, type,
-							 new NonTerminal(currentName),
-							 new OrderedChoice(sequence));
-			ratsProduction.name = new NonTerminal(production.getName().toString());
-		}
+// TODO: extends
+//		if (production.getExtends().isSome()) {
+//			// If we extend something...
+//			QualifiedIdName otherQualifiedName = Option.unwrap(production.getExtends());
+//			List<Id> ids = new LinkedList<Id>();
+//			ids.addAll(Option.unwrap(otherQualifiedName.getApi()).getIds());
+//			Id otherId = null;
+//			if (ids.size() > 1) {
+//				otherId = ids.remove(ids.size()-1);
+//			}
+//			APIName apiName = NodeFactory.makeAPIName(ids);
+//			ApiIndex otherApi = null;
+//			if (env.definesApi(apiName)) {
+//				otherApi = env.api(apiName);
+//			}
+//			else {
+//				Collection<StaticError> cs = new LinkedList<StaticError>();
+//				cs.add(StaticError.make("Undefined api: "+apiName, otherQualifiedName));
+//				return new Result(cs);
+//			}
+//			GrammarIndex otherGrammar = otherApi.grammars().get(otherId);
+//			String otherName = otherQualifiedName.getName().toString();
+//
+//			String otherType = otherGrammar.productions().get(otherQualifiedName).getType().toString();
+//			
+//			ratsProduction = new AlternativeAddition(otherType,
+//							 						 new NonTerminal(otherName),
+//							 						 new OrderedChoice(sequence), 
+//							 						 new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName.toString())),false);
+//			ratsProduction.name = new NonTerminal(currentName);
+//		}
+//		else {
+//			List<Attribute> attr = new LinkedList<Attribute>();
+//			String type = production.getType().toString();
+//			ratsProduction = new FullProduction(attr, type,
+//							 new NonTerminal(currentName),
+//							 new OrderedChoice(sequence));
+//			ratsProduction.name = new NonTerminal(production.getName().toString());
+//		}
 		
 		List<Production> productions = new LinkedList<Production>();
 		productions.add(ratsProduction);
@@ -207,8 +216,54 @@ public class ProductionTranslator {
 		public List<Element> forWhitespaceSymbol(WhitespaceSymbol that) {
 			return mkList(new NonTerminal("w"));
 		}
+
+		@Override
+		public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
+			return mkList(new NonTerminal("br"));
+		}
 		
-		// TODO: do we need tab and breakline as well?
+		@Override
+		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
+			return mkList(new NonTerminal("backspace"));
+		}
+		
+		@Override
+		public List<Element> forNewlineSymbol(NewlineSymbol that) {
+			return mkList(new NonTerminal("newline"));
+		}
+
+		@Override
+		public List<Element> forCarriageReturnSymbol(CarriageReturnSymbol that) {
+			return mkList(new NonTerminal("return"));
+		}
+
+		@Override
+		public List<Element> forFormfeedSymbol(FormfeedSymbol that) {
+			return mkList(new NonTerminal("formfeed"));
+		}
+
+		@Override
+		public List<Element> forTabSymbol(TabSymbol that) {
+			return mkList(new NonTerminal("tab"));
+		}
+		
+		@Override
+		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
+			// TODO Auto-generated method stub
+			return super.forCharacterClassSymbol(that);
+		}
+
+		@Override
+		public List<Element> forCharacterInterval(CharacterInterval that) {
+			// TODO Auto-generated method stub
+			return super.forCharacterInterval(that);
+		}
+
+		@Override
+		public List<Element> forCharacterSymbol(CharacterSymbol that) {
+			// TODO Auto-generated method stub
+			return super.forCharacterSymbol(that);
+		}
 
 		@Override
 		public List<Element> forPrefixedSymbolOnly(PrefixedSymbol that,
