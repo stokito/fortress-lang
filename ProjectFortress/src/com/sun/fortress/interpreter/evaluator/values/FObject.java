@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,32 +23,32 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public class FObject extends FConstructedValue implements Selectable {
 
-    BetterEnv lexicalEnv;
-    BetterEnv selfEnv;
-  public FObject(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-      setFtype(selfType);
-      this.lexicalEnv = lexical_env;
-      this.selfEnv = self_dot_env;
-}
+    final BetterEnv lexicalEnv;
+    final BetterEnv selfEnv;
+    public FObject(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+        super(selfType);
+        this.lexicalEnv = lexical_env;
+        this.selfEnv = self_dot_env;
+    }
 
-  public FValue select(String s) {
-      return getSelfEnv().getValue(s);
-  }
-  
-  /**
-   * The environment that you get from "self."
-   */
-  public BetterEnv getSelfEnv() {
-      return selfEnv;
-  }
+    public FValue select(String s) {
+        return getSelfEnv().getValue(s);
+    }
 
-  public BetterEnv getLexicalEnv() {
-      return lexicalEnv;
-  }
+    /**
+     * The environment that you get from "self."
+     */
+    public BetterEnv getSelfEnv() {
+        return selfEnv;
+    }
 
-  public String getString() { return type().toString(); }
+    public BetterEnv getLexicalEnv() {
+        return lexicalEnv;
+    }
 
-  public String toString() {
-    return getString() + getClass().getSimpleName();
-  }
+    public String getString() { return type().toString(); }
+
+    public String toString() {
+        return getString() + getClass().getSimpleName();
+    }
 }

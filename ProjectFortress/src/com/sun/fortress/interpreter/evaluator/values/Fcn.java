@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,19 +19,55 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 
-abstract public class Fcn extends FConstructedValue {
+abstract public class Fcn extends FValue {
     /**
      * Need to know the environment so we can resolve
      * overloading/shadowing properly.
      */
     BetterEnv within;
+
+    /**
+     * Need to make type information mutable due to
+     * multi-phase initialization protocol.
+     */
+    private volatile FType ftype;
+
     public BetterEnv getWithin() {
         return within;
+    }
+
+    /**
+     * Getter for ftype.  Should always be non-null, but right now
+     * FGenericFunction never calls setFtype and this returns null in
+     * that case.  This leads to extensive bugs particularly when a
+     * generic function is overloaded along with non-generic siblings,
+     * or when a generic function is passed as an argument to an
+     * overloaded function without providing an explicit type
+     * instantiation.  Delete "&& false" to enable checking if you're
+     * trying to fix this bug.
+     */
+    public FType type() {
+        if (ftype==null && false) {
+            throw new NullPointerException(errorMsg("No type information for ", this));
+        }
+        return ftype;
+    }
+
+    public void setFtype(FType ftype) {
+        if (this.ftype != null)
+            throw new IllegalStateException("Cannot set twice");
+        this.ftype = ftype;
+    }
+
+    public void setFtypeUnconditionally(FType ftype) {
+        this.ftype = ftype;
     }
 
     protected Fcn(BetterEnv within) {

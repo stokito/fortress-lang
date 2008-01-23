@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,8 +21,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
 public class FMatrix extends FConstructedValue implements IndexedShape {
   final Indexed val;
   public FMatrix(Indexed v, FTypeMatrix ft) {
+    super(ft);
     val = v;
-    setFtype(ft);
   }
 
   public int size(int i) {
