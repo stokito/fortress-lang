@@ -60,6 +60,8 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.GenericDeclWithParams;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.GrammarDecl;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Component;
@@ -151,7 +153,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
  */
 public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
-    private int pass = 1;
+     private int pass = 1;
 
     public void resetPass() {
         pass = 1;
@@ -1589,5 +1591,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     public BetterEnv getBindingEnv() {
         return bindInto;
     }
+    
+    @Override
+    public Voidoid forGrammarDecl(GrammarDecl that) {
+        return null; // Do nothing
+    }
+
+    @Override
+    public Voidoid forGrammarDef(GrammarDef that) {
+        return null; // Do nothing
+    }
+
+
 
 }

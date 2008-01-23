@@ -108,17 +108,18 @@ public class BatchCachingRepository implements FortressRepository {
     }
 
     public void addApi(APIName name, ApiIndex definition) {
-        throw new Error();
+        derived.addApi(name, definition);
+        alreadyCachedApi.add(name);
 
     }
 
     public void addComponent(APIName name, ComponentIndex definition) {
-        throw new Error();
-
+        derived.addComponent(name, definition);
+        alreadyCachedComponent.add(name);
     }
 
     public Map<APIName, ApiIndex> apis() {
-        throw new Error();
+        return derived.apis();
     }
 
     private void resurrectException(Throwable th) throws IOException,

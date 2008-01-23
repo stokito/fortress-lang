@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.rice.cs.plt.tuple.Option;
 
 import junit.framework.Test;
@@ -32,12 +35,15 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.shell.AutocachingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
+import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
@@ -234,8 +240,8 @@ public class FileTests {
 //                );
         
         BatchCachingRepository fr = new BatchCachingRepository(
-                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir),
-                                        ProjectProperties.SOURCE_PATH_NATIVE),
+                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(dir),
+                        new GlobalEnvironment(new HashMap<APIName, ApiIndex>())),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
        

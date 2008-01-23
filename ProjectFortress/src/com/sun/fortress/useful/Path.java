@@ -55,6 +55,17 @@ public class Path {
         this.dirs = dirs;
     }
     
+    public String toString() {
+        return Useful.listInDelimiters("", dirs, "", pathSep);
+    }
+    
+    public Path prepend(Path other) {
+        return new Path(Useful.concat(other.dirs, this.dirs));
+     }
+    public Path append(Path other) {
+        return new Path(Useful.concat(this.dirs, other.dirs));
+     }
+     
     public Path prepend (String s) {
         return prepend(new File(s));
     }

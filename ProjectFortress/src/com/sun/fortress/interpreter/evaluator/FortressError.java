@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,6 +22,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
@@ -39,6 +40,7 @@ public abstract class FortressError extends RuntimeException {
     private ArrayList<HasAt> where = new ArrayList<HasAt>();
     private HasAt where2;
     private Environment within;
+    private Iterable<? extends StaticError> staticErrors;
 
     public static String errorMsg(Object... messages) {
         return ErrorMsgMaker.errorMsg(messages);
@@ -104,12 +106,27 @@ public abstract class FortressError extends RuntimeException {
         this(loc, null, string, ex);
     }
 
+    public FortressError(Iterable<? extends StaticError> errors) {
+        this.staticErrors = errors;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Throwable#getMessage()
      */
     @Override
     public String getMessage() {
         String msg = super.getMessage();
+        if (msg == null)
+            msg = "";
+        if (staticErrors != null) {
+            for (StaticError se : staticErrors) {
+                if (msg.length() > 0) {
+                    msg = msg + "\n";
+                }
+                
+                msg = msg + se.getMessage();
+            }
+        }
         if (where.size() > 0) {
             StringBuffer res = new StringBuffer();
             res.append('\n');

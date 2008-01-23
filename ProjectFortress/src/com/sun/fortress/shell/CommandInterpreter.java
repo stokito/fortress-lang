@@ -45,7 +45,9 @@ public class CommandInterpreter {
             FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
             Fortress fortress = new Fortress(fileBasedRepository);
         
-            Iterable<? extends StaticError> errors = fortress.compile(new File(fileName));
+            Iterable<? extends StaticError> errors = fortress.compile(
+                    ProjectProperties.SOURCE_PATH,
+                    new File(fileName));
         
             for (StaticError error: errors) { System.err.println(error); }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
@@ -78,7 +80,7 @@ public class CommandInterpreter {
     
     /* Runs a fortress source file directly.*/
     void script(String fileName) throws UserError, IOException { 
-        Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName)), new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE)); 
+        Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName)), new PathBasedRepository(ProjectProperties.SOURCE_PATH)); 
     }
     
     void run(String fileName) throws UserError, IOException, Throwable {
@@ -126,7 +128,7 @@ public class CommandInterpreter {
             throw new UserError("Error: File " + fileName + " does not exist.");
         }   
         try {
-            return ASTIO.parseToJavaAst(fileName, false);
+            return ASTIO.parseToJavaAst(fileName);
         }
         catch (IOException e) {
             throw new ShellException(e);

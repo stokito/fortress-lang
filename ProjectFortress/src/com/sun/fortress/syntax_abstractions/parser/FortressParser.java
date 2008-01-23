@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.FileBasedMacroCompiler;
 import com.sun.fortress.syntax_abstractions.MacroCompiler;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -131,7 +133,7 @@ public class FortressParser {
 	 * referenced APIs.
 	 */
 	public static Result parse(Iterable<? extends File> files,
-			final GlobalEnvironment env) {
+			final GlobalEnvironment env, final Path path) {
 		// box allows mutation of a final var
 		final Box<Result> result = new SimpleBox<Result>(new Result());
 
@@ -146,7 +148,7 @@ public class FortressParser {
 					Set<File> newFiles = new HashSet<File>();
 					for (CompilationUnit cu :
 						IterUtil.compose(r.apis(), r.components())) {
-						newFiles.addAll(extractNewDependencies(cu, env));
+						newFiles.addAll(extractNewDependencies(cu, env, path));
 					}
 					return newFiles;
 				}
@@ -184,7 +186,7 @@ public class FortressParser {
 						p = ParserMediator.getParser(temporaryParserClass, in, f.toString());
 						parseResult = ParserMediator.parse();
 					} catch (Exception e) {
-						String desc = "Error occured while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
+						String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
 						if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
 						return new Result(StaticError.make(desc, f.toString()));
 					} 
@@ -198,15 +200,19 @@ public class FortressParser {
 
 				if (parseResult.hasValue()) {
 					Object cu = ((SemanticValue) parseResult).value;
-					if (cu instanceof Api) {
-						return new Result((Api) cu, f.lastModified());
-					}
-					else if (cu instanceof Component) {
+					if (cu instanceof CompilationUnit) {
+					    String s = f.getCanonicalPath();
+					    
+					    if (cu instanceof Api) {
+					        return new Result((Api) cu, f.lastModified());
+					    }
+					    else if (cu instanceof Component) {
 						return new Result((Component) cu, f.lastModified());
+					    }
 					}
-					else {
+					
 						throw new RuntimeException("Unexpected parse result: " + cu);
-					}
+					
 				}
 				else {
 					return new Result(new Parser.Error((ParseError) parseResult, p));
@@ -230,7 +236,7 @@ public class FortressParser {
 	 * currently in fortress.
 	 */
 	private static Set<File> extractNewDependencies(CompilationUnit cu,
-			GlobalEnvironment env) {
+			GlobalEnvironment env, Path p) {
 		Set<APIName> importedApis = new LinkedHashSet<APIName>();
 		for (Import i : cu.getImports()) {
 			if (i instanceof ImportApi) {
@@ -246,16 +252,25 @@ public class FortressParser {
 		Set<File> result = new HashSet<File>();
 		for (APIName n : importedApis) {
 			if (!env.definesApi(n)) {
-				File f = canonicalRepresentation(fileForApiName(n));
-				if (IOUtil.attemptExists(f)) { result.add(f); }
+			    try {
+				File f = canonicalRepresentation(fileForApiName(n, p));
+				// Believe this test is redundant with thrown exception,
+				// but leave it for now.
+				if (IOUtil.attemptExists(f)) {
+				    result.add(f);
+				}
+			    } catch (FileNotFoundException ex) {
+			        // do nothing?
+			    }
 			}
 		}
 		return result;
 	}
 
 	/** Get the filename in which the given API should be defined. */
-	private static File fileForApiName(APIName api) {
-		return new File(NodeUtil.nameString(api) + ".fsi");
+	private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
+	    
+		return p.findFile(NodeUtil.nameString(api) + ".fsi");
 	}
 
 	/**
