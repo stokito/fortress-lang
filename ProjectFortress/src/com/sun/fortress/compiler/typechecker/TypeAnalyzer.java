@@ -28,16 +28,31 @@ import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.compiler.index.TypeAliasIndex;
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.*;
 
 
 public class TypeAnalyzer {
 
-    public static class StubEnv {
+    public static class Env {
+        private ComponentIndex currentComponent;
+        private GlobalEnvironment globalEnv;
+        
+        public Env(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
+            currentComponent = _currentComponent;
+            globalEnv = _globalEnv;
+        }
         public TypeConsIndex typeCons(QualifiedIdName name) {
-            throw new RuntimeException("environments aren't implemented");
+            Id rawName = name.getName();
+            Option<APIName> api = name.getApi();
+
+            if (api.isSome()) {
+                APIName _api = Option.unwrap(api);
+                return globalEnv.api(_api).typeConses().get(rawName);
+            }
+            else {
+                return currentComponent.typeConses().get(rawName);
+            }
         }
     }
 
@@ -51,19 +66,18 @@ public class TypeAnalyzer {
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(BOTTOM));
 
-    private final StubEnv _env;
+    private final Env _env;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
 
-    public TypeAnalyzer(StubEnv env) {
-        _env = env;
+    public TypeAnalyzer(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
+        _env = new Env(_currentComponent, _globalEnv);
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
     
     public ConstraintFormula subtype(Type s, Type t) {
-        return ConstraintFormula.TRUE;
-        // Commented out until it's ready for heavy lifting:
+        return ConstraintFormula.TRUE; 
         //return subtype(s, t, _emptyHistory);
     }
 
