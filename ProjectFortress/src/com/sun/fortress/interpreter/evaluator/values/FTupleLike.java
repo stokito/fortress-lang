@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,9 +26,23 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public abstract class FTupleLike extends FConstructedValue implements Selectable {
+public abstract class FTupleLike extends FValue implements Selectable {
 
     private final List<FValue> vals;
+
+    public List<FValue> getVals() { return vals;}
+
+    public FType type() {
+        return FTypeTuple.make(typeListFromValues(getVals()));
+    }
+
+    protected FTupleLike() {
+        vals = Collections.<FValue>emptyList();
+    }
+
+    protected FTupleLike(List<FValue> elems) {
+        vals = elems;
+    }
 
    /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Selectable#select(java.lang.String)
@@ -59,15 +73,4 @@ public abstract class FTupleLike extends FConstructedValue implements Selectable
         return (this.getString()+':'+this.type().toString());
     }
 
-    protected FTupleLike() {
-        vals = Collections.<FValue>emptyList();
-        setFtype(FTypeTuple.make(Collections.<FType>emptyList()));
-    }
-
-    protected FTupleLike(List<FValue> elems) {
-        vals = elems;
-        setFtype(FTypeTuple.make(typeListFromValues(elems)));
-    }
-
-    public List<FValue> getVals() { return vals;}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,14 +18,11 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
-import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
-
 public abstract class FConstructedValue extends FValue {
     /**
      * Stores its ftype explicitly.
-     * Overloaded functions change their type, hence not final, and volatile.
      */
-    private volatile FType ftype;
+    private final FType ftype;
 
     /**
      * Getter for ftype.  Should always be non-null, but right now
@@ -38,23 +35,10 @@ public abstract class FConstructedValue extends FValue {
      * trying to fix this bug.
      */
     public FType type() {
-        if (ftype==null && false) {
-            throw new NullPointerException(errorMsg("No type information for ", this));
-        }
         return ftype;
     }
 
-    /**
-     * @param ftype The ftype to set.
-     */
-    public void setFtype(FType ftype) {
-        if (this.ftype != null)
-            throw new IllegalStateException("Cannot set twice");
-        this.ftype = ftype;
+    protected FConstructedValue(FType type) {
+        ftype = type;
     }
-
-    public void setFtypeUnconditionally(FType ftype) {
-        this.ftype = ftype;
-    }
-
 }

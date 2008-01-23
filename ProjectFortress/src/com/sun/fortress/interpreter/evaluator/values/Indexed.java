@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class Indexed extends FConstructedValue implements IndexedShape, IndexedTarget {
+public class Indexed extends FValue implements IndexedShape, IndexedTarget {
   final FType elementType;
   final FValue[] val;
   final List<FRange> extents;
@@ -36,6 +36,10 @@ public class Indexed extends FConstructedValue implements IndexedShape, IndexedT
       val = new FValue[size()];
 
   }
+
+    public FType type() {
+        return error("Asking for type() of Indexed");
+    }
 
   /* (non-Javadoc)
    * @see com.sun.fortress.interpreter.evaluator.values.IndexedShape#put(com.sun.fortress.interpreter.evaluator.values.FValue, int[], int)

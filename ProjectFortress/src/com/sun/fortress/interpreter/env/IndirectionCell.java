@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,13 +17,13 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.values.FConstructedValue;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.types.FType;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 
-public class IndirectionCell extends FConstructedValue {
+public class IndirectionCell extends FValue {
     protected volatile FValue theValue;
     public String toString() {
         if (theValue==null) return "null";
@@ -52,4 +52,10 @@ public class IndirectionCell extends FConstructedValue {
         return theValue;
     }
 
+    public FType type() {
+        if (theValue == null) {
+            error("Attempt to find type of uninitialized variable");
+        }
+        return theValue.type();
+    }
 }

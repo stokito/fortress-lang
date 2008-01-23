@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,13 +26,13 @@ public class FArray extends FConstructedValue implements IndexedShape {
     final Indexed val;
 
     public FArray(Indexed v, Environment env, HasAt at) {
+        super(FTypeArray.make(v.elementType, v.val, env, at));
         val = v;
-        setFtype(FTypeArray.make(v.elementType, v.val, env, at));
     }
 
     public FArray(Indexed v, FTypeArray ft) {
+        super(ft);
         val = v;
-        setFtype(ft);
     }
 
     public int size(int i) {
