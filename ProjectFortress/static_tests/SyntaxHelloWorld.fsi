@@ -18,7 +18,7 @@
 api SyntaxHelloWorld
 
   import FortressAst.{...}
-  import FortressSyntax.Literal
+  (* Missing file -- import FortressSyntax.Literal *)
 
   grammar helloworld extends Literal
     helloworld :LiteralExpr:=

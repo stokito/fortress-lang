@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -85,6 +86,10 @@ public class ProgramError extends FortressError {
         this(loc, null, string, ex);
     }
 
+
+    public ProgramError(Iterable<? extends StaticError> errors) {
+       super(errors);
+    }
 
     public static <T> T error(String msg) {
         throw new ProgramError(msg);

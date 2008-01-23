@@ -31,6 +31,8 @@ public abstract class StaticError extends RuntimeException implements HasAt {
     public abstract String at();
 
     public String stringName() { return toString(); }
+    
+    public String getMessage() { return toString(); }
 
     public String toString() {
         return at() + ": " + description();

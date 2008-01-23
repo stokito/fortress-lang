@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -74,16 +74,15 @@ public class ASTIO {
     /**
      * Convenience method for calling parseToJavaAst with a default BufferedReader.
      */
-    public static Option<CompilationUnit> parseToJavaAst(String reportedFileName, boolean is_native) throws IOException {
+    public static Option<CompilationUnit> parseToJavaAst(String reportedFileName) throws IOException {
         BufferedReader r = Useful.utf8BufferedFileReader(reportedFileName);
-        try { return ASTIO.parseToJavaAst(reportedFileName, r, is_native); }
+        try { return ASTIO.parseToJavaAst(reportedFileName, r); }
         
         finally { r.close(); }
     }
 
     public static Option<CompilationUnit> parseToJavaAst (
-            String reportedFileName, BufferedReader in, boolean is_native
-        )
+            String reportedFileName, BufferedReader in)
         throws IOException
     {
         Fortress p =
@@ -95,18 +94,7 @@ public class ASTIO {
         if (r.hasValue()) {
             SemanticValue v = (SemanticValue) r;
             CompilationUnit n = (CompilationUnit) v.value;
-            if (is_native) {
-                /* Haven't figured out the clean way to make one of these from
-                 * the get-go, therefore we'll just reallocate and set the flag.
-                 */
-                if (n instanceof Component) {
-                    Component cn = (Component) n;
-                    n = new Component(cn.getSpan(), is_native, cn.getName(), cn.getImports(), cn.getExports(), cn.getDecls());
-                } else if (n instanceof Api) {
-                    Api an = (Api) n;
-                    n = new Api(an.getSpan(), is_native, an.getName(), an.getImports(), an.getDecls());
-                }
-            }
+            
             return Option.some(n);
         }
         else {
@@ -122,7 +110,7 @@ public class ASTIO {
         }
     }
 
-    /**
+   /**
      * @param reportedFileName
      * @param br
      * @throws IOException

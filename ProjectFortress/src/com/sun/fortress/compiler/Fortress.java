@@ -25,6 +25,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Path;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -39,18 +40,18 @@ public class Fortress {
      * Compile all definitions in the given files, and any additional sources that
      * they depend on, and add them to the fortress.
      */
-    public Iterable<? extends StaticError> compile(File... files) {
-        return compile(IterUtil.asIterable(files));
+    public Iterable<? extends StaticError> compile(Path path, File... files) {
+        return compile(path, IterUtil.asIterable(files));
     }
     
     /**
      * Compile all definitions in the given files, and any additional sources that
      * they depend on, and add them to the fortress.
      */
-    public Iterable<? extends StaticError> compile(Iterable<File> files) {
+    public Iterable<? extends StaticError> compile(Path path, Iterable<File> files) {
         GlobalEnvironment env = new GlobalEnvironment(_repository.apis());
         
-        FortressParser.Result pr = FortressParser.parse(files, env);
+        FortressParser.Result pr = FortressParser.parse(files, env, path);
         // Parser.Result pr = Parser.parse(files, env);
         if (!pr.isSuccessful()) { return pr.errors(); }
         System.out.println("Parsing done.");

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,7 +32,7 @@ public class GlobalEnvironment {
     private Map<APIName, ApiIndex> _apis;
     
     public GlobalEnvironment(Map<APIName, ApiIndex> apis) { _apis = apis; }
-    
+   
     public Map<APIName, ApiIndex> apis() { return _apis; }
     
     public boolean definesApi(APIName name) { return _apis.containsKey(name); }

@@ -47,11 +47,6 @@ public class PathBasedRepository implements FortressRepository {
      */
     final Path path;
     /**
-     * Any components found on nativePath are "native" -- special semantics
-     * for objects.
-     */
-    final Path nativePath;
-    /**
      * If true, allows matching "a.b" against file containing "b", at path a/b.
      */
     boolean relaxedSearch;
@@ -64,13 +59,12 @@ public class PathBasedRepository implements FortressRepository {
     private final Map<APIName, ComponentIndex> components = 
         new HashMap<APIName, ComponentIndex>();
    
-    public PathBasedRepository(Path p, Path native_p) {
-        this(p, native_p, new StubRepository());
+    public PathBasedRepository(Path p) {
+        this(p, new StubRepository());
     }
     
-    public PathBasedRepository(Path p, Path native_p, FortressRepository writer) {
+    public PathBasedRepository(Path p, FortressRepository writer) {
         this.path = p;
-        this.nativePath = native_p;
         this.writer = writer;
     }
     
@@ -93,12 +87,11 @@ public class PathBasedRepository implements FortressRepository {
         if (apis.containsKey(name))
             return apis.get(name);
         
-        boolean[] isNative = new boolean[1];
         
-        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX, isNative);
+        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
         // Attempt to parse fdot.
         
-        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath());
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
@@ -119,58 +112,56 @@ public class PathBasedRepository implements FortressRepository {
         
     }
 
-    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
+    public ComponentIndex getComponent(APIName name)
+            throws FileNotFoundException, IOException {
         if (components.containsKey(name))
             return components.get(name);
-        boolean[] isNative = new boolean[1];
-        
-        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX, isNative);
+
+        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
         // Attempt to parse fdot.
-        
-        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath(), isNative[0]);
+
+        CompilationUnit cu = getCompilationUnit(fdot);
+        if (cu instanceof Component) {
+            Component component = (Component) cu;
+            ComponentIndex ci = builder.buildComponentIndex(component, fdot
+                    .lastModified());
+            components.put(name, ci);
+            return ci;
+        } else {
+            throw new Error("Unexpected result type "
+                    + cu.getClass().getSimpleName()
+                    + " for component parse of " + fdot.getCanonicalPath());
+        }
+    }
+    
+    protected CompilationUnit getCompilationUnit(File fdot) throws IOException {
+        Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath());
         if (ocu.isNone()) {
             throw new Error("Parse error");
         } else {
             CompilationUnit cu = Option.unwrap(ocu);
-            if (cu instanceof Component) {
-                Component component = (Component) cu;
-                ComponentIndex ci = builder.buildComponentIndex(component, fdot.lastModified());
-                components.put(name, ci);
-                return ci;
-            } else {
-                throw new Error("Unexpected result type " +
-                        cu.getClass().getSimpleName() +
-                        " for component parse of " +
-                        fdot.getCanonicalPath());
-            }
-        } 
+            return cu;
+        }
     }
 
-    private File findFile(APIName name, String suffix, boolean[] isNative) throws FileNotFoundException {
+    private File findFile(APIName name, String suffix) throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll("[.]", "/");
         dotted = dotted + "." + suffix;
         slashed = slashed + "." + suffix;
         File fdot;
-        if (isNative != null)
-            isNative[0] = false;
+        
         try {
             fdot = path.findFile(dotted);
         } catch (FileNotFoundException ex1) {
             try {
                 fdot = path.findFile(slashed);
             } catch (FileNotFoundException ex2) {
-                try {
-                    fdot = nativePath.findFile(dotted);
-                } catch (FileNotFoundException ex3) {
-                    try {
-                        fdot = nativePath.findFile(slashed);
-                    } catch (FileNotFoundException ex4) {
-                        throw new FileNotFoundException("Could not find " + dotted + " or " + slashed + " on path or native path");
-                    }
-                }
-                if (isNative != null)
-                    isNative[0] = true;
+                if (dotted.equals(slashed))
+                    throw new FileNotFoundException("Could not find " + dotted + " on path " + path);
+                else 
+                     throw new FileNotFoundException("Could not find " + dotted + " or " + slashed + " on path " + path);
+                
             }
         }
         return fdot;
@@ -179,14 +170,14 @@ public class PathBasedRepository implements FortressRepository {
     public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
         if (apis.containsKey(name))
             return apis.get(name).modifiedDate();
-        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX, null);
+        File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
         return fdot.lastModified();
     }
 
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
         if (components.containsKey(name))
             return components.get(name).modifiedDate();
-        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX, null);
+        File fdot = findFile(name, ProjectProperties.COMP_SOURCE_SUFFIX);
         return fdot.lastModified();
     }
 

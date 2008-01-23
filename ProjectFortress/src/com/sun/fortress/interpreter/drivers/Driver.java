@@ -36,6 +36,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 
 import com.sun.fortress.compiler.FortressRepository;
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.env.BetterEnv;
@@ -76,6 +77,7 @@ import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.FileBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
+import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
@@ -101,7 +103,8 @@ public class Driver {
 
     public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
         new BatchCachingRepository(
-                new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
+                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH,
+                        new GlobalEnvironment(new HashMap<APIName, ApiIndex>())),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
         
@@ -125,7 +128,8 @@ public class Driver {
 
     public static FortressRepository extendedRepository(String s) {
         return new BatchCachingRepository(
-                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(s), ProjectProperties.SOURCE_PATH_NATIVE),
+                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(s),
+                        new GlobalEnvironment(new HashMap<APIName, ApiIndex>())),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
     }
