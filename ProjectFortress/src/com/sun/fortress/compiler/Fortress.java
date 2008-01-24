@@ -56,6 +56,11 @@ public class Fortress {
         if (!pr.isSuccessful()) { return pr.errors(); }
         System.out.println("Parsing done.");
         
+        return analyze(env, pr);
+    }
+
+    private Iterable<? extends StaticError> analyze(GlobalEnvironment env,
+            FortressParser.Result pr) {
         // Handle APIs first
         
         // Build ApiIndices before disambiguating to allow circular references.

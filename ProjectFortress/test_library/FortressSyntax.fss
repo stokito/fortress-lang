@@ -15,18 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api SyntaxHelloWorld
-
-  import FortressAst.{...}
-  import FortressSyntax.Literal
-
-  grammar helloworld extends Literal
-    helloworld :LiteralExpr:=
-      hello world 
-        do
-          StringLiteral("Hello world")
-        end
-    end
-  end
-
+component FortressSyntax
+export FortressSyntax
 end
