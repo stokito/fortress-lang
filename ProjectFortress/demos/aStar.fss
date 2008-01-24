@@ -76,11 +76,12 @@ aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
         q : Pairing[\C,T\] := singletonPairing[\C,T\](aStarPair[\T,C\](root))
         while NOT q.isEmpty() do
             (_,best,q') = q.extractMin()
+            println("Chose:\n" best)
             if best.isComplete() then
                 exit succeed with Just(best)
             end
             println("************************************************************")
-            q := q'.merge(heap(best.children().map(aStarPair[\T,C\])))
+            q := q'.merge(heap(best.children().map[\(C,T)\](aStarPair[\T,C\])))
             println("**")
         end
         Nothing[\T\]() (** If we get here the search failed. **)
@@ -90,90 +91,126 @@ aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
  * Sample problem
  ************************************************************)
 
+trait BoardState
+        comprises { No, Perhaps, Yes }
+    getter cand(): Boolean = true
+    getter propagated(): Boolean = false
+end
+
+object No extends BoardState
+    getter cand(): Boolean = false
+end
+
+object Perhaps extends BoardState end
+
+object Yes extends BoardState
+    getter propagated(): Boolean = true
+end
+
 (* Stupid, really inefficient but complete Sudoku solver.  We maintain
-   a 9x9x9-space of booleans: T at (i,j,k) indicates that k is a
-   candidate value for point (i,j) in the Sukoku grid.  The cost
-   metric is the number of T entries remaining in the grid.  A step
-   consists of setting one T entry to F.  Infeasible solutions are
-   pruned.  However, we don't do full forward propagation, and we
-   don't cache information about solvedness, so this is MASSIVELY
-   SLOW. *)
-object Sudoku(trues : ZZ32, state : Array3[\Boolean,0,9,0,9,0,9\])
+   a 9x9x9-space of booleans: Perhaps or Yes at (i,j,k) indicates that k
+   is a candidate value for point (i,j) in the Sukoku grid.  The cost
+   metric is Perhaps entries + 9 Yes entries.  A step consists of
+   choosing one Perhaps entry to propagate and set to Yes.  Infeasible
+   solutions are pruned.  However, we don't do full forward
+   propagation, and we don't cache information about solvedness, so
+   this is MASSIVELY SLOW. *)
+object Sudoku(cands : ZZ32, props : ZZ32, state : Array3[\BoardState,0,9,0,9,0,9\])
         extends SearchInstance[\Sudoku, ZZ32\]
-    getter cost(): ZZ32 = trues
-    getter isComplete(): ZZ32 = trues = 81
+    (* legalState check is expensive, so we compute it lazily and cache the result. *)
+    consistent : BoardState := Perhaps
+    getter isConsistent(): Boolean =
+        if NOT consistent.cand() then false
+        elif consistent.propagated() then true
+        elif cands < 81 then
+            consistent := No
+            false
+        elif legalState(state) then
+            consistent := Yes
+            true
+        else
+            consistent := No
+            false
+        end
+    getter cost(): ZZ32 = cands - props
+    getter isComplete(): ZZ32 = cands = 81 AND: isConsistent()
     getter toString(): String =
         (BIG STRING [i<-0#9] (
              BIG STRING [j<-0#9] (
-                 (BIG STRING [k<-0#9] if state[i,j,k] then "" (k+1) else " " end) ".")
-             ) "\n") "Remaining: " trues
-    getter children(): Generator[\Sudoku\] = do
-        incons : Sudoku = Sudoku(inconsistent,state)
-        <| if c then
-                state0 : Array3[\Boolean,0,9,0,9,0,9\] = state.replica[\ZZ32\]()
-                state' = state0.fill(fn (ijk':(ZZ32,ZZ32,ZZ32)): Boolean => state[ijk'])
-                delta = fillState(state',ijk)
-                td = trues - delta
-                if delta > 0 AND: td >= 81 AND: legalState(state') then
-                    println("Trying " ijk)
-                    Sudoku(td,state')
+                 (BIG STRING [k<-0#9] if state[i,j,k].propagated() then "" (k+1)
+                                      elif state[i,j,k].cand() then "."
+                                      else " " end) "|")
+             ) "\n") "Remaining: " cands " Fixed: " props
+    getter children(): Generator[\Sudoku\] =
+        if isConsistent() then
+            incons : Sudoku = Sudoku(inconsistent,props+1,state)
+            <|  if c.cand() AND NOT c.propagated() then
+                    state' = state.copy()
+                    delta = fillState(state',ijk)
+                    cd = cands - delta
+                    if delta > 0 AND: cd >= 81 then
+                        (* Note: we permit inconsistent states to get through,
+                           and just live with it. *)
+                        println("Trying " ijk)
+                        Sudoku(cd,props+1,state')
+                    else
+                        println("Skipping " ijk)
+                        incons
+                    end
                 else
-                    println("Skipping " ijk)
                     incons
                 end
-            else
-                incons
-            end
-          | (ijk,c) <- state.indexValuePairs() |>.filter(
-                fn (s:Sudoku): Boolean => s.cost() < inconsistent)
-      end
+              | (ijk,c) <- state.indexValuePairs() |>.filter(
+                    fn (s:Sudoku): Boolean => cands < inconsistent)
+        else
+            emptyList[\Sudoku\]()
+        end
 end
 
 inconsistent : ZZ32 = 2^30
 
-legalState(state:Array3[\Boolean,0,9,0,9,0,9\]): Boolean =
-    (BIG AND [i<-0#9,j<-0#9] (BIG OR [k<-0#9] state[i,j,k])) AND
-    (BIG AND [i<-0#9,k<-0#9] (BIG OR [j<-0#9] state[i,j,k])) AND
-    (BIG AND [j<-0#9,k<-0#9] (BIG OR [i<-0#9] state[i,j,k])) AND
+legalState(state:Array3[\BoardState,0,9,0,9,0,9\]): Boolean =
+    (BIG AND [i<-0#9,j<-0#9] (BIG OR [k<-0#9] state[i,j,k].cand())) AND
+    (BIG AND [i<-0#9,k<-0#9] (BIG OR [j<-0#9] state[i,j,k].cand())) AND
+    (BIG AND [j<-0#9,k<-0#9] (BIG OR [i<-0#9] state[i,j,k].cand())) AND
     (BIG AND [i0<-0#3,j0<-0#3,k<-0#9]
-          (BIG OR [i<- (3 i0)#3,j<-(3 j0)#3] state[i,j,k]))
-
-truesState(state:Array3[\Boolean,0,9,0,9,0,9\]) =
-    SUM [ f <- state ] if f then 1 else 0 end
+          (BIG OR [i<- (3 i0)#3,j<-(3 j0)#3] state[i,j,k].cand()))
 
 (* fillState modifies the state array by committing to i,j,k,
    and returns the number of entries that changed. *)
-fillState(state:Array3[\Boolean,0,9,0,9,0,9\],ijk:(ZZ32,ZZ32,ZZ32)):ZZ32 = do
+fillState(state:Array3[\BoardState,0,9,0,9,0,9\],ijk:(ZZ32,ZZ32,ZZ32)):ZZ32 = do
+    state[ijk] := Yes
     (i,j,k) = ijk
     (SUM [i' <- 0#9]
-        if i =/= i' AND state[i',j,k] then
-            state[i',j,k] := false
+        if i =/= i' AND state[i',j,k].cand() then
+            state[i',j,k] := No
             1
         else 0 end) +
     (SUM [j' <- 0#9]
-        if j =/= j' AND state[i,j',k] then
-            state[i,j',k] := false
+        if j =/= j' AND state[i,j',k].cand() then
+            state[i,j',k] := No
             1
         else 0 end) +
     (SUM [k' <- 0#9]
-        if k =/= k' AND state[i,j,k'] then
-            state[i,j,k'] := false
+        if k =/= k' AND state[i,j,k'].cand() then
+            state[i,j,k'] := No
             1
         else 0 end) +
     (SUM [i' <- (3 (i DIV 3))#3, j' <- (3 (j DIV 3))#3]
-        if (i'=/=i AND j'=/=j) AND state[i',j',k] then
-                state[i',j',k] := false
+        if (i'=/=i AND j'=/=j) AND state[i',j',k].cand() then
+                state[i',j',k] := No
                 1
         else 0 end)
   end
 
 sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do
-    st0 = array3[\Boolean,9,9,9\]().fill(true)
-    su = Sudoku(9^3, st0)
+    st0 = array3[\BoardState,9,9,9\]().fill(Perhaps)
     for (i,j,k) <- givens do
         _ = fillState(st0,(i-1,j-1,k-1))
     end
-    res = Sudoku(truesState(st0),st0)
+    res = Sudoku(SUM [v<-st0] if v.cand() then 1 else 0 end,
+                 SUM [v<-st0] if v.propagated() then 1 else 0 end,
+                 st0)
     if legalState(st0) then
         res
     else
@@ -191,7 +228,7 @@ run(args:String...):()=do
                   (7,1,3),(7,7,1),(7,8,4),
                   (8,3,5),(8,5,1),(8,8,9),
                   (9,1,9),(9,3,7),(9,4,8),(9,6,4),(9,7,6),(9,9,2))
-    println("Here's the initial:\n" init)
+    println("Here's the initial:\n")
     res = aStar[\Sudoku,ZZ32\](init)
     println("Final result:\n" res)
 end
