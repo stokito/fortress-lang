@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,13 +25,13 @@ public abstract class StaticError extends RuntimeException implements HasAt {
     public static String errorMsg(Object... messages) {
         return ErrorMsgMaker.errorMsg(messages);
     }
-    
+
     public abstract String description();
 
     public abstract String at();
 
     public String stringName() { return toString(); }
-    
+
     public String getMessage() { return toString(); }
 
     public String toString() {

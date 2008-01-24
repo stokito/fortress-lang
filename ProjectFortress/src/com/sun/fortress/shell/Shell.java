@@ -1,16 +1,16 @@
 /*******************************************************************************
-  Copyright 2007 Sun Microsystems, Inc.,
+  Copyright 2008 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
-  
+
   U.S. Government Rights - Commercial software.
   Government users are subject to the Sun Microsystems, Inc. standard
   license agreement and applicable provisions of the FAR and its supplements.
-  
+
   Use is subject to license terms.
-  
+
   This distribution may include materials developed by third parties.
-  
+
   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
   ******************************************************************************/
@@ -40,24 +40,24 @@ public final class Shell {
     private static final String LINK_PATTERN =           "link " + NAME + " from " + NAME + " with " + NAME;
     private static final String UPGRADE_PATTERN =        "upgrade " + NAME + " from " + NAME + " with " + NAME;
     private static final String EXISTS_PATTERN =         "exists " + NAME;
-    
+
     private String pwd;
     /* Relative location of the resident fortress to the jar file this class is packaged into. */
     private String components;
-    
+
     private CommandInterpreter interpreter;
-    
-    public Shell(String _pwd) { 
-        pwd = _pwd; 
+
+    public Shell(String _pwd) {
+        pwd = _pwd;
         // For now, assume compiled components and APIs are in pwd.
         components = pwd;
         interpreter = new CommandInterpreter(this);
     }
-    
+
     String getPwd() { return pwd; }
     String getComponents() { return components; }
     CommandInterpreter getInterpreter() { return interpreter; }
-    
+
     public static String fortressLocation() {
         try {
             String FORTRESS_PATH = "FORTRESS_PATH";
@@ -70,7 +70,7 @@ public final class Shell {
             return "";
         }
     }
-    
+
     /* Helper method to print usage message.*/
     private void printUsageMessage() {
         System.err.println("Usage:");
@@ -83,16 +83,16 @@ public final class Shell {
         System.err.println("  " + UPGRADE_PATTERN);
         System.err.println("  " + EXISTS_PATTERN);
     }
-        
+
     /* Main entry point for the fortress shell.*/
     public void execute(String[] tokens) throws InterruptedException, Throwable {
         // First argument is supplied by the fss script and always present; it's simple $PWD.
-        
+
         if (tokens.length == 1) {
             printUsageMessage();
             System.exit(-1);
         }
-        
+
         // Otherwise, tokens.length > 1.
         // First assemble tokens into a single string we can match against.
         StringBuilder msgBuffer = new StringBuilder(tokens[1]);
@@ -100,7 +100,7 @@ public final class Shell {
             msgBuffer.append(" " + token);
         }
         String msg = msgBuffer.toString();
-        
+
         // Now match the assembled string.
         try {
             if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(tokens[2]); }
@@ -121,9 +121,9 @@ public final class Shell {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException, Throwable { 
+    public static void main(String[] args) throws InterruptedException, Throwable {
         // First argument is supplied by the fss script and is always present; it's simply $PWD.
-        new Shell(args[0]).execute(args); 
+        new Shell(args[0]).execute(args);
     }
-    
+
 }
