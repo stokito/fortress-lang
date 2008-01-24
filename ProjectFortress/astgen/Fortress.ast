@@ -589,7 +589,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * character
              */
-            CharSymbol(String s);
+            CharSymbol(String string);
             /**
              * character interval
              */

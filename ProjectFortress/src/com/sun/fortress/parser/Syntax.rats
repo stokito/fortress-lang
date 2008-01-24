@@ -32,8 +32,23 @@ import Header;
 import Type;
 
 header {
-import java.util.LinkedList;
+  import java.util.LinkedList;
 }
+
+body {
+  static {
+    add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
+        "AND",    "BACKSPACE",    "FORM_FEED",    "do",    "NEWLINE",
+        "NOT",    "RETURN",    "TAB",    "SPACE"
+    });
+
+    add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
+        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]"
+    });
+  }
+}
+
+option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX_SPECIAL_CHARS);
 
 /* GrammarDef ::= grammar w id w GrammarExtends? (br NonterminalDef)* w end */
 public GrammarDecl GrammarDef =
@@ -191,8 +206,24 @@ SyntaxSymbol Item =
       { yyValue = new CharacterClassSymbol(a1.list()); };
 
 CharacterSymbol CharacterClass = 
-       c1:utf16 colon c2:utf16 { yyValue = new CharacterInterval(c1, c2); }
-    / c1:utf16 { yyValue = new CharSymbol(c1); };
+       c1:Char colon c2:Char { yyValue = new CharacterInterval(c1, c2); }
+    / c1:Char { yyValue = new CharSymbol(c1); };
+
+String Char = 
+    Tab
+      { yyValue = "\t"; }
+    /  Formfeed
+      { yyValue = "\f"; }
+    /  Return
+      { yyValue = "\r"; }
+    /  Newline
+      { yyValue = "\n"; }
+    /  Space
+      { yyValue = " "; }
+    /  Backspace
+      { yyValue = "\u2408"; }
+    / yyValue:utf16;
+
 
 String ItemText = 
       !(SpecialSymbols) (utf16 utf16*)
@@ -205,7 +236,7 @@ String utf16 =
 
 String SpecialChars = 
       space / breakline / colon / questionmark / hash
-   / plus / star / openSquareBraket / closeSquareBraket;
+   / plus / star / openSquareBraket / closeSquareBraket / pling;
 
 String EscapedSpecialChars = 
    pling SpecialChars;
@@ -217,27 +248,27 @@ String SpecialSymbols =
       Tab / Formfeed / Return / Newline / Space 
     / Backspace / Not / And / do / end;
 
-transient String questionmark = "?";
+transient String bar = "|";
 transient String hash = "#";
-transient String do = "do";
-transient String plus = "+";
-transient String star = "*";
 transient String colon = ":";
 transient String pling = "`";
-transient String bar = "|";
+transient String plus = "+";
+transient String questionmark = "?";
+transient String star = "*";
 transient String openSquareBraket = "[";
 transient String closeSquareBraket = "]";
 
-transient String Not = "NOT";
 transient String And = "AND";
-String sr  = space+; // significant space
-transient String Tab = "TAB";      // tabulator
-transient String Formfeed = "FORM_FEED";      // form feed
-transient String Return = "RETURN";      // carriage return
-transient String Newline = "NEWLINE";      // break line
-transient String Space = "SPACE";      // whitespace
 transient String Backspace = "BACKSPACE";      // backspace
+transient String do = "do";
+transient String Formfeed = "FORM_FEED";      // form feed
+transient String Newline = "NEWLINE";      // break line
+transient String Not = "NOT";
+transient String Return = "RETURN";      // carriage return
+transient String Space = "SPACE";      // whitespace
+transient String Tab = "TAB";      // tabulator
 
+String sr  = space+; // significant space
 private String space = " ";
 private String breakline = "\r\n" / "\r" / "\n" / nel / formfeed / ls / ps;
 private String nel = '\u0085';
