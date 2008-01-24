@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -1591,7 +1591,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     public BetterEnv getBindingEnv() {
         return bindInto;
     }
-    
+
     @Override
     public Voidoid forGrammarDecl(GrammarDecl that) {
         return null; // Do nothing
