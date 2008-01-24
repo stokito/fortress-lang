@@ -23,6 +23,8 @@ import java.util.List;
 
 import xtc.parser.AlternativeAddition;
 import xtc.parser.Binding;
+import xtc.parser.CharClass;
+import xtc.parser.CharRange;
 import xtc.parser.Element;
 import xtc.parser.FullProduction;
 import xtc.parser.NonTerminal;
@@ -45,6 +47,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BreaklineSymbol;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
+import com.sun.fortress.nodes.CharSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
@@ -249,20 +252,32 @@ public class ProductionTranslator {
 		
 		@Override
 		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forCharacterClassSymbol(that);
-		}
+			List<CharRange> crs = new LinkedList<CharRange>();
+			final String mess = "Incorrect escape rewrite: ";
+			for (CharacterSymbol c: that.getCharacters()) {
+				CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
+					@Override
+					public CharRange forCharacterInterval(CharacterInterval that) {
+						if (that.getBegin().length() != 1) {
+							new RuntimeException(mess +that.getBegin());
+						}
+						if (that.getEnd().length() != 1) {
+							new RuntimeException(mess+that.getEnd());
+						}
+						return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
+					}
 
-		@Override
-		public List<Element> forCharacterInterval(CharacterInterval that) {
-			// TODO Auto-generated method stub
-			return super.forCharacterInterval(that);
-		}
-
-		@Override
-		public List<Element> forCharacterSymbol(CharacterSymbol that) {
-			// TODO Auto-generated method stub
-			return super.forCharacterSymbol(that);
+					@Override
+					public CharRange forCharSymbol(CharSymbol that) {
+						if (that.getString().length() != 1) {
+							new RuntimeException(mess+that.getString());
+						}
+						return new CharRange(that.getString().charAt(0));
+					}					
+				});
+				crs.add(cr);
+			}
+			return mkList(new CharClass(crs));
 		}
 
 		@Override

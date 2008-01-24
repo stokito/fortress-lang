@@ -49,7 +49,6 @@ import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
-
 public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	public static class Result extends StaticPhaseResult {

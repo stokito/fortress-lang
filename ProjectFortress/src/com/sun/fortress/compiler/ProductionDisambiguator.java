@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
 import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.useful.HasAt;
 
@@ -132,7 +133,9 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 					ignoreWhitespace = false;
 				}
 				ItemDisambiguator id = new ItemDisambiguator(_currentEnv);
+				EscapeRewriter escapeRewriter = new EscapeRewriter();
 				SyntaxSymbol n = (SyntaxSymbol) symbol.accept(id);
+				n = (SyntaxSymbol) n.accept(escapeRewriter);
 				ls.add(n);
 			}
 		}
