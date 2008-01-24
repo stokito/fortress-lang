@@ -68,18 +68,20 @@ trait SearchInstance[\Self extends SearchInstance[\Cost\],
         children().generate[\R\](r,body)
 end
 
-aStarPair[\T extends SeachInstance[\T,C\],C\](a:T):(T,C) = (a.cost(),a)
+aStarPair[\T extends SeachInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
 
 (** Perform an A* search starting from root. **)
 aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
     label succeed
-        q : Pairing[\C,T\] := singletonPairing[\C,T\](aStarPair(root))
+        q : Pairing[\C,T\] := singletonPairing[\C,T\](aStarPair[\T,C\](root))
         while NOT q.isEmpty() do
             (_,best,q') = q.extractMin()
             if best.isComplete() then
                 exit succeed with Just(best)
             end
-            q := q'.merge(heap(best.map(aStarPair[\T,C\])))
+            println("************************************************************")
+            q := q'.merge(heap(best.children().map(aStarPair[\T,C\])))
+            println("**")
         end
         Nothing[\T\]() (** If we get here the search failed. **)
     end succeed
@@ -190,7 +192,7 @@ run(args:String...):()=do
                   (8,3,5),(8,5,1),(8,8,9),
                   (9,1,9),(9,3,7),(9,4,8),(9,6,4),(9,7,6),(9,9,2))
     println("Here's the initial:\n" init)
-    res = aStar(init)
+    res = aStar[\Sudoku,ZZ32\](init)
     println("Final result:\n" res)
 end
 
