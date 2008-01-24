@@ -68,7 +68,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forFnDef(FnDef that) {
         StaticParamEnv newStatics = staticParams.extend(that.getStaticParams());
         TypeEnv newParams = params.extend(that.getParams());
-        TypeChecker newChecker = new TypeChecker(table, staticParams, newParams);
+        TypeChecker newChecker = new TypeChecker(table, newStatics, newParams);
         
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
@@ -101,14 +101,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if (initResult.type().isNone()) {
                     // The right hand side could not be typed, which must have resulted in a 
                     // signaled error. No need to signal another error.
-                    return new TypeCheckerResult(that);
+                    return TypeCheckerResult.compose(that, initResult);
                 }
-                if (analyzer.subtype(unwrap(initResult.type()), unwrap(varType)).isTrue()) {
-                    return new TypeCheckerResult(that);
+                ConstraintFormula constraints = analyzer.subtype(unwrap(initResult.type()), unwrap(varType));
+                if (!constraints.isSatisfiable()) {
+                    return new TypeCheckerResult(that, constraints);
                 } else {
                     StaticError error = 
                         StaticError.make(errorMsg("Attempt to define variable ", var, " ",
-                                         "with an expression of type ", initResult.type()),
+                                                  "with an expression of type ", initResult.type()),
                                          that);
                     return new TypeCheckerResult(that, error);
                 }

@@ -28,6 +28,7 @@ import edu.rice.cs.plt.tuple.Option;
 public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
+    private final ConstraintFormula nodeConstraints;
     
     private static Iterable<? extends StaticError> collectErrors(Iterable<? extends TypeCheckerResult> results) {
         Iterable<? extends StaticError> allErrors = new ArrayList<StaticError>();
@@ -68,6 +69,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         super(_errors);
         ast = _ast;
         type = Option.wrap(_type);
+        nodeConstraints = ConstraintFormula.TRUE;
     }
     
     public TypeCheckerResult(Node _ast, 
@@ -75,36 +77,50 @@ public class TypeCheckerResult extends StaticPhaseResult {
         super(_errors);
         ast = _ast;
         type = Option.none();
+        nodeConstraints = ConstraintFormula.TRUE;
     }
                            
     public TypeCheckerResult(Node _ast) {
         super();
         ast = _ast;
         type = Option.none();
+        nodeConstraints = ConstraintFormula.TRUE;
     }
     
     public TypeCheckerResult(Node _ast, Type _type) {
         super();
         ast = _ast;
         type = Option.wrap(_type);
+        nodeConstraints = ConstraintFormula.TRUE;
     }
     
     public TypeCheckerResult(Node _ast, Option<Type> _type) {
         super();
         ast = _ast;
         type = _type;
+        nodeConstraints = ConstraintFormula.TRUE;
     }
     
     public TypeCheckerResult(Node _ast, Option<Type> _type, Iterable<? extends StaticError> _errors) {
         super(_errors);
         ast = _ast;
         type = _type;
+        nodeConstraints = ConstraintFormula.TRUE;
     }
     
     public TypeCheckerResult(Node _ast, StaticError _error) {
         super(IterUtil.make(_error));
         ast = _ast;
         type = Option.none();
+        nodeConstraints = ConstraintFormula.TRUE;
+    }
+    
+    public TypeCheckerResult(Node _ast, ConstraintFormula _constraints) {
+        super();
+        ast = _ast;
+        type = Option.none();
+        nodeConstraints = _constraints;
+        // TODO: insert source locations for constraints
     }
     
     public Node ast() { return ast; }
