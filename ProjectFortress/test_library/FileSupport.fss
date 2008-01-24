@@ -181,7 +181,7 @@ object FileGenerator[\S\](reader:ReadStream, transient upper: ZZ32,
             if reader.eof() then ()
             else
                 (* First read must block, and not check reader.ready() *)
-                bu: Array[\String,ZZ32\] = array[\String,ZZ32\](n)
+                bu: Array[\String,ZZ32\] = array[\String\](n)
                 s0 : String = readOne(reader)
                 if NOT (s0="" AND reader.eof()) then
                     bu.init(0,s0)
