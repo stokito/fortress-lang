@@ -94,8 +94,8 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     reverse(): List[\E\] =
         generate[\List[\E\]\](RevConcat[\E\](),singleton[\E\])
     filter(p: E -> Boolean): List[\E\] =
-        concatMap[\E\](fn (x:ZZ32):List[\E\] => if p(x) then singleton[\E\](x)
-                                                else emptyList[\E\]() end)
+        concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
+                                             else emptyList[\E\]() end)
     toString():String =
       "<|" extractLeft().maybe[\String\](
                fn () => " ",
