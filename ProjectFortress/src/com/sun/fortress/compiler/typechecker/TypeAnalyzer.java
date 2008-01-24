@@ -34,28 +34,6 @@ import com.sun.fortress.compiler.index.*;
 
 public class TypeAnalyzer {
 
-    public static class Env {
-        private ComponentIndex currentComponent;
-        private GlobalEnvironment globalEnv;
-        
-        public Env(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
-            currentComponent = _currentComponent;
-            globalEnv = _globalEnv;
-        }
-        public TypeConsIndex typeCons(QualifiedIdName name) {
-            Id rawName = name.getName();
-            Option<APIName> api = name.getApi();
-
-            if (api.isSome()) {
-                APIName _api = Option.unwrap(api);
-                return globalEnv.api(_api).typeConses().get(rawName);
-            }
-            else {
-                return currentComponent.typeConses().get(rawName);
-            }
-        }
-    }
-
     public static final Type BOTTOM = new BottomType();
     public static final Type ANY = NodeFactory.makeInstantiatedType("FortressBuiltin", "Any");
     public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
@@ -66,12 +44,12 @@ public class TypeAnalyzer {
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(BOTTOM));
 
-    private final Env _env;
+    private final TraitTable _table;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
 
-    public TypeAnalyzer(ComponentIndex _currentComponent, GlobalEnvironment _globalEnv) {
-        _env = new Env(_currentComponent, _globalEnv);
+    public TypeAnalyzer(TraitTable table) {
+        _table = table;
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
@@ -117,7 +95,7 @@ public class TypeAnalyzer {
                     else { result = ConstraintFormula.FALSE; }
 
                     if (!result.isTrue()) {
-                        TypeConsIndex index = _env.typeCons(s.getName());
+                        TypeConsIndex index = _table.typeCons(s.getName());
                         if (index instanceof TraitIndex) {
                             TraitIndex traitIndex = (TraitIndex) index;
                             Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),

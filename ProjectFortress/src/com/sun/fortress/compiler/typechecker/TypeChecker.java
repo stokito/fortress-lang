@@ -35,23 +35,20 @@ import static edu.rice.cs.plt.tuple.Option.*;
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private static final Type VOID = NodeFactory.makeTupleType(new ArrayList<Type>());
     
-    private ComponentIndex currentComponent;
-    private GlobalEnvironment globals;
+    private TraitTable table;
     private StaticParamEnv staticParams;
     private TypeEnv params; 
     private final TypeAnalyzer analyzer;
     
     
-    public TypeChecker(ComponentIndex _currentComponent,
-                       GlobalEnvironment _globals, 
+    public TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
                        TypeEnv _params) 
     {
-        currentComponent = _currentComponent;
-        globals = _globals;
+        table = _table;
         staticParams = _staticParams;
         params = _params;
-        analyzer = new TypeAnalyzer(currentComponent, globals);
+        analyzer = new TypeAnalyzer(table);
     }
     
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
@@ -71,7 +68,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forFnDef(FnDef that) {
         StaticParamEnv newStatics = staticParams.extend(that.getStaticParams());
         TypeEnv newParams = params.extend(that.getParams());
-        TypeChecker newChecker = new TypeChecker(currentComponent, globals, staticParams, newParams);
+        TypeChecker newChecker = new TypeChecker(table, staticParams, newParams);
         
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
@@ -168,19 +165,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (apiName.isSome()) {
             // 'globals' must contain 'unwrap(apiName)', as this component has
             // been disambiguated already.
-            apiTypeEnv = TypeEnv.make(globals.api(unwrap(apiName)));
+            apiTypeEnv = TypeEnv.make(table.api(unwrap(apiName)));
         }
-            Id name = that.getName();
-            Option<Type> type = apiTypeEnv.type(name);
-            
-            if (type.isSome()) {
-                return new TypeCheckerResult(that, unwrap(type));
-            } else {
-                StaticError error = 
-                    StaticError.make(errorMsg("Attempt to reference an unbound qualified name: \n    ", that), 
-                                     that);
-                return new TypeCheckerResult(that, error);
-            }
+        Id name = that.getName();
+        Option<Type> type = apiTypeEnv.type(name);
+        
+        if (type.isSome()) {
+            return new TypeCheckerResult(that, unwrap(type));
+        } else {
+            StaticError error = 
+                StaticError.make(errorMsg("Attempt to reference an unbound qualified name: \n    ", that), 
+                                 that);
+            return new TypeCheckerResult(that, error);
+        }
     }
     
     public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
