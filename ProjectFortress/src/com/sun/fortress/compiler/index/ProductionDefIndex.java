@@ -15,19 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.syntax_abstractions.intermediate;
+package com.sun.fortress.compiler.index;
 
-import java.util.Collection;
+import com.sun.fortress.nodes.NonterminalDef;
+import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.compiler.index.ProductionIndex;
-import com.sun.fortress.nodes.NonterminalDecl;
+public class ProductionDefIndex extends ProductionIndex<NonterminalDef> {
 
-public class UserModule extends Module {
-
-	public UserModule() {}
-	
-	public UserModule(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
-		super(name, productions);
+	public ProductionDefIndex(Option<NonterminalDef> ast) {
+		super(ast);
 	}
 
 }

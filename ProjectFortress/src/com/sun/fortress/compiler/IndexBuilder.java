@@ -440,7 +440,7 @@ public class IndexBuilder {
      */
     private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
         final Id name = ast.getName().getName();
-        final Map<QualifiedIdName, ProductionIndex> productions = new HashMap<QualifiedIdName, ProductionIndex>();
+        final Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions = new HashMap<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>>();
         GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getNonterminals(), productions));
         if (grammars.containsKey(name)) {
             error("Grammar declared twice: "+name, ast);
@@ -449,14 +449,27 @@ public class IndexBuilder {
     }
     
     
-    private Map<QualifiedIdName, ProductionIndex> buildProductions(
+    private Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> buildProductions(
                                                                    List<NonterminalDecl> productions,
-                                                                   Map<QualifiedIdName, ProductionIndex> productionMap) {
+                                                                   Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productionMap) {
         for (NonterminalDecl p: productions) {
             if (productionMap.containsKey(p.getName())) {
                 error("Production declared twice: "+p.getName(), p);
             }
-            productionMap.put(p.getName(), new ProductionIndex(Option.wrap(p)));
+            productionMap.put(p.getName(), p.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends NonterminalDecl>>(){
+
+				@Override
+				public ProductionIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
+					return new ProductionDefIndex(Option.wrap(that));
+				}
+
+				@Override
+				public ProductionIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
+						NonterminalExtensionDef that) {
+					return new ProductionExtendIndex(Option.wrap(that));
+				}
+            	
+            }));
         }
         return productionMap;
     }

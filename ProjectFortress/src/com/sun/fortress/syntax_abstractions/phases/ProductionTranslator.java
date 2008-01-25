@@ -26,8 +26,10 @@ import xtc.parser.Binding;
 import xtc.parser.CharClass;
 import xtc.parser.CharRange;
 import xtc.parser.Element;
+import xtc.parser.FollowedBy;
 import xtc.parser.FullProduction;
 import xtc.parser.NonTerminal;
+import xtc.parser.NotFollowedBy;
 import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.Sequence;
@@ -42,8 +44,10 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ProductionExtendIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BreaklineSymbol;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
@@ -56,7 +60,11 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.NotPredicateSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -67,8 +75,10 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
@@ -103,95 +113,102 @@ public class ProductionTranslator {
 	 * @param env 
 	 * @return
 	 */
-	public static Result translate(Collection<ProductionIndex> productions, GlobalEnvironment env) {
+	public static Result translate(Collection<ProductionIndex<? extends NonterminalDecl>> productions, GlobalEnvironment env) {
 		ProductionTranslator pt = new ProductionTranslator();
 		List<Production> ratsProductions = new LinkedList<Production>();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
-		
-		for (ProductionIndex production: productions) {
+
+		for (ProductionIndex<? extends NonterminalDecl> production: productions) {
 			Result result = pt.translate(production, env);
 			for (StaticError se: result.errors()) {
 				errors.add(se);
 			}
 			ratsProductions.addAll(result.productions());
 		}
-		
+
 		return pt.new Result(ratsProductions, errors);
 	}
 
 	/**
 	 * Translate a Fortress production to a Rats! production 
-	 * @param production
+	 * @param p
 	 * @return
 	 */
-	private Result translate(ProductionIndex production, GlobalEnvironment env) {
+	private Result translate(final ProductionIndex<? extends NonterminalDecl> p, GlobalEnvironment env) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
+		NonterminalTranslator nt = new NonterminalTranslator(p);
+		Production ratsProduction = p.getAst().accept(nt);
+		errors.addAll(nt.errors());
+		return new Result(FortressUtil.mkList(ratsProduction), errors);
+	}
+
+	private class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
+		private Collection<StaticError> errors;
+		private ProductionIndex<? extends NonterminalDecl> pi;
 		
-		List<Sequence> sequence = new LinkedList<Sequence>();
-		
-		// First translate the syntax definitions
-		for (SyntaxDef syntaxDef: production.getSyntaxDefs()) {
-			List<Element> elms = new LinkedList<Element>();
-			
-			// Translate the symbols
-			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-				elms.addAll(sym.accept(new SymbolTranslator()));
-			}		
-			String productionName = FreshName.getFreshName(production.getName().getName().toString()).toUpperCase();
-			ActionCreater.Result acr = ActionCreater.create(productionName, syntaxDef.getTransformationExpression(), production.getType().toString());
-			if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
-			elms.add(acr.action());
-			sequence.add(new Sequence(new SequenceName(productionName), elms));		
+		public NonterminalTranslator(ProductionIndex<? extends NonterminalDecl> pi) {
+			this.errors = new LinkedList<StaticError>();
+			this.pi = pi;
 		}
 		
-		// Then translate the nonterminal definition
-		Production ratsProduction = null;
-		String currentName = production.getName().getName().toString();
-// TODO: extends
-//		if (production.getExtends().isSome()) {
-//			// If we extend something...
-//			QualifiedIdName otherQualifiedName = Option.unwrap(production.getExtends());
-//			List<Id> ids = new LinkedList<Id>();
-//			ids.addAll(Option.unwrap(otherQualifiedName.getApi()).getIds());
-//			Id otherId = null;
-//			if (ids.size() > 1) {
-//				otherId = ids.remove(ids.size()-1);
-//			}
-//			APIName apiName = NodeFactory.makeAPIName(ids);
-//			ApiIndex otherApi = null;
-//			if (env.definesApi(apiName)) {
-//				otherApi = env.api(apiName);
-//			}
-//			else {
-//				Collection<StaticError> cs = new LinkedList<StaticError>();
-//				cs.add(StaticError.make("Undefined api: "+apiName, otherQualifiedName));
-//				return new Result(cs);
-//			}
-//			GrammarIndex otherGrammar = otherApi.grammars().get(otherId);
-//			String otherName = otherQualifiedName.getName().toString();
-//
-//			String otherType = otherGrammar.productions().get(otherQualifiedName).getType().toString();
-//			
-//			ratsProduction = new AlternativeAddition(otherType,
-//							 						 new NonTerminal(otherName),
-//							 						 new OrderedChoice(sequence), 
-//							 						 new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName.toString())),false);
-//			ratsProduction.name = new NonTerminal(currentName);
-//		}
-//		else {
-//			List<Attribute> attr = new LinkedList<Attribute>();
-//			String type = production.getType().toString();
-//			ratsProduction = new FullProduction(attr, type,
-//							 new NonTerminal(currentName),
-//							 new OrderedChoice(sequence));
-//			ratsProduction.name = new NonTerminal(production.getName().toString());
-//		}
+		public Collection<StaticError> errors() {
+			return this.errors;
+		}
 		
-		List<Production> productions = new LinkedList<Production>();
-		productions.add(ratsProduction);
-		return new Result(productions, errors);
+		private TraitType unwrap(Option<TraitType> t) {
+			if (t.isNone()) {
+				throw new RuntimeException("Production type is not defined, malformed AST");
+			}
+			return Option.unwrap(t);
+		}
+		
+		private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String productionName, TraitType type) {
+			List<Sequence> sequence = new LinkedList<Sequence>();
+
+			// First translate the syntax definitions
+			for (SyntaxDef syntaxDef: syntaxDefs) {
+				List<Element> elms = new LinkedList<Element>();
+				// Translate the symbols
+				for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
+					elms.addAll(sym.accept(new SymbolTranslator()));
+				}		
+				String newProductionName = FreshName.getFreshName(productionName).toUpperCase();
+				ActionCreater.Result acr = ActionCreater.create(newProductionName, syntaxDef.getTransformationExpression(), type.toString());
+				if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
+				elms.add(acr.action());
+				sequence.add(new Sequence(new SequenceName(newProductionName), elms));		
+			}
+			return sequence;
+		}
+		
+		@Override
+		public Production forNonterminalDef(NonterminalDef that) {
+			List<Attribute> attr = new LinkedList<Attribute>();
+			TraitType type = unwrap(that.getType());
+			String name = that.getName().getName().toString();
+			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
+			Production p = new FullProduction(attr, type.toString(),
+					new NonTerminal(name),
+					new OrderedChoice(sequence));
+			p.name = new NonTerminal(name);
+			return p;
+		}
+
+		@Override
+		public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
+			TraitType type = unwrap(that.getType());
+			String name = that.getName().getName().toString();
+			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
+			QualifiedIdName otherQualifiedName = ((ProductionExtendIndex) this.pi).getExtends().getName();
+			Production p = new AlternativeAddition(type.toString(),
+					new NonTerminal(name),
+					new OrderedChoice(sequence), 
+					new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName .toString())),false);
+			p.name = new NonTerminal(name);
+			return p;
+		}
 	}
-	
+
 	private static class SymbolTranslator extends NodeDepthFirstVisitor<List<Element>> {
 
 		private List<Element> mkList(Element e) {
@@ -199,7 +216,7 @@ public class ProductionTranslator {
 			els.add(e);
 			return els;
 		}
-		
+
 		@Override
 		public List<Element> forNonterminalSymbol(NonterminalSymbol that) {
 			return mkList(new NonTerminal(that.getNonterminal().getName().stringName()));
@@ -209,7 +226,7 @@ public class ProductionTranslator {
 		public List<Element> forKeywordSymbol(KeywordSymbol that) {
 			return mkList(new NonTerminal(that.getToken()));
 		}
-		
+
 		@Override
 		public List<Element> forTokenSymbol(TokenSymbol that) {
 			return mkList(new NonTerminal(that.getToken()));
@@ -224,12 +241,12 @@ public class ProductionTranslator {
 		public List<Element> forBreaklineSymbol(BreaklineSymbol that) {
 			return mkList(new NonTerminal("br"));
 		}
-		
+
 		@Override
 		public List<Element> forBackspaceSymbol(BackspaceSymbol that) {
 			return mkList(new NonTerminal("backspace"));
 		}
-		
+
 		@Override
 		public List<Element> forNewlineSymbol(NewlineSymbol that) {
 			return mkList(new NonTerminal("newline"));
@@ -249,12 +266,13 @@ public class ProductionTranslator {
 		public List<Element> forTabSymbol(TabSymbol that) {
 			return mkList(new NonTerminal("tab"));
 		}
-		
+
 		@Override
 		public List<Element> forCharacterClassSymbol(CharacterClassSymbol that) {
 			List<CharRange> crs = new LinkedList<CharRange>();
 			final String mess = "Incorrect escape rewrite: ";
 			for (CharacterSymbol c: that.getCharacters()) {
+				// TODO: Error when begin < end
 				CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
 					@Override
 					public CharRange forCharacterInterval(CharacterInterval that) {
@@ -325,10 +343,32 @@ public class ProductionTranslator {
 		}
 
 		@Override
+		public List<Element> forAndPredicateSymbolOnly(AndPredicateSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new FollowedBy(e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
+		public List<Element> forNotPredicateSymbolOnly(NotPredicateSymbol that,
+				List<Element> symbol_result) {
+			if (symbol_result.size() == 1) {
+				Element e = symbol_result.remove(0);
+				symbol_result.add(new NotFollowedBy(e));
+				return symbol_result;
+			}
+			throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
+		}
+
+		@Override
 		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
 			return new LinkedList<Element>();
 		}
-		
+
 	}
 
 }

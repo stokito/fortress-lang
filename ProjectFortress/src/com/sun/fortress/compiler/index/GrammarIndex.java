@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -31,13 +32,13 @@ public class GrammarIndex {
 
 	private Option<GrammarDef> ast;
 	
-	private Map<QualifiedIdName, ProductionIndex> productions;
+	private Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions;
 
 	private Collection<GrammarIndex> gs;
 
 	private ProductionEnv env;
 	
-	public GrammarIndex(Option<GrammarDef> ast, Map<QualifiedIdName, ProductionIndex> productions) {
+	public GrammarIndex(Option<GrammarDef> ast, Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions) {
 		this.ast = ast;
 		this.productions = productions;
 		this.gs = new LinkedList<GrammarIndex>();
@@ -47,7 +48,7 @@ public class GrammarIndex {
 		return this.ast;
 	}
 	
-	public Map<QualifiedIdName, ProductionIndex> productions() {
+	public Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions() {
 		return this.productions;
 	}
 

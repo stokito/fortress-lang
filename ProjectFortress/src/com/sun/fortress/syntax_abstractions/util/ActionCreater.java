@@ -93,7 +93,7 @@ public class ActionCreater {
 		try {
 			serializedComponent = ac.writeJavaAST(component);
 		} catch (IOException e1) {
-			System.err.println(e1.getMessage());
+			// System.err.println(e1.getMessage());
 			errors.add(StaticError.make(e1.getMessage(), e.getSpan().toString()));
 		}
 
@@ -129,7 +129,7 @@ public class ActionCreater {
 		code.add("System.err.println(\"Parsing... production: "+productionName+"\");");
 		indents.add(3);
 		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(\""+productionName+"\", code).value());");
-		System.err.println(code);
+		// System.err.println(code);
 		Action a = new Action(code, indents);
 
 		return ac.new Result(a, errors);

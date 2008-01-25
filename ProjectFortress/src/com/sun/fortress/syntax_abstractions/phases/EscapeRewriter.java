@@ -17,7 +17,6 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 

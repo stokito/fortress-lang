@@ -18,14 +18,12 @@
 package com.sun.fortress.syntax_abstractions.intermediate;
 
 import java.util.Collection;
-import java.util.List;
 
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleName;
 
-import com.sun.fortress.compiler.disambiguator.ProductionEnv;
-import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -34,7 +32,7 @@ public class FortressModule extends Module {
 
 	public FortressModule() {}
 	
-	public FortressModule(String name, Collection<ProductionIndex> productions) {
+	public FortressModule(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
 		super(name, productions);
 		initialize();
 	}
