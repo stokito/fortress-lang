@@ -144,7 +144,7 @@ public class ProductionTranslator {
 
 	private class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
 		private Collection<StaticError> errors;
-		private ProductionIndex<? extends NonterminalDecl> pi;
+		private ProductionIndex/*<? extends NonterminalDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
 		
 		public NonterminalTranslator(ProductionIndex<? extends NonterminalDecl> pi) {
 			this.errors = new LinkedList<StaticError>();
