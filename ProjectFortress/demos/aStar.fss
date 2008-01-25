@@ -202,6 +202,13 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
                     true
                 end
             end inconsistent
+            if consistent.cand() then
+                true
+            else
+                println(self)
+                println("INCONSISTENT")
+                false
+            end
         end
     getter cost(): ZZ32 = 6 81 - 5 props - cands
     getter isComplete(): ZZ32 = isConsistent() AND: props = 81

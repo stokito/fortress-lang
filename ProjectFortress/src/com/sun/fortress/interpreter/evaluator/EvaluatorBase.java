@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.GenericTypeInstance;
 import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
+import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrMethod;
@@ -134,7 +135,6 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
           //ABoundingMap
           LatticeIntervalMap
           <String, FType, TypeLatticeOps>(TypeLatticeOps.V, StringComparer.V);
-        Iterator<Param> pit = params.iterator();
         Param p = null;
         Set<StaticParam> tp_set = new HashSet<StaticParam>(tparams);
         for (StaticParam sp : tparams) {
@@ -152,6 +152,16 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                     }
             }
         }
+        /* FIX FOR #62 */
+        // if (params.size()==1 && args.size() != 1) {
+        //     /* Tuple (or even re-tuple) arguments when inferring type
+        //      * if passing different # of args to 1-arg function. */
+        //     if (DUMP_INFERENCE) {
+        //         System.err.println("Tupling args to match single-arg context.");
+        //     }
+        //     args = Useful.<FValue>list(FTuple.make(args));
+        // }
+        Iterator<Param> pit = params.iterator();
         for (FValue a : args) {
             FType at = a.type();
             if (at==null) {
