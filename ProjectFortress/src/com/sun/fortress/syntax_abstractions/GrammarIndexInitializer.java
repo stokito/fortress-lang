@@ -67,7 +67,8 @@ public class GrammarIndexInitializer {
 			Collection<StaticError> ses) {
 		for (GrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
-				for (ProductionIndex<? extends NonterminalDecl> p: g.productions().values()) {
+				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
+				for (ProductionIndex p: g.productions().values()) {
 					if (p instanceof ProductionExtendIndex) {
 						Id name = p.getName().getName();
 						Set<ProductionIndex<? extends NonterminalDecl>> s = g.env().getExtendedNonterminal(name);

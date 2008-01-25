@@ -20,7 +20,7 @@ use strict;
 # Generates Unicode.rats.
 # http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 
-my $file = '../../../../../../third_party/unicode/UnicodeData.500.txt';
+my $file = '../../../../../third_party/unicode/UnicodeData.500.txt';
 
 open IN, "<$file";
 
@@ -114,8 +114,44 @@ sub ranges2 {
   print "];\n";
 }
 
+sub ranges2ValidId {
+
+  my @codes = sort { $a <=> $b } @_;
+  my $header = 0;
+
+  while ( @codes ) {
+    my $first = shift @codes;
+    my $last = $first;
+    while ( @codes && $codes[0] == $last + 1 &&
+	    front($codes[0]) == front($last + 1) ) {
+      $last = shift @codes;
+    }
+    my $firstfront = front($first);
+    my $firstback  = back($first);
+    my $lastfront  = front($last);
+    my $lastback   = back($last);
+    if ( $first == $last ) {
+      if ( $firstfront == $header ) {
+        printf("\\u%04x", $firstback);
+      } else {
+        printf("])|('\\u%04x'[\\u%04x", $firstfront, $firstback);
+	$header = $firstfront;
+      }
+    } else {
+      if ( $firstfront == $header ) {
+        printf("\\u%04x-\\u%04x", $firstback, $lastback);
+      } else { # $firstfront != $header
+        printf("])|('\\u%04x'[\\u%04x-\\u%04x",
+	       $firstfront, $firstback, $lastback);
+	$header = $firstfront;
+      }
+    }
+  }
+  print "]";
+}
+
 print "/*******************************************************************************\n";
-print "    Copyright 2007 Sun Microsystems, Inc.,\n";
+print "    Copyright 2008 Sun Microsystems, Inc.,\n";
 print "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
 print "    All rights reserved.\n\n";
 print "    U.S. Government Rights - Commercial software.\n";
@@ -130,7 +166,26 @@ print "/*\n";
 print " * Definition of Fortress Unicode characters.\n";
 print " *\n * Automatically generated file: Please don't manually edit.\n";
 print " */\n";
-print "module Unicode;\n\n";
+print "module com.sun.fortress.parser.Unicode;\n";
+print "\n";
+print "body {\n";
+print "  private static java.util.regex.Pattern idStart = java.util.regex.Pattern.compile(\"([".(join '', ranges1(@codesstart1));
+ranges2ValidId(@codesstart2);
+print ")\");\n";
+print "\n";
+print "  private static java.util.regex.Pattern idRest = java.util.regex.Pattern.compile(\"([".(join '', ranges1(@codesrest1));
+ranges2ValidId(@codesrest2);
+print ")\");\n";
+print "\n";
+print "  public static boolean validId(String id) {\n";
+print "    if (id.length() > 0) {\n";
+print "      java.util.regex.Matcher idStartMatcher = idStart.matcher(\"\"+id.charAt(0));\n";
+print "      java.util.regex.Matcher idRestMatcher = idRest.matcher(id.substring(1));\n";
+print "      return idStartMatcher.matches() && idRestMatcher.matches();\n";
+print "    }\n";
+print "    return false;\n";
+print "  }\n";
+print "}\n\n";
 print "transient String UnicodeIdStart = [" . (join '', ranges1(@codesstart1));
 ranges2(@codesstart2);
 print "\n";
