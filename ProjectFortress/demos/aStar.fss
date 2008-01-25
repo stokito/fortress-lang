@@ -127,6 +127,8 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
         extends SearchInstance[\Sudoku, ZZ32\]
     (* legalState check is expensive, so we compute it lazily and cache the result. *)
     consistent : BoardState := Perhaps
+    iMax : ZZ32 := -1  (* Index of square with maximum options *)
+    jMax : ZZ32 := -1  (* Computed incrementally by isConsistent. *)
     getter isConsistent(): Boolean =
         (* Also does propagation of trivialities. *)
         if NOT consistent.working() then consistent.cand()
@@ -150,12 +152,18 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
                     end
                 while props < 81 AND keepTrying do
                     keepTrying := false
+                    options : ZZ32 := 0
                     cands -=
                         (SUM [i<-0#9, j<-0#9] do
                             k' : ZZ32 := -1
                             s = SUM [k<-0#9]
                                     if state[i,j,k].working() then k' := k; 1
                                     else state[i,j,k].candNum() end
+                            atomic if s > options then
+                                       options := s
+                                       iMax := i
+                                       jMax := j
+                                   end
                             chk(s,k',i,j,k')
                           end) +
                         (SUM [i<-0#9, k<-0#9] do
@@ -195,7 +203,7 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
                 end
             end inconsistent
         end
-    getter cost(): ZZ32 = 9^3 - cands - 8 props
+    getter cost(): ZZ32 = 6 81 - 5 props - cands
     getter isComplete(): ZZ32 = isConsistent() AND: props = 81
     getter longString(): String =
         (BIG STRING [i<-0#9] (
@@ -218,9 +226,9 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
     getter children(): Generator[\Sudoku\] =
         if isConsistent() then
             incons : Sudoku = Sudoku(inconsistent,props+1,state)
-            <|  if c.working() then
+            <|  if state[iMax,jMax,k].working() then
                     state' = state.copy()
-                    delta = fillState(state',ijk)
+                    delta = fillState(state',(iMax,jMax,k))
                     cd = cands - delta
                     if delta > 0 AND: cd >= 81 then
                         (* Note: we permit inconsistent states to get through,
@@ -232,8 +240,7 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
                 else
                     incons
                 end
-              | (ijk,c) <- state.indexValuePairs() |>.filter(
-                    fn (s:Sudoku): Boolean => s.cands < inconsistent)
+              | k <- 0#9 |>.filter(fn (s) => s.cands < inconsistent)
         else
             emptyList[\Sudoku\]()
         end
