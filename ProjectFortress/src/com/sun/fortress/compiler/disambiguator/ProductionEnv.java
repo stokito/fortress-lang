@@ -34,12 +34,14 @@ import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
 /**
+ * 	This production environment is used during disambiguation
  *  The production environment has separate access to the production names 
  *  declared in the current grammar (using explicitProductionNames) and 
  *  to those inherited from extended grammars (using inheritedProductionsNames()).
@@ -49,21 +51,27 @@ public class ProductionEnv {
 
 	private TypeNameEnv _typeEnv;
 	private GrammarIndex _current;
-	private List<StaticError> _errors;
-
 	private Map<Id, Set<QualifiedIdName>> _productions = new HashMap<Id, Set<QualifiedIdName>>();
-
+	
 	public ProductionEnv(TypeNameEnv typeEnv, GrammarIndex currentGrammar, List<StaticError> errors) {
 		_typeEnv = typeEnv;
-		_current = currentGrammar;
-		_errors = errors;
+		this._current = currentGrammar;
+		initializeProductions();
+	}
+	
+	public ProductionEnv(GrammarIndex currentGrammar) {
+		this._current = currentGrammar;
 		initializeProductions();
 	}
 
+	public GrammarIndex getGrammarIndex() {
+		return this._current;
+	}
+	
 	private void initializeProductions() {
-		for (Map.Entry<QualifiedIdName,ProductionIndex> e: _current.productions().entrySet()) {
+		for (Map.Entry<QualifiedIdName,ProductionIndex<? extends NonterminalDecl>> e: this.getGrammarIndex().productions().entrySet()) {
 			Id key = e.getKey().getName();
-			GrammarDecl currentGrammar = Option.unwrap(_current.ast());
+			GrammarDecl currentGrammar = Option.unwrap(this.getGrammarIndex().ast());
 			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());
 			if (_productions.containsKey(key)) {
 				_productions.get(key).add(new QualifiedIdName(key.getSpan(),
@@ -136,7 +144,7 @@ public class ProductionEnv {
 
 	/** Determine whether a production with the given name is defined. */
 	public boolean hasProduction(QualifiedIdName name) {
-		if (_current.productions().containsKey(name)) {
+		if (this.getGrammarIndex().productions().containsKey(name)) {
         	return true;
         }
         return false;
@@ -149,7 +157,7 @@ public class ProductionEnv {
      * of size greater than 1.
      */
 	public Set<QualifiedIdName> declaredProductionNames(QualifiedIdName name) {
-        return declaredProductionNames(_current, name);
+        return declaredProductionNames(this.getGrammarIndex(), name);
 	}
 
     // TODO are more than one ever returned?
@@ -214,7 +222,7 @@ public class ProductionEnv {
 //			System.err.println(" current is: "+Option.unwrap(_current.ast()).getName());
 //		}
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (GrammarIndex g: _current.getExtendedGrammars()) {
+		for (GrammarIndex g: this.getGrammarIndex().getExtendedGrammars()) {
 			if (g.ast().isSome()) {
 //				if (name.getName().getText().equals("Literal")) {
 //					System.err.println("- in: "+Option.unwrap(g.ast()).getName());
@@ -238,7 +246,7 @@ public class ProductionEnv {
 	
 	private Set<QualifiedIdName> allInheritedProductionNames() {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (GrammarIndex g: _current.getExtendedGrammars()) {
+		for (GrammarIndex g: this.getGrammarIndex().getExtendedGrammars()) {
 			rs.addAll(g.productions().keySet());
 		}
         return rs;
@@ -253,19 +261,19 @@ public class ProductionEnv {
 
 	private Set<QualifiedIdName> allDeclaredProductionNames() {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		rs.addAll(_current.productions().keySet());
+		rs.addAll(this.getGrammarIndex().productions().keySet());
         return rs;
 	}
-
-    /**
+	
+	/**
      * Produce the set of inherited production index's with the given name.
      * An undefined name produces an empty set, and an ambiguous name 
      * produces a set of size greater than 1.
      */
-	public Set<ProductionIndex> getExtendedNonterminal(Id name) {
-		Set<ProductionIndex> rs = new HashSet<ProductionIndex>();
-		for (GrammarIndex g: _current.getExtendedGrammars()) {
-			for (Entry<QualifiedIdName, ProductionIndex> entry: g.productions().entrySet()) {
+	public Set<ProductionIndex<? extends NonterminalDecl>> getExtendedNonterminal(Id name) {
+		Set<ProductionIndex<? extends NonterminalDecl>> rs = new HashSet<ProductionIndex<? extends NonterminalDecl>>();
+		for (GrammarIndex g: this.getGrammarIndex().getExtendedGrammars()) {
+			for (Entry<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> entry: g.productions().entrySet()) {
 				if (entry.getKey().getName().equals(name)) {
 					rs.add(entry.getValue());
 				}
@@ -273,4 +281,5 @@ public class ProductionEnv {
 		}
         return rs;
 	}
+	
 }

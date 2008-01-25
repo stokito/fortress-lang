@@ -173,7 +173,7 @@ public class FortressParser {
 				xtc.parser.Result parseResult = null; 
 				ParserBase p = null;
 
-				System.out.println("Parsing file: "+f.getName());
+				System.out.println("Parsing files: "+f.getName());
 				if (!ppr.getGrammars().isEmpty()) {
 
 					// Compile the macro declarations and create a temporary parser

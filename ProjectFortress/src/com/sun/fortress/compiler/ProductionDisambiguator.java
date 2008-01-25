@@ -104,17 +104,17 @@ public class ProductionDisambiguator extends NodeUpdateVisitor {
 			Option<? extends Modifier> modifier_result,
 			QualifiedIdName name_result, Option<TraitType> type_result,
 			List<SyntaxDef> syntaxDefs_result) {
-		Set<ProductionIndex> otherNonterminal = _currentEnv.getExtendedNonterminal(name_result.getName());
+		Set<ProductionIndex<? extends NonterminalDecl>> otherNonterminal = _currentEnv.getExtendedNonterminal(name_result.getName());
 		if (otherNonterminal.isEmpty()) {
 			error("No inherited productions with name: "+name_result.getName(), that);
 		}
 		if (otherNonterminal.size() > 1) {
 			error("Ambiguous extension, productions with same name found in: "+IterUtil.toString(otherNonterminal), that);
 		}
-
+		TraitType type = IterUtil.first(otherNonterminal).getType();
 		ProductionNameDisambiguator pnd = new ProductionNameDisambiguator();
 		QualifiedIdName name = pnd.handleProductionName(_currentEnv, that.getName());
-		return new NonterminalExtensionDef(that.getModifier(),name,that.getType(), syntaxDefs_result);
+		return new NonterminalExtensionDef(that.getModifier(),name,Option.<TraitType>some(type), syntaxDefs_result);
 	}
 
 	@Override

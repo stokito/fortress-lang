@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.List;
 
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -27,15 +28,15 @@ import com.sun.fortress.nodes.TraitType;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ProductionIndex {
+public abstract class ProductionIndex<T extends NonterminalDecl> {
 
-	private Option<NonterminalDecl> ast;
+	private Option<T> ast;
 	
-	public ProductionIndex(Option<NonterminalDecl> ast) {
+	public ProductionIndex(Option<T> ast) {
 		this.ast = ast;
 	}
 
-	public Option<NonterminalDecl> ast() {
+	public Option<T> ast() {
 		return this.ast;
 	}
 
@@ -45,14 +46,6 @@ public class ProductionIndex {
 		}
 		throw new RuntimeException("Production index without ast and thus no name");
 	}
-
-// TODO
-//	public Option<QualifiedIdName> getExtends() {
-//		if (this.ast().isSome()) {
-//			return Option.unwrap(this.ast()).getExtends();
-//		}
-//		return Option.none();
-//	}
 
 	public List<SyntaxDef> getSyntaxDefs() {
 		if (this.ast().isSome()) {
@@ -71,4 +64,12 @@ public class ProductionIndex {
 		}
 		throw new RuntimeException("Production index without ast and thus no type");
 	}
+
+	public T getAst() {
+		if (this.ast().isNone()) {
+			throw new RuntimeException("");
+		}
+		return Option.unwrap(this.ast);
+	}
+	
 }

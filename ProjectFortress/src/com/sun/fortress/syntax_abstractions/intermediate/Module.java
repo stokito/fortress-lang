@@ -33,13 +33,10 @@ import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.QualifiedName;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.GrammarIndex;
-import com.sun.fortress.syntax_abstractions.phases.ModuleTranslator;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -53,7 +50,7 @@ public abstract class Module {
 	protected Collection<Module> extendedModules;
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
 	
-	protected Collection<ProductionIndex> productions;
+	protected Collection<ProductionIndex<? extends NonterminalDecl>> productions;
 	protected ProductionEnv productionEnv;
 	protected List<ModuleName> parameters;
 	protected List<ModuleDependency> dependencies;
@@ -63,25 +60,25 @@ public abstract class Module {
 		this.extendedModules = new LinkedList<Module>();
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		
-		this.productions = new LinkedList<ProductionIndex>();
+		this.productions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
 		this.parameters = new LinkedList<ModuleName>();
 		this.dependencies = new LinkedList<ModuleDependency>();
 	}
 
-	public Module(String name, Collection<ProductionIndex> productions) {
+	public Module(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
 		this();
 		this.name = name;
 		this.productions.addAll(productions);
 	}
 
-	public Collection<ProductionIndex> getDefinedProductions() {
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getDefinedProductions() {
 		return this.productions;
 	}
 	
-	public Collection<ProductionIndex> getProductions() {
-		List<ProductionIndex> productions = new LinkedList<ProductionIndex>();
-		for (ProductionIndex p: this.productions) {
-			// Test for privacy of production here
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getProductions() {
+		List<ProductionIndex<? extends NonterminalDecl>> productions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+		for (ProductionIndex<? extends NonterminalDecl> p: this.productions) {
+			// TODO: Test for privacy of production here
 			productions.add(p);
 		}
 
@@ -91,9 +88,9 @@ public abstract class Module {
 		return productions;
 	}
 
-	public boolean containsProduction(ProductionIndex p, String name) {
+	public boolean containsProduction(ProductionIndex<? extends NonterminalDecl> p, String name) {
 		// System.err.println("***");
-		for (ProductionIndex production: this.getProductions()) {
+		for (ProductionIndex<? extends NonterminalDecl> production: this.getProductions()) {
 			// System.err.println("Matching: "+production.getName().toString()+" - "+name);
 			if ((production.getName().toString().equals(name)) &&
 				(!p.equals(production))) {
@@ -103,23 +100,23 @@ public abstract class Module {
 		return false;
 	}
 	
-	public void setProductions(Collection<ProductionIndex> productions) {
+	public void setProductions(Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
 		this.productions = productions;
 	}
 	
-	public void addProductions(Collection<? extends ProductionIndex> productions) {
-		for (ProductionIndex p: productions) {
+	public void addProductions(Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
+		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
 			this.addProduction(p.getName().toString(), p);
 		}
 	}
 	
-	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionIndex> productions) {
-		for (ProductionIndex p: productions) {
+	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
+		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
 			this.addProduction(p.getName().toString(), p);
 		}		
 	}
 	
-	private void addProduction(String name, ProductionIndex p) {
+	private void addProduction(String name, ProductionIndex<? extends NonterminalDecl> p) {
 //		if (p.getExtends().isSome() &&
 //			this.productionsExtendsMap.keySet().contains(Option.unwrap(p.getExtends()).getName())) {
 //			NonterminalDef pd = this.productionsExtendsMap.get(Option.unwrap(p.getExtends()).getName());
@@ -140,11 +137,11 @@ public abstract class Module {
 	 * TODO: If more than one production extends the same core production, then what???
 	 * TODO: It is a hack to use the core modules to transport imports
 	 */
-	public Map<Module, Set<ProductionIndex>> getExtendedCoreModules() {
-		Map<Module, Set<ProductionIndex>> extendedCoreModules = 
-			                            new HashMap<Module, Set<ProductionIndex>>();
-		List<ProductionIndex> lsp = new LinkedList<ProductionIndex>(); 
-		for (ProductionIndex production: this.productions) {
+	public Map<Module, Set<ProductionIndex<? extends NonterminalDecl>>> getExtendedCoreModules() {
+		Map<Module, Set<ProductionIndex<? extends NonterminalDecl>>> extendedCoreModules = 
+			                            new HashMap<Module, Set<ProductionIndex<? extends NonterminalDecl>>>();
+		List<ProductionIndex<? extends NonterminalDecl>> lsp = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
+		for (ProductionIndex<? extends NonterminalDecl> production: this.productions) {
 			String name = "";
 			// TODO: fix extends
 //			if (production.getExtends().isSome() &&
@@ -233,7 +230,7 @@ public abstract class Module {
 		s+= indent+"* Locally defined productions\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionIndex> pit = this.productions.iterator();
+		Iterator<ProductionIndex<? extends NonterminalDecl>> pit = this.productions.iterator();
 		while (pit.hasNext()) {
 			s+= indent+"- "+pit.next().getName()+"\n";
 		}
@@ -251,7 +248,7 @@ public abstract class Module {
 
 	public Set<String> getKeywords() {
 		final Set<String> keywords = new HashSet<String>();
-		for (ProductionIndex p: this.getProductions()) {
+		for (ProductionIndex<? extends NonterminalDecl> p: this.getProductions()) {
 			if (p.ast().isSome()) {
 				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override
@@ -266,7 +263,7 @@ public abstract class Module {
 	
 	public Set<String> getTokens() {
 		final Set<String> tokens = new HashSet<String>();
-		for (ProductionIndex p: this.getProductions()) {
+		for (ProductionIndex<? extends NonterminalDecl> p: this.getProductions()) {
 			if (p.ast().isSome()) {
 				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override

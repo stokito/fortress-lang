@@ -140,6 +140,14 @@ body {
         SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column);
         return new Span(slStart, slEnd);
    }
+
+/*
+  private static Pattern p = Pattern.compile("[a-f]");
+  public static boolean validId(String id) {
+     Matcher m = p.matcher(id);
+     return m.matches();
+  }
+*/
 }
 
 option flag(isNative), parser(com.sun.fortress.parser.Fortress);

@@ -15,19 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.syntax_abstractions.intermediate;
+package com.sun.fortress.compiler.index;
 
-import java.util.Collection;
-
-import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
+import edu.rice.cs.plt.tuple.Option;
 
-public class UserModule extends Module {
+public class ProductionExtendIndex extends ProductionIndex<NonterminalExtensionDef> {
 
-	public UserModule() {}
+	private Option<ProductionIndex<? extends NonterminalDecl>> extend;
 	
-	public UserModule(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
-		super(name, productions);
+	public ProductionExtendIndex(Option<NonterminalExtensionDef> ast) {
+		super(ast);
 	}
 
+	public ProductionIndex<? extends NonterminalDecl> getExtends() {
+		if (this.extend.isNone()) {
+			throw new RuntimeException("Nonterminal "+this.getName()+" is expected to extend another nonterminal but didn't.");
+		}
+		return Option.unwrap(this.extend);
+	}
+
+	public void setExtends(ProductionIndex<? extends NonterminalDecl> ext) {
+		this.extend = Option.<ProductionIndex<? extends NonterminalDecl>>some(ext);
+	}
 }
