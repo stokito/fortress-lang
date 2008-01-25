@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component booleanGuard
+import ArrayList.{...}
+export Executable
+
+(* Hunt for bugs in boolean comprehension guards *)
+object Filt(x:Boolean) extends SequentialGenerator[\()\]
+   generate[\R\](r: Reduction[\R\], body: ()->R): R =
+       if x then body() else r.empty() end
+end
+
+run(args:String...):() = do
+    a = <|0+0,1,2,3,5,6,7|>
+    c = <| x | x <- a, Filt(true) |>
+    assert(c,a," Filt(true)")
+    b = <| x | x <- a, Filt(x>2) |>
+    assert(b,a.filter(fn (x)=>x>2)," Filt(x>2)")
+    d = <| x | x <- a, Filt(false) |>
+    assert(d.isEmpty(), "not isEmpty Filt(false)")
+    e = <| 17 | _ <- Filt(true) |>
+    assert(e,<|17|>,"Filt(true) =/= <|17|>")
+(* Await type inference fixes
+    q = <| q | q <- Just(17,3) |>
+    println(q)
+    f = <| x | x <- Filt(true) |>
+    println(f)
+*)
+  end
+
+end
