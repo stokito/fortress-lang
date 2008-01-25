@@ -25,17 +25,28 @@ export Heap
   implementations, based on part on some advice from "Purely
   Functional Data Structures" by Okasaki.
 
-  * Pairing Heaps.
+  * Pairing Heaps, the current default:
+    O(1) merge
+    O(lg n) amortized extractMin, with O(n) worst case.  The worst
+    case is proportional to the number of deferred merge operations
+    performed with the min; if you merge n entries tree-fashion rather
+    than 1 at a time you should obtain O(lg n) worst case performance
+    as well.  The heap(gen) function will follow the merge structure
+    of the underlying generator; for a well-written generator this
+    will be sufficient to give good performance.
 
   * Lazy-esque pairing heaps (supposedly slower but actually easier in
   some ways to implement than pairing heaps, and avoiding a potential
-  stack overflow in the latter).
+  stack overflow in the latter).  These don't seem to be quite as
+  whizzy in this setting as ordinary Pairing Heaps.
+    O(lg n) merge
+    O(lg n) worst-case extractMin
 
   * Splay heaps (noted as "fastest in practice", borne out by other
     experiments).  Problem: O(n) merge operation, vs O(lg n) for
     everything else.  If we build heaps by performing reductions over
     a generator, with each iteration generating a few elements, this
-    will be a problem.
+    will be a problem.  This is not yet implemented.
 
    Minimum complete implementation of Heap[\K,V\]:
      empty
