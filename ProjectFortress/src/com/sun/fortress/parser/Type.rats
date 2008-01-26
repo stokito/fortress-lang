@@ -31,8 +31,22 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* Type ::= TypePrimary */
-Type Type = !(one) a1:TypePrimary { yyValue = TypeResolver.resolveOps(a1); };
+/* Type ::= TypePrimary (w in w Expr)? */
+Type Type =
+     !(one) a1:TypePrimary a2:(w in w Expr)?
+     { Type ty = TypeResolver.resolveOps(a1);
+       if (a2 == null)
+           yyValue = ty;
+       else {
+           if (ty instanceof TaggedDimType) {
+               TaggedDimType _ty = (TaggedDimType)ty;
+               yyValue = new TaggedDimType(_ty.getSpan(), _ty.getType(),
+                                           _ty.getDim(), Option.some(a2));
+           } else {
+               yyValue = error(ty, "A dimension type is expected.");
+           }
+       }
+     };
 
 /* TypePrimary ::=
      TypePrimaryFront TightInfixPostfix
