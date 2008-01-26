@@ -18,7 +18,8 @@
 /*
  * Definition of Fortress expressions.
  */
-module com.sun.fortress.parser.Expression(Param, NoNewlineHeader, MayNewlineHeader, Type, DelimitedExpr,
+module com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
+                                          MayNewlineHeader, Type, DelimitedExpr,
                                           Literal, Identifier, Keyword, Symbol,
                                           Spacing);
 
@@ -289,7 +290,6 @@ PureList<PrecedenceOpExpr> LooseInfix =
    / <Left> a1:Op wr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
 
-///////////////////////////////////////////////////////////////////////////////
 /* Primary ::=
      LeftAssociatedPrimary
    | MathPrimary

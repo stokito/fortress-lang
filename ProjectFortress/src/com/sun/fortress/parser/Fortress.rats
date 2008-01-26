@@ -79,7 +79,8 @@ instantiate com.sun.fortress.parser.Type(NoNewlineHeader, MayNewlineHeader,
                                          Expression, Literal, Identifier,
                                          Keyword, Symbol, Spacing)
             as Type;
-instantiate com.sun.fortress.parser.NoNewlineType(Type, Keyword, Symbol, Spacing)
+instantiate com.sun.fortress.parser.NoNewlineType(Type, NoNewlineExpr, Keyword,
+                                                  Symbol, Spacing)
             as NoNewlineType;
 instantiate com.sun.fortress.parser.Expression(Parameter, NoNewlineHeader,
                                                MayNewlineHeader, Type,
