@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.HasAt;
 
@@ -85,11 +86,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
-		if (FortressUtil.validId(item.getItem())) { //TODO A more aquarate method to decide id well formedness
-
+		if (Fortress.validId(item.getItem())) {
 			QualifiedIdName name = makeQualifiedIdName(item.getSpan(), item.getItem());
-			//name = ((new ProductionDisambiguator()).new ProductionNameDisambiguator()).handleProductionName(_currentEnv, name);
-			
 			Set<QualifiedIdName> ss = _currentEnv.declaredProductionNames(name);
 			
 			if (ss.isEmpty()) {
@@ -153,6 +151,9 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			
 			@Override
 			public Node forTokenSymbol(TokenSymbol that) {
+				if (id_result.isNone()) {
+					return that;
+				}
 				return handle(that, that.getToken());
 			}
 

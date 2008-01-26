@@ -11,11 +11,11 @@
      _name=(Id @"/Users/fagidiot/Documents/datalogi/daimi/Fortress/syntaxprototype/FortressSyntax.fsi":5:11~18 _text="Literal"))]
    _nonterminals=[
     (NonterminalDef @"":0:0
-     _name=(QualifiedIdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":18:5~24:15
+     _name=(QualifiedIdName @"/Users/fagidiot/Documents/datalogi/workspace/Fortress/ProjectFortress/static_tests/SyntaxHelloWorld.fsi":18:5~24:16
       _api=(Some _value=(APIName @18:5~23:21 _ids=[(Id @18:5~21 _text="SyntaxHelloWorld") (Id @23:11~21 _text="helloworld")]))
-      _name=(Id @24:5~15 _text="helloworld"))
-     _type=(Some _value=(IdType @24:17~28 _name=(QualifiedIdName
-        _name=(Id _text="LiteralExpr"))))
+      _name=(Id @24:5~16 _text="LiteralExpr"))
+     _type=(Some _value=(IdType @24:18~22 _name=(QualifiedIdName
+        _name=(Id _text="Expr"))))
      _syntaxDefs=[
       (SyntaxDef @25:7~28:12
        _transformationExpression=(Do @26:9~28:12
