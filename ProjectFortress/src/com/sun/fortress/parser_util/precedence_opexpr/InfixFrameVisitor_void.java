@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,6 +25,12 @@ public interface InfixFrameVisitor_void {
 
    /** Process an instance of Loose. */
    public void forLoose(Loose that);
+
+   /** Process an instance of TypeTight. */
+   public void forTypeTight(TypeTight that);
+
+   /** Process an instance of TypeLoose. */
+   public void forTypeLoose(TypeLoose that);
 
    /** Process an instance of TightChain. */
    public void forTightChain(TightChain that);

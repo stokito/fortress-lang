@@ -181,14 +181,14 @@ public class NodeFactory {
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
-                                              Option<DimExpr> derived,
+                                              Option<Type> derived,
                                               Option<Id> defaultId) {
         return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
                                false, Collections.<Id>emptyList(),
                                Option.<Expr>none());
     }
 
-    public static DimUnitDecl makeDimUnitDecl(Span span, Option<DimExpr> derived,
+    public static DimUnitDecl makeDimUnitDecl(Span span, Option<Type> derived,
                                               String unit, List<Id> ids,
                                               Option<Expr> def) {
         boolean si_unit;
@@ -199,7 +199,7 @@ public class NodeFactory {
     }
 
     public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
-                                              Option<DimExpr> derived,
+                                              Option<Type> derived,
                                               String unit, List<Id> ids,
                                               Option<Expr> def) {
         boolean si_unit;
@@ -652,7 +652,7 @@ public class NodeFactory {
             public DimExpr forBaseDim(BaseDim t) {
                 return new BaseDim(t.getSpan(), true);
             }
-            public DimExpr forDimId(DimRef t) {
+            public DimExpr forDimRef(DimRef t) {
                 return new DimRef(t.getSpan(), true, t.getName());
             }
             public DimExpr forProductDim(ProductDim t) {
@@ -672,7 +672,7 @@ public class NodeFactory {
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
-         " is not a subtype of DimExpr.");
+                           " is not a subtype of DimExpr.");
             }
         });
     }

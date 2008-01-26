@@ -18,10 +18,12 @@
 /*
  * Definition of Fortress types.
  */
-module com.sun.fortress.parser.Type(Header, Expression, Literal, Identifier,
-                                    Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Type(NoNewlineHeader, MayNewlineHeader,
+                                    Expression, Literal, Identifier, Keyword,
+                                    Symbol, Spacing);
 
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import Expression;
 import Literal;
 import Identifier;
@@ -29,172 +31,104 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* IsType ::= : w Type */
-Type IsType = void:colon w Type ;
+/* Type ::= TypePrimary */
+Type Type = !(one) a1:TypePrimary { yyValue = TypeResolver.resolveOps(a1); };
 
-/* NonArrowType, TraitType, and DimType are mutually left recursive.
-   We've inlined them into each other and removed the left recursion. */
-/* Type ::=
-     ( w Type w )
-   | ArrowType
-   | NonArrowType
+/* TypePrimary ::=
+     TypePrimaryFront TightInfixPostfix
+   | TypePrimaryFront wr TypePrimary
+   | TypePrimaryFront wr LooseInfix
+   | TypePrimaryFront
+ */
+PureList<PostfixOpExpr> TypePrimary =
+     a1:TypePrimaryFront a2:TightInfixPostfix
+     { yyValue = a2.cons(new RealType(a1)); }
+   / <LooseJuxt> a1:TypePrimaryFront wr a2:TypePrimary
+     { yyValue = a2.cons(new RealType(a1)); }
+   / <LooseInfix> a1:TypePrimaryFront wr a2:LooseInfix
+     { yyValue = a2.cons(new RealType(a1)); }
+   / a1:TypePrimaryFront
+     { yyValue = PureList.make((PostfixOpExpr)new RealType(a1)); };
 
-   ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)?
+/* TypePrefix ::=
+     DimPrefixOp TypePrimary
+   | DimPrefixOp TypePrefix
+   | DimPrefixOp wr TypePrimary
+   | DimPrefixOp wr TypePrefix
+ */
+PureList<PostfixOpExpr> TypePrefix =
+     a1:DimPrefixOp a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+   / a1:DimPrefixOp a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+   / <Prefix> a1:DimPrefixOp wr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+   / <PrePrefix> a1:DimPrefixOp wr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); };
 
-   NonArrowType ::=
-     TraitType
+/* TightInfixPostfix ::=
+     TypeInfixOp TypePrimary (w Throws)?
+   | TypeInfixOp TypePrefix (w Throws)?
+   | DimInfixOp TypePrimary
+   | DimInfixOp TypePrefix
+   | DimPostfixOp wr TypePrimary
+   | DimPostfixOp wr TypePrefix
+   | DimPostfixOp
+ */
+PureList<PostfixOpExpr> TightInfixPostfix =
+     <Arrow> a1:TypeInfixOp a2:TypePrimary a3:(w Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+   / <ArrowPrefix> a1:TypeInfixOp a2:TypePrefix a3:(w Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, Option.wrap(a3))); }
+   / a1:DimInfixOp a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1)); }
+   / a1:DimInfixOp a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1)); }
+   / <Postfix> a1:DimPostfixOp wr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new Postfix(a1)); }
+   / <PostPrefix> a1:DimPostfixOp wr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new Postfix(a1)); }
+   / a1:DimPostfixOp
+     { yyValue = PureList.make((PostfixOpExpr)new Postfix(a1)); };
+
+/* LooseInfix ::=
+     TypeInfixOp wr TypePrimary (w Throws)?
+   | TypeInfixOp wr TypePrefix (w Throws)?
+   | DimInfixOp wr TypePrimary
+   | DimInfixOp wr TypePrefix
+ */
+PureList<PostfixOpExpr> LooseInfix =
+     <Arrow> a1:TypeInfixOp wr a2:TypePrimary a3:(w Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+   / <ArrowPrefix> a1:TypeInfixOp wr a2:TypePrefix a3:(w Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, Option.wrap(a3))); }
+   / <Infix> a1:DimInfixOp wr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); }
+   / <InPrefix> a1:DimInfixOp wr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); };
+
+/* TypePrimaryFront ::= TypeFront TypeTail* */
+Type TypePrimaryFront =
+    seed:TypeFront list:TypeTail* { yyValue = (Type)apply(list, seed); };
+
+/* TypeFront ::=
+     ParenthesizedType
    | TupleType
-   | ( w )
-   | DimType
-
-   TraitType ::=
-     Type w [ (w ArraySize)? w ]
-   | Type ^ IntExpr
-   | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
-   | QualifiedName (w [\ w StaticArgList w \])?
-
-   DimType ::=
-     Type sr DimExpr (w in w Expr)?
-   | Type sr Expr
+   | TypeRef
+   | VoidType
+   | 1
  */
-constant transient Type Type =
-     seed:TypeFront list:TypeTail*
-     { yyValue = (Type)apply(list, seed); };
-
 private Type TypeFront =
+     ParenthesizedType
+   / TupleType
+   / TypeRef
+   / VoidType
+   / one { yyValue = new BaseDim(createSpan(yyStart,1)); };
+
+/* ParenthesizedType ::= ( w Type w ) */
+private Type ParenthesizedType =
      openparen w a1:Type w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
-   / a1:TypeFrontNonArrow w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { Option<List<TraitType>> throws_ = Option.wrap(a3);
-       yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount), a1, a2,
-                                           throws_);
-     }
-   / TypeFrontNonArrow
-   ;
-
-private NonArrowType TypeFrontNonArrow =
-     a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
-     { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
-     }
-   / TupleType
-   / openparen w closeparen
-     { yyValue = new VoidType(createSpan(yyStart,yyCount)); };
-
-private constant transient Action<Type> TypeTail =
-     w opensquare a1:(w ArraySize)? w closesquare a2:ArrowTypeTail?
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               Option<Indices> indices = Option.wrap(a1);
-               NonArrowType ty =
-                   NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                             (Type)base, indices);
-               if (a2 == null) return ty;
-               else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
-                                                     ty, a2.getRange(),
-                                                     a2.getThrows());
-           }};
-     }
-   / caret a1:IntExpr a2:ArrowTypeTail?
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               StaticArg arg = new IntArg(a1.getSpan(),a1);
-               ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
-                                                Option.some(arg));
-               NonArrowType ty =
-                   NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                              (Type)base, er);
-               if (a2 == null) return ty;
-               else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
-                                                     ty, a2.getRange(),
-                                                     a2.getThrows());
-           }};
-     }
-   / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
-     a3:ArrowTypeTail?
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               NonArrowType ty =
-                   NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                              (Type)base,a1,a2s.list());
-
-               if (a3 == null) return ty;
-               else return NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
-                                                     ty, a3.getRange(),
-                                                     a3.getThrows());
-           }};
-/* ****************************************************************************
-     }
-   / sr a1:DimExpr a2:(w in w Expr)?
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               Option<Expr> unit;
-               if (a2 == null) unit = Option.<Expr>none();
-               else            unit = Option.<Expr>some(a2);
-               return new TaggedDimType(createSpan(yyStart,yyCount),
-                                        (Type)base, a1, unit);
-           }};
-     }
-   / sr a1:Expr
-     { yyValue = new Action<Type>() {
-           public Type run(Type base) {
-               return new TaggedUnitType(createSpan(yyStart,yyCount),
-                                         (Type)base, a1);
-           }};
-*****************************************************************************/
-     };
-
-private ArrowTypeTail ArrowTypeTail =
-     w rightarrow w a1:NonArrowType a2:(w Throws)?
-     { Option<List<TraitType>> throws_ = Option.wrap(a2);
-       yyValue = new ArrowTypeTail(a1, throws_);
-     };
-
-/* ArrowType ::= NonArrowType w -> w NonArrowType (w Throws)? */
-ArrowType ArrowType =
-     a1:NonArrowType w rightarrow w a2:NonArrowType a3:(w Throws)?
-     { Option<List<TraitType>> throws_ = Option.wrap(a3);
-       yyValue = NodeFactory.makeArrowType(createSpan(yyStart,yyCount),
-                                           a1, a2, throws_);
-     };
-
-private NonArrowType NonArrowType =
-     TraitType
-   / TupleType
-   / openparen w closeparen
-     { yyValue = new VoidType(createSpan(yyStart,yyCount)); }
-/* ****************************************************************************
-   / DimType
-******************************************************************************/
-   ;
-
-/* TraitType ::=
-     Type [ (w ArraySize)? w ]
-   | Type ^ IntExpr
-   | Type ^ ( w ExtentRange (w x w ExtentRange)* w )
-   | QualifiedName (w [\ w StaticArgList w \])?
- */
-TraitType TraitType =
-     a1:Type w opensquare a2:(w ArraySize)? w closesquare
-     { Option<Indices> indices = Option.wrap(a2);
-       yyValue = NodeFactory.makeArrayType(createSpan(yyStart,yyCount), a1,
-                                           indices);
-     }
-   / a1:Type caret a2:IntExpr
-     { StaticArg arg = new IntArg(a2.getSpan(),a2);
-       ExtentRange er = new ExtentRange(Option.<StaticArg>none(),
-                                        Option.some(arg));
-       yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),a1,er);
-     }
-   / a1:Type caret openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
-     closeparen
-     { yyValue = NodeFactory.makeMatrixType(createSpan(yyStart,yyCount), a1, a2,
-                                            a3s.list());
-     }
-   / a1:QualifiedName a2:(w opendoublesquare w StaticArgList w closedoublesquare)?
-     { if (a2 == null) yyValue = new IdType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount), a1, a2);
-     };
+     { yyValue = NodeFactory.makeInParentheses(a1); };
 
 /* TupleType ::=
      ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
@@ -238,158 +172,42 @@ TupleType SimpleTupleType =
 List<Type> TypeList = a1:Type a2s:(w comma w Type)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* DimType ::=
-     Type sr DimExpr (w in w Expr)?
-   | Type sr Expr
+/* TypeRef ::= DottedIdChain StaticArgs? */
+/* TypeRef ::= Id StaticArgs? */
+private Type TypeRef = a1:Id a2:StaticArgs?
+     { QualifiedIdName name = NodeFactory.makeQualifiedIdName(a1.getSpan(), a1);
+       if (a2 == null)
+            yyValue = new IdType(createSpan(yyStart,yyCount), name);
+       else yyValue = new InstantiatedType(createSpan(yyStart,yyCount),name,a2);
+     };
+
+/* VoidType ::= ( w ) */
+private Type VoidType =
+     openparen w closeparen
+     { yyValue = new VoidType(createSpan(yyStart,yyCount)); };
+
+/* TypeTail ::=
+     ArrayTypeSize
+   | Exponentiation
+   | ParenthesizedType
+   | Id                // DottedIdChain
  */
-private DimType DimType =
-     a1:Type sr a2:DimExpr a3:(w in w Expr)?
-     { Option<Expr> unit;
-       if (a3 == null) unit = Option.<Expr>none();
-       else            unit = Option.<Expr>some(a3);
-       yyValue = new TaggedDimType(createSpan(yyStart,yyCount), a1, a2, unit);
-     }
-   / a1:Type sr a2:Expr
-     { yyValue = new TaggedUnitType(createSpan(yyStart,yyCount), a1, a2); };
-
-/* DimExpr ::=
-     Unity
-   | QualifiedName
-   | DimExpr w DOT w DimExpr
-   | DimExpr sr DimExpr
-   | DimExpr w / w DimExpr
-   | DimExpr w per w DimExpr
-   | 1 w / w DimExpr
-   | DimExpr ^ IntLiteralExpr
-   | ( w DimExpr w )
-   | DUPreOp sr DimExpr
-   | DimExpr w DUPostOp
- */
-DimExpr DimExpr =
-     seed:DimExprFront list:DimExprTail*
-     { yyValue = (DimExpr)apply(list, seed); };
-
-private DimExpr DimExprFront =
-     "Unity"
-     { yyValue = new BaseDim(createSpan(yyStart,yyCount)); }
-   / a1:QualifiedName
-     { yyValue = new DimRef(createSpan(yyStart,yyCount), a1); }
-   / one w slash w a1:DimExpr
-     { yyValue = new QuotientDim(createSpan(yyStart,yyCount),
-                                 new BaseDim(createSpan(yyStart,1)), a1); }
-   / openparen w a1:DimExpr w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
-   / a1:DUPreOp sr a2:DimExpr
-     { yyValue = new OpDim(createSpan(yyStart,yyCount), a2, a1); };
-
-private constant transient Action<DimExpr> DimExprTail =
-     ProductDim
-   / QuotientDim
-   / ExponentDim
-   / OpDim
+constant transient Action<Type> TypeTail =
+     ArrayTypeSize
+   / Exponentiation
+   / ParenthesizedTypeLeft
+   / IdLeft
    ;
 
-private constant inline Action<DimExpr> ProductDim =
-     (w DOT w / sr) a1:DimExpr
-     { yyValue = new Action<DimExpr>() {
-           public DimExpr run(DimExpr base) {
-               return new ProductDim(createSpan(yyStart,yyCount), (DimExpr)base,
-                                     a1);
+/* ArrayTypeSize ::= [ (w ArraySize)? w ] */
+constant inline Action<Type> ArrayTypeSize =
+     opensquare a1:(w ArraySize)? w closesquare
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
+                                                (Type)base, Option.wrap(a1));
            }};
      };
-
-private constant inline Action<DimExpr> QuotientDim =
-     w (slash / per) w a1:DimExpr
-     { yyValue = new Action<DimExpr>() {
-           public DimExpr run(DimExpr base) {
-               return new QuotientDim(createSpan(yyStart,yyCount), (DimExpr)base,
-                                      a1);
-           }};
-     };
-
-private constant inline Action<DimExpr> ExponentDim =
-     caret a1:IntLiteralExpr
-     { yyValue = new Action<DimExpr>() {
-           public DimExpr run(DimExpr base) {
-               return new ExponentDim(createSpan(yyStart,yyCount), (DimExpr)base,
-                                      a1);
-           }};
-     };
-
-private constant inline Action<DimExpr> OpDim =
-     w a1:DUPostOp
-     { yyValue = new Action<DimExpr>() {
-           public DimExpr run(DimExpr base) {
-               return new OpDim(createSpan(yyStart,yyCount), (DimExpr)base, a1);
-           }};
-     };
-
-/* StaticArgs ::= [\ w StaticArgList w \] */
-List<StaticArg> StaticArgs =
-    opendoublesquare w StaticArgList w closedoublesquare ;
-
-/* StaticArgList ::= StaticArg (w , w StaticArg)*  */
-List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* StaticArg ::=
-     Op
-   | ( StaticArg )
-   | IntExpr
-   | BoolExpr
-   | Type
-   | DimExpr
-   | Expr
- */
-private StaticArg StaticArg =
-     a1:Op
-     { yyValue = new OprArg(createSpan(yyStart,yyCount), a1); }
-   / "Unity"
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new DimArg(span, new BaseDim(span));
-     }
-   / a1:"dimensionless"
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitArg(span, ExprFactory.makeVarRef(new Id(span, a1)));
-     }
-   / one w slash w a1:DimExpr
-     { Span span = createSpan(yyStart,1);
-       yyValue = new DimArg(span, new QuotientDim(span, new BaseDim(createSpan(yyStart,1)), a1));
-     }
-   / a1:DUPreOp sr a2:DimExpr
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new DimArg(span, new OpDim(span, a2, a1));
-     }
-   / openparen w a1:StaticArg w closeparen
-     { yyValue = NodeFactory.makeInParentheses(a1); }
-   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
-                      w opendoublesquare / w opensquare / w rightarrow /
-                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
-     a1:IntExpr
-     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
-   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
-                      w opendoublesquare / w opensquare / w rightarrow))
-     a1:BoolExpr
-     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
-   / !(QualifiedName (w DOT / w slash / w per / w DUPostOp))
-     a1:Type
-     { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
-   / a1:DimExpr
-     { yyValue = new DimArg(createSpan(yyStart,yyCount), a1); }
-   / a1:Expr
-     { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
-   ;
-
-/* DUPreOp ::= square | cubic | inverse */
-DimUnitOp DUPreOp =
-     square  { yyValue = new SquareDimUnit(createSpan(yyStart,yyCount));  }
-   / cubic   { yyValue = new CubicDimUnit(createSpan(yyStart,yyCount));   }
-   / inverse { yyValue = new InverseDimUnit(createSpan(yyStart,yyCount)); };
-
-/* DUPostOp ::= squared | cubed */
-DimUnitOp DUPostOp =
-     squared { yyValue = new SquareDimUnit(createSpan(yyStart,yyCount)); }
-   / cubed   { yyValue = new CubicDimUnit(createSpan(yyStart,yyCount));  };
 
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
 private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
@@ -417,4 +235,134 @@ ExtentRange ExtentRange =
      { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
                                  Option.<StaticArg>none(),
                                  Option.some(a1));
+     };
+
+/* Exponentiation ::=
+     ^ IntExpr
+   | ^ ( w ExtentRange (w x w ExtentRange)* w )
+ */
+constant inline Action<Type> Exponentiation =
+     caret a1:IntExpr
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               if (base instanceof DimExpr) {
+                   return new ExponentDim(createSpan(yyStart,yyCount),
+                                          (DimExpr)base, a1);
+               } else { // !(base instanceof DimExpr)
+                   return new ExponentType(createSpan(yyStart,yyCount),
+                                           (Type)base, a1);
+               }
+           }};
+     }
+   / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
+                                                 (Type)base,a1,a2s.list());
+           }};
+     };
+
+/* ParenthesizedType ::= ( w TypePrimary w ) */
+constant inline Action<Type> ParenthesizedTypeLeft =
+     openparen w a1:TypePrimary w closeparen
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               DimExpr dim = TypeResolver.resolveOpsDim(a1);
+               return new TaggedDimType(createSpan(yyStart,yyCount), (Type)base,
+                                        NodeFactory.makeInParentheses(dim),
+                                        Option.<Expr>none());
+           }};
+     };
+
+constant inline Action<Type> IdLeft =
+     a1:Id
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               Span span = a1.getSpan();
+               DimRef dim = new DimRef(span,
+                                       NodeFactory.makeQualifiedIdName(span,a1));
+               return new TaggedDimType(createSpan(yyStart,yyCount), (Type)base,
+                                        dim, Option.<Expr>none());
+           }};
+     };
+
+/* TypeInfixOp ::= -> */
+Op TypeInfixOp =
+     a1:rightarrow
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+/* DimInfixOp ::= DOT | / | per */
+Op DimInfixOp =
+     a1:(DOT / slash / per)
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+/* DimPrefixOp ::= square | cubic | inverse */
+Op DimPrefixOp =
+     a1:(square / cubic / inverse)
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+/* DimPostfixOp ::= squared | cubed */
+Op DimPostfixOp =
+     a1:(squared / cubed)
+     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+
+/* TraitType ::=
+     TraitTypeFront TraitTypeTail+
+   | TypeRef
+ */
+TraitType TraitType =
+     seed:TraitTypeFront list:TraitTypeTail+
+     { yyValue = (TraitType)apply(list, seed); }
+   / TypeRef ;
+
+/* TraitTypeFront ::=
+     ParenthesizedType
+   | TupleType
+   | TypeRef
+   | VoidType
+ */
+private Type TraitTypeFront =
+     ParenthesizedType
+   / TupleType
+   / TypeRef
+   / VoidType
+   ;
+
+/* TraitTypeTail ::=
+     ArrayTypeSize
+   | Exponentiation
+ */
+constant transient Action<Type> TraitTypeTail =
+     ArrayTypeSizeTrait
+   / ExponentiationTrait
+   ;
+
+/* ArrayTypeSize ::= [ (w ArraySize)? w ] */
+constant inline Action<Type> ArrayTypeSizeTrait =
+     opensquare a1:(w ArraySize)? w closesquare
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
+                                                (Type)base, Option.wrap(a1));
+           }};
+     };
+
+/* Exponentiation ::=
+     ^ IntExpr
+   | ^ ( w ExtentRange (w x w ExtentRange)* w )
+ */
+constant inline Action<Type> ExponentiationTrait =
+     caret a1:IntExpr
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return TypeResolver.makeMatrixType(createSpan(yyStart,yyCount),
+                                                  (Type)base, a1);
+           }};
+     }
+   / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
+     { yyValue = new Action<Type>() {
+           public Type run(Type base) {
+               return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
+                                                 (Type)base,a1,a2s.list());
+           }};
      };

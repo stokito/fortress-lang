@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,6 +28,9 @@ public interface OpExprVisitor_void {
 
    /** Process an instance of RealExpr. */
    public void forRealExpr(RealExpr that);
+
+   /** Process an instance of RealType. */
+   public void forRealType(RealType that);
 
    /** Process an instance of TightInfix. */
    public void forTightInfix(TightInfix that);

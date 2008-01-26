@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,6 +25,12 @@ public interface InfixFrameVisitor<RetType> {
 
    /** Process an instance of Loose. */
    public RetType forLoose(Loose that);
+
+   /** Process an instance of TypeTight. */
+   public RetType forTypeTight(TypeTight that);
+
+   /** Process an instance of TypeLoose. */
+   public RetType forTypeLoose(TypeLoose that);
 
    /** Process an instance of TightChain. */
    public RetType forTightChain(TightChain that);

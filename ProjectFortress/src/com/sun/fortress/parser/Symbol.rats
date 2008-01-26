@@ -18,10 +18,11 @@
 /*
  * Definition of Fortress symbols and operators.
  */
-module com.sun.fortress.parser.Symbol(DelimitedExpr, NoNewlineExpr, Type,
-                                      Identifier, Spacing, Keyword);
+module com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl, NoNewlineExpr,
+                                      Type, Identifier, Spacing, Keyword);
 
 import DelimitedExpr;
+import LocalDecl;
 import NoNewlineExpr;
 import Type;
 import Identifier;
@@ -166,7 +167,7 @@ Op CompoundOp =
 
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
-String doublerightarrow = "=>" &(w NoNewlineExpr w match);
+String doublerightarrow = "=>" &(w BlockElems w match);
 
 /* The operator "BY" should not be used with ExtentRange. */
 String crossOp = "BY":OpName &(w ExtentRange);
@@ -198,11 +199,14 @@ String OR      = "OR":op;
 String AND     = "AND":op;
 String IMPLIES = "->":op / "IMPLIES":op;
 
+String DOT = "DOT":OpName;
+String slash = "/":singleOp;
+String rightarrow = "->";
+
 transient void closeangle = "|>";
 transient void closedoublesquare = "\\]";
 transient void closeparen = ")";
 transient void cross = "BY";
-transient void DOT = "DOT":OpName;
 transient void mapsto = "|->";
 transient void match = "=>";
 transient void minus = "-":singleOp;
@@ -211,9 +215,7 @@ transient void opendoublesquare = "[\\";
 transient void openparen = !(leftEncloser) "(";
 transient void plus = "+":singleOp;
 transient void pound = "#":singleOp;
-transient void slash = "/":singleOp;
 transient void star = "*":singleOp;
-transient void rightarrow = "->";
 transient void underscore = "_";
 
 transient void comma = ",";

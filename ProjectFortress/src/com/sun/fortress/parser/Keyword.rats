@@ -56,13 +56,14 @@ body {
 
 option setOfString(FORTRESS_KEYWORDS);
 
+String cubed = "cubed" !(idrest);
+String cubic = "cubic" !(idrest);
+String inverse = "inverse" !(idrest);
+String per = "per" !(idrest);
+String square = "square" !(idrest);
+String squared = "squared" !(idrest);
+
 transient void FORALL = "FORALL" !(idrest);
-transient void cubed = "cubed" !(idrest);
-transient void cubic = "cubic" !(idrest);
-transient void inverse = "inverse" !(idrest);
-transient void per = "per" !(idrest);
-transient void square = "square" !(idrest);
-transient void squared = "squared" !(idrest);
 transient void goto = "goto" !(idrest);
 transient void idiom = "idiom" !(idrest);
 transient void public = "public" !(idrest);

@@ -85,10 +85,14 @@ private FnDef LocalFnDecl =
 
 /* LocalVarDecl ::=
      (var w)? LocalVarWTypes s InitVal
-   | (var w)? LocalVarWTypes
+   | (var w)? NoNewlineLocalVarWTypes
    | (var w)? LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
    | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
+   NoNewlineLocalVarWTypes ::=
+     NoNewlineLocalVarWType
+   | ( w NoNewlineLocalVarWType (w , w NoNewlineLocalVarWType)+ w )
+   NoNewlineLocalVarWType ::= BindId s : s NoNewlineType
    LocalVarWTypes ::=
      LocalVarWType
    | ( w LocalVarWType (w , w LocalVarWType)+ w )
@@ -101,14 +105,14 @@ private FnDef LocalFnDecl =
    | Unpasting
  */
 LocalVarDecl LocalVarDecl =
-     a1:(var w)? a2:VarWTypes s a3:InitVal
+     a1:(var w)? a2:NoNewlineVarWTypes s a3:InitVal
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
                                              FortressUtil.toLValueList(a2),
                                              a3.getA());
      }
-   / a1:(var w)? a2:VarWTypes
+   / a1:(var w)? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
                                              FortressUtil.toLValueList(a2));
