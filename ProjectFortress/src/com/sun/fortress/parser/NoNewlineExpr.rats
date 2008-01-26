@@ -18,9 +18,11 @@
 /*
  * Definition of Fortress expressions that do not include any newlines.
  */
-module com.sun.fortress.parser.NoNewlineExpr(Expr, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.NoNewlineExpr(Expr, NoNewlineType, Keyword,
+                                             Symbol, Spacing);
 
 modify Expr;
+import NoNewlineType;
 import Keyword;
 import Symbol;
 import Spacing;
@@ -59,7 +61,7 @@ Action<Expr> ExprTail :=
    ;
 
 inline Action<Expr> NoNewlineAs =
-     s as w a1:Type
+     s as w a1:NoNewlineType
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base,
@@ -68,7 +70,7 @@ inline Action<Expr> NoNewlineAs =
      };
 
 inline Action<Expr> NoNewlineAsIf =
-     s asif w a1:Type
+     s asif w a1:NoNewlineType
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return new AsIfExpr(createSpan(yyStart,yyCount), false,
@@ -184,3 +186,21 @@ List<GeneratorClause> GeneratorClauseList :=
      a1:GeneratorBinding a2s:(s comma w GeneratorClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;
+
+/* NoNewlineVarWTypes ::=
+     NoNewlineVarWType
+   | ( w NoNewlineVarWType (w , w NoNewlineVarWType)+ w )
+ */
+List<LValueBind> NoNewlineVarWTypes =
+     a1:NoNewlineVarWType
+     { yyValue = FortressUtil.mkList(a1); }
+   / openparen w a1:NoNewlineVarWType a2s:(w comma w NoNewlineVarWType)+ w
+     closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* NoNewlineVarWType ::= BindId w NoNewlineIsType */
+LValueBind NoNewlineVarWType = a1:BindId w a2:NoNewlineIsType
+     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
+
+/* NoNewlineIsType ::= : w NoNewlineType */
+Type NoNewlineIsType = void:colon w NoNewlineType ;

@@ -19,12 +19,13 @@
  * Definition of Fortress dimension, unit, type alias, test, property, and
  * external syntax declarations.
  */
-module com.sun.fortress.parser.OtherDecl(Param, Header, Type, NoNewlineExpr,
-                                         Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.OtherDecl(Param, Header, NoNewlineType,
+                                         NoNewlineExpr, Identifier, Keyword,
+                                         Symbol, Spacing);
 
 import Param;
 import Header;
-import Type;
+import NoNewlineType;
 import NoNewlineExpr;
 import Identifier;
 import Keyword;
@@ -32,14 +33,15 @@ import Symbol;
 import Spacing;
 
 /* DimUnitDecl ::=
-     dim w Id (w = w DimExpr)? s (unit | SI_unit) w Id (wr Id)* (w = w NoNewlineExpr)?
-   | dim w Id (w = w DimExpr)? (w default w Id)?
-   | (unit | SI_unit) w Id (wr Id)* (w : w DimExpr)? (w = w NoNewlineExpr)?
+     dim w Id (w = w NoNewlineType)? s (unit | SI_unit) w Id (wr Id)*
+         (w = w NoNewlineExpr)?
+   | dim w Id (w = w NoNewlineType)? (w default w Id)?
+   | (unit | SI_unit) w Id (wr Id)* (w : w NoNewlineType)? (w = w NoNewlineExpr)?
  */
 DimUnitDecl DimUnitDecl =
-     dim w a1:Id a2:(w void:equals w DimExpr)? s a3:(unit / SI_unit) w a4:Id
-     a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
-     { Option<DimExpr> derived = Option.wrap(a2);
+     dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
+     a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
+     { Option<Type> derived = Option.wrap(a2);
        List<Id> ids = new ArrayList<Id>();
        ids.add(a4);
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
@@ -47,16 +49,16 @@ DimUnitDecl DimUnitDecl =
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
                                              derived, a3, ids, def);
      }
-   / dim w a1:Id a2:(w void:equals w DimExpr)? a3:(w default w Id)?
-     { Option<DimExpr> derived = Option.wrap(a2);
+   / dim w a1:Id a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
+     { Option<Type> derived = Option.wrap(a2);
        Option<Id> defaultId = (a3 == null) ?
            Option.<Id>none() : Option.some(a3);
        yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
                                              derived, defaultId);
      }
-   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w DimExpr)?
+   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
-     { Option<DimExpr> derived = Option.wrap(a4);
+     { Option<Type> derived = Option.wrap(a4);
        List<Id> ids = new ArrayList<Id>();
        ids.add(a2);
        for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
@@ -65,8 +67,9 @@ DimUnitDecl DimUnitDecl =
                                              derived, a1, ids, def);
      };
 
-/* TypeAlias ::= type w Id (w StaticParams)? w = w Type */
-TypeAlias TypeAlias = type w a1:Id a2:(w StaticParams)? w equals w a3:Type
+/* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
+TypeAlias TypeAlias =
+     type w a1:Id a2:(w StaticParams)? w equals w a3:NoNewlineType
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
        yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
      };

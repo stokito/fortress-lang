@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -46,6 +46,18 @@ public class InfixFrameAbstractVisitor_void implements InfixFrameVisitor_void {
 
    public void forLooseChain(LooseChain that) {
       forChain(that);
+   }
+
+   public void forTypeInfixFrame(TypeInfixFrame that) {
+      defaultCase(that);
+   }
+
+   public void forTypeTight(TypeTight that) {
+      forTypeInfixFrame(that);
+   }
+
+   public void forTypeLoose(TypeLoose that) {
+      forTypeInfixFrame(that);
    }
 
    /** This method is called by default from cases that do not

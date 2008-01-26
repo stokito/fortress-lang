@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -50,6 +50,30 @@ public class InfixFrameDepthFirstVisitor_void implements InfixFrameVisitor_void 
       forNonChainOnly(that);
    }
 
+   public void forTypeInfixFrameDoFirst(TypeInfixFrame that) {
+      defaultDoFirst(that);
+   }
+
+   public void forTypeInfixFrameOnly(TypeInfixFrame that) {
+      defaultCase(that);
+   }
+
+   public void forTypeTightDoFirst(TypeTight that) {
+      forTypeInfixFrameDoFirst(that);
+   }
+
+   public void forTypeTightOnly(TypeTight that) {
+      forTypeInfixFrameOnly(that);
+   }
+
+   public void forTypeLooseDoFirst(TypeLoose that) {
+      forTypeInfixFrameDoFirst(that);
+   }
+
+   public void forTypeLooseOnly(TypeLoose that) {
+      forTypeInfixFrameOnly(that);
+   }
+
    public void forChainDoFirst(Chain that) {
       defaultDoFirst(that);
    }
@@ -83,6 +107,16 @@ public class InfixFrameDepthFirstVisitor_void implements InfixFrameVisitor_void 
    public void forLoose(Loose that) {
       forLooseDoFirst(that);
       forLooseOnly(that);
+   }
+
+   public void forTypeTight(TypeTight that) {
+      forTypeTightDoFirst(that);
+      forTypeTightOnly(that);
+   }
+
+   public void forTypeLoose(TypeLoose that) {
+      forTypeLooseDoFirst(that);
+      forTypeLooseOnly(that);
    }
 
    public void forTightChain(TightChain that) {

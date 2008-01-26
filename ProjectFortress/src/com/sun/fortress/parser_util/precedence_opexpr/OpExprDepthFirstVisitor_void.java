@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -48,6 +48,14 @@ public class OpExprDepthFirstVisitor_void implements OpExprVisitor_void {
    }
 
    public void forRealExprOnly(RealExpr that) {
+      defaultCase(that);
+   }
+
+   public void forRealTypeDoFirst(RealType that) {
+      defaultDoFirst(that);
+   }
+
+   public void forRealTypeOnly(RealType that) {
       defaultCase(that);
    }
 
@@ -105,6 +113,11 @@ public class OpExprDepthFirstVisitor_void implements OpExprVisitor_void {
    public void forRealExpr(RealExpr that) {
       forRealExprDoFirst(that);
       forRealExprOnly(that);
+   }
+
+   public void forRealType(RealType that) {
+      forRealTypeDoFirst(that);
+      forRealTypeOnly(that);
    }
 
    public void forTightInfix(TightInfix that) {

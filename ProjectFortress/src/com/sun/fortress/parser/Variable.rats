@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,10 +18,11 @@
 /*
  * Definition of Fortress variable declarations.
  */
-module com.sun.fortress.parser.Variable(Header, Type, NoNewlineExpr, Identifier,
+module com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader, Type, NoNewlineExpr, Identifier,
                                         Keyword, Symbol, Spacing);
 
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import Type;
 import NoNewlineExpr;
 import Identifier;
@@ -112,12 +113,12 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
      };
 
 /* AbsVarDecl ::=
-     AbsVarMods? VarWTypes
+     AbsVarMods? NoNewlineVarWTypes
    | AbsVarMods? BindIdOrBindIdTuple w : w Type w ...
    | AbsVarMods? BindIdOrBindIdTuple w : w SimpleTupleType
  */
 AbsVarDecl AbsVarDecl =
-     a1:AbsVarMods? a2:VarWTypes
+     a1:AbsVarMods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }

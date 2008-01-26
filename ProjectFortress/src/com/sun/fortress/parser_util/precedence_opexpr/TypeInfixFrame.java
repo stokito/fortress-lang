@@ -20,50 +20,39 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 import java.util.List;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
- * Class JuxtInfix, a component of the OpExpr composite hierarchy.
+ * Class TypeInfixFrame, a component of the InfixFrame composite hierarchy.
  * Note: null is not allowed as a value for any field.
  */
-public abstract class JuxtInfix extends Object implements InfixOpExpr {
+public abstract class TypeInfixFrame extends Object implements InfixFrame {
    private final Op _op;
    private final Option<List<TraitType>> _throws;
+   private final Type _arg;
    private int _hashCode;
    private boolean _hasHashCode = false;
 
    /**
-    * Constructs a JuxtInfix.
+    * Constructs a TypeInfixFrame.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public JuxtInfix(Op in_op) {
+   public TypeInfixFrame(Op in_op, Option<List<TraitType>> in_throws,
+                         Type in_arg) {
       super();
-
-      if (in_op == null) {
-         throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
-      }
       _op = in_op;
-      _throws = Option.<List<TraitType>>none();
-   }
-
-   public JuxtInfix(Op in_op, Option<List<TraitType>> in_throws) {
-      super();
-
-      if (in_op == null) {
-         throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
-      }
-      _op = in_op;
-      if (in_throws == null) {
-         throw new java.lang.IllegalArgumentException("Parameter '_throws' to the JuxtInfix constructor was null. This class may not have null field values.");
-      }
       _throws = in_throws;
+      _arg = in_arg;
    }
 
    public Op getOp() { return _op; }
    public Option<List<TraitType>> getThrows() { return _throws; }
+    public Type getArg() { return _arg; }
 
-   public abstract <RetType> RetType accept(OpExprVisitor<RetType> visitor);
-   public abstract void accept(OpExprVisitor_void visitor);
+   public abstract <RetType> RetType accept(InfixFrameVisitor<RetType> visitor);
+   public abstract void accept(InfixFrameVisitor_void visitor);
    public abstract void outputHelp(TabPrintWriter writer);
    protected abstract int generateHashCode();
    public final int hashCode() {

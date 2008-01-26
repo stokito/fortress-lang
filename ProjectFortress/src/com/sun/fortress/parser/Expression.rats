@@ -18,12 +18,13 @@
 /*
  * Definition of Fortress expressions.
  */
-module com.sun.fortress.parser.Expression(Param, Header, Type, DelimitedExpr,
+module com.sun.fortress.parser.Expression(Param, NoNewlineHeader, MayNewlineHeader, Type, DelimitedExpr,
                                           Literal, Identifier, Keyword, Symbol,
                                           Spacing);
 
 import Param;
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import Type;
 import DelimitedExpr;
 import Literal;

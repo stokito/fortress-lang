@@ -18,11 +18,12 @@
 /*
  * Definition of Fortress headers.
  */
-module com.sun.fortress.parser.Header(Other, Type, Expr, DelimitedExpr, Literal,
+module com.sun.fortress.parser.MayNewlineHeader(Other, Type, Header, Expr, DelimitedExpr, Literal,
                                       Identifier, Keyword, Symbol, Spacing);
 
 import Other;
 import Type;
+import Header;
 import Expr;
 import DelimitedExpr;
 import Literal;
@@ -31,105 +32,11 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* ExtendsWhere ::= extends w TraitTypeWheres */
-List<TraitTypeWhere> ExtendsWhere = extends w TraitTypeWheres ;
-
-/* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
-private List<TraitTypeWhere> TraitTypeWheres =
-     a1:TraitTypeWhere { yyValue = FortressUtil.mkList(a1); }
-   / void:opencurly w TraitTypeWhereList w void:closecurly ;
-
-/* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
-private List<TraitTypeWhere> TraitTypeWhereList =
-     a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* TraitTypeWhere ::= TraitType (w Where)? */
-private TraitTypeWhere TraitTypeWhere =
-     a1:TraitType a2:(w Where)?
-     { if (a2 == null) a2 = FortressUtil.emptyWhereClause();
-       yyValue = new TraitTypeWhere(a1, a2);
-     };
-
-/* Extends ::= extends w TraitTypes */
-List<TraitType> Extends = extends w TraitTypes ;
-
-/* Excludes ::= excludes w TraitTypes */
-List<TraitType> Excludes = excludes w TraitTypes ;
-
-/* Comprises ::= comprises w TraitTypes */
-List<TraitType> Comprises = comprises w TraitTypes ;
-
-/* AbsComprises ::= comprises w ComprisingTypes */
-List<TraitType> AbsComprises = comprises w ComprisingTypes ;
-
-/* TraitTypes ::= TraitType | { w TraitTypeList w } */
-List<TraitType> TraitTypes =
-     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
-   / void:opencurly w TraitTypeList w void:closecurly ;
-
-/* TraitTypeList ::= TraitType (w , w TraitType)* */
-private List<TraitType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
-private List<TraitType> ComprisingTypes =
-     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
-   / void:opencurly w ComprisingTypeList w void:closecurly ;
-
-/* ComprisingTypeList ::=
-     ...
-   | TraitType (w , w TraitType)* (w , w ...)?
- */
-private List<TraitType> ComprisingTypeList =
-     ellipses
-     { yyValue = FortressUtil.emptyTraitTypes(); }
-   / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* Where ::=
-     where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
-   | where w { w WhereConstraintList w }
- */
-WhereClause Where =
-     where w opendoublesquare w a1:WhereBindingList w closedoublesquare
-     a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
-     { if (a2 == null)
-         yyValue = new WhereClause(a1, Collections.<WhereConstraint>emptyList());
-       else
-         yyValue = new WhereClause(a1, a2);
-     }
-   / where w opencurly w a1:WhereConstraintList w closecurly
-     { yyValue = new WhereClause(Collections.<WhereBinding>emptyList(), a1); };
-
-/* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
-List<WhereBinding> WhereBindingList =
-     a1:WhereBinding a2s:(w comma w WhereBinding)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* WhereBinding ::=
-     Id (w Extends)?
-   | nat w Id
-   | int w Id
-   | bool w Id
-   | unit w Id
- */
-WhereBinding WhereBinding =
-     a1:Id a2:(w a2:Extends)?
-     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
-     }
-   / nat w a1:Id
-     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
-   / int w a1:Id
-     { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
-   / bool w a1:Id
-     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
-   / unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); };
+/* IsType ::= : w Type */
+Type IsType = void:colon w Type ;
 
 /* WhereConstraintList ::= WhereConstraint (w , w WhereConstraint)* */
-private List<WhereConstraint> WhereConstraintList =
+List<WhereConstraint> WhereConstraintList =
      a1:WhereConstraint a2s:(w comma w WhereConstraint)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
@@ -403,30 +310,6 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
            }};
      };
 
-/* FnHeaderClause ::= (w IsType)? FnClauses */
-FnHeaderClause FnHeaderClause = a1:(w IsType)? a2:FnClauses
-     { Option<Type> returnType = Option.wrap(a1);
-       yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
-                                    a2.getContractClause(), returnType);
-     };
-
-/* FnClauses ::= (w Throws)? (w Where)? Contract */
-FnHeaderClause FnClauses = a1:(w Throws)? a2:(w Where)? a3:Contract
-     { Option<List<TraitType>> throwsClause = Option.wrap(a1);
-       if (a2 == null)         a2 = FortressUtil.emptyWhereClause();
-       Option<Contract>        contractClause = Option.wrap(a3);
-       yyValue = new FnHeaderClause(throwsClause, a2, contractClause,
-                                    Option.<Type>none());
-     };
-
-/* Throws ::= throws w MayTraitTypes */
-List<TraitType> Throws = throws w MayTraitTypes ;
-
-/* MayTraitTypes ::= { w } | TraitTypes  */
-private List<TraitType> MayTraitTypes =
-     opencurly w closecurly { yyValue = FortressUtil.emptyTraitTypes(); }
-   / TraitTypes ;
-
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
 Contract Contract =
      a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
@@ -469,190 +352,58 @@ List<Expr> Invariant =
        else            yyValue = a1;
      };
 
-/* Each modifier cannot appear more than once. */
-/* TraitMods ::= (TraitMod w)+ */
-List<Modifier> TraitMods = a1s:(TraitMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
+/* StaticArgs ::= [\ w StaticArgList w \] */
+List<StaticArg> StaticArgs =
+    opendoublesquare w StaticArgList w closedoublesquare ;
 
-/* TraitMod ::= AbsTraitMod | private */
-private Modifier TraitMod =
-     AbsTraitMod
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* AbsTraitMods ::= (AbsTraitMod w)+ */
-List<Modifier> AbsTraitMods = a1s:(AbsTraitMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsTraitMod ::= value | test */
-private Modifier AbsTraitMod =
-     value { yyValue = new ModifierValue(createSpan(yyStart,yyCount)); }
-   / test  { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* ObjectMods ::= TraitMods */
-List<Modifier> ObjectMods = TraitMods ;
-
-/* Each modifier cannot appear more than once. */
-/* AbsObjectMods ::= AbsTraitMods */
-List<Modifier> AbsObjectMods = AbsTraitMods ;
-
-/* Each modifier cannot appear more than once. */
-/* MdMods ::= (MdMod w)+ */
-List<Modifier> MdMods = a1s:(MdMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* MdMod ::= FnMod | override */
-private Modifier MdMod =
-     FnMod
-   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* AbsMdMods ::= (AbsMdMod w)+ */
-List<Modifier> AbsMdMods = a1s:(AbsMdMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsMdMod ::= AbsMdMod | override */
-private Modifier AbsMdMod =
-     AbsFnMod
-   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* FnMods ::= (FnMod w)+ */
-List<Modifier> FnMods = a1s:(FnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* FnMod ::= AbsFnMod | private */
-private Modifier FnMod =
-     AbsFnMod
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* AbsFnMods ::= (AbsFnMod w)+ */
-List<Modifier> AbsFnMods = a1s:(AbsFnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsFnMod ::= LocalFnMod | test */
-private Modifier AbsFnMod =
-     LocalFnMod
-   / test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* LocalFnMods ::= (LocalFnMod w)+ */
-List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* LocalFnMod ::= atomic | io */
-private Modifier LocalFnMod =
-     atomic { yyValue = new ModifierAtomic(createSpan(yyStart,yyCount)); }
-   / io     { yyValue = new ModifierIO(createSpan(yyStart,yyCount)); } ;
-
-/* Each modifier cannot appear more than once. */
-/* ParamFldMods ::= (ParamFldMod w)+ */
-List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* ParamFldMod ::= var | hidden | settable | wrapped */
-private Modifier ParamFldMod =
-     var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
-   / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* FldMods ::= (FldMod w)+ */
-List<Modifier> FldMods = a1s:(FldMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* FldMod ::= var | AbsFldMod */
-private Modifier FldMod =
-     var { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / AbsFldMod ;
-
-/* Each modifier cannot appear more than once. */
-/* AbsFldMods ::= (AbsFldMod w)+ */
-List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsFldMod ::= ApiFldMod | wrapped | private */
-private Modifier AbsFldMod =
-     ApiFldMod
-   / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* ApiFldMods ::= (ApiFldMod w)+ */
-List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* ApiFldMod ::= hidden | settable | test */
-private Modifier ApiFldMod =
-     hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
-   / test     { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
-
-/* StaticParams ::= [\ w StaticParamList w \] */
-List<StaticParam> StaticParams =
-     opendoublesquare w StaticParamList w closedoublesquare ;
-
-/* StaticParamList ::= StaticParam (w , w StaticParam)* */
-private List<StaticParam> StaticParamList =
-     a1:StaticParam a2s:(w comma w StaticParam)*
+/* StaticArgList ::= StaticArg (w , w StaticArg)*  */
+List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* StaticParam ::=
-     Id (w Extends)? (w absorbs w unit)?
-   | nat w Id
-   | int w Id
-   | bool w Id
-   | dim w Id
-   | unit w Id (w : w DimExpr)? (w absorbs w unit)?
-   | opr w Op
-*/
-private StaticParam StaticParam =
-     a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
-     { if (a2 == null) a2 = Collections.<TraitType>emptyList();
-       boolean absorbs;
-       if (a3 == null) absorbs = false;
-       else            absorbs = true;
-       yyValue = new SimpleTypeParam(createSpan(yyStart,yyCount),
-                                     a1, a2, absorbs);
+/* StaticArg ::=
+     Op
+   | ( StaticArg )
+   | IntExpr
+   | BoolExpr
+   | Type
+   | DimExpr
+   | Expr
+ */
+StaticArg StaticArg =
+     a1:Op
+     { yyValue = new OprArg(createSpan(yyStart,yyCount), a1); }
+   / "Unity"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new DimArg(span, new BaseDim(span));
      }
-   / nat  w a1:Id
-     { yyValue = new NatParam(createSpan(yyStart,yyCount), a1);}
-   / int  w a1:Id
-     { yyValue = new IntParam(createSpan(yyStart,yyCount), a1); }
-   / bool w a1:Id
-     { yyValue = new BoolParam(createSpan(yyStart,yyCount), a1); }
-   / dim  w a1:Id
-     {yyValue = new DimensionParam(createSpan(yyStart,yyCount), a1);}
-   / unit w a1:Id a2:(w void:colon w DimExpr)? a3:(w absorbs w unit)?
-     { Option<DimExpr> derived = Option.wrap(a2);
-       boolean absorbs = (a3 == null) ? false : true;
-       yyValue = new UnitParam(createSpan(yyStart,yyCount), a1,
-                               derived, absorbs);
+   / a1:"dimensionless"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new UnitArg(span, ExprFactory.makeVarRef(new Id(span, a1)));
      }
-   / opr  w a1:Op
-     { yyValue = new OperatorParam(createSpan(yyStart,yyCount), a1); };
+   / one w slash w a1:Type
+     { Span span = createSpan(yyStart,1);
+       DimExpr base = new BaseDim(createSpan(yyStart,1));
+       yyValue = new DimArg(span, new QuotientDim(span, base,
+                                                  TypeResolver.typeToDim(a1)));
+     }
+   / a1:DimPrefixOp sr a2:Type
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = new DimArg(span, new OpDim(span,TypeResolver.typeToDim(a2),a1));
+     }
+   / openparen w a1:StaticArg w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals))
+     a1:IntExpr
+     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow))
+     a1:BoolExpr
+     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
+   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp))
+     a1:Type
+     { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
+   / a1:Expr
+     { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
+   ;

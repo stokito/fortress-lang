@@ -20,28 +20,29 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 import java.util.List;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
 
+
 /**
- * Class TightInfix, a component of the OpExpr composite hierarchy.
+ * Class TypeLoose, a component of the InfixFrame composite hierarchy.
  * Note: null is not allowed as a value for any field.
  */
-public class TightInfix extends JuxtInfix {
+public class TypeLoose extends TypeInfixFrame {
 
    /**
-    * Constructs a TightInfix.
+    * Constructs a TypeLoose.
     * @throws java.lang.IllegalArgumentException if any parameter to the constructor is null.
     */
-   public TightInfix(Op in_op) {
-      super(in_op);
+   public TypeLoose(Op in_op, Option<List<TraitType>> in_throws,
+                    Type in_arg) {
+      super(in_op, in_throws, in_arg);
    }
 
-   public TightInfix(Op in_op, Option<List<TraitType>> in_throws) {
-      super(in_op, in_throws);
-   }
 
-   public <RetType> RetType accept(OpExprVisitor<RetType> visitor) { return visitor.forTightInfix(this); }
-   public void accept(OpExprVisitor_void visitor) { visitor.forTightInfix(this); }
+   public <RetType> RetType accept(InfixFrameVisitor<RetType> visitor) { return visitor.forTypeLoose(this); }
+   public void accept(InfixFrameVisitor_void visitor) { visitor.forTypeLoose(this); }
 
    /**
     * Implementation of toString that uses
@@ -61,18 +62,7 @@ public class TightInfix extends JuxtInfix {
    }
 
    public void outputHelp(TabPrintWriter writer) {
-      writer.print("TightInfix" + ":");
-      writer.indent();
-
-      writer.print(" ");
-      writer.print("op = ");
-      Op temp_op = getOp();
-      if (temp_op == null) {
-         writer.print("null");
-      } else {
-         writer.print(temp_op.getText());
-      }
-      writer.unindent();
+      writer.print("TypeLoose" + ":");
    }
 
    /**
@@ -85,8 +75,9 @@ public class TightInfix extends JuxtInfix {
       if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
          return false;
       } else {
-         TightInfix casted = (TightInfix) obj;
+         TypeLoose casted = (TypeLoose) obj;
          if (! (getOp().equals(casted.getOp()))) return false;
+         if (! (getThrows().equals(casted.getThrows()))) return false;
          return true;
       }
    }
@@ -100,6 +91,7 @@ public class TightInfix extends JuxtInfix {
    protected int generateHashCode() {
       int code = getClass().hashCode();
       code ^= getOp().hashCode();
+      code ^= getThrows().hashCode();
       return code;
    }
 }

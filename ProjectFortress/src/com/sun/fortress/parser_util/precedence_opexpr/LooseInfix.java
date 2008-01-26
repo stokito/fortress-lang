@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,7 +17,10 @@
 
 package com.sun.fortress.parser_util.precedence_opexpr;
 
+import java.util.List;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.TraitType;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Class LooseInfix, a component of the OpExpr composite hierarchy.
@@ -33,6 +36,9 @@ public class LooseInfix extends JuxtInfix {
       super(in_op);
    }
 
+   public LooseInfix(Op in_op, Option<List<TraitType>> in_throws) {
+      super(in_op, in_throws);
+   }
 
    public <RetType> RetType accept(OpExprVisitor<RetType> visitor) { return visitor.forLooseInfix(this); }
    public void accept(OpExprVisitor_void visitor) { visitor.forLooseInfix(this); }

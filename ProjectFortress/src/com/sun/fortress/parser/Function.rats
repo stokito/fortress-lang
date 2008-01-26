@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,12 +18,13 @@
 /*
  * Definition of Fortress function declarations.
  */
-module com.sun.fortress.parser.Function(Param, Header, Type, NoNewlineExpr,
-                                        Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.Function(Param, Header, NoNewlineType,
+                                        NoNewlineExpr, Identifier, Keyword,
+                                        Symbol, Spacing);
 
 import Param;
 import Header;
-import Type;
+import NoNewlineType;
 import NoNewlineExpr;
 import Identifier;
 import Keyword;
@@ -44,13 +45,18 @@ Decl FnDecl =
      }
    / FnSig ;
 
-/* FnSig ::= SimpleName w : w ArrowType */
+/* FnSig ::= SimpleName w : w NoNewlineType */
 AbsFnDecl FnSig =
-     a1:SimpleName w colon w a2:ArrowType
+     a1:SimpleName w colon w a2:NoNewlineType
      { final List<Modifier> mods = FortressUtil.emptyModifiers();
        final List<Param>  params = FortressUtil.emptyParams();
 
-       a2.getDomain().accept(new NodeAbstractVisitor_void() {
+       if (!(a2 instanceof ArrowType)) {
+           bug(errorMsg("Abstract function declaration should have an arrow " +
+                        "type.", a2));
+       }
+
+       ((ArrowType)a2).getDomain().accept(new NodeAbstractVisitor_void() {
            public void forType(Type that) {
                Id name = new Id(that.getSpan(), "_");
                params.add(NodeFactory.makeParam(that.getSpan(),mods,name,that));
@@ -71,8 +77,8 @@ AbsFnDecl FnSig =
                bug(errorMsg("Node expected to be a Type; was: ", that));
            }
        });
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a1, params, a2.getRange());
+       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods, a1,
+                                          params, ((ArrowType)a2).getRange());
      };
 
 /* AbsFnDecl ::=
