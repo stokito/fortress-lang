@@ -745,16 +745,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * typecase expression
              * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
              *                     CaseElse? end
-             * TypecaseBindings ::= ( BindgingList )
-             *                    | Binding
-             *                    | BindId
+             * TypecaseBindings ::= TypecaseVars (= Expr)?
+             * TypecaseVars ::= BindId
+             *              |   ( BindId(, BindId)+ )
              * e.g.) typecase x = myLoser .myField of
              *         String => x.append("foo")
              *         Number => x + 3
              *         Object => yogiBerraAutograph
              *       end
              */
-            Typecase(List<Binding> bind, List<TypecaseClause> clauses,
+            Typecase(Pair<List<Id>, Option<Expr>> bind,
+                     List<TypecaseClause> clauses,
                      Option<Block> elseClause = Option.<Block>none());
             /**
              * while expression

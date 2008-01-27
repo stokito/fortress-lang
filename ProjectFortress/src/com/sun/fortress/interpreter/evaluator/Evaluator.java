@@ -158,6 +158,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -595,24 +596,86 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return boolres;
     }
 
-    public List<FType> evalTypeCaseBinding(Evaluator ev,
-            Typecase x) {
-        List<Binding> bindings = x.getBind();
+    private boolean isShadow(Expr expr, String name) {
+        return (expr instanceof VarRef &&
+                NodeUtil.nameString(((VarRef)expr).getVar()).equals(name));
+    }
+
+    private boolean isShadow(Option<String> var, String name) {
+        if (var.isSome()) {
+            return Option.unwrap(var).equals(name);
+        } else { // var.isNone()
+            return false;
+        }
+    }
+
+    private Option<String> getName(Expr expr) {
+        if (expr instanceof VarRef) {
+            return Option.some(NodeUtil.nameString(((VarRef)expr).getVar()));
+        } else { // !(expr instanceof VarRef)
+            return Option.<String>none();
+        }
+    }
+
+    public List<FType> evalTypeCaseBinding(Evaluator ev, Typecase x) {
+        Pair<List<Id>, Option<Expr>> bindings = x.getBind();
+        List<Id> bindIds = bindings.getA();
+        Option<Expr> exprOpt = bindings.getB();
+        Expr expr;
         List<FType> res = new ArrayList<FType>();
-        for (Iterator<Binding> i = bindings.iterator(); i.hasNext();) {
-            Binding bind = i.next();
-            String name = bind.getName().getText();
-            Expr init = bind.getInit();
-            FValue val = init.accept(ev);
-            if (init instanceof VarRef
-                    && NodeUtil.nameString(((VarRef) init).getVar()).equals(name)) {
+
+        if (exprOpt.isNone()) {
+            for (Id id : bindIds) {
+                FValue val = ExprFactory.makeVarRef(id).accept(ev);
                 /* Avoid shadow error when we bind the same var name */
-                ev.e.putValueUnconditionally(name, val);
-            } else {
-                /* But warn about shadowing in all other cases */
-                ev.e.putValue(name, val);
+                ev.e.putValueUnconditionally(id.getText(), val);
+                res.add(val.type());
             }
-            res.add(val.type());
+        } else { // exprOpt.isSome()
+            expr = Option.unwrap(exprOpt);
+            if (bindIds.size() == 1) {
+                FValue val = expr.accept(ev);
+                String name = bindIds.get(0).getText();
+                if (isShadow(expr, name)) {
+                    /* Avoid shadow error when we bind the same var name */
+                    ev.e.putValueUnconditionally(name, val);
+                } else {
+                    /* But warn about shadowing in all other cases */
+                    ev.e.putValue(name, val);
+                }
+                res.add(val.type());
+            } else { // bindIds.size() > 1
+                List<Pair<FValue,Option<String>>> vals =
+                    new ArrayList<Pair<FValue,Option<String>>>();
+                if (expr instanceof TupleExpr) {
+                    for (Expr e : ((TupleExpr)expr).getExprs()) {
+                        vals.add(new Pair(e.accept(ev), getName(e)));
+                    }
+                } else { // !(expr instanceof TupleExpr)
+                    FValue val = expr.accept(ev);
+                    if (!(val instanceof FTuple)) {
+                        error(expr, "RHS does not yield a tuple.");
+                    }
+                    for (FValue v : ((FTuple)val).getVals()) {
+                        vals.add(new Pair(v, Option.<String>none()));
+                    }
+                }
+                int index = 0;
+                for (Id id : bindIds) {
+                    String name = id.getText();
+                    Pair<FValue,Option<String>> pair = vals.get(index);
+                    FValue val = pair.getA();
+                    if (isShadow(pair.getB(), name)) {
+                        /* Avoid shadow error when we bind the same var name */
+                        ev.e.putValueUnconditionally(name, val);
+                    } else {
+                        /* But warn about shadowing in all other cases */
+                        ev.e.putValue(name, val);
+                    }
+                    res.add(val.type());
+                    index++;
+                }
+            }
         }
         return res;
     }

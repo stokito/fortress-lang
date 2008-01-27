@@ -19,10 +19,10 @@ component XXXdispatchTest
 export Executable
 
 run(args:String...):()=do
-   typecase (a = 1, b = 2) in
-	(ZZ32, Number) => print("fail")
-	(Number,ZZ32) => print("fail")
-	(Number,Number) => print("fail")
+   typecase (a, b) = (1, 2) of
+        (ZZ32, Number) => print("fail")
+        (Number,ZZ32) => print("fail")
+        (Number,Number) => print("fail")
    end
 end
 end

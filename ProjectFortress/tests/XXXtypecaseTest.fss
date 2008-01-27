@@ -19,7 +19,7 @@ component XXXtypecaseTest
 export Executable
 
 run(args:String...):()=do
-   typecase x = 3.1415 in
+   typecase x = 3.1415 of
       String => print(x)
       ZZ32 => print(x + 3)
    end
