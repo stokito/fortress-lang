@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -148,6 +148,10 @@ Expr TupleExpr =
      }
    / NoKeyTuple ;
 
+/* Binding ::= BindId w = w Expr */
+private Binding Binding = a1:BindId w equals w a2:Expr
+     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
+
 /* NoKeyTuple ::=
      ( w (Expr w , w)*  Expr w ... w )
    | ( w (Expr w , w)+  Expr w )
@@ -185,27 +189,20 @@ private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
 /* CaseElse ::= else w => w BlockElems */
 Block CaseElse = else w match w BlockElems ;
 
-/* TypecaseBindings ::=
-     ( w BindingList w )
-   | Binding
-   | BindId
+/* TypecaseBindings ::= TypecaseVars (w = w Expr)? */
+private com.sun.fortress.useful.Pair<List<Id>,Option<Expr>> TypecaseBindings =
+     a1:TypecaseVars a2:(w void:equals w Expr)?
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.wrap(a2)); };
+
+/* TypecaseVars ::=
+     BindId
+   | ( w BindId(w , w BindId)+ w )
  */
-private List<Binding> TypecaseBindings =
-     openparen w BindingList w closeparen
-   / a1:Binding
+private List<Id> TypecaseVars =
+     a1:BindId
      { yyValue = FortressUtil.mkList(a1); }
-   / a1:BindId
-     { yyValue = FortressUtil.mkList(new Binding(createSpan(yyStart,yyCount), a1,
-                                                 ExprFactory.makeVarRef(a1)));
-     };
-
-/* BindingList ::= Binding (w , w Binding)*  */
-private List<Binding> BindingList = a1:Binding a2s:(w comma w Binding)*
+   / openparen w a1:BindId a2s:(w comma w BindId)+ w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
-
-/* Binding ::= BindId w = w Expr */
-private Binding Binding = a1:BindId w equals w a2:Expr
-     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =

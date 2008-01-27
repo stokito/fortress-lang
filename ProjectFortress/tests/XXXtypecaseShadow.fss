@@ -22,7 +22,7 @@ export Executable
 run(args:String...):() = do
   a : RR64 = 3.0 (4.0)
   x = a
-  typecase x=a in
+  typecase x=a of
     RR64 => ()
     else => println("FAIL: typecase didn't match!")
   end
