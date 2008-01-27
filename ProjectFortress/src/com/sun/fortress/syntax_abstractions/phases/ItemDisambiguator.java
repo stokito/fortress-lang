@@ -45,6 +45,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.parser_util.IdentifierUtil;
 import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -86,14 +87,14 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	}
 
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
-		if (Fortress.validId(item.getItem())) {
+		if (IdentifierUtil.validId(item.getItem())) {
 			QualifiedIdName name = makeQualifiedIdName(item.getSpan(), item.getItem());
 			Set<QualifiedIdName> ss = _currentEnv.declaredProductionNames(name);
-			
+
 			if (ss.isEmpty()) {
 				ss = _currentEnv.inheritedProductionNames(name);
 			}
-			
+
 			if (ss.size() == 1) {
 				return makeNonterminal(item, name);
 			}
@@ -104,7 +105,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			}
 
 			if (ss.isEmpty()) {
-				return makeKeywordSymbol(item);	
+				return makeKeywordSymbol(item);
 			}
 		}
 		return makeTokenSymbol(item);
@@ -129,26 +130,26 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return NodeFactory.makeQualifiedIdName(apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
 		}
 		else {
-			return NodeFactory.makeQualifiedIdName(span, item);	
+			return NodeFactory.makeQualifiedIdName(span, item);
 		}
 	}
 
 	@Override
 	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
 			final Option<Id> id_result, SyntaxSymbol symbol_result) {
-		
+
 		SyntaxSymbol s = symbol_result;
 		Node n = s.accept(new NodeUpdateVisitor(){
 			@Override
 			public Node forItemSymbol(ItemSymbol that) {
 				return handle(that, that.getItem());
 			}
-			
+
 			@Override
 			public Node forKeywordSymbol(KeywordSymbol that) {
 				return handle(that, that.getToken());
 			}
-			
+
 			@Override
 			public Node forTokenSymbol(TokenSymbol that) {
 				if (id_result.isNone()) {
@@ -168,7 +169,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			}
 		});
 		if (n instanceof SyntaxSymbol) {
-			s = (SyntaxSymbol) n; 
+			s = (SyntaxSymbol) n;
 			s.getSpan().begin = prefix.getSpan().begin;
 			s.getSpan().end = prefix.getSpan().end;
 			return s;
