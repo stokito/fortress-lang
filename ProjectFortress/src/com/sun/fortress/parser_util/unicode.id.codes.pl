@@ -17,12 +17,14 @@ use strict;
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-# Generates Unicode.rats.
+# Generates parser/Unicode.rats and parser_util/IdentifierUtil.java.
 # http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 
 my $file = '../../../../../third_party/unicode/UnicodeData.500.txt';
 
 open IN, "<$file";
+open RATS, '>>../parser/Unicode.rats';
+open UTIL, '>>IdentifierUtil.java';
 
 my $line;
 my @codesstart1 = ();
@@ -96,22 +98,22 @@ sub ranges2 {
     my $lastback   = back($last);
     if ( $first == $last ) {
       if ( $firstfront == $header ) {
-        printf("\\u%04x", $firstback);
+        printf RATS ("\\u%04x", $firstback);
       } else {
-        printf("]\n  / '\\u%04x'[\\u%04x", $firstfront, $firstback);
+        printf RATS ("]\n  / '\\u%04x'[\\u%04x", $firstfront, $firstback);
 	$header = $firstfront;
       }
     } else {
       if ( $firstfront == $header ) {
-        printf("\\u%04x-\\u%04x", $firstback, $lastback);
+        printf RATS ("\\u%04x-\\u%04x", $firstback, $lastback);
       } else { # $firstfront != $header
-        printf("]\n  / '\\u%04x'[\\u%04x-\\u%04x",
+        printf RATS ("]\n  / '\\u%04x'[\\u%04x-\\u%04x",
 	       $firstfront, $firstback, $lastback);
 	$header = $firstfront;
       }
     }
   }
-  print "];\n";
+  print RATS "];\n";
 }
 
 sub ranges2ValidId {
@@ -132,64 +134,87 @@ sub ranges2ValidId {
     my $lastback   = back($last);
     if ( $first == $last ) {
       if ( $firstfront == $header ) {
-        printf("\\u%04x", $firstback);
+        printf UTIL ("\\u%04x", $firstback);
       } else {
-        printf("])|('\\u%04x'[\\u%04x", $firstfront, $firstback);
+        printf UTIL ("])|('\\u%04x'[\\u%04x", $firstfront, $firstback);
 	$header = $firstfront;
       }
     } else {
       if ( $firstfront == $header ) {
-        printf("\\u%04x-\\u%04x", $firstback, $lastback);
+        printf UTIL ("\\u%04x-\\u%04x", $firstback, $lastback);
       } else { # $firstfront != $header
-        printf("])|('\\u%04x'[\\u%04x-\\u%04x",
+        printf UTIL ("])|('\\u%04x'[\\u%04x-\\u%04x",
 	       $firstfront, $firstback, $lastback);
 	$header = $firstfront;
       }
     }
   }
-  print "]";
+  print UTIL "]";
 }
 
-print "/*******************************************************************************\n";
-print "    Copyright 2008 Sun Microsystems, Inc.,\n";
-print "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
-print "    All rights reserved.\n\n";
-print "    U.S. Government Rights - Commercial software.\n";
-print "    Government users are subject to the Sun Microsystems, Inc. standard\n";
-print "    license agreement and applicable provisions of the FAR and its supplements.\n\n";
-print "    Use is subject to license terms.\n\n";
-print "    This distribution may include materials developed by third parties.\n\n";
-print "    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n";
-print "    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n";
-print " ******************************************************************************/\n\n";
-print "/*\n";
-print " * Definition of Fortress Unicode characters.\n";
-print " *\n * Automatically generated file: Please don't manually edit.\n";
-print " */\n";
-print "module com.sun.fortress.parser.Unicode;\n";
-print "\n";
-print "body {\n";
-print "  private static java.util.regex.Pattern idStart = java.util.regex.Pattern.compile(\"([_".(join '', ranges1(@codesstart1));
-ranges2ValidId(@codesstart2);
-print ")\");\n";
-print "\n";
-print "  private static java.util.regex.Pattern idRest = java.util.regex.Pattern.compile(\"(([_'".(join '', ranges1(@codesstart1));
-ranges2ValidId(@codesstart2);
-print "".(join '', ranges1(@codesrest1));
-ranges2ValidId(@codesrest2);
-print "))*\");\n";
-print "\n";
-print "  public static boolean validId(String id) {\n";
-print "    if (id.length() > 0) {\n";
-print "      java.util.regex.Matcher idStartMatcher = idStart.matcher(\"\"+id.charAt(0));\n";
-print "      java.util.regex.Matcher idRestMatcher = idRest.matcher(id.substring(1));\n";
-print "      return idStartMatcher.matches() && idRestMatcher.matches();\n";
-print "    }\n";
-print "    return false;\n";
-print "  }\n";
-print "}\n\n";
-print "transient String UnicodeIdStart = [" . (join '', ranges1(@codesstart1));
+print RATS "/*******************************************************************************\n";
+print RATS "    Copyright 2008 Sun Microsystems, Inc.,\n";
+print RATS "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
+print RATS "    All rights reserved.\n\n";
+print RATS "    U.S. Government Rights - Commercial software.\n";
+print RATS "    Government users are subject to the Sun Microsystems, Inc. standard\n";
+print RATS "    license agreement and applicable provisions of the FAR and its supplements.\n\n";
+print RATS "    Use is subject to license terms.\n\n";
+print RATS "    This distribution may include materials developed by third parties.\n\n";
+print RATS "    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n";
+print RATS "    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n";
+print RATS " ******************************************************************************/\n\n";
+print RATS "/*\n";
+print RATS " * Definition of Fortress Unicode characters.\n";
+print RATS " *\n * Automatically generated file: Please don't manually edit.\n";
+print RATS " */\n";
+print RATS "module com.sun.fortress.parser.Unicode;\n";
+print RATS "\n";
+print RATS "transient String UnicodeIdStart = [" . (join '', ranges1(@codesstart1));
 ranges2(@codesstart2);
-print "\n";
-print "transient String UnicodeIdRest  = [" . (join '', ranges1(@codesrest1));
+print RATS "\n";
+print RATS "transient String UnicodeIdRest  = [" . (join '', ranges1(@codesrest1));
 ranges2(@codesrest2);
+
+close RATS;
+
+print UTIL "/*******************************************************************************\n";
+print UTIL "    Copyright 2008 Sun Microsystems, Inc.,\n";
+print UTIL "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
+print UTIL "    All rights reserved.\n\n";
+print UTIL "    U.S. Government Rights - Commercial software.\n";
+print UTIL "    Government users are subject to the Sun Microsystems, Inc. standard\n";
+print UTIL "    license agreement and applicable provisions of the FAR and its supplements.\n\n";
+print UTIL "    Use is subject to license terms.\n\n";
+print UTIL "    This distribution may include materials developed by third parties.\n\n";
+print UTIL "    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n";
+print UTIL "    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n";
+print UTIL " ******************************************************************************/\n\n";
+print UTIL "/*\n";
+print UTIL " * Utility function for Fortress Identifiers.\n";
+print UTIL " *\n * Automatically generated file: Please don't manually edit.\n";
+print UTIL " */\n";
+print UTIL "package com.sun.fortress.parser_util;\n\n";
+print UTIL "public final class IdentifierUtil {\n";
+print UTIL "  private static java.util.regex.Pattern idStart = java.util.regex.Pattern.compile(\"([_".(join '', ranges1(@codesstart1));
+ranges2ValidId(@codesstart2);
+print UTIL ")\");\n";
+print UTIL "\n";
+print UTIL "  private static java.util.regex.Pattern idRest = java.util.regex.Pattern.compile(\"(([_'".(join '', ranges1(@codesstart1));
+ranges2ValidId(@codesstart2);
+print UTIL "".(join '', ranges1(@codesrest1));
+ranges2ValidId(@codesrest2);
+print UTIL "))*\");\n";
+print UTIL "\n";
+print UTIL "  public static boolean validId(String id) {\n";
+print UTIL "    if (id.length() > 0) {\n";
+print UTIL "      java.util.regex.Matcher idStartMatcher = idStart.matcher(\"\"+id.charAt(0));\n";
+print UTIL "      java.util.regex.Matcher idRestMatcher = idRest.matcher(id.substring(1));\n";
+print UTIL "      return (idStartMatcher.matches() && idRestMatcher.matches() &&\n";
+print UTIL "              FortressUtil.validId(id));\n";
+print UTIL "    }\n";
+print UTIL "    return false;\n";
+print UTIL "  }\n";
+print UTIL "\n}\n";
+
+close UTIL;
