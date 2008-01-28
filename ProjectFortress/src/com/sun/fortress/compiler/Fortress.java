@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
@@ -77,11 +79,25 @@ public class Fortress {
      * they depend on, and add them to the fortress.
      */
     public Iterable<? extends StaticError> compile(boolean link, Path path, String... files) {
+        
         BatchCachingRepository bcr = new BatchCachingRepository(link,
                 new PathBasedSyntaxTransformingRepository(path),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
                 );
         
+        FortressParser.Result result = compileInner(bcr, files);
+ 
+        // Parser.Result pr = Parser.parse(files, env);
+        if (!result.isSuccessful()) { return result.errors(); }
+        System.out.println("Parsing done.");
+        
+        GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
+        
+        return analyze(env, result);
+    }
+
+    private FortressParser.Result compileInner(BatchCachingRepository bcr,
+            String... files) {
         FortressParser.Result result = new FortressParser.Result();
         
         bcr.addRootApis("FortressLibrary", "FortressBuiltin");
@@ -98,7 +114,7 @@ public class Fortress {
                 if (name != null) {
                     result = addComponentToResult(bcr, result, name);
                 } else {
-                    throw new ProgramError("Need api or component file name with suffix, not " + s);
+                    result = addComponentToResult(bcr, result, NodeFactory.makeAPIName(s));
                 }
             }
             } catch (ProgramError pe) {
@@ -129,16 +145,7 @@ public class Fortress {
                 result = addExceptionToResult(result, ex);
             }
         }
-        
-       
-        
-        // Parser.Result pr = Parser.parse(files, env);
-        if (!result.isSuccessful()) { return result.errors(); }
-        System.out.println("Parsing done.");
-        
-        GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
-        
-        return analyze(env, result);
+        return result;
     }
 
     private FortressParser.Result addExceptionToResult(
@@ -243,8 +250,37 @@ public class Fortress {
     }
     
     
-    public void run(String componentName) {
-        NI.nyi();
+    public Iterable<? extends StaticError>  run(Path path, String componentName) {
+        BatchCachingRepository bcr = new BatchCachingRepository(true,
+                new PathBasedSyntaxTransformingRepository(path),
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
+                );
+        
+        FortressParser.Result result = compileInner(bcr, componentName);
+ 
+        if (!result.isSuccessful()) { return result.errors(); }
+        
+        System.out.println("Parsing done.");
+        
+        GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
+        
+        Iterable<? extends StaticError> errors =  analyze(env, result);
+        
+        if (!errors.iterator().hasNext() ) {
+            try {
+                Driver.runProgram(bcr, bcr.getComponent(NodeFactory.makeAPIName(componentName)).ast(), new ArrayList<String>());
+            } catch (Throwable th) {
+                // TODO FIXME what is the proper treatment of errors/exceptions etc.?
+                if (th instanceof RuntimeException) 
+                    throw (RuntimeException) th;
+                if (th instanceof Error) 
+                    throw (Error) th;
+                throw new WrappedException(th);
+            }
+
+        }
+        
+        return errors;
     }
     
     static class WrappedException extends StaticError {

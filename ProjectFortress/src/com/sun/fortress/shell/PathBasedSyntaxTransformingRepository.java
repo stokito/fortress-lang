@@ -38,9 +38,14 @@ public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
 
     final GlobalEnvironment env;
     
+    public PathBasedSyntaxTransformingRepository(Path p, FortressRepository repoForGlobalEnv) {
+        super(p);
+        this.env = new GlobalEnvironment.FromRepository(repoForGlobalEnv); // this is legal????
+    }
+    
     public PathBasedSyntaxTransformingRepository(Path p) {
         super(p);
-        this.env = new GlobalEnvironment.FromRepository(this); // this is legal????
+        this.env = new GlobalEnvironment.FromRepository(this);
     }
 
     protected CompilationUnit getCompilationUnit(File f) throws IOException {

@@ -240,7 +240,8 @@ public class FileTests {
 //                );
         
         BatchCachingRepository fr = new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(dir)),
+                //new PathBasedSyntaxTransformingRepository
+                (ProjectProperties.SOURCE_PATH.prepend(dir)),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
        

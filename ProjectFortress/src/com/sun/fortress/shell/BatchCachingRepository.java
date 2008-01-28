@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.MinimalMap;
+import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 
 public class BatchCachingRepository implements FortressRepository {
@@ -51,28 +52,46 @@ public class BatchCachingRepository implements FortressRepository {
         this(true, source, cache);
     }
     
+    /**
+     * This constructor helps us evade a circularity.
+     * 
+     * @param doLink
+     * @param p
+     * @param cache
+     */
+   public BatchCachingRepository(boolean doLink, Path p,
+            FortressRepository cache) {
+        this.source = new PathBasedSyntaxTransformingRepository(p, this);
+        this.derived = cache;
+        MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
+        this.ru = new RepositoryUpdater(source, derived, linker);
+    }
+   public BatchCachingRepository(Path p,
+           FortressRepository cache) {
+       this(true, p, cache);
+   }
+   
     public BatchCachingRepository(boolean doLink, FortressRepository source,
             FortressRepository cache) {
         this.source = source;
         this.derived = cache;
 
-        MinimalMap<APIName, Set<APIName>> linker;
+        MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
+  
+        this.ru = new RepositoryUpdater(source, derived, linker);
+    }
 
-        if (doLink) {
-            linker = new MinimalMap<APIName, Set<APIName>>() {
+    private static MinimalMap<APIName, Set<APIName>> linker(boolean doLink) {
+        MinimalMap<APIName, Set<APIName>> linker = doLink ? new MinimalMap<APIName, Set<APIName>>() {
                 public Set<APIName> get(APIName key) {
                     return Useful.set(key);
                 }
-            };
-        } else {
-            linker = new MinimalMap<APIName, Set<APIName>>() {
+            } : new MinimalMap<APIName, Set<APIName>>() {
                 public Set<APIName> get(APIName key) {
                     return Collections.emptySet();
                 }
             };
-        }
-
-        this.ru = new RepositoryUpdater(source, derived, linker);
+        return linker;
     }
 
     public Iterable<APIName> staleApis() {
