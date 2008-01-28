@@ -208,5 +208,9 @@ public abstract class FortressError extends RuntimeException {
         super.printStackTrace(arg0);
         printInterpreterStackTrace(arg0);
     }
+    
+    public Iterable<? extends StaticError> getStaticErrors() {
+        return staticErrors;
+    }
 
 }

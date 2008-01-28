@@ -20,6 +20,7 @@ package com.sun.fortress.shell;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.MinimalMap;
 import com.sun.fortress.useful.Useful;
 
@@ -44,19 +46,43 @@ public class BatchCachingRepository implements FortressRepository {
 
     private final Set<APIName> alreadyCachedApi = new HashSet<APIName>();
 
-    MinimalMap<APIName, Set<APIName>> linker = new MinimalMap<APIName, Set<APIName>>() {
-        public Set<APIName> get(APIName key) {
-            return Useful.set(key);
-        }
-    };
-
     public BatchCachingRepository(FortressRepository source,
+            FortressRepository cache) {
+        this(true, source, cache);
+    }
+    
+    public BatchCachingRepository(boolean doLink, FortressRepository source,
             FortressRepository cache) {
         this.source = source;
         this.derived = cache;
+
+        MinimalMap<APIName, Set<APIName>> linker;
+
+        if (doLink) {
+            linker = new MinimalMap<APIName, Set<APIName>>() {
+                public Set<APIName> get(APIName key) {
+                    return Useful.set(key);
+                }
+            };
+        } else {
+            linker = new MinimalMap<APIName, Set<APIName>>() {
+                public Set<APIName> get(APIName key) {
+                    return Collections.emptySet();
+                }
+            };
+        }
+
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
 
+    public Iterable<APIName> staleApis() {
+        return ru.staleApis;
+    }
+    
+    public Iterable<APIName> staleComponents() {
+        return ru.staleComponents;
+    }
+    
     public void addRootComponents(APIName... roots) {
         boolean anyChange = false;
         for (APIName n : roots) {
@@ -73,6 +99,20 @@ public class BatchCachingRepository implements FortressRepository {
     public void addRootApis(APIName... roots) {
         boolean anyChange = false;
         for (APIName n : roots) {
+            if (!alreadyCachedApi.contains(n)) {
+                anyChange = true;
+                ru.addApi(n);
+            }
+        }
+        if (anyChange) {
+            refreshCache();
+        }
+    }
+
+    public void addRootApis(String... roots) {
+        boolean anyChange = false;
+        for (String s : roots) {
+            APIName n = NodeFactory.makeAPIName(s);
             if (!alreadyCachedApi.contains(n)) {
                 anyChange = true;
                 ru.addApi(n);

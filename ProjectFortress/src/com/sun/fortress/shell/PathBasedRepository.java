@@ -91,6 +91,10 @@ public class PathBasedRepository implements FortressRepository {
         File fdot = findFile(name, ProjectProperties.API_SOURCE_SUFFIX);
         // Attempt to parse fdot.
         
+        /*
+         *  This cannot use the syntax transformer, because it reads APIs to
+         *  look for transformations.
+        */
         Option<CompilationUnit> ocu = ASTIO.parseToJavaAst(fdot.getCanonicalPath());
         if (ocu.isNone()) {
             throw new Error("Parse error");

@@ -17,8 +17,11 @@
 
 package com.sun.fortress.compiler;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -28,27 +31,80 @@ import com.sun.fortress.nodes_util.NodeUtil;
  * the APIName is in the environment. This can be done by calling the 
  * definesApi method. 
  */
-public class GlobalEnvironment {
-    private Map<APIName, ApiIndex> _apis;
+abstract public class GlobalEnvironment {
+    abstract public Map<APIName, ApiIndex> apis();
     
-    public GlobalEnvironment(Map<APIName, ApiIndex> apis) { _apis = apis; }
-   
-    public Map<APIName, ApiIndex> apis() { return _apis; }
+    abstract public boolean definesApi(APIName name);
     
-    public boolean definesApi(APIName name) { return _apis.containsKey(name); }
+    abstract public ApiIndex api(APIName name);
     
-    public ApiIndex api(APIName name) {
-        ApiIndex result = _apis.get(name);
-        if (result == null) {
-            throw new IllegalArgumentException("Undefined API: " +
-                                               NodeUtil.nameString(name));
+    abstract public void print();
+    
+    public static class FromMap extends GlobalEnvironment {
+        private Map<APIName, ApiIndex> _apis;
+        
+        public FromMap(Map<APIName, ApiIndex> apis) { _apis = apis; }
+       
+        public Map<APIName, ApiIndex> apis() { return _apis; }
+        
+        public boolean definesApi(APIName name) { return _apis.containsKey(name); }
+        
+        public ApiIndex api(APIName name) {
+            ApiIndex result = _apis.get(name);
+            if (result == null) {
+                throw new IllegalArgumentException("Undefined API: " +
+                                                   NodeUtil.nameString(name));
+            }
+            else { return result; }
         }
-        else { return result; }
+        
+        public void print() {
+            for (APIName name : apis().keySet()) {
+                System.out.println(name);
+            }
+        }
     }
-    
-    public void print() {
-        for (APIName name : apis().keySet()) {
-            System.out.println(name);
+    public static class FromRepository extends GlobalEnvironment {
+
+        final private FortressRepository repository;
+        
+        public FromRepository(FortressRepository fr) {
+            repository = fr;
         }
+        
+        @Override
+        public ApiIndex api(APIName name) {
+            
+            try {
+                return repository.getApi(name);
+            } catch (FileNotFoundException e) {
+                throw new Fortress.WrappedException(e);
+            } catch (IOException e) {
+                throw new Fortress.WrappedException(e);
+            }
+        }
+
+        @Override
+        public Map<APIName, ApiIndex> apis() {
+            // TODO Auto-generated method stub
+            return repository.apis();
+        }
+
+        @Override
+        public boolean definesApi(APIName name) {
+            try {
+                return null != repository.getApi(name);
+            } catch (FileNotFoundException e) {
+                return false;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        @Override
+        public void print() {
+            System.out.println("GlobalEnvironmentFromRepository " + repository);            
+        }
+        
     }
 }

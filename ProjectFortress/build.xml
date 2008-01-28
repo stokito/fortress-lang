@@ -29,8 +29,10 @@
  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
  <!-- Directories in the ${basedir} directory -->
  <property name="cache1" location="${basedir}/../.fortress_cache"/>
- <property name="cache2" location="${basedir}/../.interpreter_cache"/>
- <property name="cache3" location="${basedir}/.interpreter_cache"/>
+	 <property name="cache2" location="${basedir}/../.interpreter_cache"/>
+	 <property name="cache3" location="${basedir}/.interpreter_cache"/>
+	 <property name="cache4" location="${basedir}/../.compiler_cache"/>
+	 <property name="cache5" location="${basedir}/.compiler_cache"/>
  <property name="astgen" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
@@ -194,9 +196,11 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     <target name="cleanCache"
             description="Delete any cached Fortress ASTs in the development tree">
         <delete dir="${cache1}"/>
-        <delete dir="${cache2}"/>
-        <delete dir="${cache3}"/>
-       
+    	<delete dir="${cache2}"/>
+    	<delete dir="${cache3}"/>
+    	<delete dir="${cache4}"/>
+    	<delete dir="${cache5}"/>
+    	       
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.

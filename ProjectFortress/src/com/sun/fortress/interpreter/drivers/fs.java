@@ -162,28 +162,21 @@ public class fs {
             
             Option<CompilationUnit> p = Option.none();
             
-//            if (! woLibrary)
-//                fr.addRootComponents(NodeFactory.makeAPIName("FortressLibrary"));
             try {
-                if (s.endsWith("." + ProjectProperties.API_SOURCE_SUFFIX)) {
-                    APIName name =
-                        NodeFactory.makeAPIName(s.substring(0,s.length() -
-                       (1 + ProjectProperties.API_SOURCE_SUFFIX.length())));
-                    //fr.addRootComponents(name);
-                    p = Option.wrap(fr.getComponent(name).ast());
-                } else if (s.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
-                    APIName name =
-                        NodeFactory.makeAPIName(s.substring(0,s.length() -
-                       (1 + ProjectProperties.COMP_SOURCE_SUFFIX.length())));
-                    //fr.addRootComponents(name);
-                    p = Option.wrap(fr.getComponent(name).ast());
+                APIName name;
+                name = Driver.fileAsApi(s);
+                
+                if (name != null) {
+                    p = Option.wrap(fr.getApi(name).ast());
                 } else {
-                    APIName name = NodeFactory.makeAPIName(s);
-                    //fr.addRootComponents(name);
-                    p = Option.wrap(fr.getComponent(name).ast());
-                }
-                //System.err.println("WARNING, using obsolete interface to parse " + s);
-                // TODO - Warning, this is old and obsolete to allow processing of components OR APIs!
+                    name = Driver.fileAsComponent(s);
+                    if (name != null) {
+                        p = Option.wrap(fr.getComponent(name).ast());
+                    } else {
+                        name = NodeFactory.makeAPIName(s);
+                        p = Option.wrap(fr.getComponent(name).ast());
+                    }
+                } 
                 reportCompletion("Parsing " + s, begin);
             }
             finally { }
@@ -234,7 +227,7 @@ public class fs {
 //            (new File(tmpFile)).delete();
 //        }
     }
-
+    
     static void usage() {
         System.err.println("Usage: java fs flags* filename run-args");
         System.err.println("Iteratively parses the Fortress source file found in filename and executes it using run-args.");

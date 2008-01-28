@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.drivers.*;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.useful.Path;
 
 import static com.sun.fortress.shell.ConvenientStrings.*; 
 
@@ -48,6 +49,39 @@ public class CommandInterpreter {
             Iterable<? extends StaticError> errors = fortress.compile(
                     ProjectProperties.SOURCE_PATH,
                     new File(fileName));
+        
+            for (StaticError error: errors) { System.err.println(error); }
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+        }
+        catch (RepositoryError error) {
+            System.err.println(error); 
+        }
+    }
+   
+    /**
+     * This compiler uses a different method for determining what to compile,
+     * and how to compile it.
+     * 
+     * @param doLink
+     * @param s
+     * @throws UserError
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    void compile(boolean doLink, String s) throws UserError, InterruptedException, IOException {
+        try {
+            //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache")));
+        
+            Path path = ProjectProperties.SOURCE_PATH;
+            
+            if (s.contains("/")) {
+                String head = s.substring(0, s.lastIndexOf("/"));
+                s = s.substring(s.lastIndexOf("/")+1, s.length());
+                path = path.prepend(head);
+            } 
+            
+            Iterable<? extends StaticError> errors = fortress.compile(doLink, path, s);
         
             for (StaticError error: errors) { System.err.println(error); }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
