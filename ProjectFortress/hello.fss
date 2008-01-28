@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component hello
-
+import Foo.{...}
 export Executable
 
 run(args:String...) = println "Hello, World!"

@@ -2,7 +2,7 @@
      Note that the basedir is set to the checked out project
      The explicit pathname seems to be a necessary evil <sigh> -->
 <project name="ProjectFortress"
-        default="build"
+        default="compile"
         basedir="ProjectFortress">
     <target name="compile">
         <ant target="compile"/>

@@ -38,9 +38,9 @@ public class PathBasedSyntaxTransformingRepository extends PathBasedRepository {
 
     final GlobalEnvironment env;
     
-    public PathBasedSyntaxTransformingRepository(Path p, GlobalEnvironment env) {
+    public PathBasedSyntaxTransformingRepository(Path p) {
         super(p);
-        this.env = env;
+        this.env = new GlobalEnvironment.FromRepository(this); // this is legal????
     }
 
     protected CompilationUnit getCompilationUnit(File f) throws IOException {

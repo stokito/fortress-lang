@@ -103,8 +103,7 @@ public class Driver {
 
     public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
         new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH,
-                        new GlobalEnvironment(new HashMap<APIName, ApiIndex>())),
+                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
         
@@ -128,14 +127,36 @@ public class Driver {
 
     public static FortressRepository extendedRepository(String s) {
         return new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(s),
-                        new GlobalEnvironment(new HashMap<APIName, ApiIndex>())),
+                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(s)),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
     }
     
     public static ArrayList<ComponentWrapper> components;
 
+    public static APIName fileAsComponent(String s) {
+        APIName name = null;
+        if (s.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
+             name =
+                NodeFactory.makeAPIName(s.substring(0,s.length() -
+               (1 + ProjectProperties.COMP_SOURCE_SUFFIX.length())));
+             return name;
+        }
+        return null;
+    }
+    public static APIName fileAsApi(String s) {
+        APIName name = null;
+        if (s.endsWith("." + ProjectProperties.API_SOURCE_SUFFIX)) {
+             name =
+                NodeFactory.makeAPIName(s.substring(0,s.length() -
+               (1 + ProjectProperties.API_SOURCE_SUFFIX.length())));
+             return name;
+        }
+        return null;
+    }
+
+
+    
     public static BetterEnv evalComponent(CompilationUnit p,
                                           boolean woLibrary,
                                           FortressRepository fr) throws IOException {
