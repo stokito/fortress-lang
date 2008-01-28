@@ -329,12 +329,38 @@ sudoku(compact:String): Sudoku = do
     verifySudoku(st0)
   end
 
+timing(x:()->Any): (Any,NanoInterval) = do
+    start = nanoTime()
+    r = x()
+    finish = nanoTime()
+    println("start = " start ", finish = " finish ", interval = " (finish-start))
+    (r,NanoInterval(finish-start))
+  end
+
+value object NanoInterval(i:ZZ64)
+    getter sec(): RR64 = i / 10.0^9
+    getter ms(): RR64 = i / 10.0^6
+    getter us(): RR64 = i / 10.0^3
+    getter ns(): RR64 = 1.0 i
+    getter toString(): String =
+        if i = 0 then "0"
+        elif i >= 10^9 then sec() "s"
+        elif i >= 10^6 then ms() "ms"
+        elif i >= 10^3 then us() "µs"
+        else ns() "ns"
+        end
+    opr +(self, other:NanoInterval): NanoInterval =
+        NanoInterval(i+other.i)
+end
+
 run(args:String...):()=do
     spuriousInconsistency : Boolean := false
     for problem <- seq(FileReadStream("demos/aStarSudokuData.txt").lines()) do
         println("************************************************************")
-        init = sudoku(problem)
-        res = aStar[\Sudoku,ZZ32\](init)
+        (init,initTime) = timing (fn ():Sudoku => sudoku(problem))
+        println("initTime = " initTime)
+        (res,searchTime) = timing (fn ():Maybe[\Sudoku\] => aStar[\Sudoku,ZZ32\](init))
+        println("searchTime = " searchTime)
         if res.isJust() then
             println("Final result:\n" res.unJust())
         else
