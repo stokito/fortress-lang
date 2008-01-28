@@ -118,8 +118,35 @@ public class CommandInterpreter {
     }
     
     void run(String fileName) throws UserError, IOException, Throwable {
-        Driver.runProgram(Driver.DEFAULT_INTERPRETER_REPOSITORY,
-                Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
+        try {
+            //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache")));
+        
+            Path path = ProjectProperties.SOURCE_PATH;
+            
+            if (fileName.contains("/")) {
+                String head = fileName.substring(0, fileName.lastIndexOf("/"));
+                fileName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
+                path = path.prepend(head);
+            } 
+            
+            /*
+             * Strip suffix to get a bare component name.
+             */
+            if (fileName.endsWith("." + ProjectProperties.COMP_SOURCE_SUFFIX)) {
+                fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
+            }
+            
+            Iterable<? extends StaticError> errors = fortress.run(path, fileName);
+        
+            for (StaticError error: errors) { System.err.println(error); }
+            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
+        }
+        catch (RepositoryError error) {
+            System.err.println(error); 
+        }
+//        Driver.runProgram(Driver.DEFAULT_INTERPRETER_REPOSITORY,
+//                Option.unwrap(ASTIO.readJavaAst(fileName)), new ArrayList<String>());
     }
     
     void link(String result, String left, String right) throws UserError { throw new UserError("Error: Link not yet implemented!"); }
