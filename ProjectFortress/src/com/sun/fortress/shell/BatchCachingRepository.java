@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.MinimalMap;
 import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.ReversedList;
 import com.sun.fortress.useful.Useful;
 
 public class BatchCachingRepository implements FortressRepository {
@@ -148,7 +149,7 @@ public class BatchCachingRepository implements FortressRepository {
      */
     private void refreshCache() {
         try {
-            for (APIName name : ru.staleApis) {
+            for (APIName name : new ReversedList<APIName>(ru.staleApiStack) ) {
                 if (!alreadyCachedApi.contains(name)) {
                     derived.addApi(name, source.getApi(name));
                     alreadyCachedApi.add(name);

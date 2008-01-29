@@ -19,11 +19,13 @@ package com.sun.fortress.compiler;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -63,7 +65,8 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
     final Set<APIName> visitedComponents = new HashSet<APIName>();
 
     public final Set<APIName> staleApis = new HashSet<APIName>();
-
+    public final List<APIName> staleApiStack = new ArrayList<APIName>();
+    
     public final Set<APIName> staleComponents = new HashSet<APIName>();
 
     public final Map<APIName, Throwable> componentExceptions = new HashMap<APIName, Throwable>();
@@ -165,7 +168,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
      }
      
    private Boolean visitCommon(CompilationUnit that, Set<APIName> visited,
-            Set<APIName> stale, IsStale isStale) {
+            Set<APIName> stale, List<APIName> staleList, IsStale isStale) {
         APIName savedNowVisiting = nowVisiting;
         try {
             nowVisiting = that.getName();
@@ -181,6 +184,8 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
              */
             if (!stale.contains(nowVisiting) && isStale.isStale(nowVisiting)) {
                 stale.add(nowVisiting);
+                if (staleList != null)
+                    staleList.add(nowVisiting);
                 change |= true;
             }
 
@@ -192,6 +197,8 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
             if (importsStale && !stale.contains(nowVisiting)) {
                 stale.add(nowVisiting);
+                if (staleList != null)
+                    staleList.add(nowVisiting);
                 change |= true;
             }
 
@@ -203,7 +210,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forApi(Api that) {
-        boolean stale = visitCommon(that, visitedApis, staleApis, isStaleApi);
+        boolean stale = visitCommon(that, visitedApis, staleApis, staleApiStack, isStaleApi);
         /*
          * Note that the code below will "over-visit" implementing components,
          * but they will return immediately with no harm done.
@@ -243,7 +250,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forComponent(Component that) {
-        return visitCommon(that, visitedComponents, staleComponents,
+        return visitCommon(that, visitedComponents, staleComponents, null, 
                 isStaleComponent);
     }
 
