@@ -94,16 +94,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         
         TypeCheckerResult initResult = init.accept(this);
         
-        if (lhs.size() == 1) {
+        if (lhs.size() == 1) { // We have a single variable binding, not a tuple binding
             LValueBind var = lhs.get(0);
             Option<Type> varType = var.getType();
             if (varType.isSome()) {
                 if (initResult.type().isNone()) {
                     // The right hand side could not be typed, which must have resulted in a 
                     // signaled error. No need to signal another error.
-                    return TypeCheckerResult.compose(that, initResult);
+                    return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
+                                                                 lhs,
+                                                                 (Expr)initResult.ast()),
+                                                         initResult);
                 }
-                ConstraintFormula constraints = analyzer.subtype(unwrap(initResult.type()), unwrap(varType));
+                ConstraintFormula constraints = analyzer.subtype(unwrap(initResult.type()), 
+                                                                 unwrap(varType));
                 if (!constraints.isSatisfiable()) {
                     return new TypeCheckerResult(that, constraints);
                 } else {
@@ -133,8 +137,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forId(Id that) {
         Option<Type> thatType = params.type(that);
         
-        if (thatType.isSome()) { return new TypeCheckerResult(that, unwrap(thatType)); }
-        else { 
+        if (thatType.isSome()) { 
+            return new TypeCheckerResult(that, unwrap(thatType)); 
+        } else { 
             StaticError error = 
                 StaticError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
             return new TypeCheckerResult(that, error);
@@ -148,12 +153,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forExportOnly(Export that, List<TypeCheckerResult> apis_result) {
         return new TypeCheckerResult(that);
     }
-
-//    public RetType forQualifiedIdName(QualifiedIdName that) {
-//        Option<RetType> api_result = recurOnOptionOfAPIName(that.getApi());
-//        RetType name_result = that.getName().accept(this);
-//        return forQualifiedIdNameOnly(that, api_result, name_result);
-//    }
     
     public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {        
         // Initialize apiTypeEnv assuming there is no API portion of 'that',
@@ -182,23 +181,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
     
     public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
-        return var_result;
+        return TypeCheckerResult.compose(that, var_result);
     }
     
     // The case below is commented out until it works.
     
 //    public TypeCheckerResult forObjectDecl(ObjectDecl that) {
-//        TypeCheckerResult mods_result = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
-//        TypeCheckerResult name_result = that.getName().accept(this);
-//        TypeCheckerResult staticParams_result = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
-//        TypeCheckerResult extendsClause_result = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
-//        TypeCheckerResult where_result = that.getWhere().accept(this);
-//        TypeCheckerResult params_result = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
-//        TypeCheckerResult throwsClause_result = TypeCheckerResult.compose(that, recurOnOptionOfListOfTraitType(that.getThrowsClause()));
+//        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
+//        TypeCheckerResult nameResult = that.getName().accept(this);
+//        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
+//        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+//        TypeCheckerResult whereResult = that.getWhere().accept(this);
+//        TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
+//        TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfTraitType(that.getThrowsClause()));
 //        
 //        TypeChecker newChecker = this.extend(that.getParams(), 
 //                                             staticParams.extend(that.getStaticParams(), that.getWhere()));
-//        TypeCheckerResult contract_result = that.getContract().accept(newChecker);
+//        TypeCheckerResult contractResult = that.getContract().accept(newChecker);
 //        
 //        // Check field declarations.
 //        TypeCheckerResult fieldsResult = new TypeCheckerResult(that.getDecls());
@@ -218,9 +217,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //            }
 //        }
 //        
-//        return new TypeCheckerResult(that, mods_result, name_result, staticParams_result, 
-//                                     extendsClause_result, where_result, params_result, throwsClause_result, 
-//                                     contract_result, decls_result);
+//        return new TypeCheckerResult(that, modsResult, nameResult, staticParamsResult, 
+//                                     extendsClauseResult, whereResult, paramsResult, throwsClauseResult, 
+//                                     contractResult, declsResult);
 //    }
 }
 

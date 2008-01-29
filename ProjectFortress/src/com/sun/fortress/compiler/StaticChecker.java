@@ -108,8 +108,8 @@ public class StaticChecker {
         
         // Iterate over trait and object definitions.
         //for (
-        return component.ast().accept(typeChecker);
-        //return new TypeCheckerResult(component, IterUtil.<StaticError>empty());
+        //return component.ast().accept(typeChecker);
+        return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
     }
     
 }
