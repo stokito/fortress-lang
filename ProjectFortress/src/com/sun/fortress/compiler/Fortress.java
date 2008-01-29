@@ -29,11 +29,14 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
+import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
@@ -101,7 +104,8 @@ public class Fortress {
             String... files) {
         FortressParser.Result result = new FortressParser.Result();
         
-        bcr.addRootApis("FortressLibrary", "FortressBuiltin");
+        bcr.addRootApis("FortressBuiltin");
+        bcr.addRootApis("FortressLibrary");
         
         for (String s : files) {
             APIName name  = Driver.fileAsApi(s);
@@ -173,12 +177,21 @@ public class Fortress {
 
     private Iterable<? extends StaticError> analyze(GlobalEnvironment env,
             FortressParser.Result pr) {
+        Iterable<Api> apis = pr.apis();
+        Iterable<Component> components = pr.components();
+        long lastModified = pr.lastModified();
+        return analyze(env, apis, components, lastModified);
+    }
+
+    public Iterable<? extends StaticError> analyze(GlobalEnvironment env,
+            Iterable<Api> apis, Iterable<Component> components,
+            long lastModified) {
         // Handle APIs first
         
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
-        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(pr.apis(), pr.lastModified());
+        IndexBuilder.ApiResult rawApiIR = IndexBuilder.buildApis(apis, lastModified);
         if (!rawApiIR.isSuccessful()) { return rawApiIR.errors(); }
         
         // Build a new GlobalEnvironment consisting of all APIs in a global
@@ -193,7 +206,7 @@ public class Fortress {
         // on the rawApiEnv constructed in the previous step. Note that, after this
         // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(pr.apis(), rawApiEnv);
+            Disambiguator.disambiguateApis(apis, rawApiEnv);
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
         
         // Rebuild ApiIndices.
@@ -224,11 +237,11 @@ public class Fortress {
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
         IndexBuilder.ComponentResult rawComponentIR =
-            IndexBuilder.buildComponents(pr.components(), pr.lastModified());
+            IndexBuilder.buildComponents(components, lastModified);
         if (!rawComponentIR.isSuccessful()) { return rawComponentIR.errors(); }
         
         Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(pr.components(), env,
+            Disambiguator.disambiguateComponents(components, env,
                                                  rawComponentIR.components());
         if (!componentDR.isSuccessful()) { return componentDR.errors(); }
         
@@ -252,7 +265,7 @@ public class Fortress {
     
     
     public Iterable<? extends StaticError>  run(Path path, String componentName) {
-        BatchCachingRepository bcr = new BatchCachingRepository(true,
+        BatchCachingAnalyzingRepository bcr = new BatchCachingAnalyzingRepository(false,
                 new PathBasedSyntaxTransformingRepository(path),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
                 );
@@ -262,26 +275,28 @@ public class Fortress {
         if (!result.isSuccessful()) { return result.errors(); }
         
         System.out.println("Parsing done.");
-        
-        GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
-        
-        Iterable<? extends StaticError> errors =  analyze(env, result);
-        
-        if (!errors.iterator().hasNext() ) {
+              
             try {
-                Driver.runProgram(bcr, bcr.getComponent(NodeFactory.makeAPIName(componentName)).ast(), new ArrayList<String>());
+                CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();
+                Driver.runProgram(bcr,
+                        cu,
+                        new ArrayList<String>());
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
+                if (th instanceof FortressError) {
+                    FortressError pe = (FortressError) th;
+                    if (pe.getStaticErrors() != null)
+                        return pe.getStaticErrors();
+                }
+                
                 if (th instanceof RuntimeException) 
                     throw (RuntimeException) th;
                 if (th instanceof Error) 
                     throw (Error) th;
                 throw new WrappedException(th);
             }
-
-        }
-        
-        return errors;
+      
+        return IterUtil.empty();
     }
     
     static class WrappedException extends StaticError {
