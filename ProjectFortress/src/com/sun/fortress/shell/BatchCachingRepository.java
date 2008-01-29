@@ -19,9 +19,11 @@ package com.sun.fortress.shell;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,12 +47,13 @@ public class BatchCachingRepository implements FortressRepository {
     private final RepositoryUpdater ru;
 
     private final Set<APIName> alreadyCachedComponent = new HashSet<APIName>();
-
+   
     private final Set<APIName> alreadyCachedApi = new HashSet<APIName>();
-
+    private final List<APIName> alreadyCachedApiList = new ArrayList<APIName>();
+    
     public BatchCachingRepository(FortressRepository source,
             FortressRepository cache) {
-        this(true, source, cache);
+        this(false, source, cache);
     }
     
     /**
@@ -67,9 +70,10 @@ public class BatchCachingRepository implements FortressRepository {
         MinimalMap<APIName, Set<APIName>> linker = linker(doLink);
         this.ru = new RepositoryUpdater(source, derived, linker);
     }
+   
    public BatchCachingRepository(Path p,
            FortressRepository cache) {
-       this(true, p, cache);
+       this(false, p, cache);
    }
    
     public BatchCachingRepository(boolean doLink, FortressRepository source,
@@ -151,14 +155,12 @@ public class BatchCachingRepository implements FortressRepository {
         try {
             for (APIName name : new ReversedList<APIName>(ru.staleApiStack)) {
                 if (!alreadyCachedApi.contains(name)) {
-                    derived.addApi(name, source.getApi(name));
-                    alreadyCachedApi.add(name);
+                    addApi(name, source.getApi(name));
                 }
             }
             for (APIName name : ru.staleComponents) {
                 if (!alreadyCachedComponent.contains(name)) {
-                    derived.addComponent(name, source.getComponent(name));
-                    alreadyCachedComponent.add(name);
+                    addComponent(name, source.getComponent(name));
                 }
             }
         } catch (IOException ex) {
@@ -170,7 +172,7 @@ public class BatchCachingRepository implements FortressRepository {
     public void addApi(APIName name, ApiIndex definition) {
         derived.addApi(name, definition);
         alreadyCachedApi.add(name);
-
+        alreadyCachedApiList.add(name);
     }
 
     public void addComponent(APIName name, ComponentIndex definition) {
@@ -204,14 +206,31 @@ public class BatchCachingRepository implements FortressRepository {
     }
 
     public ComponentIndex getComponent(APIName name)
-            throws FileNotFoundException, IOException {
+    throws FileNotFoundException, IOException {
         addRootComponents(name);
         Throwable th = ru.componentExceptions.get(name);
         resurrectException(th);
         return derived.getComponent(name);
     }
 
-    public long getModifiedDateForApi(APIName name)
+    public ComponentIndex getLinkedComponent(APIName name)
+    throws FileNotFoundException, IOException {
+        ComponentIndex ci = getComponent(name);
+        
+        // Cannot use iterator, will fail with comodification exception.
+        // Expect to add APIs as new components are inhaled.
+        for (int i = 0; i < alreadyCachedApiList.size(); i++) {
+            APIName n = alreadyCachedApiList.get(i);
+            // TODO Someday we will have a REAL linker.
+            APIName implementor = n;
+            // For side-effect only; get the component, and all its APIs.
+            ComponentIndex ici = getComponent(implementor);
+        }
+        
+        return ci;
+}
+
+public long getModifiedDateForApi(APIName name)
             throws FileNotFoundException {
 
         return derived.getModifiedDateForApi(name);

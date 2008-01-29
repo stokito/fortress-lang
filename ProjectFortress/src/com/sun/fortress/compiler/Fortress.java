@@ -81,7 +81,8 @@ public class Fortress {
     public Iterable<? extends StaticError> compile(boolean link, Path path, String... files) {
         
         BatchCachingRepository bcr = new BatchCachingRepository(link,
-                new PathBasedSyntaxTransformingRepository(path),
+                //new PathBasedSyntaxTransformingRepository
+                (path),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
                 );
         

@@ -103,7 +103,8 @@ public class Driver {
 
     public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
         new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH),
+                //new PathBasedSyntaxTransformingRepository
+                (ProjectProperties.SOURCE_PATH),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
         
@@ -125,9 +126,10 @@ public class Driver {
         return evalComponent(p, false, fr);
     }
 
-    public static FortressRepository extendedRepository(String s) {
+    public static BatchCachingRepository extendedRepository(String s) {
         return new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository(ProjectProperties.SOURCE_PATH.prepend(s)),
+                //new PathBasedSyntaxTransformingRepository
+                (ProjectProperties.SOURCE_PATH.prepend(s)),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
     }
