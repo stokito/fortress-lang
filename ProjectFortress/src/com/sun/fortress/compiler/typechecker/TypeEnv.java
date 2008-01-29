@@ -22,6 +22,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.index.ParamVariable;
 import com.sun.fortress.compiler.index.SingletonVariable;
@@ -238,27 +239,45 @@ public abstract class TypeEnv {
 
     /**
      * Produce a new type environment extending this with the given variable bindings.
+     * Unfortunately, we must give some variants of 'extend' long names to allow the 
+     * compiler to distinguish them from other variants with the same _erased_ signature.
      */
     public final TypeEnv extend(LValueBind... entries) {
         if (entries.length == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
+    
+    public final TypeEnv extendWithLValues(List<LValueBind> entries) {
+        if (entries.size() == 0) { return this; }
+        else { return new LValueTypeEnv(entries, this); }
+    }
 
-    /**
-     * Produce a new type environment extending this with the given variable bindings.
-     */
     public final TypeEnv extend(Map<Id, Variable> vars) {
         if (vars.size() == 0) { return this; }
         else { return new VarTypeEnv(vars, this); }
     }
 
-    public final TypeEnv extend(Relation<SimpleName, Function> fns) {
+    public final TypeEnv extendWithFns(Relation<SimpleName, ? extends Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
     }
+    
+    public final TypeEnv extendWithMethods(Relation<SimpleName, Method> methods) {
+        if (methods.size() == 0) { return this; }
+        else { return new MethodTypeEnv(methods, this); }
+    }
 
-    public final TypeEnv extend(List<Param> params) {
+    public final TypeEnv extendWithParams(List<Param> params) {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
+    }
+    
+    public final TypeEnv extend(Option<List<Param>> params) {
+        if (params.isNone()) { return this; }
+        else { return extendWithParams(unwrap(params)); }
+    }
+    
+    public final TypeEnv extend(Param param) {
+        return new ParamTypeEnv(Arrays.asList(param), this);
     }
 }

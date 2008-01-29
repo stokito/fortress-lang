@@ -101,7 +101,8 @@ public class TypeAnalyzer {
                             Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
                                                                         s.getArgs(),
                                                                         traitIndex.hiddenParameters());
-                            for (Type sup : traitIndex.extendsTypes()) {
+                            for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
+                                TraitType sup = _sup.getType();
                                 ConstraintFormula f = ConstraintFormula.TRUE;
                                 for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
                                     f = f.and(subtype(subst.value(c.first()), subst.value(c.second()), h), h);

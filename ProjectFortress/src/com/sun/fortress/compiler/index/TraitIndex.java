@@ -23,6 +23,7 @@ import java.util.List;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Pair;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Id;
@@ -68,28 +69,28 @@ public abstract class TraitIndex extends TypeConsIndex {
      */
     public Iterable<Pair<Type, Type>> typeConstraints() { return NI.nyi(); }
     
-    public Set<Type> extendsTypes() {
-        return NI.nyi();
+    public List<TraitTypeWhere> extendsTypes() {
+        return _ast.getExtendsClause();
     }
     
     public Map<Id, Method> getters() {
-        return NI.nyi();
+        return _getters;
     }
     
     public Map<Id, Method> setters() {
-        return NI.nyi();
+        return _setters;
     }
     
     public Set<Function> coercions() {
-        return NI.nyi();
+        return _coercions;
     }
     
     public Relation<SimpleName, Method> dottedMethods() {
-        return NI.nyi();
+        return _dottedMethods;
     }
     
     public Relation<SimpleName, FunctionalMethod> functionalMethods() {
-        return NI.nyi();
+        return _functionalMethods;
     }
     
 }

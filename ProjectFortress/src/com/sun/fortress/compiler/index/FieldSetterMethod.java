@@ -29,4 +29,6 @@ public class FieldSetterMethod extends Method {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
+    
+    public LValueBind ast() { return _ast; }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,20 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.index;
+package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeFactory;
+import java.util.ArrayList;
 
-public class DeclaredMethod extends Method {
-    
-    private final FnAbsDeclOrDecl _ast;
-    private final Id _declaringTrait;
-    
-    public DeclaredMethod(FnAbsDeclOrDecl ast, Id declaringTrait) {
-        _ast = ast;
-        _declaringTrait = declaringTrait;
-    }
-    
-    public FnAbsDeclOrDecl ast() { return _ast; }
+public class Types {
+    public static final Type VOID = NodeFactory.makeTupleType(new ArrayList<Type>());
 }

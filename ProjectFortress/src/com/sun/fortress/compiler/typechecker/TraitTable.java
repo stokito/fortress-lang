@@ -35,6 +35,10 @@ public class TraitTable {
         currentComponent = _currentComponent;
         globalEnv = _globalEnv;
     }
+    
+    public TypeConsIndex typeCons(Id name) { 
+        return currentComponent.typeConses().get(name);
+    }
     public TypeConsIndex typeCons(QualifiedIdName name) {
         Id rawName = name.getName();
         Option<APIName> api = name.getApi();

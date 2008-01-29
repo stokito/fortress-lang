@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,11 +32,11 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * A type environment whose outermost lexical scope consists of a map from IDs
  * to Variables.
  */
-class FnTypeEnv extends TypeEnv {
-    private Relation<SimpleName, ? extends Function> entries;
+class MethodTypeEnv extends TypeEnv {
+    private Relation<SimpleName, Method> entries;
     private TypeEnv parent;
     
-    FnTypeEnv(Relation<SimpleName, ? extends Function> _entries, TypeEnv _parent) {
+    MethodTypeEnv(Relation<SimpleName, Method> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
@@ -46,13 +46,13 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<LValueBind> binding(Id var) {
-        Set<? extends Function> fns = entries.getSeconds(var);
+        Set<Method> methods = entries.getSeconds(var);
         Type type = makeIntersectionType();
         
-        for (Function fn: fns) {
-            if (fn instanceof DeclaredFunction) {
-                DeclaredFunction _fn = (DeclaredFunction)fn;
-                FnAbsDeclOrDecl decl = _fn.ast();
+        for (Method method: methods) {
+            if (method instanceof DeclaredMethod) {
+                DeclaredMethod _method = (DeclaredMethod)method;
+                FnAbsDeclOrDecl decl = _method.ast();
                 type = makeIntersectionType(type,
                                             makeGenericArrowType(decl.getSpan(),
                                                                  decl.getStaticParams(),
@@ -60,30 +60,20 @@ class FnTypeEnv extends TypeEnv {
                                                                  unwrap(decl.getReturnType()), // all types have been filled in at this point
                                                                  decl.getThrowsClause(),
                                                                  decl.getWhere()));
-            } else if (fn instanceof FunctionalMethod) {
-                FunctionalMethod _fn = (FunctionalMethod)fn;
-                FnAbsDeclOrDecl decl = _fn.ast();
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(decl.getSpan(),
-                                                                 decl.getStaticParams(),
-                                                                 typeFromParams(decl.getParams()),
-                                                                 unwrap(decl.getReturnType()), // all types have been filled in at this point
-                                                                 decl.getThrowsClause(),
-                                                                 decl.getWhere()));
-            } else { // fn instanceof Constructor
-                final Constructor _fn = (Constructor)fn;
+            } else if (method instanceof FieldGetterMethod) {
+                FieldGetterMethod _method = (FieldGetterMethod)method;
+                LValueBind binding = _method.ast();
+                type = makeArrowType(binding.getSpan(),
+                                     Types.VOID,
+                                     unwrap(binding.getType())); // all types have been filled in at this point
                 
-                // Invariant: _fn.params().isSome()
-                // Otherwise, _fn should not have been in entries.
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(_fn.declaringTrait().getSpan(),
-                                                                 _fn.staticParams(),
-                                                                 typeFromParams(unwrap(_fn.params())),
-                                                                 makeInstantiatedType(makeQualifiedIdName(_fn.declaringTrait()),
-                                                                                      staticParamsToArgs(_fn.staticParams())),
-                                                                 _fn.throwsClause(),
-                                                                 _fn.where()));
+            } else { // method instanceof FieldSetterMethod
+                final FieldSetterMethod _method = (FieldSetterMethod)method;
+                LValueBind binding = _method.ast();
                 
+                type = makeArrowType(binding.getSpan(),
+                                     unwrap(binding.getType()), // all types have been filled in at this point
+                                     Types.VOID);
             }
         }
         return some(makeLValue(var, type));
