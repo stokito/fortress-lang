@@ -147,7 +147,7 @@ public class fs {
 //        boolean keepTemp = keep;
 
         try {
-            FortressRepository fr;
+            BatchCachingRepository fr;
             // Need to replace \ with / in the path.
             if (s.contains("/")) {
                 String head = s.substring(0, s.lastIndexOf("/"));
@@ -171,10 +171,10 @@ public class fs {
                 } else {
                     name = Driver.fileAsComponent(s);
                     if (name != null) {
-                        p = Option.wrap(fr.getComponent(name).ast());
+                        p = Option.wrap(fr.getLinkedComponent(name).ast());
                     } else {
                         name = NodeFactory.makeAPIName(s);
-                        p = Option.wrap(fr.getComponent(name).ast());
+                        p = Option.wrap(fr.getLinkedComponent(name).ast());
                     }
                 } 
                 reportCompletion("Parsing " + s, begin);

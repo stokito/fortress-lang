@@ -56,7 +56,7 @@ public class FileTests {
         String f;
         String dir;
         String name;
-        FortressRepository fr;
+        BatchCachingRepository fr;
         
         /**
          * If true, only print test output for unexpected results.
@@ -67,7 +67,7 @@ public class FileTests {
         boolean printSuccess;
         boolean printFailure;
 
-        public FSSTest(FortressRepository repository, String d, String s, boolean unexpected_only, boolean expect_failure) {
+        public FSSTest(BatchCachingRepository repository, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
@@ -101,7 +101,7 @@ public class FileTests {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     Annotations anns = new Annotations(fssFile);
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    ComponentIndex ci = fr.getComponent(apiname);
+                    ComponentIndex ci = fr.getLinkedComponent(apiname);
                     
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
                     
@@ -240,7 +240,7 @@ public class FileTests {
 //                );
         
         BatchCachingRepository fr = new BatchCachingRepository(
-                new PathBasedSyntaxTransformingRepository
+                //new PathBasedSyntaxTransformingRepository
                 (ProjectProperties.SOURCE_PATH.prepend(dir)),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
                 );
