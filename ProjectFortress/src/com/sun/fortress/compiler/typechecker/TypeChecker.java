@@ -21,9 +21,13 @@ package com.sun.fortress.compiler.typechecker;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
+import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
@@ -31,9 +35,7 @@ import java.util.*;
 import static com.sun.fortress.compiler.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
-    private static final Type VOID = NodeFactory.makeTupleType(new ArrayList<Type>());
     
     private TraitTable table;
     private StaticParamEnv staticParams;
@@ -51,6 +53,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         analyzer = new TypeAnalyzer(table);
     }
     
+    private TypeChecker(TraitTable _table,
+                       StaticParamEnv _staticParams,
+                       TypeEnv _params,
+                       TypeAnalyzer _analyzer) 
+    {
+        table = _table;
+        staticParams = _staticParams;
+        params = _params;
+        analyzer = _analyzer;
+    }
+    
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
         List<Type> results = new ArrayList<Type>();
         
@@ -60,15 +73,47 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return NodeFactory.makeTupleType(results);
     }
     
+    private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
+        return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
+                               params.extend(newParams), analyzer);
+    }
+    
+    private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
+        return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
+                               params.extendWithParams(newParams), analyzer);
+    }
+    
+    private TypeChecker extend(List<LValueBind> bindings) {
+        return new TypeChecker(table, staticParams,
+                               params.extendWithLValues(bindings),
+                               analyzer);
+    }
+    
+    private TypeChecker extend(Param newParam) {
+        return new TypeChecker(table, staticParams,
+                               params.extend(newParam), 
+                               analyzer);
+    }
+    
+    public TypeChecker extendWithMethods(Relation<SimpleName, Method> methods) {
+        return new TypeChecker(table, staticParams,
+                               params.extendWithMethods(methods),
+                               analyzer);
+    }
+    
+    public TypeChecker extendWithFns(Relation<SimpleName, FunctionalMethod> methods) {
+        return new TypeChecker(table, staticParams,
+                               params.extendWithFns(methods),
+                               analyzer);        
+    }
+    
     /** Ignore unsupported nodes for now. */
     public TypeCheckerResult defaultCase(Node that) {
-        return new TypeCheckerResult(that, VOID, IterUtil.<StaticError>empty());
+        return new TypeCheckerResult(that, Types.VOID, IterUtil.<StaticError>empty());
     }
     
     public TypeCheckerResult forFnDef(FnDef that) {
-        StaticParamEnv newStatics = staticParams.extend(that.getStaticParams());
-        TypeEnv newParams = params.extend(that.getParams());
-        TypeChecker newChecker = new TypeChecker(table, newStatics, newParams);
+        TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
         
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
@@ -184,43 +229,45 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return TypeCheckerResult.compose(that, var_result);
     }
     
-    // The case below is commented out until it works.
-    
-//    public TypeCheckerResult forObjectDecl(ObjectDecl that) {
-//        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
-//        TypeCheckerResult nameResult = that.getName().accept(this);
-//        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
-//        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
-//        TypeCheckerResult whereResult = that.getWhere().accept(this);
-//        TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
-//        TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfTraitType(that.getThrowsClause()));
-//        
-//        TypeChecker newChecker = this.extend(that.getParams(), 
-//                                             staticParams.extend(that.getStaticParams(), that.getWhere()));
-//        TypeCheckerResult contractResult = that.getContract().accept(newChecker);
-//        
-//        // Check field declarations.
-//        TypeCheckerResult fieldsResult = new TypeCheckerResult(that.getDecls());
-//        for (Decl decl: that.getDecls()) {
-//            if (decl instanceof FieldDecl) { 
-//                fieldsResult = new TypeCheckerResult(that.getDecls(), decl.accept(newChecker), fieldsResult);
-//                newChecker = newChecker.extend(decl);
-//            }
-//        }
-// 
-//        // Check method declarations.
-//        newChecker = newChecker.extend(that.getDecls());
-//        TypeCheckerResult methodsResult = new TypeCheckerResult(that);
-//        for (Decl decl: that.getDecls()) {
-//            if (decl instanceof MethodDecl) { 
-//                methodsResult = new TypeCheckerResult(that.getDecls(), decl.accept(newChecker), methodsResult);
-//            }
-//        }
-//        
-//        return new TypeCheckerResult(that, modsResult, nameResult, staticParamsResult, 
-//                                     extendsClauseResult, whereResult, paramsResult, throwsClauseResult, 
-//                                     contractResult, declsResult);
-//    }
+    public TypeCheckerResult forObjectDecl(ObjectDecl that) {
+        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
+        TypeCheckerResult nameResult = that.getName().accept(this);
+        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
+        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+        TypeCheckerResult whereResult = that.getWhere().accept(this);
+        TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
+        TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfTraitType(that.getThrowsClause()));
+        
+        TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
+        TypeCheckerResult contractResult = that.getContract().accept(newChecker);
+        
+        // Check field declarations.
+        TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
+        for (Decl decl: that.getDecls()) {
+            if (decl instanceof VarDecl) { 
+                VarDecl _decl = (VarDecl)decl;
+                fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
+                newChecker = newChecker.extend(_decl.getLhs());
+            }
+        }
+ 
+        // Check method declarations.
+
+        TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
+        newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
+        newChecker = newChecker.extendWithFns(thatIndex.functionalMethods());
+                
+        TypeCheckerResult methodsResult = new TypeCheckerResult(that);
+        for (Decl decl: that.getDecls()) {
+            if (decl instanceof FnDecl) { 
+                methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
+            }
+        }
+        
+        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult, 
+                                         extendsClauseResult, whereResult, paramsResult, throwsClauseResult, 
+                                         contractResult, fieldsResult, methodsResult);
+    }
 }
 
     /* Methods copied from superclass, to make it easier to incrementally define

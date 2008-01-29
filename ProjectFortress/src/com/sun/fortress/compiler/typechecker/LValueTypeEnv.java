@@ -33,6 +33,11 @@ class LValueTypeEnv extends TypeEnv {
         parent = _parent;
     }
     
+    LValueTypeEnv(List<LValueBind> _entries, TypeEnv _parent) {
+        entries = _entries.toArray(new LValueBind[_entries.size()]);
+        parent = _parent;
+    }
+    
     /**
      * Return an LValueBind that binds the given Id to a type
      * (if the given Id is in this type environment).

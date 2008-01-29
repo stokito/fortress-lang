@@ -131,6 +131,11 @@ public class NodeFactory {
             Option.<List<Type>>none();
         return new ArrowType(span, domain, range, throwsAsTypeList);
     }
+    
+    public static ArrowType makeArrowType(Span span, Type domain,
+                                          Type range) {
+        return new ArrowType(span, domain, range, Option.<List<Type>>none());
+    }
 
     public static _RewriteGenericArrowType makeGenericArrowType(Span span,
                                                                 List<StaticParam> staticParams,
