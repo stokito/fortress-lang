@@ -149,9 +149,9 @@ public class BatchCachingRepository implements FortressRepository {
      */
     private void refreshCache() {
         try {
-            for (APIName name : //new ReversedList<APIName>(
+            for (APIName name : new ReversedList<APIName>(
                     ru.staleApiStack
-                    //)
+                    )
                     ) {
                 if (!alreadyCachedApi.contains(name)) {
                     derived.addApi(name, source.getApi(name));
