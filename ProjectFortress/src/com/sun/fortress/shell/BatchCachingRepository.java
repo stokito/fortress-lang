@@ -32,7 +32,10 @@ import com.sun.fortress.compiler.RepositoryUpdater;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.MinimalMap;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.ReversedList;
@@ -45,10 +48,9 @@ public class BatchCachingRepository implements FortressRepository {
     private final FortressRepository derived;
 
     private final RepositoryUpdater ru;
-
     private final Set<APIName> alreadyCachedComponent = new HashSet<APIName>();
-   
     private final Set<APIName> alreadyCachedApi = new HashSet<APIName>();
+    
     private final List<APIName> alreadyCachedApiList = new ArrayList<APIName>();
     
     public BatchCachingRepository(FortressRepository source,
@@ -151,7 +153,7 @@ public class BatchCachingRepository implements FortressRepository {
      * Updates the derived repository with new versions of ASTs
      * identified as "stale" by the repository updater.
      */
-    private void refreshCache() {
+    protected void refreshCache() {
         try {
             for (APIName name : new ReversedList<APIName>(ru.staleApiStack)) {
                 if (!alreadyCachedApi.contains(name)) {
@@ -167,6 +169,50 @@ public class BatchCachingRepository implements FortressRepository {
             /* Any exceptions seen here are reported elsewhere. */
    
         }
+    }
+    
+    Fn<APIName, Api> toApi = new Fn<APIName, Api>() {
+
+        @Override
+        public Api apply(APIName x) {
+            try {
+                ApiIndex xi = source.getApi(x);
+                return (Api) xi.ast();
+            } catch (FileNotFoundException e) {
+                throw new Error(e);
+            } catch (IOException e) {
+                throw new Error(e);
+            }
+            
+        }
+        
+    };
+    
+    Fn<APIName, Component> toComponent = new Fn<APIName, Component>() {
+
+        @Override
+        public Component apply(APIName x) {
+            try {
+                ComponentIndex xi = source.getComponent(x);
+                return (Component) xi.ast();
+            } catch (FileNotFoundException e) {
+                throw new Error(e);
+            } catch (IOException e) {
+                throw new Error(e);
+            }
+            
+        }
+        
+    };
+    
+    protected Set<Api> newStaleApis() {
+        return Useful.applyToAll(Useful.difference(ru.staleApis, alreadyCachedApi),
+                toApi);
+    }
+
+    protected Set<Component> newStaleComponents() {
+        return Useful.applyToAll(Useful.difference(ru.staleComponents, alreadyCachedComponent),
+                toComponent);
     }
 
     public void addApi(APIName name, ApiIndex definition) {

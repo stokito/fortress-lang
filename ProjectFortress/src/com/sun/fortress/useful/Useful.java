@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -303,6 +303,13 @@ public class Useful {
         HashSet<T> result = new HashSet<T>();
         result.addAll(x1);
         result.addAll(x2);
+        return result;
+    }
+    
+    public static <T> Set<T> difference(Collection<T> x1, Collection<T> x2) {
+        HashSet<T> result = new HashSet<T>();
+        result.addAll(x1);
+        result.removeAll(x2);
         return result;
     }
 
