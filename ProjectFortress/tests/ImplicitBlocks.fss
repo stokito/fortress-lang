@@ -21,8 +21,8 @@ export Executable
 
 run(args:String...):()= do
     typecase x = "test" of
-      String => row(i: ZZ32):() = ()
-                println(x ": String (PASS)")
+      String => row(i: ZZ32):() = "PASS"
+                println(x ": String (" row(17) ")")
       else => println("FAIL")
     end
   end

@@ -35,8 +35,10 @@ import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.transactions.exceptions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
+import com.sun.fortress.interpreter.evaluator.values.FAsIf;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FChar;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
@@ -63,13 +65,13 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedMethod;
 import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.interpreter.glue.MethodWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AsExpr;
+import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
 import com.sun.fortress.nodes.Binding;
@@ -243,6 +245,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
         else
             return error(x, e, errorMsg("The type of expression ", val.type(),
                                         " is not a subtype of ", fty, "."));
+    }
+
+    public FValue forAsIfExpr(AsIfExpr x) {
+        final Expr expr = x.getExpr();
+        FValue val = expr.accept(this);
+        Type ty = x.getType();
+        FType fty = EvalType.getFType(ty, e);
+        if (val.type().subtypeOf(fty))
+            return new FAsIf(val,fty);
+        else
+            return error(x, e, errorMsg("Type of expression, ", val.type(),
+                                        ", not a subtype of ", fty, "."));
     }
 
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
@@ -820,54 +834,62 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr arg = x.getArg();
 
         FValue fobj = obj.accept(this);
-        if (fobj instanceof FObject) {
-            FObject fobject = (FObject) fobj;
-            // TODO Need to distinguish between public/private
-            // methods/fields
-            FValue cl = fobject.getSelfEnv().getValueNull(NodeUtil.nameString(method));
-            if (cl == null) {
-                // TODO Environment is split, might not be best choice
-                // for error printing.
-                String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
-                return error(x, fobject.getSelfEnv(), msg);
-            } else if (sargs.isEmpty() && cl instanceof Method) {
-                List<FValue> args = argList(arg.accept(this));
-                    //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-                try {
-                    return ((Method) cl).applyMethod(args, fobject, x, e);
-                } catch (FortressError ex) {
-                    throw ex.setContext(x, fobject.getSelfEnv());
-                }
-            } else if (cl instanceof OverloadedMethod) {
-                return bug(x, fobject.getSelfEnv(),
-                                         "Don't actually resolve overloading of " +
-                                         "generic methods yet.");
-            } else if (cl instanceof MethodInstance) {
-                // What gets retrieved is the symbolic instantiation of
-                // the generic method.
-                // This is ever-so-slightly wrong -- we need to not
-                // create an "instance"
-                // if the parameters are non-symbolic.
-                GenericMethod gm = ((MethodInstance) cl).getGenerator();
-                List<FValue> args = argList(arg.accept(this));
-                    //evalInvocationArgs(java.util.Arrays.asList(null, arg));
-                try {
-                    return (gm.typeApply(sargs, e, x)).
-                            applyMethod(args, fobject, x, e);
-                } catch (FortressError ex) {
-                    throw ex.setContext(x,fobject.getSelfEnv());
-                } catch (StackOverflowError soe) {
-                    return error(x,fobject.getSelfEnv(),
-                                 errorMsg("Stack overflow on ",x));
-                }
+        FObject fobject;
+        BetterEnv selfEnv;
+
+        // TODO Need to distinguish between public/private
+        // methods/fields
+        if (fobj.getValue() instanceof FObject) {
+            fobject = (FObject) fobj.getValue();
+            if (fobj.type() instanceof FTypeTrait) {
+                // fobj instanceof FAsIf, and nontrivial type()
+                selfEnv = ((FTypeTrait)fobj.type()).getMembers();
             } else {
-                return error(x, fobject.getSelfEnv(),
-                                       errorMsg("Unexpected method value in method ",
-                                                "invocation, ", cl.toString() + "\n" +  NodeUtil.dump(x)));
+                selfEnv = fobject.getSelfEnv();
             }
         } else {
             return error(x, errorMsg("Unexpected receiver in method ",
                                                "invocation, ", fobj));
+        }
+        FValue cl = selfEnv.getValueNull(NodeUtil.nameString(method));
+        if (cl == null) {
+            // TODO Environment is split, might not be best choice
+            // for error printing.
+            String msg = errorMsg("undefined method ", NodeUtil.nameString(method));
+            return error(x, selfEnv, msg);
+        } else if (sargs.isEmpty() && cl instanceof Method) {
+            List<FValue> args = argList(arg.accept(this));
+                //evalInvocationArgs(java.util.Arrays.asList(null, arg));
+            try {
+                return ((Method) cl).applyMethod(args, fobject, x, e);
+            } catch (FortressError ex) {
+                throw ex.setContext(x, selfEnv);
+            }
+        } else if (cl instanceof OverloadedMethod) {
+            return bug(x, selfEnv,   "Don't actually resolve overloading of " +
+                                     "generic methods yet.");
+        } else if (cl instanceof MethodInstance) {
+            // What gets retrieved is the symbolic instantiation of
+            // the generic method.
+            // This is ever-so-slightly wrong -- we need to not
+            // create an "instance"
+            // if the parameters are non-symbolic.
+            GenericMethod gm = ((MethodInstance) cl).getGenerator();
+            List<FValue> args = argList(arg.accept(this));
+                //evalInvocationArgs(java.util.Arrays.asList(null, arg));
+            try {
+                return (gm.typeApply(sargs, e, x)).
+                        applyMethod(args, fobject, x, e);
+            } catch (FortressError ex) {
+                throw ex.setContext(x,selfEnv);
+            } catch (StackOverflowError soe) {
+                return error(x,selfEnv, errorMsg("Stack overflow on ",x));
+            }
+        } else {
+            return error(x, selfEnv,
+                           errorMsg("Unexpected method value in method ",
+                                    "invocation, ", cl.toString() + "\n" +
+                                    NodeUtil.dump(x)));
         }
     }
 
@@ -1158,31 +1180,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forArrayComprehension(ArrayComprehension x) {
         return NI("forArrayComprehension");
     }
-
-    /*
-    public FValue forSetExpr(SetExpr x) {
-        List<Expr> elements = x.getElements();
-        // Evaluate the elements.
-        List<FValue> evaled = evalExprListParallel(elements);
-        // Iterate over the elements to pick the most general type
-        Set<FType> bestGuess = FType.join(evaled);
-        FType bestGuessType = Useful.<FType> singleValue(bestGuess);
-        Simple_fcn f = Glue.instantiateGenericConstructor(e,
-                WellKnownNames.setMaker, bestGuessType, x);
-        // Now invoke f.
-        FValue theArray = functionInvocation(Collections.<FValue> emptyList(),
-                f, x);
-
-        MethodWrapper mw = new MethodWrapper((FObject) theArray, x, "add");
-        ArrayList<FValue> singleton = new ArrayList<FValue>(1);
-        singleton.add(null);
-        for (FValue v : evaled) {
-            singleton.set(0, v);
-            mw.call(singleton, e);
-        }
-        return theArray;
-    }
-    */
 
     public FValue forStringLiteralExpr(StringLiteralExpr x) {
         return new FStringLiteral(x.getText());

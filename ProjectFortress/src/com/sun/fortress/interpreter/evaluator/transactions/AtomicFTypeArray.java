@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -48,7 +48,7 @@ public class AtomicFTypeArray extends FObject {
     public static final boolean TRACE_ARRAY = false;
 
     public AtomicFTypeArray
-            (FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+            (FType selfType, BetterEnv self_dot_env) {
         super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
         int capacity = self_dot_env.getValue("s0").getInt();
         array        = new FValue[capacity];

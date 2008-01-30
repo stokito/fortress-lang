@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
@@ -123,15 +124,28 @@ public abstract class NonPrimitive extends Simple_fcn {
         return cachedDomain;
     }
 
+    public static List<FValue> stripAsIf(List<FValue> args) {
+        List<FValue> res = new ArrayList(args.size());
+        for (FValue v : args) {
+            if (v instanceof FAsIf) {
+                res.add(((FAsIf)v).getValue());
+            } else {
+                res.add(v);
+            }
+        }
+        return res;
+    }
+
     /**
      * Take passed-in parameters, type check them.
      * Intended to be called from NativeApp.
      * Do not bother calling this if you also call buildEnvFromParams.
      */
-    public void typecheckParams(List<FValue> args, HasAt loc) {
+    public List<FValue> typecheckParams(List<FValue> args, HasAt loc) {
         args = fixupArgCount(args,loc);
         Iterator<FValue> argsIter = args.iterator();
         Iterator<Parameter> paramsIter = params.iterator();
+        boolean asif = false;   // Need to strip asif?  Avoid if not.
         for (int i = 1; paramsIter.hasNext(); i++) {
             Parameter param = paramsIter.next();
             FType paramType = param.getType();
@@ -139,6 +153,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 FType restType = ((FTypeRest)paramType).getType();
                 for (; argsIter.hasNext(); i++) {
                     FValue arg = argsIter.next();
+                    if (arg instanceof FAsIf) asif = true;
                     if (!restType.typeMatch(arg)) {
                         error(loc, within,
                               errorMsg("Closure/Constructor for ",
@@ -152,6 +167,7 @@ public abstract class NonPrimitive extends Simple_fcn {
             } else {
                 // Usual case for the loop.
                 FValue arg = argsIter.next();
+                if (arg instanceof FAsIf) asif = true;
                 if (!paramType.typeMatch(arg)) {
                     error(loc, within,
                           errorMsg("Closure/Constructor for ",
@@ -163,6 +179,10 @@ public abstract class NonPrimitive extends Simple_fcn {
                 }
             }
         }
+        if (asif)
+            return stripAsIf(args);
+        else
+            return args;
     }
 
     /**
@@ -213,7 +233,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 int j = 0;
                 while (argsIter.hasNext()) {
                     arg = argsIter.next();
-                    iaw.put(arg, j);
+                    iaw.put(arg.getValue(), j);  // strip asif
                     j++;
                 }
                 // Do the copy.
@@ -231,6 +251,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                                    paramType, ") got type ",
                                    arg.type(), " with arg ", arg));
                 }
+                arg = arg.getValue(); // Strip asif
                 try {
                     if (param.getMutable()) {
                         env.putValueUnconditionally(param.getName(), arg,

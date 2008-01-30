@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.evaluator.values;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -47,6 +46,7 @@ public abstract class FValue {
     public String getString() { return "No String Representation Implemented for " + getClass().getSimpleName();}
     public abstract FType type();
 
+    public FValue getValue() { return this; }
     public BufferedWriter getBufferedWriter() { return bug("getBufferedWriter not implemented for " + getClass().getSimpleName()); }
     public int getInt() { throw new InterpreterBug("getInt not implemented for "  + getClass().getSimpleName());}
     public long getLong() { throw new InterpreterBug("getLong not implemented for "  + getClass().getSimpleName());}
@@ -54,7 +54,7 @@ public abstract class FValue {
     public char getChar() { throw new InterpreterBug("getChar not implemented for "  + getClass().getSimpleName());}
 
     // map "select type"
-    protected List<FType> typeListFromParameters(List<Parameter> params) {
+    static protected List<FType> typeListFromParameters(List<Parameter> params) {
         ArrayList<FType> al = new ArrayList<FType>(params.size());
         for (Parameter p : params) al.add(p.param_type);
         return al;

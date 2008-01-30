@@ -80,10 +80,17 @@ aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
             println("************************************************************")
             println(best)
             println("Cost " c)
-            if best.isComplete() then
+            (complete, completeTime) = timing( fn () => best.isComplete())
+            println("Completeness check time: " completeTime)
+            if complete then
                 exit succeed with Just(best)
             end
-            q := q'.merge(heap(best.children().map[\(C,T)\](aStarPair[\T,C\])))
+            (kids, kidTime) = timing( fn () => best.children())
+            println("Generated " kids.size() " children")
+            println("Children generation time: " kidTime)
+            (_, updTime) = timing( fn () =>
+                q := q'.merge(heap(kids.map[\(C,T)\](aStarPair[\T,C\]))))
+            println("Queue update time: " updTime)
         end
         Nothing[\T\]() (** If we get here the search failed. **)
     end succeed
@@ -136,77 +143,12 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
             consistent := No
             false
         else
-            label inconsistent
-                keepTrying : Boolean := true
-                updated : Boolean := false
-                chk(s,v,i,j,k): Boolean =
-                    if s=0 then
-                        consistent := No
-                        exit inconsistent with false
-                    elif s=1 AND v>=0 then
-                        fillState(i,j,k)
-                    else false
-                    end
-                while props < 81 AND keepTrying do
-                    options : ZZ32 := 0
-                    keepTrying :=
-                        (BIG OR [i<-0#9, j<-0#9] do
-                            k' : ZZ32 := -1
-                            s = SUM [k<-0#9]
-                                    if state[i,j,k].working() then k' := k; 1
-                                    else state[i,j,k].candNum() end
-                            (* Remember square with MAX # candidates *)
-                            atomic if s > options then
-                                       options := s
-                                       iMax := i
-                                       jMax := j
-                                   end
-                            chk(s,k',i,j,k')
-                          end) OR
-                        (BIG OR [i<-0#9, k<-0#9] do
-                            j' : ZZ32 := -1
-                            s = SUM [j<-0#9]
-                                    if state[i,j,k].working() then j' := j; 1
-                                    else state[i,j,k].candNum() end
-                            chk(s,j',i,j',k)
-                          end) OR
-                        (BIG OR [j<-0#9, k<-0#9] do
-                            i' : ZZ32 := -1
-                            s = SUM [i<-0#9]
-                                    if state[i,j,k].working() then i' := i; 1
-                                    else state[i,j,k].candNum() end
-                            chk(s,i',i',j,k)
-                          end) OR
-                        (BIG OR [i0<-0#3, j0<-0#3, k<-0#9] do
-                            i' : ZZ32 := -1
-                            j' : ZZ32 := -1
-                            s = SUM [i<-(3 i0)#3, j<-(3 j0)#3]
-                                    if state[i,j,k].working() then
-                                         i':=i; j':=j; 1
-                                    else state[i,j,k].candNum() end
-                            chk(s,i',i',j',k)
-                          end)
-                    updated := updated OR keepTrying
-                end
-                if updated then
-                    println(self)
-                    println("Cost " self.cost())
-                end
-                if cands < 81 then
-                    consistent := No
-                    false
-                else
-                    consistent := Yes
-                    true
-                end
-            end inconsistent
-            if consistent.cand() then
-                true
-            else
+            res = computeConsistent()
+            if NOT res then
                 println(self)
                 println("inconsistent, ruled out")
-                false
             end
+            res
         end
     getter cost(): ZZ32 = 6 81 - 5 props - cands
     getter isComplete(): ZZ32 = isConsistent() AND: props = 81
@@ -242,6 +184,72 @@ object Sudoku(settable cands : ZZ32, settable props : ZZ32,
         else
             emptyList[\Sudoku\]()
         end
+
+    computeConsistent(): Boolean =
+        label inconsistent
+            keepTrying : Boolean := true
+            updated : Boolean := false
+            chk(s,v,i,j,k): Boolean =
+                if s=0 then
+                    consistent := No
+                    exit inconsistent with false
+                elif s=1 AND v>=0 then
+                    fillState(i,j,k)
+                else false
+                end
+            while props < 81 AND keepTrying do
+                options : ZZ32 := 0
+                keepTrying :=
+                    (BIG OR [i<-0#9, j<-0#9] do
+                        k' : ZZ32 := -1
+                        s = SUM [k<-0#9]
+                                if state[i,j,k].working() then k' := k; 1
+                                else state[i,j,k].candNum() end
+                        (* Remember square with MAX # candidates *)
+                        atomic if s > options then
+                                   options := s
+                                   iMax := i
+                                   jMax := j
+                               end
+                        chk(s,k',i,j,k')
+                      end) OR
+                    (BIG OR [i<-0#9, k<-0#9] do
+                        j' : ZZ32 := -1
+                        s = SUM [j<-0#9]
+                                if state[i,j,k].working() then j' := j; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,j',i,j',k)
+                      end) OR
+                    (BIG OR [j<-0#9, k<-0#9] do
+                        i' : ZZ32 := -1
+                        s = SUM [i<-0#9]
+                                if state[i,j,k].working() then i' := i; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,i',i',j,k)
+                      end) OR
+                    (BIG OR [i0<-0#3, j0<-0#3, k<-0#9] do
+                        i' : ZZ32 := -1
+                        j' : ZZ32 := -1
+                        s = SUM [i<-(3 i0)#3, j<-(3 j0)#3]
+                                if state[i,j,k].working() then
+                                     i':=i; j':=j; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,i',i',j',k)
+                      end)
+                updated := updated OR keepTrying
+            end
+            if updated then
+                println(self)
+                println("Cost " self.cost())
+            end
+            if cands < 81 then
+                consistent := No
+                false
+            else
+                consistent := Yes
+                true
+            end
+        end inconsistent
 
     (* fillState commits to i,j,k being chosen, assuming a race hasn't
        prevented or preempted this choice.  It also updates props and
@@ -333,7 +341,6 @@ timing(x:()->Any): (Any,NanoInterval) = do
     start = nanoTime()
     r = x()
     finish = nanoTime()
-    println("start = " start ", finish = " finish ", interval = " (finish-start))
     (r,NanoInterval(finish-start))
   end
 
