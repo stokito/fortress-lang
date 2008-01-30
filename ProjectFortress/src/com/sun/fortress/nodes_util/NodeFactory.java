@@ -497,14 +497,14 @@ public class NodeFactory {
                               params, throws_, contract, defs2);
     }
 
-    private static boolean infix = false;
-    private static boolean prefix = false;
-    private static boolean postfix = false;
-    private static boolean nofix = false;
-    private static boolean multifix = false;
-    private static boolean enclosing = false;
-    private static boolean big = false;
-    private static boolean unknownFix = false;
+    private static Option<Fixity> infix = Option.<Fixity>some(new InFixity());
+    private static Option<Fixity> prefix = Option.<Fixity>some(new PreFixity());
+    private static Option<Fixity> postfix = Option.<Fixity>some(new PostFixity());
+    private static Option<Fixity> nofix = Option.<Fixity>some(new NoFixity());
+    private static Option<Fixity> multifix = Option.<Fixity>some(new MultiFixity());
+    private static Option<Fixity> enclosing = Option.<Fixity>some(new EnclosingFixity());
+    private static Option<Fixity> big = Option.<Fixity>some(new BigFixity());
+    private static Option<Fixity> unknownFix = Option.<Fixity>none();
 
     public static Op makeOp(String name) {
         return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix);
@@ -514,13 +514,13 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
     }
 
-    public static Op makeOp(Span span, String name, boolean fixity) {
+    public static Op makeOp(Span span, String name, Option<Fixity> fixity) {
         return new Op(span, PrecedenceMap.ONLY.canon(name), fixity);
     }
 
     public static Op makeOp(Op op, String name) {
         return new Op(op.getSpan(), PrecedenceMap.ONLY.canon(name),
-                      op.isPostfix());
+                      op.getFixity());
     }
 
     public static Op makeOpInfix(Span span, String name) {
@@ -544,7 +544,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(op.getSpan(), op.getText(), true);
+        return new Op(op.getSpan(), op.getText(), postfix);
     }
 
     public static Op makeOpNofix(Op op) {
