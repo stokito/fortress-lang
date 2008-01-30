@@ -90,6 +90,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
@@ -976,10 +977,14 @@ public class Desugarer extends Rewrite {
             return bug(opExp,
                 errorMsg("OprExpr with multiple operators ",opExp));
         }
+
         List<Expr> args = opExp.getArgs();
         if (args.size() <= 1) return opExp;
         QualifiedOpName qop = ref.getOps().get(0);
         if (OprUtil.isEnclosing(qop)) return opExp;
+        if (OprUtil.isUnknownFixity(qop))
+            return bug(opExp, "The operator fixity is unknown: " +
+                       ((Op)qop.getName()).getText());
         boolean prefix = OprUtil.hasPrefixColon(qop);
         boolean suffix = OprUtil.hasSuffixColon(qop);
         if (!prefix && !suffix) return opExp;

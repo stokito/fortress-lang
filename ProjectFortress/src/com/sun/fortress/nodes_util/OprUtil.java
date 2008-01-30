@@ -158,7 +158,8 @@ public final class OprUtil {
         }
         if (l < opName.length()) {
             opName = opName.substring(i,l);
-            return NodeFactory.makeOp(op.getSpan(),noColonText(op));
+            return NodeFactory.makeOp(op.getSpan(),noColonText(op),
+                                      op.getFixity());
         }
         return op;
     }
