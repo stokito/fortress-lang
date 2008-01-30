@@ -1743,7 +1743,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) COMPOSE
                  * e.g.) ===
                  */
-                Op(String text, boolean postfix = false);
+                Op(String text, Option<Fixity> fixity = Option.<Fixity>none());
                 /**
                  * pair of enclosing operators
                  * EncloserPair ::= (LeftEncloser | Encloser)

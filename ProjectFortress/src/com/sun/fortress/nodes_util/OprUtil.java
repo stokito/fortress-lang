@@ -44,8 +44,14 @@ public final class OprUtil {
         return isNotEnclosing(q.getName());
     }
 
-    public static boolean isUnknownFixity(OpName q) {
-        return false;
+    public static boolean isUnknownFixity(Op name) {
+        return name.getFixity().isNone();
+    }
+
+    public static boolean isUnknownFixity(OpName name) {
+        if (name instanceof Enclosing)
+            return false;
+        return isUnknownFixity((Op)name);
     }
 
     public static boolean isUnknownFixity(QualifiedOpName q) {
@@ -53,7 +59,8 @@ public final class OprUtil {
     }
 
     private static boolean isPostfix(Op name) {
-        return name.isPostfix();
+        return (name.getFixity().isSome() &&
+                Option.unwrap(name.getFixity()) instanceof PostFixity);
     }
 
     public static boolean isPostfix(OpName name) {
