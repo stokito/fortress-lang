@@ -222,8 +222,7 @@ public class ExprFactory {
     }
 
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
-        return new OprExpr(span, false, makeOpRef(op),
-                           Collections.<Expr>emptyList());
+        return new OprExpr(span, false, makeOpRef(op));
     }
 
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr arg) {

@@ -69,15 +69,10 @@ public class ASTUtil {
                                        NodeFactory.makeOpPrefix(op), arg);
     }
 
-    public static Op postfixOp(Op op) {
-        return new Op(op.getSpan(), op.getText(), true);
-    }
-
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return ExprFactory.makeOprExpr(span,
-                                       postfixOp(NodeFactory.makeOpPostfix(op)), arg);
+        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpPostfix(op), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =

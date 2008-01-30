@@ -497,55 +497,75 @@ public class NodeFactory {
                               params, throws_, contract, defs2);
     }
 
+    private static boolean infix = false;
+    private static boolean prefix = false;
+    private static boolean postfix = false;
+    private static boolean nofix = false;
+    private static boolean multifix = false;
+    private static boolean enclosing = false;
+    private static boolean big = false;
+    private static boolean unknownFix = false;
+
     public static Op makeOp(String name) {
-        return new Op(new Span(), PrecedenceMap.ONLY.canon(name));
+        return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix);
     }
 
     public static Op makeOp(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
     }
 
-    public static Op makeOp(Span span, String name, boolean isPostfixOp) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), isPostfixOp);
+    public static Op makeOp(Span span, String name, boolean fixity) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name), fixity);
+    }
+
+    public static Op makeOp(Op op, String name) {
+        return new Op(op.getSpan(), PrecedenceMap.ONLY.canon(name),
+                      op.isPostfix());
     }
 
     public static Op makeOpInfix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+        return new Op(span, PrecedenceMap.ONLY.canon(name), infix);
+    }
+
+    public static Op makeOpInfix(Op op) {
+        return new Op(op.getSpan(), op.getText(), infix);
     }
 
     public static Op makeOpPrefix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+        return new Op(span, PrecedenceMap.ONLY.canon(name), prefix);
     }
 
-    public static Op makeOpMultifix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
-    }
-
-    public static Op makeOpNofix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
-    }
-
-    public static Op makeOpBig(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
-    }
-
-    public static Op makeOpUnknown(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    public static Op makeOpPrefix(Op op) {
+        return new Op(op.getSpan(), op.getText(), prefix);
     }
 
     public static Op makeOpPostfix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+        return new Op(span, PrecedenceMap.ONLY.canon(name), postfix);
+    }
+
+    public static Op makeOpPostfix(Op op) {
+        return new Op(op.getSpan(), op.getText(), true);
+    }
+
+    public static Op makeOpNofix(Op op) {
+        return new Op(op.getSpan(), op.getText(), nofix);
+    }
+
+    public static Op makeOpMultifix(Op op) {
+        return new Op(op.getSpan(), op.getText(), multifix);
     }
 
     public static Op makeOpEnclosing(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name));
+        return new Op(span, PrecedenceMap.ONLY.canon(name), enclosing);
     }
 
-    public static Op makeOpInfix(Op op) { return op; }
-    public static Op makeOpPrefix(Op op) { return op; }
-    public static Op makeOpMultifix(Op op) { return op; }
-    public static Op makeOpNofix(Op op) { return op; }
-    public static Op makeOpPostfix(Op op) { return op; }
+    public static Op makeOpBig(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name), big);
+    }
+
+    public static Op makeOpUnknown(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
+    }
 
     public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
