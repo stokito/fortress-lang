@@ -1075,7 +1075,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             OpName name = ref.getOps().get(0).getName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
-                         ((Op)name).isPostfix());
+                         OprUtil.isPostfix(name));
         }
     }
 
@@ -1096,7 +1096,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = evVoid;
         List<FValue> vargs;
 
-        if (name instanceof Op && ((Op)name).isPostfix() &&
+        if (name instanceof Op && OprUtil.isPostfix(name) &&
             args.size() == 1) {
         // It is a static error if a function argument is immediately followed
         // by a non-expression element.  For example, f(x)!
