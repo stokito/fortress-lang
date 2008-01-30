@@ -18,8 +18,10 @@
 /*
  * Definition of Fortress headers.
  */
-module com.sun.fortress.parser.MayNewlineHeader(Other, Type, Header, Expr, DelimitedExpr, Literal,
-                                      Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.MayNewlineHeader(Other, Type, Header, Expr,
+                                                DelimitedExpr, Literal,
+                                                Identifier, Keyword, Symbol,
+                                                Spacing);
 
 import Other;
 import Type;

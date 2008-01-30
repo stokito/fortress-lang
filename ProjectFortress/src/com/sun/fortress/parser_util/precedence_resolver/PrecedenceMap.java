@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -136,6 +136,9 @@ public class PrecedenceMap {
     HashSet<CanonOp> rbracket;
     // Lookup table for right brackets.
 
+    HashSet<CanonOp> nonAssociative;
+    // Lookup table for non-associative operators.
+
     HashMap<CanonOp,CanonOp> eq;
     // Operators with equal precedence have equal values.
 
@@ -156,6 +159,7 @@ public class PrecedenceMap {
         rep = new HashMap<String,CanonOp>();
         bracket = new HashMap<CanonOp,CanonOp>();
         rbracket = new HashSet<CanonOp>();
+        nonAssociative = new HashSet<CanonOp>();
         eq = new HashMap<CanonOp,CanonOp>();
         lt = new HashSet<IPair>();
         chain = new HashMap<CanonOp,Set<CanonOp>>();
@@ -163,6 +167,7 @@ public class PrecedenceMap {
         buildPrecedences();
         buildChainSets();
         buildBrackets();
+        buildNonAssociatives();
     }
 
     /* For unit testing only. */
@@ -221,6 +226,12 @@ public class PrecedenceMap {
         if (lt.contains(new IPair(ra,rb))) return L;
         if (lt.contains(new IPair(rb,ra))) return H;
         return null;
+    }
+
+    public boolean isNonAssociative(String s) {
+        CanonOp op = rep.get(s);
+        if (op!=null) return nonAssociative.contains(op);
+        return false;
     }
 
     public Precedence precedence(String a, String b) {
@@ -478,6 +489,11 @@ public class PrecedenceMap {
      * section numbers, so David tells me.
      */
 
+   static Set<String> c_2_1() {
+       return Useful.union(Operators.p_c_2_1_multiplication,
+                           Operators.p_c_2_1_division);
+   }
+
    static Set<String> c_2_2() {
         return Useful.union(VarArgs.make(
                       Operators.p_multiplication_and_division,
@@ -514,7 +530,7 @@ public class PrecedenceMap {
     }
 
     static Set<String> c_2_123() {
-        return Useful.union(Operators.p_c_2_1, c_2_2(), c_2_3() );
+        return Useful.union(c_2_1(), c_2_2(), c_2_3() );
     }
 
     static Set<String> c_2() {
@@ -571,10 +587,15 @@ public class PrecedenceMap {
                              c_3_5(), c_3_6(), c_3_7(), c_3_8()));
     }
 
+    static Set<String> boolean_misc() {
+        return Useful.union( Operators.p_boolean_misc_nonAssociative,
+                             Operators.p_boolean_misc_leftAssociative );
+    }
+
     static Set<String> c_4() {
         return Useful.union( Operators.p_boolean_conjunction,
                              Operators.p_boolean_disjunction,
-                             Operators.p_boolean_misc );
+                             boolean_misc() );
     }
 
     /************************************************************
@@ -704,6 +725,30 @@ public class PrecedenceMap {
     private void buildBrackets() {
         for (Map.Entry<String,String> e : Operators.l2r.entrySet()) {
             makeBrackets(e.getKey(),e.getValue());
+        }
+    }
+
+    static Set<String> nonassociative() {
+        return Useful.union( VarArgs.make(
+                             Operators.p_c_2_1_division,
+                             Useful.set(VarArgs.make("REM", "MOD", "CHOOSE",
+                                                     "per")),
+                             Operators.p_misc_set,
+                             Operators.p_inequivalence_operators,
+                             Operators.p_plain_comparison,
+                             Operators.p_misc_set_comparison,
+                             Operators.p_square_misc,
+                             Operators.p_curly_misc,
+                             Operators.p_tri_misc,
+                             c_3_8(),
+                             Operators.p_boolean_misc_nonAssociative,
+                             Operators.p_other_operators ));
+    }
+
+    private void buildNonAssociatives() {
+        for (String s : nonassociative()) {
+            if (!nonAssociative.add(getEquiv(s)))
+                bug("The operator "+s+" already registered.");
         }
     }
 }

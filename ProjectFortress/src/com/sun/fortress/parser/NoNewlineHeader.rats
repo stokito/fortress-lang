@@ -18,9 +18,10 @@
 /*
  * Definition of Fortress headers.
  */
-module com.sun.fortress.parser.NoNewlineHeader(Other, NoNewlineType, NoNewlineExpr,
-                                      MayNewlineHeader, Literal,
-                                      Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.NoNewlineHeader(Other, NoNewlineType,
+                                               NoNewlineExpr, MayNewlineHeader,
+                                               Literal, Identifier, Keyword,
+                                               Symbol, Spacing);
 
 import NoNewlineType;
 import NoNewlineExpr;
