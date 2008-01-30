@@ -91,6 +91,13 @@ public class NodeUtil {
     }
 
     /* for Param ***********************************************************/
+    public static boolean isMultifix(List<Param> params) {
+        for (Param p : params) {
+            if (p instanceof VarargsParam) return true;
+        }
+        return false;
+    }
+
     public static boolean isTransient(Param p) {
         for (Modifier m : p.getMods()) {
             if (m instanceof ModifierTransient) {

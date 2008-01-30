@@ -92,6 +92,7 @@ import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeArg;
@@ -970,13 +971,14 @@ public class Desugarer extends Rewrite {
     }
 
     private Expr cleanupOprExpr(OprExpr opExp) {
-        if (opExp.getOps().size() != 1) {
+        OpRef ref = opExp.getOp();
+        if (ref.getOps().size() != 1) {
             return bug(opExp,
                 errorMsg("OprExpr with multiple operators ",opExp));
         }
         List<Expr> args = opExp.getArgs();
         if (args.size() <= 1) return opExp;
-        QualifiedOpName qop = opExp.getOps().get(0);
+        QualifiedOpName qop = ref.getOps().get(0);
         if (!OprUtil.isInfixOrPrefix(qop)) return opExp;
         boolean prefix = OprUtil.hasPrefixColon(qop);
         boolean suffix = OprUtil.hasSuffixColon(qop);

@@ -516,8 +516,8 @@ SubscriptingMI Subscripting =
          Span span = createSpan(yyStart,yyCount);
          Span spanOpen = createSpan(yyStart, yyStart+1);
          Span spanClose = createSpan(yyCount-1,1);
-         Op open  = NodeFactory.makeOp(spanOpen, a1);
-         Op close = NodeFactory.makeOp(spanClose, a3);
+         Op open  = NodeFactory.makeOpEnclosing(spanOpen, a1);
+         Op close = NodeFactory.makeOpEnclosing(spanClose, a3);
          Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close),
                                       open,close);
          yyValue = new SubscriptingMI(span, op, a2);
@@ -537,7 +537,7 @@ SubscriptingMI Subscripting =
 ExponentiationMI Exponentiation =
      a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new ExponentiationMI(span, NodeFactory.makeOp(span, a1),
+       yyValue = new ExponentiationMI(span, NodeFactory.makeOpInfix(span, a1),
                                       Option.wrap(a2));
      }
    / a1:ExponentOp

@@ -59,8 +59,8 @@ FnHeaderFront OpHeaderFront :=
        String right = opa4.getText();
        if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
            if (big != null) {
-               opa2 = NodeFactory.makeOp(opa2.getSpan(), "BIG " + left);
-               opa4 = NodeFactory.makeOp(opa4.getSpan(), "BIG " + right);
+               opa2 = NodeFactory.makeOpBig(opa2.getSpan(), "BIG " + left);
+               opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
            }
            name = new Enclosing(span, opa2, opa4);
        } else

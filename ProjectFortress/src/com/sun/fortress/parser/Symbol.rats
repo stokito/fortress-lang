@@ -32,16 +32,16 @@ import Keyword;
 option setOfString(FORTRESS_KEYWORDS);
 
 Op Encloser = a1:encloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
 Op LeftEncloser = a1:leftEncloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
 Op RightEncloser = a1:rightEncloser
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
 
 Op ExponentOp = a1:exponentOp
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1, true); };
+     { yyValue = NodeFactory.makeOpPostfix(createSpan(yyStart,yyCount), a1); };
 
 /* EncloserPair ::=
      (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)
@@ -118,7 +118,7 @@ private String OpName =
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 
 private String compOp =
      "==="
@@ -163,7 +163,7 @@ String op =
 
 Op CompoundOp =
      a1:op equalsOp
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart, yyCount), a1); };
+     { yyValue = NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1); };
 
 /* The operator "=>" should not be in the left-hand sides of
    case/typecase expressions. */
@@ -227,10 +227,10 @@ Option<Op> AssignOp =
    / a1:CompoundOp { yyValue = Option.some(a1); };
 
 Op SUM = "SUM"
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), "BIG +"); };
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); };
 Op PROD = "PROD"
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
-                                    "BIG juxtaposition");
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                       "BIG juxtaposition");
      };
 
 /* Accumulator ::= SUM | PROD | BIG w Op */
@@ -238,8 +238,8 @@ Op Accumulator =
      SUM
    / PROD
    / void:BIG w a1:Op
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount),
-                                    "BIG " + a1.getText());
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                       "BIG " + a1.getText());
      };
 
 /* ArrayComprehensionClause ::=

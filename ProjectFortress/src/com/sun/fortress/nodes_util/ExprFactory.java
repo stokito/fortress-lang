@@ -217,38 +217,42 @@ public class ExprFactory {
         return makeTuple(Arrays.asList(exprs));
     }
 
+    private static OpRef makeOpRef(QualifiedOpName op) {
+        return new OpRef(op.getSpan(), Collections.singletonList(op));
+    }
+
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op) {
-        return new OprExpr(span, false, Collections.singletonList(op),
+        return new OprExpr(span, false, makeOpRef(op),
                            Collections.<Expr>emptyList());
     }
 
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr arg) {
-        return new OprExpr(span, false, Collections.singletonList(op),
+        return new OprExpr(span, false, makeOpRef(op),
                            Collections.singletonList(arg));
     }
 
     public static OprExpr makeOprExpr(Span span, QualifiedOpName op, Expr first,
                                       Expr second) {
-        return new OprExpr(span, false, Collections.singletonList(op),
+        return new OprExpr(span, false, makeOpRef(op),
                            Arrays.asList(first, second));
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op) {
         QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, Collections.singletonList(name),
+        return new OprExpr(span, false, makeOpRef(name),
                            Collections.<Expr>emptyList());
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr arg) {
         QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, Collections.singletonList(name),
+        return new OprExpr(span, false, makeOpRef(name),
                            Collections.singletonList(arg));
     }
 
     public static OprExpr makeOprExpr(Span span, OpName op, Expr first,
                                       Expr second) {
         QualifiedOpName name = new QualifiedOpName(span, Option.<APIName>none(), op);
-        return new OprExpr(span, false, Collections.singletonList(name),
+        return new OprExpr(span, false, makeOpRef(name),
                            Arrays.asList(first, second));
     }
 
@@ -475,7 +479,7 @@ public class ExprFactory {
                                         e.getLhs(), e.getRhs());
             }
             public Expr forOprExpr(OprExpr e) {
-                return new OprExpr(e.getSpan(), true, e.getOps(), e.getArgs());
+                return new OprExpr(e.getSpan(), true, e.getOp(), e.getArgs());
             }
             public Expr forArrayElement(ArrayElement e) {
                 return new ArrayElement(e.getSpan(), true, e.getElement());
@@ -530,6 +534,10 @@ public class ExprFactory {
             }
             public Expr forFnRef(FnRef e) {
                 return new FnRef(e.getSpan(), true, e.getFns(),
+                                 e.getStaticArgs());
+            }
+            public Expr forOpRef(OpRef e) {
+                return new OpRef(e.getSpan(), true, e.getOps(),
                                  e.getStaticArgs());
             }
             public Expr forSubscriptExpr(SubscriptExpr e) {

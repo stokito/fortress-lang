@@ -125,9 +125,9 @@ import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OperatorParam;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.QualifiedName;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
@@ -161,6 +161,7 @@ import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MatchFailure;
@@ -1068,9 +1069,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     private boolean isExponentiation(OprExpr expr) {
-        if (expr.getOps().size() != 1) return false;
+        OpRef ref = expr.getOp();
+        if (ref.getOps().size() != 1) return false;
         else {
-            OpName name = expr.getOps().get(0).getName();
+            OpName name = ref.getOps().get(0).getName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          ((Op)name).isPostfix());
@@ -1081,10 +1083,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * moment it appears that this is true for every OprExpr node that
      * is ever created. */
     public FValue forOprExpr(OprExpr x) {
-        if (x.getOps().size() != 1) {
+        OpRef ref = x.getOp();
+        if (ref.getOps().size() != 1) {
             return bug(x, errorMsg("OprExpr with multiple operators ",x));
         }
-        QualifiedOpName op = x.getOps().get(0);
+        QualifiedOpName op = ref.getOps().get(0);
         OpName name = op.getName();
         List<Expr> args = x.getArgs();
         FValue fvalue = op.accept(this);

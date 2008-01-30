@@ -303,22 +303,22 @@ constant inline Action<Type> IdLeft =
 /* TypeInfixOp ::= -> */
 Op TypeInfixOp =
      a1:rightarrow
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpInfix(createSpan(yyStart,yyCount), a1); };
 
 /* DimInfixOp ::= DOT | / | per */
 Op DimInfixOp =
      a1:(DOT / slash / per)
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpInfix(createSpan(yyStart,yyCount), a1); };
 
 /* DimPrefixOp ::= square | cubic | inverse */
 Op DimPrefixOp =
      a1:(square / cubic / inverse)
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpPrefix(createSpan(yyStart,yyCount), a1); };
 
 /* DimPostfixOp ::= squared | cubed */
 Op DimPostfixOp =
      a1:(squared / cubed)
-     { yyValue = NodeFactory.makeOp(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeOpPostfix(createSpan(yyStart,yyCount), a1); };
 
 /* TraitType ::=
      TraitTypeFront TraitTypeTail+
