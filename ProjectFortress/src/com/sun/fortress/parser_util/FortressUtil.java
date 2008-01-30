@@ -157,8 +157,8 @@ public final class FortressUtil {
     public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
                                         String left, String right,
                                         Expr base, List<Expr> args) {
-        Op open  = NodeFactory.makeOp(spanOpen, left);
-        Op close = NodeFactory.makeOp(spanClose, right);
+        Op open  = NodeFactory.makeOpEnclosing(spanOpen, left);
+        Op close = NodeFactory.makeOpEnclosing(spanClose, right);
         return makeSubscripting(span, base, open, close, args);
     }
 
@@ -175,8 +175,8 @@ public final class FortressUtil {
     public static Expr makeSubscripting(Span span, Span spanOpen, Span spanClose,
                                         String left, String right,
                                         PureList<Expr> base, List<Expr> args) {
-        Op open  = NodeFactory.makeOp(spanOpen, left);
-        Op close = NodeFactory.makeOp(spanClose, right);
+        Op open  = NodeFactory.makeOpEnclosing(spanOpen, left);
+        Op close = NodeFactory.makeOpEnclosing(spanClose, right);
         return makeSubscripting(span, base, open, close, args);
     }
 

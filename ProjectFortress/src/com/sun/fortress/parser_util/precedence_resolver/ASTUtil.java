@@ -30,13 +30,14 @@ import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
 import com.sun.fortress.useful.Fn;
@@ -51,19 +52,21 @@ public class ASTUtil {
     // let nofix (span : span) (op : op) : expr =
     //   opr span (node op.node_span (`Opr op)) []
     public static Expr nofix(Span span, Op op) {
-        return ExprFactory.makeOprExpr(span, op);
+        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpNofix(op));
     }
 
     // let infix (span : span) (left : expr) (op : op) (right : expr) : expr =
     //   opr span (node op.node_span (`Opr op)) [left; right]
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
-        return ExprFactory.makeOprExpr(span, op, left, right);
+        return ExprFactory.makeOprExpr(span, NodeFactory.makeOpInfix(op),
+                                       left, right);
     }
 
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
-        return ExprFactory.makeOprExpr(arg.getSpan(), op, arg);
+        return ExprFactory.makeOprExpr(arg.getSpan(),
+                                       NodeFactory.makeOpPrefix(op), arg);
     }
 
     public static Op postfixOp(Op op) {
@@ -73,16 +76,25 @@ public class ASTUtil {
     // let postfix (span : span) (arg : expr) (op : op) : expr =
     //   opr span (node op.node_span (`Postfix op)) [arg]
     public static Expr postfix(Span span, Expr arg, Op op) {
-        return ExprFactory.makeOprExpr(span, postfixOp(op), arg);
+        return ExprFactory.makeOprExpr(span,
+                                       postfixOp(NodeFactory.makeOpPostfix(op)), arg);
     }
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
+        Op opr;
+        if (args.size() > 2)
+            opr = NodeFactory.makeOpMultifix(op);
+        else if (args.size() == 2)
+            opr = NodeFactory.makeOpInfix(op);
+        else
+            opr = error(op, "Operator fixity is invalid in its application.");
         QualifiedOpName qName =
-            new QualifiedOpName(op.getSpan(), Option.<APIName>none(), op);
-        return new OprExpr(span, false,
-                           Collections.<QualifiedOpName>singletonList(qName), args);
+            new QualifiedOpName(op.getSpan(), Option.<APIName>none(), opr);
+        OpRef ref = new OpRef(op.getSpan(),
+                              Collections.<QualifiedOpName>singletonList(qName));
+        return new OprExpr(span, false, ref, args);
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
@@ -93,8 +105,9 @@ public class ASTUtil {
             Enclosing en = new Enclosing(s, left, right);
             QualifiedOpName qName = new QualifiedOpName(s, Option.<APIName>none(),
                                                         new Enclosing(s, left, right));
-            return new OprExpr(span, false,
-                               Collections.<QualifiedOpName>singletonList(qName), args);
+            OpRef ref = new OpRef(s,
+                                  Collections.<QualifiedOpName>singletonList(qName));
+            return new OprExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +
                          left.getText() + " and " + right.getText());

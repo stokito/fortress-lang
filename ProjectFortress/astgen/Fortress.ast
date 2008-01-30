@@ -112,7 +112,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                              APIName name, List<Import> imports);
         /**
          * component declaration
-         * Component ::= component APIName Imports? Exports Decls? end
+         * Component ::= native? component APIName Imports? Exports Decls? end
          * e.g.) component Hello
          *         export Executable
          *         run(args:String...) = print "Hello, World!\n"
@@ -121,7 +121,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         Component(List<Export> exports, List<Decl> decls);
         /**
          * API declaration
-         * Api ::= api APIName Imports? AbsDecls? end
+         * Api ::= native? api APIName Imports? AbsDecls? end
          * e.g.) api Executable
          *         run(args:String...):()
          *       end
@@ -876,20 +876,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract OpExpr();
             /**
-             * expression using operators (list of ops allows cross-API overloading)
-             * OpExpr ::= EncloserOp OpExpr? EncloserOp?
-             *          | OpExpr EncloserOp OpExpr?
-             *          | Primary
-             * EncloserOp ::= Encloser
-             *              | Op
-             * Primary ::= LeftEncloser ExprList? RightEncloser
-             *           | Primary ^ BaseExpr
-             *           | Primary ExponentOp
-             * e.g.) 3 + 5
-             */
-            OprExpr(List<QualifiedOpName> ops,
-                    List<Expr> args = Collections.<Expr>emptyList());
-            /**
              * subscripting expression
              * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
              * e.g.) a[i]
@@ -946,28 +932,45 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      * back down to an Id.
                      */
                     _RewriteFieldRef(Name field);
-
                 /**
-                 * juxtaposition of expressions
-                 * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
-                 *           | Primary . Id ([\StaticArgList\])? ()
-                 *           | Primary Parenthesized
-                 *           | Primary ()
-                 *           | Primary Primary
-                 * e.g.) myString.replace("foo", "few")
-                 * e.g.) log log n
+                 * functional applicaiton
                  */
-                abstract Juxt(List<Expr> exprs);
+                abstract AppExpr();
                     /**
-                     * juxtaposition with intervening whitespace
-                     * e.g.) 3 5
+                     * juxtaposition of expressions
+                     * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
+                     *           | Primary . Id ([\StaticArgList\])? ()
+                     *           | Primary Parenthesized
+                     *           | Primary ()
+                     *           | Primary Primary
+                     * e.g.) myString.replace("foo", "few")
+                     * e.g.) log log n
                      */
-                    LooseJuxt();
+                    abstract Juxt(List<Expr> exprs);
+                        /**
+                         * juxtaposition with intervening whitespace
+                         * e.g.) 3 5
+                         */
+                        LooseJuxt();
+                       /**
+                         * juxtaposition without intervening whitespace
+                         * e.g.) f(3+5)
+                         */
+                        TightJuxt();
                     /**
-                     * juxtaposition without intervening whitespace
-                     * e.g.) f(3+5)
+                     * expression using operators (list of ops allows cross-API overloading)
+                     * OpExpr ::= EncloserOp OpExpr? EncloserOp?
+                     *          | OpExpr EncloserOp OpExpr?
+                     *          | Primary
+                     * EncloserOp ::= Encloser
+                     *              | Op
+                     * Primary ::= LeftEncloser ExprList? RightEncloser
+                     *           | Primary ^ BaseExpr
+                     *           | Primary ExponentOp
+                     * e.g.) 3 + 5
                      */
-                    TightJuxt();
+                    OprExpr(OpRef op,
+                            List<Expr> args = Collections.<Expr>emptyList());
                 /**
                  * primary expression without any dots
                  * MathPrimary ::= PrimaryFront MathItem*
@@ -990,7 +993,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 FnRef(List<QualifiedIdName> fns,
                       List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
-
                 /**
                  * The rewriting to explicitly name self and parent
                  * pre-interpretation may generalize the dotted
@@ -999,7 +1001,15 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 _RewriteFnRef(Expr fn,
                               List<StaticArg> staticArgs
                           = Collections.<StaticArg>emptyList());
-
+                /**
+                 * operator name with (inferred) static instantiations
+                 * list of operators allows cross-API overloading
+                 * Primary ::= Op[\StaticArgList\]
+                 * e.g.) +[\String\]
+                 */
+                OpRef(List<QualifiedOpName> ops,
+                      List<StaticArg> staticArgs
+                          = Collections.<StaticArg>emptyList());
                 /**
                  * simple expression
                  * Primary ::= BaseExpr
@@ -1890,4 +1900,37 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * MathItem ::= Subscripting
              */
             SubscriptingMI(Enclosing op, List<Expr> exprs);
+    /**
+     * operator fixity
+     */
+    abstract Fixity();
+        /**
+         * e.g.) 3 + 5
+         */
+        InFixity();
+        /**
+         * e.g.) -5
+         */
+        PreFixity();
+        /**
+         * e.g.) 3!
+         */
+        PostFixity();
+        /**
+         * e.g.) :
+         */
+        NoFixity();
+        /**
+         * e.g.) S1 BY S2 BY S3
+         */
+        MultiFixity();
+        /**
+         * left encloser or right encloser
+         * e.g.) <|
+         */
+        EnclosingFixity();
+        /**
+         * BIG operator
+         */
+        BigFixity();
 end;

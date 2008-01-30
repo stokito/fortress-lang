@@ -243,22 +243,22 @@ private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
 FlowExpr Comprehension =
      opencurly w a1:Expr wr bar wr a2:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOp(span, "BIG {");
-       Op close = NodeFactory.makeOp(span, "BIG }");
+       Op open  = NodeFactory.makeOpBig(span, "BIG {");
+       Op close = NodeFactory.makeOpBig(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
    / opencurly w a1:Entry wr bar wr a2:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOp(span, "BIG {");
-       Op close = NodeFactory.makeOp(span, "BIG }");
+       Op open  = NodeFactory.makeOpBig(span, "BIG {");
+       Op close = NodeFactory.makeOpBig(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
    / openangle w a1:Expr wr bar wr a2:GeneratorClauseList w closeangle
      { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOp(span, "BIG <|");
-       Op close = NodeFactory.makeOp(span, "BIG |>");
+       Op open  = NodeFactory.makeOpBig(span, "BIG <|");
+       Op close = NodeFactory.makeOpBig(span, "BIG |>");
        OpName opr = new Enclosing(span, open, close);
        yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
      }
@@ -278,7 +278,7 @@ String mapstoOp =
 
 /* Entry ::= Expr w |-> w Expr */
 Expr Entry = a1:Expr w mapsto w a2:Expr
-     { OpName op = NodeFactory.makeOp("|->");
+     { OpName op = NodeFactory.makeOpInfix(FortressUtil.spanTwo(a1,a2), "|->");
        yyValue = ExprFactory.makeOprExpr(createSpan(yyStart,yyCount),op,a1,a2);
      };
 

@@ -19,7 +19,6 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -67,7 +66,6 @@ public class RealExpr extends Object implements InfixOpExpr {
       outputHelp(new TabPrintWriter(writer, 2));
    }
 
-   /** Assumes OprExprs wrap id lists of length 1. */
    public void outputHelp(TabPrintWriter writer) {
       writer.print("RealExpr" + ":");
       writer.indent();
@@ -82,8 +80,6 @@ public class RealExpr extends Object implements InfixOpExpr {
       writer.print(((IntLiteralExpr)temp_expr).getVal().intValue());
    } else if (temp_expr instanceof VarRef) {
       writer.print(NodeUtil.nameString(((VarRef)temp_expr).getVar()));
-   } else if (temp_expr instanceof OprExpr) {
-      writer.print(NodeUtil.nameString(((OprExpr)temp_expr).getOps().get(0)));
    } else {
       writer.print(temp_expr);
    }

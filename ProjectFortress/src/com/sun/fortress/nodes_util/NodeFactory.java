@@ -131,7 +131,7 @@ public class NodeFactory {
             Option.<List<Type>>none();
         return new ArrowType(span, domain, range, throwsAsTypeList);
     }
-    
+
     public static ArrowType makeArrowType(Span span, Type domain,
                                           Type range) {
         return new ArrowType(span, domain, range, Option.<List<Type>>none());
@@ -508,6 +508,44 @@ public class NodeFactory {
     public static Op makeOp(Span span, String name, boolean isPostfixOp) {
         return new Op(span, PrecedenceMap.ONLY.canon(name), isPostfixOp);
     }
+
+    public static Op makeOpInfix(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpPrefix(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpMultifix(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpNofix(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpBig(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpUnknown(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpPostfix(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpEnclosing(Span span, String name) {
+        return new Op(span, PrecedenceMap.ONLY.canon(name));
+    }
+
+    public static Op makeOpInfix(Op op) { return op; }
+    public static Op makeOpPrefix(Op op) { return op; }
+    public static Op makeOpMultifix(Op op) { return op; }
+    public static Op makeOpNofix(Op op) { return op; }
+    public static Op makeOpPostfix(Op op) { return op; }
 
     public static VarargsParam makeVarargsParam(Id name, VarargsType type) {
         return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
