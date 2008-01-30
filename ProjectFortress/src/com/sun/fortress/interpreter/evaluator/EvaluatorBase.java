@@ -80,22 +80,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
 
     protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode loc) {
         try {
-            if (foo instanceof FGenericFunction) {
-                FGenericFunction gen = (FGenericFunction) foo;
-
-// This caching did not seem to help performance.
-//
-//                Simple_fcn sfcn = gen.cache.get(args);
-//
-//                if (sfcn == null) {
-//                    sfcn = inferAndInstantiateGenericFunction(args, gen, loc);
-//                    gen.cache.syncPut(args, sfcn);
-//                }
-//
-//                foo = sfcn;
-                foo = inferAndInstantiateGenericFunction(args, gen, loc, e);
-            // System.out.println("Generic invoke "+foo+"\n  On arguments "+args);
-            }
+            // We used to do redundant checks for genericity here, but
+            // now we reply on foo.apply to do type inference if necessary.
             return foo.apply(args, loc, e);
         } catch (FortressError ex) {
             throw ex.setContext(loc,e);

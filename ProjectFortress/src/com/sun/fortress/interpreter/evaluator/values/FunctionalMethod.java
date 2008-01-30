@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
+import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -28,6 +29,7 @@ import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.interpreter.evaluator.ProgramError.errorMsg;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
@@ -41,11 +43,26 @@ public class FunctionalMethod extends Closure implements HasSelfParameter {
      */
     @Override
     public FValue applyInner(List<FValue> args, HasAt loc, BetterEnv envForInference) {
-        // Not quite right
-         FObject self = (FObject) args.get(selfParameterIndex);
-        args = Useful.removeIndex(selfParameterIndex, args);
+        FValue selfVal = args.get(selfParameterIndex);
+        FObject self;
+        BetterEnv selfEnv;
         String mname = NodeUtil.nameAsMethod(getDef());
-        FValue cl = self.getSelfEnv().getValueNull(mname);
+        if (selfVal.getValue() instanceof FObject) {
+            self = (FObject)selfVal.getValue();
+            if (selfVal.type() instanceof FTypeTrait) {
+                // selfVal instanceof FAsIf, and nontrivial type()
+                selfEnv = ((FTypeTrait)selfVal.type()).getMembers();
+            } else {
+                selfEnv = self.getSelfEnv();
+            }
+        } else {
+            return error(loc, errorMsg("Unexpected self parameter ",selfVal,
+                                       " when applying functional method ",
+                                       mname, " to ", args));
+        }
+        // Not quite right
+        args = Useful.removeIndex(selfParameterIndex, args);
+        FValue cl = selfEnv.getValueNull(mname);
 
         // TODO need to common this up with other method dispatch in Evaluator
 

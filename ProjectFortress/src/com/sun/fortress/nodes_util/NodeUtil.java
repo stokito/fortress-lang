@@ -30,7 +30,6 @@ import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
@@ -58,9 +57,6 @@ public class NodeUtil {
      * Only meaningful for method declarations.
      */
     public static int selfParameterIndex(Applicable d) {
-        // Bit of a hack, we want to get rid NativeApplicable if we can
-        if (d instanceof NativeApplicable)
-            return -1;
         int i = 0;
         for (Param p : d.getParams()) {
             Id name = p.getName();

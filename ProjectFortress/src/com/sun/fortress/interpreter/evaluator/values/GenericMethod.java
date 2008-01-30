@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -24,7 +24,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.InterpreterBug;
 import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.interpreter.glue.NativeApplicable;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.EvalType;
@@ -219,14 +218,6 @@ public class GenericMethod extends MethodClosure implements
             return compare(left, (FnAbsDeclOrDecl)right);
         } else if (left instanceof NativeApp) {
             return Useful.compareClasses(left, right);
-        } else if (left instanceof NativeApplicable) {
-            int x = Useful.compareClasses(left, right);
-            if (x != 0) return x;
-            NativeApplicable na = (NativeApplicable)right;
-            x = ((NativeApplicable)left).stringName().compareTo(na.stringName());
-            if (x != 0) return x;
-            return NodeUtil.nameString(left.getName())
-                .compareTo(NodeUtil.nameString(na.getName()));
         } else {
             throw new InterpreterBug(left, "NodeComparator.compare(" +
 				     left.getClass() + ", " + right.getClass());

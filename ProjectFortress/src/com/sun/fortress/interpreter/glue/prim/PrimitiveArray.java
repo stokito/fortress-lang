@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -47,19 +47,8 @@ public class PrimitiveArray extends Constructor {
     }
 
     protected FObject makeAnObject(BetterEnv lex_env, BetterEnv self_env) {
-        // return new Vec(selfType, lex_env, self_env);
-        return new AtomicFTypeArray(selfType, lex_env, self_env);
+        return new AtomicFTypeArray(selfType, self_env);
     }
-
-    // private static final class Vec extends FObject {
-    //     AtomicArray<FValue> a;
-
-    //     public Vec(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-    //         super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
-    //         long n = self_dot_env.getValue("s0").getLong();
-    //         this.a = new AtomicArray<FValue>(FValue.class, (int) n);
-    //     }
-    // }
 
     public static final class get extends NativeMeth1 {
         public FValue act(FObject self, FValue ii) {

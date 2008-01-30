@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -170,7 +170,7 @@ public class Closure extends NonPrimitive implements Scope, HasFinishInitializin
     public FValue applyInner(List<FValue> args, HasAt loc,
                              BetterEnv envForInference) {
         if (def instanceof NativeApp) {
-            typecheckParams(args,loc);
+            args = typecheckParams(args,loc);
             try {
                 return ((NativeApp)def).applyToArgs(args);
             } catch (FortressError ex) {

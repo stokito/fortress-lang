@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,8 +20,6 @@ package com.sun.fortress.interpreter.glue.prim;
 import java.util.List;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-// import com.sun.fortress.interpreter.evaluator.transactions.AtomicArray;
-import com.sun.fortress.interpreter.evaluator.transactions.AtomicFTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;

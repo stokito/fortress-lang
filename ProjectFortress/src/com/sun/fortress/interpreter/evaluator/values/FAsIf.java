@@ -16,45 +16,48 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
+import java.io.BufferedWriter;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
+public class FAsIf extends FValue {
+    private final FValue fvalue;
+    private final FType ftype;
 
-public class FObject extends FValue implements Selectable {
-
-    final BetterEnv lexicalEnv;
-    final BetterEnv selfEnv;
-    final FType ftype;
-
-    public FObject(FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
-        this.lexicalEnv = lexical_env;
-        this.selfEnv = self_dot_env;
-        this.ftype = selfType;
+    public FAsIf(FValue val, FType ty) {
+        this.fvalue = val;
+        this.ftype = ty;
     }
 
-    public FValue select(String s) {
-        return getSelfEnv().getValue(s);
+    public FValue getValue() {
+        return fvalue;
     }
 
-    /**
-     * The environment that you get from "self."
-     */
-    public BetterEnv getSelfEnv() {
-        return selfEnv;
+    public String toString() {
+        return "(" + fvalue.toString() + " asif " + ftype.toString() + ")";
     }
 
-    public BetterEnv getLexicalEnv() {
-        return lexicalEnv;
+    public String getString() {
+        return "(" + fvalue.getString() + " asif " + ftype.getName() + ")";
     }
 
     public FType type() {
         return ftype;
     }
 
-    public String getString() { return type().toString(); }
-
-    public String toString() {
-        return getString() + getClass().getSimpleName();
+    public BufferedWriter getBufferedWriter() {
+        return fvalue.getBufferedWriter();
     }
+    public int getInt() {
+        return fvalue.getInt();
+    }
+    public long getLong() {
+        return fvalue.getLong();
+    }
+    public double getFloat() {
+        return fvalue.getFloat();
+    }
+    public char getChar() {
+        return fvalue.getChar();
+    }
+
 }
