@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -64,6 +64,11 @@ import static com.sun.fortress.nodes_util.OprUtil.noColonText;
  * Above each method is a description of the method's functionality in O'Caml.
  */
 public class Resolver {
+
+  // let is_div op = op.node_data = "/"
+  private static boolean isNonAssociative(Op op) {
+      return PrecedenceMap.ONLY.isNonAssociative(op.getText());
+  }
 
   // (* A predicate for whether an operator may participate in chaining *)
   // let chains (op : op) : bool =
@@ -159,9 +164,6 @@ public class Resolver {
         }
     }
 
-    // let is_div op = op.node_data = "/"
-  private static boolean isDiv(Op op) { return op.getText().equals("/"); }
-
   // let rec resolve_tight_div (oes : prefix_opexpr list) : prefix_opexpr list =
   //   match oes with
   //  | [] -> []
@@ -176,7 +178,7 @@ public class Resolver {
   //         Errors.read_error op.node_span "Misuse of tight division."
   //  | opexpr :: rest -> opexpr :: resolve_tight_div rest
   private static PureList<PrefixOpExpr>
-    resolveTightDiv(PureList<PrefixOpExpr> opExprs) throws ReadError
+    resolveNonAssociative(PureList<PrefixOpExpr> opExprs) throws ReadError
   {
     if (opExprs.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
@@ -191,16 +193,16 @@ public class Resolver {
         PureList<PrefixOpExpr> __rest  = ((Cons<PrefixOpExpr>)_rest).getRest();
 
         if (prefix[0] instanceof RealExpr &&
-            prefix[1] instanceof TightInfix &&
+            prefix[1] instanceof JuxtInfix &&
             prefix[2] instanceof RealExpr &&
-            prefix[3] instanceof TightInfix)
+            prefix[3] instanceof JuxtInfix)
         {
-          Op op1 = ((TightInfix)prefix[1]).getOp();
-          Op op3 = ((TightInfix)prefix[3]).getOp();
+          Op op1 = ((JuxtInfix)prefix[1]).getOp();
+          Op op3 = ((JuxtInfix)prefix[3]).getOp();
 
-          if (isDiv(op1) && isDiv(op3)) {
-            throw new ReadError(FortressUtil.spanTwo(op1,op3),
-                                "Tight division (/) does not associate.");
+          if (isNonAssociative(op1) && isNonAssociative(op3)) {
+              throw new ReadError(FortressUtil.spanTwo(op1,op3), op1.getText() +
+                                  " does not associate.");
           }
         }
       }
@@ -217,21 +219,22 @@ public class Resolver {
           Op op1     = ((TightInfix)prefix[1]).getOp();
           Expr expr2 = ((RealExpr)prefix[2]).getExpr();
 
-          if(isDiv(op1)) {
+          if(isNonAssociative(op1)) {
             Span span = FortressUtil.spanTwo(expr0, expr2);
             RealExpr e = new RealExpr(ASTUtil.infix(span, expr0, op1, expr2));
 
-            return resolveTightDiv(__rest.cons(e));
+            return resolveNonAssociative(__rest.cons(e));
           }
         }
       }
       if (first instanceof TightInfix &&
-          isDiv(((TightInfix)first).getOp())) {
+          isNonAssociative(((TightInfix)first).getOp())) {
         throw new ReadError(((TightInfix)first).getOp().getSpan(),
-                            "Misuse of tight division.");
+                            "Misuse of " + ((TightInfix)first).getOp().getText()
+                            + ".");
       }
       else {
-        return (resolveTightDiv(rest)).cons(first);
+        return (resolveNonAssociative(rest)).cons(first);
       }
     }
   }
@@ -1117,7 +1120,7 @@ public class Resolver {
     return resolveInfix
               (resolveJuxt
                  (resolvePrefix
-                    (resolveTightDiv
+                    (resolveNonAssociative
                        (resolvePostfix (opExprs.reverse())))));
   }
 

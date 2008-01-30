@@ -1,5 +1,5 @@
 ################################################################################
-#    Copyright 2007 Sun Microsystems, Inc.,
+#    Copyright 2008 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -20,8 +20,8 @@
 # There's no need to mention abbreviations here, they are attached
 # elsewhere in the specification.
 
-c_2_1
-  asterisk, *
+c_2_1_multiplication
+  asterisk
   middle dot
   multiplication sign
   asterisk operator
@@ -43,7 +43,9 @@ c_2_1
   circled multiplication sign with circumflex accent
   multiplication sign in double circle
   multiplication sign in triangle
-  solidus, /
+
+c_2_1_division
+  solidus
   division sign
   division slash
   circled division slash
@@ -478,12 +480,14 @@ boolean_disjunction
   logical or with double overbar
   logical or with double underbar
 
-boolean_misc
+boolean_misc_nonAssociative
   rightwards arrow, ->, implies
   left right arrow, <->, iff
-  xor
   nand
   nor
+
+boolean_misc_leftAssociative
+  xor
 
 enclosing_left
   left square bracket, [
