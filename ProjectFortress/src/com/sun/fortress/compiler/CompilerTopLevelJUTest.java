@@ -72,6 +72,13 @@ public class CompilerTopLevelJUTest extends TestCase {
         public File value(String s) { return new File(s); }
       }));
 
+    public void setUp() {
+        // Turn on type checking during static checking. By default,
+        // type checking is turned off to allow programmers to use
+        // the static checker before type checking is fully functional.
+        com.sun.fortress.compiler.StaticChecker.typecheck = true;
+    }
+    
     public void testStaticTests() throws IOException {
         boolean foundAFile = false;
         Predicate<File> filter = IOUtil.extensionFilePredicate("fss", IOUtil.IS_FILE);

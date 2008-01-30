@@ -83,6 +83,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                params.extendWithParams(newParams), analyzer);
     }
     
+    private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
+        return new TypeChecker(table, 
+                               staticParams.extend(newStaticParams, whereClause),
+                               params, 
+                               analyzer);
+    }
+    
     private TypeChecker extend(List<LValueBind> bindings) {
         return new TypeChecker(table, staticParams,
                                params.extendWithLValues(bindings),
@@ -101,9 +108,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                analyzer);
     }
     
-    public TypeChecker extendWithFns(Relation<SimpleName, FunctionalMethod> methods) {
+    public TypeChecker extendWithFunctions(Relation<SimpleName, FunctionalMethod> methods) {
         return new TypeChecker(table, staticParams,
-                               params.extendWithFns(methods),
+                               params.extendWithFunctions(methods),
                                analyzer);        
     }
     
@@ -134,6 +141,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
      
     public TypeCheckerResult forVarDecl(VarDecl that) {
+        // System.err.println("forVarDecl: " + that);
         List<LValueBind> lhs = that.getLhs();
         Expr init = that.getInit();
         
@@ -143,7 +151,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             LValueBind var = lhs.get(0);
             Option<Type> varType = var.getType();
             if (varType.isSome()) {
+                // System.err.println("varType: " + unwrap(varType));
+                // System.err.println("initResult.type(): " + initResult.type());
                 if (initResult.type().isNone()) {
+                    // System.err.println("initResult.ast(): " + initResult.ast());
                     // The right hand side could not be typed, which must have resulted in a 
                     // signaled error. No need to signal another error.
                     return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
@@ -153,9 +164,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 }
                 ConstraintFormula constraints = analyzer.subtype(unwrap(initResult.type()), 
                                                                  unwrap(varType));
-                if (!constraints.isSatisfiable()) {
+                if (constraints.isSatisfiable()) {
+                    // System.err.println("isSatisfiable: " + constraints);
                     return new TypeCheckerResult(that, constraints);
                 } else {
+                    // System.err.println("not satisfiable: " + constraints);
                     StaticError error = 
                         StaticError.make(errorMsg("Attempt to define variable ", var, " ",
                                                   "with an expression of type ", initResult.type()),
@@ -163,9 +176,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return new TypeCheckerResult(that, error);
                 }
             } else { // Eventually, this case will involve type inference
+                // System.err.println("varType.isNone()");
                 return NI.nyi();
             }
         } else { // lhs.size() >= 2
+            // System.err.println("lhs.size() >= 2");
             Type varType = typeFromLValueBinds(lhs); 
             if (analyzer.subtype(unwrap(initResult.type()), varType).isTrue()) {
                 return new TypeCheckerResult(that);
@@ -213,20 +228,30 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             apiTypeEnv = TypeEnv.make(table.api(unwrap(apiName)));
         }
         Id name = that.getName();
+        // System.err.println("name: " + name);
+        
         Option<Type> type = apiTypeEnv.type(name);
         
         if (type.isSome()) {
+            // System.err.println(unwrap(type));
             return new TypeCheckerResult(that, unwrap(type));
         } else {
+            // System.err.println("y");
             StaticError error = 
-                StaticError.make(errorMsg("Attempt to reference an unbound qualified name: \n    ", that), 
+                StaticError.make(errorMsg("Attempt to reference unbound variable: \n    ", that), 
                                  that);
             return new TypeCheckerResult(that, error);
         }
     }
     
     public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
-        return TypeCheckerResult.compose(that, var_result);
+        Option<Type> varType = var_result.type();
+        
+        if (varType.isSome()) {
+            return TypeCheckerResult.compose(that, unwrap(varType), var_result);
+        } else {
+            return TypeCheckerResult.compose(that, var_result);
+        }
     }
     
     public TypeCheckerResult forObjectDecl(ObjectDecl that) {
@@ -255,7 +280,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
-        newChecker = newChecker.extendWithFns(thatIndex.functionalMethods());
+        newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
                 
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
@@ -268,6 +293,64 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          extendsClauseResult, whereResult, paramsResult, throwsClauseResult, 
                                          contractResult, fieldsResult, methodsResult);
     }
+    
+    public TypeCheckerResult forTraitDecl(TraitDecl that) {
+        TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
+        TypeCheckerResult nameResult = that.getName().accept(this);
+        TypeCheckerResult staticParamsResult = TypeCheckerResult.compose(that, recurOnListOfStaticParam(that.getStaticParams()));
+        TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
+        TypeCheckerResult whereResult = that.getWhere().accept(this);
+        TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, recurOnListOfTraitType(that.getExcludes()));
+        
+        TypeCheckerResult comprisesResult = new TypeCheckerResult(that);
+        Option<List<TraitType>> comprises = that.getComprises();
+        if (comprises.isSome()) {
+            comprisesResult = 
+                TypeCheckerResult.compose
+                    (that, unwrap(recurOnOptionOfListOfTraitType(that.getComprises())));
+        }
+        
+        TypeChecker newChecker = this.extend(that.getStaticParams(), that.getWhere());
+        
+        // Check "field" declarations (really getter and setter declarations).
+        TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
+        for (Decl decl: that.getDecls()) {
+            if (decl instanceof VarDecl) { 
+                VarDecl _decl = (VarDecl)decl;
+                
+                fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
+                newChecker = newChecker.extend(_decl.getLhs());
+            }
+        }
+        
+        // Check method declarations.
+        
+        TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
+        newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
+        newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
+        
+        TypeCheckerResult methodsResult = new TypeCheckerResult(that);
+        for (Decl decl: that.getDecls()) {
+            if (decl instanceof FnDecl) { 
+                methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
+            }
+        }
+        
+        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult, 
+                                         extendsClauseResult, whereResult, excludesResult, comprisesResult, 
+                                         fieldsResult, methodsResult);
+    }
+    
+//    public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
+//        if (var_result.isSome()) { 
+//            return new TypeCheckerResult(that, varType); 
+//        } else {
+//            StaticError error = 
+//                StaticError.make(errorMsg("Attempt to reference unbound variable: ", that),
+//                                 that);
+//            return new TypeCheckerResult(that, error);
+//        }
+//    }
 }
 
     /* Methods copied from superclass, to make it easier to incrementally define

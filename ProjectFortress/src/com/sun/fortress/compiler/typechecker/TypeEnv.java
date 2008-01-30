@@ -257,7 +257,7 @@ public abstract class TypeEnv {
         else { return new VarTypeEnv(vars, this); }
     }
 
-    public final TypeEnv extendWithFns(Relation<SimpleName, ? extends Function> fns) {
+    public final TypeEnv extendWithFunctions(Relation<SimpleName, ? extends Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
     }

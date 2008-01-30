@@ -42,6 +42,15 @@ import edu.rice.cs.plt.iter.IterUtil;
  */
 public class StaticChecker {
     
+    /** 
+     * This field is a temporary switch used for testing. 
+     * When typecheck is true, the TypeChecker is called during static checking. 
+     * It's false by default to allow the static checker to be used at the command
+     * line before the type checker is fully functional.
+     * CompilerTopLevelJUTests sets typecheck to true before running its tests.
+     */
+    public static boolean typecheck = false;
+    
     public static class ApiResult extends StaticPhaseResult {
         public ApiResult(Iterable<? extends StaticError> errors) { super(errors); }
     }
@@ -90,26 +99,30 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component, 
                                                    GlobalEnvironment env) 
     {
-        TypeEnv typeEnv = TypeEnv.make(component);
-        
-        // Add all top-level function names to the component-level environment.
-        //typeEnv.extend(component.functions());
-        
-        // Iterate over top-level variables, adding each to the component-level environment.
-        typeEnv = typeEnv.extend(component.variables());
-        
-        TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), StaticParamEnv.make(), typeEnv);
-        
+        if (typecheck) {
+            TypeEnv typeEnv = TypeEnv.make(component);
+            
+            // Add all top-level function names to the component-level environment.
+            //typeEnv.extend(component.functions());
+            
+            // Iterate over top-level variables, adding each to the component-level environment.
+            typeEnv = typeEnv.extend(component.variables());
+            
+            TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env), StaticParamEnv.make(), typeEnv);
+            
 //        TypeCheckerResult result = new 
 //        // Iterate over top-level functions, checking the body of each.
 //        for (Function fn: component.functions()) {
 //            typeChecker.check(fn);
 //        }
-        
-        // Iterate over trait and object definitions.
-        //for (
-        //return component.ast().accept(typeChecker);
-        return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
+            
+            // Iterate over trait and object definitions.
+            //for (
+            
+            return component.ast().accept(typeChecker);
+        } else {
+            return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
+        }
     }
     
 }
