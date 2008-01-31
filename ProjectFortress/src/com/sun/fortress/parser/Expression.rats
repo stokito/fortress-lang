@@ -240,17 +240,17 @@ PureList<PrecedenceOpExpr> OpExprPrimary =
  */
 PureList<PrecedenceOpExpr> OpExprPrefix =
      a1:Op a2:OpExprPrimary
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
    / a1:Op a2:OpExprPrefix
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
    / a1:Op a2:OpExprLeftEncloser
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
    / <Primary> a1:Op wr a2:OpExprPrimary
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
    / <Prefix>  a1:Op wr a2:OpExprPrefix
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
    / <Left>    a1:Op wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); };
 
 /* TightInfixPostfix ::=
      Op OpExprPrimary

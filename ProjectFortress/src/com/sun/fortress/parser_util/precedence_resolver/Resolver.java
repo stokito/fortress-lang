@@ -37,6 +37,7 @@ import com.sun.fortress.parser_util.precedence_opexpr.Left;
 import com.sun.fortress.parser_util.precedence_opexpr.Loose;
 import com.sun.fortress.parser_util.precedence_opexpr.LooseChain;
 import com.sun.fortress.parser_util.precedence_opexpr.LooseInfix;
+import com.sun.fortress.parser_util.precedence_opexpr.LoosePrefix;
 import com.sun.fortress.parser_util.precedence_opexpr.Lower;
 import com.sun.fortress.parser_util.precedence_opexpr.NonChain;
 import com.sun.fortress.parser_util.precedence_opexpr.PrecedenceOpExpr;
@@ -66,6 +67,10 @@ import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 public class Resolver {
 
   // let is_div op = op.node_data = "/"
+  private static boolean isDiv(Op op) {
+      return op.getText().equals("/");
+  }
+
   private static boolean isNonAssociative(Op op) {
       return PrecedenceMap.ONLY.isNonAssociative(op.getText());
   }
@@ -219,7 +224,7 @@ public class Resolver {
           Op op1     = ((TightInfix)prefix[1]).getOp();
           Expr expr2 = ((RealExpr)prefix[2]).getExpr();
 
-          if(isNonAssociative(op1)) {
+          if(isDiv(op1)) {
             Span span = FortressUtil.spanTwo(expr0, expr2);
             RealExpr e = new RealExpr(ASTUtil.infix(span, expr0, op1, expr2));
 
@@ -228,7 +233,7 @@ public class Resolver {
         }
       }
       if (first instanceof TightInfix &&
-          isNonAssociative(((TightInfix)first).getOp())) {
+          isDiv(((TightInfix)first).getOp())) {
         throw new ReadError(((TightInfix)first).getOp().getSpan(),
                             "Misuse of " + ((TightInfix)first).getOp().getText()
                             + ".");
@@ -264,26 +269,30 @@ public class Resolver {
 
       if (first instanceof Prefix) {
         PureList<InfixOpExpr> _opExprs = resolvePrefix(rest);
-
         if (!_opExprs.isEmpty() &&
-            ((Cons<InfixOpExpr>)_opExprs).getFirst() instanceof RealExpr)
-        {
+            ((Cons<InfixOpExpr>)_opExprs).getFirst() instanceof RealExpr) {
           Cons<InfixOpExpr> __opExprs = (Cons<InfixOpExpr>)_opExprs;
           Expr e = ((RealExpr)__opExprs.getFirst()).getExpr();
           PureList<InfixOpExpr> _rest = __opExprs.getRest();
-
+          if (first instanceof LoosePrefix &&
+              !_rest.isEmpty() &&
+              ((Cons<InfixOpExpr>)_rest).getFirst() instanceof TightInfix) {
+              Op op = ((Prefix)first).getOp();
+              Op _op = ((TightInfix)((Cons<InfixOpExpr>)_rest).getFirst()).getOp();
+              throw new ReadError(op.getSpan(),
+                                  "Loose prefix operator " + op.toString() +
+                                  " near tight operator " + _op.toString() + ".");
+          }
           return _rest.cons(new RealExpr
                               (ASTUtil.prefix(((Prefix)first).getOp(),
                                               e)));
-        }
-        else {
+        } else {
           Op op = ((Prefix)first).getOp();
           throw new ReadError(op.getSpan(),
                               "Prefix operator " + op.toString() +
                               " without argument.");
         }
-      }
-      else { // first isinstanceof InfixOpExpr
+      } else { // first isinstanceof InfixOpExpr
         return (resolvePrefix(rest)).cons((InfixOpExpr)first);
       }
     }
