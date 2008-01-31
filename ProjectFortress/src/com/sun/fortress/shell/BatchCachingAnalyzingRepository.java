@@ -57,9 +57,14 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         
         Fortress fort = new Fortress(this);
         
-        Iterable<? extends StaticError> errors = fort.analyze(new GlobalEnvironment.FromRepository(this), newStaleApis(), newStaleComponents(), System.currentTimeMillis());
+        Iterable<? extends StaticError> errors =
+            fort.analyze(new GlobalEnvironment.FromMap(this.apis()),
+                    newStaleApis(),
+                    newStaleComponents(),
+                    System.currentTimeMillis());
         
         if (errors.iterator().hasNext()) {
+            resetStale();
             throw new ProgramError(errors);
         }
     }

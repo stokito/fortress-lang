@@ -155,7 +155,7 @@ public class BatchCachingRepository implements FortressRepository {
      */
     protected void refreshCache() {
         try {
-            for (APIName name : new ReversedList<APIName>(ru.staleApiStack)) {
+            for (APIName name : ru.staleApis) {
                 if (!alreadyCachedApi.contains(name)) {
                     addApi(name, source.getApi(name));
                 }
@@ -205,23 +205,40 @@ public class BatchCachingRepository implements FortressRepository {
         
     };
     
+    public Set<APIName> newStaleApiNames() {
+        return Useful.difference(ru.staleApis, alreadyCachedApi);
+    }
+    
+    public Set<APIName> newStaleComponentNames() {
+        return Useful.difference(ru.staleComponents, alreadyCachedComponent);
+    }
+    
     protected Set<Api> newStaleApis() {
-        return Useful.applyToAll(Useful.difference(ru.staleApis, alreadyCachedApi),
+        return Useful.applyToAll(newStaleApiNames(),
                 toApi);
     }
 
     protected Set<Component> newStaleComponents() {
-        return Useful.applyToAll(Useful.difference(ru.staleComponents, alreadyCachedComponent),
+        return Useful.applyToAll(newStaleComponentNames(),
                 toComponent);
+    }
+    
+    protected void resetStale() {
+        ru.staleApis.clear();
+        ru.staleComponents.clear();
     }
 
     public void addApi(APIName name, ApiIndex definition) {
+        if (alreadyCachedApi.contains(name))
+            return;
         derived.addApi(name, definition);
         alreadyCachedApi.add(name);
         alreadyCachedApiList.add(name);
     }
 
     public void addComponent(APIName name, ComponentIndex definition) {
+        if (alreadyCachedComponent.contains(name))
+            return;
         derived.addComponent(name, definition);
         alreadyCachedComponent.add(name);
     }

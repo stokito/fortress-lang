@@ -33,7 +33,9 @@
 	 <property name="cache3" location="${basedir}/.interpreter_cache"/>
 	 <property name="cache4" location="${basedir}/../.compiler_cache"/>
 	 <property name="cache5" location="${basedir}/.compiler_cache"/>
- <property name="astgen" location="${basedir}/astgen"/>
+	 <property name="cache6" location="${basedir}/../.analyzed_cache"/>
+	 <property name="cache7" location="${basedir}/.analyzed_cache"/>
+<property name="astgen" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
@@ -200,7 +202,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
     	<delete dir="${cache3}"/>
     	<delete dir="${cache4}"/>
     	<delete dir="${cache5}"/>
-    	       
+    	<delete dir="${cache6}"/>
+    	<delete dir="${cache7}"/>
+    	    	       
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.

@@ -138,6 +138,21 @@ public class ProjectProperties {
             result = Useful.substituteVarsCompletely(result, allProps, 1000);
         return result;
     }
+    
+    static final public boolean getBoolean(String s, boolean ifMissing) {
+        String result =  allProps.get(s);
+        if (result != null)
+            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        if (result == null) return ifMissing;
+        if (result.length() == 0)
+            return true;
+        s = result.toLowerCase();
+        char c = result.charAt(0);
+        if (c == 'y' || c == 't' || c == '1') return true;
+        if (c == 'n' || c == 'f' || c == '0') return false;
+        
+        throw new Error("Unexpected definition of prop/env " + s + ", got " + result + ", need t/f/y/n/0/1[...]");
+    }
 
     /**
      * Searches for property/environment definition in the following order
@@ -207,6 +222,8 @@ public class ProjectProperties {
     public final static String API_SOURCE_SUFFIX = "fsi";
 
     public final static String API_TREE_SUFFIX = "tfi";
+
+    public static boolean noStaticAnalysis = ! getBoolean("fortress.static.analysis", false);
 
 
     /** Creates a new instance of ProjectProperties */
