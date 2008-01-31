@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,7 +23,7 @@ import com.sun.fortress.nodes.Op;
  * Class Prefix, a component of the OpExpr composite hierarchy.
  * Note: null is not allowed as a value for any field.
  */
-public class Prefix extends Object implements PrefixOpExpr {
+public abstract class Prefix extends Object implements PrefixOpExpr {
    private final Op _op;
    private int _hashCode;
    private boolean _hasHashCode = false;

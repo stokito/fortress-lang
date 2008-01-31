@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -53,7 +53,10 @@ public abstract class OpExprCopyDepthFirstVisitor extends OpExprDepthFirstVisito
    }
 
    public PrecedenceOpExpr forPrefixOnly(Prefix that) {
-      return new Prefix(that.getOp());
+       if (that instanceof TightPrefix)
+           return new TightPrefix(that.getOp());
+       else
+           return new LoosePrefix(that.getOp());
    }
 
    public PrecedenceOpExpr forPostfixOnly(Postfix that) {

@@ -143,11 +143,11 @@ PureList<PrecedenceOpExpr> OpExprPrimary := ...
  */
 PureList<PrecedenceOpExpr> OpExprPrefix := ...
    / <Primary> a1:Op sr a2:OpExprPrimary
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
    / <Prefix>  a1:Op sr a2:OpExprPrefix
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
    / <Left>    a1:Op sr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((PrecedenceOpExpr)new Prefix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); };
 
 /* NoNewlineTightInfixPostfix ::=
      Op NoNewlineOpExprPrimary

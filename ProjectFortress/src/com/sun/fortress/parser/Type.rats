@@ -72,13 +72,13 @@ PureList<PostfixOpExpr> TypePrimary =
  */
 PureList<PostfixOpExpr> TypePrefix =
      a1:DimPrefixOp a2:TypePrimary
-     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightPrefix(a1)); }
    / a1:DimPrefixOp a2:TypePrefix
-     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightPrefix(a1)); }
    / <Prefix> a1:DimPrefixOp wr a2:TypePrimary
-     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); }
+     { yyValue = a2.cons((PostfixOpExpr)new LoosePrefix(a1)); }
    / <PrePrefix> a1:DimPrefixOp wr a2:TypePrefix
-     { yyValue = a2.cons((PostfixOpExpr)new Prefix(a1)); };
+     { yyValue = a2.cons((PostfixOpExpr)new LoosePrefix(a1)); };
 
 /* TightInfixPostfix ::=
      TypeInfixOp TypePrimary (w Throws)?
