@@ -210,9 +210,9 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TcWrapper  {
     }
     public void testManiaPair() {
         maniaPair("|.|||*|.||",       "||.|*|||.|"); // case 1
-        maniaPair("(//////",       "\\\\\\\\\\\\)"); // case 2
-        maniaPair("{.///*/.//",       "\\\\.\\*\\\\\\.}"); // case 2
-        maniaPair("[.\\\\\\*\\.\\\\", "//./*///.]"); // case 2
+        maniaPair("(//////",       "//////)"); // case 2
+        maniaPair("{.///*/.//",       "//./*///.}"); // case 2
+        maniaPair("[.\\\\\\*\\.\\\\", "\\\\.\\*\\\\\\.]"); // case 2
         maniaPair("<.<<|*|.||",       "||.|*|>>.>"); // case 3
         maniaPair("<.<</*/.//",       "\\\\.\\*\\>>.>"); // case 4
         maniaPair("|.||\\*\\.\\\\",   "//./*/||.|"); // case 4
