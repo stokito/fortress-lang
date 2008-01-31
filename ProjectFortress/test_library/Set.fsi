@@ -24,10 +24,8 @@ import CovariantCollection.{...}
  * produce their elements in sorted order.
  **)
 trait Set[\E\] extends Indexed[\E,ZZ32\] comprises {NodeSet[\E\], EmptySet[\E\]}
-   getVal():E  (* DEPRACATED *)
    printTree():()
    toString():String
-   contains(x:E):Boolean
    minimum():E
    maximum():E
    deleteMinimum():Set[\E\]

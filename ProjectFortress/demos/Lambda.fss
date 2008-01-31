@@ -23,7 +23,7 @@ export Executable
 
 emptyMap = EmptyMap[\String,Term\]()
 
-globalEnv: TreeMap[\String,Term\] := emptyMap
+globalEnv: Map[\String,Term\] := emptyMap
 
 parens(gp:ZZ32, p:ZZ32, s:String):String =
     if gp <= p then "(" s ")" else s end

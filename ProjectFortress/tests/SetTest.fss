@@ -24,15 +24,23 @@ export Executable
     fail(a "=/=" b ": " s)
   end
 
-
   run(args:String...):() = do
     a: Set[\ZZ32\] = set[\ZZ32\]()
     b: Set[\ZZ32\] = set[\ZZ32\](1#10)
     c: Set[\ZZ32\] = { 1 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
     d: Set[\ZZ32\] = { e | i <- 1#5, e <- {2 i, 2 i - 1} }
 
+    for (i,v) <- d.indexValuePairs() do
+        assert(i+1,v," indexValuePairs wrong for ",d)
+    end
+
     assertStr(b,c,"sets 1#10 are different")
     assertStr(c,d,"set 1#10 and comprehension are different")
+    assert(BIG AND[x<-a] false, true, "nonempty? ", a)
+    assert(BIG OR[x<-b] true, true, "empty? ", b)
+    assert(17 NOTIN b, true, "17 IN ",b)
+    assert(BIG AND[x<-1#10] x NOTIN a, true, "something in ",a)
+    assert(BIG AND[x<-1#10] x IN b, true, "something not in ",b)
     assertStr(a[:], set[\ZZ32\](), "subscript operator[:] incorrect for empty set")
     assertStr(b[:], b, "subscript operator[:] incorrect for tree set")
     assertStr(b[5:], set[\ZZ32\](6#5), "subscript operator[x:] incorrect for tree set")

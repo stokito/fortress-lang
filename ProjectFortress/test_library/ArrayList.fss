@@ -256,7 +256,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
             end
         cFirstUsed1 = c.firstUsed-1
         cUnder = c.underlying
-        cUnder.init0(cFirstUsed,e)
+        cUnder.init0(cFirstUsed1,e)
         ArrayList[\E\]( cUnder, cFirstUsed1,   oneShot(),
                                 c.firstUnused, c.canExtendRight )
       end

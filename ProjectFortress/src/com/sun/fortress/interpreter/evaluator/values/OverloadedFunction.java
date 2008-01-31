@@ -215,7 +215,7 @@ public class  OverloadedFunction extends Fcn
                 SingleFcn thisFn = overload.getFn();
                 SingleFcn otherFn = allOverloadsEver.get(overload).getFn();
                 // Debugging output
-                if (debugMatch) {
+                if (debug) {
                     String ps = overload.ps != null ? String.valueOf(overload.ps) + " " : "";
                     System.err.println("Not putting " + ps + overload + "\n   equal to " + otherFn);
                 }
@@ -663,6 +663,8 @@ public class  OverloadedFunction extends Fcn
                     continue; // No match, means no dice.
                 }
 
+            } else if (debugMatch) {
+                System.err.println("Trying w/o instantiation: "+ sfn);
             }
 
             oargs = sfn.fixupArgCount(args);
@@ -702,8 +704,12 @@ public class  OverloadedFunction extends Fcn
         for (int j = 0; j < args.size(); j++) {
             FValue a = args.get(j);
             FType t = Useful.clampedGet(l,j).deRest();
-            if (! t.typeMatch(a))
+            try {
+                if (! t.typeMatch(a))
+                    return false;
+            } catch (FortressError e) {
                 return false;
+            }
         }
         return true;
     }

@@ -18,7 +18,7 @@
 component tennisRanking
 import Set.{...}
 import Map.{...}
-import List.{...}
+import ArrayList.{...}
 import QuickSort.{...}
 import File.{...}
 export Executable
@@ -72,7 +72,7 @@ export Executable
 maxPlayers = 40         (* maximum number of players *)
 numPlayers:ZZ32 := 0    (* number of players possibly with new members *)
 oldPoints = 450 (* the current points for old members not yet played any game *)
-database:TreeMap[\String,Player\] := EmptyMap[\String,Player\]()
+database:Map[\String,Player\] := EmptyMap[\String,Player\]()
 tableBegin =
   "-------------------------------------------------------------------"
 gamesBegin = "begin"
@@ -107,35 +107,22 @@ twoToStr(rank) = if rank < 10 then " " rank else rank end
 (* String juxtaposition avoids Set[\StringLiteral\] *)
 digits = {"" "0","1","2","3","4","5","6","7","8","9"}
 
-isDigit(s: String) =
-  case s IN of
-    digits => true
-    else   => false
+isDigit(s: String) = s IN digits
+
+oneStr2int(s: String) = do
+    r = digits.indexOf(s)
+    if r IN digits.bounds() then
+        r
+    elif s = " " then
+        0
+    else
+        fail("Invalid digit: " s)
+    end
   end
 
-oneStr2int(s: String) =
-  case s of
-    "0" => 0
-    "1" => 1
-    "2" => 2
-    "3" => 3
-    "4" => 4
-    "5" => 5
-    "6" => 6
-    "7" => 7
-    "8" => 8
-    "9" => 9
-    " " => 0
-    else => println "Invalid digit: " s
-            die (* throwing an exception: Not Yet Implemented *)
-  end
-str2int(s: String) =
-  do
-    result: ZZ32 := 0
-    for i <- seq(0#length(s)) do
-      result := 10 result + oneStr2int(substring(s, i, i+1))
-    end
-    result
+str2int(s: String) = do
+    ls = length(s)
+    SUM [i<-1#ls] 10^(ls-i) oneStr2int(substring(s, i-1, i))
   end
 
 (* Tennis players *************************************************************)
@@ -163,8 +150,8 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
                          //   then I have played a doubles game with you
                          //        against "a" and "b"
    *)
-  played:TreeMap[\String,TreeMap[\String,String\]\] :=
-    EmptyMap[\String,TreeMap[\String,String\]\]()
+  played:Map[\String,Map[\String,String\]\] :=
+    EmptyMap[\String,Map[\String,String\]\]()
 
   (* Has played a singles game with this player? *)
   playedSingle(against: String) =
@@ -194,7 +181,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   doneSingle(against: String) =
     do
       maybeAgainstGames = played.member(against)
-      againstGames:TreeMap[\String,String\] :=
+      againstGames:Map[\String,String\] :=
         if maybeAgainstGames.isJust()
         then maybeAgainstGames.unJust()
         else EmptyMap[\String,String\]() end
@@ -206,7 +193,7 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   doneDouble(team: String, against1: String, against2: String) =
     do
       maybeWithGames = played.member(team)
-      withGames:TreeMap[\String,String\] :=
+      withGames:Map[\String,String\] :=
         if maybeWithGames.isJust()
         then maybeWithGames.unJust()
         else EmptyMap[\String,String\]() end
@@ -502,15 +489,15 @@ addGame(fout: BufferedWriter,
 (* Print result ***************************************************************)
 (* MVP(Most Valuable Players): the biggest points earned in this term *)
 mvp: ZZ32 := 0          (* points earned in this term *)
-mvpPlayers: List[\String\] := Empty[\String\]()
+mvpPlayers: List[\String\] := emptyList[\String\]()
 
 (* MEP(Most Energetic Players): the biggest games played in this term *)
 mep: ZZ32 := 0          (* games played in this term *)
-mepPlayers: List[\String\] := Empty[\String\]()
+mepPlayers: List[\String\] := emptyList[\String\]()
 
 (* MIP(Most Improved Players): the biggest differences in old and new rankings *)
 mip: ZZ32 := 0          (* old ranking minus new ranking *)
-mipPlayers: List[\String\] := Empty[\String\]()
+mipPlayers: List[\String\] := emptyList[\String\]()
 
 (* Print the new ranking result while finding MVP and MEP players. *)
 printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
@@ -532,10 +519,10 @@ printTable(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
       end
       (* find MVP players *)
       if player.thisPoints = mvp
-      then mvpPlayers := mvpPlayers.cons(player.name) end
+      then mvpPlayers := mvpPlayers.addLeft(player.name) end
       (* find MEP players *)
       if player.thisGames = mep
-      then mepPlayers := mepPlayers.cons(player.name) end
+      then mepPlayers := mepPlayers.addLeft(player.name) end
       (* find the biggest differences in old and new rankings *)
       diff = player.preRanking - player.ranking
       if diff > mip then mip := diff end
@@ -551,33 +538,24 @@ printMvpMepMip(fout:BufferedWriter, arr:Array[\(ZZ32,String),ZZ32\]) =
       (_,v) = arr[i]
       player = database.member(v).unJust()
       if player.preRanking - player.ranking = mip
-      then mipPlayers := mipPlayers.cons(player.name) end
+      then mipPlayers := mipPlayers.addLeft(player.name) end
     end
 
     (* print MVP players and their points earned in this term *)
-    outFileWrite(fout, "MVP: ")
-    while (NOT mvpPlayers.isEmpty()) do
-      outFileWrite(fout, mvpPlayers.hd' " ")
-      mvpPlayers := mvpPlayers.tl'
-    end
+    outFileWrite(fout, "MVP: " (BIG STRING [p <- mvpPlayers] p " "))
     outFileWrite(fout, "(" mvp " points)\n")
 
     (* print MEP players and their games played in this term *)
-    outFileWrite(fout, "MEP: ")
-    while (NOT mepPlayers.isEmpty()) do
-      outFileWrite(fout, mepPlayers.hd' " ")
-      mepPlayers := mepPlayers.tl'
-    end
+    outFileWrite(fout, "MEP: " (BIG STRING [p <- mepPlayers] p " "))
     outFileWrite(fout, "(" mep " games)\n")
 
-    (* print MEP players and their old and new rankings *)
-    outFileWrite(fout, "MIP: ")
-    while (NOT mipPlayers.isEmpty()) do
-      player = database.member(mipPlayers.hd').unJust()
-      outFileWrite(fout, (player.name " (ranking " player.preRanking " => "
-                          player.ranking ") "))
-      mipPlayers := mipPlayers.tl'
-    end
+    (* print MIP players and their old and new rankings *)
+    mipRec(p:String): String = do
+        player = database.member(p).unJust()
+        (" " player.name
+         " (ranking " player.preRanking " => " player.ranking ")")
+      end
+    outFileWrite(fout, "MIP:" (BIG STRING [p <- mipPlayers] mipRec(p)))
   end
 
 (* Print the result of this term *)
@@ -594,25 +572,19 @@ printResult(fout: BufferedWriter, previous: String, today: String) =
        4. Prepare to calculate a new ranking result.
      *)
     toSortResult:Array[\(ZZ32,String),ZZ32\] := array[\(ZZ32,String)\](numPlayers)
-    index: ZZ32 := 0
-    visitDatabase(t: TreeMap[\String,Player\]) =
-      if NOT t.isEmpty() then
-        v = t.getVal()
+    for (index,kv) <- seq(database.indexValuePairs()) do
+        (_,v) = kv
         (* if never played any game in this term, then -50 penalties *)
         if v.thisGames = 0
         then v.thisPoints  -= 50
              v.totalPoints -= 50
-             database := database.update(v.name, v)
+             (* database := database.update(v.name, v) *)
         end
         if v.thisPoints > mvp then mvp := v.thisPoints end
         if v.thisGames  > mep then mep := v.thisGames  end
         key = - v.totalPoints
         toSortResult[index] := (key, v.name)
-        index += 1
-        visitDatabase(t.getLeftChild())
-        visitDatabase(t.getRightChild())
-      end
-    visitDatabase(database)
+    end
 
     (* calculuate a new ranking result *)
     lt(x: (ZZ32, String), y: (ZZ32, String)) =
