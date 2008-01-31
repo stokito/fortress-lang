@@ -422,6 +422,9 @@ public class PrecedenceMap {
         /* Check bracketmania.  Don't parse, just look for matched pairs. */
         int len = r.length();
         if (l.length() != len) return false;
+        boolean isOpposite = false;
+        if (l.charAt(0)=='<' || l.charAt(0)=='|')
+            isOpposite = true;
         for (int i = 0; i < len; ) {
             char c = l.charAt(i++);
             char m=c;
@@ -439,10 +442,10 @@ public class PrecedenceMap {
                 m = '>';
                 break;
             case '/':
-                m = '\\';
+                if (isOpposite) m = '\\';
                 break;
             case '\\':
-                m = '/';
+                if (isOpposite) m = '/';
                 break;
             case '|':
             case '.':
