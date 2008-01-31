@@ -157,6 +157,9 @@ public class fs {
                 fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
             }
             
+            fr.addRootApis(NodeFactory.makeAPIName("FortressBuiltin"));
+            fr.addRootApis(NodeFactory.makeAPIName("FortressLibrary"));
+            
             if (verbose)  { System.err.println("Parsing/reading " + s); }
             long begin = System.currentTimeMillis();
             

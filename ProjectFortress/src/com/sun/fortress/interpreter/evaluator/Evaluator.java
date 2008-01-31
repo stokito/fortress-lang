@@ -26,6 +26,7 @@ import java.util.Stack;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
@@ -1516,7 +1517,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return bug(x,"_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
-            return bug(fcnExpr,"FnRefs are supposed to be gone from the AST");
+            return bug(fcnExpr,"FnRefs are supposed to be gone from the AST \n" + x.toStringVerbose() );
         }
 
         FValue fnVal = fcnExpr.accept(this);
@@ -1733,30 +1734,41 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forVarRef(VarRef x) {
         Iterable<Id> names = NodeUtil.getIds(x.getVar());
 
-        FValue res = e.getValueNull(IterUtil.first(names).getText());
-        if (res == null)
-            error(x, e, errorMsg("undefined variable ",
-                                 IterUtil.first(names).getText()));
+        if (!ProjectProperties.noStaticAnalysis) {
+            FValue res = e.getValueNull(IterUtil.last(names).getText());
+            if (res == null)
+                error(x, e, errorMsg("undefined variable ", IterUtil
+                        .last(names).getText()));
+            return res;
 
-        for (Id fld : IterUtil.skipFirst(names)) {
-            if (res instanceof Selectable) {
-                /*
-                 * Selectable was introduced to make it not necessary
-                 * to know whether a.b was field b of object a, or member
-                 * b of api a (or api name prefix, extended).
-                 */
-                // TODO Need to distinguish between public/private methods/fields
-                try {
-                    res = ((Selectable) res).select(fld.getText());
-                } catch (FortressError ex) {
-                    throw ex.setContext(x,e);
+        } else {
+
+            FValue res = e.getValueNull(IterUtil.first(names).getText());
+            if (res == null)
+                error(x, e, errorMsg("undefined variable ", IterUtil.first(
+                        names).getText()));
+
+            for (Id fld : IterUtil.skipFirst(names)) {
+                if (res instanceof Selectable) {
+                    /*
+                     * Selectable was introduced to make it not necessary to
+                     * know whether a.b was field b of object a, or member b of
+                     * api a (or api name prefix, extended).
+                     */
+                    // TODO Need to distinguish between public/private
+                    // methods/fields
+                    try {
+                        res = ((Selectable) res).select(fld.getText());
+                    } catch (FortressError ex) {
+                        throw ex.setContext(x, e);
+                    }
+                } else {
+                    res = error(x, e, errorMsg("Non-object cannot have field ",
+                            fld.getText()));
                 }
-            } else {
-                res = error(x, e, errorMsg("Non-object cannot have field ",
-                                                fld.getText()));
             }
+            return res;
         }
-        return res;
     }
 
     public FValue forVoidLiteralExpr(VoidLiteralExpr x) {
@@ -1821,6 +1833,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr name = x.getFn();
         FValue g = name.accept(this);
         List<StaticArg> args = x.getStaticArgs();
+        if (args.size() == 0)
+            return g;
         if (g instanceof FGenericFunction) {
             return ((FGenericFunction) g).typeApply(args, e, x);
         } else if (g instanceof GenericConstructor) {

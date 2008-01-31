@@ -295,7 +295,8 @@ public class Fortress {
     
     public Iterable<? extends StaticError>  run(Path path, String componentName) {
         BatchCachingAnalyzingRepository bcr = new BatchCachingAnalyzingRepository(false,
-                new PathBasedSyntaxTransformingRepository(path),
+                //new PathBasedSyntaxTransformingRepository
+                        (path),
                 new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
                 );
         

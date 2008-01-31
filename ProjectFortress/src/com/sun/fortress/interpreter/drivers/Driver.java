@@ -73,6 +73,7 @@ import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.FileBasedRepository;
@@ -102,19 +103,16 @@ public class Driver {
     private static boolean _libraryTest = false;
 
     public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
-        new BatchCachingRepository(
-                //new PathBasedSyntaxTransformingRepository
-                (ProjectProperties.SOURCE_PATH),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-                );
-        
-//        new AutocachingRepository(
-//            new PathBasedRepository(ProjectProperties.SOURCE_PATH, ProjectProperties.SOURCE_PATH_NATIVE),
-//            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-//            );
-    
-   // private static String LIB_DIR = ProjectProperties.TEST_LIB_DIR;
-   // private static String LIB_NATIVE_DIR = ProjectProperties.TEST_LIB_NATIVE_DIR;
+        ProjectProperties.noStaticAnalysis ? 
+                new BatchCachingRepository(
+                      (ProjectProperties.SOURCE_PATH),
+                      new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                      )
+                :
+        new BatchCachingAnalyzingRepository(false,
+            (ProjectProperties.SOURCE_PATH),
+            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
+            );
 
     private Driver() {};
 
@@ -127,11 +125,21 @@ public class Driver {
     }
 
     public static BatchCachingRepository extendedRepository(String s) {
-        return new BatchCachingRepository(
-                //new PathBasedSyntaxTransformingRepository
+        
+        BatchCachingRepository fr = 
+            ProjectProperties.noStaticAnalysis ? 
+                    new BatchCachingRepository(
+                          (ProjectProperties.SOURCE_PATH.prepend(s)),
+                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                          )
+                    :
+            new BatchCachingAnalyzingRepository(false,
                 (ProjectProperties.SOURCE_PATH.prepend(s)),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
                 );
+        
+        
+        return fr;
     }
     
     public static ArrayList<ComponentWrapper> components;

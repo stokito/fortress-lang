@@ -396,9 +396,9 @@ value object ZipGenerator[\A,B\](x0: ArrayList[\A\],
 end
 
 value object SeqZipGenerator[\A,B\](sz:ZZ32, xs:ArrayList[\A\], ys:ArrayList[\B\])
-        extends { SequentialGenerator[\E\] }
+        extends { SequentialGenerator[\(A,B)\] }
     getter size() = sz
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R\](r: Reduction[\R\], body: (A,B)->R): R =
         sequential(0#sz).generate[\R\](r,fn(i:ZZ32):R=>body(xs.get(i),ys.get(i)))
 end
 

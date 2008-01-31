@@ -65,7 +65,6 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
     final Set<APIName> visitedComponents = new HashSet<APIName>();
 
     public final Set<APIName> staleApis = new HashSet<APIName>();
-    public final List<APIName> staleApiStack = new ArrayList<APIName>();
     
     public final Set<APIName> staleComponents = new HashSet<APIName>();
 
@@ -168,7 +167,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
      }
      
    private Boolean visitCommon(CompilationUnit that, Set<APIName> visited,
-            Set<APIName> stale, List<APIName> staleList, IsStale isStale) {
+            Set<APIName> stale, IsStale isStale) {
         APIName savedNowVisiting = nowVisiting;
         try {
             nowVisiting = that.getName();
@@ -184,8 +183,6 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
              */
             if (!stale.contains(nowVisiting) && isStale.isStale(nowVisiting)) {
                 stale.add(nowVisiting);
-                if (staleList != null)
-                    staleList.add(nowVisiting);
                 change |= true;
             }
 
@@ -197,9 +194,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
             if (importsStale && !stale.contains(nowVisiting)) {
                 stale.add(nowVisiting);
-                if (staleList != null)
-                    staleList.add(nowVisiting);
-                change |= true;
+                 change |= true;
             }
 
             return stale.contains(nowVisiting);
@@ -210,7 +205,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forApi(Api that) {
-        boolean stale = visitCommon(that, visitedApis, staleApis, staleApiStack, isStaleApi);
+        boolean stale = visitCommon(that, visitedApis, staleApis, isStaleApi);
         /*
          * Note that the code below will "over-visit" implementing components,
          * but they will return immediately with no harm done.
@@ -250,7 +245,7 @@ public class RepositoryUpdater extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forComponent(Component that) {
-        return visitCommon(that, visitedComponents, staleComponents, null, 
+        return visitCommon(that, visitedComponents, staleComponents, 
                 isStaleComponent);
     }
 

@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
+import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfo;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor2;
@@ -77,6 +78,11 @@ public class ComponentWrapper {
         if (comp == null)
             throw new NullPointerException("Null compilation unit not allowed");
         p = comp;
+        if (ProjectProperties.noStaticAnalysis)
+            p = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(p);
+        else 
+            p = (CompilationUnit) RewriteInPresenceOfTypeInfo.Only.visit(p);
+        
         BetterEnv e = BetterEnv.empty();
         e.setTopLevel();
         be = comp.is_native() ? new BuildNativeEnvironment(e) : new BuildEnvironments(e);
@@ -152,8 +158,7 @@ public class ComponentWrapper {
 
         CompilationUnit cu = p;
         
-        cu = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(cu);
-        cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
+       cu = (CompilationUnit) desugarer.visit(cu); // Rewrites p!
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.

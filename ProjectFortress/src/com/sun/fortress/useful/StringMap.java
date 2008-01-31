@@ -29,9 +29,17 @@ public interface StringMap {
    
    static public class FromEnv implements StringMap {
        public String get(String s) {
-           return System.getenv(s);
+           s = asEnvOrReflect(s);
+           String t = System.getenv(s);
+           return t;
        }
        public boolean isEmpty() { return false; }
+       
+    public static String asEnvOrReflect(String s) {
+        s = s.toUpperCase();
+        s = s.replace('.', '_');
+        return s;
+    }
    }
    static public class FromProps implements StringMap {
        Properties p;
@@ -80,6 +88,7 @@ public interface StringMap {
        
     public String get(String s) {
         try {
+            s = FromEnv.asEnvOrReflect(s);
             Field f = mapClass.getDeclaredField(s);
             return f.get(null).toString();
         } catch (SecurityException e) {

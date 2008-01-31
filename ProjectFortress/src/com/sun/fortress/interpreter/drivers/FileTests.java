@@ -40,6 +40,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.shell.AutocachingRepository;
+import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedRepository;
@@ -233,19 +234,23 @@ public class FileTests {
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);
-//        FortressRepository fr = new AutocachingRepository(
-//                new PathBasedRepository(ProjectProperties.SOURCE_PATH.prepend(dir),
-//                                        ProjectProperties.SOURCE_PATH_NATIVE),
-//                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-//                );
         
-        BatchCachingRepository fr = new BatchCachingRepository(
-                //new PathBasedSyntaxTransformingRepository
+        BatchCachingRepository fr = 
+            ProjectProperties.noStaticAnalysis ? 
+                    new BatchCachingRepository(
+                          //new PathBasedSyntaxTransformingRepository
+                          (ProjectProperties.SOURCE_PATH.prepend(dir)),
+                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                          )
+                    :
+            new BatchCachingAnalyzingRepository(false,
                 (ProjectProperties.SOURCE_PATH.prepend(dir)),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
                 );
+        
        
-        //fr.addRootComponents(NodeFactory.makeAPIName("FortressLibrary"));
+        fr.addRootApis(NodeFactory.makeAPIName("FortressBuiltin"));
+        fr.addRootApis(NodeFactory.makeAPIName("FortressLibrary"));
         
         for (int i = 0; i < files.length; i++) {
             String s = files[i];

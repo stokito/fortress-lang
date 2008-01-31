@@ -216,7 +216,7 @@ public class Desugarer extends Rewrite {
     static Id filterQID(QualifiedIdName qid) {
         if (qid.getApi().isNone())
             return qid.getName();
-        return bug("Not yet prepared for QIDsref'd through self/parent, QID=" + NodeUtil.dump(qid));
+        return bug("Not yet prepared for QIDs ref'd through self/parent, QID=" + NodeUtil.dump(qid));
     }
 
     private class Member extends Thing {
