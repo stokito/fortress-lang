@@ -323,14 +323,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		return a;
 	}
 
-	@Override
-	public Node forGrammarDef(GrammarDef that) {
-
+	private Pair<List<QualifiedIdName>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
 		List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
 		Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
 		for (QualifiedIdName name: that.getExtends()) {
 			QualifiedIdName nname = handleGrammarName(name);
 			ls.add(nname);
+
 			Option<GrammarIndex> gi = this._env.grammarIndex(nname);
 			if (gi.isSome()) {
 				gs.add(Option.unwrap(gi));
@@ -339,19 +338,24 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 				error("Undefined grammar: " + NodeUtil.nameString(nname), name);
 			}
 		}
+		return new Pair<List<QualifiedIdName>, Collection<GrammarIndex>>(ls,gs);
+	}
+	
+	@Override
+	public Node forGrammarDef(GrammarDef that) {
+
+		Pair<List<QualifiedIdName>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
+
 		QualifiedIdName name = handleGrammarName(that.getName());
 
-		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,ls,that.getNonterminals());
+		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),that.getNonterminals());
 
 		List<StaticError> newErrs = new ArrayList<StaticError>();
 		Option<GrammarIndex> grammar = this._env.grammarIndex(name);
 		if (grammar.isSome()) {
 			GrammarIndex g = Option.unwrap(grammar);
 			g.setAst(disambiguatedGrammar);
-
-			g.setExtendedGrammars(gs);
-
-			g.setEnv(new ProductionEnv(this._env, g, this._errors));
+			g.setExtendedGrammars(p.second());
 			g.setAst(disambiguatedGrammar);
 		}
 
@@ -382,9 +386,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 			return newN;
 		}
 		else {
-			Id id = name.getName();
-			if (_env.hasGrammar(id)) {
-				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(id);
+			if (_env.hasGrammar(name)) {
+				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
 				if (grammars.size() > 1) {
 					error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
 					return name;
@@ -393,10 +396,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 				return qname;
 			}
 			else {
-				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(id);
+				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
 				if (grammars.isEmpty()) {
-					grammars = _env.onDemandGrammarNames(id);
-					_onDemandImports.add(id);
+					grammars = _env.onDemandGrammarNames(name.getName());
+					_onDemandImports.add(name.getName());
 				}
 
 				if (grammars.isEmpty()) {

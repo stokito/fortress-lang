@@ -45,125 +45,51 @@ public abstract class Module {
 	protected String name;
 	private boolean isTopLevel;
 	
-	protected Collection<Module> imports;
 	protected Module modify;
-	protected Collection<Module> extendedModules;
+	protected Collection<Module> imports;
 	private Map<String, Set<SyntaxSymbol>> tokenMap;
-	
-	protected Collection<ProductionIndex<? extends NonterminalDecl>> productions;
-	protected ProductionEnv productionEnv;
+
 	protected List<ModuleName> parameters;
 	protected List<ModuleDependency> dependencies;
 	
+	protected ProductionEnv productionEnv;
+	protected Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions;
+
+	protected Collection<? extends Module> extendedModules; 
+	
 	public Module() {
 		this.imports = new LinkedList<Module>();
-		this.extendedModules = new LinkedList<Module>();
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		
-		this.productions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+		this.declaredProductions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+		this.extendedModules = new java.util.HashSet<Module>();
 		this.parameters = new LinkedList<ModuleName>();
 		this.dependencies = new LinkedList<ModuleDependency>();
 	}
 
-	public Module(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
+	public Module(String name, 
+			      Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions) {
 		this();
 		this.name = name;
-		this.productions.addAll(productions);
+		this.declaredProductions.addAll(declaredProductions);
 	}
 
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getDefinedProductions() {
-		return this.productions;
+	public void isTopLevel(boolean b) {
+		this.isTopLevel = b;		
 	}
 	
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getProductions() {
-		List<ProductionIndex<? extends NonterminalDecl>> productions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
-		for (ProductionIndex<? extends NonterminalDecl> p: this.productions) {
-			// TODO: Test for privacy of production here
-			productions.add(p);
-		}
-
-		for (Module m : this.getExtendedModules()) {
-			productions.addAll(m.getProductions());
-		}
-		return productions;
+	public boolean isTopLevel() {
+		return this.isTopLevel;
 	}
 
-	public boolean containsProduction(ProductionIndex<? extends NonterminalDecl> p, String name) {
-		// System.err.println("***");
-		for (ProductionIndex<? extends NonterminalDecl> production: this.getProductions()) {
-			// System.err.println("Matching: "+production.getName().toString()+" - "+name);
-			if ((production.getName().toString().equals(name)) &&
-				(!p.equals(production))) {
-				return true;
-			}
-		}
-		return false;
+	public String getName() {
+		return this.name;
 	}
 	
-	public void setProductions(Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
-		this.productions = productions;
-	}
-	
-	public void addProductions(Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
-		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
-			this.addProduction(p.getName().toString(), p);
-		}
-	}
-	
-	public void addProductions(GrammarIndex grammar, Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
-		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
-			this.addProduction(p.getName().toString(), p);
-		}		
-	}
-	
-	private void addProduction(String name, ProductionIndex<? extends NonterminalDecl> p) {
-//		if (p.getExtends().isSome() &&
-//			this.productionsExtendsMap.keySet().contains(Option.unwrap(p.getExtends()).getName())) {
-//			NonterminalDef pd = this.productionsExtendsMap.get(Option.unwrap(p.getExtends()).getName());
-//			List<SyntaxDef> syntaxDefs = p.getSyntaxDefs();
-//			syntaxDefs.addAll(pd.getSyntaxDefs());
-//			pd.getSyntaxDefs().clear();
-//			pd.getSyntaxDefs().addAll(syntaxDefs);
-//		}
-//		else {
-			this.productions.add(p);
-//			this.names.put(name, p);
-//		}
+	public void setName(String name) {
+		this.name = name.substring(0, 1).toUpperCase()+name.substring(1);
 	}
 
-	/**
-	 * Returns a map from names of fortress core modules to 
-	 * sets of productions which extends the modules
-	 * TODO: If more than one production extends the same core production, then what???
-	 * TODO: It is a hack to use the core modules to transport imports
-	 */
-	public Map<Module, Set<ProductionIndex<? extends NonterminalDecl>>> getExtendedCoreModules() {
-		Map<Module, Set<ProductionIndex<? extends NonterminalDecl>>> extendedCoreModules = 
-			                            new HashMap<Module, Set<ProductionIndex<? extends NonterminalDecl>>>();
-		List<ProductionIndex<? extends NonterminalDecl>> lsp = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
-		for (ProductionIndex<? extends NonterminalDecl> production: this.productions) {
-			String name = "";
-			// TODO: fix extends
-//			if (production.getExtends().isSome() &&
-//				ModuleInfo.isCoreProduction((name = Option.unwrap(production.getExtends()).getName().toString()))) {
-//				Module module = ModuleInfo.getCoreModule(name);
-//				Set<ProductionIndex> productions = new HashSet<ProductionIndex>();
-//				if (extendedCoreModules.containsKey(module)) {
-//					productions = extendedCoreModules.get(module);
-//				}
-//				// Rename production if it extends a core production
-//				//productions.add(ModuleTranslator.renameProduction(production, name));
-//				module.setImports(this.getExtendedModules());
-//				extendedCoreModules.put(module, productions);
-//			}
-//			else {
-//				lsp.add(production);
-//			}
-		}
-		this.setProductions(lsp);
-		return extendedCoreModules;
-	}
-	
 	public Collection<Module> getImports() {
 		return imports;
 	}
@@ -180,28 +106,87 @@ public abstract class Module {
 		this.modify = modify;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-	
-	public void setName(String name) {
-		this.name = name.substring(0, 1).toUpperCase()+name.substring(1);
+	public List<ModuleName> getParameters() {
+		return this.parameters;
 	}
 
-	public void isTopLevel(boolean b) {
-		this.isTopLevel = b;		
+	public Collection<? extends ModuleDependency> getDependencies() {
+		return this.dependencies;
 	}
 	
-	public boolean isTopLevel() {
-		return this.isTopLevel;
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredProductions() {
+		return this.declaredProductions;
+	}
+	
+	/**
+	 * Return true if the given production name are among the declared or inherited productions
+	 * @param p
+	 * @param name
+	 * @return
+	 */
+	public boolean containsProduction(ProductionIndex<? extends NonterminalDecl> p, String name) {
+		for (ProductionIndex<? extends NonterminalDecl> production: this.declaredProductions) {
+			if ((production.getName().toString().equals(name)) &&
+				(!p.equals(production))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Add a set of declared production to this module
+	 * @param productions
+	 */
+	public void addProductions(Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions) {
+		for (ProductionIndex<? extends NonterminalDecl> p: productions) {
+			this.addProduction(p.getName().toString(), p);
+		}
+	}
+	
+	/**
+	 * Add a declared production to this module 
+	 */
+	private void addProduction(String name, ProductionIndex<? extends NonterminalDecl> p) {
+			this.declaredProductions.add(p);
 	}
 
-	public void addExtendedModule(Module module) {
-		this.extendedModules.add(module);
+	/** 
+	 * Returns a set of all token symbols from all declared and inherited productions
+	 * @return
+	 */
+	public Set<String> getKeywords() {
+		final Set<String> keywords = new HashSet<String>();
+		for (ProductionIndex<? extends NonterminalDecl> p: this.declaredProductions) {
+			if (p.ast().isSome()) {
+				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+					@Override
+					public void forKeywordSymbol(KeywordSymbol that) {
+						keywords.add(that.getToken());
+					}
+				});
+				}
+			}
+		return keywords;
 	}
 	
-	public Collection<Module> getExtendedModules() {
-		return this.extendedModules;
+	/** 
+	 * Returns a set of all token symbols from all declared and inherited productions
+	 * @return
+	 */
+	public Set<String> getTokens() {
+		final Set<String> tokens = new HashSet<String>();
+		for (ProductionIndex<? extends NonterminalDecl> p: this.declaredProductions) {
+			if (p.ast().isSome()) {
+				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
+					@Override
+					public void forTokenSymbol(TokenSymbol that) {
+						tokens.add(that.getToken());
+					}
+				});
+				}
+			}
+		return tokens;
 	}
 
 	public String toString() {
@@ -227,68 +212,23 @@ public abstract class Module {
 	    }
 	    indent = tmpIndent;
 	    
-		s+= indent+"* Locally defined productions\n";
+		s+= indent+"* declared productions\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionIndex<? extends NonterminalDecl>> pit = this.productions.iterator();
+		Iterator<ProductionIndex<? extends NonterminalDecl>> pit = this.declaredProductions.iterator();
 		while (pit.hasNext()) {
 			s+= indent+"- "+pit.next().getName()+"\n";
 		}
 		indent = tmpIndent;
 		
-		s+= indent+"* Productions\n";
+		s+= indent+"* extended modules\n";
 		indent += indentation;
-		pit = this.getProductions().iterator();
-		while (pit.hasNext()) {
-			s+= indent+"- "+pit.next().getName()+"\n";
+		Iterator<? extends Module> amit = this.extendedModules.iterator();
+		while (amit.hasNext()) {
+			s+= indent+"- "+amit.next().getName()+"\n";
 		}
 		indent = tmpIndent;
 		return s;
 	}
 
-	public Set<String> getKeywords() {
-		final Set<String> keywords = new HashSet<String>();
-		for (ProductionIndex<? extends NonterminalDecl> p: this.getProductions()) {
-			if (p.ast().isSome()) {
-				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
-					@Override
-					public void forKeywordSymbol(KeywordSymbol that) {
-						keywords.add(that.getToken());
-					}
-				});
-				}
-			}
-		return keywords;
-	}
-	
-	public Set<String> getTokens() {
-		final Set<String> tokens = new HashSet<String>();
-		for (ProductionIndex<? extends NonterminalDecl> p: this.getProductions()) {
-			if (p.ast().isSome()) {
-				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
-					@Override
-					public void forTokenSymbol(TokenSymbol that) {
-						tokens.add(that.getToken());
-					}
-				});
-				}
-			}
-		return tokens;
-	}
-
-	public void setExtendedModules(Collection<Module> extendedModules) {
-		this.extendedModules = extendedModules;		
-	}
-
-	public void setToplevel(boolean b) {
-		this.isTopLevel = b;		
-	}
-
-	public List<ModuleName> getParameters() {
-		return this.parameters;
-	}
-
-	public Collection<? extends ModuleDependency> getDependencies() {
-		return this.dependencies;
-	}
 }

@@ -136,8 +136,8 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 
 	@Override
 	public void forImportNamesOnly(ImportNames that) {
-		GrammarEnv grammarEnv = new GrammarEnv();
 		if (env.definesApi(that.getApi())) {
+			GrammarEnv grammarEnv = new GrammarEnv();
 			for (GrammarIndex grammar: env.api(that.getApi()).grammars().values()) {
 				boolean found = false;
 				for (AliasedSimpleName name: that.getAliasedNames()) {
@@ -158,7 +158,6 @@ public class ImportedApiCollector extends NodeDepthFirstVisitor_void {
 				getRecursiveImports(that.getApi());
 			}
 		}
-
 		else {
 			StaticError.make("Undefined api: "+that.getApi(), that);
 		}

@@ -119,6 +119,9 @@ public class PreParser {
 		ImportedApiCollector.Result result = namesAndImports.new Result(new LinkedList<GrammarEnv>());
 		for (Component c: pr.components()) {
 			result = result.add(namesAndImports.collectApis(c));
+			if (!result.grammars().isEmpty()) {
+				System.err.println("Component: "+c.getName()+" imports grammars...");	
+			}
 		}
 		if (!pr.isSuccessful()) { return new Result(result.errors()); }
 

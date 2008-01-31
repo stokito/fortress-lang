@@ -17,19 +17,34 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+
+import org.apache.tools.ant.util.CollectionUtils;
+
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.NoWhitespaceSymbol;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
+import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
@@ -104,11 +119,16 @@ public class Disambiguator {
                 errors.addAll(newErrs); 
             }
         }
-        results = disambiguateProductions(results, errors, globalEnv); 
+        results = disambiguateProductions(results, errors, globalEnv);
         return new ApiResult(results, errors);
     }
     
-    
+
+	/**
+	 * First, Disambiguate item symbols to nonterminal, keyword, or token symbols.
+	 * Second, Remove any whitespace as indicated by the ignore-whitespace symbol.
+	 * Third, Rewrite escape sequences.
+	 */
     private static List<Api> disambiguateProductions(Iterable<Api> apis,
     												 List<StaticError> errors,
     												 GlobalEnvironment globalEnv) {
@@ -117,13 +137,9 @@ public class Disambiguator {
             ApiIndex index = globalEnv.api(api.getName());
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
-			ProductionDisambiguator pd = 
-				new ProductionDisambiguator(env, newErrs);
+			ProductionDisambiguator pd = new ProductionDisambiguator(env, globalEnv, newErrs);
 			Api pdResult = (Api) api.accept(pd);
-            if (newErrs.isEmpty()) {
-            	results.add(pdResult);
-            }
-            
+			results.add(pdResult);
             if (!newErrs.isEmpty()) { 
                 errors.addAll(newErrs); 
             }

@@ -174,8 +174,20 @@ public class TopLevelEnv extends NameEnv {
    
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
-        	for (Map.Entry<Id, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
-            	initializeEntry(apiEntry, grammarEntry, _onDemandGrammarNames);
+        	for (Map.Entry<QualifiedIdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
+        		Id key = grammarEntry.getKey().getName();
+                if (_onDemandGrammarNames.containsKey(key)) {
+                	_onDemandGrammarNames.get(key).add(new QualifiedIdName(key.getSpan(),
+                                                           Option.some(apiEntry.getKey()),
+                                                           key));
+                    
+                } else {
+                    Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
+                    matches.add(new QualifiedIdName(key.getSpan(),
+                                                    Option.some(apiEntry.getKey()),
+                                                    key));
+                    _onDemandGrammarNames.put(key, matches);
+                }
             }
         } 
     }
@@ -194,7 +206,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
 	@Override
-	public boolean hasGrammar(Id name) {
+	public boolean hasGrammar(QualifiedIdName name) {
         if (_current instanceof ApiIndex) {
         	if (((ApiIndex) _current).grammars().containsKey(name)) {
         		return true;
@@ -237,12 +249,13 @@ public class TopLevelEnv extends NameEnv {
     }
 
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
+	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
         // TODO: imports
 		if (_current instanceof ApiIndex) {
-			if (((ApiIndex)_current).grammars().containsKey(name)) {
+			QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
+			if (((ApiIndex)_current).grammars().containsKey(lookupName)) {
 				APIName api = ((ApiIndex)_current).ast().getName();
-				return Collections.singleton(NodeFactory.makeQualifiedIdName(api , name));
+				return Collections.singleton(NodeFactory.makeQualifiedIdName(api, lookupName.getName()));
 			}
 		}
         return Collections.emptySet();
@@ -333,12 +346,18 @@ public class TopLevelEnv extends NameEnv {
     }
     
     public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {
-        if (name.getApi().isSome()) {
+        QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
+		if (name.getApi().isSome()) {
         	APIName n = Option.unwrap(name.getApi());
-			return Option.some(_globalEnv.api(n).grammars().get(name.getName()));
+        	if (_globalEnv.definesApi(n)) {
+        		return Option.some(_globalEnv.api(n).grammars().get(lookupName));
+        	}
+        	else {
+        		return Option.none();
+        	}
         }
         if (_current instanceof ApiIndex) {
-        	return Option.some(((ApiIndex) _current).grammars().get(name.getName()));
+        	return Option.some(((ApiIndex) _current).grammars().get(lookupName));
         }
         else {
         	_errors.add(StaticError.make("Attempt to get grammar definition from a component: " + name,

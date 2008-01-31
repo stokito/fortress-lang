@@ -22,11 +22,15 @@ import java.util.Collection;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.NonterminalDecl;
 
+/*
+ * This module corresponds to a user defined grammar. 
+ */
 public class UserModule extends Module {
 
 	public UserModule() {}
 	
-	public UserModule(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
+	public UserModule(String name,
+				      Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
 		super(name, productions);
 	}
 

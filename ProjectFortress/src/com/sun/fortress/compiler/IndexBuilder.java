@@ -18,25 +18,92 @@
 package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import xtc.parser.Production;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.HashRelation;
-import edu.rice.cs.plt.tuple.Option;
-
-import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.Constructor;
+import com.sun.fortress.compiler.index.DeclaredFunction;
+import com.sun.fortress.compiler.index.DeclaredMethod;
+import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.compiler.index.FieldGetterMethod;
+import com.sun.fortress.compiler.index.FieldSetterMethod;
+import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.ParamVariable;
+import com.sun.fortress.compiler.index.ProductionDefIndex;
+import com.sun.fortress.compiler.index.ProductionExtendIndex;
+import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.compiler.index.ProperTraitIndex;
+import com.sun.fortress.compiler.index.SingletonVariable;
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbsDecl;
+import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.AbsExternalSyntax;
+import com.sun.fortress.nodes.AbsFnDecl;
+import com.sun.fortress.nodes.AbsObjectDecl;
+import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.AbsVarDecl;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.DimUnitDecl;
+import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierAbstract;
+import com.sun.fortress.nodes.ModifierAtomic;
+import com.sun.fortress.nodes.ModifierGetter;
+import com.sun.fortress.nodes.ModifierHidden;
+import com.sun.fortress.nodes.ModifierIO;
+import com.sun.fortress.nodes.ModifierOverride;
+import com.sun.fortress.nodes.ModifierPrivate;
+import com.sun.fortress.nodes.ModifierSettable;
+import com.sun.fortress.nodes.ModifierSetter;
+import com.sun.fortress.nodes.ModifierTest;
+import com.sun.fortress.nodes.ModifierTransient;
+import com.sun.fortress.nodes.ModifierValue;
+import com.sun.fortress.nodes.ModifierVar;
+import com.sun.fortress.nodes.ModifierWidens;
+import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
+import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.PropertyDecl;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SimpleName;
+import com.sun.fortress.nodes.TestDecl;
+import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.VarAbsDeclOrDecl;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.compiler.index.*;
-
 import com.sun.fortress.useful.NI;
+
+import edu.rice.cs.plt.collect.HashRelation;
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Option;
 
 public class IndexBuilder {
     
@@ -116,8 +183,8 @@ public class IndexBuilder {
             new HashRelation<SimpleName, Function>(true, false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
-        final Map<Id, GrammarIndex> grammars =
-            new HashMap<Id, GrammarIndex>();
+        final Map<QualifiedIdName, GrammarIndex> grammars =
+            new HashMap<QualifiedIdName, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forAbsTraitDecl(AbsTraitDecl d) {
                 buildTrait(d, typeConses, functions);
@@ -438,10 +505,9 @@ public class IndexBuilder {
     /**
      * Create a Grammar and put it in the given map.
      */
-    private void buildGrammar(GrammarDef ast, Map<Id, GrammarIndex> grammars) {
-        final Id name = ast.getName().getName();
-        final Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions = new HashMap<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>>();
-        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getNonterminals(), productions));
+    private void buildGrammar(GrammarDef ast, Map<QualifiedIdName, GrammarIndex> grammars) {
+        final QualifiedIdName name = ast.getName();
+        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getNonterminals()));
         if (grammars.containsKey(name)) {
             error("Grammar declared twice: "+name, ast);
         }
@@ -449,14 +515,15 @@ public class IndexBuilder {
     }
     
     
-    private Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> buildProductions(
-                                                                   List<NonterminalDecl> productions,
-                                                                   Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productionMap) {
-        for (NonterminalDecl p: productions) {
-            if (productionMap.containsKey(p.getName())) {
+    private Set<ProductionIndex<? extends NonterminalDecl>> buildProductions(List<NonterminalDecl> productions) {
+    	Set<ProductionIndex<? extends NonterminalDecl>> result = new HashSet<ProductionIndex<? extends NonterminalDecl>>();
+    	Set<QualifiedIdName> names = new HashSet<QualifiedIdName>();
+    	for (NonterminalDecl p: productions) {
+            if (names.contains(p.getName())) {
                 error("Production declared twice: "+p.getName(), p);
             }
-            productionMap.put(p.getName(), p.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends NonterminalDecl>>(){
+            names.add(p.getName());
+            result.add(p.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends NonterminalDecl>>(){
 
 				@Override
 				public ProductionIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
@@ -471,7 +538,7 @@ public class IndexBuilder {
             	
             }));
         }
-        return productionMap;
+        return result;
     }
     
     

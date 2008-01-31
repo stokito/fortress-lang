@@ -199,7 +199,8 @@ public class ProductionTranslator {
 			TraitType type = unwrap(that.getType());
 			String name = that.getName().getName().toString();
 			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
-			QualifiedIdName otherQualifiedName = ((ProductionExtendIndex) this.pi).getExtends().getName();
+			Collection<ProductionIndex<? extends NonterminalDecl>> ls = ((ProductionExtendIndex) this.pi).getExtends();
+			QualifiedIdName otherQualifiedName = IterUtil.first(ls).getName();
 			Production p = new AlternativeAddition(type.toString(),
 					new NonTerminal(name),
 					new OrderedChoice(sequence), 
@@ -306,6 +307,9 @@ public class ProductionTranslator {
 				symbol_result.add(new Binding(Option.unwrap(that.getId()).getText(), e));
 				return symbol_result;
 			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed variable binding, not bound to any symbol: ");
+			}
 			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
 		}
 
@@ -316,6 +320,9 @@ public class ProductionTranslator {
 				Element e = symbol_result.remove(0);
 				symbol_result.add(new xtc.parser.Option(e));
 				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed optional symbol, not bound to any symbol: ");
 			}
 			throw new RuntimeException("Malformed optional symbol, bound to multiple symbols: "+symbol_result);
 		}
@@ -328,6 +335,9 @@ public class ProductionTranslator {
 				symbol_result.add(new xtc.parser.Repetition(true, e));
 				return symbol_result;
 			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed repeat-one-or-more symbol, not bound to any symbol: ");
+			}
 			throw new RuntimeException("Malformed repeat-one-or-more symbol, bound to multiple symbols: "+symbol_result);
 		}
 
@@ -338,6 +348,9 @@ public class ProductionTranslator {
 				Element e = symbol_result.remove(0);
 				symbol_result.add(new xtc.parser.Repetition(false, e));
 				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed repeat symbol, not bound to any symbol: ");
 			}
 			throw new RuntimeException("Malformed repeat symbol, bound to multiple symbols: "+symbol_result);
 		}
@@ -350,6 +363,9 @@ public class ProductionTranslator {
 				symbol_result.add(new FollowedBy(e));
 				return symbol_result;
 			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed AND predicate symbol, not bound to any symbol: ");
+			}
 			throw new RuntimeException("Malformed AND predicate symbol, bound to multiple symbols: "+symbol_result);
 		}
 
@@ -360,6 +376,9 @@ public class ProductionTranslator {
 				Element e = symbol_result.remove(0);
 				symbol_result.add(new NotFollowedBy(e));
 				return symbol_result;
+			}
+			if (symbol_result.isEmpty()) {
+				throw new RuntimeException("Malformed NOT predicate symbol, not bound to any symbol: ");
 			}
 			throw new RuntimeException("Malformed NOT predicate symbol, bound to multiple symbols: "+symbol_result);
 		}

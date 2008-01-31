@@ -43,12 +43,12 @@ public class LocalVarEnv extends DelegatingNameEnv {
     }
     
 	@Override
-	public Set<QualifiedIdName> explicitGrammarNames(Id name) {
+	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
 		return Collections.emptySet();
 	}
 
 	@Override
-	public boolean hasGrammar(Id name) {
+	public boolean hasGrammar(QualifiedIdName name) {
 		return false;
 	}
 
