@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -68,17 +69,15 @@ public class GrammarIndexInitializer {
 		for (GrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
-				for (ProductionIndex p: g.productions().values()) {
+				for (ProductionIndex p: g.productions()) {
 					if (p instanceof ProductionExtendIndex) {
 						Id name = p.getName().getName();
-						Set<ProductionIndex<? extends NonterminalDecl>> s = g.env().getExtendedNonterminal(name);
+						GrammarAnalyzer ga = new GrammarAnalyzer();
+						Collection<ProductionIndex<? extends NonterminalDecl>> s = ga.getContaindNonterminalIndex(name, g);
 						if (s.isEmpty()) {
 							ses.add(StaticError.make("Unknown extended nonterminal: "+name, p.getAst()));
 						}
-						if (s.size() > 1) {
-							ses.add(StaticError.make("Ambiguous extended nonterminal: "+name, p.getAst()));
-						}
-						((ProductionExtendIndex) p).setExtends(IterUtil.first(s));
+						((ProductionExtendIndex) p).addExtendedNonterminals(s);
 					}
 				}
 			}

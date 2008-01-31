@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.nodes.GrammarDef;
@@ -32,23 +33,24 @@ public class GrammarIndex {
 
 	private Option<GrammarDef> ast;
 	
-	private Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions;
+	private Collection<ProductionIndex<? extends NonterminalDecl>> productions;
 
-	private Collection<GrammarIndex> gs;
+	private Collection<GrammarIndex> extendedGrammars;
 
 	private ProductionEnv env;
-	
-	public GrammarIndex(Option<GrammarDef> ast, Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions) {
+		
+	public GrammarIndex(Option<GrammarDef> ast, Set<ProductionIndex<? extends NonterminalDecl>> productions) {
 		this.ast = ast;
 		this.productions = productions;
-		this.gs = new LinkedList<GrammarIndex>();
+		this.extendedGrammars = new LinkedList<GrammarIndex>();
+		this.env = new ProductionEnv(this);
 	}
 
 	public Option<GrammarDef> ast() {
 		return this.ast;
 	}
 	
-	public Map<QualifiedIdName, ProductionIndex<? extends NonterminalDecl>> productions() {
+	public Collection<ProductionIndex<? extends NonterminalDecl>> productions() {
 		return this.productions;
 	}
 
@@ -57,11 +59,11 @@ public class GrammarIndex {
 	}
 
 	public void setExtendedGrammars(Collection<GrammarIndex> gs) {
-		this.gs = gs;
+		this.extendedGrammars = gs;
 	}
 	
 	public Collection<GrammarIndex> getExtendedGrammars() {
-		return this.gs;
+		return this.extendedGrammars;
 	}
 
 	public void setEnv(ProductionEnv env) {

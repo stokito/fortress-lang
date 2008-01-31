@@ -48,7 +48,7 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		 * Resolve grammar extensions and extensions of nonterminal definitions, but leave the 
 		 * the content of the nonterminals untouched
 		 */
-		ModuleTranslator.Result mrr = ModuleTranslator.resolve(envs);
+		ModuleTranslator.Result mrr = ModuleTranslator.translate(envs);
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
 		Map<String, String> modulesReplacingFortressModules = mrr.modulesReplacingFortressModules();

@@ -67,9 +67,13 @@ public abstract class ProductionIndex<T extends NonterminalDecl> {
 
 	public T getAst() {
 		if (this.ast().isNone()) {
-			throw new RuntimeException("");
+			throw new RuntimeException("Ast not found.");
 		}
 		return Option.unwrap(this.ast);
+	}
+
+	public boolean isPrivate() {
+		return getAst().getModifier().isSome();
 	}
 	
 }

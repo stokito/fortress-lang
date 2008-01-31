@@ -22,25 +22,42 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.interpreter.drivers.Driver;
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.NoWhitespaceSymbol;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.SyntaxDef;
+import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.shell.BatchCachingAnalyzingRepository;
 import com.sun.fortress.shell.BatchCachingRepository;
 import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.PathBasedSyntaxTransformingRepository;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
+import com.sun.fortress.syntax_abstractions.phases.EscapeRewriter;
+import com.sun.fortress.syntax_abstractions.phases.ItemDisambiguator;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Path;
 
@@ -187,7 +204,7 @@ public class Fortress {
             Iterable<Api> apis, Iterable<Component> components,
             long lastModified) {
         // Handle APIs first
-        
+
         // Build ApiIndices before disambiguating to allow circular references.
         // An IndexBuilder.ApiResult contains a map of strings (names) to
         // ApiIndices.
@@ -201,20 +218,33 @@ public class Fortress {
         GlobalEnvironment rawApiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.compose(_repository.apis(),
                                                       rawApiIR.apis()));
-        
+               
         // Rewrite all API ASTs so they include only fully qualified names, relying
         // on the rawApiEnv constructed in the previous step. Note that, after this
         // step, the rawApiEnv is stale and needs to be rebuilt with the new API ASTs.
         Disambiguator.ApiResult apiDR =
             Disambiguator.disambiguateApis(apis, rawApiEnv);
         if (!apiDR.isSuccessful()) { return apiDR.errors(); }
-        
+		
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(), System.currentTimeMillis());
         if (!apiIR.isSuccessful()) { return apiIR.errors(); }
-        
+               
         // Rebuild GlobalEnvironment.
         GlobalEnvironment apiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.compose(_repository.apis(),
+                                                      apiIR.apis()));
+        	
+        // Disambiguate syntax abstraction items
+    	ItemDisambiguator.ApiResult apiID = ItemDisambiguator.disambiguateApis(apiIR.apis(), apiEnv);
+    	if (!apiID.isSuccessful()) { return apiID.errors(); }
+
+        // Rebuild ApiIndices.
+        apiIR = IndexBuilder.buildApis(apiID.apis(), System.currentTimeMillis());
+        if (!apiIR.isSuccessful()) { return apiIR.errors(); }
+        
+        // Rebuild GlobalEnvironment.
+        apiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.compose(_repository.apis(),
                                                       apiIR.apis()));
         
@@ -259,10 +289,9 @@ public class Fortress {
                  componentSR.components().entrySet()) {
             _repository.addComponent(newComponent.getKey(), newComponent.getValue());
         }
-        
+
         return IterUtil.empty();
     }
-    
     
     public Iterable<? extends StaticError>  run(Path path, String componentName) {
         BatchCachingAnalyzingRepository bcr = new BatchCachingAnalyzingRepository(false,

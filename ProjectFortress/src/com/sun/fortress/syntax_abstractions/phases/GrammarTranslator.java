@@ -90,7 +90,7 @@ public class GrammarTranslator {
 			if (module instanceof UserModule) {
 				Module m = RatsUtil.makeExtendingRatsModule(module);
 
-				ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDefinedProductions(), env);
+				ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDeclaredProductions(), env);
 				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, keywordModules, ptr.errors()); }
 				
 				m.productions = ptr.productions();

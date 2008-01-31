@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,18 +27,18 @@ import com.sun.fortress.nodes.SimpleName;
 
 public class ApiIndex extends CompilationUnitIndex {
     
-    private final Map<Id, GrammarIndex> _grammars;
+    private final Map<QualifiedIdName, GrammarIndex> _grammars;
     
     public ApiIndex(Api ast,
                     Map<Id, Variable> variables,
                     Relation<SimpleName, Function> functions,
                     Map<Id, TypeConsIndex> typeConses,
-                    Map<Id, GrammarIndex> grammars,
+                    Map<QualifiedIdName, GrammarIndex> grammars,
                     long modifiedDate) {
         super(ast, variables, functions, typeConses, modifiedDate);
         _grammars = Collections.unmodifiableMap(grammars);
     }
 
-    public Map<Id, GrammarIndex> grammars() { return _grammars; }
+    public Map<QualifiedIdName, GrammarIndex> grammars() { return _grammars; }
     
 }

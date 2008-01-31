@@ -115,7 +115,7 @@ public class StaticChecker {
 //        for (Function fn: component.functions()) {
 //            typeChecker.check(fn);
 //        }
-            
+           
             // Iterate over trait and object definitions.
             //for (
             

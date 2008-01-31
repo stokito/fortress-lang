@@ -17,26 +17,32 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ProductionExtendIndex extends ProductionIndex<NonterminalExtensionDef> {
 
-	private Option<ProductionIndex<? extends NonterminalDecl>> extend;
+	private Collection<ProductionIndex<? extends NonterminalDecl>> extend;
 	
 	public ProductionExtendIndex(Option<NonterminalExtensionDef> ast) {
 		super(ast);
+		this.extend = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
 	}
 
-	public ProductionIndex<? extends NonterminalDecl> getExtends() {
-		if (this.extend.isNone()) {
-			throw new RuntimeException("Nonterminal "+this.getName()+" is expected to extend another nonterminal but didn't.");
-		}
-		return Option.unwrap(this.extend);
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getExtends() {
+		return this.extend;
 	}
 
-	public void setExtends(ProductionIndex<? extends NonterminalDecl> ext) {
-		this.extend = Option.<ProductionIndex<? extends NonterminalDecl>>some(ext);
+	public void addExtendedNonterminal(ProductionIndex<? extends NonterminalDecl> ext) {
+		this.extend.add(ext);
+	}
+	
+	public void addExtendedNonterminals(Collection<ProductionIndex<? extends NonterminalDecl>> ext) {
+		this.extend.addAll(ext);
 	}
 }

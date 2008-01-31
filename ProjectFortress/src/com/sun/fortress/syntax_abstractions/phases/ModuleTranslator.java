@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedName;
@@ -49,15 +50,15 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * If a grammar contains a production which extends a production defined 
- * in the core fortress grammar either directly or indirectly then it should be
- * moved to a special extending module which imports the original module from the
- * original grammar. TODO: Optimization, if the grammar contains only one such 
- * production there is no need to separate the two.
+ * This class transforms the grammar structure into a Rats! module structure
+ * without translating the nonterminal declarations.
  */
 
 public class ModuleTranslator {
 
+	/**
+	 * Result of the module translation
+	 */
 	public class Result extends StaticPhaseResult {
 		Collection<Module> modules;
 		private Map<String, String> modulesReplacingFortressModules;
@@ -79,7 +80,7 @@ public class ModuleTranslator {
 		public Map<String, String> modulesReplacingFortressModules() { return this.modulesReplacingFortressModules; }
 	}
 
-	public static Result resolve(Collection<GrammarEnv> environments) {
+	public static Result translate(Collection<GrammarEnv> environments) {
 		Map<GrammarIndex, Module> grammarToModules = new HashMap<GrammarIndex, Module>();
 		Map<String, String> modulesReplacingFortressModules = new HashMap<String, String>(); 
 		
@@ -87,7 +88,7 @@ public class ModuleTranslator {
 			for (GrammarIndex g: env.getGrammars()) {			
 				Module m = newModule(g, grammarToModules);
 				
-				initializeNewModule(m, g.productions().values(), new LinkedList<Module>());
+				initializeNewModule(m, g.productions(), new LinkedList<Module>());
 				if (!g.getExtendedGrammars().isEmpty()) {
 					Module modify = newModule(IterUtil.first(g.getExtendedGrammars()),
 								              grammarToModules);					
@@ -98,7 +99,7 @@ public class ModuleTranslator {
 				}
 
 				if (env.isToplevel(g)) {
-					m.setToplevel(true);
+					m.isTopLevel(true);
 				}
 
 				if (!grammarToModules.containsKey(g)) {
@@ -110,36 +111,12 @@ public class ModuleTranslator {
 		return new ModuleTranslator().new Result(grammarToModules.values(), modulesReplacingFortressModules);
 	}
 
-//	private static Collection<Module> expand(Collection<Module> modules) {
-//		// Move extending toplevel productions to their own module
-//		Collection<Module> ls = new LinkedList<Module>();
-//		for (Module module: modules) {
-//			Map<Module, Set<NonterminalDef>> newModules = new HashMap<Module, Set<NonterminalDef>>();
-//			Collection<NonterminalDef> removeProductions = new LinkedList<NonterminalDef>();
-//			for (NonterminalDef p: module.getDefinedProductions()) {
-//				if (p.getExtends().isSome()) {
-//					removeProductions.add(p);
-//					Module m = lookupModule(modules, Option.unwrap(p.getExtends()));
-//					if (m == null) {
-//						throw new RuntimeException("Did not find module: "+Option.unwrap(p.getExtends()).getApi());
-//					}
-//					if (newModules.containsKey(m)) {
-//						newModules.get(m).add(p);
-//					}
-//					else {
-//						Set<NonterminalDef> set = new HashSet<NonterminalDef>();
-//						set.add(p);
-//						newModules.put(m, set );
-//					}
-//				}
-//			}
-//			module.getDefinedProductions().removeAll(removeProductions);
-//			ls.addAll(generateNewModules(newModules, module));
-//		}
-//
-//		return ls;
-//	}
-
+	/**
+	 * Create a new module m corresponding to the grammar g, if a corresponding module
+	 * has not already been created (look in grammarToModules).
+	 * If the grammar is part of the Fortress grammars then a FortressModule is
+	 * created and if it is a user defined grammar, a UserModule is created.  
+	 */
 	private static Module newModule(GrammarIndex g, Map<GrammarIndex, Module> grammarToModules) {
 		Module m = null;
 		if (grammarToModules.containsKey(g)) {
@@ -149,17 +126,25 @@ public class ModuleTranslator {
 			return m;
 		}
 		if (ModuleInfo.isFortressModule(g.getName().toString())) {
-			m = new FortressModule(g.getName().getName().toString(), g.productions().values());
+			m = new FortressModule(g.getName().getName().toString(), g.productions());
 		}
 		else {
-			m = new UserModule(g.getName().getName().toString(), g.productions().values());
+			m = new UserModule(g.getName().getName().toString(), g.productions());
 		}
 		grammarToModules.put(g, m);
 		return m;		
 	}
 	
+	/**
+	 * If the module is a user module, we must create a unique name to avoid conflicts with
+	 * existing Fortress grammar modules, and set the correct imports.
+	 * @param m
+	 * @param productions
+	 * @param imports
+	 * @return
+	 */
 	private static Module initializeNewModule(Module m, 
-			 								  Collection<? extends ProductionIndex> productions,
+			 								  Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions,
 			 								  Collection<Module> imports) {
 		if (!(m instanceof FortressModule)) { 
 			m.setName(FreshName.getFreshName(m.getName()));
@@ -167,39 +152,4 @@ public class ModuleTranslator {
 		m.setImports(imports);
 		return m;
 	}
-	
-//	private static Collection<? extends Module> generateNewModules(
-//			Map<Module, Set<NonterminalDef>> newModules, Module orginalModule) {
-//		Collection<Module> ms = new LinkedList<Module>();
-//		for (Module module: newModules.keySet()) {
-//			Module m = new UserModule();
-//			m.setName(FreshName.getFreshName(orginalModule.getName()));
-//			m.setModify(module);
-//			m.addProductions(newModules.get(module));
-//			m.setImports(orginalModule.getImports());
-//			ms.add(m);
-//		}
-//		return ms;
-//	}
-
-	private static Module lookupModule(Collection<Module> modules,
-			QualifiedName name) {
-		for (Module m: modules) {
-			if (m.getName().equals(name.getApi())) {
-				return m;
-			}
-		}
-		return null;
-	}
-
-//	public static NonterminalDef renameProduction(final NonterminalDef production, final String newName) {
-//		return (NonterminalDef) production.accept(new NodeUpdateVisitor() {						
-//			@Override
-//			public Node forNonterminalDefOnly(NonterminalDef that, Option<? extends Modifier> modifier_result, QualifiedIdName name_result, TraitType type_result, Option<? extends QualifiedIdName> extends_result, List<SyntaxDef> syntaxDefs_result) {
-//				name_result = new QualifiedIdName(new Id(new Id(newName)));
-//				return new NonterminalDef(that.getSpan(), modifier_result, name_result, type_result, extends_result, syntaxDefs_result);
-//			}		
-//		});
-//	}
-
 }

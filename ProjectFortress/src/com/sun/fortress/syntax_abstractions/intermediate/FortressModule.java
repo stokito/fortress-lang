@@ -28,6 +28,9 @@ import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
+/*
+ * This module corresponds to a grammar that is part of the Fortress grammars. 
+ */
 public class FortressModule extends Module {
 
 	public FortressModule() {}

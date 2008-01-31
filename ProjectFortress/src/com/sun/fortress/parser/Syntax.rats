@@ -43,7 +43,7 @@ body {
     });
 
     add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
-        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]"
+        "#",    ":",    "`",    "\\+",    "\\?",    "\\*",    "\\[",    "\\]", "\\|"
     });
   }
 }
@@ -72,19 +72,28 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
 private NonterminalDecl NonterminalDef =
-      m1:(NonTermMod w)? a1:Id w void:bar void:equals a4s:(w SyntaxDef)* w end
+      m1:(NonTermMod w)? a1:Id w void:bar void:equals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
       { if ( m1 == null) m1 = Option.none();
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), Option.<TraitType>none(), a4s.list()); }
-    /m1:(NonTermMod w)? a1:Id w void:colon a2:(w TraitType)? w void:colonequals a4s:(w SyntaxDef)* w end
+        List<SyntaxDef> syntaxDefs = a4s.list();
+        syntaxDefs.add(0, a4);
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), Option.<TraitType>none(), syntaxDefs); }
+    /m1:(NonTermMod w)? a1:Id w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, a4s.list()); }
-    / m1:(NonTermMod w)? a1:Id w void:colon w a2:TraitType
+        List<SyntaxDef> syntaxDefs = a4s.list();
+        syntaxDefs.add(0, a4);
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); }
+    / m1:(NonTermMod w)? a1:Id w void:colon w a2:TraitType w end
       { Option<TraitType> type = Option.some(a2);
-        List<SyntaxDef> a4 = Collections.<SyntaxDef>emptyList();
+        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, a4); };
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); }
+     /m1:(NonTermMod w)? a1:Id w void:bar void:equals w end
+      { if ( m1 == null) m1 = Option.none();
+        List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), Option.<TraitType>none(), syntaxDefs); };
+
 
 private Option<ModifierPrivate> NonTermMod =
         private {yyValue = Option.wrap(new ModifierPrivate(createSpan(yyStart,yyCount)));};
@@ -92,6 +101,10 @@ private Option<ModifierPrivate> NonTermMod =
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDef SyntaxDef =
        a1s:SyntaxSymbols w a2:BlockExpr
+       { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
+
+SyntaxDef SyntaxDefOr =
+       void:bar w a1s:SyntaxSymbols w a2:BlockExpr
        { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), a1s, a2); };
 
 /* BlockExpr ::= do BlockElems end */
@@ -236,7 +249,8 @@ String utf16 =
 
 String SpecialChars = 
       space / breakline / colon / questionmark / hash
-   / plus / star / openSquareBraket / closeSquareBraket / pling;
+   / plus / star / openSquareBraket / closeSquareBraket 
+   / pling / bar;
 
 String EscapedSpecialChars = 
    pling SpecialChars;
