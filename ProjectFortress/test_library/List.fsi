@@ -27,7 +27,7 @@ trait List[\alpha\] comprises {Cons[\alpha\], Empty[\alpha\]}
    cons(x: alpha): List[\alpha\]
    append(xs: List[\alpha\]): List[\alpha\]
    append(n: ZZ32, xs: List[\alpha\]): List[\alpha\]
-   contains(x: alpha): Boolean
+   opr IN(x: alpha, self): Boolean
    containsAll(xs: List[\alpha\]): Boolean
    isEmpty(): Boolean
    filter(p: alpha -> Boolean): List[\alpha\]

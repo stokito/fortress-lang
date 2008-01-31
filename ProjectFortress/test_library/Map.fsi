@@ -17,40 +17,25 @@
 
 api Map
 
-trait TreeMap[\Key,Val\] extends Generator[\(Key,Val)\]
+trait Map[\Key,Val\] extends Generator[\(Key,Val)\]
     comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
-  getPair():(Key, Val)  (* DEPRACATED *)
-  getKey():Key          (* DEPRACATED *)
-  getVal():Val          (* DEPRACATED *)
-  getLeftChild():TreeMap[\Key,Val\]     (* DEPRACATED *)
-  getRightChild():TreeMap[\Key,Val\]    (* DEPRACATED *)
   printTree():()
   toString():String
   member(x:Key): Maybe[\Val\]
-  deleteMinimum():TreeMap[\Key,Val\]
-  removeMinimum():((Key,Val), TreeMap[\Key,Val\])
-  add(k:Key, v:Val):TreeMap[\Key,Val\]
-  update(k:Key, v:Val):TreeMap[\Key,Val\]
-  delete(k:Key):TreeMap[\Key,Val\]
-  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): TreeMap[\Key,Val\]
+  deleteMinimum():Map[\Key,Val\]
+  removeMinimum():((Key,Val), Map[\Key,Val\])
+  add(k:Key, v:Val):Map[\Key,Val\]
+  update(k:Key, v:Val):Map[\Key,Val\]
+  delete(k:Key):Map[\Key,Val\]
+  updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\]
 (*
-  union(other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
-  union(f:(Key,Val,Val)->Val, other: TreeMap[\Key,Val\]): TreeMap[\Key,Val\]
+  union(other: Map[\Key,Val\]): Map[\Key,Val\]
+  union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\]
 *)
-  balancedDelete(r:TreeMap[\Key,Val\]):TreeMap[\Key,Val\]
-  balancedAdd(x:(Key,Val), left:TreeMap[\Key,Val\], right:TreeMap[\Key,Val\]):NodeMap[\Key,Val\]
 end
 
-(*
-singleton[\Key,Val\](k:Key, v:Val): TreeMap[\Key,Val\]
-*)
+mapping[\Key,Val\](g: Generator[\Mapping[\Key,Val\]\]): Map[\Key,Val\]
 
-mapping[\Key,Val\](g: Generator[\(Key,Val)\]): TreeMap[\Key,Val\]
-
-(*
-object MapUnion[\Key,Val\]() extends Reduction[\TreeMap[\Key,Val\]\] end
-*)
-
-object EmptyMap[\Key,Val\]() extends TreeMap[\Key,Val\] end
+object EmptyMap[\Key,Val\]() extends Map[\Key,Val\] end
 
 end

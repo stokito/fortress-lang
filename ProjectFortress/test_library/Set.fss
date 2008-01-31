@@ -21,15 +21,20 @@ export Set
 
 weight:ZZ32 = 4
 
-trait Set[\E\] extends Indexed[\E,ZZ32\] comprises {NodeSet[\E\], EmptySet[\E\]}
+trait Set[\E\] extends ZeroIndexed[\E\] comprises {NodeSet[\E\], EmptySet[\E\]}
+   getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
+       IndexValueSetGenerator[\E\](self)
    seqgen[\R\](r: Reduction[\R\], body: E->R): R
+   ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
    seq(self): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
    getVal():E
    getLeftChild():Set[\E\]
    getRightChild():Set[\E\]
    printTree():()
    toString():String
-   contains(x:E):Boolean
+   opr IN(x:E, self):Boolean
+   indexOf(x:E): ZZ32 = self.indexOfI(0,x)
+   indexOfI(i:ZZ32, x:E): ZZ32
    minimum():E
    maximum():E
    deleteMinimum():Set[\E\] = do
@@ -88,23 +93,37 @@ value object SeqSetGenerator[\E\](s: Set[\E\])
       s.seqgen[\R\](r,body)
 end
 
+value object IndexValueSetGenerator[\E\](s: Set[\E\])
+      extends ZeroIndexed[\(ZZ32,E)\]
+   getter size(): ZZ32 = s.size()
+   getter indices(): ZZ32 = s.indices()
+   getter isEmpty(): Boolean = s.isEmpty()
+   generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
+      s.ivgen[\R\](0,r,body)
+   opr[ x: ZZ32 ]: (ZZ32,E) = (x,s[x])
+   opr[ r: Range[\ZZ32\] ]: ZeroIndexed[\(ZZ32,E)\] = s[r].indexValuePairs()
+   indexOf(i:ZZ32,v:E): Boolean = if s[i]=v then i else -1 end
+end
+
 object EmptySet[\E\]() extends Set[\E\]
    getter size():ZZ32 = 0
    getter bounds():Range[\ZZ32\] = 0#0
    getter isEmpty():Boolean = true
    opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
-   opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
+   opr[r:Range[\ZZ32\]] : Set[\E\] = do
       r' = (bounds())[r]
       self
    end
+   indexOfI(_:ZZ32, e:E):Boolean = -1
    generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
+   ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.empty()
    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
    getVal():E = fail("Empty set: cannot getVal()")
    getLeftChild():Set[\E\] = self
    getRightChild():Set[\E\] = self
    printTree():() = print " EmptySet"
    toString():String = "{}"
-   contains(x:E):Boolean = false
+   opr IN(x:E, self):Boolean = false
    minimum():E = fail("Empty set: no minimum element.")
    removeMinimum():(E, Set[\E\]) = fail("Empty set: cannot remove minimum.")
    maximum():E = fail("Empty set: no maximum element.")
@@ -126,21 +145,31 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
    sz:ZZ32 = 1 + left.size() + right.size()
    getter size():ZZ32 = sz
    getter isEmpty():Boolean = false
-   getter bounds():Range[\ZZ32\] = 0 # sz
    subscript(i:ZZ32):E = if i < left.size() then left.subscript(i)
       elif i = left.size() then val
       else right.subscript(i - left.size() - 1) end
    opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
                    else fail(self "[" i "] is out of bounds.") end
-   opr[r:Range[\ZZ32\]] : Indexed[\E,ZZ32\] = do
+   opr[r:Range[\ZZ32\]] : Set[\E\] = do
       r' = (bounds())[r]
       (lside,rside) = splitIndex( r'.lower() )
       (lside',rside') = rside.splitIndex( r'.size())
       lside'
    end
+   indexOfI(i:ZZ32, e:E): ZZ32 =
+       typecase _ = e CMP val of
+           LessThan => left.indexOfI(i,e)
+           EqualTo => i+left.size()
+           GreaterThan => right.indexOfI(i+left.size()+1,e)
+       end
    generate[\R\](r: Reduction[\R\], body: E->R): R =
       r.join(r.join(left.generate[\R\](r,body),body(val)),
              right.generate[\R\](r,body))
+   ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
+       mi = left.size()+i0
+       r.join(r.join(left.ivgen[\R\](i0,r,body),body(mi,val)),
+              right.ivgen[\R\](mi+1,r,body))
+     end
    seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
       lg = left.generate[\R\](r,body)
       vg = body(val)
@@ -167,12 +196,12 @@ object NodeSet[\E\](val:E,  left:Set[\E\], right:Set[\E\]) extends Set[\E\]
                                   fn (e:E)=>"," e) "}"
    end
 
-   contains(z:E):Boolean = do
-      if (z = val) then true
-      elif (z < val) then left.contains(z)
-      else right.contains(z)
-      end
-   end
+   opr IN(z:E, self):Boolean =
+       typecase _ = z CMP val of
+           LessThan => z IN left
+           EqualTo => true
+           GreaterThan => z IN right
+       end
 
    add(z:()): Set[\E\] = self
    add(z:E):Set[\E\] =
