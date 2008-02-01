@@ -49,6 +49,7 @@ opr BIG [\T,U\]{ g: ( Reduction[\SomeCovariantCollection\],
 
 object Union[\E\]() extends Reduction[\Set[\E\]\] end
 
+object NodeSet[\E\](val:E, left:Set[\E\], right:Set[\E\]) extends Set[\E\] end
 object EmptySet[\E\]() extends Set[\E\] end
 
 end

@@ -28,7 +28,7 @@ object A(i:ZZ32, j:ZZ32)
   getI():ZZ32 = self.i
   getZ():ZZ32 = j
 
-  setF(g) = do f := g; println "setf"; end (* Update the closure-valued field *)
+  setF(g') = do f := g'; println "setf"; end (* Update the closure-valued field *)
 end
 
 (* Test that a's fields have the expected sum *)

@@ -40,7 +40,7 @@ object Q extends {Y[\3\]}
 end
 
 g[\U, V\](u:U, v:V)
-   where {U extends {X}, V extends {Y}  } =
+   where [\nat n\]{U extends {X[\n\]}, V extends {Y[\n\]}} =
    do
      u.f()
      v.f()

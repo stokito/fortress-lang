@@ -21,6 +21,7 @@ component Fun.Decl
 
 export Executable
 
+trait Object end
 object Empty end
 Cons[\T extends Object, nat length\](hd: T, rest: T[length]) = Empty
 (** EXAMPLE **)

@@ -21,6 +21,8 @@ component StatParam.Bool
 
 export Executable
 
+trait BooleanLiteral[\bool b\] end
+
 f(x) = x
 (** EXAMPLE **)
 trait Boolean

@@ -19,6 +19,9 @@ component conditionalExtension
 
 export Executable
 
+trait PartialOrderAndBoundedLattice[\T, opr LEOPR, opr MINOPR, opr MAXOPR\] end
+trait Identity[\opr PLUS\] end
+
 trait RationalQuantity[\unit U absorbs unit, bool ninf, bool lt, bool eq,
                         bool gt, bool pinf, bool nan\]
     extends { RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
