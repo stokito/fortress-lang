@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,6 +16,8 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
+import java.io.IOException;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -25,7 +27,7 @@ public class NotPassingYet {
         junit.swingui.TestRunner.run(NotPassingYet.class);
     }
 
-    public static Test suite() {
+    public static Test suite() throws IOException {
         String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
         TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$

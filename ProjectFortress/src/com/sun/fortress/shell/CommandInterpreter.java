@@ -43,7 +43,7 @@ public class CommandInterpreter {
         
     void compile(String fileName) throws UserError, InterruptedException, IOException {
         try {
-            FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
+            FortressRepository fileBasedRepository = new FileBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
             Fortress fortress = new Fortress(fileBasedRepository);
         
             Iterable<? extends StaticError> errors = fortress.compile(
@@ -71,7 +71,7 @@ public class CommandInterpreter {
     void compile(boolean doLink, String s) throws UserError, InterruptedException, IOException {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
-            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache")));
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
         
             Path path = ProjectProperties.SOURCE_PATH;
             
@@ -120,7 +120,7 @@ public class CommandInterpreter {
     void run(String fileName) throws UserError, IOException, Throwable {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
-            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache")));
+            Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
         
             Path path = ProjectProperties.SOURCE_PATH;
             

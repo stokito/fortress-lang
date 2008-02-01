@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.drivers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -222,12 +223,12 @@ public class FileTests {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         junit.textui.TestRunner.run(FileTests.suite("tests", true, false));
         junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false, true));
     }
 
-    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) {
+    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) throws IOException {
         TestSuite suite = new TestSuite("Test for default package");
         // $JUnit-BEGIN$
         dirname = ProjectProperties.backslashToSlash(dirname);
@@ -236,17 +237,19 @@ public class FileTests {
         System.err.println(dir);
         
         BatchCachingRepository fr = 
-            ProjectProperties.noStaticAnalysis ? 
-                    new BatchCachingRepository(
-                          //new PathBasedSyntaxTransformingRepository
-                          (ProjectProperties.SOURCE_PATH.prepend(dir)),
-                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
-                          )
-                    :
-            new BatchCachingAnalyzingRepository(false,
-                (ProjectProperties.SOURCE_PATH.prepend(dir)),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
-                );
+            Driver.extendedRepository(dir.getCanonicalPath());
+            
+//            ProjectProperties.noStaticAnalysis ? 
+//                    new BatchCachingRepository(
+//                          //new PathBasedSyntaxTransformingRepository
+//                          (ProjectProperties.SOURCE_PATH.prepend(dir)),
+//                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+//                          )
+//                    :
+//            new BatchCachingAnalyzingRepository(false,
+//                (ProjectProperties.SOURCE_PATH.prepend(dir)),
+//                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
+//                );
         
        
         fr.addRootApis(NodeFactory.makeAPIName("FortressBuiltin"));
