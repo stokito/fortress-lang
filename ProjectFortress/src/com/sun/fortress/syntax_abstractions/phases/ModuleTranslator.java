@@ -136,7 +136,8 @@ public class ModuleTranslator {
 
 		for (Module m: grammarToModules.values()) {
 			if (m.isTopLevel()) {
-				for (ProductionIndex<? extends NonterminalDecl> n: m.getDeclaredNonterminals()) {				
+				// Intentional raw type javac 1.5 bug on Solaris 
+				for (ProductionIndex/*<? extends NonterminalDecl>*/ n: m.getDeclaredNonterminals()) {				
 					if (n instanceof ProductionExtendIndex) {
 						ProductionExtendIndex nei = (ProductionExtendIndex) n;
 
