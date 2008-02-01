@@ -60,7 +60,7 @@ object Gensym
                 uniq := r+1
                 r
             end
-        v("u" u)
+        vv("u" u)
       end
 end
 
@@ -97,7 +97,7 @@ object BoundVar(nm:String) extends Var
     opr =(self,x:Var): Boolean = nm = x.nm
 end
 
-v(n: String): BoundVar = BoundVar(n)
+vv(n: String): BoundVar = BoundVar(n)
 
 object FreeVar(nm:String) extends Var
     getter name(): String = nm
@@ -145,7 +145,7 @@ object Lambda(def: BoundVar, body: Term) extends { Term }
 end
 
 lambda(name:String, body: Var->Term): Lambda = do
-    d = v(name)
+    d = vv(name)
     bod = body(d)
     r = Lambda(d,bod)
     r
@@ -257,7 +257,7 @@ object Parser(f:FileReadStream)
         end
       end
     mkLambda(id:String, body:Term): Lambda = do
-        x = v(id)
+        x = vv(id)
         xf = fv(id)
         Lambda(x, body.subst(xf,x))
       end

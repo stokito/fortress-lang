@@ -40,7 +40,7 @@ export Executable
     updatable board data structure.
  **)
 
-trait SearchInstance[\Self extends SearchInstance[\Cost\],
+trait SearchInstance[\Self extends SearchInstance[\Self,Cost\],
                       Cost (* extends StandardTotalOrder[\Cost\] *)\]
         extends Generator[\Self\]
     (** isComplete() returns true if no further searching is possible
@@ -69,12 +69,12 @@ trait SearchInstance[\Self extends SearchInstance[\Cost\],
         children().generate[\R\](r,body)
 end
 
-aStarPair[\T extends SeachInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
+aStarPair[\T extends SearchInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
 
 (** Perform an A* search starting from root. **)
 aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
     label succeed
-        q : Pairing[\C,T\] := singletonPairing[\C,T\](aStarPair[\T,C\](root))
+        q : Heap[\C,T\] := singletonHeap[\C,T\](aStarPair[\T,C\](root))
         while NOT q.isEmpty() do
             (c,best,q') = q.extractMin()
             println("************************************************************")

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -39,12 +39,12 @@ showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
             "\n" l (BIG STRING [row <- data] "," row[i]))
   end
 
-checkFull[\H extends Heap[\ZZ32,ZZ32\]\](h0: H, n:ZZ32): () =
+checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
     if h0.isEmpty() then
         if NOT (n=0) then fail("empty with n=/=0") end
     else
         flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
-        (k:ZZ32, v:ZZ32, h:H) := h0.extractMin()
+        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMin()
         k_prev : ZZ32 := k
         expected: ZZ32 := 1
         flags[v] := true
@@ -101,7 +101,7 @@ object TestReduction extends Reduction[\Maybe[\(ZZ32,ZZ32,ZZ32)\]\]
       end
 end
 
-checkGen[\H extends Heap[\ZZ32,ZZ32\]\](h:H, n:ZZ32): () = do
+checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
     flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
     sing(k:ZZ32,v:ZZ32): Maybe[\(ZZ32,ZZ32,ZZ32)\] = do
         dup = atomic do d = flags[v]; flags[v] := true; d end
@@ -142,16 +142,16 @@ timeDump(s,slgs,t): List[\RR64\] = do
     <| t, t/s, t/slgs |>
   end
 
-testHeap[\H extends Heap[\H,ZZ32,ZZ32\]\]
-        (s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->H,g:Generator[\(ZZ32,ZZ32)\]):() = do
+testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
+                g:Generator[\(ZZ32,ZZ32)\]):() = do
     slgs = s lg s
     print(".")
     startTime = nanoTime()
     h = c(g)
     build = nanoTime()
-    checkFull[\H\](h,s)
+    checkFull(h,s)
     consume=nanoTime()
-    checkGen[\H\](h,s)
+    checkGen(h,s)
     gen=nanoTime()
     print(".")
     appending[\RR64\](
