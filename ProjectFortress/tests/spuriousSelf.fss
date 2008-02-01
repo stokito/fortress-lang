@@ -31,7 +31,7 @@ Context:
 *)
 
 trait List[\E\] extends { Indexed[\E,ZZ32\] } excludes { Number, HasRank }
-  getter bounds(): ScalarRange[\ZZ32\] = 0#size()
+  getter bounds(): Range[\ZZ32\] = 0#size()
 
   (*************************************************************
    * Replacing generate by self.generate below succeeds

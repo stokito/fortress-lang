@@ -22,7 +22,7 @@ object Thing[\T\](x:T)
   check(y:T):() = do assert((x = y)); println("Thing " x " check " y); end
 end
 
-Thing():Thing = Thing[\ZZ32\](0)
+Thing():Thing[\ZZ32\] = Thing[\ZZ32\](0)
 
 run(args:String...):()=do
   Thing[\ZZ32\](1).check(1)
