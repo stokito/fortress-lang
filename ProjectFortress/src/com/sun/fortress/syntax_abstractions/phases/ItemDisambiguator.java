@@ -145,7 +145,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 					for (QualifiedIdName n: Option.unwrap(og).getExtends()) {
 						ls.add(grammars.get(n));
 					}
-					e.getValue().setExtendedGrammars(ls);
+					e.getValue().setExtended(ls);
 				}
 			}
 		}		
@@ -189,7 +189,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
 	private SyntaxSymbol nameResolution(ItemSymbol item) {
 		if (IdentifierUtil.validId(item.getItem())) {
-			GrammarAnalyzer ga = new GrammarAnalyzer();
+			GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
 			QualifiedIdName name = makeQualifiedIdName(item.getSpan(), item.getItem());
 			NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
 			Option<QualifiedIdName> oname = nnd.handleProductionName(this._currentGrammarIndex.env(), name);

@@ -75,7 +75,7 @@ public class ProductionEnv {
 	 * Initialize the mapping from production names to sets of qualified production names
 	 */
 	private void initializeProductions() {
-		for (ProductionIndex<? extends NonterminalDecl> e: this.getGrammarIndex().productions()) {
+		for (ProductionIndex<? extends NonterminalDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
 			Id key = e.getName().getName();
 			GrammarDecl currentGrammar = Option.unwrap(this.getGrammarIndex().ast());
 			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());
@@ -154,7 +154,7 @@ public class ProductionEnv {
 	}
 
 	public Set<QualifiedIdName> inheritedProductionNames(Id name) {
-		GrammarAnalyzer ga = new GrammarAnalyzer();
+		GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
 		Set<QualifiedIdName> results = ga.getInherited(name, this._current);
 		return results;
 	}

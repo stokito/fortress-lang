@@ -26,10 +26,11 @@ import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.syntax_abstractions.phases.Analyzable;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarIndex {
+public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	private Option<GrammarDef> ast;
 	
@@ -38,11 +39,11 @@ public class GrammarIndex {
 	private Collection<GrammarIndex> extendedGrammars;
 
 	private ProductionEnv env;
-		
+	
 	public GrammarIndex(Option<GrammarDef> ast, Set<ProductionIndex<? extends NonterminalDecl>> productions) {
 		this.ast = ast;
-		this.productions = productions;
 		this.extendedGrammars = new LinkedList<GrammarIndex>();
+		this.productions = productions;
 		this.env = new ProductionEnv(this);
 	}
 
@@ -50,19 +51,19 @@ public class GrammarIndex {
 		return this.ast;
 	}
 	
-	public Collection<ProductionIndex<? extends NonterminalDecl>> productions() {
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredNonterminals() {
 		return this.productions;
 	}
-
+	
 	public void setAst(GrammarDef g) {
 		this.ast = Option.wrap(g);		
 	}
 
-	public void setExtendedGrammars(Collection<GrammarIndex> gs) {
+	public void setExtended(Collection<GrammarIndex> gs) {
 		this.extendedGrammars = gs;
 	}
 	
-	public Collection<GrammarIndex> getExtendedGrammars() {
+	public Collection<GrammarIndex> getExtended() {
 		return this.extendedGrammars;
 	}
 

@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
 import com.sun.fortress.interpreter.drivers.Driver;
+import com.sun.fortress.interpreter.drivers.fs;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
@@ -103,10 +104,12 @@ public class InterpreterWrapper {
 
         try {
         	System.err.println("Running interpreter...");
+
             return new Result(runFunction(compilationUnit), errors);
         }	catch (FortressError e) {
             System.err.println("\n--------Fortress error appears below--------\n");
             e.printInterpreterStackTrace(System.err);
+            e.printStackTrace();
             System.err.println();
             System.err.println(e.getMessage());
             System.err.println("Turn on -debug for Java-level error dump.");

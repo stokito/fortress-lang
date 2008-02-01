@@ -57,6 +57,7 @@ import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -196,6 +197,9 @@ public class ProductionTranslator {
 
 		@Override
 		public Production forNonterminalExtensionDef(NonterminalExtensionDef that) {
+			if (that.getType().isNone()) {
+				throw new RuntimeException("Nonterminal extension doesn't have a type: "+that);
+			}
 			TraitType type = unwrap(that.getType());
 			String name = that.getName().getName().toString();
 			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);

@@ -42,6 +42,8 @@ import xtc.tree.Node;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.intermediate.UserModule;
@@ -90,7 +92,12 @@ public class GrammarTranslator {
 			if (module instanceof UserModule) {
 				Module m = RatsUtil.makeExtendingRatsModule(module);
 
-				ProductionTranslator.Result ptr = ProductionTranslator.translate(module.getDeclaredProductions(), env);
+				GrammarAnalyzer<com.sun.fortress.syntax_abstractions.intermediate.Module> ga = new GrammarAnalyzer<com.sun.fortress.syntax_abstractions.intermediate.Module>();
+//				System.err.println("\nM: "+module.getName());
+//				for (ProductionIndex<? extends NonterminalDecl> n: ga.getContainedSet(module)) {
+//					System.err.println("N: "+n.getName());	
+//				}
+				ProductionTranslator.Result ptr = ProductionTranslator.translate(ga.getContainedSet(module), env);
 				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, keywordModules, ptr.errors()); }
 				
 				m.productions = ptr.productions();

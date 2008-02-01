@@ -18,32 +18,26 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
-import edu.rice.cs.plt.tuple.Option;
-
-public class GrammarAnalyzer {
+public class GrammarAnalyzer<T extends Analyzable<T>> {
 
 	/**
 	 * Returns the set of all methods contained in a the grammar represented by the index.
 	 * @param name
-	 * @param grammarIndex
+	 * @param a
 	 * @return
 	 */
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getContainedSet(GrammarIndex grammarIndex) {
-		Collection<ProductionIndex<? extends NonterminalDecl>> c = getDeclaredSet(grammarIndex);
-		c.addAll(getInheritedSet(grammarIndex));
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getContainedSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends NonterminalDecl>> c = getDeclaredSet(a);
+		c.addAll(getInheritedSet(a));
 		return c;
 	}
 
@@ -51,12 +45,12 @@ public class GrammarAnalyzer {
 	 * Returns the collection of nonterminal definitions with the same name as
 	 * provided as argument.
 	 * @param name
-	 * @param g
+	 * @param a
 	 * @return
 	 */
-	public Set<QualifiedIdName> getContained(Id name, GrammarIndex g) {
+	public Set<QualifiedIdName> getContained(Id name, Analyzable<T> a) {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(g)) {
+		for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 				rs.add(n.getName());
 			}
@@ -64,10 +58,10 @@ public class GrammarAnalyzer {
 		return rs;
 	}
 	
-	public Set<ProductionIndex<? extends NonterminalDecl>> getContaindNonterminalIndex(
-			Id name, GrammarIndex g) {
+	public Set<ProductionIndex<? extends NonterminalDecl>> getOverridingNonterminalIndex(
+			Id name, Analyzable<T> a) {
 		Set<ProductionIndex<? extends NonterminalDecl>> rs = new HashSet<ProductionIndex<? extends NonterminalDecl>>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(g)) {
+		for (ProductionIndex<? extends NonterminalDecl> n: getPotentiallyInheritedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 				rs.add(n);
 			}
@@ -79,13 +73,12 @@ public class GrammarAnalyzer {
 	 * Returns the collection of inherited nonterminal definitions with the same name as
 	 * provided as argument.
 	 * @param name
-	 * @param g
+	 * @param a
 	 * @return
 	 */
-	public Set<QualifiedIdName> getInherited(
-			Id name, GrammarIndex g) {
+	public Set<QualifiedIdName> getInherited(Id name, Analyzable<T> a) {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getInheritedSet(g)) {
+		for (ProductionIndex<? extends NonterminalDecl> n: getInheritedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 //				if (g.ast().isSome()) {
 //					QualifiedIdName gname = Option.unwrap(g.ast()).getName();
@@ -97,18 +90,55 @@ public class GrammarAnalyzer {
 		}
 		return rs;
 	}
-
+	
+	/**
+	 * Returns the collection of declared nonterminal definitions with the same name as
+	 * provided as argument.
+	 * @param name
+	 * @param a
+	 * @return
+	 */
+	private Set<QualifiedIdName> getDeclared(Id name, Analyzable<T> a) {
+		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
+		for (ProductionIndex<? extends NonterminalDecl> n: getDeclaredSet(a)) {
+			if (n.getName().getName().equals(name)) {
+				rs.add(n.getName());
+			}
+		}
+		return rs;
+	}
 	
 	/**
 	 * Returns a set of all the nonterminals inherited by the grammar represented 
 	 * by the grammar index. 
 	 * @param name
-	 * @param grammarIndex
+	 * @param a
 	 * @return
 	 */
-	private Collection<ProductionIndex<? extends NonterminalDecl>> getInheritedSet(GrammarIndex grammarIndex) {
+	private Collection<ProductionIndex<? extends NonterminalDecl>> getInheritedSet(Analyzable<T> a) {
 		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
-		for (GrammarIndex gi: grammarIndex.getExtendedGrammars()) {
+		for (T gi: a.getExtended()) {
+			for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(gi)) {
+				if (!n.isPrivate()) {
+					if (getDeclared(n.getName().getName(), a).isEmpty()) {
+						nonterminals.add(n);
+					}
+				}
+			}
+		}
+		return nonterminals;
+	}
+
+	/**
+	 * Returns a set of all the nonterminals <b>potentially</b> inherited by 
+	 * the grammar represented by the grammar index. 
+	 * @param name
+	 * @param a
+	 * @return
+	 */
+	private Collection<ProductionIndex<? extends NonterminalDecl>> getPotentiallyInheritedSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
+		for (T gi: a.getExtended()) {
 			for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(gi)) {
 				if (!n.isPrivate()) {
 					nonterminals.add(n);
@@ -117,17 +147,17 @@ public class GrammarAnalyzer {
 		}
 		return nonterminals;
 	}
-
+	
 	/**
 	 * Returns a set of nonterminals which are declared in the grammar represented
 	 * by the grammar index.
 	 * @param name
-	 * @param grammarIndex
+	 * @param a
 	 * @return
 	 */
-	private Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredSet(GrammarIndex grammarIndex) {
+	private Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredSet(Analyzable<T> a) {
 		Collection<ProductionIndex<? extends NonterminalDecl>> declaredSet = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
-		declaredSet.addAll(grammarIndex.productions());
+		declaredSet.addAll(a.getDeclaredNonterminals());
 		return declaredSet; 
 	}
 

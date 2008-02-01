@@ -36,11 +36,11 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.syntax_abstractions.GrammarIndex;
+import com.sun.fortress.syntax_abstractions.phases.Analyzable;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public abstract class Module {
+public abstract class Module implements Analyzable<Module> {
 
 	protected String name;
 	private boolean isTopLevel;
@@ -67,8 +67,7 @@ public abstract class Module {
 		this.dependencies = new LinkedList<ModuleDependency>();
 	}
 
-	public Module(String name, 
-			      Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions) {
+	public Module(String name,Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions) {
 		this();
 		this.name = name;
 		this.declaredProductions.addAll(declaredProductions);
@@ -114,10 +113,18 @@ public abstract class Module {
 		return this.dependencies;
 	}
 	
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredProductions() {
+	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredNonterminals() {
 		return this.declaredProductions;
 	}
 	
+	public Collection<? extends Module> getExtended() {
+		return this.extendedModules;
+	}
+
+	public void setExtended(Collection<Module> ls) {
+		this.extendedModules = ls;		
+	}
+
 	/**
 	 * Return true if the given production name are among the declared or inherited productions
 	 * @param p
@@ -194,6 +201,8 @@ public abstract class Module {
 		String indent = indentation;
 		String tmpIndent = "";
 		String s = "*** "+this.getName()+" ***\n";
+		
+		s+= indent+"* Toplevel: "+this.isTopLevel+"\n";
 		
 		s+= indent+"* Imports\n";
 		tmpIndent = indent;

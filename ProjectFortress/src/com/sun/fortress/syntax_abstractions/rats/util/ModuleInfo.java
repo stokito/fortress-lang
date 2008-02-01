@@ -184,33 +184,35 @@ public class ModuleInfo {
 
 	public static ModuleName getModuleName(ModuleEnum e) {
 		Map<ModuleEnum, String> moduleToModuleName = new HashMap<ModuleEnum, String>();
-		moduleToModuleName.put(ModuleEnum.FORTRESS, 	 "Fortress");
+		moduleToModuleName.put(ModuleEnum.ABSFIELD, 	 "AbsField");
 		moduleToModuleName.put(ModuleEnum.COMPILATION, 	 "Compilation");
 		moduleToModuleName.put(ModuleEnum.DECLARATION ,  "Declaration");
-		moduleToModuleName.put(ModuleEnum.SYNTAX, 	     "Syntax");
-		moduleToModuleName.put(ModuleEnum.TRAITOBJECT, 	 "TraitObject");
+		moduleToModuleName.put(ModuleEnum.DELIMITEDEXPR, "DelimitedExpr");
+		moduleToModuleName.put(ModuleEnum.EXPRESSION, 	 "Expression");
+		moduleToModuleName.put(ModuleEnum.FIELD, 	     "Field");
+		moduleToModuleName.put(ModuleEnum.FORTRESS, 	 "Fortress");
 		moduleToModuleName.put(ModuleEnum.FUNCTION, 	 "Function");
-		moduleToModuleName.put(ModuleEnum.PARAMETER, 	 "Parameter");
+		moduleToModuleName.put(ModuleEnum.IDENTIFIER,    "Identifier");
+		moduleToModuleName.put(ModuleEnum.KEYWORD, 	     "Keyword");
+		moduleToModuleName.put(ModuleEnum.LITERAL, 	     "Literal");
+		moduleToModuleName.put(ModuleEnum.LOCALDECL, 	 "LocalDecl");
 		moduleToModuleName.put(ModuleEnum.METHOD, 	     "Method");
 		moduleToModuleName.put(ModuleEnum.METHODPARAM, 	 "MethodParam");
-		moduleToModuleName.put(ModuleEnum.VARIABLE, 	 "Variable");
-		moduleToModuleName.put(ModuleEnum.FIELD, 	     "Field");
-		moduleToModuleName.put(ModuleEnum.ABSFIELD, 	 "AbsField");
-		moduleToModuleName.put(ModuleEnum.HEADER, 	     "Header");
-		moduleToModuleName.put(ModuleEnum.OTHERDECL, 	 "OtherDecl");
-		moduleToModuleName.put(ModuleEnum.TYPE, 	     "Type");
-		moduleToModuleName.put(ModuleEnum.EXPRESSION, 	 "Expression");
-		moduleToModuleName.put(ModuleEnum.DELIMITEDEXPR, "DelimitedExpr");
+		moduleToModuleName.put(ModuleEnum.MAYNEWLINEHEADER,"MayNewlineHeader");
 		moduleToModuleName.put(ModuleEnum.NONEWLINEEXPR, "NoNewlineExpr");
-		moduleToModuleName.put(ModuleEnum.NOSPACEEXPR, 	 "NoSpaceExpr");
-		moduleToModuleName.put(ModuleEnum.LOCALDECL, 	 "LocalDecl");
-		moduleToModuleName.put(ModuleEnum.SYMBOL, 	     "Symbol");
+		moduleToModuleName.put(ModuleEnum.NONEWLINEHEADER,"NoNewlineHeader");
+		moduleToModuleName.put(ModuleEnum.NONEWLINETYPE,"NoNewlineType");
+		moduleToModuleName.put(ModuleEnum.NOSPACEEXPR, 	 "NoSpaceExpr");		
+		moduleToModuleName.put(ModuleEnum.OTHERDECL, 	 "OtherDecl");
+		moduleToModuleName.put(ModuleEnum.PARAMETER, 	 "Parameter");
 		moduleToModuleName.put(ModuleEnum.SPACING, 	     "Spacing");
+		moduleToModuleName.put(ModuleEnum.SYMBOL, 	     "Symbol");
+		moduleToModuleName.put(ModuleEnum.SYNTAX, 	     "Syntax");
+		moduleToModuleName.put(ModuleEnum.TRAITOBJECT, 	 "TraitObject");
+		moduleToModuleName.put(ModuleEnum.TYPE, 	     "Type");		
 		moduleToModuleName.put(ModuleEnum.UNICODE, 	     "Unicode");
-		moduleToModuleName.put(ModuleEnum.LITERAL, 	     "Literal");
-		moduleToModuleName.put(ModuleEnum.KEYWORD, 	     "Keyword");
-		moduleToModuleName.put(ModuleEnum.IDENTIFIER,    "Identifier");
-
+		moduleToModuleName.put(ModuleEnum.VARIABLE, 	 "Variable");
+		
 		ModuleName result =  new ModuleName(ModuleInfo.MODULE_NAME_PREFIX+moduleToModuleName.get(e));
 		if (result == null) {
 			throw new RuntimeException("NYI: "+e);
