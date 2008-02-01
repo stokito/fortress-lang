@@ -106,12 +106,12 @@ public class Driver {
         ProjectProperties.noStaticAnalysis ? 
                 new BatchCachingRepository(
                       (ProjectProperties.SOURCE_PATH),
-                      new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                      new CacheBasedRepository(ProjectProperties.INTERPRETER_CACHE_DIR)
                       )
                 :
         new BatchCachingAnalyzingRepository(false,
             (ProjectProperties.SOURCE_PATH),
-            new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
+            new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
             );
 
     private Driver() {};
@@ -130,12 +130,12 @@ public class Driver {
             ProjectProperties.noStaticAnalysis ? 
                     new BatchCachingRepository(
                           (ProjectProperties.SOURCE_PATH.prepend(s)),
-                          new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.interpreter_cache"))
+                          new CacheBasedRepository(ProjectProperties.INTERPRETER_CACHE_DIR)
                           )
                     :
             new BatchCachingAnalyzingRepository(false,
                 (ProjectProperties.SOURCE_PATH.prepend(s)),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.analyzed_cache"))
+                new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
                 );
         
         

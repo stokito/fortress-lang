@@ -139,6 +139,15 @@ public class ProjectProperties {
         return result;
     }
     
+    static final public String get(String s, String ifMissing) {
+        String result =  allProps.get(s);
+        if (result == null)
+            result = ifMissing;
+        if (result != null)
+            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        return result;
+    }
+    
     static final public boolean getBoolean(String s, boolean ifMissing) {
         String result =  allProps.get(s);
         if (result != null)
@@ -176,24 +185,25 @@ public class ProjectProperties {
         return result;
     }
 
-    public static final String CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache";
-    public static final String CHECKED_CACHE_DIR = searchDef("fortress.cache", "FORTRESS_CACHE", ".") + "/.fortress_cache_checked";
-    public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
-
-    public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
-   
     /* This static field holds the absolute path of the project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
+    public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
+    public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}/.interpreter_cache");
+    public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}/.analyzed_cache");
+    
+    public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
+   
+    
     //public static final String TEST_LIB_DIR = someImplDir("TEST_LIB_DIR", "test_library");
     //public static final String TEST_LIB_NATIVE_DIR = someImplDir("TEST_LIB_NATIVE_DIR", "test_library_native");
 
     static {
-        ensureDirectoryExists(CACHE_DIR);
-        ensureDirectoryExists(CHECKED_CACHE_DIR);
+        ensureDirectoryExists(INTERPRETER_CACHE_DIR);
+        ensureDirectoryExists(ANALYZED_CACHE_DIR);
     }
 
 

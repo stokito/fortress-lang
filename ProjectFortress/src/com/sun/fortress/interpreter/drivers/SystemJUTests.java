@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,18 +16,20 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.drivers;
+import java.io.IOException;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 public class SystemJUTests {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         junit.textui.TestRunner.run(suite());
     }
 
-    public static Test suite() {
+    public static Test suite() throws IOException {
         String testDir = ProjectProperties.BASEDIR + "tests";
         String s = System.getProperty("tests");
         boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
