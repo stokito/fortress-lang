@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api SkipList
+import PureList.{...}
 
 (* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
    p is used in the negative binomial distribution to select random levels for insertion.
@@ -39,9 +40,9 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
   (* The height of the current node.  Height = 0 must be a leaf *)
   getter height():ZZ32
 
-  (* The number of values stores in this subtree.  The number of 
+  (* The number of values stores in this subtree.  The number of
      values is greater than or equal to the number of keys,
-     as duplicates are allowed in this implementation. *)  
+     as duplicates are allowed in this implementation. *)
   getter size():ZZ32
 
   (* given a search key, try to return a value that matches that key *)
@@ -62,7 +63,7 @@ trait Node[\Key,Val\] comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
 
   (* merge must always be invoked with at least one element in the merge list *)
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\]
-  
+
   (* return the list of leaves that are under the current subtree *)
   getLeaves():List[\LeafNode[\Key,Val\]\]
 
@@ -76,22 +77,22 @@ trait WhiteNode[\Key,Val\] extends Node[\Key,Val\] excludes InternalNode[\Key,Va
 
 (* There are two types of internal nodes:
     a) InternalLevel1 are internal nodes that live at level 1 of the tree.  Their children are leaves.
-    b) InternalLevelN are internal nodes that live at level > 1 of the tree. Their children are non-leaves. *)    
+    b) InternalLevelN are internal nodes that live at level > 1 of the tree. Their children are non-leaves. *)
 trait InternalNode[\Key,Val\] extends Node[\Key,Val\] excludes WhiteNode[\Key,Val\] comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]} end
 
 (* There are four types of NonLeafNodes and they are the union of the WhiteNode types and InternalNode types *)
 trait NonLeafNode[\Key,Val\] extends Node[\Key,Val\] comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\], InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]} end
 
 (* WhiteNodeHelper is the trait that is used to distinguish between WhiteLevel1 and WhiteLevelN *)
-trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\] extends Node[\Key,Val\] 
+trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\] extends Node[\Key,Val\]
   comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
 
   getter child():ChildType
-  
+
 end
 
 (* InternalNodeHelper is the trait that is used to distinguish between InternalLevel1 and InternalLevelN *)
-trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node\]
+trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node[\Key,Val\]\]
   extends Node[\Key,Val\] comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\]
@@ -99,21 +100,21 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
 
   (* given an instance of SelfType, generate a singleton SelfType *)
   singleton(keys':Array[\Key,ZZ32\], children':Array[\ChildType,ZZ32\]) : SelfType
-  
+
   (* given a key k, return the largest offset with a value less than or equal to k *)
   find_index(k:Key):ZZ32
 
-  (* break this internal node.  
+  (* break this internal node.
      Returns the two halves along with an key array of size quantity used for splitting.
      The values array is of size quantitiy - 1. *)
   break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\])
-  
+
   (* return a new internal node that has children[index] and keys[index - 1] missing *)
   index_remove(index:ZZ32): SelfType
 
 end
 
-(* Given a length > 0 and a node, generate that many white nodes that 
+(* Given a length > 0 and a node, generate that many white nodes that
    connect "as a tail" to the node. *)
 generate_tail[\Key,Val\](node:LeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\]
 generate_tail[\Key,Val\](node:NonLeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\]
@@ -125,21 +126,21 @@ object EmptyNode[\Key,Val\]() extends Node[\Key,Val\] end
 object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\]) extends Node[\Key,Val\] end
 
 (* A white node with one leaf child *)
-object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\], 
+object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\],
   WhiteNodeHelper[\Key,Val,LeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]} end
 
 (* A white node with one nonleaf child *)
-object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\], 
+object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\]) extends {WhiteNode[\Key,Val\],
   WhiteNodeHelper[\Key,Val,NonLeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]} end
 
 (* An internal node with k keys and k + 1 leaf children *)
 object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
-  children:Array[\LeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\], 
+  children:Array[\LeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\],
   InternalNodeHelper[\InternalLevel1[\Key,Val\],Key,Val,LeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]} end
 
 (* An internal node with k keys and k + 1 nonleaf children *)
 object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
-  children:Array[\NonLeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\], 
+  children:Array[\NonLeafNode[\Key,Val\],ZZ32\]) extends {InternalNode[\Key,Val\],
   InternalNodeHelper[\InternalLevelN[\Key,Val\],Key,Val,NonLeafNode[\Key,Val\]\], NonLeafNode[\Key,Val\]} end
 
 end

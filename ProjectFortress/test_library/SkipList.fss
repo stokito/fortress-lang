@@ -172,7 +172,7 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\] extends Node[
 end
 
 (* InternalNodeHelper is the trait that is used to distinguish between InternalLevel1 and InternalLevelN *)
-trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node\]
+trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node[\Key,Val\]\]
   extends Node[\Key,Val\] comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key,Val\]}
 
   getter keys():Array[\Key,ZZ32\]

@@ -36,6 +36,10 @@ end
 
 mapping[\Key,Val\](g: Generator[\Mapping[\Key,Val\]\]): Map[\Key,Val\]
 
+object NodeMap[\Key,Val\](pair:(Key,Val), left:Map[\Key,Val\],
+                          right:Map[\Key,Val\]) extends Map[\Key,Val\]
+end
+
 object EmptyMap[\Key,Val\]() extends Map[\Key,Val\] end
 
 end

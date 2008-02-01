@@ -177,17 +177,17 @@ end
 object SparseGen[\N extends Number, M\]
                 (arr:Array[\Array[\N,ZZ32\],ZZ32\], f:(ZZ32,ZZ32,N)->M)
         extends Generator[\M\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R\](r: Reduction[\R\], body: M->R): R =
         arr.indexValuePairs().generate[\R\](r,
             fn (i:ZZ32, v:Array[\N,ZZ32\]): R =>
                 v.indexValuePairs().generate[\R\](r,
                     fn (j:ZZ32, n:N): R => body(f(i,j,n))))
-    loop(body:E->()): () =
+    loop(body:M->()): () =
         arr.indexValuePairs().loop(
             fn (i:ZZ32, v:Array[\N,ZZ32\]): () =>
                 v.indexValuePairs().loop(fn (j:ZZ32, n:N):() => body(f(i,j,n))))
 
-    map[\G\](f': E->G): Generator[\G\] = SparseGen[\N,G\](arr, f' COMPOSE f)
+    map[\G\](f': M->G): Generator[\G\] = SparseGen[\N,G\](arr, f' COMPOSE f)
 end
 
 end
