@@ -20,7 +20,7 @@ api FortressSyntax
   import FortressAst.{...}
 
   grammar Literal 
-      LiteralExpr :Expr
+      LiteralExpr :Expr end
   end
 
 end

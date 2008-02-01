@@ -55,7 +55,7 @@ public class GrammarIndexInitializer {
 	public static Result init(Collection<GrammarEnv> envs) {
 		Collection<StaticError> ses = new LinkedList<StaticError>();
 		initGrammarExtends(envs, ses);
-		initProductionExtends(envs, ses);
+		initNonterminalExtends(envs, ses);
 		return (new GrammarIndexInitializer()).new Result(envs, ses);
 	}
 
@@ -64,20 +64,20 @@ public class GrammarIndexInitializer {
 	 * @param envs
 	 * @param ses
 	 */
-	private static void initProductionExtends(Collection<GrammarEnv> envs,
+	private static void initNonterminalExtends(Collection<GrammarEnv> envs,
 			Collection<StaticError> ses) {
 		for (GrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
-				for (ProductionIndex p: g.productions()) {
-					if (p instanceof ProductionExtendIndex) {
-						Id name = p.getName().getName();
-						GrammarAnalyzer ga = new GrammarAnalyzer();
-						Collection<ProductionIndex<? extends NonterminalDecl>> s = ga.getContaindNonterminalIndex(name, g);
+				for (ProductionIndex n: g.getDeclaredNonterminals()) {
+					if (n instanceof ProductionExtendIndex) {
+						Id name = n.getName().getName();
+						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
+						Collection<ProductionIndex<? extends NonterminalDecl>> s = ga.getOverridingNonterminalIndex(name, g);
 						if (s.isEmpty()) {
-							ses.add(StaticError.make("Unknown extended nonterminal: "+name, p.getAst()));
+							ses.add(StaticError.make("Unknown extended nonterminal: "+name, n.getAst()));
 						}
-						((ProductionExtendIndex) p).addExtendedNonterminals(s);
+						((ProductionExtendIndex) n).addExtendedNonterminals(s);
 					}
 				}
 			}
@@ -111,7 +111,7 @@ public class GrammarIndexInitializer {
 							gs.add(m.get(otherName));
 						}
 					}
-					g.setExtendedGrammars(gs);
+					g.setExtended(gs);
 				}
 				else {
 					ses.add(StaticError.make("Malformed grammar", g.getName()));

@@ -19,9 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.List;
 
-import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.TraitType;

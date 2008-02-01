@@ -355,7 +355,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 		if (grammar.isSome()) {
 			GrammarIndex g = Option.unwrap(grammar);
 			g.setAst(disambiguatedGrammar);
-			g.setExtendedGrammars(p.second());
+			g.setExtended(p.second());
 			g.setAst(disambiguatedGrammar);
 		}
 

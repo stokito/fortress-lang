@@ -52,10 +52,6 @@ public class FileBasedMacroCompiler implements MacroCompiler {
 		if (!mrr.isSuccessful()) { return new Result(null, mrr.errors()); }
 
 		Map<String, String> modulesReplacingFortressModules = mrr.modulesReplacingFortressModules();
-		
-		for (Module m: mrr.modules()) {
-			System.err.println(m.toString());
-		}
 			
 		/*
 		 * Translate each grammar to a corresponding Rats! module
