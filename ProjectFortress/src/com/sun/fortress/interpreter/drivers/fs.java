@@ -154,7 +154,7 @@ public class fs {
                 s = s.substring(s.lastIndexOf("/")+1, s.length());
                 fr = Driver.extendedRepository(head);
             } else {
-                fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+                fr = Driver.defaultRepository();
             }
             
             fr.addRootApis(NodeFactory.makeAPIName("FortressBuiltin"));

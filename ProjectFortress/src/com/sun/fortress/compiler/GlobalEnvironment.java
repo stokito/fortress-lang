@@ -40,6 +40,10 @@ abstract public class GlobalEnvironment {
     
     abstract public void print();
     
+    public String toString() {
+        return this.getClass().getSimpleName() + " " + apis();
+    }
+    
     public static class FromMap extends GlobalEnvironment {
         private Map<APIName, ApiIndex> _apis;
         

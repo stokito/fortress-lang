@@ -102,7 +102,7 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
-    public static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
+    private static BatchCachingRepository DEFAULT_INTERPRETER_REPOSITORY = 
         ProjectProperties.noStaticAnalysis ? 
                 new BatchCachingRepository(
                       (ProjectProperties.SOURCE_PATH),
@@ -114,6 +114,8 @@ public class Driver {
             new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
             );
 
+    public static BatchCachingRepository CURRENT_INTERPRETER_REPOSITORY = null;
+                      
     private Driver() {};
 
     static public void runTests() {
@@ -124,8 +126,17 @@ public class Driver {
         return evalComponent(p, false, fr);
     }
 
+    public static BatchCachingRepository defaultRepository() {
+        // This is bogus; we need to find a better way to communicate with the
+        // syntax transfomer.
+         CURRENT_INTERPRETER_REPOSITORY = DEFAULT_INTERPRETER_REPOSITORY;
+        return CURRENT_INTERPRETER_REPOSITORY;
+    }
+    
     public static BatchCachingRepository extendedRepository(String s) {
-        
+        // This is bogus; we need to find a better way to communicate with the
+        // syntax transfomer.
+       
         BatchCachingRepository fr = 
             ProjectProperties.noStaticAnalysis ? 
                     new BatchCachingRepository(
@@ -138,7 +149,7 @@ public class Driver {
                 new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
                 );
         
-        
+        CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
     
