@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component typeTests
+export Executable
+
+run() = do
+(*
+  a: ZZ->String
+  b: ZZ Length/Time
+  b': ZZ^3
+  b'': ZZ Length^3
+(* Rightly rejected
+  c: ZZ Length -> String Time / Length
+  d: ZZ Length -> String Time DOT Length DOT Mass
+ *)
+  d': ZZ Length -> (String Time DOT Length DOT Mass)
+  d'': ZZ Length -> (String Time Length Mass)
+(* Rightly rejected
+  d''': ZZ Length -> (String Time per Length per Mass)
+ *)
+  e: ZZ->String throws Error
+  f: ZZ Length -> (String Time / Length) throws Error
+(* Rightly rejected
+  f': ZZ Length -> String Time / Length throws Error
+  g: ZZ Length -> String Time DOT Length DOT Mass throws Error
+ *)
+  g': ZZ Length -> (String Time DOT Length DOT Mass) throws Error
+  h: ZZ Length in meter
+(* Rightly rejected
+  i: ZZ Length^3^5
+  i': ZZ^3^5
+  i'': ZZ^3[5]
+  j: ZZ32[3][5]
+  j': ZZ32[3]^5
+ *)
+  k: ZZ[3](Length)
+  l: ZZ Length (Time)squared
+(* Rightly rejected
+  l': ZZ Length Time squared
+ *)
+  l'': ZZ (Length Time)squared
+(* Rightly rejected
+  m: ZZ square Length
+ *)
+  n : ZZ (Length/Time)Mass
+  n' : ZZ (Length / Time Mass)
+  o: ZZ(Length)^3Meter
+  o': ZZ(Length)^3(Meter / Second)
+*)
+  p: ZZ(square Length)
+end
+
+end

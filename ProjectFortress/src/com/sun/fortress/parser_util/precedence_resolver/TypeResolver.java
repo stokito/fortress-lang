@@ -32,8 +32,8 @@ import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
-import com.sun.fortress.interpreter.evaluator.ProgramError;
 import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.interpreter.evaluator.ProgramError;
 
 import static com.sun.fortress.interpreter.evaluator.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
@@ -44,6 +44,8 @@ import static com.sun.fortress.parser_util.FortressUtil.spanTwo;
  * Resolution is performed via pattern matching along with an auxillary stack.
  */
 public class TypeResolver {
+
+    private static boolean isVerbose = false;
 
     private static Precedence precedence(Op op1, Op op2) {
         String op1name = noColonText(op1);
@@ -60,7 +62,7 @@ public class TypeResolver {
     }
 
     private static Type makeProductDim(Span span, TaggedDimType expr0,
-                                       DimExpr expr2) {
+                                       DimExpr expr2) throws TypeConvertFailure {
         DimExpr dim = new ProductDim(span, dimToDim(expr0.getDim()),
                                      dimToDim(expr2));
         return new TaggedDimType(span, typeToType(expr0.getType()), dim,
@@ -68,7 +70,8 @@ public class TypeResolver {
     }
 
     private static Type makeQuotientDim(Span span, TaggedDimType expr0,
-                                        DimExpr expr2) {
+                                        DimExpr expr2)
+        throws TypeConvertFailure {
         DimExpr dim = new QuotientDim(span, dimToDim(expr0.getDim()),
                                       dimToDim(expr2));
         return new TaggedDimType(span, typeToType(expr0.getType()), dim,
@@ -84,7 +87,7 @@ public class TypeResolver {
             } else {
                 return new TaggedDimType(span, typeToType(first), dim);
             }
-        } catch (ProgramError x) {
+        } catch (TypeConvertFailure x) {
             throw new ReadError(span, "Misuse of type juxtaposition.");
         }
     }
@@ -133,7 +136,7 @@ public class TypeResolver {
                                 throw new ReadError(first.getSpan(),
                                                     "Dimensions are expected.");
                             }
-                        } catch (ProgramError x) {
+                        } catch (TypeConvertFailure x) {
                             throw new ReadError(first.getSpan(),
                                                 "Dimensions are expected.");
                         }
@@ -197,7 +200,7 @@ public class TypeResolver {
                                 throw new ReadError(first.getSpan(),
                                                     "Dimensions are expected.");
                             }
-                        } catch (ProgramError x) {
+                        } catch (TypeConvertFailure x) {
                             throw new ReadError(first.getSpan(),
                                                 "Dimensions are expected.");
                         }
@@ -247,9 +250,15 @@ public class TypeResolver {
                         return makeQuotientDim(span, (TaggedDimType)first,
                                                _second);
                 } else {
-                    throw new ReadError(op.getSpan(), "DimExpr is expected.");
+                    DimExpr _first = typeToDim(first);
+                    if (isDOT(op))
+                        return new ProductDim(span, _first, _second);
+                    else // op.getText().equals("/") ||
+                         // op.getText().equals("per")
+                        return new QuotientDim(span, _first, _second);
+                    //                    throw new ReadError(op.getSpan(), "DimExpr is expected.");
                 }
-            } catch (ProgramError x) {
+            } catch (TypeConvertFailure x) {
                 throw new ReadError(op.getSpan(), "DimExpr is expected.");
             }
 
@@ -336,6 +345,7 @@ public class TypeResolver {
 
     private static Type resolveInfix(PureList<InfixOpExpr> opTypes)
         throws ReadError {
+        if (isVerbose) System.out.println("resolveInfix...");
         return resolveInfixStack(opTypes, PureList.<TypeInfixFrame>make());
     }
 
@@ -374,6 +384,7 @@ public class TypeResolver {
 
     private static PureList<InfixOpExpr>
         resolveJuxt(PureList<InfixOpExpr> opTypes) throws ReadError {
+        if (isVerbose) System.out.println("resolveJuxt...");
         if (opTypes.isEmpty()) { return PureList.<InfixOpExpr>make(); }
 
         else { // opTypes instanceof Cons
@@ -411,6 +422,7 @@ public class TypeResolver {
 
     private static PureList<InfixOpExpr>
         resolvePrefix(PureList<PrefixOpExpr> opTypes) throws ReadError {
+        if (isVerbose) System.out.println("resolvePrefix...");
         if (opTypes.isEmpty()) { return PureList.<InfixOpExpr>make(); }
 
         else { // !opTypes.isEmpty()
@@ -430,7 +442,7 @@ public class TypeResolver {
                             typeToDim(((RealType)__opTypes.getFirst()).getType());
                         return _rest.cons(new RealType(new OpDim(e.getSpan(), e,
                                                                  op)));
-                    } catch (ProgramError x) {
+                    } catch (TypeConvertFailure x) {
                         throw new ReadError(op.getSpan(),
                                             "Prefix operator " + op.toString() +
                                             " without argument.");
@@ -452,6 +464,7 @@ public class TypeResolver {
 
     private static PureList<PrefixOpExpr>
         resolveTightDiv(PureList<PrefixOpExpr> opTypes) throws ReadError {
+        if (isVerbose) System.out.println("resolveTightDiv...");
         if (opTypes.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
         else { // !opTypes.isEmpty()
@@ -500,7 +513,7 @@ public class TypeResolver {
                             try {
                                 DimExpr _expr0 = typeToDim(expr0);
                                 e = new QuotientDim(span,_expr0,expr2);
-                            } catch (ProgramError x) {
+                            } catch (TypeConvertFailure x) {
                                 if (expr0 instanceof TaggedDimType) {
                                     e = makeQuotientDim(span,
                                                         (TaggedDimType)expr0,
@@ -511,7 +524,7 @@ public class TypeResolver {
                                 }
                             }
                             return resolveTightDiv(__rest.cons(new RealType(e)));
-                        } catch (ProgramError x) {}
+                        } catch (TypeConvertFailure x) {}
                     }
                 }
             }
@@ -527,6 +540,7 @@ public class TypeResolver {
 
     private static PureList<PrefixOpExpr>
         resolvePostfix(PureList<PostfixOpExpr> opTypes) throws ReadError {
+        if (isVerbose) System.out.println("resolvePostfix...");
         if (opTypes.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
         else {
@@ -543,7 +557,7 @@ public class TypeResolver {
                     PureList<PostfixOpExpr> restRest = _rest.getRest();
                     DimExpr dim = new OpDim(_first.getSpan(), _first, op);
                     return resolvePostfix(restRest.cons(new RealType(dim)));
-                } catch (ProgramError x) {
+                } catch (TypeConvertFailure x) {
                     throw new ReadError(((Postfix)first).getOp().getSpan(),
                                         "Postfix operator %s without argument.");
                 }
@@ -572,7 +586,11 @@ public class TypeResolver {
                                       t.getPower());
             }
             public Type forDimExpr(DimExpr t) {
-                return dimToType(t);
+                try {
+                    return dimToType(t);
+                } catch (TypeConvertFailure x) {
+                    return (Type)t;
+                }
             }
             public Type forArrowType(ArrowType t) {
                 return new ArrowType(t.getSpan(), typeToType(t.getDomain()),
@@ -615,29 +633,58 @@ public class TypeResolver {
         });
     }
 
-    public static DimExpr typeToDim(Type type) {
-        return type.accept(new NodeAbstractVisitor<DimExpr>() {
-            public DimExpr forDimExpr(DimExpr t) {
-                return t;
-            }
-            public DimExpr forExponentType(ExponentType t) {
-                return new ExponentDim(t.getSpan(), typeToDim(t.getBase()),
-                                       t.getPower());
-            }
-            public DimExpr forIdType(IdType t) {
-                return new DimRef(t.getSpan(), t.getName());
-            }
-            public DimExpr defaultCase(Node x) {
-                return error(x, "A dimension is expected but a type is found.");
-            }
-        });
+    public static DimExpr typeToDim(Type type) throws TypeConvertFailure {
+        try {
+            return type.accept(new NodeAbstractVisitor<DimExpr>() {
+                public DimExpr forDimExpr(DimExpr t) {
+                    return t;
+                }
+                public DimExpr forExponentType(ExponentType t) {
+                    try {
+                        return new ExponentDim(t.getSpan(),
+                                               typeToDim(t.getBase()),
+                                               t.getPower());
+                    } catch (TypeConvertFailure e) {
+                        return error(t, "A dimension is expected but " +
+                                     "a type is found.");
+                    }
+                }
+                public DimExpr forTaggedDimType(TaggedDimType t) {
+                    try {
+                        if (t.getUnit().isNone()) {
+                            return new ProductDim(t.getSpan(),
+                                                  typeToDim(t.getType()),
+                                                  t.getDim());
+                        } else
+                            return error(t, "A dimension is expected " +
+                                         "but a type is found.");
+                    } catch (TypeConvertFailure e) {
+                        return error(t, "A dimension is expected but " +
+                                     "a type is found.");
+                    }
+                }
+                public DimExpr forIdType(IdType t) {
+                    return new DimRef(t.getSpan(), t.getName());
+                }
+                public DimExpr defaultCase(Node x) {
+                    return error(x, "A dimension is expected but a " +
+                                 "type is found.");
+                }
+                });
+        } catch (ProgramError e) {
+            throw new TypeConvertFailure(e.getMessage());
+        }
     }
 
     private static DimExpr dimToDim(DimExpr dim) {
         return dim.accept(new NodeAbstractVisitor<DimExpr>() {
             public DimExpr forExponentType(ExponentType d) {
-                return new ExponentDim(d.getSpan(), typeToDim(d.getBase()),
-                                       d.getPower());
+                try {
+                    return new ExponentDim(d.getSpan(), typeToDim(d.getBase()),
+                                           d.getPower());
+                } catch (TypeConvertFailure x) {
+                    return (DimExpr)d;
+                }
             }
             public DimExpr forProductDim(ProductDim d) {
                 return new ProductDim(d.getSpan(), dimToDim(d.getMultiplier()),
@@ -657,37 +704,62 @@ public class TypeResolver {
         });
     }
 
-    private static Type dimToType(DimExpr dim) {
-        return dim.accept(new NodeAbstractVisitor<Type>() {
-            public Type forDimRef(DimRef d) {
-                return new IdType(d.getSpan(), d.getName());
-            }
-            public Type forProductDim(ProductDim d) {
-                return new TaggedDimType(d.getSpan(),
-                                         dimToType(d.getMultiplier()),
-                                         dimToDim(d.getMultiplicand()));
-            }
-            public Type forExponentDim(ExponentDim d) {
-                return makeMatrixType(d.getSpan(), dimToType(d.getBase()),
-                                      d.getPower());
-            }
-            public Type forExponentType(ExponentType d) {
-                return makeMatrixType(d.getSpan(), typeToType(d.getBase()),
-                                      d.getPower());
-            }
-            public Type defaultCase(Node x) {
-                return error(x, "A type is expected but a dimension is found:" +
-                             "\n  " + x);
-            }
-        });
+    private static Type dimToType(DimExpr dim) throws TypeConvertFailure {
+        try {
+            return dim.accept(new NodeAbstractVisitor<Type>() {
+                public Type forDimRef(DimRef d) {
+                    return new IdType(d.getSpan(), d.getName());
+                }
+                public Type forProductDim(ProductDim d) {
+                    try {
+                        return new TaggedDimType(d.getSpan(),
+                                                 dimToType(d.getMultiplier()),
+                                                 dimToDim(d.getMultiplicand()));
+                    } catch (TypeConvertFailure e) {
+                        return error(e.getMessage());
+                    }
+                }
+                public Type forExponentDim(ExponentDim d) {
+                    try {
+                        return makeMatrixType(d.getSpan(),
+                                              dimToType(d.getBase()),
+                                              d.getPower());
+                    } catch (TypeConvertFailure e) {
+                        return error(e.getMessage());
+                    }
+                }
+                public Type forExponentType(ExponentType d) {
+                    return makeMatrixType(d.getSpan(), typeToType(d.getBase()),
+                                          d.getPower());
+                }
+                public Type defaultCase(Node x) {
+                    return error(x, "A type is expected but a " +
+                                 "dimension is found:\n  " + x);
+                }
+                });
+        } catch (ProgramError e) {
+            throw new TypeConvertFailure(e.getMessage());
+        }
     }
 
     public static Type resolveOps(PureList<PostfixOpExpr> opTypes) {
         try {
+            if (isVerbose) {
+                System.out.println("resolveOps(");
+                for (PostfixOpExpr exp : opTypes.toJavaList()) {
+                    System.out.println("  " + exp);
+                }
+                System.out.println(")");
+            }
             Type type = buildLayer(opTypes);
-            if (type instanceof DimExpr) return dimToType((DimExpr)type);
-            else return type;
-        } catch (ReadError e) {
+            if (isVerbose) System.out.println("after resolveOps: " + type);
+            try {
+                if (type instanceof DimExpr) return dimToType((DimExpr)type);
+                else return typeToType(type);
+            } catch (TypeConvertFailure x) {
+                return type;
+            }
+        } catch (Throwable e) {
             String msg = e.getMessage();
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
                 msg += "\n  " + type.toString();
@@ -699,9 +771,13 @@ public class TypeResolver {
     public static DimExpr resolveOpsDim(PureList<PostfixOpExpr> opTypes) {
         try {
             Type type = buildLayer(opTypes);
-            if (type instanceof DimExpr) return (DimExpr)type;
-            else return typeToDim(type);
-        } catch (ReadError e) {
+            try {
+                if (type instanceof DimExpr) return typeToDim((DimExpr)type);
+                else return typeToDim(type);
+            } catch (TypeConvertFailure x) {
+                return (DimExpr)type;
+            }
+        } catch (Throwable e) {
             String msg = e.getMessage();
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
                 msg += "\n  " + type.toString();

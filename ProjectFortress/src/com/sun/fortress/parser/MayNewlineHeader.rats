@@ -162,6 +162,10 @@ private constant inline Action<IntExpr> ExponentIntExpr =
      caret a1:IntVal
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
+               if (NodeUtil.isExponentiation((IntExpr)base))
+                   return error((IntExpr)base, "It is a static error if an " +
+                                "exponentiation is immediately followed by " +
+                                "an exponentiation.");
                return new ExponentConstraint(createSpan(yyStart,yyCount),
                                              (IntExpr)base, a1);
            }};
@@ -385,12 +389,21 @@ StaticArg StaticArg =
    / one w slash w a1:Type
      { Span span = createSpan(yyStart,1);
        DimExpr base = new BaseDim(createSpan(yyStart,1));
-       yyValue = new DimArg(span, new QuotientDim(span, base,
-                                                  TypeResolver.typeToDim(a1)));
+       try {
+         yyValue = new DimArg(span, new QuotientDim(span, base,
+                                                    TypeResolver.typeToDim(a1)));
+       } catch (TypeConvertFailure e) {
+         yyValue = error(a1, "A dimension is expected but a type is found.");
+       }
      }
    / a1:DimPrefixOp sr a2:Type
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new DimArg(span, new OpDim(span,TypeResolver.typeToDim(a2),a1));
+       try {
+         yyValue = new DimArg(span,
+                              new OpDim(span,TypeResolver.typeToDim(a2),a1));
+       } catch (TypeConvertFailure e) {
+         yyValue = error(a2, "A dimension is expected but a type is found.");
+       }
      }
    / openparen w a1:StaticArg w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); }

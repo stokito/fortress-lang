@@ -834,6 +834,9 @@ public class NodeFactory {
                 return new TaggedUnitType(t.getSpan(), true, t.getType(),
                                           t.getUnit());
             }
+            public Type forDimExpr(DimExpr t) {
+                return makeInParentheses(t);
+            }
             public Type defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
          " is not a subtype of Type.");
