@@ -365,4 +365,15 @@ public class NodeUtil {
         }
         return t;
     }
+
+    /* for Type and StaticExpr **********************************************/
+    public static boolean isExponentiation(Type type) {
+        return (type instanceof ArrayType ||
+                type instanceof MatrixType ||
+                type instanceof ExponentType ||
+                type instanceof ExponentDim);
+    }
+    public static boolean isExponentiation(IntExpr staticExpr) {
+        return (staticExpr instanceof ExponentConstraint);
+    }
 }

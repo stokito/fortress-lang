@@ -604,13 +604,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * Expr ::= Expr as Type
          * e.g.) 3 as Number
          */
-        AsExpr(Expr expr, Type type);
-        /**
-         * type assumption expression
-         * Expr ::= Expr asif Type
-         * e.g.) Empty asif List[\String\]
-         */
-        AsIfExpr(Expr expr, Type type);
+        abstract TypeAnnotatedExpr(Expr expr, Type type);
+            /**
+             * type ascription expression
+             * Expr ::= Expr as Type
+             * e.g.) 3 as Number
+             */
+            AsExpr();
+            /**
+             * type assumption expression
+             * Expr ::= Expr asif Type
+             * e.g.) Empty asif List[\String\]
+             */
+            AsIfExpr();
         /**
          * assignment expression
          * AssignExpr ::= AssignLefts AssignOp Expr

@@ -48,6 +48,14 @@ Type Type =
        }
      };
 
+/* OpType ::=
+     TypePrimary
+   | TypePrefix
+ */
+PureList<PostfixOpExpr> OpType =
+     TypePrimary
+   / TypePrefix ;
+
 /* TypePrimary ::=
      TypePrimaryFront TightInfixPostfix
    | TypePrimaryFront wr TypePrimary
@@ -218,6 +226,11 @@ constant inline Action<Type> ArrayTypeSize =
      opensquare a1:(w ArraySize)? w closesquare
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation or a vector type or an array " +
+                                "type is immediately followed by a left " +
+                                "square bracket.");
                return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                                 (Type)base, Option.wrap(a1));
            }};
@@ -259,6 +272,11 @@ constant inline Action<Type> Exponentiation =
      caret a1:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base) ||
+                   NodeUtil.isExponentiation(a1))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation is immediately followed by " +
+                                "an exponentiation.");
                if (base instanceof DimExpr) {
                    return new ExponentDim(createSpan(yyStart,yyCount),
                                           (DimExpr)base, a1);
@@ -271,14 +289,18 @@ constant inline Action<Type> Exponentiation =
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation is immediately followed by " +
+                                "an exponentiation.");
                return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                                  (Type)base,a1,a2s.list());
            }};
      };
 
-/* ParenthesizedType ::= ( w TypePrimary w ) */
+/* ParenthesizedType ::= ( w OpType w ) */
 constant inline Action<Type> ParenthesizedTypeLeft =
-     openparen w a1:TypePrimary w closeparen
+     openparen w a1:OpType w closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                DimExpr dim = TypeResolver.resolveOpsDim(a1);
@@ -356,6 +378,11 @@ constant inline Action<Type> ArrayTypeSizeTrait =
      opensquare a1:(w ArraySize)? w closesquare
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation or a vector type or an array " +
+                                "type is immediately followed by a left " +
+                                "square bracket.");
                return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
                                                 (Type)base, Option.wrap(a1));
            }};
@@ -369,6 +396,11 @@ constant inline Action<Type> ExponentiationTrait =
      caret a1:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base) ||
+                   NodeUtil.isExponentiation(a1))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation is immediately followed by " +
+                                "an exponentiation.");
                return TypeResolver.makeMatrixType(createSpan(yyStart,yyCount),
                                                   (Type)base, a1);
            }};
@@ -376,6 +408,10 @@ constant inline Action<Type> ExponentiationTrait =
    / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               if (NodeUtil.isExponentiation((Type)base))
+                   return error((Type)base, "It is a static error if an " +
+                                "exponentiation is immediately followed by " +
+                                "an exponentiation.");
                return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
                                                  (Type)base,a1,a2s.list());
            }};
