@@ -18,13 +18,18 @@
 package com.sun.fortress.shell;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.compiler.Fortress;
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.interpreter.evaluator.ProgramError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.ReversedList;
 
@@ -57,10 +62,26 @@ public class BatchCachingAnalyzingRepository extends BatchCachingRepository {
         
         Fortress fort = new Fortress(this);
         
+        Set<Api> staleA = newStaleApis();
+        Set<Component> staleC = newStaleComponents();
+        
+        // The typechecker is insufficienbtly lazy, and works too hard in the zero case.
+        if (staleA.size() == 0 && staleC.size() == 0)
+            return;
+        
+        Map<APIName, ApiIndex> apimap = this.apis();
+        
+        System.err.println("Refresh analyzing\nstale apis       = " + newStaleApiNames() +
+                                            "\nstale components = " + newStaleComponentNames() +
+                                            "\nknown apis       = " + apimap.keySet()
+                                            );
+        
+        
+        
         Iterable<? extends StaticError> errors =
-            fort.analyze(new GlobalEnvironment.FromMap(this.apis()),
-                    newStaleApis(),
-                    newStaleComponents(),
+            fort.analyze(new GlobalEnvironment.FromMap(apimap),
+                    staleA,
+                    staleC,
                     System.currentTimeMillis());
         
         if (errors.iterator().hasNext()) {

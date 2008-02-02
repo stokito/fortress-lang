@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.interpreter.drivers.ASTIO;
@@ -64,7 +65,13 @@ import edu.rice.cs.plt.tuple.Option;
  * Fortress value ({@see com.sun.fortres.interpreter.values.FValue}).
  */
 public class InterpreterWrapper {
+    
+    FortressRepository repository;
 
+    public  InterpreterWrapper() {
+        repository = Driver.CURRENT_INTERPRETER_REPOSITORY;
+    }
+    
     public class Result extends StaticPhaseResult {
 
         private FValue value;
@@ -133,7 +140,7 @@ public class InterpreterWrapper {
             listArgs = new LinkedList<String>();
         }
 
-        EvaluatorTask evTask = new EvaluatorTask(Driver.DEFAULT_INTERPRETER_REPOSITORY, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
+        EvaluatorTask evTask = new EvaluatorTask(repository, compilationUnit, test, woLibrary, FUNCTIONNAME, listArgs);
         try {
             group.invoke(evTask);
         }

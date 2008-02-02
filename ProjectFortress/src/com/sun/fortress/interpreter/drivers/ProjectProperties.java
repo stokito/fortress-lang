@@ -185,15 +185,17 @@ public class ProjectProperties {
         return result;
     }
 
-    /* This static field holds the absolute path of the project location, as
+    /** This static field holds the absolute path of the (sub)project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
+     * 
+     * The path name includes a trailing slash!
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_HOME}/ProjectFortress/");
     public static final String FORTRESS_PATH = searchDef("fortress.path", "FORTRESS_PATH", ".");
 
-    public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}/.interpreter_cache");
-    public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}/.analyzed_cache");
+    public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
+    public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
     
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
    

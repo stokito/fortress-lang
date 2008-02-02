@@ -25,6 +25,6 @@ fi
 
 
 
-java -cp "$CP" -Xmx512m -Xms256m \
+java -cp "$CP" -Xmx800m -Xms400m \
 junit.swingui.TestRunner \
 com.sun.fortress.interpreter.drivers.SystemJUTests >& test.log

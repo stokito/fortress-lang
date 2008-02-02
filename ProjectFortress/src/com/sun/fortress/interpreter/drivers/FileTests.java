@@ -213,7 +213,7 @@ public class FileTests {
         public void testFile() throws Throwable {
             System.out.println(s + " test");
             BufferedReader br = new BufferedReader(new FileReader(d + "/" + s + ".tfs"));
-            FortressRepository fr = Driver.DEFAULT_INTERPRETER_REPOSITORY;
+            FortressRepository fr = Driver.defaultRepository();
             Lex lex = new Lex(br);
             Unprinter up = new Unprinter(lex);
             lex.name(); // Inhale opening parentheses
