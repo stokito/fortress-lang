@@ -600,9 +600,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      */
     abstract Expr(boolean parenthesized = false);
         /**
-         * type ascription expression
-         * Expr ::= Expr as Type
-         * e.g.) 3 as Number
+         * expression annotated with a type
          */
         abstract TypeAnnotatedExpr(Expr expr, Type type);
             /**
@@ -848,7 +846,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         abstract LetExpr(List<Expr> body);
             /**
              * local function declaration
-             * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause = Expr
+             * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause
+             *                   = Expr
              * e.g.) localFn(x: ZZ32) = x + 2
              */
             LetFn(List<FnDef> fns);
@@ -894,23 +893,50 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             abstract Primary();
                 /**
-                 * coercion invocation
-                 * internal node created by static analysis
-                 * after inferring the implicit coercion invocations
+                 * literal
+                 * Primary ::= LiteralExpr
                  */
-                CoercionInvocation(TraitType type,
-                                   List<StaticArg> staticArgs
-                                       = Collections.<StaticArg>emptyList(),
-                                   Expr arg);
+                abstract LiteralExpr(String text);
+                    /**
+                     * number literal
+                     */
+                    abstract NumberLiteralExpr();
+                        /**
+                         * float literal
+                         * e.g.) 3.5
+                         */
+                        FloatLiteralExpr(ignoreForEquals String text,
+                                         BigInteger intPart,
+                                         BigInteger numerator, int denomBase,
+                                         int denomPower);
+                        /**
+                         * int literal
+                         * e.g.) 7
+                         */
+                        IntLiteralExpr(String text = in_val.toString(),
+                                       BigInteger val);
+                    /**
+                     * char literal
+                     * e.g.) 'c'
+                     */
+                    CharLiteralExpr(int val = in_text.charAt(0));
+                    /**
+                     * string literal
+                     * e.g.) "string"
+                     */
+                    StringLiteralExpr();
+                    /**
+                     * void literal
+                     * e.g.) ()
+                     */
+                    VoidLiteralExpr(String text = "");
                 /**
-                 * a method invocation
-                 * some are created by parsing, while others require later
-                 * static analysis to disambiguate from function applications
+                 * variable reference
+                 * VarOrFnRef ::= Id
+                 * Primary ::= self
+                 * e.g.) length
                  */
-                MethodInvocation(Expr obj, Id method,
-                                 List<StaticArg> staticArgs
-                                     = Collections.<StaticArg>emptyList(),
-                                 Expr arg);
+                VarRef(QualifiedIdName var) implements LHS;
                 /**
                  * field selection expression
                  * Primary ::= Primary . Id
@@ -922,12 +948,12 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     FieldRef(Id field);
                     /**
-                     * A field selection, for sure.
-                     * (though its implementation might be a getter/setter).
+                     * A field selection, for sure
+                     * (though its implementation might be a getter/setter)
                      */
                     FieldRefForSure(Id field);
                     /**
-                     * A rewritten field ref (not a getter/setter).
+                     * A rewritten field ref (not a getter/setter)
                      * also used to disambiguate lexical references to self/parent
                      * and within objectexprs to get access to outer scopes
                      * where the vars in the outer scopes may in turn have been
@@ -939,15 +965,44 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                      */
                     _RewriteFieldRef(Name field);
                 /**
+                 * named functional in functional applications
+                 */
+                abstract FunctionalRef(List<StaticArg> staticArgs
+                                         = Collections.<StaticArg>emptyList());
+                    /**
+                     * expression with static instantiations
+                     * list of ids allows cross-API overloading
+                     * Primary ::= Id[\StaticArgList\]
+                     * e.g.) identity[\String\]
+                     */
+                    FnRef(List<QualifiedIdName> fns,
+                          List<StaticArg> staticArgs
+                              = Collections.<StaticArg>emptyList());
+                    /**
+                     * The rewriting to explicitly name self and parent
+                     * pre-interpretation may generalize the dotted
+                     * list from a FnRef into something else.
+                     */
+                    _RewriteFnRef(Expr fn,
+                                  List<StaticArg> staticArgs
+                              = Collections.<StaticArg>emptyList());
+                    /**
+                     * operator name with (inferred) static instantiations
+                     * list of operators allows cross-API overloading
+                     * Primary ::= Op[\StaticArgList\]
+                     * e.g.) +[\String\]
+                     */
+                    OpRef(List<QualifiedOpName> ops,
+                          List<StaticArg> staticArgs
+                              = Collections.<StaticArg>emptyList());
+                /**
                  * functional applicaiton
                  */
                 abstract AppExpr();
                     /**
                      * juxtaposition of expressions
-                     * Primary ::= Primary . Id ([\StaticArgList\])? Parenthesized
-                     *           | Primary . Id ([\StaticArgList\])? ()
-                     *           | Primary Parenthesized
-                     *           | Primary ()
+                     * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
+                     *           | Primary TupleExpr
                      *           | Primary Primary
                      * e.g.) myString.replace("foo", "few")
                      * e.g.) log log n
@@ -964,19 +1019,38 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                          */
                         TightJuxt();
                     /**
-                     * expression using operators (list of ops allows cross-API overloading)
+                     * expression using operators
+                     * (list of ops allows cross-API overloading)
                      * OpExpr ::= EncloserOp OpExpr? EncloserOp?
                      *          | OpExpr EncloserOp OpExpr?
                      *          | Primary
                      * EncloserOp ::= Encloser
                      *              | Op
                      * Primary ::= LeftEncloser ExprList? RightEncloser
-                     *           | Primary ^ BaseExpr
+                     *           | Primary ^ Exponent
                      *           | Primary ExponentOp
                      * e.g.) 3 + 5
                      */
                     OprExpr(OpRef op,
                             List<Expr> args = Collections.<Expr>emptyList());
+                    /**
+                     * coercion invocation
+                     * internal node created by static analysis
+                     * after inferring the implicit coercion invocations
+                     */
+                    CoercionInvocation(TraitType type,
+                                       List<StaticArg> staticArgs
+                                           = Collections.<StaticArg>emptyList(),
+                                       Expr arg);
+                    /**
+                     * a method invocation
+                     * some are created by parsing, while others require later
+                     * static analysis to disambiguate from function applications
+                     */
+                    MethodInvocation(Expr obj, Id method,
+                                     List<StaticArg> staticArgs
+                                         = Collections.<StaticArg>emptyList(),
+                                     Expr arg);
                 /**
                  * primary expression without any dots
                  * MathPrimary ::= PrimaryFront MathItem*
@@ -991,105 +1065,27 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 ChainExpr(Expr first, List<Pair<Op, Expr>> links);
                 /**
-                 * expression with static instantiations
-                 * list of ids allows cross-API overloading
-                 * Primary ::= Id[\StaticArgList\]
-                 * e.g.) identity[\String\]
+                 * array expression
+                 * ArrayExpr ::= [ RectElements ]
+                 * RectElements ::= Expr MultiDimCons*
+                 * MultiDimCons ::= RectSeparator Expr
+                 * RectSeparator ::= ;+
+                 *                 | Whitespace
+                 * e.g.) [1 2 3; 4 5 6; 7 8 9]
                  */
-                FnRef(List<QualifiedIdName> fns,
-                      List<StaticArg> staticArgs
-                          = Collections.<StaticArg>emptyList());
-                /**
-                 * The rewriting to explicitly name self and parent
-                 * pre-interpretation may generalize the dotted
-                 * list from a FnRef into something else.
-                 */
-                _RewriteFnRef(Expr fn,
-                              List<StaticArg> staticArgs
-                          = Collections.<StaticArg>emptyList());
-                /**
-                 * operator name with (inferred) static instantiations
-                 * list of operators allows cross-API overloading
-                 * Primary ::= Op[\StaticArgList\]
-                 * e.g.) +[\String\]
-                 */
-                OpRef(List<QualifiedOpName> ops,
-                      List<StaticArg> staticArgs
-                          = Collections.<StaticArg>emptyList());
-                /**
-                 * simple expression
-                 * Primary ::= BaseExpr
-                 */
-                abstract BaseExpr();
+                abstract ArrayExpr();
                     /**
-                     * variable reference
-                     * BaseExpr ::= Id
-                     *            | self
-                     * e.g.) length
+                     * array with a single element
+                     * e.g.) [3]
                      */
-                    VarRef(QualifiedIdName var) implements LHS;
+                    ArrayElement(Expr element);
                     /**
-                     * literal
-                     * BaseExpr ::= LiteralExpr
+                     * array with multiple elements
+                     * e.g.) [3 4 5; 6 7 8]
                      */
-                    abstract LiteralExpr(String text);
-                        /**
-                         * number literal
-                         */
-                        abstract NumberLiteralExpr();
-                            /**
-                             * float literal
-                             * e.g.) 3.5
-                             */
-                            FloatLiteralExpr(ignoreForEquals String text,
-                                             BigInteger intPart,
-                                             BigInteger numerator, int denomBase,
-                                             int denomPower);
-                            /**
-                             * int literal
-                             * e.g.) 7
-                             */
-                            IntLiteralExpr(String text = in_val.toString(),
-                                           BigInteger val);
-                        /**
-                         * char literal
-                         * e.g.) 'c'
-                         */
-                        CharLiteralExpr(int val = in_text.charAt(0));
-                        /**
-                         * string literal
-                         * e.g.) "string"
-                         */
-                        StringLiteralExpr();
-                        /**
-                         * void literal
-                         * e.g.) ()
-                         */
-                        VoidLiteralExpr(String text = "");
-                    /**
-                     * array expression
-                     * ArrayExpr ::= [ RectElements ]
-                     * RectElements ::= Expr MultiDimCons*
-                     * MultiDimCons ::= RectSeparator Expr
-                     * RectSeparator ::= ;+
-                     *                 | Whitespace
-                     * e.g.) [1 2 3; 4 5 6; 7 8 9]
-                     */
-                    abstract ArrayExpr();
-                        /**
-                         * array with a single element
-                         * e.g.) [3]
-                         */
-                        ArrayElement(Expr element);
-                        /**
-                         * array with multiple elements
-                         * e.g.) [3 4 5; 6 7 8]
-                         */
-                        ArrayElements(int dimension, List<ArrayExpr> elements);
+                    ArrayElements(int dimension, List<ArrayExpr> elements);
     /**
      * type
-     * Type ::= ArrowType
-     *        | NonArrowType
      */
     abstract Type(boolean parenthesized = false);
         /**
@@ -1129,8 +1125,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             ExponentDim(DimExpr base, IntExpr power);
             /* dimension with operator
-             * DimExpr ::= DUPreOp DimExpr
-             *           | DimExpr DUPostOp
+             * DimExpr ::= DimPrefixOp DimExpr
+             *           | DimExpr DimPostfixOp
              * e.g.) Time squared
              */
             OpDim(DimExpr val, Op op);
@@ -1143,7 +1139,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                                    boolean io = false);
             /**
              * arrow type
-             * ArrowType ::= NonArrowType -> NonArrowType Throws?
+             * Type ::= Type -> Type Throws?
              * e.g.) (String, NN..., p = Printer) -> NN throws IOException
              */
             ArrowType();
@@ -1178,11 +1174,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * e.g.) T
                  */
                 IdType(QualifiedIdName name);
-
+                /**
+                 * inferred type
+                 * internal uses only
+                 */
                 InferenceVarType(Object id);
                 /**
                  * matrix type
-                 * TraitType ::= Type ^ StaticArg
+                 * TraitType ::= Type ^ IntExpr
                  *             | Type ^ ( ExtentRange (BY ExtentRange)* )
                  * e.g.)
                  */
@@ -1211,10 +1210,23 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) ()
              */
             VoidType();
-
+            /**
+             * intersection type
+             * internal uses only
+             */
             IntersectionType(Set<Type> elements);
+            /**
+             * union type
+             * internal uses only
+             */
             UnionType(Set<Type> elements);
+            /**
+             * internal uses only
+             */
             AndType(Type first, Type second);
+            /**
+             * internal uses only
+             */
             OrType(Type first, Type second);
             /**
              * dimension type
@@ -1295,7 +1307,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          * fixed point (a.k.a. "mu") type, used during witness finding
          */
         _RewriteFixedPointType(_RewriteImplicitType var, Type body);
-
     /**
      * static expression
      */
