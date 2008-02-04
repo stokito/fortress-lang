@@ -19,10 +19,12 @@ package com.sun.fortress.syntax_abstractions.util;
 
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.LiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 
+/*
+ * Translate from a Fortress interpreter representation of Fortress AST to
+ * Java representation of Fortress AST.
+ */
 public class FortressObjectASTVisitor<T> {
 
 	private static final String VALUE_FIELD_NAME = "val";
@@ -39,13 +41,13 @@ public class FortressObjectASTVisitor<T> {
 	}
 
 	public T dispatch(FObject value) {
-		if (value.type().toString().equals("IntLiteral")) {
+		if (value.type().toString().equals("IntLiteralExpr")) {
 			return dispatchInteger(value);
-		} else if (value.type().toString().equals("CharLiteral")) {
+		} else if (value.type().toString().equals("CharLiteralExpr")) {
 			return dispatchChar(value);
-		} else if (value.type().toString().equals("StringLiteral")) {
+		} else if (value.type().toString().equals("StringLiteralExpr")) {
 			return dispatchString(value);
-		} else if (value.type().toString().equals("VoidLiteral")) {
+		} else if (value.type().toString().equals("VoidLiteralExpr")) {
 			return dispatchVoid(value);
 		} else {
 			throw new RuntimeException("NYI: "+value.type());

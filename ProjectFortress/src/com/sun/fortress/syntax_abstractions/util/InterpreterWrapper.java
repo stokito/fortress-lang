@@ -18,11 +18,15 @@
 package com.sun.fortress.syntax_abstractions.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.FortressRepository;
 import com.sun.fortress.compiler.StaticError;
@@ -46,13 +50,17 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes_util.Span;
@@ -92,7 +100,7 @@ public class InterpreterWrapper {
     private static int numThreads = Runtime.getRuntime().availableProcessors();
     static FortressTaskRunnerGroup group;
 
-    public Result evalComponent(String productionName, String component) {
+    public Result evalComponent(Span span, String productionName, String component, Map<String, Object> boundVariables) {
         Collection<StaticError> errors = new LinkedList<StaticError>();
         Option<CompilationUnit> cu = Option.none();
         try {
@@ -101,34 +109,52 @@ public class InterpreterWrapper {
             errors.add(StaticError.make("Could not read transformation expression from file: "+productionName+" "+e1.getMessage(), productionName));
             return new Result(null, errors);
         }
-        CompilationUnit compilationUnit = null;
         if (cu.isNone()) {
             errors.add(StaticError.make("Could not read transformation expression from file: "+productionName, productionName));
             return new Result(null, errors);
         }
 
-        compilationUnit = Option.unwrap(cu);
-
+        Component c = (Component) Option.unwrap(cu);
+        c.getDecls().addAll(createVarBindings(span, boundVariables));
+//try {
+//	System.err.println(writeJavaAST(c));
+//} catch (IOException e1) {
+//	// TODO Auto-generated catch block
+//	e1.printStackTrace();
+//}
         try {
         	System.err.println("Running interpreter...");
 
-            return new Result(runFunction(compilationUnit), errors);
+            return new Result(runFunction(c), errors);
         }	catch (FortressError e) {
             System.err.println("\n--------Fortress error appears below--------\n");
             e.printInterpreterStackTrace(System.err);
             e.printStackTrace();
             System.err.println();
             System.err.println(e.getMessage());
+            System.err.println();
             System.err.println("Turn on -debug for Java-level error dump.");
             System.exit(1);
         } catch (Throwable e) {
             // TODO Auto-generated catch block
+        	System.err.println("Throwable...");
             e.printStackTrace();
         }
-        return null;
+        return new Result(null, errors);
     }
 
-    private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
+    private Collection<? extends Decl> createVarBindings(
+			Span span, Map<String, Object> boundVariables) {
+		List<Decl> decls = new LinkedList<Decl>();
+    	for (Entry<String, Object> e: boundVariables.entrySet()) {
+			List<LValueBind> valueBindings = new LinkedList<LValueBind>();
+			valueBindings.add(new LValueBind(new Id(e.getKey()), false));
+			decls.add(new VarDecl(valueBindings, new JavaASTToFortressAST(span).dispatch(e.getValue())));
+    	}
+		return decls;
+	}
+
+	private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);
@@ -159,5 +185,14 @@ public class InterpreterWrapper {
         BufferedReader br = new BufferedReader(sr);
         return ASTIO.readJavaAst(filename, br);
     }
+    
+	private String writeJavaAST(Component component) throws IOException {
+		StringWriter sw = new StringWriter();
+		BufferedWriter bw = new BufferedWriter(sw);
+		ASTIO.writeJavaAst(component, bw);
+		bw.flush();
+		bw.close();
+		return sw.getBuffer().toString();
+	}
 
 }

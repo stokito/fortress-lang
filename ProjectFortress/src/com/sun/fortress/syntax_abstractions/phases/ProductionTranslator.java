@@ -170,11 +170,13 @@ public class ProductionTranslator {
 			for (SyntaxDef syntaxDef: syntaxDefs) {
 				List<Element> elms = new LinkedList<Element>();
 				// Translate the symbols
+				Collection<String> boundVariables = new LinkedList<String>();
 				for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
 					elms.addAll(sym.accept(new SymbolTranslator()));
+					boundVariables.addAll(sym.accept(new VariableCollector()));
 				}		
 				String newProductionName = FreshName.getFreshName(productionName).toUpperCase();
-				ActionCreater.Result acr = ActionCreater.create(newProductionName, syntaxDef.getTransformationExpression(), type.toString());
+				ActionCreater.Result acr = ActionCreater.create(newProductionName, syntaxDef.getTransformationExpression(), type.toString(), boundVariables);
 				if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
 				elms.add(acr.action());
 				sequence.add(new Sequence(new SequenceName(newProductionName), elms));		
@@ -390,6 +392,24 @@ public class ProductionTranslator {
 		@Override
 		public List<Element> defaultCase(com.sun.fortress.nodes.Node that) {
 			return new LinkedList<Element>();
+		}
+
+	}
+
+	public class VariableCollector extends NodeDepthFirstVisitor<Collection<String>> {
+
+		@Override
+		public Collection<String> defaultCase(com.sun.fortress.nodes.Node that) {
+			return new LinkedList<String>();
+		}
+
+		@Override
+		public Collection<String> forPrefixedSymbol(PrefixedSymbol that) {
+			Collection<String> c = super.forPrefixedSymbol(that);
+			if (that.getId().isSome()) {
+				c.add(Option.unwrap(that.getId()).getText());
+			}
+			return c;
 		}
 
 	}

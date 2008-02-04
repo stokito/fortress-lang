@@ -187,6 +187,7 @@ public class FortressParser {
 						parseResult = ParserMediator.parse();
 					} catch (Exception e) {
 						String desc = "Error occurred while instantiating and executing a temporary parser: "+temporaryParserClass.getCanonicalName();
+						e.printStackTrace();
 						if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
 						return new Result(StaticError.make(desc, f.toString()));
 					} 

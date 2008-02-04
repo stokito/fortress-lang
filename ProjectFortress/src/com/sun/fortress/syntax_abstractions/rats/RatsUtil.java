@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import xtc.parser.Action;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
@@ -237,7 +238,23 @@ public abstract class RatsUtil {
 		m.dependencies = dependencies;
 
 		m.documentation = getComment();
+		m.header = createHeader();
 		return m;
+	}
+	
+	/** 
+	 * In the generated module we use maps to associate variable names to their values
+	 * @return
+	 */
+	private static Action createHeader() {
+		List<String> imports = new LinkedList<String>();
+		List<Integer> indents = new LinkedList<Integer>();
+		indents.add(3);
+		imports.add("import java.util.Map;");
+		indents.add(3);
+		imports.add("import java.util.HashMap;");
+		Action a = new Action(imports, indents);
+		return a;
 	}
 
 	/**
