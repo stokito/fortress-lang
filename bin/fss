@@ -77,4 +77,4 @@ else
 fi
 
 java -cp "$CP" -Dfortress.static.analysis=1 \
-com.sun.fortress.shell.Shell "$PWD" "$@"
+com.sun.fortress.shell.Shell "$@"
