@@ -117,7 +117,7 @@ public class CommandInterpreter {
         Driver.evalComponent(Option.unwrap(makeCompilationUnit(fileName)), new PathBasedRepository(ProjectProperties.SOURCE_PATH)); 
     }
     
-    void run(String fileName) throws UserError, IOException, Throwable {
+    void run(String fileName, List<String> args) throws UserError, IOException, Throwable {
         try {
             //FortressRepository fileBasedRepository = new FileBasedRepository(shell.getPwd());
             Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
@@ -137,7 +137,7 @@ public class CommandInterpreter {
                 fileName = fileName.substring(0, fileName.length() - ProjectProperties.COMP_SOURCE_SUFFIX.length());
             }
             
-            Iterable<? extends StaticError> errors = fortress.run(path, fileName);
+            Iterable<? extends StaticError> errors = fortress.run(path, fileName, args);
         
             for (StaticError error: errors) { System.err.println(error); }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.

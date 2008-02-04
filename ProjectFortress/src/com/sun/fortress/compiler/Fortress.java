@@ -293,7 +293,7 @@ public class Fortress {
         return IterUtil.empty();
     }
     
-    public Iterable<? extends StaticError>  run(Path path, String componentName) {
+    public Iterable<? extends StaticError>  run(Path path, String componentName, List<String> args) {
         BatchCachingAnalyzingRepository bcr = new BatchCachingAnalyzingRepository(false,
                 //new PathBasedSyntaxTransformingRepository
                         (path),
@@ -310,7 +310,7 @@ public class Fortress {
                 CompilationUnit cu = bcr.getLinkedComponent(NodeFactory.makeAPIName(componentName)).ast();
                 Driver.runProgram(bcr,
                         cu,
-                        new ArrayList<String>());
+                        args);
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                 if (th instanceof FortressError) {

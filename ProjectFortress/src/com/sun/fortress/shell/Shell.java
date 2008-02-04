@@ -75,20 +75,19 @@ public final class Shell {
     private void printUsageMessage() {
         System.err.println("Usage:");
         System.err.println("  " + COMPILE_PATTERN);
-        System.err.println("  " + SELF_UPGRADE_PATTERN);
-        System.err.println("  " + SCRIPT_PATTERN);
+        //System.err.println("  " + SELF_UPGRADE_PATTERN);
+        //System.err.println("  " + SCRIPT_PATTERN);
         System.err.println("  " + RUN_PATTERN);
-        System.err.println("  " + API_PATTERN);
-        System.err.println("  " + LINK_PATTERN);
-        System.err.println("  " + UPGRADE_PATTERN);
+        //System.err.println("  " + API_PATTERN);
+        //System.err.println("  " + LINK_PATTERN);
+        //System.err.println("  " + UPGRADE_PATTERN);
         System.err.println("  " + EXISTS_PATTERN);
     }
 
     /* Main entry point for the fortress shell.*/
     public void execute(String[] tokens) throws InterruptedException, Throwable {
-        // First argument is supplied by the fss script and always present; it's simple $PWD.
-
-        if (tokens.length == 1) {
+      
+        if (tokens.length == 0) {
             printUsageMessage();
             System.exit(-1);
         }
@@ -103,14 +102,16 @@ public final class Shell {
 
         // Now match the assembled string.
         try {
-            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(tokens[2]); }
-            else if (msg.matches(SELF_UPGRADE_PATTERN)) { interpreter.selfUpgrade(tokens[2]); }
-            else if (msg.matches(SCRIPT_PATTERN)) { interpreter.script(tokens[2]); }
-            else if (msg.matches(RUN_PATTERN)) { interpreter.run(tokens[2]); }
-            else if (msg.matches(API_PATTERN)) { interpreter.api(tokens[2]); }
-            else if (msg.matches(LINK_PATTERN)) { interpreter.link(tokens[2], tokens[4], tokens[6]); }
-            else if (msg.matches(UPGRADE_PATTERN)) { interpreter.upgrade(tokens[2], tokens[4], tokens[6]); }
-            else if (msg.matches(EXISTS_PATTERN)) { interpreter.exists(tokens[2]); }
+            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(tokens[1]); }
+            //else if (msg.matches(SELF_UPGRADE_PATTERN)) { interpreter.selfUpgrade(tokens[2]); }
+            //else if (msg.matches(SCRIPT_PATTERN)) { interpreter.script(tokens[2]); }
+            else if (msg.matches(RUN_PATTERN)) {
+                interpreter.run(tokens[1], Arrays.asList(tokens).subList(2, tokens.length));
+            }
+            //else if (msg.matches(API_PATTERN)) { interpreter.api(tokens[2]); }
+            //else if (msg.matches(LINK_PATTERN)) { interpreter.link(tokens[2], tokens[4], tokens[6]); }
+            //else if (msg.matches(UPGRADE_PATTERN)) { interpreter.upgrade(tokens[2], tokens[4], tokens[6]); }
+            else if (msg.matches(EXISTS_PATTERN)) { interpreter.exists(tokens[1]); }
             else { printUsageMessage(); }
         }
         catch (UserError error) {
