@@ -94,8 +94,8 @@ public final class Shell {
 
         // Otherwise, tokens.length > 1.
         // First assemble tokens into a single string we can match against.
-        StringBuilder msgBuffer = new StringBuilder(tokens[1]);
-        for (String token : Arrays.asList(tokens).subList(2, tokens.length)) {
+        StringBuilder msgBuffer = new StringBuilder(tokens[0]);
+        for (String token : Arrays.asList(tokens).subList(1, tokens.length)) {
             msgBuffer.append(" " + token);
         }
         String msg = msgBuffer.toString();
