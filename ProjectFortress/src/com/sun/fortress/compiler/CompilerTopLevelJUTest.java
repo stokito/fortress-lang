@@ -58,9 +58,14 @@ public class CompilerTopLevelJUTest extends TestCase {
         staticTests + "XXXUndefinedTopLevelVar.fss",
         /* Tests for Syntax abstractions */
         staticTests + "SyntaxHelloWorldUse.fss",
+        staticTests + "SyntaxHelloWorld.fss",
+        staticTests + "SyntaxGrammarImportsUse.fss",
+        staticTests + "XXXSyntaxGrammarImportsUse.fss",
+        staticTests + "SyntaxGrammarImports.fss",
+        staticTests + "SyntaxGrammarImportsA.fss",
         staticTests + "SyntaxProductionExtends.fsi",
         staticTests + "XXXSyntaxMultipleGrammarsWithSameName.fsi",
-        staticTests + "XXXSyntaxMultipleProductionsWithSameName.fsi",
+        staticTests + "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
         staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi",
         // really not working:
         // staticTests + "XXXSyntaxNoFortressAstImport.fsi",
@@ -85,8 +90,12 @@ public class CompilerTopLevelJUTest extends TestCase {
         for (File f : IOUtil.listFilesRecursively(new File(staticTests), filter)) {
             foundAFile = true;
             if (SKIP_NOT_PASSING && NOT_PASSING_FILES.contains(f)) { continue; }
-            else if (f.getName().contains("XXX")) { assertMalformedProgram(f); }
-            else { assertWellFormedProgram(f); }
+            else {
+            	System.out.println("Testing: "+f.getName());
+            	if (f.getName().contains("XXX")) { assertMalformedProgram(f); }
+            	else { assertWellFormedProgram(f); }
+            }
+            
         }
         assertTrue("No test files found in the static_tests directory", foundAFile);
     }

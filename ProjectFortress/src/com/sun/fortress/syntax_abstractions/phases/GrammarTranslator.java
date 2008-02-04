@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import xtc.parser.Action;
 import xtc.parser.AlternativeAddition;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
@@ -119,60 +120,6 @@ public class GrammarTranslator {
 		}
 
 		return grammarTranslator.new Result(ratsModules, keywords, keywordModules, errors);
-	}
-
-	/**
-	 * @param modules
-	 * @param e
-	 * @param ratsMacroDecls
-	 */
-	private Module createRatsModule(ModuleEnum e, Collection<RatsMacroDecl> ratsMacroDecls) {
-		Module m = null; //RatsUtil.makeEmptyExtendingRatsModule(e);
-
-		// Get the parameter which the Fortress grammar Rats! files use
-		List<ModuleName> parameters = ModuleInfo.getParameters(e);
-		List<ModuleDependency> dependencies = ModuleInfo.getModuleModification(e);
-
-
-		Map<ProductionEnum,AlternativeAddition> prods = new HashMap<ProductionEnum,AlternativeAddition>();
-		for (RatsMacroDecl ratsMacroDecl: ratsMacroDecls) {
-
-			// Add any additional parameters and dependencies to the module:
-			parameters.addAll(ratsMacroDecl.getParameters());
-			m.parameters = new ModuleList(removeDuplicates(parameters));
-
-			dependencies.addAll(ratsMacroDecl.getDependencies());
-			m.dependencies = removeDuplicates(dependencies);
-
-			/* If we haven't seen this production before we need to
-			 * create it
-			 */ 
-			if (!prods.keySet().contains(ratsMacroDecl.getProduction())) {
-				prods.put(ratsMacroDecl.getProduction(), 
-						new AlternativeAddition(ModuleInfo.getProductionReturnType(ratsMacroDecl.getProduction()),
-								new NonTerminal(ModuleInfo.getProductionName(ratsMacroDecl.getProduction())),
-								new OrderedChoice(ratsMacroDecl.getSequence()), 
-								new SequenceName(ModuleInfo.getExtensionPoint(ratsMacroDecl.getProduction().name())),false));
-			}
-			else {
-				/*
-				 * If we already have seen this production, then just add another alternative
-				 */
-				// TODO
-//				AlternativeAddition oldChoice = prods.get(ratsMacroDecl.getProduction()).choice;
-//				OrderedChoice choice = new AlternativeAddition(oldChoice.getName(),
-//				oldChoice.name,
-//				oldChoice.choice
-//				oldChoice.sequence);
-//				choice.add(ratsMacroDecl.getSequence());
-//				prods.get(ratsMacroDecl.getProduction()).choice = choice ;
-			}
-		}
-		List<Production> productions = new LinkedList<Production>();
-		productions.addAll(prods.values());
-		m.productions = productions;
-
-		return m;
 	}
 
 	private <T> List<T> removeDuplicates(List<T> cs) {

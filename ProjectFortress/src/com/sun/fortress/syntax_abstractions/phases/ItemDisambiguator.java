@@ -81,6 +81,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	private GlobalEnvironment _globalEnv;
 	private GrammarIndex _currentGrammarIndex;
 	private ApiIndex _currentApi;
+	private String _currentItem;
 
 	public ItemDisambiguator(GlobalEnvironment env) {
 		this._errors = new LinkedList<StaticError>();
@@ -184,6 +185,10 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 		if (n == null) {
 			error("Unknown item symbol: "+that, that);
 		}
+		if (n instanceof NonterminalSymbol ||
+			n instanceof KeywordSymbol) {
+			this._currentItem = that.getItem();
+		}
 		return n;
 	}
 
@@ -237,11 +242,11 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 			return NodeFactory.makeQualifiedIdName(span, item);
 		}
 	}
-
+	
 	@Override
 	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
 			final Option<Id> id_result, SyntaxSymbol symbol_result) {
-
+		
 		SyntaxSymbol s = symbol_result;
 		Node n = s.accept(new NodeUpdateVisitor(){
 			@Override
@@ -249,6 +254,11 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				return handle(that, that.getItem());
 			}
 
+			@Override
+			public Node forNonterminalSymbol(NonterminalSymbol that) {
+				return handle(that, _currentItem);
+			}
+			
 			@Override
 			public Node forKeywordSymbol(KeywordSymbol that) {
 				return handle(that, that.getToken());

@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
@@ -45,12 +47,15 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -65,6 +70,7 @@ import xtc.util.Utilities;
 
 public class ActionCreater {
 
+	private static final String BOUND_VARIABLES = "boundVariables";
 	private static final String PACKAGE = "com.sun.fortress.syntax_abstractions.util";
 	private static final String FORTRESS_AST = "FortressAst";
 
@@ -84,7 +90,7 @@ public class ActionCreater {
 	private static final Id ANY = new Id("Any");
 	private static final Id STRING = new Id("String");
 
-	public static Result create(String productionName, Expr e, String returnType) {
+	public static Result create(String productionName, Expr e, String returnType, Collection<String> boundVariables) {
 		ActionCreater ac = new ActionCreater();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 
@@ -92,26 +98,37 @@ public class ActionCreater {
 		String serializedComponent = "";
 		try {
 			serializedComponent = ac.writeJavaAST(component);
+//			System.err.println(serializedComponent);
 		} catch (IOException e1) {
-			// System.err.println(e1.getMessage());
 			errors.add(StaticError.make(e1.getMessage(), e.getSpan().toString()));
 		}
+		List<Integer> indents = new LinkedList<Integer>();		
+		List<String> code = createVariabelBinding(indents, boundVariables);
+		code.addAll(createRatsAction(serializedComponent, indents));
+		indents.add(3);
+		code.add("System.err.println(\"Parsing... production: "+productionName+"\");");
+		indents.add(3);
+		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(createSpan(yyStart,yyCount), \""+productionName+"\", code, "+BOUND_VARIABLES+").value());");
+//		System.err.println(code);
+		Action a = new Action(code, indents);
 
-		List<Integer> indents = new LinkedList<Integer>();
-//		FortressObjectASTToJavaFortressAST fortressToJava = new FortressObjectASTToJavaFortressAST();
-//		InterpreterWrapper eval = new InterpreterWrapper();
-//		List<String> ls = fortressToJava.dispatch(eval.evalExpression(e));
-//		Iterator<String> it = ls.iterator();
-//		String stms = "";
-//		while (it.hasNext()) {
-//		String s = it.next();
-//		if (!it.hasNext()) {
-//		stms += "yyValue = ";
-//		}
-//		stms += s+";\n";
-//		}
-		String[] sc = Utilities.SPACE_NEWLINE_SPACE.split(serializedComponent);
+		return ac.new Result(a, errors);
+	}
+
+	private static List<String> createVariabelBinding(List<Integer> indents, Collection<String> boundVariables) {
 		List<String> code = new LinkedList<String>();
+		indents.add(3);
+		code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
+		for(String s: boundVariables) {
+			indents.add(3);
+			code.add(BOUND_VARIABLES+".put(\""+s+"\""+", "+s+");");
+		}
+		return code;
+	}
+
+	private static List<String> createRatsAction(String serializedComponent, List<Integer> indents) {
+		List<String> code = new LinkedList<String>();
+		String[] sc = Utilities.SPACE_NEWLINE_SPACE.split(serializedComponent);
 		indents.add(3);
 		code.add("String code = "+"\""+sc[0].replaceAll("\"", "\\\\\"") + " \"+");
 		for (int inx = 1; inx < sc.length; inx++) {
@@ -125,14 +142,7 @@ public class ActionCreater {
 			indents.add(3);
 			code.add(s);
 		}
-		indents.add(3);
-		code.add("System.err.println(\"Parsing... production: "+productionName+"\");");
-		indents.add(3);
-		code.add("yyValue = (new "+PACKAGE+".FortressObjectASTVisitor<"+returnType+">()).dispatch((new "+PACKAGE+".InterpreterWrapper()).evalComponent(\""+productionName+"\", code).value());");
-		// System.err.println(code);
-		Action a = new Action(code, indents);
-
-		return ac.new Result(a, errors);
+		return code;
 	}
 
 	private Component makeComponent(Expr expression) {
@@ -148,12 +158,9 @@ public class ActionCreater {
 
 		// Decls:
 		List<Decl> decls = new LinkedList<Decl>();
-		TraitDecl objectTrait = new TraitDecl(ANY, new LinkedList<Decl>());
-		decls.add(objectTrait);
 		// entry point
 		List<Param> params = new LinkedList<Param>();
 		decls.add(makeFunction(InterpreterWrapper.FUNCTIONNAME, ANY, expression));
-		//decls.add(makeFunction("run", STRING, expression));
 		return new Component(span, name, imports, exports, decls);
 	}
 

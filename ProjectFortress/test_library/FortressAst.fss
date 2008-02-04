@@ -194,7 +194,7 @@ component FortressAst
       body:List[\Expr\]
    end
    object LetFn(body:List[\Expr\], fns:List[\FnDef\]) extends LetExpr end
-   object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteral\]) extends LetExpr end
+   object LocalVarDecl(lhs:List[\LValue\], rhs:Maybe[\IntLiteralExpr\]) extends LetExpr end
 
    object GeneratedExpr(expr:Expr, gens:List[\Generator\]) extends Expr end
 
@@ -226,17 +226,17 @@ component FortressAst
 
    object VarRef(avar:QualifiedIdName) extends { BaseExpr, Lhs } end
 
-   trait Literal extends BaseExpr
-      text:String
+   trait LiteralExpr extends BaseExpr
+      val:String
    end
 
-   trait NumberLiteral extends Literal end
-   object FloatLiteral(text:String, intPart:ZZ64, numerator:ZZ64, denomBase:ZZ32, denomPower:ZZ32) extends NumberLiteral end
-   object IntLiteral(val:ZZ32) extends NumberLiteral end
+   trait NumberLiteralExpr extends LiteralExpr end
+   object FloatLiteralExpr(val:String, intPart:ZZ64, numerator:ZZ64, denomBase:ZZ32, denomPower:ZZ32) extends NumberLiteralExpr end
+   object IntLiteralExpr(val:ZZ32) extends NumberLiteralExpr end
 
-   object CharLiteral(val:ZZ32) extends Literal end
-   object StringLiteral(val:String) extends Literal end
-   object VoidLiteral(text:String = "") extends Literal end
+   object CharLiteralExpr(val:ZZ32) extends LiteralExpr end
+   object StringLiteralExpr(val:String) extends LiteralExpr end
+   object VoidLiteralExpr(val:String = "") extends LiteralExpr end
 
 
    trait Aggregate extends BaseExpr end

@@ -39,7 +39,7 @@ public class JavaC {
 	static final String nl = "\n";
 	
 	public static int compile(String dir, String filename) {
-		System.err.println("compiling...");
+		System.err.println("compiling a temporary parser...");
 		String classpath = dir+":"+getFortressThirdPartyDependencyJars()+":"+getFortressBuildDir();
 		String[] args = {"-cp", classpath , "-d", dir, dir+filename};
 		StringWriter sw = new StringWriter();
