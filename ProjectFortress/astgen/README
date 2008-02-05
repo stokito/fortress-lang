@@ -6,75 +6,197 @@
  - ImportApi
  - AliasedSimpleName
  - AliasedAPIName
- - Export
+ - Export                       : ???
  - AbsTraitDecl
  - TraitDecl
  - AbsObjectDecl
  - ObjectDecl
- - AbsVarDecl
+ - AbsVarDecl                   : ???
  - VarDecl
  - LValueBind
- - UnpastingBind        : NYI
- - UnpastingSplit       : NYI
- - AbsFnDecl
+ - UnpastingBind        	: NYI
+ - UnpastingSplit       	: NYI
+ - AbsFnDecl                    : ???
  - FnDef
  - NormalParam
  - VarargsParam
- - DimUnitDecl          : NYI
- - TestDecl             : NYI
- - PropertyDecl         : NYI
- - AbsExternalSyntax    : NYI
- - ExternalSyntax       : NYI
-
- - ModifierAbstract     : NYI
- - ModifierAtomic       : NYI
- - ModifierGetter       : NYI
- - ModifierHidden       : NYI
- - ModifierIO           : NYI
- - ModifierOverride     : NYI
- - ModifierPrivate      : NYI
- - ModifierSettable     : NYI
- - ModifierSetter       : NYI
- - ModifierTest         : NYI
- - ModifierTransient    : NYI
- - ModifierValue        : NYI
- - ModifierVar          : NYI
- - ModifierWidens       : NYI
- - ModifierWrapped      : NYI
- - OperatorParam
- - BoolParam
- - DimensionParam
- - IntParam
- - NatParam
- - SimpleTypeParam
- - UnitParam
- - APIName
- - QualifiedIdName
- - QualifiedOpName      : internal
- - Id
- - Op
- - PostFix
- - Enclosing
- - AnonymousFnName      : internal
- - ConstructorFnName    : internal
- - ArrayComprehensionClause
- - Binding
- - CaseClause
- - Catch
- - CatchClause
- - DoFront
- - IfClause
- - TypecaseClause
- - ExtentRange
- - GeneratorClause
- - VarargsExpr
- - VarargsType
- - KeywordType
- - TraitTypeWhere
- - Indices
- - SquareDimUnit        : NYI
- - CubicDimUnit         : NYI
- - InverseDimUnit       : NYI
+ - DimUnitDecl          	: ???
+ - TestDecl             	: NYI
+ - PropertyDecl         	: NYI
+ - AbsExternalSyntax    	: NYI
+ - ExternalSyntax       	: NYI
+ - AsExpr                       : Evaluator
+ - AsIfExpr                     : Evaluator
+ - Assignment                   : Evaluator
+ - Block                        : Evaluator
+ - CaseExpr                     : Evaluator
+ - Do                           : Evaluator
+ - For
+ - If                           : Evaluator
+ - Label                        : Evaluator
+ - ObjectExpr                   : rewritten to _RewriteObjectExpr
+ - _RewriteObjectExpr           : internal -- Evaluator
+ - Try                          : Evaluator
+ - TupleExpr                    : Evaluator
+ - Typecase                     : Evaluator
+ - While                        : Evaluator
+ - Accumulator                  : ???
+ - ArrayComprehension           : NYI
+ - AtomicExpr                   : Evaluator
+ - Exit                         : Evaluator
+ - Spawn
+ - Throw                        : Evaluator
+ - TryAtomicExpr                : Evaluator
+ - FnExpr                       : Evaluator
+ - LetFn
+ - LocalVarDecl
+ - GeneratedExpr
+ - SubscriptExpr                : Evaluator
+ - FloatLiteralExpr             : Evaluator
+ - IntLiteralExpr               : Evaluator
+ - CharLiteralExpr              : Evaluator
+ - StringLiteralExpr            : Evaluator
+ - VoidLiteralExpr              : Evaluator
+ - VarRef                       : Evaluator
+ - FieldRef                     : Evaluator
+ - FieldRefForSure              : internal
+ - _RewriteFieldRef             : internal
+ - FnRef                        : Evaluator
+ - _RewriteFnRef                : internal
+ - OpRef                        : Evaluator (forOprExpr)
+ - LooseJuxt                    : Evaluator
+ - TightJuxt                    : Evaluator
+ - OprExpr                      : Evaluator
+ - CoercionInvocation           : NYI
+ - MethodInvocation             : Evaluator
+ - MathPrimary                  : Evaluator
+ - ChainExpr                    : Evaluator
+ - ArrayElement                 : Evaluator
+ - ArrayElements                : Evaluator
+ - ExponentType                 : internal
+ - BaseDim                      : NYI
+ - DimRef                       : NYI
+ - ProductDim                   : NYI
+ - QuotientDim                  : NYI
+ - ExponentDim                  : NYI
+ - OpDim                        : NYI
+ - ArrowType                    : EvalType
+ - _RewriteGenericArrowType     : internal
+ - BottomType                   : internal
+ - ArrayType                    : EvalType
+ - IdType                       : EvalType
+ - InferenceVarType             : internal
+ - MatrixType                   : EvalType
+ - InstantiatedType             : EvalType
+ - TupleType                    : EvalType
+ - VoidType                     : EvalType
+ - IntersectionType             : internal
+ - UnionType                    : internal
+ - AndType                      : internal
+ - OrType                       : internal
+ - TaggedDimType                : NYI
+ - TaggedUnitType               : NYI
+ - IdArg                        : NYI
+ - TypeArg                      : EvalType
+ - IntArg                       : EvalType
+ - BoolArg                      : EvalType
+ - OprArg                       : EvalType
+ - DimArg                       : NYI
+ - UnitArg                      : NYI
+ - _RewriteImplicitType         : internal
+ - _RewriteIntersectionType     : internal
+ - _RewriteUnionType            : internal
+ - _RewriteFixedPointType       : internal
+ - NumberConstraint             : EvalType (forIntArg)
+ - IntRef                       : EvalType (forIntArg)
+ - SumConstraint                : EvalType (forIntArg)
+ - MinusConstraint              : EvalType (forIntArg)
+ - ProductConstraint            : EvalType (forIntArg)
+ - ExponentConstraint           : NYI
+ - BoolConstant                 : EvalType
+ - BoolRef
+ - NotConstraint
+ - OrConstraint
+ - AndConstraint
+ - ImpliesConstraint
+ - BEConstraint
+ - WhereClause                  : NYI
+ - WhereType                    : NYI
+ - WhereNat                     : NYI
+ - WhereInt                     : NYI
+ - WhereBool
+ - WhereUnit
+ - WhereExtends
+ - TypeAlias
+ - WhereCoerces
+ - WhereWidens
+ - WhereWidensCoerces
+ - WhereEquals
+ - UnitConstraint
+ - LEConstraint
+ - LTConstraint
+ - GEConstraint
+ - GTConstraint
+ - IEConstraint
+ - BoolConstraintExpr
+ - Contract                     : NYI
+ - EnsuresClause                : NYI
+ - ModifierAbstract     	: NYI
+ - ModifierAtomic       	: NYI
+ - ModifierGetter       	: NYI
+ - ModifierHidden       	: NYI
+ - ModifierIO           	: NYI
+ - ModifierOverride     	: NYI
+ - ModifierPrivate      	: NYI
+ - ModifierSettable     	: NYI
+ - ModifierSetter       	: NYI
+ - ModifierTest         	: NYI
+ - ModifierTransient    	: NYI
+ - ModifierValue        	: NYI
+ - ModifierVar          	: NYI
+ - ModifierWidens       	: NYI
+ - ModifierWrapped      	: NYI
+ - OperatorParam                : EvalType (bindGenericParameters)
+ - BoolParam                    : EvalType (bindGenericParameters)
+ - DimensionParam               : NYI
+ - IntParam                     : EvalType (bindGenericParameters)
+ - NatParam                     : EvalType (bindGenericParameters)
+ - SimpleTypeParam              : EvalType (bindGenericParameters)
+ - UnitParam                    : NYI
+ - APIName                      : Evaluator
+ - QualifiedIdName              : Evaluator
+ - QualifiedOpName      	: internal
+ - Id                           : Evaluator
+ - Op                           : Evaluator
+ - Enclosing                    : Evaluator
+ - AnonymousFnName      	: internal
+ - ConstructorFnName            : internal
+ - ArrayComprehensionClause     : NYI
+ - Binding                      : NYI (keyword parameters)
+ - CaseClause                   : Evaluator (forCaseExpr)
+ - Catch                        : Evaluator (forTry)
+ - CatchClause                  : Evaluator (forTry)
+ - DoFront                      : Evaluator (forDo)
+ - IfClause                     : Evaluator (forIf)
+ - TypecaseClause               : Evaluator (forTypecase)
+ - ExtentRange                  : NYI (unpasting)
+ - GeneratorClause              : Evaluator
+ - VarargsExpr                  : ??? -- David
+ - VarargsType                  : EvalType
+ - KeywordType                  : NYI
+ - TraitTypeWhere               : NYI
+ - Indices                      : EvalType (forArrayType)
+ - ParenthesisDelimitedMI       : Evaluator (forMathPrimary)
+ - NonParenthesisDelimitedMI    : Evaluator (forMathPrimary)
+ - ExponentiationMI             : Evaluator (forMathPrimary)
+ - SubscriptingMI               : Evaluator (forMathPrimary)
+ - InFixity                     : OprUtil
+ - PreFixity                    : OprUtil
+ - PostFixity                   : OprUtil
+ - NoFixity                     : OprUtil
+ - MultiFixity                  : OprUtil
+ - EnclosingFixity              : OprUtil
+ - BigFixity                    : OprUtil
 
 
 * Differences between the Concrete Syntax Grammar (CSG) in the specification

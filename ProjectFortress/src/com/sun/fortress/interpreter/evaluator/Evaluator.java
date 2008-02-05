@@ -769,10 +769,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         throw e;
     }
 
-    public FValue forExport(Export x) {
-        return null;
-    }
-
     public FValue forExtentRange(ExtentRange x) {
         return NI("forExtentRange");
     }
@@ -1703,18 +1699,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else {
             throw new MatchFailure();
         }
-    }
-
-    public FValue forTypecaseClause(TypecaseClause x) {
-        return NI("forTypeClause");
-    }
-
-    public FValue forTypeArg(TypeArg x) {
-        return NI("forTypeArg");
-    }
-
-    public FValue forDimArg(DimArg x) {
-        return NI("forDimArg");
     }
 
     public FValue forDimUnitDecl(DimUnitDecl x) {
