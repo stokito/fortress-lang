@@ -67,10 +67,7 @@ import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.AbstractFieldRef;
-import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
@@ -88,7 +85,6 @@ import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
@@ -136,7 +132,6 @@ import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.QualifiedOpName;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
-import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
@@ -230,10 +225,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue NI(String s, AbstractNode n) {
         return bug(n, this.getClass().getName() + "." + s
                 + " not implemented, input \n" + NodeUtil.dump(n));
-    }
-
-    public FValue forAccumulator(Accumulator x) {
-        return NI("forAccumulator");
     }
 
     public FValue forAsExpr(AsExpr x) {
@@ -898,10 +889,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Closure cl = new Closure(e, x); // , return_type, params);
         cl.finishInitializing();
         return cl;
-    }
-
-    public FValue forAbsFnDecl(AbsFnDecl x) {
-        return NI("forAbsFnDecl");
     }
 
     public FValue forGeneratorClause(GeneratorClause x) {
@@ -1701,20 +1688,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forDimUnitDecl(DimUnitDecl x) {
-        return NI("forDimUnitDecl");
-    }
-
     public FValue forUnpastingBind(UnpastingBind x) {
         return NI("forUnpastingBind");
     }
 
     public FValue forUnpastingSplit(UnpastingSplit x) {
         return NI("forUnpastingSplit");
-    }
-
-    public FValue forAbsVarDecl(AbsVarDecl x) {
-        return NI("forAbsVarDecl");
     }
 
     public FValue forVarRef(VarRef x) {
