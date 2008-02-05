@@ -196,6 +196,7 @@ public class ProjectProperties {
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${BASEDIR}.interpreter_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${BASEDIR}.analyzed_cache");
+    public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${BASEDIR}.syntax_cache");
     
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
    
@@ -206,6 +207,7 @@ public class ProjectProperties {
     static {
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
+        ensureDirectoryExists(SYNTAX_CACHE_DIR);
     }
 
 
