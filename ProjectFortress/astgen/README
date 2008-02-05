@@ -1,26 +1,26 @@
-* Where each AST node (that is concrete) is evaluated
- - Component
- - Api
- - ImportStar
- - ImportNames
- - ImportApi
- - AliasedSimpleName
- - AliasedAPIName
- - Export                       : ???
- - AbsTraitDecl
- - TraitDecl
- - AbsObjectDecl
- - ObjectDecl
- - AbsVarDecl                   : ???
- - VarDecl
- - LValueBind
+* Where each concrete AST node is evaluated or not yet implemented (NYI)
+ - Component                    : BuildEnvironments
+ - Api                          : BuildEnvironments
+ - ImportStar                   : Driver (injectExplicitImports)
+ - ImportNames                  : Driver (injectExplicitImports)
+ - ImportApi                    : Driver (injectExplicitImports)
+ - AliasedSimpleName            : Driver (injectExplicitImports)
+ - AliasedAPIName               : Driver (injectExplicitImports)
+ - Export                       : NYI
+ - AbsTraitDecl                 : BuildEnvironments
+ - TraitDecl                    : BuildEnvironments
+ - AbsObjectDecl                : BuildEnvironments
+ - ObjectDecl                   : BuildEnvironments
+ - AbsVarDecl                   : BuildEnvironments
+ - VarDecl                      : BuildEnvironments
+ - LValueBind                   : BuildLetEnvironments (forLocalVarDecl)
  - UnpastingBind        	: NYI
  - UnpastingSplit       	: NYI
- - AbsFnDecl                    : ???
- - FnDef
- - NormalParam
- - VarargsParam
- - DimUnitDecl          	: ???
+ - AbsFnDecl                    : BuildEnvironments
+ - FnDef                        : BuildEnvironments
+ - NormalParam                  : EvalType (paramsToParameters)
+ - VarargsParam                 : EvalType (paramsToParameters)
+ - DimUnitDecl          	: NYI
  - TestDecl             	: NYI
  - PropertyDecl         	: NYI
  - AbsExternalSyntax    	: NYI
@@ -31,7 +31,7 @@
  - Block                        : Evaluator
  - CaseExpr                     : Evaluator
  - Do                           : Evaluator
- - For
+ - For                          : Desugarer
  - If                           : Evaluator
  - Label                        : Evaluator
  - ObjectExpr                   : rewritten to _RewriteObjectExpr
@@ -40,17 +40,17 @@
  - TupleExpr                    : Evaluator
  - Typecase                     : Evaluator
  - While                        : Evaluator
- - Accumulator                  : ???
+ - Accumulator                  : Desugarer
  - ArrayComprehension           : NYI
  - AtomicExpr                   : Evaluator
  - Exit                         : Evaluator
- - Spawn
+ - Spawn                        : Desugarer
  - Throw                        : Evaluator
  - TryAtomicExpr                : Evaluator
  - FnExpr                       : Evaluator
- - LetFn
- - LocalVarDecl
- - GeneratedExpr
+ - LetFn                        : BuildLetEnvironments
+ - LocalVarDecl                 : BuildLetEnvironments
+ - GeneratedExpr                : Desugarer
  - SubscriptExpr                : Evaluator
  - FloatLiteralExpr             : Evaluator
  - IntLiteralExpr               : Evaluator
@@ -114,31 +114,31 @@
  - ProductConstraint            : EvalType (forIntArg)
  - ExponentConstraint           : NYI
  - BoolConstant                 : EvalType
- - BoolRef
- - NotConstraint
- - OrConstraint
- - AndConstraint
- - ImpliesConstraint
- - BEConstraint
+ - BoolRef                      : NYI
+ - NotConstraint                : NYI
+ - OrConstraint                 : NYI
+ - AndConstraint                : NYI
+ - ImpliesConstraint            : NYI
+ - BEConstraint                 : NYI
  - WhereClause                  : NYI
  - WhereType                    : NYI
  - WhereNat                     : NYI
  - WhereInt                     : NYI
- - WhereBool
- - WhereUnit
- - WhereExtends
- - TypeAlias
- - WhereCoerces
- - WhereWidens
- - WhereWidensCoerces
- - WhereEquals
- - UnitConstraint
- - LEConstraint
- - LTConstraint
- - GEConstraint
- - GTConstraint
- - IEConstraint
- - BoolConstraintExpr
+ - WhereBool                    : NYI
+ - WhereUnit                    : NYI
+ - WhereExtends                 : NYI
+ - TypeAlias                    : NYI
+ - WhereCoerces                 : NYI
+ - WhereWidens                  : NYI
+ - WhereWidensCoerces           : NYI
+ - WhereEquals                  : NYI
+ - UnitConstraint               : NYI
+ - LEConstraint                 : NYI
+ - LTConstraint                 : NYI
+ - GEConstraint                 : NYI
+ - GTConstraint                 : NYI
+ - IEConstraint                 : NYI
+ - BoolConstraintExpr           : NYI
  - Contract                     : NYI
  - EnsuresClause                : NYI
  - ModifierAbstract     	: NYI
@@ -181,7 +181,7 @@
  - TypecaseClause               : Evaluator (forTypecase)
  - ExtentRange                  : NYI (unpasting)
  - GeneratorClause              : Evaluator
- - VarargsExpr                  : ??? -- David
+ - VarargsExpr                  : NYI
  - VarargsType                  : EvalType
  - KeywordType                  : NYI
  - TraitTypeWhere               : NYI
