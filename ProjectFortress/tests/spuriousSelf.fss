@@ -40,7 +40,7 @@ trait List[\E\] extends { Indexed[\E,ZZ32\] } excludes { Number, HasRank }
 end
 
 (** Vararg factory for lists; provides aggregate list constants *)
-opr [\E\]<| xs: E... |>: List[\E\] = fromArray(xs)
+opr <|[\E\] xs: E... |>: List[\E\] = fromArray(xs)
 
 fromArray[\E, nat n\](f: ReadableArray1[\E,0,n\]): Alr[\E,n\] =
     Alr[\E,n\]( f, 0, n )

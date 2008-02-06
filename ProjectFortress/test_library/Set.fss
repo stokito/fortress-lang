@@ -71,10 +71,10 @@ set[\E\](): Set[\E\] = EmptySet[\E\]()
 set[\E\](g: Generator[\E\]): Set[\E\] =
     g.generate[\Set[\E\]\](Union[\E\](), singleton[\E\])
 
-opr [\E\]{ es: E... }: Set[\E\] =
+opr {[\E\] es: E... }: Set[\E\] =
     es.generate[\Set[\E\]\](Union[\E\](),
                                 fn (e:E): Set[\E\] => singleton[\E\](e))
-opr BIG [\T,U\]{ g: ( Reduction[\SomeCovariantCollection\],
+opr BIG {[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection } : Set[\U\] =
     set(g(CVReduction,fn x => CVUnit(x)))

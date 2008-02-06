@@ -983,7 +983,7 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
 
 squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T
 
-opr [\ T extends Number, nat k \]||me : Vector[\T,k\]|| : RR64
+opr ||[\ T extends Number, nat k \]me : Vector[\T,k\]|| : RR64
 
 (** Array2[\T,b0,s0,b1,s1\] is the type of 2-dimensional arrays of
     element type T, with size s0 in the first dimension and s1 in the
@@ -1339,7 +1339,7 @@ opr :[\I extends Integral, J extends Integral, K extends Integral\]
 (*
 opr [\T\](x:T)# : LowerRange[\T\]
 *)
-opr [\T\](x:T): : LowerRange[\T\]
+opr (x:T):[\T\] : LowerRange[\T\]
 opr #[\T\](x:T) : ExtentRange[\T\]
 
 (*
@@ -1352,7 +1352,7 @@ opr :(): OpenRange[\Any\]
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 
-opr [\ N extends Integral \]|x:N|
+opr |[\ N extends Integral \]x:N|
 
 opr -(a:ZZ32):ZZ32
 opr +(a:ZZ32,b:ZZ32):ZZ32
