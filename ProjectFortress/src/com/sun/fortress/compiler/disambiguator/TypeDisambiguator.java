@@ -62,358 +62,384 @@ import com.sun.fortress.useful.HasAt;
  */
 public class TypeDisambiguator extends NodeUpdateVisitor {
 
-	private TypeNameEnv _env;
-	private Set<SimpleName> _onDemandImports;
-	private List<StaticError> _errors;
+ private TypeNameEnv _env;
+ private Set<SimpleName> _onDemandImports;
+ private List<StaticError> _errors;
 
-	public TypeDisambiguator(TypeNameEnv env, Set<SimpleName> onDemandImports,
-			List<StaticError> errors) {
-		_env = env;
-		_onDemandImports = onDemandImports;
-		_errors = errors;
-	}
+ public TypeDisambiguator(TypeNameEnv env, Set<SimpleName> onDemandImports,
+   List<StaticError> errors) {
+  _env = env;
+  _onDemandImports = onDemandImports;
+  _errors = errors;
+ }
 
-	private void error(String msg, HasAt loc) {
-		_errors.add(StaticError.make(msg, loc));
-	}
+ private void error(String msg, HasAt loc) {
+  _errors.add(StaticError.make(msg, loc));
+ }
 
-	/**
-	 * Return a new TypeDisambiguator
-	 * that includes the given type variables in its environment.
-	 */
-	private TypeDisambiguator extend(List<StaticParam> typeVars) {
-		TypeNameEnv newEnv = new LocalStaticParamEnv(_env, typeVars);
-		return new TypeDisambiguator(newEnv, _onDemandImports, _errors);
-	}
+ /**
+  * Return a new TypeDisambiguator
+  * that includes the given type variables in its environment.
+  */
+ private TypeDisambiguator extend(List<StaticParam> typeVars) {
+  TypeNameEnv newEnv = new LocalStaticParamEnv(_env, typeVars);
+  return new TypeDisambiguator(newEnv, _onDemandImports, _errors);
+ }
 
-	/**
-	 * When recurring on an AbsTraitDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
+ /**
+  * When recurring on an AbsTraitDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forAbsTraitDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(Id) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				v.recurOnListOfTraitType(that.getExcludes()),
-				v.recurOnOptionOfListOfTraitType(that.getComprises()),
-				v.recurOnListOfAbsDecl(that.getDecls()));
-	}
+  return forAbsTraitDeclOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (Id) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    v.recurOnListOfTraitType(that.getExcludes()),
+    v.recurOnOptionOfListOfTraitType(that.getComprises()),
+    v.recurOnListOfAbsDecl(that.getDecls()));
+ }
 
-	/**
-	 * When recurring on a TraitDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forTraitDecl(final TraitDecl that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
+ /**
+  * When recurring on a TraitDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forTraitDecl(final TraitDecl that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forTraitDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(Id) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				v.recurOnListOfTraitType(that.getExcludes()),
-				v.recurOnOptionOfListOfTraitType(that.getComprises()),
-				v.recurOnListOfDecl(that.getDecls()));
-	}
-
-
-	/**
-	 * When recurring on an AbsObjectDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
-
-		return forAbsObjectDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(Id) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				v.recurOnOptionOfListOfParam(that.getParams()),
-				v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
-				(Contract) that.getContract().accept(v),
-				v.recurOnListOfAbsDecl(that.getDecls()));
-	}
-
-	/**
-	 * When recurring on an ObjectDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forObjectDecl(final ObjectDecl that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
-
-		return forObjectDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(Id) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				v.recurOnOptionOfListOfParam(that.getParams()),
-				v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
-				(Contract) that.getContract().accept(v),
-				v.recurOnListOfDecl(that.getDecls()));
-	}
+  return forTraitDeclOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (Id) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    v.recurOnListOfTraitType(that.getExcludes()),
+    v.recurOnOptionOfListOfTraitType(that.getComprises()),
+    v.recurOnListOfDecl(that.getDecls()));
+ }
 
 
-	/**
-	 * When recurring on an AbsFnDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forAbsFnDecl(final AbsFnDecl that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
+ /**
+  * When recurring on an AbsObjectDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forAbsFnDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(SimpleName) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfParam(that.getParams()),
-				v.recurOnOptionOfType(that.getReturnType()),
-				v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				(Contract) that.getContract().accept(v));
-	}
+  return forAbsObjectDeclOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (Id) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    v.recurOnOptionOfListOfParam(that.getParams()),
+    v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+    (Contract) that.getContract().accept(v),
+    v.recurOnListOfAbsDecl(that.getDecls()));
+ }
 
-	/**
-	 * When recurring on a FnDecl, we first need to extend the
-	 * environment with all the newly bound static parameters.
-	 */
-	@Override public Node forFnDef(final FnDef that) {
-		TypeDisambiguator v = this.extend(that.getStaticParams());
+ /**
+  * When recurring on an ObjectDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forObjectDecl(final ObjectDecl that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-		return forFnDefOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(SimpleName) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfParam(that.getParams()),
-				v.recurOnOptionOfType(that.getReturnType()),
-				v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
-				(WhereClause) that.getWhere().accept(v),
-				(Contract) that.getContract().accept(v),
-				(Expr) that.getBody().accept(v));
-	}
+  return forObjectDeclOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (Id) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    v.recurOnOptionOfListOfParam(that.getParams()),
+    v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+    (Contract) that.getContract().accept(v),
+    v.recurOnListOfDecl(that.getDecls()));
+ }
 
-	@Override public Node forIdType(final IdType that) {
-		Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
-		Lambda<QualifiedIdName, Type> typeConsHandler =
-			new Lambda<QualifiedIdName, Type>() {
-			public Type value(QualifiedIdName n) {
-				TypeConsIndex typeCons = _env.typeConsIndex(n);
 
-				if (!typeCons.staticParameters().isEmpty()) {
-					error("Type requires static arguments: " + NodeUtil.nameString(n),
-							n);
-					return that;
-				}
-				return new InstantiatedType(n, Collections.<StaticArg>emptyList());
-			}
-		};
-		return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
-	}
+ /**
+  * When recurring on an AbsFnDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forAbsFnDecl(final AbsFnDecl that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-	@Override public Node forInstantiatedType(final InstantiatedType that) {
-		Thunk<Type> varHandler = new Thunk<Type>() {
-			public Type value() {
-				error("Type parameter cannot be parameterized: " +
-						NodeUtil.nameString(that.getName()), that);
-				return that;
-			}
-		};
-		Lambda<QualifiedIdName, Type> typeConsHandler =
-			new Lambda<QualifiedIdName, Type>() {
-			public InstantiatedType value(QualifiedIdName n) {
-				TypeConsIndex typeCons = _env.typeConsIndex(n);
-				List<StaticParam> params = typeCons.staticParameters();
-				List<StaticArg> args = that.getArgs();
-				if (params.size() != args.size()) {
-					error("Incorrect number of static arguments for type '" +
-							NodeUtil.nameString(n) + "': provided " + args.size() +
-							", expected " + params.size(), n);
-					return that;
-				}
-				boolean changed = false;
-				List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
-				for (Pair<StaticParam, StaticArg> pair :
-					IterUtil.zip(params, args)) {
-					StaticArg updated = updateStaticArg(pair.second(), pair.first());
-					if (updated != pair.second()) { changed = true; }
-					newArgs.add(updated);
-				}
-				return changed ?
-						new InstantiatedType(that.getSpan(), n, newArgs) : that;
-			}
-		};
-		return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
-	}
+  return forAbsFnDeclOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (SimpleName) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfParam(that.getParams()),
+    v.recurOnOptionOfType(that.getReturnType()),
+    v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    (Contract) that.getContract().accept(v));
+ }
 
-	/**
-	 * Generalization of name handling in {@code forIdType} and
-	 * {@code forInstantiatedType}.  Disambiguate the given type name,
-	 * determine whether it is a variable or a type constructor, and delegate to the
-	 * appropriate handler.
-	 * @param that  The type that is being translated (used as a result when errors
-	 *              occur).
-	 * @param n  The type name to be resolved (provided by {@code that}).
-	 * @param variableHandler  Produces the appropriate result where {@code n} represents
-	 *                         a type variable.  May assume that {@code n} has no
-	 *                         API and was not changed.
-	 * @param typeConsHandler  Produce the appropriate result where {@code n} represents
-	 *                         a type constructor (trait, object, or type alias) name.
-	 *                         An updated, potentially-qualified version of {@code n} is
-	 *                         provided.  May assume that the named type constructor
-	 *                         exists.
-	 */
-	private Type handleTypeName(Type that, QualifiedIdName n,
-			Thunk<Type> variableHandler,
-			Lambda<QualifiedIdName, Type> typeConsHandler) {
-		if (n.getApi().isSome()) {
-			APIName originalApi = Option.unwrap(n.getApi());
-			Option<APIName> realApiOpt = _env.apiName(originalApi);
-			if (realApiOpt.isNone()) {
-				error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
-				return that;
-			}
-			APIName realApi = Option.unwrap(realApiOpt);
-			QualifiedIdName newN;
-			if (originalApi == realApi) { newN = n; }
-			else { newN = NodeFactory.makeQualifiedIdName(realApi, n.getName()); }
+ /**
+  * When recurring on a FnDecl, we first need to extend the
+  * environment with all the newly bound static parameters.
+  */
+ @Override public Node forFnDef(final FnDef that) {
+  TypeDisambiguator v = this.extend(that.getStaticParams());
 
-			if (!_env.hasQualifiedTypeCons(newN)) {
-				error("Undefined type: " + NodeUtil.nameString(newN), newN);
-				return that;
-			}
-			return typeConsHandler.value(newN);
-		}
+  return forFnDefOnly(that,
+    v.recurOnListOfModifier(that.getMods()),
+    (SimpleName) that.getName().accept(v),
+    v.recurOnListOfStaticParam(that.getStaticParams()),
+    v.recurOnListOfParam(that.getParams()),
+    v.recurOnOptionOfType(that.getReturnType()),
+    v.recurOnOptionOfListOfTraitType(that.getThrowsClause()),
+    (WhereClause) that.getWhere().accept(v),
+    (Contract) that.getContract().accept(v),
+    (Expr) that.getBody().accept(v));
+ }
 
-		else {
-			Id id = n.getName();
-			if (_env.hasTypeParam(id)) { return variableHandler.value(); }
-			else {
-				Set<QualifiedIdName> typeConses = _env.explicitTypeConsNames(id);
-				if (typeConses.isEmpty()) {
-					typeConses = _env.onDemandTypeConsNames(id);
-					_onDemandImports.add(id);
-				}
+ @Override public Node forTypeArg(final TypeArg that) {
+     Type type = that.getType();
+     
+     if (type instanceof IdType) {
+         // Intercept before we recur on the IdType.
+         QualifiedIdName name = ((IdType)type).getName();
+         Id id = name.getName();
+         
+         // If our id is a valid type reference, we can simply recur on type.
+         if(_env.hasTypeParam(id) || 
+            (! _env.explicitTypeConsNames(id).isEmpty()) || 
+            (! _env.onDemandTypeConsNames(id).isEmpty()))
+         {
+             return super.forTypeArg(that);
+         } 
+         else { // Convert to an IdArg; it'll be checked by the ExprDisambiguator.
+             return new IdArg(that.getSpan(), name);
+         }
+     }
+     return super.forTypeArg(that);
+ }
+ 
+ @Override public Node forIdType(final IdType that) {
+     Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);
+     Lambda<QualifiedIdName, Type> typeConsHandler =
+         new Lambda<QualifiedIdName, Type>() {
+         public Type value(QualifiedIdName n) {
+             TypeConsIndex typeCons = _env.typeConsIndex(n);
+             //System.err.println("n: " + n);
+             //System.err.println("typeCons: " + typeCons);
+             
+             if (!typeCons.staticParameters().isEmpty()) {
+                 error("Type requires static arguments: " + NodeUtil.nameString(n),
+                       n);
+                 return that;
+             }
+             return new InstantiatedType(n, Collections.<StaticArg>emptyList());
+         }
+     };
+     return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
+ }
 
-				if (typeConses.isEmpty()) {
-					error("Undefined type: " + NodeUtil.nameString(n), n);
-					return that;
-				}
-				if (typeConses.size() > 1) {
-					error("Type name may refer to: " + NodeUtil.namesString(typeConses),
-							n);
-					return that;
-				}
-				QualifiedIdName qname = IterUtil.first(typeConses);
-				Type result = typeConsHandler.value(qname);
+ @Override public Node forInstantiatedType(final InstantiatedType that) {
+     Thunk<Type> varHandler = new Thunk<Type>() {
+         public Type value() {
+             error("Type parameter cannot be parameterized: " +
+                   NodeUtil.nameString(that.getName()), that);
+             return that;
+         }
+     };
+     Lambda<QualifiedIdName, Type> typeConsHandler =
+         new Lambda<QualifiedIdName, Type>() {
+         public InstantiatedType value(QualifiedIdName n) {
+             TypeConsIndex typeCons = _env.typeConsIndex(n);
+             List<StaticParam> params = typeCons.staticParameters();
+             List<StaticArg> args = that.getArgs();
+             if (params.size() != args.size()) {
+                 error("Incorrect number of static arguments for type '" +
+                       NodeUtil.nameString(n) + "': provided " + args.size() +
+                       ", expected " + params.size(), n);
+                 return that;
+             }
+             boolean changed = false;
+             List<StaticArg> newArgs = new ArrayList<StaticArg>(args.size());
+             for (Pair<StaticParam, StaticArg> pair :
+                      IterUtil.zip(params, args)) {
+                 StaticArg updated = updateStaticArg(pair.second(), pair.first());
+                 if (updated != pair.second()) { changed = true; }
+                 newArgs.add(updated);
+             }
+             return changed ?
+                 new InstantiatedType(that.getSpan(), n, newArgs) : that;
+         }
+     };
+     return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
+ }
 
-				return result;
-			}
-		}
-	}
+ /**
+  * Generalization of name handling in {@code forIdType} and
+  * {@code forInstantiatedType}.  Disambiguate the given type name,
+  * determine whether it is a variable or a type constructor, and delegate to the
+  * appropriate handler.
+  * @param that  The type that is being translated (used as a result when errors
+  *              occur).
+  * @param n  The type name to be resolved (provided by {@code that}).
+  * @param variableHandler  Produces the appropriate result where {@code n} represents
+  *                         a type variable.  May assume that {@code n} has no
+  *                         API and was not changed.
+  * @param typeConsHandler  Produce the appropriate result where {@code n} represents
+  *                         a type constructor (trait, object, or type alias) name.
+  *                         An updated, potentially-qualified version of {@code n} is
+  *                         provided.  May assume that the named type constructor
+  *                         exists.
+  */
+ private Type handleTypeName(Type that, QualifiedIdName n,
+                             Thunk<Type> variableHandler,
+                             Lambda<QualifiedIdName, Type> typeConsHandler) {
+     if (n.getApi().isSome()) {
+         APIName originalApi = Option.unwrap(n.getApi());
+         Option<APIName> realApiOpt = _env.apiName(originalApi);
+         if (realApiOpt.isNone()) {
+             error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
+             return that;
+         }
+         APIName realApi = Option.unwrap(realApiOpt);
+         QualifiedIdName newN;
+         if (originalApi == realApi) { newN = n; }
+         else { newN = NodeFactory.makeQualifiedIdName(realApi, n.getName()); }
+         
+         if (!_env.hasQualifiedTypeCons(newN)) {
+             error("Undefined type: " + NodeUtil.nameString(newN), newN);
+             return that;
+         }
+         return typeConsHandler.value(newN);
+     }
+     
+     else {
+         Id id = n.getName();
+         //System.err.println("id: " + id);
+         
+         if (_env.hasTypeParam(id)) { return variableHandler.value(); }
+         else {
+             Set<QualifiedIdName> typeConses = _env.explicitTypeConsNames(id);
+             if (typeConses.isEmpty()) {
+                 typeConses = _env.onDemandTypeConsNames(id);
+                 _onDemandImports.add(id);
+             }
+             
+             if (typeConses.isEmpty()) {
+                 error("Undefined type: " + NodeUtil.nameString(n), n);
+                 return that;
+             }
+             if (typeConses.size() > 1) {
+                 error("Type name may refer to: " + NodeUtil.namesString(typeConses),
+                       n);
+                 return that;
+             }
+             QualifiedIdName qname = IterUtil.first(typeConses);
+             Type result = typeConsHandler.value(qname);
+             
+             return result;
+         }
+     }
+ }
+ 
+ private StaticArg updateStaticArg(StaticArg a, StaticParam p) {
+     // TODO: implement
+     return a;
+ }
 
-	private StaticArg updateStaticArg(StaticArg a, StaticParam p) {
-		// TODO: implement
-		return a;
-	}
+ private Pair<List<QualifiedIdName>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
+  List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
+  Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
+  for (QualifiedIdName name: that.getExtends()) {
+   QualifiedIdName nname = handleGrammarName(name);
+   ls.add(nname);
 
-	private Pair<List<QualifiedIdName>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
-		List<QualifiedIdName> ls = new LinkedList<QualifiedIdName>();
-		Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-		for (QualifiedIdName name: that.getExtends()) {
-			QualifiedIdName nname = handleGrammarName(name);
-			ls.add(nname);
+   Option<GrammarIndex> gi = this._env.grammarIndex(nname);
+   if (gi.isSome()) {
+    gs.add(Option.unwrap(gi));
+   }
+   else {
+    error("Undefined grammar: " + NodeUtil.nameString(nname), name);
+   }
+  }
+  return new Pair<List<QualifiedIdName>, Collection<GrammarIndex>>(ls,gs);
+ }
+ 
+ @Override
+ public Node forGrammarDef(GrammarDef that) {
 
-			Option<GrammarIndex> gi = this._env.grammarIndex(nname);
-			if (gi.isSome()) {
-				gs.add(Option.unwrap(gi));
-			}
-			else {
-				error("Undefined grammar: " + NodeUtil.nameString(nname), name);
-			}
-		}
-		return new Pair<List<QualifiedIdName>, Collection<GrammarIndex>>(ls,gs);
-	}
-	
-	@Override
-	public Node forGrammarDef(GrammarDef that) {
+  Pair<List<QualifiedIdName>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
 
-		Pair<List<QualifiedIdName>, Collection<GrammarIndex>> p = getExtendedGrammarIndecies(that);
+  QualifiedIdName name = handleGrammarName(that.getName());
 
-		QualifiedIdName name = handleGrammarName(that.getName());
+  GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),that.getNonterminals());
 
-		GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(),name,p.first(),that.getNonterminals());
-
-		List<StaticError> newErrs = new ArrayList<StaticError>();
-		Option<GrammarIndex> grammar = this._env.grammarIndex(name);
-		if (grammar.isSome()) {
-			GrammarIndex g = Option.unwrap(grammar);
-			g.setAst(disambiguatedGrammar);
-			g.setExtended(p.second());
-			g.setAst(disambiguatedGrammar);
-		}
+  List<StaticError> newErrs = new ArrayList<StaticError>();
+  Option<GrammarIndex> grammar = this._env.grammarIndex(name);
+  if (grammar.isSome()) {
+   GrammarIndex g = Option.unwrap(grammar);
+   g.setAst(disambiguatedGrammar);
+   g.setExtended(p.second());
+   g.setAst(disambiguatedGrammar);
+  }
 
         if (!newErrs.isEmpty()) {
             this._errors.addAll(newErrs);
         }
 
-		return disambiguatedGrammar;
-	}
+  return disambiguatedGrammar;
+ }
 
-	private QualifiedIdName handleGrammarName(QualifiedIdName name) {
-		if (name.getApi().isSome()) {
-			APIName originalApi = Option.unwrap(name.getApi());
-			Option<APIName> realApiOpt = _env.apiName(originalApi);
-			if (realApiOpt.isNone()) {
-				error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
-				return name;
-			}
-			APIName realApi = Option.unwrap(realApiOpt);
-			QualifiedIdName newN;
-			if (originalApi == realApi) { newN = name; }
-			else { newN = NodeFactory.makeQualifiedIdName(realApi, name.getName()); }
+ private QualifiedIdName handleGrammarName(QualifiedIdName name) {
+  if (name.getApi().isSome()) {
+   APIName originalApi = Option.unwrap(name.getApi());
+   Option<APIName> realApiOpt = _env.apiName(originalApi);
+   if (realApiOpt.isNone()) {
+    error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
+    return name;
+   }
+   APIName realApi = Option.unwrap(realApiOpt);
+   QualifiedIdName newN;
+   if (originalApi == realApi) { newN = name; }
+   else { newN = NodeFactory.makeQualifiedIdName(realApi, name.getName()); }
 
-			if (!_env.hasQualifiedGrammar(newN)) {
-				error("Undefined grammar: " + NodeUtil.nameString(newN), newN);
-				return name;
-			}
-			return newN;
-		}
-		else {
-			if (_env.hasGrammar(name)) {
-				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
-				if (grammars.size() > 1) {
-					error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
-					return name;
-				}
-				QualifiedIdName qname = IterUtil.first(grammars);
-				return qname;
-			}
-			else {
-				Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
-				if (grammars.isEmpty()) {
-					grammars = _env.onDemandGrammarNames(name.getName());
-					_onDemandImports.add(name.getName());
-				}
+   if (!_env.hasQualifiedGrammar(newN)) {
+    error("Undefined grammar: " + NodeUtil.nameString(newN), newN);
+    return name;
+   }
+   return newN;
+  }
+  else {
+   if (_env.hasGrammar(name)) {
+    Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
+    if (grammars.size() > 1) {
+     error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
+     return name;
+    }
+    QualifiedIdName qname = IterUtil.first(grammars);
+    return qname;
+   }
+   else {
+    Set<QualifiedIdName> grammars = _env.explicitGrammarNames(name);
+    if (grammars.isEmpty()) {
+     grammars = _env.onDemandGrammarNames(name.getName());
+     _onDemandImports.add(name.getName());
+    }
 
-				if (grammars.isEmpty()) {
-					error("Undefined grammar: " + NodeUtil.nameString(name), name);
-					return name;
-				}
-				if (grammars.size() > 1) {
-					error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
-					return name;
-				}
-				QualifiedIdName qname = IterUtil.first(grammars);
-				return qname;
-			}
-		}
-	}
+    if (grammars.isEmpty()) {
+     error("Undefined grammar: " + NodeUtil.nameString(name), name);
+     return name;
+    }
+    if (grammars.size() > 1) {
+     error("Grammar name may refer to: " + NodeUtil.namesString(grammars), name);
+     return name;
+    }
+    QualifiedIdName qname = IterUtil.first(grammars);
+    return qname;
+   }
+  }
+ }
 
 }
