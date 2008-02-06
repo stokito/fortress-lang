@@ -18,11 +18,13 @@
 /*
  * Definition of Fortress expressions that are enclosed by keywords.
  */
-module com.sun.fortress.parser.DelimitedExpr(TraitObject, Header, Type, Expr,
+module com.sun.fortress.parser.DelimitedExpr(TraitObject, NoNewlineHeader,
+                                             MayNewlineHeader, Type, Expr,
                                              LocalDecl, Literal, Identifier,
                                              Keyword, Symbol, Spacing);
 import TraitObject;
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import Type;
 import Expr;
 import LocalDecl;
@@ -122,10 +124,11 @@ Do Do = a1s:(DoFront w also w)* a2:DoFront w end
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
 private DoFront DoFront =
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
-     { Option<Expr> at = Option.wrap(a1);
+     { Span span = createSpan(yyStart,yyCount);
+       Option<Expr> at = Option.wrap(a1);
        boolean atomic = (a2 == null) ? false : true;
-       if (a3 == null) a3 = FortressUtil.doBlock(FortressUtil.emptyExprs());
-       yyValue = new DoFront(createSpan(yyStart,yyCount), at, atomic, a3);
+       if (a3 == null) a3 = FortressUtil.doBlock(span);
+       yyValue = new DoFront(span, at, atomic, a3);
      };
 
 /* TupleExpr ::=

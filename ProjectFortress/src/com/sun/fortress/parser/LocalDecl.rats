@@ -38,16 +38,20 @@ import Spacing;
    | BlockElem (w ;)?
  */
 Block BlockElems =
-     a1:BlockElem br a2:BlockElems
-     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1, a2)); }
+     a1:BlockElemCollection
+     { yyValue = FortressUtil.doBlock(a1); };
+
+private List<Expr> BlockElemCollection =
+     a1:BlockElem br a2:BlockElemCollection
+     { yyValue = FortressUtil.mkList(a1, a2); }
    / a1:BlockElem
      &(w Elifs / w Else / br CaseClause / br TypecaseTypes / br CaseElse
      / w also / w end / w Catch / w forbid / w finally / w closeparen)
-     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); }
+     { yyValue = FortressUtil.mkList(a1); }
    / a1:BlockElem w semicolon
      &(w Elifs / w Else / w CaseClause / w TypecaseTypes / w CaseElse
      / w also / w end / w Catch / w forbid / w finally / w closeparen)
-     { yyValue = FortressUtil.doBlock(FortressUtil.mkList(a1)); };
+     { yyValue = FortressUtil.mkList(a1); };
 
 /* BlockElem ::=
      LocalVarFnDecl
