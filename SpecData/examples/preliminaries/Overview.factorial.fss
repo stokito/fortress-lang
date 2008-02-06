@@ -21,15 +21,8 @@ component Overview.factorial
 
 export Executable
 
-(*
-opr (n: ZZ32)! = PRODUCT[i <- 1:n]i (* factorial *)
-*)
 (** EXAMPLE **)
-opr (n: ZZ32)! = do    (* factorial *)
-  var result: ZZ32 = 1
-  for i <- 1:n do atomic result := result i end
-  result
-end
+opr (n: ZZ32)! = PROD[i <- 1:n]i (* factorial *)
 (** END EXAMPLE **)
 
 run(args:String...) = do

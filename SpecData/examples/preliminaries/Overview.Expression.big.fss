@@ -17,17 +17,13 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component Exception
-
+component Overview.Expression.big
 export Executable
 
-trait CheckedException extends Exception end
-trait UncheckedException extends Exception end
 (** EXAMPLE **)
-trait Exception comprises { CheckedException, UncheckedException }
-end
+factorial(n) = PROD[i <- 1:n] i
 (** END EXAMPLE **)
 
-run() = ()
+run(args:String...) = assert(factorial(5) = 120)
 
 end
