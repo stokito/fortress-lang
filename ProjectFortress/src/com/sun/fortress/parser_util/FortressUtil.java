@@ -774,6 +774,10 @@ public final class FortressUtil {
 // let do_block (body : expr list) : expr =
 //   let span = span_all body in
 //     node span (`FlowExpr (node span (`BlockExpr (build_block body))))
+    public static Block doBlock(Span span) {
+        return new Block(span, false, emptyExprs());
+    }
+
     public static Block doBlock(List<Expr> exprs) {
         Span span = spanAll(exprs.toArray(new AbstractNode[0]), exprs.size());
         List<Expr> es = new ArrayList<Expr>();
@@ -783,8 +787,7 @@ public final class FortressUtil {
                 LetExpr _e = (LetExpr)e;
                 if (_e.getBody().isEmpty()) {
                     _e = ExprFactory.makeLetExpr(_e, es);
-                    es = new ArrayList<Expr>();
-                    es.add(_e);
+                    es = mkList((Expr)_e);
                 } else {
                     error(e, "Misparsed variable introduction!");
                 }

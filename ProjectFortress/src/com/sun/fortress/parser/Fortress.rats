@@ -89,9 +89,10 @@ instantiate com.sun.fortress.parser.Expression(Parameter, NoNewlineHeader,
                                                Spacing)
             as Expression;
 instantiate com.sun.fortress.parser.DelimitedExpr(TraitObject, NoNewlineHeader,
-                                                  Type, Expression, LocalDecl,
-                                                  Literal, Identifier, Keyword,
-                                                  Symbol, Spacing)
+                                                  MayNewlineHeader, Type,
+                                                  Expression, LocalDecl, Literal,
+                                                  Identifier, Keyword, Symbol,
+                                                  Spacing)
             as DelimitedExpr;
 instantiate com.sun.fortress.parser.NoNewlineExpr(Expression, NoNewlineType,
                                                   Keyword, Symbol, Spacing)

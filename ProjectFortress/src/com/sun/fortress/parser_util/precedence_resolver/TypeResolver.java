@@ -480,15 +480,15 @@ public class TypeResolver {
                     ((Cons<PrefixOpExpr>)_rest).getRest();
 
                 if (prefix[0] instanceof RealType &&
-                    prefix[1] instanceof TightInfix &&
+                    prefix[1] instanceof JuxtInfix &&
                     prefix[2] instanceof RealType &&
-                    prefix[3] instanceof TightInfix) {
-                    Op op1 = ((TightInfix)prefix[1]).getOp();
-                    Op op3 = ((TightInfix)prefix[3]).getOp();
+                    prefix[3] instanceof JuxtInfix) {
+                    Op op1 = ((JuxtInfix)prefix[1]).getOp();
+                    Op op3 = ((JuxtInfix)prefix[3]).getOp();
 
                     if (isDiv(op1) && isDiv(op3)) {
-                        throw new ReadError(spanTwo(op1,op3), "Tight division " +
-                                            "(/) does not associate.");
+                        throw new ReadError(spanTwo(op1,op3), "The operator " +
+                                            "/ and per do not associate.");
                     }
                 }
             }

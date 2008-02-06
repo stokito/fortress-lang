@@ -112,9 +112,10 @@ SyntaxDef SyntaxDefOr =
 
 /* BlockExpr ::= do BlockElems end */
 Do BlockExpr = do a3:(w BlockElems) w end
-     {  if (a3 == null) a3 = FortressUtil.doBlock(FortressUtil.emptyExprs());
-       yyValue = new Do(createSpan(yyStart, yyCount), false,
-                        FortressUtil.mkList(new DoFront(createSpan(yyStart, yyCount), Option.<Expr>none(), false, a3)));
+     { Span span = createSpan(yyStart, yyCount);
+       if (a3 == null) a3 = FortressUtil.doBlock(span);
+       yyValue = new Do(span, false,
+                        FortressUtil.mkList(new DoFront(span, Option.<Expr>none(), false, a3)));
      };
 
 List<SyntaxSymbol> SyntaxSymbols =
@@ -128,26 +129,26 @@ List<SyntaxSymbol> SyntaxSymbols =
 List<SyntaxSymbol> Symbs = a1:SpaceOrBreakline+ a2:SyntaxSymbol
      { yyValue = FortressUtil.mkList(a1.list(),a2);};
 
-SyntaxSymbol SpaceOrBreakline = 
+SyntaxSymbol SpaceOrBreakline =
       a1:sr
       { yyValue = new WhitespaceSymbol(a1); }
     /  yyValue:Breakline;
 
 /*
-SyntaxSymbol      ::= (Id ":" )? Symbol 
+SyntaxSymbol      ::= (Id ":" )? Symbol
                    | Whitespace
                    | br
-Symbol            ::= BasicSymbol "?" 
-                   | BasicSymbol "*" 
-                   | BasicSymbol "+" 
-                   | BasicSymbol "#" 
+Symbol            ::= BasicSymbol "?"
+                   | BasicSymbol "*"
+                   | BasicSymbol "+"
+                   | BasicSymbol "#"
                    | BasicSymbol
 BasicSymbol       ::= ItemSymbol
                    | PredicateSymbol
-ItemSymbol        ::= KeywordSymbol 
+ItemSymbol        ::= KeywordSymbol
                    | TokenSymbol
                    | NonterminalSymbol
-PredicateSymbol   ::= "NOT" ItemSymbol 
+PredicateSymbol   ::= "NOT" ItemSymbol
                    | "\land" ItemSymbol
 */
 SyntaxSymbol SyntaxSymbol =
@@ -174,7 +175,7 @@ SyntaxSymbol SyntaxSymbol =
           yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
         }
         else {
-          yyValue = new PrefixedSymbol(prefix, s1); 
+          yyValue = new PrefixedSymbol(prefix, s1);
         }}
     / s1:Symbol
       { Option<Id> prefix = Option.none();
@@ -183,18 +184,18 @@ SyntaxSymbol SyntaxSymbol =
           yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
         }
         else {
-          yyValue = new PrefixedSymbol(prefix, s1); 
+          yyValue = new PrefixedSymbol(prefix, s1);
         }};
 
 SyntaxSymbol Breakline = a1:breakline
       { yyValue = new BreaklineSymbol(a1); };
 
-SyntaxSymbol Symbol = 
+SyntaxSymbol Symbol =
       a1:Suffix hash
       { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
      / yyValue:Suffix;
 
-SyntaxSymbol Suffix = 
+SyntaxSymbol Suffix =
      a1:Item questionmark
      { yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), a1); }
      / a1:Item star
@@ -221,11 +222,11 @@ SyntaxSymbol Item =
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
       { yyValue = new CharacterClassSymbol(a1.list()); };
 
-CharacterSymbol CharacterClass = 
+CharacterSymbol CharacterClass =
        c1:Char colon c2:Char { yyValue = new CharacterInterval(c1, c2); }
     / c1:Char { yyValue = new CharSymbol(c1); };
 
-String Char = 
+String Char =
     Tab
       { yyValue = "\t"; }
     /  Formfeed
@@ -241,7 +242,7 @@ String Char =
     / yyValue:utf16;
 
 
-String ItemText = 
+String ItemText =
       !(SpecialSymbols) (utf16 utf16*)
    / SpecialSymbols utf16+ ;
 
@@ -250,19 +251,19 @@ String utf16 =
    / EscapedSpecialSymbols
    / !(SpecialChars) c1:[\u0000-\uFFFF];
 
-String SpecialChars = 
+String SpecialChars =
       space / breakline / colon / questionmark / hash
-   / plus / star / openSquareBraket / closeSquareBraket 
+   / plus / star / openSquareBraket / closeSquareBraket
    / pling / bar;
 
-String EscapedSpecialChars = 
+String EscapedSpecialChars =
    pling SpecialChars;
 
-String EscapedSpecialSymbols = 
+String EscapedSpecialSymbols =
    pling SpecialSymbols;
 
 String SpecialSymbols =
-      Tab / Formfeed / Return / Newline / Space 
+      Tab / Formfeed / Return / Newline / Space
     / Backspace / Not / And / do / end;
 
 transient String bar = "|";
