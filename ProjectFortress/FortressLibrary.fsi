@@ -1184,12 +1184,20 @@ object MinReduction extends Reduction[\Any\]
     join(a: Any, b: Any): Any
 end
 
+(* Again, type information is notoriously non-specific to permit
+   either TotalOrder or Number types. *)
+opr BIG MIN[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
+
+object NoMax extends UncheckedException end
+
 (* Hack to permit both Numbers and TotalOrders to work. *)
 object MaxReduction extends Reduction[\Any\]
     getter toString()
     empty(): Any
     join(a: Any, b: Any): Any
 end
+
+opr BIG MAX[\T\](g:(Reduction[\Any\],T->Any)->Any): Any
 
 (** TODO: AndReduction and OrReduction have natural zeros, and could
  *  take advantage of early exit.
@@ -1205,17 +1213,23 @@ object AndReduction extends Reduction[\Boolean\]
     join(a: Boolean, b: Boolean): Boolean
 end
 
+opr BIG AND[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+
 object OrReduction extends Reduction[\Boolean\]
     getter toString()
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
 end
 
+opr BIG OR[\T\](g:(Reduction[\Boolean\],T->Boolean)->Boolean):Boolean
+
 object StringReduction extends Reduction[\String\]
     getter toString()
     empty(): Boolean
     join(a:String, b:String): String
 end
+
+opr BIG STRING(g:(Reduction[\String\],Any->String)->String): String
 
 (** Ranges in general represent uses of the # and : operators.
     It's mostly subtypes of Range that are interesting.
