@@ -59,16 +59,7 @@ public final class Shell {
     CommandInterpreter getInterpreter() { return interpreter; }
 
     public static String fortressLocation() {
-        try {
-            String FORTRESS_PATH = "FORTRESS_PATH";
-            String s =  ProjectProperties.get(FORTRESS_PATH);
-            if (s == null)
-                throw new Error(FORTRESS_PATH + " must be set, somehow.");
-            return s;
-        }
-        catch (Exception e) {
-            return "";
-        }
+        return ProjectProperties.ANALYZED_CACHE_DIR;
     }
 
     /* Helper method to print usage message.*/
