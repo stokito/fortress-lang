@@ -366,8 +366,8 @@ constant Expr MathPrimary =
     };
 
 /* PrimaryFront ::=
-     Comprehension
-   | ArrayExpr
+     ArrayExpr
+   | Comprehension
    | LeftEncloser (w ExprList)? w RightEncloser
    | Parenthesized
    | NoKeyTuple
@@ -376,8 +376,8 @@ constant Expr MathPrimary =
    | self
  */
 Expr PrimaryFront =
-     Comprehension
-   / ArrayExpr
+     ArrayExpr
+   / Comprehension
    / a1:LeftEncloser a2:(w ExprList)? w a3:RightEncloser
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
