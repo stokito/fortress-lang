@@ -558,7 +558,7 @@ Expr Exponent =
 
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?
-   | Accumulator (w [ w GeneratorClauseList w ])? w Expr
+   | Accumulator StaticArgs? (w [ w GeneratorClauseList w ])? w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
    | spawn w Expr
@@ -570,10 +570,11 @@ Expr FlowExpr =
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, name, expr);
      }
-   / a1:Accumulator a2:(w void:opensquare w GeneratorClauseList w void:closesquare)? w
-     a3:Expr
-     { if (a2 == null) a2 = Collections.<GeneratorClause>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), false, a1, a2, a3);
+   / a1:Accumulator a2:StaticArgs?
+     a3:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a4:Expr
+     { if (a3 == null) a3 = Collections.<GeneratorClause>emptyList();
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), a2, a1, a3, a4);
      }
    / atomic w a1:AtomicBack
      { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }

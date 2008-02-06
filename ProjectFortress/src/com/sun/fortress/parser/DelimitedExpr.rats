@@ -238,39 +238,37 @@ private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
      { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Comprehension ::=
-     { w Expr wr | wr GeneratorClauseList w }
-   | { w Entry wr | wr GeneratorClauseList w }
-   | <| w Expr wr | wr GeneratorClauseList w |>
-   | [ w ArrayComprehensionClause (br ArrayComprehensionClause)* w ]
+     (BIG w)? [ StaticArgs? w ArrayComprehensionClause
+                          (br ArrayComprehensionClause)* w ]
+   | (BIG w)? { StaticArgs? w Entry wr | wr GeneratorClauseList w }
+   | (BIG w)? LeftEncloser StaticArgs? w Expr wr | wr GeneratorClauseList w
+              RightEncloser
  */
 FlowExpr Comprehension =
-     opencurly w a1:Expr wr bar wr a2:GeneratorClauseList w closecurly
+     (BIG w)? opensquare a1:StaticArgs? w a2:ArrayComprehensionClause
+     a3s:(br ArrayComprehensionClause)* w closesquare
+     { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a2,
+                                                                    a3s.list());
+       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
+       yyValue = new ArrayComprehension(createSpan(yyStart,yyCount),a1,clauses);
+     }
+   / (BIG w)? opencurly a1:StaticArgs? w a2:Entry wr bar wr
+     a3:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOpBig(span, "BIG {");
        Op close = NodeFactory.makeOpBig(span, "BIG }");
        OpName opr = new Enclosing(span, open, close);
-       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
+       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), a1, opr, a3, a2);
      }
-   / opencurly w a1:Entry wr bar wr a2:GeneratorClauseList w closecurly
+   / (BIG w)? a1:LeftEncloser a2:StaticArgs? w a3:Expr wr bar wr
+     a4:GeneratorClauseList w a5:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOpBig(span, "BIG {");
-       Op close = NodeFactory.makeOpBig(span, "BIG }");
+       Op open  = NodeFactory.makeOpBig(span, "BIG " + a1.getText());
+       Op close = NodeFactory.makeOpBig(span, "BIG " + a5.getText());
        OpName opr = new Enclosing(span, open, close);
-       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
-     }
-   / openangle w a1:Expr wr bar wr a2:GeneratorClauseList w closeangle
-     { Span span = createSpan(yyStart,yyCount);
-       Op open  = NodeFactory.makeOpBig(span, "BIG <|");
-       Op close = NodeFactory.makeOpBig(span, "BIG |>");
-       OpName opr = new Enclosing(span, open, close);
-       yyValue = new Accumulator(createSpan(yyStart,yyCount),opr,a2,a1);
-     }
-   / opensquare w a1:ArrayComprehensionClause a2s:(br ArrayComprehensionClause)*
-     w closesquare
-     { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a1,
-                                                                    a2s.list());
-       yyValue = new ArrayComprehension(createSpan(yyStart,yyCount), false,
-                                        clauses);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       yyValue = new Accumulator(createSpan(yyStart,yyCount), a2, opr, a4, a3);
      };
 
 /* The operator "|->" should not be in the left-hand sides of map expressions

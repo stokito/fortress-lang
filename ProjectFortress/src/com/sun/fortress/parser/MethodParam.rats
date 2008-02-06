@@ -43,32 +43,32 @@ NormalParam Param :=
                                               "self")); };
 
 /* OpMdHeaderFront ::=
-     opr (w BIG)? (w StaticParams)? w (LeftEncloser | Encloser) w Params w
+     opr (w BIG)? w (LeftEncloser | Encloser) (w StaticParams)? w Params w
      (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
-   | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
-   | opr (w BIG)? w (Op | ^ | Encloser) (w StaticParams)? w ValParam
+   | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront :=
      <Enclosing>
-     opr big:(w BIG)? opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w
+     opr big:(w BIG)? w opa1:(LeftEncloser / Encloser) opa2:(w StaticParams)? w
      opa3:Params w opa4:(RightEncloser / Encloser) opa5:(w void:colonequals w
      openparen w SubscriptAssignParam w closeparen)?
      { SimpleName name;
        Span span = createSpan(yyStart,yyCount);
-       String left  = opa2.getText();
+       String left  = opa1.getText();
        String right = opa4.getText();
        if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
            if (big != null) {
-               opa2 = NodeFactory.makeOpBig(opa2.getSpan(), "BIG " + left);
+               opa1 = NodeFactory.makeOpBig(opa1.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
            }
-           name = new Enclosing(span, opa2, opa4);
+           name = new Enclosing(span, opa1, opa4);
        } else
-           name = error(opa2, "Mismatched enclosing operator definition: "
+           name = error(opa1, "Mismatched enclosing operator definition: "
                               + left + " and " + right);
-       if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
+       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        Option<Param> opparam = Option.wrap(opa5);
-       yyValue = new FnHeaderFront(name, opa1, opa3, opparam);
+       yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
      }
    / ... ;
 

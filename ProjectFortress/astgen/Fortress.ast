@@ -773,18 +773,25 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract FlowExpr();
             /**
-             * summation and other reduction expression
-             * FlowExpr ::= Accumulator ([ GeneratorClauseList ])? Expr
-             * Accumulator ::= SUM | PRODUCT | Big Op
-             * e.g.) PRODUCT[i <- 1:n] i
+             * comprehension or accumulator
              */
-            Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
-            /**
-             * array comprehension
-             * Comprehension ::= [ ArrayComprehensionClause+ ]
-             * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
-             */
-            ArrayComprehension(List<ArrayComprehensionClause> clauses);
+            abstract BigOprApp(List<StaticArg> staticArgs
+                                   = Collections.<StaticArg>emptyList());
+                /**
+                 * summation and other reduction expression
+                 * FlowExpr ::= Accumulator StaticArgs?
+                 *                ([ GeneratorClauseList ])? Expr
+                 * Accumulator ::= SUM | PRODUCT | Big Op
+                 * e.g.) PRODUCT[i <- 1:n] i
+                 */
+                Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
+                /**
+                 * array comprehension
+                 * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
+                 *                        ]
+                 * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
+                 */
+                ArrayComprehension(List<ArrayComprehensionClause> clauses);
             /**
              * atomic expression
              * FlowExpr ::= atomic AtomicBack

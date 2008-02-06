@@ -1344,8 +1344,7 @@ opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
 
 squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
 
-opr [\ T extends Number, nat k \]
-    ||me : Vector[\T,k\]|| : RR64 = SQRT squaredNorm(me)
+opr ||[\ T extends Number, nat k \]me : Vector[\T,k\]|| : RR64 = SQRT squaredNorm(me)
 
 (** Array2[\T,b0,s0,b1,s1\] is the type of 2-dimensional arrays of
     element type T, with size s0 in the first dimension and s1 in the
@@ -2532,7 +2531,7 @@ opr :[\I extends Integral, J extends Integral, K extends Integral\]
 (*
 opr [\T\](x:T)# : LowerRange[\T\] = LowerRange[\T\](x)
 *)
-opr [\T\](x:T): : LowerRange[\T\] = LowerRange[\T\](x)
+opr (x:T):[\T\] : LowerRange[\T\] = LowerRange[\T\](x)
 opr #[\T\](x:T) : ExtentRange[\T\] = ExtentRange[\T\](x)
 
 (*
@@ -2545,7 +2544,7 @@ opr :(): OpenRange[\Any\] = OpenRange[\Any\]()
 (***********************************************************
  * NUMERIC primitives, down here to avoid ordering hosure. *)
 
-opr [\ N extends Integral \]|x:N| = if x>=0 then x else -x end
+opr |[\ N extends Integral \]x:N| = if x>=0 then x else -x end
 
 opr -(a:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
 opr +(a:ZZ32,b:ZZ32):ZZ32 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")

@@ -39,7 +39,7 @@ object aSet[\T\](x:T, s:Set[\T\]) extends Set[\T\]
   contains(y:T):Boolean = x = y OR s.contains(y)
 end
 
-opr[\T\] {x:T...} = do
+opr {[\T\] x:T...} = do
    s:Set[\T\] := emptySet[\T\]()
    print("{ ")
    for v <- seq(x) do

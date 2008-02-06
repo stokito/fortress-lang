@@ -42,8 +42,8 @@ end
 
 singleton[\E\](x:E): Set[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\]
-opr [\E\]{ es: E... }: Set[\E\]
-opr BIG [\T,U\]{ g: ( Reduction[\SomeCovariantCollection\],
+opr {[\E\] es: E... }: Set[\E\]
+opr BIG {[\T,U\] g: ( Reduction[\SomeCovariantCollection\],
                       T -> SomeCovariantCollection) ->
                     SomeCovariantCollection } : Set[\U\]
 

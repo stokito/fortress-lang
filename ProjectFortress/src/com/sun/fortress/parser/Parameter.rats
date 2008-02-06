@@ -83,37 +83,37 @@ NormalParam PlainParam =
 NormalParam Param = PlainParam ;
 
 /* OpHeaderFront ::=
-     opr (w BIG)? (w StaticParams)? w (LeftEncloser | Encloser) w Params w
+     opr (w BIG)? w (LeftEncloser | Encloser) (w StaticParams)? w Params w
      (RightEncloser | Encloser)
-   | opr (w StaticParams)? w ValParam w (Op | ExponentOp)
+   | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront =
      <Enclosing>
-     opr big:(w BIG)? opa1:(w StaticParams)? w opa2:(LeftEncloser / Encloser) w
+     opr big:(w BIG)? w opa1:(LeftEncloser / Encloser) opa2:(w StaticParams)? w
      opa3:Params w opa4:(RightEncloser / Encloser)
      { SimpleName name;
        Span span = createSpan(yyStart,yyCount);
-       String left  = opa2.getText();
+       String left  = opa1.getText();
        String right = opa4.getText();
        if (PrecedenceMap.ONLY.matchedBrackets(left, right)) {
            if (big != null) {
-               opa2 = NodeFactory.makeOpBig(opa2.getSpan(), "BIG " + left);
+               opa1 = NodeFactory.makeOpBig(opa1.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
            }
-           name = new Enclosing(span, opa2, opa4);
+           name = new Enclosing(span, opa1, opa4);
        } else
-           name = error(opa2, "Mismatched enclosing operator definition: "
+           name = error(opa1, "Mismatched enclosing operator definition: "
                               + left + " and " + right);
-       if (opa1 == null) opa1 = FortressUtil.emptyStaticParams();
-       yyValue = new FnHeaderFront(name, opa1, opa3);
+       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
+       yyValue = new FnHeaderFront(name, opa2, opa3);
      }
-   / opr a1:(w StaticParams)? w a2:ValParam w a3:(Op / ExponentOp)
+   / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
      { Span span = createSpan(yyStart,yyCount);
-       if (a1 == null)
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a3), a2);
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
        else
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a3), a1, a2);
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
      }
    / opr big:(w BIG)? w
      a1:(Op
