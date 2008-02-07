@@ -24,7 +24,7 @@ export Executable
 run(args:String...) = do
   theta:RR64 = 0
 (** EXAMPLE **)
-  d:RR64[2,2] = [(cos theta) (- (sin theta))
+  d:RR64[2,2] = [(cos theta) (- sin theta)
                  (sin theta) (cos theta)]
 (** END EXAMPLE **)
 end

@@ -327,21 +327,21 @@ public class Resolver {
   //     | oe :: rest -> oe :: find_juxt rest
   //   in
   //     find_juxt oes
-  private static PureList<InfixOpExpr> resolveJuxt(PureList<InfixOpExpr> opExprs)
+  private static PureList<PrefixOpExpr> resolveJuxt(PureList<PrefixOpExpr> opExprs)
     throws ReadError
   {
     return findJuxt(opExprs);
   }
 
-  private static PureList<InfixOpExpr> findJuxt(PureList<InfixOpExpr> opExprs)
+  private static PureList<PrefixOpExpr> findJuxt(PureList<PrefixOpExpr> opExprs)
     throws ReadError
   {
-    if (opExprs.isEmpty()) { return PureList.<InfixOpExpr>make(); }
+    if (opExprs.isEmpty()) { return PureList.<PrefixOpExpr>make(); }
 
     else { // opExprs instanceof Cons
-      Cons<InfixOpExpr> _opExprs = (Cons<InfixOpExpr>) opExprs;
-      InfixOpExpr first = _opExprs.getFirst();
-      PureList<InfixOpExpr> rest = _opExprs.getRest();
+      Cons<PrefixOpExpr> _opExprs = (Cons<PrefixOpExpr>) opExprs;
+      PrefixOpExpr first = _opExprs.getFirst();
+      PureList<PrefixOpExpr> rest = _opExprs.getRest();
 
       if (opExprs.size() >= 3) {
         Object[] prefix = opExprs.toArray(3);
@@ -360,8 +360,8 @@ public class Resolver {
         }
       }
       if (opExprs.size() >= 2) {
-        InfixOpExpr second = ((Cons<InfixOpExpr>)rest).getFirst();
-        PureList<InfixOpExpr> _rest = ((Cons<InfixOpExpr>)rest).getRest();
+        PrefixOpExpr second = ((Cons<PrefixOpExpr>)rest).getFirst();
+        PureList<PrefixOpExpr> _rest = ((Cons<PrefixOpExpr>)rest).getRest();
         if (first  instanceof RealExpr &&
             second instanceof RealExpr) {
           return buildJuxt(_rest, PureList.make((RealExpr)second,
@@ -373,25 +373,25 @@ public class Resolver {
   }
 
 
-  private static PureList<InfixOpExpr> buildJuxt(PureList<InfixOpExpr> opExprs,
+  private static PureList<PrefixOpExpr> buildJuxt(PureList<PrefixOpExpr> opExprs,
                          PureList<RealExpr> revExprs)
     throws ReadError
   {
     if (!opExprs.isEmpty() &&
-        ((Cons<InfixOpExpr>)opExprs).getFirst() instanceof TightInfix)
+        ((Cons<PrefixOpExpr>)opExprs).getFirst() instanceof TightInfix)
     {
       TightInfix first =
-        (TightInfix)((Cons<InfixOpExpr>)opExprs).getFirst();
+        (TightInfix)((Cons<PrefixOpExpr>)opExprs).getFirst();
       Span span = ASTUtil.spanAll(revExprs.reverse());
       throw new ReadError(span,
                           "Precedence mismatch: juxtaposition and " +
                           first.getOp().toString() + ".");
     }
     else if (!opExprs.isEmpty() &&
-               ((Cons<InfixOpExpr>)opExprs).getFirst() instanceof RealExpr) {
+               ((Cons<PrefixOpExpr>)opExprs).getFirst() instanceof RealExpr) {
       RealExpr first =
-        (RealExpr)((Cons<InfixOpExpr>)opExprs).getFirst();
-      PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>)opExprs).getRest();
+        (RealExpr)((Cons<PrefixOpExpr>)opExprs).getFirst();
+      PureList<PrefixOpExpr> rest = ((Cons<PrefixOpExpr>)opExprs).getRest();
 
       return buildJuxt(rest, revExprs.cons(first));
     }
@@ -1129,8 +1129,8 @@ public class Resolver {
   private static Expr buildLayer(PureList<PostfixOpExpr> opExprs)
     throws ReadError {
     return resolveInfix
-              (resolveJuxt
-                 (resolvePrefix
+              (resolvePrefix
+                 (resolveJuxt
                     (resolveNonAssociative
                        (resolvePostfix (opExprs.reverse())))));
   }
