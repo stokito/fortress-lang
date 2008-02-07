@@ -91,6 +91,9 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     public FTraitOrObjectOrGeneric getSelfParameterType() {
         return selfParameterType;
     }
+    public FTypeGeneric getSelfParameterTypeAsGeneric() {
+        return selfParameterType;
+    }
 
 
     public String toString() {

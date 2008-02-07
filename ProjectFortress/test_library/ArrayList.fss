@@ -18,6 +18,8 @@
 component ArrayList
 import OneShotFlag.{...}
 import CovariantCollection.{...}
+import NativeArray.{...}
+
 export ArrayList
 
 (** Array Lists, immutable style (not the mutable Java ArrayList style).

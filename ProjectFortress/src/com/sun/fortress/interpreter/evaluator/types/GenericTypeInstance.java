@@ -50,5 +50,7 @@ public interface GenericTypeInstance {
      * @return
      */
     public BetterEnv getEnv();
+    
+    public List<FType> getTransitiveExtends();
 
 }

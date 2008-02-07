@@ -1177,6 +1177,16 @@ object SumReduction extends Reduction[\Number\]
     join(a: Number, b: Number): Number
 end
 
+opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+
+object ProdReduction extends Reduction[\Number\]
+    getter toString()
+    empty(): Number
+    join(a:Number, b:Number): Number
+end
+
+opr PROD[\T\](g:(Reduction[\Number\],T->Number)->Number): Number
+
 (* Hack to permit both Numbers and TotalOrders to work. *)
 object MinReduction extends Reduction[\Any\]
     getter toString()

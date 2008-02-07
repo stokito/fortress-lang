@@ -518,6 +518,9 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     public FValue applyConstructor(
             List<FValue> args, HasAt loc, BetterEnv lex_env) {
         // Problem -- we need to detach self-env from other env.
+        if (methodsEnv == null)
+            bug("Null methods env for " + this);
+        
         BetterEnv self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
        
         FObject theObject = makeAnObject(lex_env, self_env);
