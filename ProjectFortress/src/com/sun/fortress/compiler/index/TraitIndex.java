@@ -20,8 +20,10 @@ package com.sun.fortress.compiler.index;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.Collections;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Pair;
+import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.StaticParam;
@@ -58,16 +60,18 @@ public abstract class TraitIndex extends TypeConsIndex {
         _functionalMethods = functionalMethods;
     }
     
+    public TraitObjectAbsDeclOrDecl ast() { return _ast; }
+    
     public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
     
-    public List<Id> hiddenParameters() { return NI.nyi(); }
+    public List<Id> hiddenParameters() { return Collections.emptyList(); }
     
     /**
      * Return all subtype relationships described by parameter bounds and where clauses.
      * Each pair {@code p} in the list is an assertion that {@code p.first()} is a subtype
      * of {@code p.second()}.
      */
-    public Iterable<Pair<Type, Type>> typeConstraints() { return NI.nyi(); }
+    public Iterable<Pair<Type, Type>> typeConstraints() { return IterUtil.empty(); }
     
     public List<TraitTypeWhere> extendsTypes() {
         return _ast.getExtendsClause();
