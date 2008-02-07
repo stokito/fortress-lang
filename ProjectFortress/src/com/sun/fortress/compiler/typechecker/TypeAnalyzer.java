@@ -31,6 +31,8 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
+import static edu.rice.cs.plt.debug.DebugUtil.debug;
+
 
 public class TypeAnalyzer {
 
@@ -39,7 +41,7 @@ public class TypeAnalyzer {
     public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
     public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
-    private static final int MAX_SUBTYPE_DEPTH = 12;
+    private static final int MAX_SUBTYPE_DEPTH = 4;
 
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(BOTTOM));
@@ -54,470 +56,551 @@ public class TypeAnalyzer {
         _emptyHistory = new SubtypeHistory();
     }
     
+    /**
+     * Convert the type to a normal form.  A normalized type has the following properties:
+     * <ul>
+     * <li>The throws clause of all arrow types is a singleton list.
+     * </ul>
+     */
+    public Type normalize(Type t) {
+        return (Type) t.accept(new NodeUpdateVisitor() {
+            
+            public Node forArrowTypeOnly(ArrowType t, Type newDomain,
+                                         Type newRange, Option<List<Type>> newThrows) {
+                // fix newThrows so that it is a singleton list
+                if (newThrows.isNone()) { newThrows = THROWS_BOTTOM; }
+                else {
+                    List<Type> throwsList = Option.unwrap(newThrows);
+                    if (throwsList.isEmpty()) { newThrows = THROWS_BOTTOM; }
+                    else if (throwsList.size() > 1) {
+                        Type union = null;
+                        for (Type elt : throwsList) {
+                            if (union == null) { union = elt; }
+                            else { union = new OrType(union, elt); }
+                        }
+                        newThrows = Option.some(Collections.singletonList(union));
+                    }
+                }
+                if (t.getDomain() == newDomain && t.getRange() == newRange &&
+                    t.getThrowsClause() == newThrows) {
+                    return t;
+                }
+                else {
+                    return new ArrowType(t.getSpan(), t.isParenthesized(), newDomain,
+                                         newRange, newThrows, t.isIo());
+                }
+            }
+        
+        });
+    }
+    
+    /**
+     * Produce a formula that, if satisfied, will support s as a subtype of t.
+     * Assumes s and t are normalized.
+     */
     public ConstraintFormula subtype(Type s, Type t) {
-        return ConstraintFormula.TRUE; 
-        //return subtype(s, t, _emptyHistory);
+        //return ConstraintFormula.TRUE; 
+        return subtype(s, t, _emptyHistory);
     }
 
-    private ConstraintFormula subtype(Type s, final Type t, SubtypeHistory history) {
-        if (s instanceof InferenceVarType && t instanceof InferenceVarType) {
-            ConstraintFormula f = ConstraintFormula.upperBound((InferenceVarType) s, t, history);
-            return f.and(ConstraintFormula.lowerBound((InferenceVarType) t, s, history), history);
-        }
-        else if (s instanceof InferenceVarType) {
-            return ConstraintFormula.upperBound((InferenceVarType) s, t, history);
-        }
-        else if (t instanceof InferenceVarType) {
-            return ConstraintFormula.lowerBound((InferenceVarType) t, s, history);
-        }
-        else if (_cache.contains(s, t)) { return _cache.value(s, t); }
+    /**
+     * Produce a formula that, if satisfied, will support s as a subtype of t.
+     * Assumes s and t are normalized.
+     */
+    private ConstraintFormula subtype(final Type s, final Type t, SubtypeHistory history) {
+        debug.logStart();
+        debug.logValues(new String[]{"s", "t"}, s, t);
+        //debug.logStack();
+        try {
+        if (_cache.contains(s, t)) { return _cache.value(s, t); }
         else if (history.size() > MAX_SUBTYPE_DEPTH || history.contains(s, t)) {
             return ConstraintFormula.FALSE;
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
-            ConstraintFormula result = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-
-                @Override public ConstraintFormula forBottomType(BottomType s) {
-                    return ConstraintFormula.TRUE;
+            
+            ConstraintFormula result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                
+                @Override public ConstraintFormula forType(Type t) {
+                    return ConstraintFormula.FALSE;
                 }
-
-                @Override public ConstraintFormula forIdType(IdType s) {
-                    if (s.equals(t)) { return ConstraintFormula.TRUE; }
-                    else { return ConstraintFormula.FALSE; }
-                }
-
-                @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
-                    ConstraintFormula result;
-                    if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
-                        result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
+                
+                @Override public ConstraintFormula forInferenceVarType(InferenceVarType t) {
+                    if (s instanceof InferenceVarType && s.equals(t)) {
+                        return ConstraintFormula.TRUE;
                     }
-                    else { result = ConstraintFormula.FALSE; }
-
-                    if (!result.isTrue()) {
-                        TypeConsIndex index = _table.typeCons(s.getName());
-                        if (index instanceof TraitIndex) {
-                            TraitIndex traitIndex = (TraitIndex) index;
-                            Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
-                                                                        s.getArgs(),
-                                                                        traitIndex.hiddenParameters());
-                            for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                                TraitType sup = _sup.getType();
-                                ConstraintFormula f = ConstraintFormula.TRUE;
-                                for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
-                                    f = f.and(subtype(subst.value(c.first()), subst.value(c.second()), h), h);
-                                    if (f.isFalse()) { break; }
+                    else {
+                        return ConstraintFormula.lowerBound(t, s, h);
+                    }
+                }
+                
+            });
+            
+            if (!result.isTrue()) {
+                                                 
+                ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    
+                    @Override public ConstraintFormula forBottomType(BottomType s) {
+                        return ConstraintFormula.TRUE;
+                    }
+                    
+                    @Override public ConstraintFormula forInferenceVarType(InferenceVarType s) {
+                        return ConstraintFormula.upperBound(s, t, h);
+                    }
+                    
+                    @Override public ConstraintFormula forIdType(IdType s) {
+                        if (s.equals(t)) { return ConstraintFormula.TRUE; }
+                        else { return ConstraintFormula.FALSE; }
+                    }
+                    
+                    @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
+                        ConstraintFormula result;
+                        if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
+                            result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
+                        }
+                        else { result = ConstraintFormula.FALSE; }
+                        
+                        if (!result.isTrue()) {
+                            TypeConsIndex index = _table.typeCons(s.getName());
+                            if (index instanceof TraitIndex) {
+                                TraitIndex traitIndex = (TraitIndex) index;
+                                Lambda<Type, Type> subst = makeSubstitution(traitIndex.staticParameters(),
+                                                                            s.getArgs(),
+                                                                            traitIndex.hiddenParameters());
+                                for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
+                                    TraitType sup = _sup.getType();
+                                    ConstraintFormula f = ConstraintFormula.TRUE;
+                                    for (Pair<Type, Type> c : traitIndex.typeConstraints()) {
+                                        f = f.and(subtype(subst.value(c.first()), subst.value(c.second()), h), h);
+                                        if (f.isFalse()) { break; }
+                                    }
+                                    if (!f.isFalse()) { f = f.and(subtype(subst.value(sup), t, h), h); }
+                                    result = result.or(f, h);
+                                    if (result.isTrue()) { break; }
                                 }
-                                if (!f.isFalse()) { f = f.and(subtype(subst.value(sup), t, h), h); }
-                                result = result.or(f, h);
-                                if (result.isTrue()) { break; }
+                            }
+                            else if (index instanceof TypeAliasIndex) {
+                                TypeAliasIndex aliasIndex = (TypeAliasIndex) index;
+                                Lambda<Type, Type> subst = makeSubstitution(aliasIndex.staticParameters(),
+                                                                            s.getArgs());
+                                result = result.or(subtype(subst.value(aliasIndex.type()), t, h), h);
                             }
                         }
-                        else if (index instanceof TypeAliasIndex) {
-                            TypeAliasIndex aliasIndex = (TypeAliasIndex) index;
-                            Lambda<Type, Type> subst = makeSubstitution(aliasIndex.staticParameters(),
-                                                                        s.getArgs());
-                            result = result.or(subtype(subst.value(aliasIndex.type()), t, h), h);
-                        }
+                        return result;
                     }
-                    return result;
-                }
-
-                @Override public ConstraintFormula forTupleType(TupleType s) {
-                    ConstraintFormula result;
-                    if (t instanceof TupleType && compatibleTuples(s, (TupleType) t)) {
-                        // Simplification: we allow covariance here
-                        TupleType tCast = (TupleType) t;
-                        result = subtype(s.getElements(), tCast.getElements(), h);
-                        if (!result.isFalse()) {
-                            result = result.and(subtype(s.getVarargs(), tCast.getVarargs(), h), h);
+                    
+                    @Override public ConstraintFormula forTupleType(TupleType s) {
+                        ConstraintFormula result;
+                        if (t instanceof TupleType && compatibleTuples(s, (TupleType) t)) {
+                            // Simplification: we allow covariance here
+                            TupleType tCast = (TupleType) t;
+                            result = subtype(s.getElements(), tCast.getElements(), h);
+                            if (!result.isFalse()) {
+                                result = result.and(subtype(s.getVarargs(), tCast.getVarargs(), h), h);
+                            }
+                            if (!result.isFalse()) {
+                                result = result.and(subtype(keywordTypes(s.getKeywords()),
+                                                            keywordTypes(tCast.getKeywords()), h), h);
+                            }
                         }
-                        if (!result.isFalse()) {
-                            result = result.and(subtype(keywordTypes(s.getKeywords()),
-                                                        keywordTypes(tCast.getKeywords()), h), h);
+                        else { result = ConstraintFormula.FALSE; }
+                        
+                        if (!result.isTrue()) {
+                            // extends Tuple
+                            result = result.or(subtype(TUPLE, t, h), h);
                         }
-                    }
-                    else { result = ConstraintFormula.FALSE; }
-
-                    if (!result.isTrue()) {
-                        // extends Tuple
-                        result = result.or(subtype(TUPLE, t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // covariance
-                        List<Type> infElements = newInferenceVars(s.getElements().size());
-                        Option<VarargsType> infVarargs = newInferenceVar(s.getVarargs());
-                        List<KeywordType> infKeywords = newInferenceVars(s.getKeywords());
-                        ConstraintFormula f = subtype(s.getElements(), infElements, h);
-                        if (!f.isFalse()) { f = f.and(subtype(s.getVarargs(), infVarargs, h), h); }
-                        if (!f.isFalse()) {
-                            f = f.and(subtype(keywordTypes(s.getKeywords()),
-                                              keywordTypes(infKeywords), h), h);
-                        }
-                        if (!f.isFalse()) {
-                            TupleType sup = new TupleType(infElements, infVarargs, infKeywords);
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // split to an And
-                        List<Type> infElements1 = newInferenceVars(s.getElements().size());
-                        List<Type> infElements2 = newInferenceVars(s.getElements().size());
-                        Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
-                        Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
-                        List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
-                        List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
-                        ConstraintFormula f = ConstraintFormula.TRUE;
-                        for (Triple<Type, Type, Type> ts :
-                                 IterUtil.zip(s.getElements(), infElements1, infElements2)) {
-                            f = f.and(equivalent(ts.first(), new AndType(ts.second(), ts.third()), h), h);
-                            if (f.isFalse()) { break; }
-                        }
-                        if (!f.isFalse() && infVarargs1.isSome()) {
-                            Type varargs = Option.unwrap(s.getVarargs()).getType();
-                            Type inf1 = Option.unwrap(infVarargs1).getType();
-                            Type inf2 = Option.unwrap(infVarargs1).getType();
-                            f = f.and(equivalent(varargs, new AndType(inf1, inf2), h), h);
-                        }
-                        for (Triple<KeywordType, KeywordType, KeywordType> ks :
-                                 IterUtil.zip(s.getKeywords(), infKeywords1, infKeywords2)) {
-                            if (f.isFalse()) { break; }
-                            AndType andT = new AndType(ks.second().getType(), ks.third().getType());
-                            f = f.and(equivalent(ks.first().getType(), andT, h), h);
-                        }
-                        if (!f.isFalse()) {
-                            Type sup = new AndType(new TupleType(infElements1, infVarargs1, infKeywords1),
-                                                   new TupleType(infElements2, infVarargs2, infKeywords2));
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // BottomType
-                        for (Type eltT : s.getElements()) {
-                            ConstraintFormula f = subtype(eltT, BOTTOM, h);
-                            if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
-                            result = result.or(f, h);
-                        }
-                        for (KeywordType key : s.getKeywords()) {
-                            ConstraintFormula f = subtype(key.getType(), BOTTOM, h);
-                            if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
-                            result = result.or(f, h);
-                        }
-                    }
-                    return result;
-                }
-
-                @Override public ConstraintFormula forVoidType(VoidType s) {
-                    if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
-                    else {
-                        // extends Any
-                        return subtype(ANY, t, h);
-                    }
-                }
-
-                @Override public ConstraintFormula forArrowType(ArrowType s) {
-                    ConstraintFormula result;
-                    Type throwsType = throwsType(s);
-                    if (t instanceof ArrowType && s.isIo() == ((ArrowType) t).isIo()) {
-                        // Simplification: allow covariance/contravariance here
-                        ArrowType tCast = (ArrowType) t;
-                        result = subtype(tCast.getDomain(), s.getDomain(), h);
-                        if (!result.isFalse()) {
-                            result = result.and(subtype(s.getRange(), tCast.getRange(), h), h);
-                        }
-                        if (!result.isFalse()) {
-                            result = result.and(subtype(throwsType, throwsType(tCast), h), h);
-                        }
-                    }
-                    else { result = ConstraintFormula.FALSE; }
-
-                    if (!result.isTrue()) {
-                        // extends Object
-                        result = result.or(subtype(OBJECT, t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // covariance/contravariance
-                        InferenceVarType infDomain = newInferenceVar();
-                        InferenceVarType infRange = newInferenceVar();
-                        InferenceVarType infThrowsType = newInferenceVar();
-                        ConstraintFormula f = ConstraintFormula.upperBound(infDomain, s.getDomain(), h);
-                        f = f.and(ConstraintFormula.lowerBound(infRange, s.getRange(), h), h);
-                        f = f.and(ConstraintFormula.lowerBound(infThrowsType, throwsType, h), h);
-                        Type sup = makeArrow(infDomain, infRange, infThrowsType, s.isIo());
-                        ConstraintFormula f1 = f.and(subtype(sup, t, h), h);
-                        result = result.or(f1, h);
-                        if (!result.isTrue() && !s.isIo()) {
-                            sup = makeArrow(infDomain, infRange, infThrowsType, true);
-                            ConstraintFormula f2 = f.and(subtype(sup, t, h), h);
-                            result = result.or(f2, h);
-                        }
-                    }
-                    if (!result.isTrue()) {
-                        // domain is BottomType
-                        ConstraintFormula f = subtype(s.getDomain(), BOTTOM, h);
-                        if (!f.isFalse()) {
-                            f = f.and(subtype(makeArrow(BOTTOM, BOTTOM, BOTTOM, false), t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // split Or domain to an And
-                        InferenceVarType d1 = newInferenceVar();
-                        InferenceVarType d2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getDomain(), new OrType(d1, d2), h);
-                        if (!f.isFalse()) {
-                            Type sup = new AndType(makeArrow(d1, s.getRange(), throwsType, s.isIo()),
-                                                   makeArrow(d2, s.getRange(), throwsType, s.isIo()));
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // split And range/throws to an And
-                        InferenceVarType r1 = newInferenceVar();
-                        InferenceVarType r2 = newInferenceVar();
-                        InferenceVarType th1 = newInferenceVar();
-                        InferenceVarType th2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getRange(), new AndType(r1, r2), h);
-                        if (!f.isFalse()) {
-                            f = f.and(equivalent(throwsType, new AndType(th1, th2), h), h);
-                        }
-                        if (!f.isFalse()) {
-                            Type sup = new AndType(makeArrow(s.getDomain(), r1, th1, s.isIo()),
-                                                   makeArrow(s.getDomain(), r2, th2, s.isIo()));
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    return result;
-                }
-
-                @Override public ConstraintFormula forOrType(OrType s) {
-                    ConstraintFormula result;
-                    if (t instanceof OrType) {
-                        result = equivalent(s.getFirst(), ((OrType) t).getFirst(), h);
-                        if (!result.isFalse()) {
-                            result = result.and(equivalent(s.getSecond(), ((OrType) t).getSecond(), h), h);
-                        }
-                    }
-                    else { result = ConstraintFormula.FALSE; }
-
-                    if (!result.isTrue()) {
-                        // common supertype
-                        ConstraintFormula f = subtype(s.getFirst(), t, h);
-                        if (!f.isFalse()) { f = f.and(subtype(s.getSecond(), t, h), h); }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // distribution of And
-                        InferenceVarType inf1 = newInferenceVar();
-                        InferenceVarType inf2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
-                        if (!f.isFalse()) {
-                            Type sup = new AndType(new OrType(inf1, s.getSecond()),
-                                                   new OrType(inf2, s.getSecond()));
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // commutativity
-                        result = result.or(subtype(new OrType(s.getSecond(), s.getFirst()), t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // associativity
-                        InferenceVarType inf1 = newInferenceVar();
-                        InferenceVarType inf2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
-                        if (!f.isFalse()) {
-                            Type sup = new OrType(inf1, new OrType(inf2, s.getSecond()));
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    return result;
-                }
-
-                @Override public ConstraintFormula forAndType(AndType s) {
-                    ConstraintFormula result;
-                    if (t instanceof AndType) {
-                        result = equivalent(s.getFirst(), ((AndType) t).getFirst(), h);
-                        if (!result.isFalse()) {
-                            result = result.and(equivalent(s.getSecond(), ((AndType) t).getSecond(), h), h);
-                        }
-                    }
-                    else { result = ConstraintFormula.FALSE; }
-
-                    if (!result.isTrue()) {
-                        // extends its first element
-                        result = result.or(subtype(s.getFirst(), t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // extends its second element
-                        result = result.or(subtype(s.getSecond(), t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // elements exclude each other
-                        ConstraintFormula f = excludes(s.getFirst(), s.getSecond(), h);
-                        if (!f.isFalse()) {
-                            f = f.and(subtype(BOTTOM, t, h), h);
-                        }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // merge tuple
-                        // Simplification: assumes this rule is only relevant if one of the
-                        // two types is a tuple, and then only for the tuple form it matches.
-                        TupleType form = null;
-                        if (s.getFirst() instanceof TupleType) { form = (TupleType) s.getFirst(); }
-                        if (s.getSecond() instanceof TupleType) {
-                            if (form == null) { form = (TupleType) s.getSecond(); }
-                            else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
-                        }
-                        if (form != null) {
-                            List<Type> infElements1 = newInferenceVars(form.getElements().size());
-                            List<Type> infElements2 = newInferenceVars(form.getElements().size());
-                            Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
-                            Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
-                            List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
-                            List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
-                            TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
-                            TupleType match2 = new TupleType(infElements2, infVarargs2, infKeywords2);
-                            ConstraintFormula f = equivalent(s.getFirst(), match1, h);
-                            if (!f.isFalse()) { f = f.and(equivalent(s.getSecond(), match2, h), h); }
+                        if (!result.isTrue()) {
+                            // covariance
+                            List<Type> infElements = newInferenceVars(s.getElements().size());
+                            Option<VarargsType> infVarargs = newInferenceVar(s.getVarargs());
+                            List<KeywordType> infKeywords = newInferenceVars(s.getKeywords());
+                            ConstraintFormula f = subtype(s.getElements(), infElements, h);
+                            if (!f.isFalse()) { f = f.and(subtype(s.getVarargs(), infVarargs, h), h); }
                             if (!f.isFalse()) {
-                                List<Type> andElements = new LinkedList<Type>();
-                                for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
-                                    andElements.add(new AndType(ts.first(), ts.second()));
-                                }
-                                Option<VarargsType> andVarargs;
-                                if (infVarargs1.isSome()) {
-                                    AndType vt = new AndType(Option.unwrap(infVarargs1).getType(),
-                                                             Option.unwrap(infVarargs2).getType());
-                                    andVarargs = Option.some(new VarargsType(vt));
-                                }
-                                else { andVarargs = Option.none(); }
-                                List<KeywordType> andKeywords = new LinkedList<KeywordType>();
-                                for (Pair<KeywordType, KeywordType> ks :
-                                         IterUtil.zip(infKeywords1, infKeywords2)) {
-                                    AndType kt = new AndType(ks.first().getType(), ks.second().getType());
-                                    andKeywords.add(new KeywordType(ks.first().getName(), kt));
-                                }
-                                TupleType sup = new TupleType(andElements, andVarargs, andKeywords);
+                                f = f.and(subtype(keywordTypes(s.getKeywords()),
+                                                  keywordTypes(infKeywords), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                TupleType sup = new TupleType(infElements, infVarargs, infKeywords);
                                 f = f.and(subtype(sup, t, h), h);
                             }
                             result = result.or(f, h);
                         }
+                        if (!result.isTrue()) {
+                            // split to an And
+                            List<Type> infElements1 = newInferenceVars(s.getElements().size());
+                            List<Type> infElements2 = newInferenceVars(s.getElements().size());
+                            Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
+                            Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
+                            List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
+                            List<KeywordType> infKeywords2 = newInferenceVars(s.getKeywords());
+                            ConstraintFormula f = ConstraintFormula.TRUE;
+                            for (Triple<Type, Type, Type> ts :
+                                     IterUtil.zip(s.getElements(), infElements1, infElements2)) {
+                                f = f.and(equivalent(ts.first(), new AndType(ts.second(), ts.third()), h), h);
+                                if (f.isFalse()) { break; }
+                            }
+                            if (!f.isFalse() && infVarargs1.isSome()) {
+                                Type varargs = Option.unwrap(s.getVarargs()).getType();
+                                Type inf1 = Option.unwrap(infVarargs1).getType();
+                                Type inf2 = Option.unwrap(infVarargs1).getType();
+                                f = f.and(equivalent(varargs, new AndType(inf1, inf2), h), h);
+                            }
+                            for (Triple<KeywordType, KeywordType, KeywordType> ks :
+                                     IterUtil.zip(s.getKeywords(), infKeywords1, infKeywords2)) {
+                                if (f.isFalse()) { break; }
+                                AndType andT = new AndType(ks.second().getType(), ks.third().getType());
+                                f = f.and(equivalent(ks.first().getType(), andT, h), h);
+                            }
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(new TupleType(infElements1, infVarargs1, infKeywords1),
+                                                       new TupleType(infElements2, infVarargs2, infKeywords2));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // BottomType
+                            for (Type eltT : s.getElements()) {
+                                ConstraintFormula f = subtype(eltT, BOTTOM, h);
+                                if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
+                                result = result.or(f, h);
+                            }
+                            for (KeywordType key : s.getKeywords()) {
+                                ConstraintFormula f = subtype(key.getType(), BOTTOM, h);
+                                if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
+                                result = result.or(f, h);
+                            }
+                        }
+                        return result;
                     }
-                    if (!result.isTrue()) {
-                        // merge arrow domain (non-io)
-                        InferenceVarType d1 = newInferenceVar();
-                        InferenceVarType d2 = newInferenceVar();
-                        InferenceVarType r = newInferenceVar();
-                        InferenceVarType th = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, false), h);
-                        if (!f.isFalse()) {
-                            f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, false), h), h);
+                    
+                    @Override public ConstraintFormula forVoidType(VoidType s) {
+                        if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
+                        else {
+                            // extends Any
+                            return subtype(ANY, t, h);
                         }
-                        if (!f.isFalse()) {
-                            ArrowType sup = makeArrow(new AndType(d1, d2), r, th, false);
-                            f = f.and(subtype(sup, t, h), h);
-                        }
-                        result = result.or(f, h);
                     }
-                    if (!result.isTrue()) {
-                        // merge arrow domain (io)
-                        InferenceVarType d1 = newInferenceVar();
-                        InferenceVarType d2 = newInferenceVar();
-                        InferenceVarType r = newInferenceVar();
-                        InferenceVarType th = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, true), h);
-                        if (!f.isFalse()) {
-                            f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, true), h), h);
+                    
+                    @Override public ConstraintFormula forArrowType(ArrowType s) {
+                        ConstraintFormula result;
+                        Type throwsType = throwsType(s);
+                        if (t instanceof ArrowType && s.isIo() == ((ArrowType) t).isIo()) {
+                            // Simplification: allow covariance/contravariance here
+                            ArrowType tCast = (ArrowType) t;
+                            result = subtype(tCast.getDomain(), s.getDomain(), h);
+                            if (!result.isFalse()) {
+                                result = result.and(subtype(s.getRange(), tCast.getRange(), h), h);
+                            }
+                            if (!result.isFalse()) {
+                                result = result.and(subtype(throwsType, throwsType(tCast), h), h);
+                            }
                         }
-                        if (!f.isFalse()) {
-                            ArrowType sup = makeArrow(new AndType(d1, d2), r, th, true);
-                            f = f.and(subtype(sup, t, h), h);
+                        else { result = ConstraintFormula.FALSE; }
+                        
+                        if (!result.isTrue()) {
+                            // extends Object
+                            result = result.or(subtype(OBJECT, t, h), h);
                         }
-                        result = result.or(f, h);
+                        if (!result.isTrue()) {
+                            // covariance/contravariance
+                            InferenceVarType infDomain = newInferenceVar();
+                            InferenceVarType infRange = newInferenceVar();
+                            InferenceVarType infThrowsType = newInferenceVar();
+                            ConstraintFormula f = ConstraintFormula.upperBound(infDomain, s.getDomain(), h);
+                            f = f.and(ConstraintFormula.lowerBound(infRange, s.getRange(), h), h);
+                            f = f.and(ConstraintFormula.lowerBound(infThrowsType, throwsType, h), h);
+                            Type sup = makeArrow(infDomain, infRange, infThrowsType, s.isIo());
+                            ConstraintFormula f1 = f.and(subtype(sup, t, h), h);
+                            result = result.or(f1, h);
+                            if (!result.isTrue() && !s.isIo()) {
+                                sup = makeArrow(infDomain, infRange, infThrowsType, true);
+                                ConstraintFormula f2 = f.and(subtype(sup, t, h), h);
+                                result = result.or(f2, h);
+                            }
+                        }
+                        if (!result.isTrue()) {
+                            // domain is BottomType
+                            ConstraintFormula f = subtype(s.getDomain(), BOTTOM, h);
+                            if (!f.isFalse()) {
+                                f = f.and(subtype(makeArrow(BOTTOM, BOTTOM, BOTTOM, false), t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // split Or domain to an And
+                            InferenceVarType d1 = newInferenceVar();
+                            InferenceVarType d2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getDomain(), new OrType(d1, d2), h);
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(makeArrow(d1, s.getRange(), throwsType, s.isIo()),
+                                                       makeArrow(d2, s.getRange(), throwsType, s.isIo()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // split And range/throws to an And
+                            InferenceVarType r1 = newInferenceVar();
+                            InferenceVarType r2 = newInferenceVar();
+                            InferenceVarType th1 = newInferenceVar();
+                            InferenceVarType th2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getRange(), new AndType(r1, r2), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(throwsType, new AndType(th1, th2), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(makeArrow(s.getDomain(), r1, th1, s.isIo()),
+                                                       makeArrow(s.getDomain(), r2, th2, s.isIo()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        return result;
                     }
-                    if (!result.isTrue()) {
-                        // merge arrow range (non-io)
-                        InferenceVarType d = newInferenceVar();
-                        InferenceVarType r1 = newInferenceVar();
-                        InferenceVarType r2 = newInferenceVar();
-                        InferenceVarType th1 = newInferenceVar();
-                        InferenceVarType th2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, false), h);
-                        if (!f.isFalse()) {
-                            f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, false), h), h);
+                    
+                    @Override public ConstraintFormula forOrType(OrType s) {
+                        ConstraintFormula result;
+                        if (t instanceof OrType) {
+                            result = equivalent(s.getFirst(), ((OrType) t).getFirst(), h);
+                            if (!result.isFalse()) {
+                                result = result.and(equivalent(s.getSecond(), ((OrType) t).getSecond(), h), h);
+                            }
                         }
-                        if (!f.isFalse()) {
-                            ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), false);
-                            f = f.and(subtype(sup, t, h), h);
+                        else { result = ConstraintFormula.FALSE; }
+                        
+                        if (!result.isTrue()) {
+                            // common supertype
+                            ConstraintFormula f = subtype(s.getFirst(), t, h);
+                            if (!f.isFalse()) { f = f.and(subtype(s.getSecond(), t, h), h); }
+                            result = result.or(f, h);
                         }
-                        result = result.or(f, h);
+                        if (!result.isTrue()) {
+                            // distribution of And
+                            InferenceVarType inf1 = newInferenceVar();
+                            InferenceVarType inf2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(new OrType(inf1, s.getSecond()),
+                                                       new OrType(inf2, s.getSecond()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // commutativity
+                            result = result.or(subtype(new OrType(s.getSecond(), s.getFirst()), t, h), h);
+                        }
+                        if (!result.isTrue()) {
+                            // associativity
+                            InferenceVarType inf1 = newInferenceVar();
+                            InferenceVarType inf2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
+                            if (!f.isFalse()) {
+                                Type sup = new OrType(inf1, new OrType(inf2, s.getSecond()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        return result;
                     }
-                    if (!result.isTrue()) {
-                        // merge arrow range (io)
-                        InferenceVarType d = newInferenceVar();
-                        InferenceVarType r1 = newInferenceVar();
-                        InferenceVarType r2 = newInferenceVar();
-                        InferenceVarType th1 = newInferenceVar();
-                        InferenceVarType th2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, true), h);
-                        if (!f.isFalse()) {
-                            f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, true), h), h);
+                    
+                    @Override public ConstraintFormula forAndType(AndType s) {
+                        ConstraintFormula result;
+                        if (t instanceof AndType) {
+                            result = equivalent(s.getFirst(), ((AndType) t).getFirst(), h);
+                            if (!result.isFalse()) {
+                                result = result.and(equivalent(s.getSecond(), ((AndType) t).getSecond(), h), h);
+                            }
                         }
-                        if (!f.isFalse()) {
-                            ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), true);
-                            f = f.and(subtype(sup, t, h), h);
+                        else { result = ConstraintFormula.FALSE; }
+                        
+                        if (!result.isTrue()) {
+                            // extends its first element
+                            result = result.or(subtype(s.getFirst(), t, h), h);
                         }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // distribution of Or
-                        InferenceVarType inf1 = newInferenceVar();
-                        InferenceVarType inf2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
-                        if (!f.isFalse()) {
-                            Type sup = new OrType(new AndType(inf1, s.getSecond()),
-                                                  new AndType(inf2, s.getSecond()));
-                            f = f.and(subtype(sup, t, h), h);
+                        if (!result.isTrue()) {
+                            // extends its second element
+                            result = result.or(subtype(s.getSecond(), t, h), h);
                         }
-                        result = result.or(f, h);
-                    }
-                    if (!result.isTrue()) {
-                        // commutativity
-                        result = result.or(subtype(new AndType(s.getSecond(), s.getFirst()), t, h), h);
-                    }
-                    if (!result.isTrue()) {
-                        // associativity
-                        InferenceVarType inf1 = newInferenceVar();
-                        InferenceVarType inf2 = newInferenceVar();
-                        ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
-                        if (!f.isFalse()) {
-                            Type sup = new AndType(inf1, new OrType(inf2, s.getSecond()));
-                            f = f.and(subtype(sup, t, h), h);
+                        if (!result.isTrue()) {
+                            // elements exclude each other
+                            ConstraintFormula f = excludes(s.getFirst(), s.getSecond(), h);
+                            if (!f.isFalse()) {
+                                f = f.and(subtype(BOTTOM, t, h), h);
+                            }
+                            result = result.or(f, h);
                         }
-                        result = result.or(f, h);
+                        if (!result.isTrue()) {
+                            // merge tuple
+                            // Simplification: assumes this rule is only relevant if one of the
+                            // two types is a tuple, and then only for the tuple form it matches.
+                            TupleType form = null;
+                            if (s.getFirst() instanceof TupleType) { form = (TupleType) s.getFirst(); }
+                            if (s.getSecond() instanceof TupleType) {
+                                if (form == null) { form = (TupleType) s.getSecond(); }
+                                else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
+                            }
+                            if (form != null) {
+                                List<Type> infElements1 = newInferenceVars(form.getElements().size());
+                                List<Type> infElements2 = newInferenceVars(form.getElements().size());
+                                Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
+                                Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
+                                List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
+                                List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
+                                TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
+                                TupleType match2 = new TupleType(infElements2, infVarargs2, infKeywords2);
+                                ConstraintFormula f = equivalent(s.getFirst(), match1, h);
+                                if (!f.isFalse()) { f = f.and(equivalent(s.getSecond(), match2, h), h); }
+                                if (!f.isFalse()) {
+                                    List<Type> andElements = new LinkedList<Type>();
+                                    for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
+                                        andElements.add(new AndType(ts.first(), ts.second()));
+                                    }
+                                    Option<VarargsType> andVarargs;
+                                    if (infVarargs1.isSome()) {
+                                        AndType vt = new AndType(Option.unwrap(infVarargs1).getType(),
+                                                                 Option.unwrap(infVarargs2).getType());
+                                        andVarargs = Option.some(new VarargsType(vt));
+                                    }
+                                    else { andVarargs = Option.none(); }
+                                    List<KeywordType> andKeywords = new LinkedList<KeywordType>();
+                                    for (Pair<KeywordType, KeywordType> ks :
+                                             IterUtil.zip(infKeywords1, infKeywords2)) {
+                                        AndType kt = new AndType(ks.first().getType(), ks.second().getType());
+                                        andKeywords.add(new KeywordType(ks.first().getName(), kt));
+                                    }
+                                    TupleType sup = new TupleType(andElements, andVarargs, andKeywords);
+                                    f = f.and(subtype(sup, t, h), h);
+                                }
+                                result = result.or(f, h);
+                            }
+                        }
+                        if (!result.isTrue()) {
+                            // merge arrow domain (non-io)
+                            InferenceVarType d1 = newInferenceVar();
+                            InferenceVarType d2 = newInferenceVar();
+                            InferenceVarType r = newInferenceVar();
+                            InferenceVarType th = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, false), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, false), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                ArrowType sup = makeArrow(new AndType(d1, d2), r, th, false);
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // merge arrow domain (io)
+                            InferenceVarType d1 = newInferenceVar();
+                            InferenceVarType d2 = newInferenceVar();
+                            InferenceVarType r = newInferenceVar();
+                            InferenceVarType th = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, true), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, true), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                ArrowType sup = makeArrow(new AndType(d1, d2), r, th, true);
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // merge arrow range (non-io)
+                            InferenceVarType d = newInferenceVar();
+                            InferenceVarType r1 = newInferenceVar();
+                            InferenceVarType r2 = newInferenceVar();
+                            InferenceVarType th1 = newInferenceVar();
+                            InferenceVarType th2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, false), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, false), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), false);
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // merge arrow range (io)
+                            InferenceVarType d = newInferenceVar();
+                            InferenceVarType r1 = newInferenceVar();
+                            InferenceVarType r2 = newInferenceVar();
+                            InferenceVarType th1 = newInferenceVar();
+                            InferenceVarType th2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, true), h);
+                            if (!f.isFalse()) {
+                                f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, true), h), h);
+                            }
+                            if (!f.isFalse()) {
+                                ArrowType sup = makeArrow(d, new AndType(r1, r2), new AndType(th1, th2), true);
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // distribution of Or
+                            InferenceVarType inf1 = newInferenceVar();
+                            InferenceVarType inf2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
+                            if (!f.isFalse()) {
+                                Type sup = new OrType(new AndType(inf1, s.getSecond()),
+                                                      new AndType(inf2, s.getSecond()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // commutativity
+                            result = result.or(subtype(new AndType(s.getSecond(), s.getFirst()), t, h), h);
+                        }
+                        if (!result.isTrue()) {
+                            // associativity
+                            InferenceVarType inf1 = newInferenceVar();
+                            InferenceVarType inf2 = newInferenceVar();
+                            ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(inf1, new OrType(inf2, s.getSecond()));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        return result;
                     }
-                    return result;
-                }
-
-            });
-
+                    
+                });
+                result = result.or(sResult, h);
+            }
+            
+            if (!result.isTrue()) {
+                // expand to intersection
+                InferenceVarType inf = newInferenceVar();
+                ConstraintFormula f = subtype(new AndType(s, inf), t, h);
+                f = f.and(ConstraintFormula.lowerBound(inf, s, h), h);
+                result = result.or(f, h);
+            }
+            if (!result.isTrue()) {
+                // expand to union
+                InferenceVarType inf = newInferenceVar();
+                result = result.or(subtype(new OrType(s, inf), t, h), h);
+            }
+            
             // match where declarations
             // reverse aliases
+            
             return result;
         }
+        } finally { debug.logEnd(); }
     }
 
     public ConstraintFormula equivalent(Type s, Type t, SubtypeHistory history) {
         return subtype(s, t, history).and(subtype(t, s, history), history);
-    }
+    } // to do: optimize -- if the first half is false, ignore the second
 
     public ConstraintFormula equivalent(StaticArg a1, final StaticArg a2,
                                         final SubtypeHistory history) {
@@ -796,6 +879,7 @@ public class TypeAnalyzer {
         public SubtypeHistory extend(Type s, Type t) {
             Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
             newEntries.addAll(_entries);
+            newEntries.add(s, t);
             return new SubtypeHistory(newEntries);
         }
         public ConstraintFormula subtype(Type s, Type t) { return TypeAnalyzer.this.subtype(s, t, this); }

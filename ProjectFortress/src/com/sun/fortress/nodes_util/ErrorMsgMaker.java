@@ -77,7 +77,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             + node.getRange().accept(this)
             + (node.getThrowsClause().isSome() ?
                    (" throws " + Useful.listInCurlies(mapSelf(Option.unwrap(node.getThrowsClause())))) :
-                   "");
+                   "")
+            + (node.isIo()? " io" : "");
     }
 
     public String forNumberConstraint(NumberConstraint node) {
@@ -201,4 +202,27 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forVarDecl(VarDecl node) {
         return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
     }
+    
+    public String forBottomType(BottomType node) {
+        return "bottom";
+    }
+    
+    private static final int FOUR_DIGITS = 36 * 36 * 36 * 36;
+    
+    public String forInferenceVarType(InferenceVarType node) {
+        if (node.getId().getClass().equals(Object.class)) {
+            int id = System.identityHashCode(node.getId()) % FOUR_DIGITS;
+            return "#" + Integer.toString(id, 36);
+        }
+        else { return "#" + node.getId(); }
+    }
+    
+    public String forOrType(OrType node) {
+        return node.getFirst().accept(this) + " | " + node.getSecond().accept(this);
+    }
+    
+    public String forAndType(AndType node) {
+        return node.getFirst().accept(this) + " & " + node.getSecond().accept(this);
+    }
+        
 }

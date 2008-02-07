@@ -381,6 +381,9 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                 <pathelement location="${junit}/junit.jar"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
+            <syspropertyset>
+                <propertyref prefix="plt." />
+            </syspropertyset>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <and>

@@ -27,6 +27,9 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.InferenceVarType;
 
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+
+import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static edu.rice.cs.plt.debug.DebugUtil.error;
     
 public abstract class ConstraintFormula {
     
@@ -35,6 +38,7 @@ public abstract class ConstraintFormula {
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return this; }
         public boolean isTrue() { return true; }
         public boolean isFalse() { return false; }
+        public String toString() { return "(true)"; }
     };
     
     public static final ConstraintFormula FALSE = new ConstraintFormula() {
@@ -42,6 +46,7 @@ public abstract class ConstraintFormula {
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
         public boolean isTrue() { return false; }
         public boolean isFalse() { return true; }
+        public String toString() { return "(false)"; }
     };
     
     /** A conjunction of a number of binding constraints on inference variables.  Clients are
@@ -75,7 +80,35 @@ public abstract class ConstraintFormula {
         public boolean isTrue() { return false; }
         public boolean isFalse() { return false; }
         
+        public String toString() {
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+            for (InferenceVarType t :
+                     CollectUtil.union(_upperBounds.keySet(), _lowerBounds.keySet())) {
+                if (first) { result.append("("); first = false; }
+                else { result.append(", "); }
+                if (_upperBounds.containsKey(t)) {
+                    if (_lowerBounds.containsKey(t)) {
+                        result.append(_lowerBounds.get(t));
+                        result.append(" <: ");
+                    }
+                    result.append(t);
+                    result.append(" <: ");
+                    result.append(_upperBounds.get(t));
+                }
+                else {
+                    result.append(t);
+                    result.append(" :> ");
+                    result.append(_lowerBounds.get(t));
+                }
+            }
+            result.append(")");
+            return result.toString();
+        }
+        
         private ConstraintFormula merge(SimpleFormula f, SubtypeHistory history) {
+            debug.logStart();
+            debug.logValues(new String[]{"this", "f"}, this, f);
             Map<InferenceVarType, Type> uppers = new HashMap<InferenceVarType, Type>();
             Map<InferenceVarType, Type> lowers = new HashMap<InferenceVarType, Type>();
             ConstraintFormula conditions = TRUE;
@@ -90,7 +123,7 @@ public abstract class ConstraintFormula {
                 }
                 else if (_upperBounds.containsKey(t)) { upper = _upperBounds.get(t); }
                 else if (f._upperBounds.containsKey(t)) { upper = f._upperBounds.get(t); }
-                if (_lowerBounds.containsKey(t) && f._upperBounds.containsKey(t)) {
+                if (_lowerBounds.containsKey(t) && f._lowerBounds.containsKey(t)) {
                     lower = history.join(_lowerBounds.get(t), f._lowerBounds.get(t));
                 }
                 else if (_lowerBounds.containsKey(t)) { lower = _lowerBounds.get(t); }
@@ -99,30 +132,47 @@ public abstract class ConstraintFormula {
                 if (_upperBounds.containsKey(t) && f._lowerBounds.containsKey(t) ||
                     _lowerBounds.containsKey(t) && f._upperBounds.containsKey(t)) {
                     conditions = conditions.and(history.subtype(lower, upper), history);
-                    if (conditions.isFalse()) { return FALSE; }
+                    if (!conditions.isTrue()) {
+//                    if (conditions.isFalse()) {
+                        debug.logValue("result", FALSE);
+                        debug.logEnd();
+                        return FALSE;
+                    }
                 }
                 if (upper != null) { uppers.put(t, upper); }
                 if (lower != null) { lowers.put(t, lower); }
             }
-            return new SimpleFormula(uppers, lowers).and(conditions, history);
+            //return new SimpleFormula(uppers, lowers).and(conditions, history);
+            ConstraintFormula result = new SimpleFormula(uppers, lowers).and(conditions, history);
+            debug.logValue("result", result);
+            debug.logEnd();
+            return result;
         }
     }
     
     
     public static ConstraintFormula upperBound(InferenceVarType var, Type bound, SubtypeHistory history) {
+        debug.logStart();
+        debug.logValues(new String[]{"var","upperBound"}, var, bound);
+        try {
         if (history.subtype(TypeAnalyzer.ANY, bound).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.singletonMap(var, bound),
                                      Collections.<InferenceVarType, Type>emptyMap());
         }
+        } finally { debug.logEnd(); }
     }
     
     public static ConstraintFormula lowerBound(InferenceVarType var, Type bound, SubtypeHistory history) {
+        debug.logStart();
+        debug.logValues(new String[]{"var","lowerBound"}, var, bound);
+        try {
         if (history.subtype(bound, TypeAnalyzer.BOTTOM).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.<InferenceVarType, Type>emptyMap(),
                                      Collections.singletonMap(var, bound));
         }
+        } finally { debug.logEnd(); }
     }
     
     public static ConstraintFormula fromBoolean(boolean b) {
