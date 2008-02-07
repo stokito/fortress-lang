@@ -46,6 +46,17 @@ Expr NoSpaceExpr = ExprFront ;
    | Encloser OpExprPrefix
    | Encloser
  */
+Expr OpExpr :=
+     a1:OpExprNoEnc
+     { yyValue = Resolver.resolveOpsNoSpace(a1); }
+   / a1:OpExprLeftEncloser
+     { yyValue = Resolver.resolveOpsNoSpace(a1); }
+   / a1:Encloser
+     { PrecedenceOpExpr e =
+           new RealExpr(ASTUtil.nofix(createSpan(yyStart,yyCount), a1));
+       yyValue = Resolver.resolveOpsNoSpace(PureList.make(e));
+     };
+
 PureList<PrecedenceOpExpr> TightInfixRight -= <Primary>, <Loose>, <LeftLoose> ;
 
 /* NoSpaceOpExprLeftEncloser ::= Encloser NoSpaceOpExprNoEnc
