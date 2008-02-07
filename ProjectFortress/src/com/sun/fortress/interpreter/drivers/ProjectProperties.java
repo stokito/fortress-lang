@@ -237,7 +237,7 @@ public class ProjectProperties {
 
     public final static String API_TREE_SUFFIX = "tfi";
 
-    public static boolean noStaticAnalysis = ! getBoolean("fortress.static.analysis", false);
+    public static boolean noStaticAnalysis = ! getBoolean("fortress.static.analysis", true);
 
 
     /** Creates a new instance of ProjectProperties */
