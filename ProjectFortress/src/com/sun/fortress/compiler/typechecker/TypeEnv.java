@@ -251,6 +251,11 @@ public abstract class TypeEnv {
         if (entries.size() == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
+    
+    public final TypeEnv extend(LocalVarDecl decl) {
+        if (decl.getLhs().size() == 0) { return this; }
+        else { return new LocalVarTypeEnv(decl, this); }
+    }
 
     public final TypeEnv extend(Map<Id, Variable> vars) {
         if (vars.size() == 0) { return this; }
@@ -260,6 +265,11 @@ public abstract class TypeEnv {
     public final TypeEnv extendWithFunctions(Relation<SimpleName, ? extends Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
+    }
+
+    public final TypeEnv extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
+        if (fns.size() == 0) { return this; }
+        else { return new FnDefTypeEnv(fns, this); }
     }
     
     public final TypeEnv extendWithMethods(Relation<SimpleName, Method> methods) {

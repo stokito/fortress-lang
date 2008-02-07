@@ -38,6 +38,12 @@ public class TypeCheckerResult extends StaticPhaseResult {
         }
         return allErrors;
     }
+
+    public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
+                                            TypeCheckerResult... results) {
+        return new TypeCheckerResult(_ast, _type,
+                                     collectErrors(Arrays.asList(results)));
+    }
     
     public static TypeCheckerResult compose(Node _ast, Type _type,
                                             TypeCheckerResult... results) {

@@ -23,4 +23,10 @@ import java.util.ArrayList;
 
 public class Types {
     public static final Type VOID = NodeFactory.makeTupleType(new ArrayList<Type>());
+    public static final Type FLOAT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "FloatLiteral");
+    public static final Type INT_LITERAL = NodeFactory.makeInstantiatedType("FortressBuiltin", "IntLiteral");
+    public static final Type BOOLEAN = NodeFactory.makeInstantiatedType("FortressBuiltin", "Boolean");
+    public static final Type CHAR = NodeFactory.makeInstantiatedType("FortressBuiltin", "Char");
+    public static final Type STRING = NodeFactory.makeInstantiatedType("FortressBuiltin", "String");
+    public static final Type REGION = NodeFactory.makeInstantiatedType("FortressBuiltin", "Region");
 }
