@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -246,7 +246,7 @@ public class  OverloadedFunction extends Fcn
             if (!noCheck && !o1.guaranteedOK) {
 
             for (int j = i-1; j >= 0 ; j--) {
-                
+
                 Overload o2 = new_overloads.get(j);
                 if (o2.guaranteedOK)
                     continue;

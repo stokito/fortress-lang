@@ -1,6 +1,6 @@
 (** COPYRIGHT **)
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,16 +21,10 @@ component OprDecl.Bracketing
 
 export Executable
 
-(*
-opr <|x: Vector, y: Vector|> = SUM[i <- x.indices]x[i] DOT y[i]
-*)
 (** EXAMPLE **)
 (* angle bracket notation for inner product *)
-opr <|[\T extends Number, nat k\] x: Vector[\T,k\], y: Vector[\T,k\]|> = do
-  var result: ZZ32 = 0
-  for i <- x.indices() do atomic result += x[i] y[i] end
-  result
-end
+opr <|[\T extends Number, nat k\] x: Vector[\T,k\], y: Vector[\T,k\]|> =
+    SUM[i <- x.indices()]x[i] DOT y[i]
 (** END EXAMPLE **)
 
 vector1 = vector[\ZZ32, 2\](2)
