@@ -51,6 +51,7 @@ import com.sun.fortress.parser_util.precedence_opexpr.Right;
 import com.sun.fortress.parser_util.precedence_opexpr.Tight;
 import com.sun.fortress.parser_util.precedence_opexpr.TightChain;
 import com.sun.fortress.parser_util.precedence_opexpr.TightInfix;
+import com.sun.fortress.parser_util.precedence_opexpr.TightPrefix;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
@@ -65,6 +66,8 @@ import static com.sun.fortress.nodes_util.OprUtil.noColonText;
  * Above each method is a description of the method's functionality in O'Caml.
  */
 public class Resolver {
+
+  private static boolean noSpace = false;
 
   // let is_div op = op.node_data = "/"
   private static boolean isDiv(Op op) {
@@ -274,14 +277,21 @@ public class Resolver {
           Cons<InfixOpExpr> __opExprs = (Cons<InfixOpExpr>)_opExprs;
           Expr e = ((RealExpr)__opExprs.getFirst()).getExpr();
           PureList<InfixOpExpr> _rest = __opExprs.getRest();
-          if (first instanceof LoosePrefix &&
-              !_rest.isEmpty() &&
-              ((Cons<InfixOpExpr>)_rest).getFirst() instanceof TightInfix) {
+          if (!_rest.isEmpty()) {
+              InfixOpExpr third = ((Cons<InfixOpExpr>)_rest).getFirst();
               Op op = ((Prefix)first).getOp();
-              Op _op = ((TightInfix)((Cons<InfixOpExpr>)_rest).getFirst()).getOp();
-              throw new ReadError(op.getSpan(),
-                                  "Loose prefix operator " + op.toString() +
-                                  " near tight operator " + _op.toString() + ".");
+              if (first instanceof LoosePrefix &&
+                  third instanceof TightInfix) {
+                  Op _op = ((TightInfix)third).getOp();
+                  throw new ReadError(op.getSpan(), "Loose prefix operator " +
+                                      op.toString() + " near tight operator " +
+                                      _op.toString() + ".");
+              } else if (first instanceof TightPrefix &&
+                         third instanceof RealExpr && !noSpace) {
+                  throw new ReadError(op.getSpan(),
+                                      "Prefix operator " + op.toString() +
+                                      " near loose juxtaposition.");
+              }
           }
           return _rest.cons(new RealExpr
                               (ASTUtil.prefix(((Prefix)first).getOp(),
@@ -675,8 +685,7 @@ public class Resolver {
         else {
           throw new ReadError(FortressUtil.spanTwo(_op,op),
                               "Tight operator " + _op.getText() +
-                              " near loose operator " + op.getText()
-                                + " of incompatible precedence.");
+                              " near loose operator " + op.getText() + ".");
         }
       }
       else if (frame instanceof Loose) {
@@ -752,8 +761,7 @@ public class Resolver {
             throw new ReadError(FortressUtil.spanTwo(_op,op),
                                 "Tight operator " + _op.getText() +
                                 " near loose operator " +
-                                op.getText() +
-                                " of incompatible precedence.");
+                                op.getText() + ".");
           }
         }
       }
@@ -823,8 +831,7 @@ public class Resolver {
         else {
           throw new ReadError(FortressUtil.spanTwo(_op,op),
                               "Loose operator " + _op.getText() +
-                              " near tight operator " + op.getText()
-                                + " of incompatible precedence.");
+                              " near tight operator " + op.getText() + ".");
         }
       }
       else if (frame instanceof Tight) {
@@ -899,8 +906,7 @@ public class Resolver {
             throw new ReadError(FortressUtil.spanTwo(_op,op),
                                 "Loose operator " + _op.getText() +
                                 " near tight operator " +
-                                op.getText() +
-                                " of incompatible precedence.");
+                                op.getText() + ".");
           }
         }
       }
@@ -954,8 +960,7 @@ public class Resolver {
         else {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Tight operator " + _op.getText() +
-                              " near loose operator " + op.getText()
-                                + " of incompatible precedence.");
+                              " near loose operator " + op.getText() + ".");
         }
       }
       else if (frame instanceof Loose) {
@@ -977,8 +982,7 @@ public class Resolver {
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Loose operators " + _op.getText() +
-                              " and " + op.getText()
-                                + " have incompatible precedence.");
+                              " and " + op.getText() + ".");
         }
       } else if (frame instanceof TightChain) {
         throw new ReadError(op.getSpan(),
@@ -1040,8 +1044,7 @@ public class Resolver {
         else {
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Loose operator " + _op.getText() +
-                              " near tight operator " + op.getText()
-                                + " of incompatible precedence.");
+                              " near tight operator " + op.getText() + ".");
         }
       }
       else if (frame instanceof Tight) {
@@ -1063,8 +1066,7 @@ public class Resolver {
         else { // prec instanceof None
           throw new ReadError(FortressUtil.spanTwo(_op, op),
                               "Tight operators " + _op.getText() +
-                              " and " + op.getText()
-                                + " have incompatible precedence.");
+                              " and " + op.getText() + ".");
         }
       }
       else if (frame instanceof LooseChain) {
@@ -1229,5 +1231,10 @@ public class Resolver {
       }
       return error("Resolution of operator property failed for:\n" + msg);
     }
+  }
+
+  public static Expr resolveOpsNoSpace(PureList<PrecedenceOpExpr> opExprs) {
+      noSpace = true;
+      return resolveOps(opExprs);
   }
 }
