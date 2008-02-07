@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,7 +29,7 @@ class DumpProperties {
 
     System.out.println("Fortress home is " + ProjectProperties.FORTRESS_HOME);
     System.out.println("Fortress base is " + ProjectProperties.BASEDIR);
-       
+
     java.util.Properties p = System.getProperties();
     Enumeration e = p.propertyNames();
     ArrayList<String> al = new ArrayList<String>();
@@ -52,4 +52,3 @@ class DumpProperties {
     }
   }
 }
-

@@ -1,6 +1,6 @@
 (** COPYRIGHT **)
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,17 +17,17 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
-component OprDecl.Postfix
+component ExceptionLibrary
 
 export Executable
 
+trait CheckedException extends Exception end
+trait UncheckedException extends Exception end
 (** EXAMPLE **)
-opr (n: ZZ32)! = PROD[i <- 1:n]i (* factorial *)
+trait Exception comprises { CheckedException, UncheckedException }
+end
 (** END EXAMPLE **)
 
-run(args:String...) = do
-  assert((5!) = 120)
-  println("OprDecl.Postfix.fss passed.")
-end
+run() = ()
 
 end

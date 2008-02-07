@@ -689,8 +689,8 @@ other_operators
   partial differential, del
   there does not exist
   increment
-  n-ary product, product
-  n-ary coproduct, coproduct
+  n-ary product, prod
+  n-ary coproduct, coprod
   n-ary summation, sum
   ring operator, circ, ring, compose
   bullet operator
