@@ -37,9 +37,6 @@ trait  Integral extends { Number }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)
 end
 
-trait BufferedReader extends { Any } end
-trait BufferedWriter extends { Any } end
-
 trait ZZ32 extends { Integral }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)
 end
@@ -55,6 +52,11 @@ end
 trait IntLiteral extends { ZZ32, ZZ64, RR64 } end
 
 trait FloatLiteral extends { RR64 } end
+
+trait Region extends { Any } end
+
+trait BufferedReader extends { Any } end
+trait BufferedWriter extends { Any } end
 
 true: Boolean = builtInPrimitive(
                   "com.sun.fortress.interpreter.evaluator.values.FBool.TRUE")

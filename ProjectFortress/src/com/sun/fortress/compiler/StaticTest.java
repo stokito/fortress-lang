@@ -38,58 +38,27 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.shell.FileBasedRepository;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
-public class CompilerTopLevelJUTest extends TestCase {
+public abstract class StaticTest extends TestCase {
 
-    private static final boolean VERBOSE = false;
-    private static final boolean SKIP_NOT_PASSING = true;
+    private final boolean VERBOSE = true;
+    private final boolean SKIP_NOT_PASSING = true;
 
     // relative to the top ProjectFortress directory
-    private static String baseDir = ProjectProperties.BASEDIR;
-    private static String staticTests = baseDir + "static_tests/";
-
-    private static final List<String> NOT_PASSING = Arrays.asList(
-        staticTests + "XXXMaltypedTopLevelVar.fss",                                                          
-        staticTests + "XXXMultipleRefErrors.fss",
-        staticTests + "XXXUndefinedArrayRef.fss",
-        staticTests + "XXXUndefinedInitializer.fss",
-        staticTests + "XXXUndefinedNestedRef.fss",
-        staticTests + "XXXUndefinedRefInLoop.fss",
-        staticTests + "XXXUndefinedVar.fss",
-        staticTests + "XXXUndefinedTopLevelVar.fss",
-        /* Tests for Syntax abstractions */
-        staticTests + "SyntaxHelloWorldUse.fss",
-        staticTests + "SyntaxHelloWorld.fss",
-        staticTests + "SyntaxGrammarImportsUse.fss",
-        staticTests + "XXXSyntaxGrammarImportsUse.fss",
-        staticTests + "SyntaxGrammarImports.fss",
-        staticTests + "SyntaxGrammarImportsA.fss",
-        staticTests + "SyntaxProductionExtends.fsi",
-        staticTests + "XXXSyntaxMultipleGrammarsWithSameName.fsi",
-        staticTests + "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
-        staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi",
-        // really not working:
-        // staticTests + "XXXSyntaxNoFortressAstImport.fsi",
-        staticTests + "stub to eliminate comma trouble"
-    );
-
-    private static final Set<File> NOT_PASSING_FILES =
-      CollectUtil.asSet(IterUtil.map(NOT_PASSING, new Lambda<String, File>() {
-        public File value(String s) { return new File(s); }
-      }));
-
-    public void setUp() {
-        // Turn on type checking during static checking. By default,
-        // type checking is turned off to allow programmers to use
-        // the static checker before type checking is fully functional.
-        com.sun.fortress.compiler.StaticChecker.typecheck = true;
-    }
+    protected String baseDir = ProjectProperties.BASEDIR;
+    protected String staticTests = baseDir + "static_tests/";
+    
+    public abstract List<String> getNotPassing();
     
     public void testStaticTests() throws IOException {
+        Set<File> notPassingFiles = 
+        CollectUtil.asSet(IterUtil.map(getNotPassing(), new Lambda<String, File>() {
+            public File value(String s) { return new File(s); }
+        }));
         boolean foundAFile = false;
         Predicate<File> filter = IOUtil.extensionFilePredicate("fss", IOUtil.IS_FILE);
         for (File f : IOUtil.listFilesRecursively(new File(staticTests), filter)) {
             foundAFile = true;
-            if (SKIP_NOT_PASSING && NOT_PASSING_FILES.contains(f)) { continue; }
+            if (SKIP_NOT_PASSING && notPassingFiles.contains(f)) { continue; }
             else {
             	System.out.println("Testing: "+f.getName());
             	if (f.getName().contains("XXX")) { assertMalformedProgram(f); }
