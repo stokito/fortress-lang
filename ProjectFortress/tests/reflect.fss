@@ -16,9 +16,8 @@
  ******************************************************************************)
 
 component reflect
-(* Currently implicitly imported from FortressLibrary.
 import NatReflect.{...}
-*)
+
 export Executable
 
 x : ZZ32 = 43 - 1

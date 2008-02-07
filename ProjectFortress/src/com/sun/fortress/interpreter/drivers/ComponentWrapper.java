@@ -96,7 +96,7 @@ public class ComponentWrapper {
     public ComponentWrapper(Component comp, ComponentWrapper api) {
         this(comp);
         
-        exports.put(NodeUtil.nameString(api.getComponent().getName()), api);
+        exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
     public static boolean overloadable(Object u) {
@@ -218,7 +218,7 @@ public class ComponentWrapper {
         return be.getEnvironment();
     }
 
-    public CompilationUnit getComponent() {
+    public CompilationUnit getCompilationUnit() {
        return p;
     }
 

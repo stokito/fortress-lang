@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -566,17 +567,21 @@ public class  OverloadedFunction extends Fcn
             addOverload(cl);
         }
         clso = cls.pendingOverloads;
-        for (Overload cl : clso) {
-            addOverload(cl);
+        try {
+            for (Overload cl : clso) {
+
+                addOverload(cl);
+            }
+        } catch (ConcurrentModificationException ex) {
+            bug("Whoops, concurrent modification");
         }
 
     }
 
     /**
-     * Add an overload to the list of overloads.
-     * Not Allowed after the overloaded function has been (completely)
-     * finished.
-     *
+     * Add an overload to the list of overloads. Not Allowed after the
+     * overloaded function has been (completely) finished.
+     * 
      * @param overload
      */
     public void addOverload(Overload overload) {
@@ -641,6 +646,21 @@ public class  OverloadedFunction extends Fcn
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
 
+        int best = bestMatchIndexInternal(args, loc, envForInference,
+                someOverloads);
+        if (best == -1) {
+            // TODO add checks for COERCE, right here.
+            // Replay the test for debugging
+            best = bestMatchIndexInternal(args, loc, envForInference,
+                    someOverloads);
+            error(loc,errorMsg("Failed to find any matching overload, args = ",
+                    Useful.listInParens(args), ", overload = ", this));
+        }
+        return best;
+    }
+
+    private int bestMatchIndexInternal(List<FValue> args, HasAt loc,
+            BetterEnv envForInference, List<Overload> someOverloads) {
         int best = -1;
         SingleFcn best_sfn = null;
 
@@ -679,11 +699,6 @@ public class  OverloadedFunction extends Fcn
                 best_sfn = sfn;
             }
 
-        }
-        if (best == -1) {
-            // TODO add checks for COERCE, right here.
-            error(loc,errorMsg("Failed to find any matching overload, args = ",
-                    Useful.listInParens(args), ", overload = ", this));
         }
         return best;
     }

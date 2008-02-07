@@ -36,7 +36,7 @@ trait  Integral extends { Number }
     (* excludes { String, Boolean, RR64, FloatLiteral } *)
 end
 
-trait BufferedReader extends { Any } end
+(* trait BufferedReader extends { Any } end *)
 trait BufferedWriter extends { Any } end
 
 trait ZZ32 extends { Integral } 
@@ -55,7 +55,7 @@ trait IntLiteral extends { ZZ32, ZZ64, RR64 } end
 
 trait FloatLiteral extends { RR64 } end
 
-true: Boolean
-false: Boolean
+object true extends Boolean end
+object false extends Boolean end
 
 end
