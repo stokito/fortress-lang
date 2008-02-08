@@ -25,7 +25,7 @@ import com.sun.fortress.useful.NI;
 
 /**
  * Represents a possibly-parameterized type declaration.  Comprises
- * {@link TraitIndex} and {@link TypeAliasIndex}.
+ * {@link TraitIndex}, {@link TypeAliasIndex}, {@link Dimension}, {@link Unit}
  */
 public abstract class TypeConsIndex {
 

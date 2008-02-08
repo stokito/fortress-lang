@@ -26,10 +26,12 @@ import edu.rice.cs.plt.tuple.OptionVisitor;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -129,6 +131,14 @@ public class TopLevelEnv extends NameEnv {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
                 initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
             } 
+            // Inject the names of physical units into the set of type cons names.
+            for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
+                initializeEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
+            }
+            // Inject the names of physical dimensions into the set of type cons names.
+            for (Map.Entry<Id, Dimension> dimEntry: apiEntry.getValue().dimensions().entrySet()) {
+                initializeEntry(apiEntry, dimEntry, _onDemandTypeConsNames);
+            }
         }
     }
     
@@ -136,6 +146,10 @@ public class TopLevelEnv extends NameEnv {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
                 initializeEntry(apiEntry, varEntry, _onDemandVariableNames);
+            }
+            // Inject the names of physical units into the set of bound variables.
+            for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
+                initializeEntry(apiEntry, unitEntry, _onDemandVariableNames);
             }
         } 
     }
@@ -218,7 +232,9 @@ public class TopLevelEnv extends NameEnv {
     
     public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
         // TODO: imports
-        if (_current.typeConses().containsKey(name)) {
+        if (_current.typeConses().containsKey(name) ||
+            _current.dimensions().containsKey(name) ||
+            _current.units().containsKey(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
         }
         else { return Collections.emptySet(); }
@@ -226,7 +242,8 @@ public class TopLevelEnv extends NameEnv {
     
     public Set<QualifiedIdName> explicitVariableNames(Id name) {
         // TODO: imports
-        if (_current.variables().containsKey(name)) {
+        if (_current.variables().containsKey(name) ||
+            _current.units().containsKey(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
         }
         else { return Collections.emptySet(); }
@@ -340,7 +357,8 @@ public class TopLevelEnv extends NameEnv {
                 return _globalEnv.api(api).typeConses().get(name.getName());
             }
             public TypeConsIndex forNone() {
-                return _current.typeConses().get(name.getName());
+                Id id = name.getName();
+                return _current.typeConses().get(id);
             }
         });
     }
