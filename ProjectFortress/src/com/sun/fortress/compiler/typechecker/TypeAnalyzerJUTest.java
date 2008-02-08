@@ -224,6 +224,8 @@ public class TypeAnalyzerJUTest extends TestCase {
                             Collections.<Id, Variable>emptyMap(),
                             CollectUtil.<SimpleName, Function>emptyRelation(),
                             traitMap,
+                            CollectUtil.<Id, Dimension>emptyMap(),
+                            CollectUtil.<Id, Unit>emptyMap(),
                             Collections.<QualifiedIdName, GrammarIndex>emptyMap(),
                             0);
     }
@@ -249,6 +251,8 @@ public class TypeAnalyzerJUTest extends TestCase {
                                   Collections.<VarDecl>emptySet(),
                                   CollectUtil.<SimpleName, Function>emptyRelation(),
                                   traitMap,
+                                  CollectUtil.<Id, Dimension>emptyMap(),
+                                  CollectUtil.<Id, Unit>emptyMap(),
                                   0);
     }
     

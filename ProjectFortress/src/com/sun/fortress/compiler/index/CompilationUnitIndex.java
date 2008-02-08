@@ -32,17 +32,23 @@ public abstract class CompilationUnitIndex {
     private final Map<Id, Variable> _variables;
     private final Relation<SimpleName, Function> _functions;
     private final Map<Id, TypeConsIndex> _typeConses;
+    private final Map<Id, Dimension> _dimensions;
+    private final Map<Id, Unit> _units;
     private final long _modifiedDate;
 
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<Id, Variable> variables,
                                 Relation<SimpleName, Function> functions,
                                 Map<Id, TypeConsIndex> typeConses,
+                                Map<Id, Dimension> dimensions,
+                                Map<Id, Unit> units,
                                 long modifiedDate) {
         _ast = ast;
         _variables = Collections.unmodifiableMap(variables);
         _functions = CollectUtil.unmodifiableRelation(functions);
         _typeConses = Collections.unmodifiableMap(typeConses);
+        _dimensions = Collections.unmodifiableMap(dimensions);
+        _units = Collections.unmodifiableMap(units);
         _modifiedDate = modifiedDate;
     }
 
@@ -69,6 +75,8 @@ public abstract class CompilationUnitIndex {
     public Relation<SimpleName, Function> functions() { return _functions; }
 
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
+    
+    public Map<Id, Dimension> dimensions() { return _dimensions; }
 
     public long modifiedDate() { return _modifiedDate; }
     

@@ -33,9 +33,11 @@ public class ApiIndex extends CompilationUnitIndex {
                     Map<Id, Variable> variables,
                     Relation<SimpleName, Function> functions,
                     Map<Id, TypeConsIndex> typeConses,
+                    Map<Id, Dimension> dimensions,
+                    Map<Id, Unit> units,
                     Map<QualifiedIdName, GrammarIndex> grammars,
                     long modifiedDate) {
-        super(ast, variables, functions, typeConses, modifiedDate);
+        super(ast, variables, functions, typeConses, dimensions, units, modifiedDate);
         _grammars = Collections.unmodifiableMap(grammars);
     }
 

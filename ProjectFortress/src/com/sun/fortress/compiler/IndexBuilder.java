@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.FieldGetterMethod;
 import com.sun.fortress.compiler.index.FieldSetterMethod;
 import com.sun.fortress.compiler.index.Function;
@@ -48,6 +49,7 @@ import com.sun.fortress.compiler.index.SingletonVariable;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
@@ -59,7 +61,7 @@ import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DimUnitDecl;
+import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GrammarDef;
@@ -95,6 +97,7 @@ import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TypeAlias;
+import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes._TerminalDef;
@@ -185,6 +188,9 @@ public class IndexBuilder {
             new HashRelation<SimpleName, Function>(true, false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
+        final Map<Id, Dimension> dimensions =
+            new HashMap<Id, Dimension>();
+        final Map<Id, Unit> units = new HashMap<Id, Unit>();
         final Map<QualifiedIdName, GrammarIndex> grammars =
             new HashMap<QualifiedIdName, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
@@ -200,8 +206,11 @@ public class IndexBuilder {
             @Override public void forAbsFnDecl(AbsFnDecl d) {
                 buildFunction(d, functions);
             }
-            @Override public void forDimUnitDecl(DimUnitDecl d) {
-                NI.nyi();
+            @Override public void forDimDecl(DimDecl d) {
+                buildDimension(d, dimensions);
+            }
+            @Override public void forUnitDecl(UnitDecl d) {
+                buildUnit(d, units);
             }
             @Override public void forTypeAlias(TypeAlias d) {
                 NI.nyi();
@@ -222,7 +231,7 @@ public class IndexBuilder {
         for (AbsDecl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, grammars, modifiedDate);
+        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, dimensions, units, grammars, modifiedDate);
         return api;
     }
     
@@ -241,6 +250,10 @@ public class IndexBuilder {
             new HashRelation<SimpleName, Function>(true, false);
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
+        final Map<Id, Dimension> dimensions = 
+            new HashMap<Id, Dimension>();
+        final Map<Id, Unit> units = 
+            new HashMap<Id, Unit>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
                 buildTrait(d, typeConses, functions);
@@ -257,8 +270,11 @@ public class IndexBuilder {
             @Override public void forFnDecl(FnDecl d) {
                 buildFunction(d, functions);
             }
-            @Override public void forDimUnitDecl(DimUnitDecl d) {
-                // NO-OP for now!
+            @Override public void forDimDecl(DimDecl d) {
+                buildDimension(d, dimensions);
+            }
+            @Override public void forUnitDecl(UnitDecl d) {
+                buildUnit(d, units);
             }
             @Override public void forTypeAlias(TypeAlias d) {
                 NI.nyi();
@@ -277,7 +293,7 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         ComponentIndex comp = new ComponentIndex(ast, variables, initializers,
-                                                 functions, typeConses, modifiedDate);
+                                                 functions, typeConses, dimensions, units, modifiedDate);
         return comp;
     }
     
@@ -436,6 +452,23 @@ public class IndexBuilder {
         }
     }
     
+    /**
+     * Create a dimension wrapper for the declaration and put it in the given map.
+     */
+    private void buildDimension(DimDecl ast,
+                                Map<Id, Dimension> dimensions) {
+        dimensions.put(ast.getDim(), new Dimension(ast));
+    }
+
+    /**
+     * Create a unit wrapper for the declaration and put it in the given map.
+     */
+    private void buildUnit(UnitDecl ast,
+                           Map<Id, Unit> units) {
+        for (Id unit: ast.getUnits()) {
+            units.put(unit, new Unit(ast));
+        }
+    }
     
     /**
      * Create a function wrapper for the declaration and put it in the given
