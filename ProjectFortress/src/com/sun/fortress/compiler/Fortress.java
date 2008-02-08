@@ -103,7 +103,7 @@ public class Fortress {
         BatchCachingRepository bcr = new BatchCachingRepository(link,
                 //new PathBasedSyntaxTransformingRepository
                 (path),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists("./.compiler_cache"))
+                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists(ProjectProperties.ANALYZED_CACHE_DIR))
                 );
         
         FortressParser.Result result = compileInner(bcr, files);

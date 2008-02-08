@@ -93,7 +93,7 @@ public final class Shell {
 
         // Now match the assembled string.
         try {
-            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(tokens[1]); }
+            if      (msg.matches(COMPILE_PATTERN)) { interpreter.compile(false, tokens[1]); }
             //else if (msg.matches(SELF_UPGRADE_PATTERN)) { interpreter.selfUpgrade(tokens[2]); }
             //else if (msg.matches(SCRIPT_PATTERN)) { interpreter.script(tokens[2]); }
             else if (msg.matches(RUN_PATTERN)) {
