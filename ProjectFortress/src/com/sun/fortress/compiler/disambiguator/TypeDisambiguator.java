@@ -294,8 +294,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 	 *                         exists.
 	 */
 	private Type handleTypeName(Type that, QualifiedIdName n,
-			Thunk<Type> variableHandler,
-			Lambda<QualifiedIdName, Type> typeConsHandler) {
+			            Thunk<Type> variableHandler,
+		              	    Lambda<QualifiedIdName, Type> typeConsHandler) {
 		if (n.getApi().isSome()) {
 			APIName originalApi = Option.unwrap(n.getApi());
 			Option<APIName> realApiOpt = _env.apiName(originalApi);

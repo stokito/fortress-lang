@@ -46,7 +46,10 @@ public abstract class CompilationUnitIndex {
         _ast = ast;
         _variables = Collections.unmodifiableMap(variables);
         _functions = CollectUtil.unmodifiableRelation(functions);
-        _typeConses = Collections.unmodifiableMap(typeConses);
+        _typeConses = Collections.
+            unmodifiableMap(CollectUtil.
+                            compose(typeConses, 
+                                    CollectUtil.compose(dimensions, units)));
         _dimensions = Collections.unmodifiableMap(dimensions);
         _units = Collections.unmodifiableMap(units);
         _modifiedDate = modifiedDate;
@@ -77,6 +80,8 @@ public abstract class CompilationUnitIndex {
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
     
     public Map<Id, Dimension> dimensions() { return _dimensions; }
+
+    public Map<Id, Unit> units() { return _units; }
 
     public long modifiedDate() { return _modifiedDate; }
     

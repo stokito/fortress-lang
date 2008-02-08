@@ -19,13 +19,18 @@ package com.sun.fortress.compiler.index;
 
 import java.util.*;
 import com.sun.fortress.nodes.UnitDecl;
+import com.sun.fortress.nodes.StaticParam;
 
 import com.sun.fortress.useful.NI;
 
-public class Unit {
+public class Unit extends TypeConsIndex {
     private final UnitDecl ast;
     
     public Unit(UnitDecl _ast) {
         ast = _ast;
+    }
+
+    public List<StaticParam> staticParameters() { 
+        return new ArrayList<StaticParam>(); 
     }
 }

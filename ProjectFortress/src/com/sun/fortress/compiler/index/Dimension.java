@@ -19,13 +19,18 @@ package com.sun.fortress.compiler.index;
 
 import java.util.*;
 import com.sun.fortress.nodes.DimDecl;
+import com.sun.fortress.nodes.StaticParam;
 
 import com.sun.fortress.useful.NI;
 
-public class Dimension {
+public class Dimension extends TypeConsIndex {
     private final DimDecl ast;
     
     public Dimension(DimDecl _ast) {
         ast = _ast;
+    }
+    
+    public List<StaticParam> staticParameters() { 
+        return new ArrayList<StaticParam>(); 
     }
 }
