@@ -485,21 +485,34 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
         /**
          * grammar definition in grammar declarations
          */
-        GrammarDef(List<NonterminalDecl> nonterminals);
+        GrammarDef(List<GrammarMemberDecl> members);
     /**
-     * nonterminal declaration
+     * grammar member (nonterminal or terminal) declaration
      */
-    abstract NonterminalDecl(Option<? extends Modifier> modifier,
-                            QualifiedIdName name, Option<TraitType> type,
-                            List<SyntaxDef> syntaxDefs) implements AbsDecl;
+    abstract GrammarMemberDecl(QualifiedIdName name,
+                            Option<TraitType> type,
+                            Option<? extends Modifier> modifier) implements AbsDecl;
         /**
-         * nonterminal definition in nonterminal declarations
+         * nonterminal declaration
          */
-        NonterminalDef();
+        abstract NonterminalDecl(List<SyntaxDef> syntaxDefs);
+            /**
+             * nonterminal definition in nonterminal declarations
+             */
+            NonterminalDef();
+            /**
+             * nonterminal extending definition in nonterminal declarations
+             */
+            NonterminalExtensionDef();
         /**
-         * nonterminal extending definition in nonterminal declarations
+         * terminal declaration
          */
-        NonterminalExtensionDef();
+        abstract TerminalDecl(SyntaxDef syntaxDef);
+            /**
+             * terminal definition result of rewrite of keyword and token symbols in disambigutation of 
+             * syntax abstractions
+             */
+            _TerminalDef();
     /**
      * syntax declaration
      */
@@ -530,37 +543,41 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
         /**
-         * whitespace syntax symbol
-         */
-        WhitespaceSymbol(String s);
-        /**
          * ignore following whitespace syntax symbol
          */
         NoWhitespaceSymbol(SyntaxSymbol symbol);
         /**
-         * tab syntax symbol
+         * special symbols syntax symbol
          */
-        TabSymbol();
-        /**
-         * formfeed syntax symbol
-         */
-        FormfeedSymbol();
-        /**
-         * carriage return syntax symbol
-         */
-        CarriageReturnSymbol();
-        /**
-         * backspace syntax symbol
-         */
-        BackspaceSymbol();
-        /**
-         * newline syntax symbol
-         */
-        NewlineSymbol();
-        /**
-         * breakline syntax symbol
-         */
-        BreaklineSymbol(String s);
+        abstract SpecialSymbol();
+            /**
+             * whitespace syntax symbol
+             */
+            WhitespaceSymbol(String s);
+            /**
+             * tab syntax symbol
+             */
+            TabSymbol();
+            /**
+             * formfeed syntax symbol
+             */
+            FormfeedSymbol();
+            /**
+             * carriage return syntax symbol
+             */
+            CarriageReturnSymbol();
+            /**
+             * backspace syntax symbol
+             */
+            BackspaceSymbol();
+            /**
+             * newline syntax symbol
+             */
+            NewlineSymbol();
+            /**
+             * breakline syntax symbol
+             */
+            BreaklineSymbol(String s);
         /**
          * item syntax symbol
          */

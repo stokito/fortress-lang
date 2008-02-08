@@ -71,31 +71,31 @@ private List<QualifiedIdName> QualifiedNameList = a1:QualifiedName a2s:(w comma 
 /* Extends ::= extends w IdName */
 Option<QualifiedIdName> Extends = extends w a1:QualifiedName { yyValue = Option.wrap(a1); };
 
-private NonterminalDecl NonterminalDef =
+private GrammarMemberDecl NonterminalDef =
       m1:(NonTermMod w)? a1:Id w void:bar a2:(w TraitType)? w void:equals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); }
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
     /m1:(NonTermMod w)? a1:Id w void:colon a2:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)* w end
       { Option<TraitType> type = Option.none();
         if (a2 != null) type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); }
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
     / m1:(NonTermMod w)? a1:Id w void:colon w a2:TraitType w end
       { Option<TraitType> type = Option.some(a2);
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
         if (m1 == null) m1 = Option.none();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); }
+        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); }
      /m1:(NonTermMod w)? a1:Id w void:bar w a2:TraitType w void:equals w end
       { Option<TraitType> type = Option.some(a2);
         if ( m1 == null) m1 = Option.none();
         List<SyntaxDef> syntaxDefs = Collections.<SyntaxDef>emptyList();
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), m1, NodeFactory.makeQualifiedIdName(a1), type, syntaxDefs); };
+        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), NodeFactory.makeQualifiedIdName(a1), type, m1, syntaxDefs); };
 
 
 private Option<ModifierPrivate> NonTermMod =
@@ -182,6 +182,10 @@ SyntaxSymbol SyntaxSymbol =
         if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
           yyValue = new NoWhitespaceSymbol(s1.getSpan(), new PrefixedSymbol(prefix, tmp));
+        }
+        else 
+        if (s1 instanceof SpecialSymbol) {
+          yyValue = s1;
         }
         else {
           yyValue = new PrefixedSymbol(prefix, s1);

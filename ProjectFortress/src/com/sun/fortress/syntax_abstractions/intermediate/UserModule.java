@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.intermediate;
 import java.util.Collection;
 
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 
 /*
@@ -30,7 +31,7 @@ public class UserModule extends Module {
 	public UserModule() {}
 	
 	public UserModule(String name,
-				      Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
+				      Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
 		super(name, productions);
 	}
 

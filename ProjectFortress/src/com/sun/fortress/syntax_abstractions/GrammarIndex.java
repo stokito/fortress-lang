@@ -26,6 +26,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -39,7 +40,7 @@ import com.sun.fortress.parser_util.FortressUtil;
 public class GrammarIndex {
 
 	private GrammarDef grammar;
-	private Map<QualifiedName, NonterminalDecl> productions;
+	private Map<QualifiedName, GrammarMemberDecl> nonterminals;
 	private LinkedList<GrammarIndex> extendsGrammars;
 	private boolean initialized;
 	private boolean isTopLevel;
@@ -57,10 +58,10 @@ public class GrammarIndex {
 	public void setGrammar(GrammarDef grammar, boolean isTopLevel) {
 		this.isTopLevel = isTopLevel;
 		this.grammar = grammar;
-		this.productions = new HashMap<QualifiedName, NonterminalDecl>();
+		this.nonterminals = new HashMap<QualifiedName, GrammarMemberDecl>();
 		this.extendsGrammars = new LinkedList<GrammarIndex>();
-		for (NonterminalDecl p: grammar.getNonterminals()) {
-			this.productions.put(p.getName(), p);
+		for (GrammarMemberDecl p: grammar.getMembers()) {
+			this.nonterminals.put(p.getName(), p);
 		}
 		this.qualifiedName = qualifiedName;
 		this.initialized = true;
@@ -75,7 +76,7 @@ public class GrammarIndex {
 	}
 
 	public boolean containsProduction(String productionName) {
-		return this.productions.containsKey(NodeFactory.makeId(productionName));
+		return this.nonterminals.containsKey(NodeFactory.makeId(productionName));
 	}
 
 	public GrammarDef ast() {
@@ -86,8 +87,8 @@ public class GrammarIndex {
 		return this.extendsGrammars;
 	}
 
-	public Collection<? extends NonterminalDecl> getProductions() {
-		return this.productions.values();
+	public Collection<? extends GrammarMemberDecl> getNonterminals() {
+		return this.nonterminals.values();
 	}
 
 	public void addExtendingGrammar(GrammarIndex grammarIndex) {

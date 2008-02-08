@@ -30,6 +30,7 @@ import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionExtendIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -69,11 +70,11 @@ public class GrammarIndexInitializer {
 		for (GrammarEnv env: envs) {
 			for (GrammarIndex g: env.getGrammars()) {
 				// Intentional use of raw type to work around a bug in the Java 5 compiler on Solaris: <? extends NonterminalDecl>
-				for (ProductionIndex n: g.getDeclaredNonterminals()) {
+				for (ProductionIndex /*<? extends GrammarMemberDecl> */ n: g.getDeclaredNonterminals()) {
 					if (n instanceof ProductionExtendIndex) {
 						Id name = n.getName().getName();
 						GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-						Collection<ProductionIndex<? extends NonterminalDecl>> s = ga.getOverridingNonterminalIndex(name, g);
+						Collection<ProductionIndex<? extends GrammarMemberDecl>> s = ga.getOverridingNonterminalIndex(name, g);
 						if (s.isEmpty()) {
 							ses.add(StaticError.make("Unknown extended nonterminal: "+name, n.getAst()));
 						}

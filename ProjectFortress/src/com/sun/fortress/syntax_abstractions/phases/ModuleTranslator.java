@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionExtendIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
@@ -101,7 +102,7 @@ public class ModuleTranslator {
 			for (GrammarIndex g: env.getGrammars()) {
 				Module m = newModule(g, grammarToModules);
 
-				initializeNewModule(m, g.getDeclaredNonterminals(), new LinkedList<Module>());
+				initializeNewModule(m, new LinkedList<Module>());
 
 				m.setExtended(initializeExtend(grammarToModules, g));
 
@@ -141,7 +142,7 @@ public class ModuleTranslator {
 					if (n instanceof ProductionExtendIndex) {
 						ProductionExtendIndex nei = (ProductionExtendIndex) n;
 
-						for (ProductionIndex<? extends NonterminalDecl> e: nei.getExtends()) {
+						for (ProductionIndex<? extends GrammarMemberDecl> e: nei.getExtends()) {
 							if (e.getName().getApi().isSome()) {
 								APIName apiName = Option.unwrap(e.getName().getApi());
 								if (modifiedNames.contains(apiName )) {
@@ -230,13 +231,10 @@ public class ModuleTranslator {
 	 * If the module is a user module, we must create a unique name to avoid conflicts with
 	 * existing Fortress grammar modules, and set the correct imports.
 	 * @param m
-	 * @param productions
 	 * @param imports
 	 * @return
 	 */
-	private static Module initializeNewModule(Module m, 
-			Collection<? extends ProductionIndex<? extends NonterminalDecl>> productions,
-					Collection<Module> imports) {
+	private static Module initializeNewModule(Module m, Collection<Module> imports) {
 		if (!(m instanceof FortressModule)) { 
 			m.setName(FreshName.getFreshName(m.getName()));
 		}

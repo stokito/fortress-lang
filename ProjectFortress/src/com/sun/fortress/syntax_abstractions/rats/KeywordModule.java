@@ -57,24 +57,24 @@ public class KeywordModule {
 		code.remove(inx);
 		code.add(inx, insertString);
 
-		// Adding production for keyword
-		for (String keyword: keywords) {
-			if (!com.sun.fortress.parser.Fortress.FORTRESS_KEYWORDS.contains(keyword)) {
-				List<Attribute> attributes = new LinkedList<Attribute>();
-				attributes.add(new Attribute("String"));
-
-				List<Sequence> sequence = new LinkedList<Sequence>();
-				List<Element> elements = new LinkedList<Element>();
-				elements.add(new StringLiteral(keyword));
-				List<Element> idRest = new LinkedList<Element>();
-				idRest.add(new NonTerminal("idrest"));
-				elements.add(new NotFollowedBy(new Sequence(idRest)));
-				sequence.add(new Sequence(elements));
-
-				OrderedChoice orderedChoice = new OrderedChoice(sequence);
-				module.productions.add(new FullProduction(attributes, "", new NonTerminal(keyword), orderedChoice));
-			}
-		}
+//		// Adding production for keyword
+//		for (String keyword: keywords) {
+//			if (!com.sun.fortress.parser.Fortress.FORTRESS_KEYWORDS.contains(keyword)) {
+//				List<Attribute> attributes = new LinkedList<Attribute>();
+//				attributes.add(new Attribute("String"));
+//
+//				List<Sequence> sequence = new LinkedList<Sequence>();
+//				List<Element> elements = new LinkedList<Element>();
+//				elements.add(new StringLiteral(keyword));
+//				List<Element> idRest = new LinkedList<Element>();
+//				idRest.add(new NonTerminal("idrest"));
+//				elements.add(new NotFollowedBy(new Sequence(idRest)));
+//				sequence.add(new Sequence(elements));
+//
+//				OrderedChoice orderedChoice = new OrderedChoice(sequence);
+//				module.productions.add(new FullProduction(attributes, "", new NonTerminal(keyword), orderedChoice));
+//			}
+//		}
 		RatsUtil.writeRatsModule(module, tempDir);
 	}
 }

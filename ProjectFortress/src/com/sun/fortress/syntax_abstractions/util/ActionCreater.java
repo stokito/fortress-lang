@@ -25,10 +25,12 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.StaticError;
@@ -48,21 +50,32 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
+import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SimpleName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.syntax_abstractions.phases.ProductionTranslator.NonterminalNameToDeclaredReturnType;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import xtc.parser.Action;
 import xtc.parser.Production;
@@ -90,11 +103,15 @@ public class ActionCreater {
 	private static final Id ANY = new Id("Any");
 	private static final Id STRING = new Id("String");
 
-	public static Result create(String productionName, Expr e, String returnType, Collection<String> boundVariables) {
+	public static Result create(String productionName, 
+								Expr e,
+								String returnType,
+								Collection<PrefixedSymbol> boundVariables,
+								NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
 		ActionCreater ac = new ActionCreater();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 
-		Component component = ac.makeComponent(e);
+		Component component = ac.makeComponent(e, boundVariables, nonterminalNameToDeclaredReturnType);
 		String serializedComponent = "";
 		try {
 			serializedComponent = ac.writeJavaAST(component);
@@ -115,11 +132,91 @@ public class ActionCreater {
 		return ac.new Result(a, errors);
 	}
 
-	private static List<String> createVariabelBinding(List<Integer> indents, Collection<String> boundVariables) {
+	enum Kinds {OPTIONAL, REPETITION}
+	
+	/**
+	 * We siliently assume, that Terminal definitions does not 
+	 * @param ps
+	 * @param nonterminalNameToDeclaredReturnType
+	 * @return
+	 */
+	private Option<Type> getType(PrefixedSymbol ps,
+				NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
+
+		Pair<String, Option<Kinds>> result = ps.getSymbol().accept(new NodeDepthFirstVisitor<Pair<String, Option<Kinds>>>() {
+
+			@Override
+			public Pair<String, Option<Kinds>> defaultCase(Node that) {
+				return new Pair<String, Option<Kinds>>("", Option.<Kinds>none());
+			}		
+			
+			@Override
+			public Pair<String, Option<Kinds>> forOptionalSymbolOnly(
+					OptionalSymbol that,
+					Pair<String, Option<Kinds>> symbol_result) {
+				return handle(symbol_result, Kinds.OPTIONAL);
+			}
+
+			@Override
+			public Pair<String, Option<Kinds>> forRepeatOneOrMoreSymbolOnly(
+					RepeatOneOrMoreSymbol that,
+					Pair<String, Option<Kinds>> symbol_result) {
+				return handle(symbol_result, Kinds.REPETITION);
+			}
+
+			@Override
+			public Pair<String, Option<Kinds>> forRepeatSymbolOnly(
+					RepeatSymbol that, Pair<String, Option<Kinds>> symbol_result) {
+				return handle(symbol_result, Kinds.REPETITION);
+			}
+					
+			@Override 
+			public Pair<String, Option<Kinds>> forNonterminalSymbol(NonterminalSymbol that) {
+				return new Pair<String, Option<Kinds>>(that.getNonterminal().getName().toString(), Option.<Kinds>none());
+			}
+
+			private Pair<String, Option<Kinds>> handle(
+					Pair<String, Option<Kinds>> p, Kinds kind) {
+				if (p.second().isNone()) {
+					return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+				}
+				return new Pair<String, Option<Kinds>>(p.first(), Option.some(kind));
+			}
+		});
+		
+		String var = result.first();
+	
+		Option<Type> type = nonterminalNameToDeclaredReturnType.getType(result.first());
+
+		if (type.isNone()) {
+			return Option.none();
+		}
+		
+		List<StaticArg> staticArgs = new LinkedList<StaticArg>();
+		staticArgs.add(new TypeArg(Option.unwrap(type)));
+		
+		if (result.second().isNone()) {
+			return type;
+		}
+		
+		if (Option.unwrap(result.second()).equals(Kinds.OPTIONAL)) {
+			QualifiedIdName name = NodeFactory.makeQualifiedIdName("FortressLibrary", "Maybe");
+			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
+		}
+		else if (Option.unwrap(result.second()).equals(Kinds.REPETITION)) {
+			QualifiedIdName name = NodeFactory.makeQualifiedIdName("ArrayList", "List");
+			return Option.<Type>some(NodeFactory.makeInstantiatedType(name, staticArgs));
+		}
+		return Option.none();
+	}
+	
+	private static List<String> createVariabelBinding(List<Integer> indents,
+													  Collection<PrefixedSymbol> boundVariables) {
 		List<String> code = new LinkedList<String>();
 		indents.add(3);
 		code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
-		for(String s: boundVariables) {
+		for(PrefixedSymbol ps: boundVariables) {
+			String s = Option.unwrap(ps.getId()).getText();
 			indents.add(3);
 			code.add(BOUND_VARIABLES+".put(\""+s+"\""+", "+s+");");
 		}
@@ -145,11 +242,12 @@ public class ActionCreater {
 		return code;
 	}
 
-	private Component makeComponent(Expr expression) {
+	private Component makeComponent(Expr expression, Collection<PrefixedSymbol> boundVariables, NonterminalNameToDeclaredReturnType nonterminalNameToDeclaredReturnType) {
 		APIName name = makeAPIName("TransformationComponent");
 		Span span = new Span();
 		List<Import> imports = new LinkedList<Import>();
-		imports.add(NodeFactory.makeImportStar(NodeFactory.makeAPIName(FORTRESS_AST), new LinkedList<SimpleName>()));
+		imports.add(makeImportStar(FORTRESS_AST));
+		imports.add(makeImportStar("ArrayList"));
 		// Exports:
 		List<Export> exports = new LinkedList<Export>();
 		List<APIName> exportApis = new LinkedList<APIName>();
@@ -158,10 +256,21 @@ public class ActionCreater {
 
 		// Decls:
 		List<Decl> decls = new LinkedList<Decl>();
+    	for (PrefixedSymbol ps: boundVariables) {
+    		String var = Option.unwrap(ps.getId()).getText();
+			List<LValueBind> valueBindings = new LinkedList<LValueBind>();
+			Option<Type> type = getType(ps, nonterminalNameToDeclaredReturnType);
+			valueBindings.add(new LValueBind(new Id(var), type, false));
+			decls.add(new VarDecl(valueBindings, NodeFactory.makeIntLiteralExpr(7)));
+    	}
 		// entry point
 		List<Param> params = new LinkedList<Param>();
 		decls.add(makeFunction(InterpreterWrapper.FUNCTIONNAME, ANY, expression));
 		return new Component(span, name, imports, exports, decls);
+	}
+
+	private Import makeImportStar(String apiName) {
+		return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<SimpleName>());
 	}
 
 	private Decl makeFunction(String functionName, Id typeString, Expr expression) {

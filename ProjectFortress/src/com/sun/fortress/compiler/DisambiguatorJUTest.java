@@ -17,27 +17,10 @@
 
 package com.sun.fortress.compiler;
 
-import junit.framework.TestCase;
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.Collections;
 import java.util.Arrays;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.io.IOUtil;
-import edu.rice.cs.plt.lambda.Predicate;
-import edu.rice.cs.plt.lambda.Lambda;
+import java.util.List;
 
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.shell.FileBasedRepository;
 
-import com.sun.fortress.interpreter.drivers.ProjectProperties;
 public class DisambiguatorJUTest extends StaticTest {
 
     private final List<String> NOT_PASSING = Arrays.asList(
@@ -49,19 +32,6 @@ public class DisambiguatorJUTest extends StaticTest {
         staticTests + "XXXUndefinedRefInLoop.fss",
         staticTests + "XXXUndefinedVar.fss",
         staticTests + "XXXUndefinedTopLevelVar.fss",
-        /* Tests for Syntax abstractions */
-        staticTests + "SyntaxHelloWorldUse.fss",
-        staticTests + "SyntaxHelloWorld.fss",
-        staticTests + "SyntaxGrammarImportsUse.fss",
-        staticTests + "XXXSyntaxGrammarImportsUse.fss",
-        staticTests + "SyntaxGrammarImports.fss",
-        staticTests + "SyntaxGrammarImportsA.fss",
-        staticTests + "SyntaxProductionExtends.fsi",
-        staticTests + "XXXSyntaxMultipleGrammarsWithSameName.fsi",
-        staticTests + "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
-        staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi",
-        // really not working:
-        // staticTests + "XXXSyntaxNoFortressAstImport.fsi",
         staticTests + "stub to eliminate comma trouble"
     );
     

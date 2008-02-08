@@ -24,7 +24,7 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 
 public class GrammarAnalyzer<T extends Analyzable<T>> {
@@ -35,9 +35,9 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @param a
 	 * @return
 	 */
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getContainedSet(Analyzable<T> a) {
-		Collection<ProductionIndex<? extends NonterminalDecl>> c = getDeclaredSet(a);
-		c.addAll(getInheritedSet(a));
+	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getContainedSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends GrammarMemberDecl>> c = getDeclaredSet(a);
+		c.addAll(this.getInheritedSet(a));
 		return c;
 	}
 
@@ -50,7 +50,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 */
 	public Set<QualifiedIdName> getContained(Id name, Analyzable<T> a) {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(a)) {
+		for (ProductionIndex<? extends GrammarMemberDecl> n: getContainedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 				rs.add(n.getName());
 			}
@@ -58,10 +58,10 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 		return rs;
 	}
 	
-	public Set<ProductionIndex<? extends NonterminalDecl>> getOverridingNonterminalIndex(
+	public Set<ProductionIndex<? extends GrammarMemberDecl>> getOverridingNonterminalIndex(
 			Id name, Analyzable<T> a) {
-		Set<ProductionIndex<? extends NonterminalDecl>> rs = new HashSet<ProductionIndex<? extends NonterminalDecl>>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getPotentiallyInheritedSet(a)) {
+		Set<ProductionIndex<? extends GrammarMemberDecl>> rs = new HashSet<ProductionIndex<? extends GrammarMemberDecl>>();
+		for (ProductionIndex<? extends GrammarMemberDecl> n: getPotentiallyInheritedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 				rs.add(n);
 			}
@@ -78,7 +78,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 */
 	public Set<QualifiedIdName> getInherited(Id name, Analyzable<T> a) {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getInheritedSet(a)) {
+		for (ProductionIndex<? extends GrammarMemberDecl> n: getInheritedSet(a)) {
 			if (n.getName().getName().equals(name)) {
 //				if (g.ast().isSome()) {
 //					QualifiedIdName gname = Option.unwrap(g.ast()).getName();
@@ -100,7 +100,7 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 */
 	private Set<QualifiedIdName> getDeclared(Id name, Analyzable<T> a) {
 		Set<QualifiedIdName> rs = new HashSet<QualifiedIdName>();
-		for (ProductionIndex<? extends NonterminalDecl> n: getDeclaredSet(a)) {
+		for (ProductionIndex<? extends GrammarMemberDecl> n: getDeclaredSet(a)) {
 			if (n.getName().getName().equals(name)) {
 				rs.add(n.getName());
 			}
@@ -115,12 +115,12 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @param a
 	 * @return
 	 */
-	private Collection<ProductionIndex<? extends NonterminalDecl>> getInheritedSet(Analyzable<T> a) {
-		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
+	private Collection<ProductionIndex<? extends GrammarMemberDecl>> getInheritedSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>(); 
 		for (T gi: a.getExtended()) {
-			for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(gi)) {
+			for (ProductionIndex<? extends GrammarMemberDecl> n: this.getContainedSet(gi)) {
 				if (!n.isPrivate()) {
-					if (getDeclared(n.getName().getName(), a).isEmpty()) {
+					if (this.getDeclared(n.getName().getName(), a).isEmpty()) {
 						nonterminals.add(n);
 					}
 				}
@@ -136,10 +136,10 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @param a
 	 * @return
 	 */
-	private Collection<ProductionIndex<? extends NonterminalDecl>> getPotentiallyInheritedSet(Analyzable<T> a) {
-		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>(); 
+	private Collection<ProductionIndex<? extends GrammarMemberDecl>> getPotentiallyInheritedSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>(); 
 		for (T gi: a.getExtended()) {
-			for (ProductionIndex<? extends NonterminalDecl> n: getContainedSet(gi)) {
+			for (ProductionIndex<? extends GrammarMemberDecl> n: this.getContainedSet(gi)) {
 				if (!n.isPrivate()) {
 					nonterminals.add(n);
 				}
@@ -155,8 +155,8 @@ public class GrammarAnalyzer<T extends Analyzable<T>> {
 	 * @param a
 	 * @return
 	 */
-	private Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredSet(Analyzable<T> a) {
-		Collection<ProductionIndex<? extends NonterminalDecl>> declaredSet = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+	private Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredSet(Analyzable<T> a) {
+		Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredSet = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 		declaredSet.addAll(a.getDeclaredNonterminals());
 		return declaredSet; 
 	}

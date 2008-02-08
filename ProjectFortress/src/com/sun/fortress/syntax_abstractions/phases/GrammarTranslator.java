@@ -44,6 +44,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -94,11 +95,8 @@ public class GrammarTranslator {
 				Module m = RatsUtil.makeExtendingRatsModule(module);
 
 				GrammarAnalyzer<com.sun.fortress.syntax_abstractions.intermediate.Module> ga = new GrammarAnalyzer<com.sun.fortress.syntax_abstractions.intermediate.Module>();
-//				System.err.println("\nM: "+module.getName());
-//				for (ProductionIndex<? extends NonterminalDecl> n: ga.getContainedSet(module)) {
-//					System.err.println("N: "+n.getName());	
-//				}
-				ProductionTranslator.Result ptr = ProductionTranslator.translate(ga.getContainedSet(module), env);
+				Collection<ProductionIndex<? extends GrammarMemberDecl>> members = ga.getContainedSet(module);
+				ProductionTranslator.Result ptr = ProductionTranslator.translate(members);
 				if (!ptr.isSuccessful()) { return grammarTranslator.new Result(ratsModules, keywords, keywordModules, ptr.errors()); }
 				
 				m.productions = ptr.productions();
@@ -109,10 +107,15 @@ public class GrammarTranslator {
 					List<ModuleName> parameters = m.parameters.names;
 					
 					ModuleName keyword = new ModuleName("Keyword");
+					ModuleName identifier = new ModuleName("Identifier");
 					if (!parameters.contains(keyword)) {
-						parameters.add(keyword );
+						parameters.add(keyword);
 						m.dependencies.add(new ModuleImport(keyword));
 						keywordModules.add(m);
+					}
+					if (!parameters.contains(identifier)) {
+						parameters.add(identifier);
+						m.dependencies.add(new ModuleImport(identifier));
 					}
 					keywords.addAll(kws);
 				}
@@ -120,22 +123,6 @@ public class GrammarTranslator {
 		}
 
 		return grammarTranslator.new Result(ratsModules, keywords, keywordModules, errors);
-	}
-
-	private <T> List<T> removeDuplicates(List<T> cs) {
-		List<T> ls = new LinkedList<T>();
-		for (int inx = 0; inx<cs.size(); inx++) {
-			boolean found = false;
-			for (int iny = inx+1; iny<cs.size(); iny++) {
-				if (cs.get(inx).equals(cs.get(iny))) {
-					found = true;
-				}
-			}
-			if (!found) {
-				ls.add(cs.get(inx));
-			}
-		}
-		return ls;
 	}
 
 }

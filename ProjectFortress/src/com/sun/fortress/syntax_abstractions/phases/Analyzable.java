@@ -20,11 +20,12 @@ package com.sun.fortress.syntax_abstractions.phases;
 import java.util.Collection;
 
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 
 public interface Analyzable<T> {
 	
 	Collection<? extends T> getExtended();
 
-	Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredNonterminals();
+	Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals();
 }

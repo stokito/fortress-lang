@@ -18,8 +18,10 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import xtc.parser.AlternativeAddition;
 import xtc.parser.Binding;
@@ -35,9 +37,9 @@ import xtc.parser.Production;
 import xtc.parser.Sequence;
 import xtc.parser.SequenceName;
 import xtc.parser.Terminal;
+import xtc.parser.TokenValue;
 import xtc.tree.Attribute;
 import xtc.tree.Node;
-import xtc.type.Type;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.StaticError;
@@ -56,6 +58,7 @@ import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -72,18 +75,23 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.RepeatSymbol;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.WhitespaceSymbol;
+import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.syntax_abstractions.rats.util.ProductionEnum;
 import com.sun.fortress.syntax_abstractions.util.ActionCreater;
+import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -108,26 +116,30 @@ public class ProductionTranslator {
 
 	}
 
+	private static NonterminalNameToDeclaredReturnType _nonterminalNameToDeclaredReturnType;
+
 	/**
 	 * Translate a collection of Fortress productions to Rats! productions
 	 * @param 
 	 * @param env 
 	 * @return
 	 */
-	public static Result translate(Collection<ProductionIndex<? extends NonterminalDecl>> productions, GlobalEnvironment env) {
-		ProductionTranslator pt = new ProductionTranslator();
+	public static Result translate(Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals) {
+		_nonterminalNameToDeclaredReturnType = new NonterminalNameToDeclaredReturnType(nonterminals);
+		
+		ProductionTranslator nt = new ProductionTranslator();
 		List<Production> ratsProductions = new LinkedList<Production>();
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 
-		for (ProductionIndex<? extends NonterminalDecl> production: productions) {
-			Result result = pt.translate(production, env);
+		for (ProductionIndex<? extends GrammarMemberDecl> nonterminal: nonterminals) {
+			Result result = nt.translate(nonterminal);
 			for (StaticError se: result.errors()) {
 				errors.add(se);
 			}
 			ratsProductions.addAll(result.productions());
 		}
 
-		return pt.new Result(ratsProductions, errors);
+		return nt.new Result(ratsProductions, errors);
 	}
 
 	/**
@@ -135,7 +147,7 @@ public class ProductionTranslator {
 	 * @param p
 	 * @return
 	 */
-	private Result translate(final ProductionIndex<? extends NonterminalDecl> p, GlobalEnvironment env) {
+	private Result translate(ProductionIndex<? extends GrammarMemberDecl> p) {
 		Collection<StaticError> errors = new LinkedList<StaticError>();
 		NonterminalTranslator nt = new NonterminalTranslator(p);
 		Production ratsProduction = p.getAst().accept(nt);
@@ -145,9 +157,9 @@ public class ProductionTranslator {
 
 	private class NonterminalTranslator extends NodeDepthFirstVisitor<Production> {
 		private Collection<StaticError> errors;
-		private ProductionIndex/*<? extends NonterminalDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
+		private ProductionIndex/*<? extends GrammarMemberDecl>*/ pi; // Unsafe to prevent bug in Java 5 on Solaris 
 		
-		public NonterminalTranslator(ProductionIndex<? extends NonterminalDecl> pi) {
+		public NonterminalTranslator(ProductionIndex<? extends GrammarMemberDecl> pi) {
 			this.errors = new LinkedList<StaticError>();
 			this.pi = pi;
 		}
@@ -162,28 +174,7 @@ public class ProductionTranslator {
 			}
 			return Option.unwrap(t);
 		}
-		
-		private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String productionName, TraitType type) {
-			List<Sequence> sequence = new LinkedList<Sequence>();
-
-			// First translate the syntax definitions
-			for (SyntaxDef syntaxDef: syntaxDefs) {
-				List<Element> elms = new LinkedList<Element>();
-				// Translate the symbols
-				Collection<String> boundVariables = new LinkedList<String>();
-				for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
-					elms.addAll(sym.accept(new SymbolTranslator()));
-					boundVariables.addAll(sym.accept(new VariableCollector()));
-				}		
-				String newProductionName = FreshName.getFreshName(productionName).toUpperCase();
-				ActionCreater.Result acr = ActionCreater.create(newProductionName, syntaxDef.getTransformationExpression(), type.toString(), boundVariables);
-				if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
-				elms.add(acr.action());
-				sequence.add(new Sequence(new SequenceName(newProductionName), elms));		
-			}
-			return sequence;
-		}
-		
+				
 		@Override
 		public Production forNonterminalDef(NonterminalDef that) {
 			List<Attribute> attr = new LinkedList<Attribute>();
@@ -205,7 +196,7 @@ public class ProductionTranslator {
 			TraitType type = unwrap(that.getType());
 			String name = that.getName().getName().toString();
 			List<Sequence> sequence = visitSyntaxDefs(that.getSyntaxDefs(), name, type);
-			Collection<ProductionIndex<? extends NonterminalDecl>> ls = ((ProductionExtendIndex) this.pi).getExtends();
+			Collection<ProductionIndex<? extends GrammarMemberDecl>> ls = ((ProductionExtendIndex) this.pi).getExtends();
 			QualifiedIdName otherQualifiedName = IterUtil.first(ls).getName();
 			Production p = new AlternativeAddition(type.toString(),
 					new NonTerminal(name),
@@ -213,6 +204,42 @@ public class ProductionTranslator {
 					new SequenceName(ModuleInfo.getExtensionPoint(otherQualifiedName .toString())),false);
 			p.name = new NonTerminal(name);
 			return p;
+		}
+
+		@Override
+		public Production for_TerminalDef(_TerminalDef that) {
+			List<Attribute> attr = new LinkedList<Attribute>();
+			TraitType type = unwrap(that.getType());
+			String name = that.getName().getName().toString();
+			Sequence sequence = visitSyntaxDef(that.getSyntaxDef(), name, type);
+			Production p = new FullProduction(attr, type.toString(),
+					new NonTerminal(name),
+					new OrderedChoice(sequence));
+			p.name = new NonTerminal(name);
+			return p;
+		}
+		
+		private List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs, String name, TraitType type) {
+			List<Sequence> sequence = new LinkedList<Sequence>();
+			for (SyntaxDef syntaxDef: syntaxDefs) {
+				sequence.add(visitSyntaxDef(syntaxDef, name, type));		
+			}
+			return sequence;
+		}
+		
+		private Sequence visitSyntaxDef(SyntaxDef syntaxDef, String name, TraitType type) {
+			List<Element> elms = new LinkedList<Element>();
+			// Translate the symbols
+			Collection<PrefixedSymbol> boundVariables = new LinkedList<PrefixedSymbol>();
+			for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
+				elms.addAll(sym.accept(new SymbolTranslator()));
+				boundVariables.addAll(sym.accept(new VariableCollector()));
+			}		
+			String newName = FreshName.getFreshName(name).toUpperCase();
+			ActionCreater.Result acr = ActionCreater.create(newName, syntaxDef.getTransformationExpression(), type.toString(), boundVariables, _nonterminalNameToDeclaredReturnType);
+			if (!acr.isSuccessful()) { for (StaticError e: acr.errors()) { errors.add(e); } }
+			elms.add(acr.action());
+			return new Sequence(new SequenceName(newName), elms);
 		}
 	}
 
@@ -231,12 +258,12 @@ public class ProductionTranslator {
 
 		@Override
 		public List<Element> forKeywordSymbol(KeywordSymbol that) {
-			return mkList(new NonTerminal(that.getToken()));
+			return mkList(new xtc.parser.StringLiteral(that.getToken()));
 		}
 
 		@Override
 		public List<Element> forTokenSymbol(TokenSymbol that) {
-			return mkList(new NonTerminal(that.getToken()));
+			return mkList(new xtc.parser.StringLiteral(that.getToken()));
 		}
 
 		@Override
@@ -314,7 +341,12 @@ public class ProductionTranslator {
 				return symbol_result;
 			}
 			if (symbol_result.isEmpty()) {
-				throw new RuntimeException("Malformed variable binding, not bound to any symbol: ");
+				if (that.getId().isSome()) {
+					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol: "+Option.unwrap(that.getId()).getText() + " "+that.getSymbol());
+				}
+				else {
+					throw new RuntimeException("Malformed variable binding, bound to nonsensible symbol, no identifier: "+that.getSymbol());
+				}
 			}
 			throw new RuntimeException("Malformed variable binding, bound to multiple symbols: "+symbol_result);
 		}
@@ -396,22 +428,63 @@ public class ProductionTranslator {
 
 	}
 
-	public class VariableCollector extends NodeDepthFirstVisitor<Collection<String>> {
+	public class VariableCollector extends NodeDepthFirstVisitor<Collection<PrefixedSymbol>> {
 
 		@Override
-		public Collection<String> defaultCase(com.sun.fortress.nodes.Node that) {
-			return new LinkedList<String>();
-		}
-
+		public Collection<PrefixedSymbol> defaultCase(com.sun.fortress.nodes.Node that) {
+			return new LinkedList<PrefixedSymbol>();
+		}	
+		
 		@Override
-		public Collection<String> forPrefixedSymbol(PrefixedSymbol that) {
-			Collection<String> c = super.forPrefixedSymbol(that);
+		public Collection<PrefixedSymbol> forPrefixedSymbol(PrefixedSymbol that) {
+			Collection<PrefixedSymbol> c = super.forPrefixedSymbol(that);
 			if (that.getId().isSome()) {
-				c.add(Option.unwrap(that.getId()).getText());
+				c.add(that);
 			}
 			return c;
 		}
 
+	}
+
+	public static class NonterminalNameToDeclaredReturnType {
+
+		private Collection<ProductionIndex<? extends GrammarMemberDecl>> _nonterminals;
+		private Map<String, Type> _cache;
+		
+		public NonterminalNameToDeclaredReturnType(
+				Collection<ProductionIndex<? extends GrammarMemberDecl>> nonterminals) {
+			this._nonterminals = nonterminals;
+			this._cache = new HashMap<String, Type>();
+		}
+
+		/**
+		 * Given a name of a nonterminal or terminal definition, the type of the
+		 * corresponding member is returned.
+		 * The algorithm works by traversing the collection of members.
+		 * The type of the first member found is returned.
+		 * If the name is the empty String we return
+		 * FortressLibrary.String return.
+		 * This is kind of a hack see {@link ActionCreater#getType} for use.   
+		 * If a member is not found with the given name then a none value is returned
+		 * @param name
+		 * @return
+		 */
+		public Option<Type> getType(String name) {
+			if (name.equals("")) {
+				return Option.<Type>some(new IdType(NodeFactory.makeQualifiedIdName(SyntaxAbstractionUtil.STRING)));
+			}
+			if (this._cache.containsKey(name)) {
+				return Option.<Type>some(this._cache.get(name));
+			}
+			
+			for (ProductionIndex<? extends GrammarMemberDecl> n: this._nonterminals) {
+				if (n.getName().getName().getText().equals(name)) {
+					this._cache.put(name, n.getType());
+					return Option.<Type>some(n.getType());
+				}
+			}
+			return Option.none();
+		}
 	}
 
 }

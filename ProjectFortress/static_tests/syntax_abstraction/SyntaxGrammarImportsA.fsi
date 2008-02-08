@@ -15,25 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api FortressSyntax
-
+api SyntaxGrammarImportsA
+ 
   import FortressAst.{...}
 
-  grammar Declaration 
-      Decls : List[\Decl\] end
-      Decl : Decl end
-      AbsDecls : List[\AbsDecl\] end
-      AbsDecl : AbsDecl end
+  grammar A
+      Hello:Expr:=
+         hello do StringLiteralExpr("Hello") end
+      end
+
+      World:Expr:=
+         the answer do FortressAst.IntLiteralExpr("42") end
+      end
+
   end
 
-  grammar Expression 
-      Expr : Expr end
-      ExprFront : Expr end
-      MathPrimary : Expr end
-      Primary : List[\Expr\] end (* Should be a pure list *)
-  end
-
-  grammar Literal 
-      LiteralExpr : Expr end
-  end
 end

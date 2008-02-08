@@ -53,6 +53,7 @@ import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NormalParam;
+import com.sun.fortress.nodes.OprExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SimpleName;
@@ -60,9 +61,11 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.VarargsType;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -115,7 +118,15 @@ public class InterpreterWrapper {
         }
 
         Component c = (Component) Option.unwrap(cu);
-        c.getDecls().addAll(createVarBindings(span, boundVariables));
+        Collection<Decl> decls = createVarBindings(span, boundVariables, c.getDecls());
+        for (Decl d: c.getDecls()) {
+        	if (!(d instanceof VarDecl)) {
+        		decls.add(d);
+        	}
+        }
+        c.getDecls().clear();
+        c.getDecls().addAll(decls);
+        
 //try {
 //	System.err.println(writeJavaAST(c));
 //} catch (IOException e1) {
@@ -143,17 +154,30 @@ public class InterpreterWrapper {
         return new Result(null, errors);
     }
 
-    private Collection<? extends Decl> createVarBindings(
-			Span span, Map<String, Object> boundVariables) {
-		List<Decl> decls = new LinkedList<Decl>();
-    	for (Entry<String, Object> e: boundVariables.entrySet()) {
-			List<LValueBind> valueBindings = new LinkedList<LValueBind>();
-			valueBindings.add(new LValueBind(new Id(e.getKey()), false));
-			decls.add(new VarDecl(valueBindings, new JavaASTToFortressAST(span).dispatch(e.getValue())));
+    private Collection<Decl> createVarBindings(
+			Span span, 
+			Map<String, Object> boundVariables,
+			List<Decl> decls) {
+    	List<Decl> newDecls = new LinkedList<Decl>();
+    	for (Decl d: decls) {
+    		if (d instanceof VarDecl) {
+    			VarDecl vd = (VarDecl) d;
+    			if (vd.getLhs().size() == 1) {
+    				LValueBind vb = vd.getLhs().get(0);
+//    				System.err.println("L: "+ vb.getName().getText()+" "+boundVariables);
+    				Object o = boundVariables.get(vb.getName().getText());
+    				Expr n = new JavaASTToFortressAST(span).dispatch(o, vb.getType());
+    				newDecls.add(new VarDecl(vd.getLhs(), n));
+    			}
+    			else {
+    				newDecls.add(d);
+    			}
+    		}
     	}
-		return decls;
+		return newDecls;
 	}
 
+    
 	private FValue runFunction(CompilationUnit compilationUnit) throws Throwable {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)

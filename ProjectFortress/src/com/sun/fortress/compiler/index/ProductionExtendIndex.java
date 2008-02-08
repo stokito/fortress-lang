@@ -21,28 +21,29 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ProductionExtendIndex extends ProductionIndex<NonterminalExtensionDef> {
 
-	private Collection<ProductionIndex<? extends NonterminalDecl>> extend;
+	private Collection<ProductionIndex<? extends GrammarMemberDecl>> extend;
 	
 	public ProductionExtendIndex(Option<NonterminalExtensionDef> ast) {
 		super(ast);
-		this.extend = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+		this.extend = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 	}
 
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getExtends() {
+	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getExtends() {
 		return this.extend;
 	}
 
-	public void addExtendedNonterminal(ProductionIndex<? extends NonterminalDecl> ext) {
+	public void addExtendedNonterminal(ProductionIndex<? extends GrammarMemberDecl> ext) {
 		this.extend.add(ext);
 	}
 	
-	public void addExtendedNonterminals(Collection<ProductionIndex<? extends NonterminalDecl>> ext) {
+	public void addExtendedNonterminals(Collection<ProductionIndex<? extends GrammarMemberDecl>> ext) {
 		this.extend.addAll(ext);
 	}
 }

@@ -865,4 +865,18 @@ public class NodeFactory {
   return new VarRef(span, true, name);
  }
 
+	public static Expr makeFnRef(Span span, QualifiedIdName name,
+			List<StaticArg> staticArgs) {
+		List<QualifiedIdName> ids = new LinkedList<QualifiedIdName>();
+		ids.add(name);
+		return new FnRef(span, ids, staticArgs);
+	}
+
+	public static QualifiedOpName makeQualifiedEncloserOpName(Span span) {
+		Op open = NodeFactory.makeOpEnclosing(span, "<|");
+		Op close = NodeFactory.makeOpEnclosing(span, "|>");
+		Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close), open,close);
+		return NodeFactory.makeQualifiedOpName(op);
+	}
+
 }

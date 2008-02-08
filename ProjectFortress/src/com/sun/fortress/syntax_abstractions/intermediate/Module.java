@@ -31,6 +31,7 @@ import xtc.parser.ModuleName;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -53,7 +54,7 @@ public abstract class Module implements Analyzable<Module> {
 	protected List<ModuleDependency> dependencies;
 	
 	protected ProductionEnv productionEnv;
-	protected Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions;
+	protected Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions;
 
 	protected Collection<? extends Module> extendedModules; 
 	
@@ -61,13 +62,13 @@ public abstract class Module implements Analyzable<Module> {
 		this.imports = new LinkedList<Module>();
 		this.tokenMap = new HashMap<String, Set<SyntaxSymbol>>();
 		
-		this.declaredProductions = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+		this.declaredProductions = new LinkedList<ProductionIndex<? extends GrammarMemberDecl>>();
 		this.extendedModules = new java.util.HashSet<Module>();
 		this.parameters = new LinkedList<ModuleName>();
 		this.dependencies = new LinkedList<ModuleDependency>();
 	}
 
-	public Module(String name,Collection<ProductionIndex<? extends NonterminalDecl>> declaredProductions) {
+	public Module(String name,Collection<ProductionIndex<? extends GrammarMemberDecl>> declaredProductions) {
 		this();
 		this.name = name;
 		this.declaredProductions.addAll(declaredProductions);
@@ -113,7 +114,7 @@ public abstract class Module implements Analyzable<Module> {
 		return this.dependencies;
 	}
 	
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredNonterminals() {
+	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
 		return this.declaredProductions;
 	}
 	
@@ -131,8 +132,8 @@ public abstract class Module implements Analyzable<Module> {
 	 * @param name
 	 * @return
 	 */
-	public boolean containsProduction(ProductionIndex<? extends NonterminalDecl> p, String name) {
-		for (ProductionIndex<? extends NonterminalDecl> production: this.declaredProductions) {
+	public boolean containsProduction(ProductionIndex<? extends GrammarMemberDecl> p, String name) {
+		for (ProductionIndex<? extends GrammarMemberDecl> production: this.declaredProductions) {
 			if ((production.getName().toString().equals(name)) &&
 				(!p.equals(production))) {
 				return true;
@@ -164,7 +165,7 @@ public abstract class Module implements Analyzable<Module> {
 	 */
 	public Set<String> getKeywords() {
 		final Set<String> keywords = new HashSet<String>();
-		for (ProductionIndex<? extends NonterminalDecl> p: this.declaredProductions) {
+		for (ProductionIndex<? extends GrammarMemberDecl> p: this.declaredProductions) {
 			if (p.ast().isSome()) {
 				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override
@@ -183,7 +184,7 @@ public abstract class Module implements Analyzable<Module> {
 	 */
 	public Set<String> getTokens() {
 		final Set<String> tokens = new HashSet<String>();
-		for (ProductionIndex<? extends NonterminalDecl> p: this.declaredProductions) {
+		for (ProductionIndex<? extends GrammarMemberDecl> p: this.declaredProductions) {
 			if (p.ast().isSome()) {
 				Option.unwrap(p.ast()).accept(new NodeDepthFirstVisitor_void(){
 					@Override
@@ -224,7 +225,7 @@ public abstract class Module implements Analyzable<Module> {
 		s+= indent+"* declared productions\n";
 		tmpIndent = indent;
 		indent += indentation;
-		Iterator<ProductionIndex<? extends NonterminalDecl>> pit = this.declaredProductions.iterator();
+		Iterator<ProductionIndex<? extends GrammarMemberDecl>> pit = this.declaredProductions.iterator();
 		while (pit.hasNext()) {
 			s+= indent+"- "+pit.next().getName()+"\n";
 		}

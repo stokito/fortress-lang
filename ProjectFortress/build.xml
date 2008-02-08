@@ -421,6 +421,7 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
                     <include name="**/*JUTest.class"/>
                     <include name="**/*JUTests.class"/>
                     <exclude name="**/*$*.class"/>
+                    <exclude name="**/SyntaxAbstractionJUTest.class"/>
                 </fileset>
             </batchtest>
         </junit>
@@ -509,6 +510,34 @@ testNotPassing, testOnly, testCruiseControl interpreter"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
                     <include name="**/SystemJUTests.class"/>
+                </fileset>
+            </batchtest>
+      </junit>
+        <fail message="Tests expected to pass are failing!" if="tests.failed"/>        
+    </target>
+
+    <target name="testSyntaxAbs" depends="compile"
+            description="Run SyntaxAbstractionJUTests.">
+        <mkdir dir="${test.results}"/>
+        <junit printsummary="on"
+               haltonerror="off"
+               haltonfailure="off"
+               showoutput="yes"
+               fork="true"
+               maxmemory="${junitMem}"
+               errorProperty="tests.failed"
+               failureProperty="tests.failed">
+            <classpath>
+             <pathelement location="${build}"/>
+             <pathelement location="${xtc}/xtc.jar"/>
+             <pathelement location="${jsr166y}/jsr166y.jar"/>
+             <pathelement location="${plt}/plt.jar"/>
+                <pathelement location="${junit}/junit.jar"/>
+            </classpath>
+            <formatter type="plain" usefile="true"/>
+            <batchtest fork="true" todir="${test.results}">
+                <fileset dir="${build}">
+                    <include name="**/SyntaxAbstractionJUTests.class"/>
                 </fileset>
             </batchtest>
       </junit>

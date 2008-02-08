@@ -23,6 +23,7 @@ import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleName;
 
 import com.sun.fortress.compiler.index.ProductionIndex;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
@@ -35,7 +36,7 @@ public class FortressModule extends Module {
 
 	public FortressModule() {}
 	
-	public FortressModule(String name, Collection<ProductionIndex<? extends NonterminalDecl>> productions) {
+	public FortressModule(String name, Collection<ProductionIndex<? extends GrammarMemberDecl>> productions) {
 		super(name, productions);
 		initialize();
 	}

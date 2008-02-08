@@ -1,0 +1,9 @@
+component XXXSyntaxGrammarImportsUse
+
+import Helloworld from SyntaxGrammarImports
+
+export Executable
+
+run(args:String...) = print (beautiful)
+
+end
