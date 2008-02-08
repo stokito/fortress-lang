@@ -147,7 +147,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.DimUnitDecl;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.UnpastingBind;
 import com.sun.fortress.nodes.UnpastingSplit;

@@ -185,35 +185,6 @@ public class NodeFactory {
     Option.<List<Expr>>none());
  }
 
- public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
-   Option<Type> derived,
-   Option<Id> defaultId) {
-  return new DimUnitDecl(span, Option.some(dim), derived, defaultId,
-    false, Collections.<Id>emptyList(),
-    Option.<Expr>none());
- }
-
- public static DimUnitDecl makeDimUnitDecl(Span span, Option<Type> derived,
-   String unit, List<Id> ids,
-   Option<Expr> def) {
-  boolean si_unit;
-  if (unit.equals("SI_unit")) si_unit = true;
-  else                        si_unit = false;
-  return new DimUnitDecl(span, Option.<Id>none(), derived,
-    Option.<Id>none(), si_unit, ids, def);
- }
-
- public static DimUnitDecl makeDimUnitDecl(Span span, Id dim,
-   Option<Type> derived,
-   String unit, List<Id> ids,
-   Option<Expr> def) {
-  boolean si_unit;
-  if (unit.equals("SI_unit")) si_unit = true;
-  else                        si_unit = false;
-  return new DimUnitDecl(span, Option.some(dim), derived,
-    Option.<Id>none(), si_unit, ids, def);
- }
-
  public static APIName makeAPIName(Span span, String s) {
   return new APIName(span, Useful.list(new Id(span, s)));
  }
@@ -221,7 +192,7 @@ public class NodeFactory {
  public static APIName makeAPIName(Span span, Id s) {
   return new APIName(span, Useful.list(s));
  }
-    
+
  public static APIName makeAPIName(Id s) {
   return new APIName(s.getSpan(), Useful.list(s));
  }
@@ -320,7 +291,7 @@ public class NodeFactory {
  public static QualifiedIdName makeQualifiedIdName(Span span, APIName api, Id id) {
   return new QualifiedIdName(span, Option.some(api), id);
  }
- 
+
  /** Assumes {@code ids} is nonempty. */
  public static QualifiedIdName makeQualifiedIdName(Iterable<Id> ids) {
   return makeQualifiedIdName(IterUtil.skipLast(ids), IterUtil.last(ids));
@@ -366,7 +337,7 @@ public class NodeFactory {
  public static Id makeId(String string) {
   return new Id(new Span(), string);
  }
- 
+
  public static Id makeId(Span span, String string) {
   return new Id(span, string);
  }
@@ -859,7 +830,7 @@ public class NodeFactory {
  public static IntLiteralExpr makeIntLiteralExpr(int i) {
   return new IntLiteralExpr(BigInteger.valueOf(i));
  }
- 
+
  public static Expr makeIntLiteralExpr(long i) {
   return new IntLiteralExpr(BigInteger.valueOf(i));
  }

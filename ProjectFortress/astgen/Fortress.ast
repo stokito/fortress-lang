@@ -427,13 +427,19 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
      * e.g.) unit inch inches: Length
      * e.g.) dim Length SI_unit meter meters m
      */
-    DimUnitDecl(Option<Id> dim = Option.<Id>none(),
-                Option<Type> derived = Option.<Type>none(),
-                Option<Id> default = Option.<Id>none(),
-                boolean si_unit = false,
-                List<Id> units = Collections.<Id>emptyList(),
-                Option<Expr> def)
-               implements Decl, AbsDecl;
+    abstract DimUnitDecl() implements Decl, AbsDecl;
+        /**
+         * dimension declaration
+         */
+        DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
+                Option<Id> default = Option.<Id>none());
+        /**
+         * unit declaration
+         */
+        UnitDecl(boolean si_unit = false,
+                 List<Id> units = Collections.<Id>emptyList(),
+                 Option<Type> dim = Option.<Type>none(),
+                 Option<Expr> def);
     /**
      * test declaration
      * TestDecl ::= test Id [ GeneratorClauseList ] = Expr

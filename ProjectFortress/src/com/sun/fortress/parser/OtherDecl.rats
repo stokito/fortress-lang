@@ -38,33 +38,37 @@ import Spacing;
    | dim w Id (w = w NoNewlineType)? (w default w Id)?
    | (unit | SI_unit) w Id (wr Id)* (w : w NoNewlineType)? (w = w NoNewlineExpr)?
  */
-DimUnitDecl DimUnitDecl =
+List<DimUnitDecl> DimUnitDecl =
      dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
      a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
-     { Option<Type> derived = Option.wrap(a2);
+     { Span span = createSpan(yyStart,yyCount);
+       Option<Type> ty = Option.wrap(a2);
+       DimDecl dim = new DimDecl(span, a1, ty);
+       boolean si_unit;
+       if (a3.equals("SI_unit")) si_unit = true;
+       else                      si_unit = false;
        List<Id> ids = new ArrayList<Id>();
        ids.add(a4);
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
-       Option<Expr> def = Option.wrap(a6);
-       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
-                                             derived, a3, ids, def);
+       UnitDecl unit = new UnitDecl(span, si_unit, ids, ty, Option.wrap(a6));
+       yyValue = FortressUtil.mkList(dim, unit);
      }
    / dim w a1:Id a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
-     { Option<Type> derived = Option.wrap(a2);
-       Option<Id> defaultId = (a3 == null) ?
-           Option.<Id>none() : Option.some(a3);
-       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount), a1,
-                                             derived, defaultId);
+     { DimDecl dim = new DimDecl(createSpan(yyStart,yyCount),
+                                 a1, Option.wrap(a2), Option.wrap(a3));
+       yyValue = FortressUtil.mkList((DimUnitDecl)dim);
      }
    / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
-     { Option<Type> derived = Option.wrap(a4);
+     { boolean si_unit;
+       if (a1.equals("SI_unit")) si_unit = true;
+       else                      si_unit = false;
        List<Id> ids = new ArrayList<Id>();
        ids.add(a2);
        for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
-       Option<Expr> def = Option.wrap(a5);
-       yyValue = NodeFactory.makeDimUnitDecl(createSpan(yyStart,yyCount),
-                                             derived, a1, ids, def);
+       UnitDecl unit = new UnitDecl(createSpan(yyStart,yyCount), si_unit,
+                                    ids, Option.wrap(a4), Option.wrap(a5));
+       yyValue = FortressUtil.mkList((DimUnitDecl)unit);
      };
 
 /* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
