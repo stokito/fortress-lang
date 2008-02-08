@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -108,10 +108,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       for (LValue lv : lvalues) {
         boolean valid = true;
         if (lv instanceof LValueBind) {
-          valid = result.add(((LValueBind)lv).getName());
+            Id id = ((LValueBind)lv).getName();
+            valid = (result.add(id) || id.getText().equals("_"));
         }
         else if (lv instanceof UnpastingBind) {
-          valid = result.add(((UnpastingBind)lv).getName());
+            Id id = ((UnpastingBind)lv).getName();
+            valid = (result.add(id) || id.getText().equals("_"));
         }
         else { // lv instanceof UnpastingSplit
           extractDefinedVarNames(((UnpastingSplit)lv).getElems(), result);
@@ -346,7 +348,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       // multiple instances of the same name are allowed
       return result;
     }
-    
+
     /** IdArgs are static arguments that might be variable references. */
     @Override public Node forIdArg(IdArg that) {
         NodeFactory.makeVarRef(that.getSpan(), that.getName()).accept(this);

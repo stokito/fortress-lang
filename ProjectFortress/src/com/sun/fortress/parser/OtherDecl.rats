@@ -42,15 +42,16 @@ List<DimUnitDecl> DimUnitDecl =
      dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
      a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { Span span = createSpan(yyStart,yyCount);
-       Option<Type> ty = Option.wrap(a2);
-       DimDecl dim = new DimDecl(span, a1, ty);
+       DimDecl dim = new DimDecl(span, a1, Option.wrap(a2));
        boolean si_unit;
        if (a3.equals("SI_unit")) si_unit = true;
        else                      si_unit = false;
        List<Id> ids = new ArrayList<Id>();
        ids.add(a4);
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
-       UnitDecl unit = new UnitDecl(span, si_unit, ids, ty, Option.wrap(a6));
+       Type ty = new IdType(a1.getSpan(), NodeFactory.makeQualifiedIdName(a1));
+       UnitDecl unit = new UnitDecl(span, si_unit, ids, Option.some(ty),
+                                    Option.wrap(a6));
        yyValue = FortressUtil.mkList(dim, unit);
      }
    / dim w a1:Id a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
