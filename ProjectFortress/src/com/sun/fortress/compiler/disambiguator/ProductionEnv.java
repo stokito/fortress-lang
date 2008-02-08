@@ -34,6 +34,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ProductionIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.GrammarDecl;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -75,7 +76,7 @@ public class ProductionEnv {
 	 * Initialize the mapping from production names to sets of qualified production names
 	 */
 	private void initializeProductions() {
-		for (ProductionIndex<? extends NonterminalDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
+		for (ProductionIndex<? extends GrammarMemberDecl> e: this.getGrammarIndex().getDeclaredNonterminals()) {
 			Id key = e.getName().getName();
 			GrammarDecl currentGrammar = Option.unwrap(this.getGrammarIndex().ast());
 			Id name = NodeFactory.makeId(currentGrammar.getName().stringName()+"."+key.stringName());

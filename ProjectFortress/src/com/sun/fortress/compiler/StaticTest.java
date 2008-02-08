@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import junit.framework.TestCase;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.List;
@@ -55,8 +56,11 @@ public abstract class StaticTest extends TestCase {
             public File value(String s) { return new File(s); }
         }));
         boolean foundAFile = false;
-        Predicate<File> filter = IOUtil.extensionFilePredicate("fss", IOUtil.IS_FILE);
-        for (File f : IOUtil.listFilesRecursively(new File(staticTests), filter)) {
+        for (String filename : new File(staticTests).list(new FilenameFilter() {
+        		public boolean accept(File dir, String name) {
+        			return name.endsWith("fss");
+        		}})) {
+        	File f = new File(staticTests+filename);
             foundAFile = true;
             if (SKIP_NOT_PASSING && notPassingFiles.contains(f)) { continue; }
             else {

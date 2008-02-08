@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.List;
 
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -26,7 +27,7 @@ import com.sun.fortress.nodes.TraitType;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public abstract class ProductionIndex<T extends NonterminalDecl> {
+public abstract class ProductionIndex<T extends GrammarMemberDecl> {
 
 	private Option<T> ast;
 	
@@ -45,12 +46,12 @@ public abstract class ProductionIndex<T extends NonterminalDecl> {
 		throw new RuntimeException("Production index without ast and thus no name");
 	}
 
-	public List<SyntaxDef> getSyntaxDefs() {
-		if (this.ast().isSome()) {
-			return Option.unwrap(this.ast()).getSyntaxDefs();
-		}
-		throw new RuntimeException("Production index without ast and thus no syntax definitions");
-	}
+//	public List<SyntaxDef> getSyntaxDefs() {
+//		if (this.ast().isSome()) {
+//			return Option.unwrap(this.ast()).getSyntaxDefs();
+//		}
+//		throw new RuntimeException("Production index without ast and thus no syntax definitions");
+//	}
 
 	public TraitType getType() {
 		if (this.ast().isSome()) {

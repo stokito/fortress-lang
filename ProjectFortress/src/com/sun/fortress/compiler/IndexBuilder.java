@@ -36,6 +36,7 @@ import com.sun.fortress.compiler.index.FieldSetterMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ParamVariable;
@@ -62,6 +63,7 @@ import com.sun.fortress.nodes.DimUnitDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Modifier;
@@ -81,7 +83,6 @@ import com.sun.fortress.nodes.ModifierVar;
 import com.sun.fortress.nodes.ModifierWidens;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
@@ -96,6 +97,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -507,7 +509,7 @@ public class IndexBuilder {
      */
     private void buildGrammar(GrammarDef ast, Map<QualifiedIdName, GrammarIndex> grammars) {
         final QualifiedIdName name = ast.getName();
-        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildProductions(ast.getNonterminals()));
+        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
             error("Grammar declared twice: "+name, ast);
         }
@@ -515,15 +517,15 @@ public class IndexBuilder {
     }
     
     
-    private Set<ProductionIndex<? extends NonterminalDecl>> buildProductions(List<NonterminalDecl> productions) {
-    	Set<ProductionIndex<? extends NonterminalDecl>> result = new HashSet<ProductionIndex<? extends NonterminalDecl>>();
+    private Set<ProductionIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
+    	Set<ProductionIndex<? extends GrammarMemberDecl>> result = new HashSet<ProductionIndex<? extends GrammarMemberDecl>>();
     	Set<QualifiedIdName> names = new HashSet<QualifiedIdName>();
-    	for (NonterminalDecl p: productions) {
-            if (names.contains(p.getName())) {
-                error("Production declared twice: "+p.getName(), p);
+    	for (GrammarMemberDecl m: members) {
+            if (names.contains(m.getName())) {
+                error("Nonterminal declared twice: "+m.getName(), m);
             }
-            names.add(p.getName());
-            result.add(p.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends NonterminalDecl>>(){
+            names.add(m.getName());
+            result.add(m.accept(new NodeDepthFirstVisitor<ProductionIndex<? extends GrammarMemberDecl>>(){
 
 				@Override
 				public ProductionIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
@@ -534,6 +536,12 @@ public class IndexBuilder {
 				public ProductionIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
 						NonterminalExtensionDef that) {
 					return new ProductionExtendIndex(Option.wrap(that));
+				}
+				
+				@Override
+				public ProductionIndex<_TerminalDef> for_TerminalDef(
+						_TerminalDef that) {
+					return new GrammarTerminalIndex(Option.wrap(that));
 				}
             	
             }));

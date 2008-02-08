@@ -44,11 +44,15 @@ import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NoWhitespaceSymbol;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.QualifiedIdName;
+import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
+import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
@@ -123,8 +127,11 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 				// Rewrite escaped characters
 				EscapeRewriter escapeRewriter = new EscapeRewriter();
 				Api erResult = (Api) sdResult.accept(escapeRewriter);
-				results.add(erResult); 
 				
+				// Rewrite escaped characters
+				TerminalRewriter terminalRewriter = new TerminalRewriter();
+				Api trResult = (Api) erResult.accept(terminalRewriter);
+				results.add(trResult);
 			}
 		}
 		return new ApiResult(results, id.errors());
@@ -245,50 +252,59 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 	
 	@Override
 	public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
-			final Option<Id> id_result, SyntaxSymbol symbol_result) {
-		
-		SyntaxSymbol s = symbol_result;
-		Node n = s.accept(new NodeUpdateVisitor(){
-			@Override
-			public Node forItemSymbol(ItemSymbol that) {
-				return handle(that, that.getItem());
-			}
-
-			@Override
-			public Node forNonterminalSymbol(NonterminalSymbol that) {
-				return handle(that, _currentItem);
-			}
-			
-			@Override
-			public Node forKeywordSymbol(KeywordSymbol that) {
-				return handle(that, that.getToken());
-			}
-
-			@Override
-			public Node forTokenSymbol(TokenSymbol that) {
-				if (id_result.isNone()) {
-					return that;
-				}
-				return handle(that, that.getToken());
-			}
-
-			private Node handle(SyntaxSymbol that, String s) {
-				if (id_result.isNone()) {
-					Id var = NodeFactory.makeId(s);
-					return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var),that);
-				}
-				else {
-					return new PrefixedSymbol(prefix.getSpan(), id_result,that);
-				}
-			}
-		});
-		if (n instanceof SyntaxSymbol) {
-			s = (SyntaxSymbol) n;
-			s.getSpan().begin = prefix.getSpan().begin;
-			s.getSpan().end = prefix.getSpan().end;
-			return s;
+			Option<Id> id_result, SyntaxSymbol symbol_result) {
+		String varName = symbol_result.accept(new PrefixHandler());
+		if (id_result.isNone()) {
+			return handle(prefix, symbol_result, varName);
 		}
-		throw new RuntimeException("Prefix symbol contained something different than a syntax symbol: "+ n.getClass().toString());
+		else {
+			return new PrefixedSymbol(prefix.getSpan(), id_result, symbol_result);
+		}
+	}
+	
+	private Node handle(PrefixedSymbol prefix, SyntaxSymbol that, String varName) {
+		Id var = NodeFactory.makeId(varName);
+		return new PrefixedSymbol(prefix.getSpan(), Option.wrap(var),that);
+	}
+	
+	private class PrefixHandler extends NodeDepthFirstVisitor<String> {
+				
+		@Override
+		public String defaultCase(Node that) {
+			return "";
+		}
+
+		@Override
+		public String forItemSymbol(ItemSymbol that) {
+			return that.getItem(); // handle(that, that.getItem());
+		}
+
+		@Override
+		public String forNonterminalSymbol(NonterminalSymbol that) {
+			return _currentItem; // handle(that, _currentItem);
+		}
+		
+		@Override
+		public String forKeywordSymbol(KeywordSymbol that) {
+			return that.getToken(); // handle(that, that.getToken());
+		}
+
+		@Override
+		public String forRepeatOneOrMoreSymbolOnly(RepeatOneOrMoreSymbol that, String symbol_result) {
+			return symbol_result;
+		}
+
+		@Override
+		public String forRepeatSymbolOnly(RepeatSymbol that, String symbol_result) {
+			return symbol_result;
+		}
+
+		@Override
+		public String forOptionalSymbolOnly(OptionalSymbol that,
+				String symbol_result) {
+			return symbol_result;
+		}
+	
 	}
 
 }

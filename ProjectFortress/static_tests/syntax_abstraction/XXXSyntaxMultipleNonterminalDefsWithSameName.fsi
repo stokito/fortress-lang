@@ -15,25 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api FortressSyntax
+api XXXSyntaxMultipleNonterminalDefsWithSameName
 
   import FortressAst.{...}
+  import FortressSyntax.Literal
 
-  grammar Declaration 
-      Decls : List[\Decl\] end
-      Decl : Decl end
-      AbsDecls : List[\AbsDecl\] end
-      AbsDecl : AbsDecl end
+  grammar Wrong extends Literal
+    Foo :LiteralExpr:= 
+      wrong do StringLiteral("") end
+    end
+
+    Foo :LiteralExpr:= 
+      very wrong do StringLiteral("") end
+    end
   end
 
-  grammar Expression 
-      Expr : Expr end
-      ExprFront : Expr end
-      MathPrimary : Expr end
-      Primary : List[\Expr\] end (* Should be a pure list *)
-  end
-
-  grammar Literal 
-      LiteralExpr : Expr end
-  end
 end

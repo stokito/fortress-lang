@@ -15,25 +15,26 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api FortressSyntax
+api SyntaxGrammarImports
 
   import FortressAst.{...}
+  import FortressSyntax.{...}
+  import SyntaxGrammarImportsA.{...}
 
-  grammar Declaration 
-      Decls : List[\Decl\] end
-      Decl : Decl end
-      AbsDecls : List[\AbsDecl\] end
-      AbsDecl : AbsDecl end
+  grammar Helloworld extends { A, B, Literal }
+      LiteralExpr |Expr=
+         Hello a:Beautiful world do StringLiteralExpr(Hello.val a.val "world") end
+      end
+  end
+ 
+  grammar B extends Literal
+      Foo :Expr:=
+         when do StringLiteralExpr("in 84") end
+      end
+
+      Beautiful :Expr:=
+         beautiful do StringLiteralExpr(" beautiful ") end
+      end
   end
 
-  grammar Expression 
-      Expr : Expr end
-      ExprFront : Expr end
-      MathPrimary : Expr end
-      Primary : List[\Expr\] end (* Should be a pure list *)
-  end
-
-  grammar Literal 
-      LiteralExpr : Expr end
-  end
 end

@@ -1,4 +1,4 @@
-(*******************************************************************************
+/*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,27 +13,18 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
+ ******************************************************************************/
 
-api FortressSyntax
+package com.sun.fortress.compiler.index;
 
-  import FortressAst.{...}
+import com.sun.fortress.nodes._TerminalDef;
 
-  grammar Declaration 
-      Decls : List[\Decl\] end
-      Decl : Decl end
-      AbsDecls : List[\AbsDecl\] end
-      AbsDecl : AbsDecl end
-  end
+import edu.rice.cs.plt.tuple.Option;
 
-  grammar Expression 
-      Expr : Expr end
-      ExprFront : Expr end
-      MathPrimary : Expr end
-      Primary : List[\Expr\] end (* Should be a pure list *)
-  end
+public class GrammarTerminalIndex extends ProductionIndex<_TerminalDef> {
 
-  grammar Literal 
-      LiteralExpr : Expr end
-  end
-end
+	public GrammarTerminalIndex(Option<_TerminalDef> ast) {
+		super(ast);
+	}
+
+}

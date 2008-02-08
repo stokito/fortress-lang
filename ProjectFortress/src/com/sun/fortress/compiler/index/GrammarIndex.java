@@ -24,6 +24,8 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.disambiguator.ProductionEnv;
 import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.syntax_abstractions.phases.Analyzable;
@@ -34,16 +36,16 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
 	private Option<GrammarDef> ast;
 	
-	private Collection<ProductionIndex<? extends NonterminalDecl>> productions;
+	private Collection<ProductionIndex<? extends GrammarMemberDecl>> members;
 
 	private Collection<GrammarIndex> extendedGrammars;
 
 	private ProductionEnv env;
 	
-	public GrammarIndex(Option<GrammarDef> ast, Set<ProductionIndex<? extends NonterminalDecl>> productions) {
+	public GrammarIndex(Option<GrammarDef> ast, Set<ProductionIndex<? extends GrammarMemberDecl>> members) {
 		this.ast = ast;
 		this.extendedGrammars = new LinkedList<GrammarIndex>();
-		this.productions = productions;
+		this.members = members;
 		this.env = new ProductionEnv(this);
 	}
 
@@ -51,8 +53,15 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 		return this.ast;
 	}
 	
-	public Collection<ProductionIndex<? extends NonterminalDecl>> getDeclaredNonterminals() {
-		return this.productions;
+	public Collection<ProductionIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
+//		Collection<ProductionIndex<? extends NonterminalDecl>> nonterminals = new LinkedList<ProductionIndex<? extends NonterminalDecl>>();
+//		for (ProductionIndex<? extends GrammarMemberDecl> g: this.members) {
+//			if ((g instanceof ProductionDefIndex) || 
+//			    (g instanceof ProductionExtendIndex)) {
+//				nonterminals.add((ProductionIndex) g); // Raw type used because of bug in javac Java 1.5 on Solaris 
+//			}
+//		}
+		return this.members;
 	}
 	
 	public void setAst(GrammarDef g) {
