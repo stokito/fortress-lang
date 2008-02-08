@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -70,7 +70,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     SimpleName cfn;
     List<? extends AbsDeclOrDecl> defs;
     Option<List<Param>> params;
-    
+
     MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
         new MultiMap<FTraitOrObject, SingleFcn>();
 
@@ -89,7 +89,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     int[] traitIndexForMethod; // 0 = object
     int[] overloadMembership;  // 0 = no overload
     int overloadCount = 0; // first overload is indexed at 1.
-    
+
     BetterEnv methodsEnv;
 
     public Constructor(BetterEnv env,
@@ -119,7 +119,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
  //       addParamsToCollection(def, parameterNames);
     }
 
-    
+
     /**
      * @param def
      */
@@ -184,7 +184,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         } else {
             setParams(Collections.<Parameter> emptyList());
         }
-        
+
         BetterEnv bte = new BetterEnv(getWithin(), getAt());
         finishInitializing(bte);
     }
@@ -397,11 +397,11 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
             closuresArray[i] = cl;
         }
 
-       
+
         methodsEnv = new BetterEnv(within, within.getAt());
         addMethodsToEnv(methodsEnv);
         methodsEnv.bless();
-        
+
         finished = true;
     }
 
@@ -520,9 +520,9 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
-        
+
         BetterEnv self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
-       
+
         FObject theObject = makeAnObject(lex_env, self_env);
 
         self_env.putValueUnconditionally(WellKnownNames.secretSelfName, theObject);
@@ -533,7 +533,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         self_env.bless(); // HACK we add to this later.
                           // This should go wrong if one of the vars has closure value
                           // or objectExpr value.
-        
+
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
             EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);
@@ -546,7 +546,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
     public FValue applyOEConstructor(HasAt loc, BetterEnv lex_env) {
         // Problem -- we need to detach self-env from other env.
         BetterEnv self_env = new BetterEnv(methodsEnv, loc);
-       
+
         FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
         if (surroundSelf != null)
             self_env.putValueUnconditionally(WellKnownNames.secretParentName, surroundSelf);
@@ -561,7 +561,7 @@ public class Constructor extends AnonymousConstructor implements HasFinishInitia
         self_env.bless(); // HACK we add to this later.
                           // This should go wrong if one of the vars has closure value
                           // or objectExpr value.
-        
+
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
             EvalVarsEnvironment eve = new EvalVarsEnvironment(new BetterEnv(lex_env, self_env), self_env);

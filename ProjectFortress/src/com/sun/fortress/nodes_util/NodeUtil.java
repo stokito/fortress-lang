@@ -199,15 +199,14 @@ public class NodeUtil {
 
     private final static NodeAbstractVisitor<String> stringNameVisitor =
         new NodeAbstractVisitor<String>() {
-        public String forDimUnitDecl(DimUnitDecl node) {
-            if (node.getDim().isSome()) {
-                if (node.getUnits().isEmpty())
-                    return Option.unwrap(node.getDim()).getText();
-                else
-                    return Option.unwrap(node.getDim()).getText() + " and " +
-                           Useful.listInDelimiters("", node.getUnits(), "");
-            } else
-                return Useful.listInDelimiters("", node.getUnits(), "");
+        public String forDimDecl(DimDecl node) {
+            return nameString(node.getDim());
+        }
+        public String forUnitDecl(UnitDecl node) {
+            List<Id> ids = node.getUnits();
+            if (ids.size() < 1)
+                return bug("Unit declarations should have a name.");
+            else return nameString(ids.get(0));
         }
         public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
             return nameString(node.getName());
@@ -258,16 +257,14 @@ public class NodeUtil {
             public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
-            public IterableOnce<String> forDimUnitDecl(DimUnitDecl d) {
-                if (d.getDim().isSome()) {
-                    if (d.getUnits().isEmpty())
-                        return new UnitIterable<String>(
-                           Option.unwrap(d.getDim()).getText());
-                    else
-                        return bug(d, "DimUnitDecl represents both a dimension declaration and a unit declaration.");
-                } else
-                    return new IterableOnceTranslatingList<Name, String>(
-                           d.getUnits(), NameToStringFn);
+            public IterableOnce<String> forDimDecl(DimDecl d) {
+                return new UnitIterable<String>(d.getDim().getText());
+            }
+            public IterableOnce<String> forUnitDecl(UnitDecl d) {
+            List<Id> ids = d.getUnits();
+            if (ids.size() < 1)
+                return bug("Unit declarations should have a name.");
+            else return new UnitIterable<String>(nameString(ids.get(0)));
             }
             public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
                 return new UnitIterable<String>(d.getName().getText());

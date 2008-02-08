@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,21 +28,21 @@ public interface GenericTypeInstance {
      * @return
      */
     public FTypeGeneric getGeneric();
-    
-    /** 
+
+    /**
      * The type parameters of this generic instance, but without opr parameters.
      * Instantiation of opr parameters is implemented with cloning and rewriting
      * instead.
      *  @return
      */
     public List<FType> getTypeParams();
-    /** 
+    /**
      * This type parameters of this generic instance, including opr parameters.
-     * These are necessary to correctly format the name of the generic type. 
+     * These are necessary to correctly format the name of the generic type.
      * @return
      */
     public List<FType> getTypeParamsForName();
-       
+
     /**
      * The environment where the instance was (in theory) instantiated.
      * (getEnv may be the wrong name, for now it is handy).
@@ -50,7 +50,7 @@ public interface GenericTypeInstance {
      * @return
      */
     public BetterEnv getEnv();
-    
+
     public List<FType> getTransitiveExtends();
 
 }
