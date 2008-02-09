@@ -24,6 +24,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 /*
  * Translate from a Fortress interpreter representation of Fortress AST to
  * Java representation of Fortress AST.
+ * TODO: Implement cases for all the AST nodes. Do so by matching on their name.
  */
 public class FortressObjectASTVisitor<T> {
 
