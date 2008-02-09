@@ -36,6 +36,6 @@ build/
 .fortress_cache/
 .fortress_cache_checked/
 .interpreter_cache
-.compiler_cache
+.analyzed_cache
 ProjectFortress/testFile.txt
 testFile.txt

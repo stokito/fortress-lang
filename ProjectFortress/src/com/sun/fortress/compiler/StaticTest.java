@@ -36,6 +36,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.shell.CacheBasedRepository;
 import com.sun.fortress.shell.FileBasedRepository;
 
 import com.sun.fortress.interpreter.drivers.ProjectProperties;
@@ -92,20 +93,9 @@ public abstract class StaticTest extends TestCase {
     }
 
     private Iterable<? extends StaticError> compile(File f) throws IOException {
-        final Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        Fortress fortress = new Fortress(new FileBasedRepository(baseDir, staticTests + "lib"));
-//        new FortressRepository() {
-//            public Map<APIName, ApiIndex> apis() {
-//                return Collections.unmodifiableMap(apis);
-//            }
-//            public void addApi(APIName name, ApiIndex def) {
-//                apis.put(name, def);
-//            }
-//            public void addComponent(APIName name, ComponentIndex def) {
-//                /* ignore */
-//            }
-//        });
-        return fortress.compile(ProjectProperties.SOURCE_PATH, f);
+        //Fortress fortress = new Fortress(new FileBasedRepository(baseDir, staticTests + "lib"));
+        Fortress fortress = new Fortress(new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR));
+        return fortress.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
     }
 
 }
