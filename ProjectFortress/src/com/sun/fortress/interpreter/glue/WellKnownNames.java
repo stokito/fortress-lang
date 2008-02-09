@@ -43,4 +43,6 @@ public class WellKnownNames {
     public static String forbiddenException = "ForbiddenException";
     public static String atomicConflictException = "AtomicConflict";
     public static String matchFailureException = "MatchFailure";
+    public static String callerViolationException = "CallerViolation";
+    public static String calleeViolationException = "CalleeViolation";
 }
