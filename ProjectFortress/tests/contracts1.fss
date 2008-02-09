@@ -1,0 +1,43 @@
+(********************************************************************************
+    Copyright 2008 Sun Microsystems, Inc., 
+    4150 Network Circle, Santa Clara, California 95054, U.S.A. 
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software. 
+    Government users are subject to the Sun Microsystems, Inc. standard 
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered 
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+********************************************************************************)
+component contracts1
+export Executable
+
+factorial(n)
+    requires {n >= 0}
+    = if n = 0 then 1 
+    else n factorial (n-1) 
+    end
+
+test1():() = do assert(factorial(0), 1, "Contracts test1 failed") end
+test2():() = do assert(factorial(3), 6, "Contracts test2 failed") end
+test3():() = do 
+    var worked:Boolean = false
+    try 
+        factorial(-1) 
+    catch e
+            CallerViolation => worked := true
+    end
+    assert(worked, "Contracts test2 failed")
+end
+
+run(args:String...):()=do
+   test1()
+   test2()
+   test3()
+end
+end

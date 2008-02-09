@@ -51,8 +51,10 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Assignment;
+import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Decl;
@@ -72,6 +74,7 @@ import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Do;
+import com.sun.fortress.nodes.EnsuresClause;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FieldRef;
@@ -81,7 +84,8 @@ import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.If;
+import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IdType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
@@ -102,6 +106,7 @@ import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes.Spawn;
+import com.sun.fortress.nodes.Throw;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.InstantiatedType;
 import com.sun.fortress.nodes.QualifiedIdName;
@@ -720,7 +725,31 @@ public class Desugarer extends Rewrite {
                     paramsToLocals(params);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
 
-                    AbstractNode n = visitNode(node);
+		    Contract _contract = fndef.getContract();
+		    Option<List<Expr>> _requires = _contract.getRequires();
+		    Option<List<EnsuresClause>> _ensures = _contract.getEnsures();
+		    Option<List<Expr>> _invariants = _contract.getInvariants();
+		    List<Expr> _exprs = new ArrayList<Expr>();
+		    AbstractNode n = visitNode(node);
+
+		    if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
+			List<Expr> exprs = new ArrayList<Expr>();
+			exprs.add(fndef.getBody());
+			Block b = new Block(exprs);
+			if (_invariants.isSome()) b = translateInvariants(_invariants, b);
+			if (_ensures.isSome())    b = translateEnsures(_ensures, b);
+			if (_requires.isSome())   b = translateRequires(_requires, b);
+		
+			FnDef f = new FnDef(fndef.getSpan(), fndef.getMods(),
+					    fndef.getName(),
+					    fndef.getStaticParams(), fndef.getParams(),
+					    fndef.getReturnType(), fndef.getThrowsClause(),
+					    fndef.getWhere(), fndef.getContract(),
+					    WellKnownNames.defaultSelfName, b);
+
+			n = visitNode(f);
+		    }
+
                     dumpIfChange(node, n);
                     return n;
 
@@ -1308,6 +1337,32 @@ public class Desugarer extends Rewrite {
 
         TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
         return juxt;
+    }
+
+    private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
+	List<Expr> r = Option.unwrap(_requires);
+	for (Expr e : r) {
+	    IfClause i = new IfClause(e, b);
+	    List<IfClause> ifclauses = new ArrayList<IfClause>();
+	    ifclauses.add(i);
+	    Expr err_fn = new VarRef(new QualifiedIdName(new Id("CallerViolation")));
+	    List<Expr> throwExprBlock = new ArrayList<Expr>();
+	    throwExprBlock.add(new Throw (err_fn));
+	    Block _elseClause = new Block( throwExprBlock);
+	    If _if = new If(ifclauses, Option.some(_elseClause));
+	    List<Expr> ifExprBlock = new ArrayList<Expr>();
+	    ifExprBlock.add(_if);
+	    b = new Block(ifExprBlock);
+	}
+        return b;
+    }
+
+    private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
+	return NI.nyi("Ensures");
+    }
+
+    private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
+	return NI.nyi("Invariants");
     }
 
     private boolean looksLikeMethodInvocation(Juxt node) {
