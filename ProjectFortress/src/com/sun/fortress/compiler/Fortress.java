@@ -71,41 +71,37 @@ public class Fortress {
     
     public Fortress(FortressRepository repository) { _repository = repository; }
     
-    /**
-     * Compile all definitions in the given files, and any additional sources that
-     * they depend on, and add them to the fortress.
-     */
-    public Iterable<? extends StaticError> compile(Path path, File... files) {
-        return compile(path, IterUtil.asIterable(files));
-    }
-    
-    /**
-     * Compile all definitions in the given files, and any additional sources that
-     * they depend on, and add them to the fortress.
-     */
-    public Iterable<? extends StaticError> compile(Path path, Iterable<File> files) {
-        GlobalEnvironment env = new GlobalEnvironment.FromMap(_repository.apis());
-        
-        FortressParser.Result pr = FortressParser.parse(files, env, path);
-        // Parser.Result pr = Parser.parse(files, env);
-        if (!pr.isSuccessful()) { return pr.errors(); }
-        System.out.println("Parsing done.");
-        
-        return analyze(env, pr);
-    }
+//    /**
+//     * Compile all definitions in the given files, and any additional sources that
+//     * they depend on, and add them to the fortress.
+//     */
+//    public Iterable<? extends StaticError> compile(Path path, File... files) {
+//        return compile(path, IterUtil.asIterable(files));
+//    }
+//    
+//    /**
+//     * Compile all definitions in the given files, and any additional sources that
+//     * they depend on, and add them to the fortress.
+//     */
+//    public Iterable<? extends StaticError> compile(Path path, Iterable<File> files) {
+//        GlobalEnvironment env = new GlobalEnvironment.FromMap(_repository.apis());
+//        
+//        FortressParser.Result pr = FortressParser.parse(files, env, path);
+//        // Parser.Result pr = Parser.parse(files, env);
+//        if (!pr.isSuccessful()) { return pr.errors(); }
+//        System.out.println("Parsing done.");
+//        
+//        return analyze(env, pr);
+//    }
     
      /**
      * Compile all definitions in the given files, and any additional sources that
      * they depend on, and add them to the fortress.
      */
-    public Iterable<? extends StaticError> compile(boolean link, Path path, String... files) {
+    public Iterable<? extends StaticError> compile(Path path, String... files) {
         
-        BatchCachingRepository bcr = new BatchCachingRepository(link,
-                //new PathBasedSyntaxTransformingRepository
-                (path),
-                new CacheBasedRepository(ProjectProperties.ensureDirectoryExists(ProjectProperties.ANALYZED_CACHE_DIR))
-                );
-        
+        BatchCachingRepository bcr = Driver.fssRepository(path, _repository);
+            
         FortressParser.Result result = compileInner(bcr, files);
  
         // Parser.Result pr = Parser.parse(files, env);
@@ -114,7 +110,8 @@ public class Fortress {
         
         GlobalEnvironment env = new GlobalEnvironment.FromMap(bcr.apis());
         
-        return analyze(env, result);
+        //return analyze(env, result);
+        return IterUtil.empty();
     }
 
     private FortressParser.Result compileInner(BatchCachingRepository bcr,
@@ -273,7 +270,9 @@ public class Fortress {
         Disambiguator.ComponentResult componentDR =
             Disambiguator.disambiguateComponents(components, env,
                                                  rawComponentIR.components());
-        if (!componentDR.isSuccessful()) { return componentDR.errors(); }
+        if (!componentDR.isSuccessful()) {
+            return componentDR.errors();
+        }
         
         IndexBuilder.ComponentResult componentIR =
             IndexBuilder.buildComponents(componentDR.components(), System.currentTimeMillis());
@@ -294,11 +293,13 @@ public class Fortress {
     }
     
     public Iterable<? extends StaticError>  run(Path path, String componentName, List<String> args) {
-        BatchCachingAnalyzingRepository bcr = new BatchCachingAnalyzingRepository(false,
-                //new PathBasedSyntaxTransformingRepository
-                        (path),
-                new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
-                );
+        BatchCachingRepository _bcr = Driver.specificRepository(path);
+        
+        if (! (_bcr instanceof BatchCachingAnalyzingRepository) ) {
+            throw new ProgramError("Please set property fortress.static.analysis=1.");
+        }
+        
+        BatchCachingAnalyzingRepository bcr = (BatchCachingAnalyzingRepository) _bcr;
         
         FortressParser.Result result = compileInner(bcr, componentName);
  

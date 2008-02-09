@@ -40,23 +40,6 @@ public class CommandInterpreter {
     CommandInterpreter(Shell _shell) { 
         shell = _shell;
     }
-        
-    void compile(String fileName) throws UserError, InterruptedException, IOException {
-        try {
-            FortressRepository fileBasedRepository = new FileBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
-            Fortress fortress = new Fortress(fileBasedRepository);
-        
-            Iterable<? extends StaticError> errors = fortress.compile(
-                    ProjectProperties.SOURCE_PATH,
-                    new File(fileName));
-        
-            for (StaticError error: errors) { System.err.println(error); }
-            // If there are no errors, all components will have been written to disk by the FileBasedRepository.
-        }
-        catch (RepositoryError error) {
-            System.err.println(error); 
-        }
-    }
    
     /**
      * This compiler uses a different method for determining what to compile,
@@ -81,9 +64,11 @@ public class CommandInterpreter {
                 path = path.prepend(head);
             } 
             
-            Iterable<? extends StaticError> errors = fortress.compile(doLink, path, s);
+            Iterable<? extends StaticError> errors = fortress.compile(path, s);
         
-            for (StaticError error: errors) { System.err.println(error); }
+            for (StaticError error: errors) {
+                System.err.println(error);
+            }
             // If there are no errors, all components will have been written to disk by the FileBasedRepository.
         }
         catch (RepositoryError error) {

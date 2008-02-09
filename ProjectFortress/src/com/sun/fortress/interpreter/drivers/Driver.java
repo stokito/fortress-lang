@@ -168,19 +168,38 @@ public class Driver {
     }
     
     public static BatchCachingRepository extendedRepository(String s) {
+       return specificRepository(ProjectProperties.SOURCE_PATH.prepend(s));
+    }
+    
+    public static BatchCachingRepository specificRepository(Path p) {
         // This is bogus; we need to find a better way to communicate with the
         // syntax transfomer.
        
         BatchCachingRepository fr = 
             ProjectProperties.noStaticAnalysis ? 
                     new BatchCachingRepository(
-                          (ProjectProperties.SOURCE_PATH.prepend(s)),
+                          p,
                           new CacheBasedRepository(ProjectProperties.INTERPRETER_CACHE_DIR)
                           )
                     :
             new BatchCachingAnalyzingRepository(false,
-                (ProjectProperties.SOURCE_PATH.prepend(s)),
+                p,
                 new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR)
+                );
+        
+        CURRENT_INTERPRETER_REPOSITORY = fr;
+        return fr;
+    }
+    
+    public static BatchCachingRepository fssRepository(Path p, FortressRepository derived) {
+        // This is bogus; we need to find a better way to communicate with the
+        // syntax transfomer.
+       
+        BatchCachingRepository fr = 
+            
+            new BatchCachingAnalyzingRepository(false,
+                p,
+                derived
                 );
         
         CURRENT_INTERPRETER_REPOSITORY = fr;
