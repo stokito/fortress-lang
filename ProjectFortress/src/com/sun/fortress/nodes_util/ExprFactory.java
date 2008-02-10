@@ -208,9 +208,7 @@ public class ExprFactory {
     }
 
     public static TupleExpr makeTuple(List<Expr> exprs) {
-        Span s = new Span();
-        List<Binding> mt = Collections.<Binding>emptyList();
-        return new TupleExpr(s,false,exprs,Option.<VarargsExpr>none(),mt);
+        return new TupleExpr(new Span(), false, exprs);
     }
 
     public static TupleExpr makeTuple(Expr... exprs) {
@@ -431,8 +429,11 @@ public class ExprFactory {
                                e.getCatchClause(), e.getForbid(),
                                e.getFinallyClause());
             }
+            public Expr forArgExpr(ArgExpr e) {
+                return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
+            }
             public Expr forTupleExpr(TupleExpr e) {
-                return new TupleExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
+                return new TupleExpr(e.getSpan(), true, e.getExprs());
             }
             public Expr forTypeCase(Typecase e) {
                 return new Typecase(e.getSpan(), true, e.getBind(),

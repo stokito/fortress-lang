@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,24 +27,24 @@ import static edu.rice.cs.plt.tuple.Option.*;
 class LValueTypeEnv extends TypeEnv {
     private LValueBind[] entries;
     private TypeEnv parent;
-    
+
     LValueTypeEnv(LValueBind[] _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     LValueTypeEnv(List<LValueBind> _entries, TypeEnv _parent) {
         entries = _entries.toArray(new LValueBind[_entries.size()]);
         parent = _parent;
     }
-    
+
     /**
      * Return an LValueBind that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
     public Option<LValueBind> binding(Id var) {
         for (LValueBind entry : entries) {
-            if (var.equals(entry.getName())) { 
+            if (var.equals(entry.getName())) {
                 return wrap(entry);
             }
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -42,18 +42,18 @@ public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
     private CompilationUnitIndex _current;
     private List<StaticError> _errors;
-    
+
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
     private Map<Id, Set<QualifiedIdName>> _onDemandTypeConsNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandVariableNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandFunctionIdNames = new HashMap<Id, Set<QualifiedIdName>>();
     private Map<OpName, Set<QualifiedOpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<QualifiedOpName>>();
     private Map<Id, Set<QualifiedIdName>> _onDemandGrammarNames = new HashMap<Id, Set<QualifiedIdName>>();
-    
+
     private static class TypeIndex {
         private APIName _api;
         private TypeConsIndex _typeCons;
-        
+
         TypeIndex(APIName api, TypeConsIndex typeCons) {
             _api = api;
             typeCons = _typeCons;
@@ -61,7 +61,7 @@ public class TopLevelEnv extends NameEnv {
         public APIName api() { return _api; }
         public TypeConsIndex typeCons() { return _typeCons; }
     }
-    
+
     public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
         _globalEnv = globalEnv;
         _current = current;
@@ -72,17 +72,17 @@ public class TopLevelEnv extends NameEnv {
         initializeOnDemandFunctionNames();
         initializeOnDemandGrammarNames();
     }
-    
+
     /**
      * Initializes the map of imported API names to ApiIndices.
      * For now, all imports are assumed to be on-demand imports.
      */
     private void initializeOnDemandImportedApis() {
-        // TODO: Fix to support other kinds of imports.        
+        // TODO: Fix to support other kinds of imports.
         Set<APIName> imports = _current.imports();
 
 
-        // The following APIs are always imported, provided they exist. 
+        // The following APIs are always imported, provided they exist.
         for (APIName api : implicitlyImportedApis()) {
             addIfAvailableApi(api, false);
         }
@@ -91,29 +91,29 @@ public class TopLevelEnv extends NameEnv {
             addIfAvailableApi(name, true);
         }
     }
-    
+
     private void addIfAvailableApi(APIName name, boolean errorIfUnavailable) {
         Map<APIName, ApiIndex> availableApis = _globalEnv.apis();
-        
+
         if (availableApis.containsKey(name)) {
-            _onDemandImportedApis.put(name, availableApis.get(name));   
+            _onDemandImportedApis.put(name, availableApis.get(name));
         }
         else if (errorIfUnavailable) {
             _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name.getIds(),
                                         name.getSpan().toString()));
         }
-            
+
     }
-    
+
     private <T> void initializeEntry(Map.Entry<APIName, ApiIndex> apiEntry,
-                                     Map.Entry<Id, T> entry, 
+                                     Map.Entry<Id, T> entry,
                                      Map<Id, Set<QualifiedIdName>> table) {
         Id key = entry.getKey();
         if (table.containsKey(key)) {
             table.get(key).add(new QualifiedIdName(key.getSpan(),
                                                    Option.some(apiEntry.getKey()),
                                                    key));
-            
+
         } else {
             Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
             matches.add(new QualifiedIdName(key.getSpan(),
@@ -122,15 +122,15 @@ public class TopLevelEnv extends NameEnv {
             table.put(key, matches);
         }
     }
-        
+
     private void initializeOnDemandTypeConsNames() {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports.
-        
+
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
                 initializeEntry(apiEntry, typeEntry, _onDemandTypeConsNames);
-            } 
+            }
             // Inject the names of physical units into the set of type cons names.
             for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
                 initializeEntry(apiEntry, unitEntry, _onDemandTypeConsNames);
@@ -141,7 +141,7 @@ public class TopLevelEnv extends NameEnv {
             }
         }
     }
-    
+
     private void initializeOnDemandVariableNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, Variable> varEntry: apiEntry.getValue().variables().entrySet()) {
@@ -151,9 +151,9 @@ public class TopLevelEnv extends NameEnv {
             for (Map.Entry<Id, Unit> unitEntry: apiEntry.getValue().units().entrySet()) {
                 initializeEntry(apiEntry, unitEntry, _onDemandVariableNames);
             }
-        } 
+        }
     }
-    
+
     private void initializeOnDemandFunctionNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (SimpleName fnName: apiEntry.getValue().functions().firstSet()) {
@@ -175,17 +175,17 @@ public class TopLevelEnv extends NameEnv {
                                                              Option.some(apiEntry.getKey()),
                                                              _fnName);
                     if (_onDemandFunctionOpNames.containsKey(_fnName)) {
-                        _onDemandFunctionOpNames.get(_fnName).add(name);                        
+                        _onDemandFunctionOpNames.get(_fnName).add(name);
                     } else {
                         Set<QualifiedOpName> matches = new HashSet<QualifiedOpName>();
                         matches.add(name);
                         _onDemandFunctionOpNames.put(_fnName, matches);
                     }
-                }                
-            } 
+                }
+            }
         }
     }
-   
+
     private void initializeOnDemandGrammarNames() {
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
         	for (Map.Entry<QualifiedIdName, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
@@ -194,7 +194,7 @@ public class TopLevelEnv extends NameEnv {
                 	_onDemandGrammarNames.get(key).add(new QualifiedIdName(key.getSpan(),
                                                            Option.some(apiEntry.getKey()),
                                                            key));
-                    
+
                 } else {
                     Set<QualifiedIdName> matches = new HashSet<QualifiedIdName>();
                     matches.add(new QualifiedIdName(key.getSpan(),
@@ -203,9 +203,9 @@ public class TopLevelEnv extends NameEnv {
                     _onDemandGrammarNames.put(key, matches);
                 }
             }
-        } 
+        }
     }
-    
+
     public Option<APIName> apiName(APIName name) {
         // TODO: Handle aliases.
         if (_onDemandImportedApis.containsKey(name)) {
@@ -214,7 +214,7 @@ public class TopLevelEnv extends NameEnv {
             return Option.none();
         }
     }
-    
+
     public boolean hasTypeParam(Id name) {
         return false;
     }
@@ -224,12 +224,12 @@ public class TopLevelEnv extends NameEnv {
         if (_current instanceof ApiIndex) {
         	if (((ApiIndex) _current).grammars().containsKey(name)) {
         		return true;
-        	}            
+        	}
         }
         return false;
 	}
 
-    
+
     public Set<QualifiedIdName> explicitTypeConsNames(Id name) {
         // TODO: imports
         if (_current.typeConses().containsKey(name) ||
@@ -239,7 +239,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return Collections.emptySet(); }
     }
-    
+
     public Set<QualifiedIdName> explicitVariableNames(Id name) {
         // TODO: imports
         if (_current.variables().containsKey(name) ||
@@ -248,7 +248,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return Collections.emptySet(); }
     }
-    
+
     public Set<QualifiedIdName> explicitFunctionNames(Id name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
@@ -256,7 +256,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return Collections.emptySet(); }
     }
-    
+
     public Set<QualifiedOpName> explicitFunctionNames(OpName name) {
         // TODO: imports
         if (_current.functions().containsFirst(name)) {
@@ -277,8 +277,8 @@ public class TopLevelEnv extends NameEnv {
 		}
         return Collections.emptySet();
 	}
-    
-    private Set<QualifiedIdName> onDemandNames(Id name, Map<Id, Set<QualifiedIdName>> table) 
+
+    private Set<QualifiedIdName> onDemandNames(Id name, Map<Id, Set<QualifiedIdName>> table)
     {
         if (table.containsKey(name)) {
             return table.get(name);
@@ -286,15 +286,15 @@ public class TopLevelEnv extends NameEnv {
             return new HashSet<QualifiedIdName>();
         }
     }
-        
+
     public Set<QualifiedIdName> onDemandTypeConsNames(Id name) {
         return onDemandNames(name, _onDemandTypeConsNames);
     }
-    
+
     public Set<QualifiedIdName> onDemandVariableNames(Id name) {
         return onDemandNames(name, _onDemandVariableNames);
     }
-    
+
     public Set<QualifiedIdName> onDemandFunctionNames(Id name) {
         if (_onDemandFunctionIdNames.containsKey(name)) {
             return _onDemandFunctionIdNames.get(name);
@@ -302,7 +302,7 @@ public class TopLevelEnv extends NameEnv {
             return new HashSet<QualifiedIdName>();
         }
     }
-    
+
     public Set<QualifiedOpName> onDemandFunctionNames(OpName name) {
         if (_onDemandFunctionOpNames.containsKey(name)) {
             return _onDemandFunctionOpNames.get(name);
@@ -310,7 +310,7 @@ public class TopLevelEnv extends NameEnv {
             return new HashSet<QualifiedOpName>();
         }
     }
-    
+
     public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
         if (_onDemandGrammarNames.containsKey(name)) {
             return _onDemandGrammarNames.get(name);
@@ -318,7 +318,7 @@ public class TopLevelEnv extends NameEnv {
             return new HashSet<QualifiedIdName>();
         }
     }
-    
+
     public boolean hasQualifiedTypeCons(QualifiedIdName name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
@@ -326,7 +326,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return false; }
     }
-    
+
     public boolean hasQualifiedVariable(QualifiedIdName name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
@@ -334,7 +334,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return false; }
     }
-    
+
     public boolean hasQualifiedFunction(QualifiedIdName name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
@@ -342,7 +342,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return false; }
     }
- 
+
     public boolean hasQualifiedGrammar(QualifiedIdName name) {
         APIName api = Option.unwrap(name.getApi());
         if (_globalEnv.definesApi(api)) {
@@ -350,7 +350,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else { return false; }
     }
-    
+
     public TypeConsIndex typeConsIndex(final QualifiedIdName name) {
         return name.getApi().apply(new OptionVisitor<APIName, TypeConsIndex>() {
             public TypeConsIndex forSome(APIName api) {
@@ -362,7 +362,7 @@ public class TopLevelEnv extends NameEnv {
             }
         });
     }
-    
+
     public Option<GrammarIndex> grammarIndex(final QualifiedIdName name) {
         QualifiedIdName lookupName = NodeFactory.makeQualifiedIdName(name.getName());
 		if (name.getApi().isSome()) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,14 +21,14 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Id;
 
 public class FieldGetterMethod extends Method {
-    
+
     private final LValueBind _ast;
     private final Id _declaringTrait;
-    
+
     public FieldGetterMethod(LValueBind ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
-    
+
     public LValueBind ast() { return _ast; }
 }

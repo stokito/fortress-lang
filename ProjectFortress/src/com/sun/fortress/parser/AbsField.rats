@@ -30,7 +30,7 @@ import Spacing;
 /* AbsFldDecl ::=
      AbsFldMods? FldWTypes
    | AbsFldMods? BindIdOrBindIdTuple w : w Type w ...
-   | AbsFldMods? BindIdOrBindIdTuple w : w SimpleTupleType
+   | AbsFldMods? BindIdOrBindIdTuple w : w TupleType
  */
 AbsVarDecl AbsFldDecl = AbsVarDecl ;
 

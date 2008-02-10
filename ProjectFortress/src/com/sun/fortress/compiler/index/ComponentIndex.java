@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,9 +28,9 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.NI;
 
 public class ComponentIndex extends CompilationUnitIndex {
-    
+
     private final Set<VarDecl> _initializers;
-    
+
     public ComponentIndex(Component ast,
                           Map<Id, Variable> variables,
                           Set<VarDecl> initializers,
@@ -42,9 +42,9 @@ public class ComponentIndex extends CompilationUnitIndex {
         super(ast, variables, functions, typeConses, dimensions, units, modifiedDate);
         _initializers = initializers;
     }
-    
+
     public Set<VarDecl> initializers() {
         return NI.nyi();
     }
-        
+
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,12 +29,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     private List<StaticParam> _staticParams;
-    
+
     public LocalStaticParamEnv(TypeNameEnv parent, List<StaticParam> staticParams) {
         super(parent);
         _staticParams = staticParams;
     }
-    
+
     @Override public boolean hasTypeParam(Id name) {
         for (StaticParam typeVar : _staticParams) {
             if (typeVar instanceof IdStaticParam &&
@@ -44,7 +44,7 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
         }
         return super.hasTypeParam(name);
     }
-    
+
 	@Override
 	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
 		return Collections.emptySet();
@@ -64,10 +64,10 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
 	public Set<QualifiedIdName> onDemandGrammarNames(Id name) {
 		return Collections.emptySet();
 	}
-	
+
 	@Override
 	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
 		return Option.none();
 	}
-	
+
 }

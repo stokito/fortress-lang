@@ -55,7 +55,7 @@ public class TypeAnalyzer {
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
-    
+
     /**
      * Convert the type to a normal form.  A normalized type has the following properties:
      * <ul>
@@ -64,7 +64,7 @@ public class TypeAnalyzer {
      */
     public Type normalize(Type t) {
         return (Type) t.accept(new NodeUpdateVisitor() {
-            
+
             public Node forArrowTypeOnly(ArrowType t, Type newDomain,
                                          Type newRange, Option<List<Type>> newThrows) {
                 // fix newThrows so that it is a singleton list
@@ -90,16 +90,16 @@ public class TypeAnalyzer {
                                          newRange, newThrows, t.isIo());
                 }
             }
-        
+
         });
     }
-    
+
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.
      */
     public ConstraintFormula subtype(Type s, Type t) {
-        //return ConstraintFormula.TRUE; 
+        //return ConstraintFormula.TRUE;
         return subtype(s, t, _emptyHistory);
     }
 
@@ -118,13 +118,13 @@ public class TypeAnalyzer {
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
-            
+
             ConstraintFormula result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                
+
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
-                
+
                 @Override public ConstraintFormula forInferenceVarType(InferenceVarType t) {
                     if (s instanceof InferenceVarType && s.equals(t)) {
                         return ConstraintFormula.TRUE;
@@ -133,33 +133,33 @@ public class TypeAnalyzer {
                         return ConstraintFormula.lowerBound(t, s, h);
                     }
                 }
-                
+
             });
-            
+
             if (!result.isTrue()) {
-                                                 
+
                 ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    
+
                     @Override public ConstraintFormula forBottomType(BottomType s) {
                         return ConstraintFormula.TRUE;
                     }
-                    
+
                     @Override public ConstraintFormula forInferenceVarType(InferenceVarType s) {
                         return ConstraintFormula.upperBound(s, t, h);
                     }
-                    
+
                     @Override public ConstraintFormula forIdType(IdType s) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
                         else { return ConstraintFormula.FALSE; }
                     }
-                    
+
                     @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
                         ConstraintFormula result;
                         if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
                             result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             TypeConsIndex index = _table.typeCons(s.getName());
                             if (index instanceof TraitIndex) {
@@ -188,12 +188,12 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
-                    @Override public ConstraintFormula forTupleType(TupleType s) {
+
+                    @Override public ConstraintFormula forArgType(ArgType s) {
                         ConstraintFormula result;
-                        if (t instanceof TupleType && compatibleTuples(s, (TupleType) t)) {
+                        if (t instanceof ArgType && compatibleTuples(s, (ArgType) t)) {
                             // Simplification: we allow covariance here
-                            TupleType tCast = (TupleType) t;
+                            ArgType tCast = (ArgType) t;
                             result = subtype(s.getElements(), tCast.getElements(), h);
                             if (!result.isFalse()) {
                                 result = result.and(subtype(s.getVarargs(), tCast.getVarargs(), h), h);
@@ -204,7 +204,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends Tuple
                             result = result.or(subtype(TUPLE, t, h), h);
@@ -221,7 +221,7 @@ public class TypeAnalyzer {
                                                   keywordTypes(infKeywords), h), h);
                             }
                             if (!f.isFalse()) {
-                                TupleType sup = new TupleType(infElements, infVarargs, infKeywords);
+                                ArgType sup = new ArgType(infElements, infVarargs, infKeywords);
                                 f = f.and(subtype(sup, t, h), h);
                             }
                             result = result.or(f, h);
@@ -253,8 +253,8 @@ public class TypeAnalyzer {
                                 f = f.and(equivalent(ks.first().getType(), andT, h), h);
                             }
                             if (!f.isFalse()) {
-                                Type sup = new AndType(new TupleType(infElements1, infVarargs1, infKeywords1),
-                                                       new TupleType(infElements2, infVarargs2, infKeywords2));
+                                Type sup = new AndType(new ArgType(infElements1, infVarargs1, infKeywords1),
+                                                       new ArgType(infElements2, infVarargs2, infKeywords2));
                                 f = f.and(subtype(sup, t, h), h);
                             }
                             result = result.or(f, h);
@@ -274,7 +274,58 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
+                    @Override public ConstraintFormula forTupleType(TupleType s) {
+                        ConstraintFormula result;
+                        if (t instanceof TupleType && compatibleTuples(s, (TupleType) t)) {
+                            // Simplification: we allow covariance here
+                            TupleType tCast = (TupleType) t;
+                            result = subtype(s.getElements(), tCast.getElements(), h);
+                        }
+                        else { result = ConstraintFormula.FALSE; }
+
+                        if (!result.isTrue()) {
+                            // extends Tuple
+                            result = result.or(subtype(TUPLE, t, h), h);
+                        }
+                        if (!result.isTrue()) {
+                            // covariance
+                            List<Type> infElements = newInferenceVars(s.getElements().size());
+                            ConstraintFormula f = subtype(s.getElements(), infElements, h);
+                            if (!f.isFalse()) {
+                                TupleType sup = new TupleType(infElements);
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // split to an And
+                            List<Type> infElements1 = newInferenceVars(s.getElements().size());
+                            List<Type> infElements2 = newInferenceVars(s.getElements().size());
+                            ConstraintFormula f = ConstraintFormula.TRUE;
+                            for (Triple<Type, Type, Type> ts :
+                                     IterUtil.zip(s.getElements(), infElements1, infElements2)) {
+                                f = f.and(equivalent(ts.first(), new AndType(ts.second(), ts.third()), h), h);
+                                if (f.isFalse()) { break; }
+                            }
+                            if (!f.isFalse()) {
+                                Type sup = new AndType(new TupleType(infElements1),
+                                                       new TupleType(infElements2));
+                                f = f.and(subtype(sup, t, h), h);
+                            }
+                            result = result.or(f, h);
+                        }
+                        if (!result.isTrue()) {
+                            // BottomType
+                            for (Type eltT : s.getElements()) {
+                                ConstraintFormula f = subtype(eltT, BOTTOM, h);
+                                if (!f.isFalse()) { f = f.and(subtype(BOTTOM, t, h), h); }
+                                result = result.or(f, h);
+                            }
+                        }
+                        return result;
+                    }
+
                     @Override public ConstraintFormula forVoidType(VoidType s) {
                         if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
                         else {
@@ -282,7 +333,7 @@ public class TypeAnalyzer {
                             return subtype(ANY, t, h);
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forArrowType(ArrowType s) {
                         ConstraintFormula result;
                         Type throwsType = throwsType(s);
@@ -298,7 +349,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends Object
                             result = result.or(subtype(OBJECT, t, h), h);
@@ -359,7 +410,7 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     @Override public ConstraintFormula forOrType(OrType s) {
                         ConstraintFormula result;
                         if (t instanceof OrType) {
@@ -369,7 +420,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // common supertype
                             ConstraintFormula f = subtype(s.getFirst(), t, h);
@@ -405,7 +456,7 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     @Override public ConstraintFormula forAndType(AndType s) {
                         ConstraintFormula result;
                         if (t instanceof AndType) {
@@ -415,7 +466,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends its first element
                             result = result.or(subtype(s.getFirst(), t, h), h);
@@ -436,11 +487,11 @@ public class TypeAnalyzer {
                             // merge tuple
                             // Simplification: assumes this rule is only relevant if one of the
                             // two types is a tuple, and then only for the tuple form it matches.
-                            TupleType form = null;
-                            if (s.getFirst() instanceof TupleType) { form = (TupleType) s.getFirst(); }
-                            if (s.getSecond() instanceof TupleType) {
-                                if (form == null) { form = (TupleType) s.getSecond(); }
-                                else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
+                            ArgType form = null;
+                            if (s.getFirst() instanceof ArgType) { form = (ArgType) s.getFirst(); }
+                            if (s.getSecond() instanceof ArgType) {
+                                if (form == null) { form = (ArgType) s.getSecond(); }
+                                else if (!compatibleTuples(form, (ArgType) s.getSecond())) { form = null; }
                             }
                             if (form != null) {
                                 List<Type> infElements1 = newInferenceVars(form.getElements().size());
@@ -449,8 +500,8 @@ public class TypeAnalyzer {
                                 Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
                                 List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
                                 List<KeywordType> infKeywords2 = newInferenceVars(form.getKeywords());
-                                TupleType match1 = new TupleType(infElements1, infVarargs1, infKeywords1);
-                                TupleType match2 = new TupleType(infElements2, infVarargs2, infKeywords2);
+                                ArgType match1 = new ArgType(infElements1, infVarargs1, infKeywords1);
+                                ArgType match2 = new ArgType(infElements2, infVarargs2, infKeywords2);
                                 ConstraintFormula f = equivalent(s.getFirst(), match1, h);
                                 if (!f.isFalse()) { f = f.and(equivalent(s.getSecond(), match2, h), h); }
                                 if (!f.isFalse()) {
@@ -471,7 +522,35 @@ public class TypeAnalyzer {
                                         AndType kt = new AndType(ks.first().getType(), ks.second().getType());
                                         andKeywords.add(new KeywordType(ks.first().getName(), kt));
                                     }
-                                    TupleType sup = new TupleType(andElements, andVarargs, andKeywords);
+                                    ArgType sup = new ArgType(andElements, andVarargs, andKeywords);
+                                    f = f.and(subtype(sup, t, h), h);
+                                }
+                                result = result.or(f, h);
+                            }
+                        }
+                        if (!result.isTrue()) {
+                            // merge tuple
+                            // Simplification: assumes this rule is only relevant if one of the
+                            // two types is a tuple, and then only for the tuple form it matches.
+                            TupleType form = null;
+                            if (s.getFirst() instanceof TupleType) { form = (TupleType) s.getFirst(); }
+                            if (s.getSecond() instanceof TupleType) {
+                                if (form == null) { form = (TupleType) s.getSecond(); }
+                                else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
+                            }
+                            if (form != null) {
+                                List<Type> infElements1 = newInferenceVars(form.getElements().size());
+                                List<Type> infElements2 = newInferenceVars(form.getElements().size());
+                                TupleType match1 = new TupleType(infElements1);
+                                TupleType match2 = new TupleType(infElements2);
+                                ConstraintFormula f = equivalent(s.getFirst(), match1, h);
+                                if (!f.isFalse()) { f = f.and(equivalent(s.getSecond(), match2, h), h); }
+                                if (!f.isFalse()) {
+                                    List<Type> andElements = new LinkedList<Type>();
+                                    for (Pair<Type, Type> ts : IterUtil.zip(infElements1, infElements2)) {
+                                        andElements.add(new AndType(ts.first(), ts.second()));
+                                    }
+                                    TupleType sup = new TupleType(andElements);
                                     f = f.and(subtype(sup, t, h), h);
                                 }
                                 result = result.or(f, h);
@@ -572,11 +651,11 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                 });
                 result = result.or(sResult, h);
             }
-            
+
             if (!result.isTrue()) {
                 // expand to intersection
                 InferenceVarType inf = newInferenceVar();
@@ -589,10 +668,10 @@ public class TypeAnalyzer {
                 InferenceVarType inf = newInferenceVar();
                 result = result.or(subtype(new OrType(s, inf), t, h), h);
             }
-            
+
             // match where declarations
             // reverse aliases
-            
+
             return result;
         }
         } finally { debug.logEnd(); }
@@ -851,7 +930,7 @@ public class TypeAnalyzer {
     };
 
     /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
-    private boolean compatibleTuples(TupleType s, TupleType t) {
+    private boolean compatibleTuples(ArgType s, ArgType t) {
         if (s.getElements().size() == t.getElements().size() &&
             s.getVarargs().isSome() == t.getVarargs().isSome() &&
             s.getKeywords().size() == t.getKeywords().size()) {
@@ -866,8 +945,13 @@ public class TypeAnalyzer {
         else { return false; }
     }
 
-
-
+    /** Test whether the given tuples have the same arity and matching varargs/keyword entries */
+    private boolean compatibleTuples(TupleType s, TupleType t) {
+        if (s.getElements().size() == t.getElements().size()) {
+            return true;
+        }
+        else { return false; }
+    }
 
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {

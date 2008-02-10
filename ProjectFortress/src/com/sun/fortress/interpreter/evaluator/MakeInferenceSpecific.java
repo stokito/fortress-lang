@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NonArrowType;
 import com.sun.fortress.nodes.InstantiatedType;
+import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
@@ -140,6 +141,15 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArgType(com.sun.fortress.nodes.ArgType)
+     */
+    @Override
+    public void forArgType(ArgType that) {
+        // TODO: Handle ArgTypes with varargs and keywords
+        acceptList(that.getElements(), this);
+    }
+
+    /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTupleType(com.sun.fortress.nodes.TupleType)
      */
     @Override
@@ -147,7 +157,6 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
         // TODO: Handle TupleTypes with varargs and keywords
         acceptList(that.getElements(), this);
     }
-
 
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVoidType(com.sun.fortress.nodes.VoidType)

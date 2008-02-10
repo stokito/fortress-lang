@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -498,7 +498,7 @@ abstract public class FType implements Comparable<FType> {
 
     /**
      * Convenience method for unifying with a VarargsType (e.g., "T...").
-     * VarargsTypes are special forms that appear only in TupleTypes. They are not Types.
+     * VarargsTypes are special forms that appear only in ArgTypes. They are not Types.
      */
     public final void unify(BetterEnv env, Set<StaticParam> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, VarargsType val) {
         unify(env, tp_set, abm, val.getType());

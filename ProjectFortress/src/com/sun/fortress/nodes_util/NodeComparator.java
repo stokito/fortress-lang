@@ -356,8 +356,12 @@ public class NodeComparator {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }
 
+    static int compare(ArgType left, ArgType right) {
+        // TODO: Handle ArgTypes with varargs and keywords
+        return typeListComparer.compare(left.getElements(), right.getElements());
+    }
+
     static int compare(TupleType left, TupleType right) {
-        // TODO: Handle TupleTypes with varargs and keywords
         return typeListComparer.compare(left.getElements(), right.getElements());
     }
 
@@ -373,6 +377,8 @@ public class NodeComparator {
             return compare((ArrowType) left, (ArrowType) right);
         } else if (left instanceof VoidType) {
             return 0;
+        } else if (left instanceof ArgType) {
+            return compare((ArgType) left, (ArgType) right);
         } else if (left instanceof TupleType) {
             return compare((TupleType) left, (TupleType) right);
         } else if (left instanceof TaggedDimType) {

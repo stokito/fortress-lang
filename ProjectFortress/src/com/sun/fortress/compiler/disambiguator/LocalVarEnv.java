@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,19 +29,19 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class LocalVarEnv extends DelegatingNameEnv {
     private Set<Id> _vars;
-    
+
     public LocalVarEnv(NameEnv parent, Set<Id> vars) {
         super(parent);
         _vars = vars;
     }
-    
+
     @Override public Set<QualifiedIdName> explicitVariableNames(Id name) {
         if (_vars.contains(name)) {
             return Collections.singleton(NodeFactory.makeQualifiedIdName(name));
         }
         else { return super.explicitVariableNames(name); }
     }
-    
+
 	@Override
 	public Set<QualifiedIdName> explicitGrammarNames(QualifiedIdName name) {
 		return Collections.emptySet();
@@ -66,5 +66,5 @@ public class LocalVarEnv extends DelegatingNameEnv {
 	public Option<GrammarIndex> grammarIndex(QualifiedIdName name) {
 		return Option.none();
 	}
-    
+
 }

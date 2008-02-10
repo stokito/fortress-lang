@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,14 +21,14 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 
 public class DeclaredMethod extends Method {
-    
+
     private final FnAbsDeclOrDecl _ast;
     private final Id _declaringTrait;
-    
+
     public DeclaredMethod(FnAbsDeclOrDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
-    
+
     public FnAbsDeclOrDecl ast() { return _ast; }
 }

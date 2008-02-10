@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargsType;
@@ -215,6 +216,15 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     public void forTraitTypeWhere(TraitTypeWhere that) {
         // TODO Auto-generated method stub
         super.forTraitTypeWhere(that);
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArgType(com.sun.fortress.nodes.ArgType)
+     */
+    @Override
+    public void forArgType(ArgType that) {
+        // TODO Auto-generated method stub
+        super.forArgType(that);
     }
 
     /* (non-Javadoc)

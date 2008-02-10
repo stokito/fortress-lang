@@ -369,8 +369,7 @@ constant Expr MathPrimary =
      ArrayExpr
    | Comprehension
    | LeftEncloser (w ExprList)? w RightEncloser
-   | Parenthesized
-   | NoKeyTuple
+   | ParenthesisDelimited
    | VarOrFnRef
    | LiteralExpr
    | self
@@ -382,8 +381,7 @@ Expr PrimaryFront =
      { if (a2 == null) a2 = FortressUtil.emptyExprs();
        yyValue = ASTUtil.enclosing(FortressUtil.spanTwo(a1, a3), a1, a2, a3);
      }
-   / Parenthesized
-   / NoKeyTuple
+   / ParenthesisDelimited
    / VarOrFnRef
    / LiteralExpr
    / a1:self
@@ -429,7 +427,7 @@ constant inline Action<Expr> SubscriptingLeft =
 
 /* ParenthesisDelimited ::=
      Parenthesized
-   | TupleExpr
+   | ArgExpr
    | ( w )
  */
 constant inline Action<Expr> ParenthesisDelimitedLeft =
@@ -443,7 +441,7 @@ constant inline Action<Expr> ParenthesisDelimitedLeft =
 
 Expr ParenthesisDelimited =
      Parenthesized
-   / TupleExpr
+   / ArgExpr
    / openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
 

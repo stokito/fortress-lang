@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,6 +26,8 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.AbsTupleType;
+import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarargsType;
@@ -161,15 +163,15 @@ public class FTypeArrow extends FType {
         try {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
-            // TODO: Handle domains that are TupleTypes containing varargs and keywords
+            // TODO: Handle domains that are AbsTupleTypes containing varargs and keywords
             Type valdom = arr.getDomain();
 
             // Problems with tuples of 1 vs multiple args.
             // Must spot the single-parameter binding to tuple case first.
-            if (! (valdom instanceof TupleType)) {
+            if (! (valdom instanceof AbsTupleType)) {
                 domain.unify(env, tp_set, dual, valdom);
             } else if (domain instanceof FTypeTuple) {
-                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((TupleType)valdom).getElements(),
+                ((FTypeTuple)domain).unifyTuple(env, tp_set, dual, ((AbsTupleType)valdom).getElements(),
                                                 Option.<VarargsType>none());
             } else {
                 return false;

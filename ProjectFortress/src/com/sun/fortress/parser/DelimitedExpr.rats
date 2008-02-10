@@ -35,7 +35,7 @@ import Symbol;
 import Spacing;
 
 /* DelimitedExpr ::=
-     TupleExpr
+     ArgExpr
    | Parenthesized
    | object (w ExtendsWhere)? (w GoInAnObject)? w end
    | Do
@@ -51,7 +51,7 @@ import Spacing;
        (w finally w BlockElems)? w end
  */
 Expr DelimitedExpr =
-     TupleExpr
+     ArgExpr
    / Parenthesized
    / object a1:(w ExtendsWhere)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = FortressUtil.emptyTraitTypeWheres();
@@ -131,43 +131,41 @@ private DoFront DoFront =
        yyValue = new DoFront(span, at, atomic, a3);
      };
 
-/* TupleExpr ::=
-     ( w (Expr w , w)* (Expr w ... w , w)? Binding (w , w Binding)* w )
-   | NoKeyTuple
+/* ArgExpr ::=
+     ( w (Expr w , w)* (Expr w ... w , w)? KeywordExpr (w , w KeywordExpr)* w )
+   | ( w (Expr w , w)* Expr w ... w )
+   | TupleExpr
  */
-Expr TupleExpr =
+Expr ArgExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w void:ellipses w comma w)?
-     a3:Binding a4s:(w comma w Binding)* w closeparen
+     a3:KeywordExpr a4s:(w comma w KeywordExpr)* w closeparen
      { List<Expr> es = a1s.list();
        Option<VarargsExpr> vs = ((a2 != null) ?
                               Option.some(new VarargsExpr(a2.getSpan(), a2)) :
                               Option.<VarargsExpr>none());
-       List<Binding> ks = new ArrayList<Binding>();
+       List<KeywordExpr> ks = new ArrayList<KeywordExpr>();
        ks.add(a3);
-       for (Binding b : (List<Binding>)a4s.list()) {
+       for (KeywordExpr b : (List<KeywordExpr>)a4s.list()) {
            ks.add(b);
        }
-       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es, vs, ks);
+       yyValue = new ArgExpr(createSpan(yyStart,yyCount), false, es, vs, ks);
      }
-   / NoKeyTuple ;
-
-/* Binding ::= BindId w = w Expr */
-private Binding Binding = a1:BindId w equals w a2:Expr
-     { yyValue = new Binding(createSpan(yyStart,yyCount), a1, a2); };
-
-/* NoKeyTuple ::=
-     ( w (Expr w , w)*  Expr w ... w )
-   | ( w (Expr w , w)+  Expr w )
- */
-Expr NoKeyTuple =
-     openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
+   / openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
      { Option<VarargsExpr> vs = Option.some(new VarargsExpr(a2.getSpan(), a2));
-       yyValue = new TupleExpr(createSpan(yyStart,yyCount),false,a1s.list(),vs);
+       yyValue = new ArgExpr(createSpan(yyStart,yyCount),false,a1s.list(),vs);
      }
-   / openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
+   / TupleExpr ;
+
+/* TupleExpr ::= ( w (Expr w , w)+  Expr w ) */
+Expr TupleExpr =
+     openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
      { List<Expr> es = FortressUtil.mkList(a1s.list(), a2);
        yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es);
-     } ;
+     };
+
+/* KeywordExpr ::= BindId w = w Expr */
+private KeywordExpr KeywordExpr = a1:BindId w equals w a2:Expr
+     { yyValue = new KeywordExpr(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Parenthesized ::= ( w Expr w ) */
 Expr Parenthesized =

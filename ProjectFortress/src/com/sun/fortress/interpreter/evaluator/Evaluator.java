@@ -72,7 +72,7 @@ import com.sun.fortress.nodes.AsExpr;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.AtomicExpr;
-import com.sun.fortress.nodes.Binding;
+import com.sun.fortress.nodes.KeywordExpr;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
@@ -141,6 +141,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
+import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.TypeArg;
@@ -175,6 +176,7 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;
     final public static FVoid evVoid = FVoid.V;
+    final private static boolean isArgExpr = false;
 
     public FValue eval(Expr e) {
         return e.accept(this);
@@ -269,7 +271,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO:  An LHS walks, talks, and barks just like
                 // an Expr in this context.  Yet it isn't an Expr, and
                 // we can't pass the lhses to the numerous functions
-                // which expect a List<Expr>---for example TupleExpr
+                // which expect a List<Expr>---for example ArgExpr
                 // or evalExprListParallel!  This is extremely annoying!
                 List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
                 for (LHS lhs : lhses) {
@@ -355,8 +357,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    public FValue forBinding(Binding x) {
-        return NI("forBinding");
+    public FValue forKeywordExpr(KeywordExpr x) {
+        return NI("forKeywordExpr");
     }
 
     public FValue forDo(Do x) {
@@ -1650,6 +1652,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
         }
         return res;
+    }
+
+    public FValue forArgExpr(ArgExpr x) {
+        List<Expr> exprs = x.getExprs();
+        /*
+        if (!isArgExpr)
+            error(x, "Tuples are not allowed to have varargs or keyword expressions.");
+        */
+        return FTuple.make(evalExprListParallel(exprs));
     }
 
     public FValue forTupleExpr(TupleExpr x) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,6 +29,8 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.AbsTupleType;
+import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
@@ -353,10 +355,15 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        if (!(val instanceof TupleType)) return false;
-        TupleType tup = (TupleType) val;
-        if (!(tup.getKeywords().isEmpty())) return false;
-        return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
+        if (!(val instanceof AbsTupleType)) return false;
+        if (val instanceof ArgType) {
+            ArgType tup = (ArgType) val;
+            if (!(tup.getKeywords().isEmpty())) return false;
+            return unifyTuple(env, tp_set, abm, tup.getElements(), tup.getVarargs());
+        } else { // (val instanceof TupleType)
+            return unifyTuple(env, tp_set, abm, ((TupleType)val).getElements(),
+                              Option.<VarargsType>none());
+        }
     }
 
     @Override
@@ -422,7 +429,7 @@ public class FTypeTuple extends FType {
         exclDumpln(" No exclusion.");
         return false;
     }
-    
+
     public List<FType> getTypes() {
         return l;
     }
