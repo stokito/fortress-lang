@@ -41,101 +41,101 @@ import static com.sun.fortress.compiler.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
-    
+
     private TraitTable table;
     private StaticParamEnv staticParams;
-    private TypeEnv params; 
+    private TypeEnv params;
     private final TypeAnalyzer analyzer;
-    
-    
+
+
     public TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
-                       TypeEnv _params) 
+                       TypeEnv _params)
     {
         table = _table;
         staticParams = _staticParams;
         params = _params;
         analyzer = new TypeAnalyzer(table);
     }
-    
+
     private TypeChecker(TraitTable _table,
                        StaticParamEnv _staticParams,
                        TypeEnv _params,
-                       TypeAnalyzer _analyzer) 
+                       TypeAnalyzer _analyzer)
     {
         table = _table;
         staticParams = _staticParams;
         params = _params;
         analyzer = _analyzer;
     }
-    
+
     private static Type typeFromLValueBinds(List<LValueBind> bindings) {
         List<Type> results = new ArrayList<Type>();
-        
+
         for (LValueBind binding: bindings) {
             results.add(unwrap(binding.getType()));
         }
         return NodeFactory.makeTupleType(results);
     }
-    
+
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
                                params.extend(newParams), analyzer);
     }
-    
+
     private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
                                params.extendWithParams(newParams), analyzer);
     }
-    
+
     private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
-        return new TypeChecker(table, 
+        return new TypeChecker(table,
                                staticParams.extend(newStaticParams, whereClause),
-                               params, 
+                               params,
                                analyzer);
     }
-    
+
     private TypeChecker extend(List<LValueBind> bindings) {
         return new TypeChecker(table, staticParams,
                                params.extendWithLValues(bindings),
                                analyzer);
     }
-    
+
     private TypeChecker extend(LocalVarDecl decl) {
         return new TypeChecker(table, staticParams,
                                params.extend(decl),
                                analyzer);
     }
-    
+
     private TypeChecker extend(Param newParam) {
         return new TypeChecker(table, staticParams,
-                               params.extend(newParam), 
+                               params.extend(newParam),
                                analyzer);
     }
-    
+
     public TypeChecker extendWithMethods(Relation<SimpleName, Method> methods) {
         return new TypeChecker(table, staticParams,
                                params.extendWithMethods(methods),
                                analyzer);
     }
-    
+
     public TypeChecker extendWithFunctions(Relation<SimpleName, FunctionalMethod> methods) {
         return new TypeChecker(table, staticParams,
                                params.extendWithFunctions(methods),
-                               analyzer);        
+                               analyzer);
     }
-    
+
     public TypeChecker extendWithFnDefs(Relation<SimpleName, ? extends FnDef> fns) {
         return new TypeChecker(table, staticParams,
                                params.extendWithFnDefs(fns),
-                               analyzer);        
+                               analyzer);
     }
 
     /**
      * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
      * for the given node and corresponding type constraints will be returned.  Otherwise, a TypeCheckerResult
      * for the given node with a generic error message will be returned.
-     */  
+     */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast) {
         return checkSubtype(subtype,
                             supertype,
@@ -149,7 +149,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
      * for the given node and corresponding type constraints will be returned.  Otherwise, a TypeCheckerResult
      * for the given node with the given StaticError will be returned.
-     */  
+     */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
         ConstraintFormula constraints = analyzer.subtype(subtype, supertype);
         if (! constraints.isSatisfiable()) {
@@ -158,40 +158,40 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(ast, constraints);
         }
     }
-    
+
     /** Ignore unsupported nodes for now. */
     /*public TypeCheckerResult defaultCase(Node that) {
         return new TypeCheckerResult(that, Types.Types.VOID, IterUtil.<StaticError>empty());
     }*/
-    
+
     public TypeCheckerResult forFnDef(FnDef that) {
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
-        
+
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
         TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
-        
-        return new TypeCheckerResult(new FnDef(that.getSpan(), 
-                                               that.getMods(), 
-                                               that.getName(), 
-                                               that.getStaticParams(), 
-                                               that.getParams(), 
-                                               that.getReturnType(), 
-                                               that.getThrowsClause(), 
-                                               that.getWhere(), 
-                                               (Contract)contractResult.ast(), 
-                                               that.getSelfName(), 
+
+        return new TypeCheckerResult(new FnDef(that.getSpan(),
+                                               that.getMods(),
+                                               that.getName(),
+                                               that.getStaticParams(),
+                                               that.getParams(),
+                                               that.getReturnType(),
+                                               that.getThrowsClause(),
+                                               that.getWhere(),
+                                               (Contract)contractResult.ast(),
+                                               that.getSelfName(),
                                                (Expr)bodyResult.ast()),
                                      IterUtil.compose(contractResult.errors(), bodyResult.errors()));
     }
 
-     
+
     public TypeCheckerResult forVarDecl(VarDecl that) {
         // System.err.println("forVarDecl: " + that);
         List<LValueBind> lhs = that.getLhs();
         Expr init = that.getInit();
-        
+
         TypeCheckerResult initResult = init.accept(this);
-        
+
         if (lhs.size() == 1) { // We have a single variable binding, not a tuple binding
             LValueBind var = lhs.get(0);
             Option<Type> varType = var.getType();
@@ -200,7 +200,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 // System.err.println("initResult.type(): " + initResult.type());
                 if (initResult.type().isNone()) {
                     // System.err.println("initResult.ast(): " + initResult.ast());
-                    // The right hand side could not be typed, which must have resulted in a 
+                    // The right hand side could not be typed, which must have resulted in a
                     // signaled error. No need to signal another error.
                     return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
                                                                  lhs,
@@ -219,15 +219,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         } else { // lhs.size() >= 2
             // System.err.println("lhs.size() >= 2");
-            Type varType = typeFromLValueBinds(lhs); 
+            Type varType = typeFromLValueBinds(lhs);
             if (initResult.type().isNone()) {
-                // The right hand side could not be typed, which must have resulted in a 
+                // The right hand side could not be typed, which must have resulted in a
                 // signaled error. No need to signal another error.
                 return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
                                                              lhs,
                                                              (Expr)initResult.ast()),
                                                  initResult);
-            } 
+            }
             return checkSubtype(unwrap(initResult.type()),
                                 varType,
                                 that,
@@ -236,66 +236,66 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                  that));
         }
     }
-    
+
     public TypeCheckerResult forId(Id that) {
         Option<Type> thatType = params.type(that);
-        
-        if (thatType.isSome()) { 
-            return new TypeCheckerResult(that, unwrap(thatType)); 
-        } else { 
-            StaticError error = 
+
+        if (thatType.isSome()) {
+            return new TypeCheckerResult(that, unwrap(thatType));
+        } else {
+            StaticError error =
                 StaticError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
             return new TypeCheckerResult(that, error);
         }
     }
-    
-    public TypeCheckerResult forAPIName(APIName that) { 
-        return new TypeCheckerResult(that); 
+
+    public TypeCheckerResult forAPIName(APIName that) {
+        return new TypeCheckerResult(that);
     }
-   
+
     public TypeCheckerResult forExportOnly(Export that, List<TypeCheckerResult> apis_result) {
         return new TypeCheckerResult(that);
     }
-    
-    public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {        
+
+    public TypeCheckerResult forQualifiedIdName(QualifiedIdName that) {
         // Initialize apiTypeEnv assuming there is no API portion of 'that',
         // and that the reference is to a var in the current type environment.
         // If this is not the case, we'll fix it when checking if apiName.isSome().
         TypeEnv apiTypeEnv = params;
-        
+
         Option<APIName> apiName = that.getApi();
-        
+
         if (apiName.isSome()) {
             // 'globals' must contain 'unwrap(apiName)', as this component has
             // been disambiguated already.
             apiTypeEnv = TypeEnv.make(table.api(unwrap(apiName)));
         }
         Id name = that.getName();
-        
+
         Option<Type> type = apiTypeEnv.type(name);
-        
+
         if (type.isSome()) {
             // System.err.println(unwrap(type));
             return new TypeCheckerResult(that, unwrap(type));
         } else {
             // System.err.println("y");
-            StaticError error = 
-                StaticError.make(errorMsg("Attempt to reference unbound variable: \n    ", that), 
+            StaticError error =
+                StaticError.make(errorMsg("Attempt to reference unbound variable: \n    ", that),
                                  that);
             return new TypeCheckerResult(that, error);
         }
     }
-    
+
     public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
         Option<Type> varType = var_result.type();
-        
+
         if (varType.isSome()) {
             return TypeCheckerResult.compose(that, unwrap(varType), var_result);
         } else {
             return TypeCheckerResult.compose(that, var_result);
         }
     }
-    
+
     public TypeCheckerResult forObjectDecl(ObjectDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult nameResult = that.getName().accept(this);
@@ -304,38 +304,38 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult whereResult = that.getWhere().accept(this);
         TypeCheckerResult paramsResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfParam(that.getParams()));
         TypeCheckerResult throwsClauseResult = TypeCheckerResult.compose(that, recurOnOptionOfListOfTraitType(that.getThrowsClause()));
-        
+
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
         TypeCheckerResult contractResult = that.getContract().accept(newChecker);
-        
+
         // Check field declarations.
         TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
-            if (decl instanceof VarDecl) { 
+            if (decl instanceof VarDecl) {
                 VarDecl _decl = (VarDecl)decl;
                 fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
                 newChecker = newChecker.extend(_decl.getLhs());
             }
         }
- 
+
         // Check method declarations.
 
         TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
-                
+
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
-            if (decl instanceof FnDecl) { 
+            if (decl instanceof FnDecl) {
                 methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
             }
         }
-        
-        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult, 
-                                         extendsClauseResult, whereResult, paramsResult, throwsClauseResult, 
+
+        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult,
+                                         extendsClauseResult, whereResult, paramsResult, throwsClauseResult,
                                          contractResult, fieldsResult, methodsResult);
     }
-    
+
     public TypeCheckerResult forTraitDecl(TraitDecl that) {
         TypeCheckerResult modsResult = TypeCheckerResult.compose(that, recurOnListOfModifier(that.getMods()));
         TypeCheckerResult nameResult = that.getName().accept(this);
@@ -343,51 +343,51 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult extendsClauseResult = TypeCheckerResult.compose(that, recurOnListOfTraitTypeWhere(that.getExtendsClause()));
         TypeCheckerResult whereResult = that.getWhere().accept(this);
         TypeCheckerResult excludesResult = TypeCheckerResult.compose(that, recurOnListOfTraitType(that.getExcludes()));
-        
+
         TypeCheckerResult comprisesResult = new TypeCheckerResult(that);
         Option<List<TraitType>> comprises = that.getComprises();
         if (comprises.isSome()) {
-            comprisesResult = 
+            comprisesResult =
                 TypeCheckerResult.compose
                     (that, unwrap(recurOnOptionOfListOfTraitType(that.getComprises())));
         }
-        
+
         TypeChecker newChecker = this.extend(that.getStaticParams(), that.getWhere());
-        
+
         // Check "field" declarations (really getter and setter declarations).
         TypeCheckerResult fieldsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
-            if (decl instanceof VarDecl) { 
+            if (decl instanceof VarDecl) {
                 VarDecl _decl = (VarDecl)decl;
-                
+
                 fieldsResult = TypeCheckerResult.compose(that, _decl.accept(newChecker), fieldsResult);
                 newChecker = newChecker.extend(_decl.getLhs());
             }
         }
-        
+
         // Check method declarations.
-        
+
         TraitIndex thatIndex = (TraitIndex)table.typeCons(that.getName());
         newChecker = newChecker.extendWithMethods(thatIndex.dottedMethods());
         newChecker = newChecker.extendWithFunctions(thatIndex.functionalMethods());
-        
+
         TypeCheckerResult methodsResult = new TypeCheckerResult(that);
         for (Decl decl: that.getDecls()) {
-            if (decl instanceof FnDecl) { 
+            if (decl instanceof FnDecl) {
                 methodsResult = TypeCheckerResult.compose(that, decl.accept(newChecker), methodsResult);
             }
         }
-        
-        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult, 
-                                         extendsClauseResult, whereResult, excludesResult, comprisesResult, 
+
+        return TypeCheckerResult.compose(that, modsResult, nameResult, staticParamsResult,
+                                         extendsClauseResult, whereResult, excludesResult, comprisesResult,
                                          fieldsResult, methodsResult);
     }
-    
+
 //    public TypeCheckerResult forVarRefOnly(VarRef that, TypeCheckerResult var_result) {
-//        if (var_result.isSome()) { 
-//            return new TypeCheckerResult(that, varType); 
+//        if (var_result.isSome()) {
+//            return new TypeCheckerResult(that, varType);
 //        } else {
-//            StaticError error = 
+//            StaticError error =
 //                StaticError.make(errorMsg("Attempt to reference unbound variable: ", that),
 //                                 that);
 //            return new TypeCheckerResult(that, error);
@@ -397,13 +397,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forIfOnly(If that,
                                        List<TypeCheckerResult> clauses_result,
                                        Option<TypeCheckerResult> elseClause_result) {
-        
+
         if (elseClause_result.isSome()) {
-            
+
             TypeCheckerResult result = new TypeCheckerResult(that);
             List<Type> clauseTypes = new ArrayList<Type>(clauses_result.size()+1);
             TypeCheckerResult elseResult = unwrap(elseClause_result);
-            
+
             // Get union of all clauses' types
             for (TypeCheckerResult clauseResult : clauses_result) {
                 if (clauseResult.type().isSome()) {
@@ -421,7 +421,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              NodeFactory.makeUnionType(IterUtil.asArray(clauseTypes, Type.class)),
                                              result);
         } else {
-            
+
             // Check that each if/elif clause has void type
             TypeCheckerResult result = new TypeCheckerResult(that);
             for (TypeCheckerResult clauseResult : clauses_result) {
@@ -447,9 +447,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forIfClauseOnly(IfClause that,
                                              TypeCheckerResult test_result,
                                              TypeCheckerResult body_result) {
-                                                 
+
         TypeCheckerResult result = new TypeCheckerResult(that);
-        
+
         // Check that test condition is Boolean.
         if (test_result.type().isSome()) {
             Type testType = unwrap(test_result.type());
@@ -465,7 +465,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         } else {
             result = TypeCheckerResult.compose(that, test_result, result);
         }
-        
+
         // IfClause's type is body's type.
         if (! body_result.type().isSome()) {
             return TypeCheckerResult.compose(that, unwrap(body_result.type()), result);
@@ -473,11 +473,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(that, body_result, result);
         }
     }
-    
+
     public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
         TypeCheckerResult result = new TypeCheckerResult(that);
         List<Type> frontTypes = new ArrayList<Type>(fronts_result.size());
-        
+
         // Get union of all clauses' types
         for (TypeCheckerResult frontResult : fronts_result) {
             if (frontResult.type().isSome()) {
@@ -490,7 +490,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          NodeFactory.makeUnionType(IterUtil.asArray(frontTypes, Type.class)),
                                          result);
     }
-    
+
 
     public TypeCheckerResult forDoFrontOnly(DoFront that,
                                             Option<TypeCheckerResult> loc_result,
@@ -507,11 +507,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return TypeCheckerResult.compose(that, expr_result.type(), expr_result);
         }
     }
-    
+
     public TypeCheckerResult forFnRefOnly(FnRef that,
                                           List<TypeCheckerResult> fns_result,
                                           List<TypeCheckerResult> staticArgs_result) {
-                                              
+
         // Get intersection of overloaded function types.
         List<Type> overloadedTypes = new ArrayList<Type>(fns_result.size());
         for (TypeCheckerResult fn_result : fns_result) {
@@ -524,7 +524,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, fns_result),
                                          TypeCheckerResult.compose(that, staticArgs_result));
     }
-    
+
     public TypeCheckerResult forBlockOnly(Block that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
     }
@@ -535,7 +535,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         for (FnDef fnDef : that.getFns()) {
             fnDefs.add(fnDef.getName(), fnDef);
         }
-        
+
         TypeChecker newChecker = this.extendWithFnDefs(fnDefs);
         for (FnDef fnDef : that.getFns()) {
             result = TypeCheckerResult.compose(that, fnDef.accept(newChecker), result);
@@ -546,7 +546,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                            result);
         return result;
     }
-    
+
     public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
         TypeCheckerResult result = new TypeCheckerResult(that);
         if (that.getRhs().isSome()) {
@@ -559,7 +559,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                            result);
         return result;
     }
-    
+
     public TypeCheckerResult forFloatLiteralExpr(FloatLiteralExpr that) {
         return new TypeCheckerResult(that, Types.FLOAT_LITERAL);
     }
@@ -579,10 +579,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
         return new TypeCheckerResult(that, Types.VOID);
     }
-    
+
     // STUBS --------------------
-    
-    public TypeCheckerResult forContractOnly(Contract that, 
+
+    public TypeCheckerResult forContractOnly(Contract that,
                                              Option<List<TypeCheckerResult>> requires_result,
                                              Option<List<TypeCheckerResult>> ensures_result,
                                              Option<List<TypeCheckerResult>> invariants_result) {
@@ -592,7 +592,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, invariants_result));
     }
 
-    public TypeCheckerResult forTupleExprOnly(TupleExpr that,
+    public TypeCheckerResult forArgExprOnly(ArgExpr that,
                                               List<TypeCheckerResult> exprs_result,
                                               Option<TypeCheckerResult> varargs_result,
                                               List<TypeCheckerResult> keywords_result) {
@@ -607,7 +607,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              TypeCheckerResult.compose(that, keywords_result));
         }
     }
-    
+
+    public TypeCheckerResult forTupleExprOnly(TupleExpr that,
+                                            List<TypeCheckerResult> exprs_result) {
+        return TypeCheckerResult.compose(that,
+                                         TypeCheckerResult.compose(that, exprs_result));
+    }
+
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
     }
@@ -623,23 +629,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                          TypeCheckerResult.compose(that, exports_result),
                                          TypeCheckerResult.compose(that, decls_result));
     }
-    
+
 }
 
     /* Methods copied from superclass, to make it easier to incrementally define
-     * overridings here. 
+     * overridings here.
      */
-    
+
 //    public RetType forAbsTraitDecl(AbsTraitDecl that) {
 //        List<RetType> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
 //        List<RetType> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
 //        RetType where_result = that.getWhere().accept(this);
 //        List<RetType> excludes_result = recurOnListOfTraitType(that.getExcludes());
 //        Option<List<RetType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
-//        
-//        
+//
+//
 //        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forAbsTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                   where_result, excludes_result, comprises_result, decls_result);
 //    }
 //
@@ -652,7 +658,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        List<RetType> excludes_result = recurOnListOfTraitType(that.getExcludes());
 //        Option<List<RetType>> comprises_result = recurOnOptionOfListOfTraitType(that.getComprises());
 //        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forTraitDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                where_result, excludes_result, comprises_result, decls_result);
 //    }
 //
@@ -666,7 +672,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
 //        RetType contract_result = that.getContract().accept(this);
 //        List<RetType> decls_result = recurOnListOfAbsDecl(that.getDecls());
-//        return forAbsObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forAbsObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                    where_result, params_result, throwsClause_result, contract_result, decls_result);
 //    }
 
@@ -680,56 +686,56 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        Option<List<RetType>> throwsClause_result = recurOnOptionOfListOfTraitType(that.getThrowsClause());
 //        RetType contract_result = that.getContract().accept(this);
 //        List<RetType> decls_result = recurOnListOfDecl(that.getDecls());
-//        return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                 where_result, params_result, throwsClause_result, contract_result, decls_result);
 //    }
 //
-//    public RetType forTraitObjectAbsDeclOrDeclOnly(TraitObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, 
-//                                                   List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result, 
+//    public RetType forTraitObjectAbsDeclOrDeclOnly(TraitObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result,
+//                                                   List<RetType> staticParams_result, List<RetType> extendsClause_result, RetType where_result,
 //                                                   List<RetType> decls_result) {
 //        return forAbstractNodeOnly(that);
 //    }
-//    
-//    public RetType forTraitAbsDeclOrDeclOnly(TraitAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                             List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, 
+//
+//    public RetType forTraitAbsDeclOrDeclOnly(TraitAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                             List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
 //                                             Option<List<RetType>> comprises_result, List<RetType> decls_result) {
 //        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
 //    }
-//    
-//    public RetType forAbsTraitDeclOnly(AbsTraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                       List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, 
+//
+//    public RetType forAbsTraitDeclOnly(AbsTraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                       List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
 //                                       Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                         where_result, excludes_result, comprises_result, decls_result);
 //    }
-//    
-//    public RetType forTraitDeclOnly(TraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                    List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result, 
+//
+//    public RetType forTraitDeclOnly(TraitDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                    List<RetType> extendsClause_result, RetType where_result, List<RetType> excludes_result,
 //                                    Option<List<RetType>> comprises_result, List<RetType> decls_result) {
-//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forTraitAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                         where_result, excludes_result, comprises_result, decls_result);
 //    }
-//    
-//    public RetType forObjectAbsDeclOrDeclOnly(ObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                              List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, 
+//
+//    public RetType forObjectAbsDeclOrDeclOnly(ObjectAbsDeclOrDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                              List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
 //                                              Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
 //        return forTraitObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, where_result, decls_result);
 //    }
-//    
-//    public RetType forAbsObjectDeclOnly(AbsObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                        List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, 
+//
+//    public RetType forAbsObjectDeclOnly(AbsObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                        List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
 //                                        Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                          where_result, params_result, throwsClause_result, contract_result, decls_result);
 //    }
-//    
-//    public RetType forObjectDeclOnly(ObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result, 
-//                                     List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result, 
+//
+//    public RetType forObjectDeclOnly(ObjectDecl that, List<RetType> mods_result, RetType name_result, List<RetType> staticParams_result,
+//                                     List<RetType> extendsClause_result, RetType where_result, Option<List<RetType>> params_result,
 //                                     Option<List<RetType>> throwsClause_result, RetType contract_result, List<RetType> decls_result) {
-//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result, 
+//        return forObjectAbsDeclOrDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
 //                                          where_result, params_result, throwsClause_result, contract_result, decls_result);
 //    }
-    
+
 //    public RetType forAbstractNodeOnly(AbstractNode that) {
 //        return defaultCase(that);
 //    }
@@ -1186,10 +1192,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forTraitTypeOnly(that);
 //    }
 //
-//    public RetType forTupleTypeOnly(TupleType that, List<RetType> elements_result, Option<RetType> varargs_result, List<RetType> keywords_result) {
-//        return forNonArrowTypeOnly(that);
-//    }
-//
 //    public RetType forVoidTypeOnly(VoidType that) {
 //        return forNonArrowTypeOnly(that);
 //    }
@@ -1630,7 +1632,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forAbstractNodeOnly(that);
 //    }
 //
-//    public RetType forBindingOnly(Binding that, RetType name_result, RetType init_result) {
+//    public RetType forKeywordExprOnly(KeywordExpr that, RetType name_result, RetType init_result) {
 //        return forAbstractNodeOnly(that);
 //    }
 //
@@ -2082,11 +2084,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forTryOnly(that, body_result, catchClause_result, forbid_result, finallyClause_result);
 //    }
 //
-//    public RetType forTupleExpr(TupleExpr that) {
+//    public RetType forArgExpr(ArgExpr that) {
 //        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
 //        Option<RetType> varargs_result = recurOnOptionOfVarargsExpr(that.getVarargs());
 //        List<RetType> keywords_result = recurOnListOfBinding(that.getKeywords());
-//        return forTupleExprOnly(that, exprs_result, varargs_result, keywords_result);
+//        return forArgExprOnly(that, exprs_result, varargs_result, keywords_result);
+//    }
+//
+//    public RetType forTupleExpr(TupleExpr that) {
+//        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
+//        return forArgExprOnly(that, exprs_result);
 //    }
 //
 //    public RetType forTypecase(Typecase that) {
@@ -2298,10 +2305,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forInstantiatedTypeOnly(that, name_result, args_result);
 //    }
 //
-//    public RetType forTupleType(TupleType that) {
+//    public RetType forArgType(ArgType that) {
 //        List<RetType> elements_result = recurOnListOfType(that.getElements());
 //        Option<RetType> varargs_result = recurOnOptionOfVarargsType(that.getVarargs());
 //        List<RetType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
+//        return forArgTypeOnly(that, elements_result, varargs_result, keywords_result);
+//    }
+//
+//    public RetType forTupleType(TupleType that) {
+//        List<RetType> elements_result = recurOnListOfType(that.getElements());
 //        return forTupleTypeOnly(that, elements_result, varargs_result, keywords_result);
 //    }
 //
@@ -2770,10 +2782,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        return forArrayComprehensionClauseOnly(that, bind_result, init_result, gens_result);
 //    }
 //
-//    public RetType forBinding(Binding that) {
+//    public RetType forKeywordExpr(KeywordExpr that) {
 //        RetType name_result = that.getName().accept(this);
 //        RetType init_result = that.getInit().accept(this);
-//        return forBindingOnly(that, name_result, init_result);
+//        return forKeywordExprOnly(that, name_result, init_result);
 //    }
 //
 //    public RetType forCaseClause(CaseClause that) {
@@ -2884,4 +2896,3 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        List<RetType> exprs_result = recurOnListOfExpr(that.getExprs());
 //        return forSubscriptingMIOnly(that, op_result, exprs_result);
 //    }
-

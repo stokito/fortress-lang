@@ -186,12 +186,19 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName());
     }
 
-    public String forTupleType(TupleType node) {
+    public String forArgType(ArgType node) {
         return
             "(" +
             Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
             acceptIfPresent(node.getVarargs()) +
             Useful.listInDelimiters("", mapSelf(node.getKeywords()), "") +
+            ")";
+    }
+
+    public String forTupleType(TupleType node) {
+        return
+            "(" +
+            Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
             ")";
     }
 
@@ -202,13 +209,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forVarDecl(VarDecl node) {
         return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
     }
-    
+
     public String forBottomType(BottomType node) {
         return "bottom";
     }
-    
+
     private static final int FOUR_DIGITS = 36 * 36 * 36 * 36;
-    
+
     public String forInferenceVarType(InferenceVarType node) {
         if (node.getId().getClass().equals(Object.class)) {
             int id = System.identityHashCode(node.getId()) % FOUR_DIGITS;
@@ -216,13 +223,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         }
         else { return "#" + node.getId(); }
     }
-    
+
     public String forOrType(OrType node) {
         return node.getFirst().accept(this) + " | " + node.getSecond().accept(this);
     }
-    
+
     public String forAndType(AndType node) {
         return node.getFirst().accept(this) + " & " + node.getSecond().accept(this);
     }
-        
+
 }

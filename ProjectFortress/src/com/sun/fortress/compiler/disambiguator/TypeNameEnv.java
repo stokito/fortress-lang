@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -36,10 +36,10 @@ public abstract class TypeNameEnv {
      * than a duplication of it.
      */
     public abstract Option<APIName> apiName(APIName name);
-    
+
     /** Determine whether a type parameter with the given name is defined. */
     public abstract boolean hasTypeParam(Id name);
-    
+
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * type constructor name; on-demand imports are ignored.  An undefined reference
@@ -50,11 +50,11 @@ public abstract class TypeNameEnv {
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given type constructor name.  An undefined reference
-     * produces an empty set, and an ambiguous reference produces a set of size 
+     * produces an empty set, and an ambiguous reference produces a set of size
      * greater than 1.
      */
     public abstract Set<QualifiedIdName> onDemandTypeConsNames(Id name);
-    
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a type constructor exists.  Assumes
@@ -66,7 +66,7 @@ public abstract class TypeNameEnv {
      * provide the corresponding TypeConsIndex (assumed to exist).
      */
     public abstract TypeConsIndex typeConsIndex(QualifiedIdName name);
-    /** 
+    /**
      * Returns a list of implicitly imported APIS.
      */
     public List<APIName> implicitlyImportedApis() {
@@ -86,7 +86,7 @@ public abstract class TypeNameEnv {
         }
         return false;
     }
-    
+
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * grammar name; on-demand imports are ignored.  An undefined reference
@@ -104,11 +104,11 @@ public abstract class TypeNameEnv {
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given grammar name.  An undefined reference
-     * produces an empty set, and an ambiguous reference produces a set of size 
+     * produces an empty set, and an ambiguous reference produces a set of size
      * greater than 1.
      */
     public abstract Set<QualifiedIdName> onDemandGrammarNames(Id name);
-    
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * return the corresponding grammar.  Assumes {@code name.getApi().isSome()}.

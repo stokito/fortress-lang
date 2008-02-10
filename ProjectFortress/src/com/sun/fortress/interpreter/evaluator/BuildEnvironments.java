@@ -88,6 +88,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.TraitType;
@@ -917,9 +918,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 //                        bindInto.putVariablePlaceholder(sname);
 //                    } else {
 //                        FValue init_val;
-//                        if (init instanceof TupleExpr) {
+//                        if (init instanceof ArgExpr) {
 //                            init_val = new LazilyEvaluatedCell(
-//                                      ((TupleExpr)init).getExprs().get(index++),
+//                                      ((ArgExpr)init).getExprs().get(index++),
 //                                      containing);
 //                        } else {
 //                            init_val = new LazilyEvaluatedCell(init, containing);

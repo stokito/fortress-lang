@@ -66,12 +66,15 @@ AbsFnDecl FnSig =
                params.add(NodeFactory.makeVarargsParam(that.getSpan(), mods,
                                                        name, that));
            }
-           public void forTupleType(TupleType that) {
+           public void forArgType(ArgType that) {
                for (AbstractNode i : that.getElements()) { i.accept(this); }
                if (that.getVarargs().isSome())
                    Option.unwrap(that.getVarargs()).accept(this);
                assert(that.getKeywords().isEmpty()): "Keyword parameters present"
                                                      + " in a FnSig: " + that;
+           }
+           public void forTupleType(TupleType that) {
+               for (AbstractNode i : that.getElements()) { i.accept(this); }
            }
            public void defaultCase(Node that) {
                bug(errorMsg("Node expected to be a Type; was: ", that));

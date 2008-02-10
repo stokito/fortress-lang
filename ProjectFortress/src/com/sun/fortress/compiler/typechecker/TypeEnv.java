@@ -39,23 +39,23 @@ import static edu.rice.cs.plt.tuple.Option.*;
  * mapping bound variables to their types.
  */
 public abstract class TypeEnv {
-    
-    /** 
+
+    /**
      * Construct a new TypeEnv for a given ApiIndex.
      */
     public static TypeEnv make(CompilationUnitIndex cu) {
         TypeEnv typeEnv = TypeEnv.make();
-        
+
         // Add all top-level function names to the component-level environment.
         //typeEnv.extend(component.functions());
-        
+
         // Iterate over top-level variables, adding each to the component-level environment.
         typeEnv = typeEnv.extend(cu.variables());
-        
+
         return typeEnv;
     }
-    
-    
+
+
     /**
      * Construct a new TypeEnv from the given bindings.
      */
@@ -124,7 +124,7 @@ public abstract class TypeEnv {
                 varargsType = wrap(_param.getVarargsType());
             }
         }
-        return makeTupleType(new Span(), paramTypes, keywordTypes, varargsType);
+        return makeArgType(new Span(), paramTypes, keywordTypes, varargsType);
     }
 
     protected static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
@@ -239,19 +239,19 @@ public abstract class TypeEnv {
 
     /**
      * Produce a new type environment extending this with the given variable bindings.
-     * Unfortunately, we must give some variants of 'extend' long names to allow the 
+     * Unfortunately, we must give some variants of 'extend' long names to allow the
      * compiler to distinguish them from other variants with the same _erased_ signature.
      */
     public final TypeEnv extend(LValueBind... entries) {
         if (entries.length == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
-    
+
     public final TypeEnv extendWithLValues(List<LValueBind> entries) {
         if (entries.size() == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
-    
+
     public final TypeEnv extend(LocalVarDecl decl) {
         if (decl.getLhs().size() == 0) { return this; }
         else { return new LocalVarTypeEnv(decl, this); }
@@ -271,7 +271,7 @@ public abstract class TypeEnv {
         if (fns.size() == 0) { return this; }
         else { return new FnDefTypeEnv(fns, this); }
     }
-    
+
     public final TypeEnv extendWithMethods(Relation<SimpleName, Method> methods) {
         if (methods.size() == 0) { return this; }
         else { return new MethodTypeEnv(methods, this); }
@@ -281,12 +281,12 @@ public abstract class TypeEnv {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
     }
-    
+
     public final TypeEnv extend(Option<List<Param>> params) {
         if (params.isNone()) { return this; }
         else { return extendWithParams(unwrap(params)); }
     }
-    
+
     public final TypeEnv extend(Param param) {
         return new ParamTypeEnv(Arrays.asList(param), this);
     }

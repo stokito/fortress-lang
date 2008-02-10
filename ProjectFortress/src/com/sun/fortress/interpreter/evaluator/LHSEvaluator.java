@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Unpasting;
@@ -301,6 +302,24 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     protected void putOrAssignVariable(HasAt x, String s) {
         evaluator.e.putVariable(s, value);
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArgExpr(com.sun.fortress.interpreter.nodes.ArgExpr)
+     */
+    @Override
+    public Voidoid forArgExpr(ArgExpr x) {
+        if (!(value instanceof FTuple)) {
+            error(x, evaluator.e, errorMsg("RHS yields non-tuple ", value));
+        }
+        FTuple t = (FTuple)value;
+        Iterator<FValue> rhsIterator = t.getVals().iterator();
+        for (Expr lhs : x.getExprs()) {
+            // TODO: arity matching and exotic tuple types.
+            lhs.accept(new LHSEvaluator(evaluator, rhsIterator.next()));
+        }
+
+        return null;
     }
 
     /* (non-Javadoc)

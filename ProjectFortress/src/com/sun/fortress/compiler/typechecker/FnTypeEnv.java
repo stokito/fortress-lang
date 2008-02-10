@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,19 +28,19 @@ import java.util.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
-/** 
+/**
  * A type environment whose outermost lexical scope consists of a map from IDs
  * to Variables.
  */
 class FnTypeEnv extends TypeEnv {
     private Relation<SimpleName, ? extends Function> entries;
     private TypeEnv parent;
-    
+
     FnTypeEnv(Relation<SimpleName, ? extends Function> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return an LValueBind that binds the given Id to a type
      * (if the given Id is in this type environment).
@@ -48,7 +48,7 @@ class FnTypeEnv extends TypeEnv {
     public Option<LValueBind> binding(Id var) {
         Set<? extends Function> fns = entries.getSeconds(var);
         Type type = makeIntersectionType();
-        
+
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
                 DeclaredFunction _fn = (DeclaredFunction)fn;
@@ -72,7 +72,7 @@ class FnTypeEnv extends TypeEnv {
                                                                  decl.getWhere()));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
-                
+
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
                 type = makeIntersectionType(type,
@@ -83,7 +83,7 @@ class FnTypeEnv extends TypeEnv {
                                                                                       staticParamsToArgs(_fn.staticParams())),
                                                                  _fn.throwsClause(),
                                                                  _fn.where()));
-                
+
             }
         }
         return some(makeLValue(var, type));

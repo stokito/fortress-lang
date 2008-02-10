@@ -509,7 +509,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
          */
         abstract TerminalDecl(SyntaxDef syntaxDef);
             /**
-             * terminal definition result of rewrite of keyword and token symbols in disambigutation of 
+             * terminal definition result of rewrite of keyword and token symbols in disambigutation of
              * syntax abstractions
              */
             _TerminalDef();
@@ -758,16 +758,26 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 List<TraitType> forbid = Collections.<TraitType>emptyList(),
                 Option<Block> finallyClause = Option.<Block>none());
             /**
-             * tuple expression
-             * TupleExpr ::= ( (Expr,)* (Expr...,)? Binding(, Binding)* )
-             *             | NoKeyTuple
-             * NoKeyTuple ::= ( (Expr,)* Expr... )
-             *              | ( (Expr,)+ Expr )
-             * e.g.) (1, 2, [3 4]..., x = 5)
+             * labeled expression: tuple expression or argument expression
              */
-            TupleExpr(List<Expr> exprs,
-                      Option<VarargsExpr> varargs = Option.<VarargsExpr>none(),
-                      List<Binding> keywords = Collections.<Binding>emptyList());
+            abstract AbsTupleExpr(List<Expr> exprs);
+                /**
+                 * tuple expression
+                 * TupleExpr ::= ( (Expr,)+ Expr )
+                 * e.g.) (1, 2, 5)
+                 */
+                TupleExpr();
+                /**
+                 * argument expression
+                 * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
+                 *           | ( (Expr,)* Expr... )
+                 *           | TupleExpr
+                 * e.g.) (1, 2, [3 4]..., x = 5)
+                 */
+                ArgExpr(Option<VarargsExpr> varargs
+                            = Option.<VarargsExpr>none(),
+                        List<KeywordExpr> keywords
+                            = Collections.<KeywordExpr>emptyList());
             /**
              * typecase expression
              * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
@@ -1064,6 +1074,14 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                     OprExpr(OpRef op,
                             List<Expr> args = Collections.<Expr>emptyList());
                     /**
+                     * chain expression
+                     * Certain infix mathematical operators that are
+                     * traditionally regarded as relational operators,
+                     * delivering boolean results, may be chained.
+                     * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
+                     */
+                    ChainExpr(Expr first, List<Pair<Op, Expr>> links);
+                    /**
                      * coercion invocation
                      * internal node created by static analysis
                      * after inferring the implicit coercion invocations
@@ -1086,14 +1104,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * MathPrimary ::= PrimaryFront MathItem*
                  */
                 MathPrimary(Expr front, List<MathItem> rest);
-                /**
-                 * chain expression
-                 * Certain infix mathematical operators that are traditionally
-                 * regarded as relational operators, delivering boolean results,
-                 * may be chained.
-                 * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
-                 */
-                ChainExpr(Expr first, List<Pair<Op, Expr>> links);
                 /**
                  * array expression
                  * ArrayExpr ::= [ RectElements ]
@@ -1223,17 +1233,26 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  */
                 InstantiatedType(QualifiedIdName name, List<StaticArg> args);
             /**
-             * tuple type
-             * TupleType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
-             *             | ( (Type, )*  Type ... )
-             *             | SimpleTupleType
-             * SimpleTupleType ::= ( Type, TypeList )
-             * e.g.)
+             * labeled type: tuple type or argument type
              */
-            TupleType(List<Type> elements,
-                      Option<VarargsType> varargs = Option.<VarargsType>none(),
-                      List<KeywordType> keywords
-                          = Collections.<KeywordType>emptyList());
+            abstract AbsTupleType(List<Type> elements);
+                /**
+                 * tuple type
+                 * TupleType ::= ( Type, TypeList )
+                 * e.g.)
+                 */
+                TupleType();
+                /**
+                 * argument type
+                 * ArgType ::= ( (Type, )* (Type ... ,)? KeywordType(, KeywordType)* )
+                 *           | ( (Type, )*  Type ... )
+                 *           | TupleType
+                 * e.g.)
+                 */
+                ArgType(Option<VarargsType> varargs
+                            = Option.<VarargsType>none(),
+                        List<KeywordType> keywords
+                            = Collections.<KeywordType>emptyList());
             /**
              * void type
              * NonArrowType ::= ()
@@ -1822,11 +1841,11 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
     ArrayComprehensionClause(List<Expr> bind, Expr init,
                              List<GeneratorClause> gens);
     /**
-     * binding used in tuple expressions and typecase expressions
-     * Binding ::= BindId = Expr
+     * keyword expression used in argument expressions
+     * KeywordExpr ::= BindId = Expr
      * e.g.) x = myLoser.myField
      */
-    Binding(Id name, Expr init);
+    KeywordExpr(Id name, Expr init);
     /**
      * case clause used in case expressions and extremum expressions
      * CaseClause ::= Expr => BlockElems

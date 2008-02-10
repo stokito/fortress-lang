@@ -34,7 +34,7 @@ import Spacing;
      VarMods? VarWTypes w InitVal
    | VarMods? BindIdOrBindIdTuple w = w NoNewlineExpr
    | VarMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
-   | VarMods? BindIdOrBindIdTuple w : w SimpleTupleType w InitVal
+   | VarMods? BindIdOrBindIdTuple w : w TupleType w InitVal
  */
 VarDecl VarDecl =
      a1:VarMods? a2:VarWTypes w a3:InitVal
@@ -63,7 +63,7 @@ VarDecl VarDecl =
        }
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a4.getA());
      }
-   / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:SimpleTupleType w a4:InitVal
+   / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:TupleType w a4:InitVal
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
@@ -115,7 +115,7 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
 /* AbsVarDecl ::=
      AbsVarMods? NoNewlineVarWTypes
    | AbsVarMods? BindIdOrBindIdTuple w : w Type w ...
-   | AbsVarMods? BindIdOrBindIdTuple w : w SimpleTupleType
+   | AbsVarMods? BindIdOrBindIdTuple w : w TupleType
  */
 AbsVarDecl AbsVarDecl =
      a1:AbsVarMods? a2:NoNewlineVarWTypes
@@ -128,7 +128,7 @@ AbsVarDecl AbsVarDecl =
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
      }
-   / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:SimpleTupleType
+   / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:TupleType
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())

@@ -92,7 +92,7 @@ private FnDef LocalFnDecl =
    | (var w)? NoNewlineLocalVarWTypes
    | (var w)? LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
-   | (var w)? LocalVarWoTypes s : s SimpleTupleType (s InitVal)?
+   | (var w)? LocalVarWoTypes s : s TupleType (s InitVal)?
    NoNewlineLocalVarWTypes ::=
      NoNewlineLocalVarWType
    | ( w NoNewlineLocalVarWType (w , w NoNewlineLocalVarWType)+ w )
@@ -145,7 +145,7 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
                                              init);
      }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:SimpleTupleType a4:(s InitVal)?
+   / a1:(var w)? a2:VarWoTypes s colon s a3:TupleType a4:(s InitVal)?
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        Option<Expr> init;

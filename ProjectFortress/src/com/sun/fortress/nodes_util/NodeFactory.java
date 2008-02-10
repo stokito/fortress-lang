@@ -620,23 +620,34 @@ public class NodeFactory {
   return new NatParam(s, new Id(s, name));
  }
 
- /** Alternatively, you can invoke the TupleType constructor without keywords */
- public static TupleType makeTupleType(Span span, List<Type> elements, Option<VarargsType> varargs) {
-  return new TupleType(span, elements, varargs,
-    Collections.<KeywordType>emptyList());
+ /**
+     * Alternatively, you can invoke the ArgType constructor without keywords
+     */
+ public static ArgType makeArgType(Span span, List<Type> elements,
+                                   Option<VarargsType> varargs) {
+  return new ArgType(span, elements, varargs,
+                     Collections.<KeywordType>emptyList());
+ }
+
+ public static ArgType makeArgType(List<Type> elements) {
+  return new ArgType(new Span(), elements, Option.<VarargsType>none(),
+                     Collections.<KeywordType>emptyList());
+ }
+
+ public static ArgType makeArgType(Span span, List<Type> elements,
+                                   List<KeywordType> keywordElements,
+                                   Option<VarargsType> varargs)
+ {
+  return new ArgType(span, elements, varargs, keywordElements);
  }
 
  public static TupleType makeTupleType(List<Type> elements) {
-  return new TupleType(new Span(), elements, Option.<VarargsType>none(), Collections.<KeywordType>emptyList());
+  return new TupleType(new Span(), elements);
  }
 
- public static TupleType makeTupleType(Span span, List<Type> elements,
-   List<KeywordType> keywordElements,
-   Option<VarargsType> varargs)
- {
-  return new TupleType(span, elements, varargs, keywordElements);
+ public static TupleType makeTupleType(Span span, List<Type> elements) {
+  return new TupleType(span, elements);
  }
-
 
  public static TypeArg makeTypeArg(Span span, String string) {
   return new TypeArg(span, new IdType(span, makeQualifiedIdName(span, string)));
@@ -798,9 +809,12 @@ public class NodeFactory {
     return new InstantiatedType(t.getSpan(), true, t.getName(),
       t.getArgs());
    }
+   public Type forArgType(ArgType t) {
+    return new ArgType(t.getSpan(), true, t.getElements(),
+                       t.getVarargs(), t.getKeywords());
+   }
    public Type forTupleType(TupleType t) {
-    return new TupleType(t.getSpan(), true, t.getElements(),
-      t.getVarargs(), t.getKeywords());
+    return new ArgType(t.getSpan(), true, t.getElements());
    }
    public Type forVoidType(VoidType t) {
     return new VoidType(t.getSpan(), true);

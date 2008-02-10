@@ -135,14 +135,14 @@ Type TypePrimaryFront =
 
 /* TypeFront ::=
      ParenthesizedType
-   | TupleType
+   | ArgType
    | TypeRef
    | VoidType
    | 1
  */
 private Type TypeFront =
      ParenthesizedType
-   / TupleType
+   / ArgType
    / TypeRef
    / VoidType
    / one { yyValue = new BaseDim(createSpan(yyStart,1)); };
@@ -152,12 +152,12 @@ private Type ParenthesizedType =
      openparen w a1:Type w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
-/* TupleType ::=
+/* ArgType ::=
      ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
    | ( w (Type w , w)* Type w ... w )
-   | SimpleTupleType
+   | TupleType
  */
-Type TupleType =
+Type ArgType =
      openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
      a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
@@ -167,27 +167,26 @@ Type TupleType =
                                    Option.<VarargsType>none());
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
-       yyValue = new TupleType(span, ts1, ts2, ts3);
+       yyValue = new ArgType(span, ts1, ts2, ts3);
      }
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Span span = createSpan(yyStart,yyCount);
        Option<VarargsType> ts2 =
          Option.some(new VarargsType(span, a2));
-       yyValue = NodeFactory.makeTupleType(span, ts1, ts2);
+       yyValue = NodeFactory.makeArgType(span, ts1, ts2);
      }
-   / SimpleTupleType ;
+   / TupleType ;
 
 /* KeywordType ::= BindId w = w Type */
 private KeywordType KeywordType = a1:BindId w equals w a2:Type
      { yyValue = new KeywordType(createSpan(yyStart,yyCount), a1, a2); };
 
-/* SimpleTupleType ::= ( w Type w , w TypeList w ) */
-TupleType SimpleTupleType =
+/* TupleType ::= ( w Type w , w TypeList w ) */
+TupleType TupleType =
      openparen w a1:Type w comma w a2:TypeList w closeparen
      { List<Type> ts = FortressUtil.mkList(a1, a2);
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts,
-                                           Option.<VarargsType>none());
+       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts);
      };
 
 /* TypeList ::= Type (w , w Type)* */
@@ -353,13 +352,13 @@ TraitType TraitType =
 
 /* TraitTypeFront ::=
      ParenthesizedType
-   | TupleType
+   | ArgType
    | TypeRef
    | VoidType
  */
 private Type TraitTypeFront =
      ParenthesizedType
-   / TupleType
+   / ArgType
    / TypeRef
    / VoidType
    ;

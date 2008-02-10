@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.QualifiedIdName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.SubscriptExpr;
+import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Unpasting;
 import com.sun.fortress.nodes.UnpastingBind;
@@ -156,6 +157,14 @@ public class LHSToLValue extends NodeAbstractVisitor<LHS>  {
 
     public LHS forLValueBind(LValueBind x) {
         return x;
+    }
+
+    /* (non-Javadoc)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArgExpr(com.sun.fortress.interpreter.nodes.ArgExpr)
+     */
+    @Override
+    public LHS forArgExpr(ArgExpr x) {
+        return NI.nyi("nested tuple in LHS of binding");
     }
 
     /* (non-Javadoc)

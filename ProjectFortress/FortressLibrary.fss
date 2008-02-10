@@ -994,8 +994,10 @@ trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],
         Default implementations of getters based on abstract methods
         in StandardArrayType. **)
     getter indices(): Indexed[\I,I\] = bounds()
+(* puppy 4
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
+*)
     getter generator(): Indexed[\E,I\] =
         zeroIndices().map[\E\](fn (i:I):E => get(i))
 

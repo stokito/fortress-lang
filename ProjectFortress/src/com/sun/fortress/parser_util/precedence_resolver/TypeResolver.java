@@ -605,7 +605,7 @@ public class TypeResolver {
                 return new MatrixType(t.getSpan(), typeToType(t.getElement()),
                                       t.getDimensions());
             }
-            public Type forTupleType(TupleType t) {
+            public Type forArgType(ArgType t) {
                 List<Type> elements = new ArrayList<Type>();
                 for (Type ty : t.getElements()) {
                     elements.add(typeToType(ty));
@@ -621,7 +621,14 @@ public class TypeResolver {
                     keywords.add(new KeywordType(ty.getSpan(), ty.getName(),
                                                  typeToType(ty.getType())));
                 }
-                return new TupleType(t.getSpan(), elements, varargs, keywords);
+                return new ArgType(t.getSpan(), elements, varargs, keywords);
+            }
+            public Type forTupleType(TupleType t) {
+                List<Type> elements = new ArrayList<Type>();
+                for (Type ty : t.getElements()) {
+                    elements.add(typeToType(ty));
+                }
+                return new TupleType(t.getSpan(), elements);
             }
             public Type forTaggedDimType(TaggedDimType t) {
                 return new TaggedDimType(t.getSpan(), typeToType(t.getType()),
@@ -755,7 +762,19 @@ public class TypeResolver {
             if (isVerbose) System.out.println("after resolveOps: " + type);
             try {
                 if (type instanceof DimExpr) return dimToType((DimExpr)type);
-                else return typeToType(type);
+                else if (type instanceof ArgType) {
+                    ArgType ty = (ArgType)type;
+                    if (ty.getVarargs().isNone() && ty.getKeywords().isEmpty())
+                        return typeToType(new TupleType(ty.getSpan(),
+                                                        ty.isParenthesized(),
+                                                        ty.getElements()));
+                    else return typeToType(type);
+                    /*
+                    else return error(type, "Tuple types are not allowed to " +
+                                      "have varargs or keyword types.");
+                    */
+                } else
+                    return typeToType(type);
             } catch (TypeConvertFailure x) {
                 return type;
             }
