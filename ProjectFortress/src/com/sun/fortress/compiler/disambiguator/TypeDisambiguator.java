@@ -208,18 +208,25 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 			Id id = name.getName();
 
 			// If our id is a valid type reference, we can simply recur on type.
-			if(_env.hasTypeParam(id) || 
-					(! _env.explicitTypeConsNames(id).isEmpty()) || 
+			if(_env.hasTypeParam(id) ||
+					(! _env.explicitTypeConsNames(id).isEmpty()) ||
 					(! _env.onDemandTypeConsNames(id).isEmpty()))
 			{
 				return super.forTypeArg(that);
-			} 
+			}
 			else { // Convert to an IdArg; it'll be checked by the ExprDisambiguator.
 				return new IdArg(that.getSpan(), name);
 			}
 		}
 		return super.forTypeArg(that);
 	}
+
+	@Override public Node forArgType(final ArgType that) {
+            if (!((ArgType)that).isInArrow())
+                error("Tuple types are not allowed to " +
+                      "have varargs or keyword types.", that);
+            return that;
+        }
 
 	@Override public Node forIdType(final IdType that) {
 		Thunk<Type> varHandler = LambdaUtil.<Type>valueLambda(that);

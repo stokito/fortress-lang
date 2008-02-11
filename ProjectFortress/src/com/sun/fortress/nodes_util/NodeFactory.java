@@ -122,19 +122,28 @@ public class NodeFactory {
     Collections.<StaticArg>emptyList());
  }
 
- public static ArrowType makeArrowType(Span span, Type domain,
-   Type range,
-   Option<List<TraitType>> throws_) {
-  Option<List<Type>> throwsAsTypeList =
-   throws_.isSome() ?
-     Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
-      Option.<List<Type>>none();
-     return new ArrowType(span, domain, range, throwsAsTypeList);
- }
+    public static Type inArrowType(Type type) {
+        if (type instanceof ArgType) {
+            ArgType ty = (ArgType)type;
+            return new ArgType(ty.getSpan(), ty.isParenthesized(),
+                               ty.getElements(), ty.getVarargs(),
+                               ty.getKeywords(), true);
+        } else return type;
+    }
 
  public static ArrowType makeArrowType(Span span, Type domain,
-   Type range) {
-  return new ArrowType(span, domain, range, Option.<List<Type>>none());
+                                       Type range,
+                                       Option<List<TraitType>> throws_) {
+     Option<List<Type>> throwsAsTypeList =
+         throws_.isSome() ?
+         Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
+         Option.<List<Type>>none();
+     return new ArrowType(span, inArrowType(domain), range, throwsAsTypeList);
+ }
+
+ public static ArrowType makeArrowType(Span span, Type domain, Type range) {
+     return new ArrowType(span, inArrowType(domain), range,
+                          Option.<List<Type>>none());
  }
 
  public static _RewriteGenericArrowType makeGenericArrowType(Span span,
@@ -143,11 +152,12 @@ public class NodeFactory {
    Type range,
    Option<List<TraitType>> throws_,
    WhereClause where) {
-  Option<List<Type>> throwsAsTypeList =
-   throws_.isSome() ?
-     Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
-      Option.<List<Type>>none();
-     return new _RewriteGenericArrowType(span, domain, range, throwsAsTypeList, staticParams, where);
+     Option<List<Type>> throwsAsTypeList =
+         throws_.isSome() ?
+         Option.<List<Type>>some(new ArrayList<Type>(Option.unwrap(throws_))) :
+         Option.<List<Type>>none();
+     return new _RewriteGenericArrowType(span, inArrowType(domain), range,
+                                         throwsAsTypeList, staticParams, where);
  }
 
  public static KeywordType makeKeywordType(Id name, Type type) {
@@ -811,10 +821,10 @@ public class NodeFactory {
    }
    public Type forArgType(ArgType t) {
     return new ArgType(t.getSpan(), true, t.getElements(),
-                       t.getVarargs(), t.getKeywords());
+                       t.getVarargs(), t.getKeywords(), t.isInArrow());
    }
    public Type forTupleType(TupleType t) {
-    return new ArgType(t.getSpan(), true, t.getElements());
+    return new TupleType(t.getSpan(), true, t.getElements());
    }
    public Type forVoidType(VoidType t) {
     return new VoidType(t.getSpan(), true);

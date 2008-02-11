@@ -234,8 +234,9 @@ public class TypeResolver {
         Op op = frame.getOp();
         Type first = frame.getArg();
         if (isTypeOp(op)) {
-            return NodeFactory.makeArrowType(spanTwo(first,last),
-                                             typeToType(first), typeToType(last),
+            Type domain = NodeFactory.inArrowType(typeToType(first));
+            return NodeFactory.makeArrowType(spanTwo(first,last), domain,
+                                             typeToType(last),
                                              frame.getThrows());
         } else { // !(isTypeOp(op))
             try {
@@ -593,7 +594,8 @@ public class TypeResolver {
                 }
             }
             public Type forArrowType(ArrowType t) {
-                return new ArrowType(t.getSpan(), typeToType(t.getDomain()),
+                Type domain = NodeFactory.inArrowType(typeToType(t.getDomain()));
+                return new ArrowType(t.getSpan(), domain,
                                      typeToType(t.getRange()),
                                      t.getThrowsClause(), t.isIo());
             }
@@ -621,7 +623,8 @@ public class TypeResolver {
                     keywords.add(new KeywordType(ty.getSpan(), ty.getName(),
                                                  typeToType(ty.getType())));
                 }
-                return new ArgType(t.getSpan(), elements, varargs, keywords);
+                return new ArgType(t.getSpan(), elements, varargs, keywords,
+                                   t.isInArrow());
             }
             public Type forTupleType(TupleType t) {
                 List<Type> elements = new ArrayList<Type>();

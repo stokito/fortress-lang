@@ -777,7 +777,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArgExpr(Option<VarargsExpr> varargs
                             = Option.<VarargsExpr>none(),
                         List<KeywordExpr> keywords
-                            = Collections.<KeywordExpr>emptyList());
+                            = Collections.<KeywordExpr>emptyList(),
+                        boolean inApp = false);
             /**
              * typecase expression
              * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
@@ -1252,7 +1253,8 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 ArgType(Option<VarargsType> varargs
                             = Option.<VarargsType>none(),
                         List<KeywordType> keywords
-                            = Collections.<KeywordType>emptyList());
+                            = Collections.<KeywordType>emptyList(),
+                        boolean inArrow = false);
             /**
              * void type
              * NonArrowType ::= ()
