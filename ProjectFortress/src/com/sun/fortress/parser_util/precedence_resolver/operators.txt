@@ -1023,7 +1023,7 @@ other_operators
   rule-delayed
   solidus with overbar
   reverse solidus with horizontal stroke
-  double plus
+  double plus, ++
   triple plus
   tiny
   miny
