@@ -1024,7 +1024,7 @@ other_operators
   solidus with overbar
   reverse solidus with horizontal stroke
   double plus, ++
-  triple plus
+  triple plus, +++
   tiny
   miny
   n-ary circled dot operator, bigodot
