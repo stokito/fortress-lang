@@ -15,18 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
+component TupleAssignment
 export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
-  
+(* Check that tuple assignment to multiple vars on LHS works. *)
+
 run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
-  y
-  x
-  ()
+  f(x:ZZ32):Boolean = (x = 0)
+  (a, b, c, d) = (5, true, 1.0, f)
 end
 
 end

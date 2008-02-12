@@ -15,18 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
+component IfThen
 export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
-  
+(* Each 'if' clause should have type () if there is no corresponding 'else'. *)
+
 run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
-  y
-  x
-  ()
+  if false then
+    x = 0
+    ()
+  elif true then
+    x = 1
+    ()
+  end
 end
 
 end

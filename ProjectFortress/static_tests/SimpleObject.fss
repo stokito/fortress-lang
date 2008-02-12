@@ -15,18 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
+component SimpleObject
 export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
+object Point(x:RR64, y:RR64)
+  getX() = x
+  getY() = y
+end
   
 run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
-  y
-  x
-  ()
+  p1 = Point(0.0, 0.0)
+  p2 = Point(1.0, 1.0)
 end
 
 end

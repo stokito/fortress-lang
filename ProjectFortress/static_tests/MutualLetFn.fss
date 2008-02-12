@@ -15,18 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
+component MutualLetFn
 export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
+(* Tests that mutually recursive local function definitions work as intended. *)
   
 run(args:String...):() = do
-  x:ZZ64 = 23
-  y:ZZ64 = x
-  y
-  x
-  ()
+  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
+  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
+  odd(5)
 end
 
 end

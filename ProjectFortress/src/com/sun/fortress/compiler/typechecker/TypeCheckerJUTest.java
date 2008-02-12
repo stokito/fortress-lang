@@ -45,6 +45,9 @@ public class TypeCheckerJUTest extends StaticTest {
 
     private final List<String> NOT_PASSING = Arrays.asList(
         staticTests + "SimpleProgram.fss",
+        staticTests + "MutualLetFn.fss",
+        staticTests + "SimpleObject.fss",
+        staticTests + "TupleAssignment.fss",
         staticTests + "XXXMaltypedTopLevelVar.fss",                                                          
         staticTests + "XXXMultipleRefErrors.fss",
         staticTests + "XXXUndefinedArrayRef.fss",
