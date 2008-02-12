@@ -17,6 +17,9 @@
 
 component LocalFnRef
 export Executable
+
+(* Tests that LetFn correctly binds the two local function definitions over its
+ * enclosing Block. *)
   
 run(args:String...):() = do
   f(x: RR64): ZZ32 = 23

@@ -30,6 +30,9 @@ import com.sun.fortress.compiler.index.*;
 
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.TRUE;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.FALSE;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzer.ANY;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzer.BOTTOM;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzer.VOID;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
@@ -37,6 +40,18 @@ public class TypeAnalyzerJUTest extends TestCase {
     
     private static ConstraintFormula sub(TypeAnalyzer ta, String s, String t) {
         return ta.subtype(parseType(s), parseType(t));
+    }
+    
+    private static ConstraintFormula sub(TypeAnalyzer ta, String s, Type t) {
+        return ta.subtype(parseType(s), t);
+    }
+    
+    private static ConstraintFormula sub(TypeAnalyzer ta, Type s, String t) {
+        return ta.subtype(s, parseType(t));
+    }
+    
+    private static ConstraintFormula sub(TypeAnalyzer ta, Type s, Type t) {
+        return ta.subtype(s, t);
     }
         
     public void testBasicTraitSubtyping() {
@@ -185,6 +200,25 @@ public class TypeAnalyzerJUTest extends TestCase {
 //    public void testInferenceSubtyping() {
 //        assertEquals(sub(t, "$1
 //        
+
+    public void testVoidSubtyping() {
+        debug.logStart();
+        
+        TypeAnalyzer t = makeAnalyzer(trait("A"),
+                                      trait("B", "A"),
+                                      trait("C", "B"),
+                                      trait("D", "A"),
+                                      trait("E", "D"));
+                                      
+        assertEquals(FALSE, sub(t, "A", VOID));
+        assertEquals(TRUE, sub(t, VOID, VOID));
+        assertEquals(FALSE, sub(t, VOID, "A"));
+        assertEquals(TRUE, sub(t, VOID, ANY));
+        assertEquals(TRUE, sub(t, BOTTOM, VOID));
+        assertEquals(FALSE, sub(t, ANY, VOID));
+        
+        debug.logEnd();
+    }
 
 
     private static final GlobalEnvironment GLOBAL_ENV;

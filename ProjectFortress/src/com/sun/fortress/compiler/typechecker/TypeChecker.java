@@ -152,9 +152,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
         ConstraintFormula constraints = analyzer.subtype(subtype, supertype);
+        System.err.printf("checkSubtype: %s <: %s", subtype, supertype);
         if (! constraints.isSatisfiable()) {
+            System.err.println("= FALSE");
             return new TypeCheckerResult(ast, error);
         } else {
+            System.err.println("= TRUE");
             return new TypeCheckerResult(ast, constraints);
         }
     }
@@ -399,6 +402,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                        Option<TypeCheckerResult> elseClause_result) {
 
         if (elseClause_result.isSome()) {
+            System.err.println("forIfOnly has else");
 
             TypeCheckerResult result = new TypeCheckerResult(that);
             List<Type> clauseTypes = new ArrayList<Type>(clauses_result.size()+1);
@@ -421,6 +425,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              NodeFactory.makeUnionType(IterUtil.asArray(clauseTypes, Type.class)),
                                              result);
         } else {
+            System.err.println("forIfOnly does not have else");
 
             // Check that each if/elif clause has void type
             TypeCheckerResult result = new TypeCheckerResult(that);
@@ -457,7 +462,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 that,
                 checkSubtype(testType,
                              Types.BOOLEAN,
-                             that,
+                             test_result.ast(),
                              StaticError.make(errorMsg("Attempt to use expression of type ", testType, " ",
                                                        "as a test condition"),
                                               test_result.ast())),
@@ -467,7 +472,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         // IfClause's type is body's type.
-        if (! body_result.type().isSome()) {
+        if (body_result.type().isSome()) {
             return TypeCheckerResult.compose(that, unwrap(body_result.type()), result);
         } else {
             return TypeCheckerResult.compose(that, body_result, result);
@@ -495,6 +500,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forDoFrontOnly(DoFront that,
                                             Option<TypeCheckerResult> loc_result,
                                             TypeCheckerResult expr_result) {
+        System.err.println("forDoFrontOnly");
         if (loc_result.isSome()) {
             TypeCheckerResult _loc_result = unwrap(loc_result);
             if (_loc_result.type().isSome()) {
@@ -579,17 +585,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
         return new TypeCheckerResult(that, Types.VOID);
     }
-
-    // STUBS --------------------
-
-    public TypeCheckerResult forContractOnly(Contract that,
-                                             Option<List<TypeCheckerResult>> requires_result,
-                                             Option<List<TypeCheckerResult>> ensures_result,
-                                             Option<List<TypeCheckerResult>> invariants_result) {
-        return TypeCheckerResult.compose(that,
-                                         TypeCheckerResult.compose(that, requires_result),
-                                         TypeCheckerResult.compose(that, ensures_result),
-                                         TypeCheckerResult.compose(that, invariants_result));
+    
+    public TypeCheckerResult forInstantiatedType(InstantiatedType that) {
+        return new TypeCheckerResult(that);
     }
 
     public TypeCheckerResult forArgExprOnly(ArgExpr that,
@@ -608,12 +606,51 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
+    public TypeCheckerResult forAsExprOnly(AsExpr that,
+                                           TypeCheckerResult expr_result,
+                                           TypeCheckerResult type_result) {
+
+        // Check that expression type <: ascripted type.
+        Type ascriptedType = (Type) type_result.ast();
+        if (expr_result.type().isSome()) {
+            Type exprType = unwrap(expr_result.type());
+            return TypeCheckerResult.compose(
+                that,
+                ascriptedType,
+                checkSubtype(exprType,
+                             ascriptedType,
+                             expr_result.ast(),
+                             StaticError.make(errorMsg("Attempt to ascript expression of type ",
+                                                       exprType, " to non-supertype ", ascriptedType),
+                                              expr_result.ast())),
+                expr_result,
+                type_result);
+        } else {
+            return TypeCheckerResult.compose(that,
+                                           ascriptedType,
+                                           expr_result,
+                                           type_result);
+        }
+    }
+
     public TypeCheckerResult forTupleExprOnly(TupleExpr that,
                                             List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that,
                                          TypeCheckerResult.compose(that, exprs_result));
     }
-
+    
+    // STUBS --------------------
+    
+    public TypeCheckerResult forContractOnly(Contract that, 
+                                             Option<List<TypeCheckerResult>> requires_result,
+                                             Option<List<TypeCheckerResult>> ensures_result,
+                                             Option<List<TypeCheckerResult>> invariants_result) {
+        return TypeCheckerResult.compose(that,
+                                         TypeCheckerResult.compose(that, requires_result),
+                                         TypeCheckerResult.compose(that, ensures_result),
+                                         TypeCheckerResult.compose(that, invariants_result));
+    }
+    
     public TypeCheckerResult forTightJuxtOnly(TightJuxt that, List<TypeCheckerResult> exprs_result) {
         return TypeCheckerResult.compose(that, exprs_result);
     }
@@ -623,6 +660,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               List<TypeCheckerResult> imports_result,
                                               List<TypeCheckerResult> exports_result,
                                               List<TypeCheckerResult> decls_result) {
+        System.err.println("forComponentOnly");
         return TypeCheckerResult.compose(that,
                                          name_result,
                                          TypeCheckerResult.compose(that, imports_result),
@@ -966,10 +1004,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //
 //    public RetType forExprOnly(Expr that) {
 //        return forAbstractNodeOnly(that);
-//    }
-//
-//    public RetType forAsExprOnly(AsExpr that, RetType expr_result, RetType type_result) {
-//        return forExprOnly(that);
 //    }
 //
 //    public RetType forAsIfExprOnly(AsIfExpr that, RetType expr_result, RetType type_result) {
