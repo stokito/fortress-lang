@@ -47,7 +47,7 @@ public class TestTask extends BaseTask {
             tasks[i] = new TestTask2(rs2, transcount);
         }
         
-        TestTask2.coInvoke(tasks);
+        TestTask2.forkJoin(tasks);
         Assert.assertEquals(rs2.size(), taskcount * transcount);
     }
     
