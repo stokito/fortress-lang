@@ -20,9 +20,13 @@ import java.util.List;
 
 public class FTuple extends FTupleLike {
 
-    public static FTuple make(List<FValue> elems) {
-        if (elems.size() == 0) return FVoid.V;
-        else return new FTuple(elems);
+    public static FValue make(List<FValue> elems) {
+        if (elems.size() <= 1) {
+            if (elems.size() == 0) return FVoid.V;
+            return elems.get(0);
+        } else {
+            return new FTuple(elems);
+        }
     }
 
     protected FTuple() {

@@ -175,7 +175,6 @@ import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;
-    final public static FVoid evVoid = FVoid.V;
     final private static boolean isArgExpr = false;
 
     public FValue eval(Expr e) {
@@ -363,7 +362,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forDo(Do x) {
         int s = x.getFronts().size();
-        if (s == 0) return evVoid;
+        if (s == 0) return FVoid.V;
         if (s == 1) {
             DoFront f = x.getFronts().get(0);
                 if (f.getLoc().isSome()) return NI("forAtDo");
@@ -385,7 +384,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         BaseTask currentTask = runner.getCurrentTask();
-        TupleTask.coInvoke(tasks);
+        TupleTask.forkJoin(tasks);
         runner.setCurrentTask(currentTask);
         for (int i = 0; i < s; i++) {
             if (tasks[i].causedException()) {
@@ -399,7 +398,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             }
         }
-        return evVoid;
+        return FVoid.V;
     }
 
     public FValue forBlock(Block x) {
@@ -446,7 +445,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     public FValue evalExprList(List<Expr> exprs, AbstractNode tag,
                                Evaluator eval) {
-        FValue res = evVoid;
+        FValue res = FVoid.V;
         for (Expr exp : exprs) {
             // TODO This will get turned into forLet methods
             if (exp instanceof LetExpr) {
@@ -480,7 +479,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             BaseTask currentTask = runner.getCurrentTask();
-            TupleTask.coInvoke(tasks);
+            TupleTask.forkJoin(tasks);
             runner.setCurrentTask(currentTask);
 
             for (int i = 0; i < count; i++) {
@@ -749,7 +748,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (returnExpr.isSome()) {
             res = Option.unwrap(returnExpr).accept(new Evaluator(this));
         } else {
-            res = evVoid;
+            res = FVoid.V;
         }
 
         if (target.isSome()) {
@@ -924,7 +923,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return Option.unwrap(else_).accept(this);
         }
         else {
-            return evVoid;
+            return FVoid.V;
         }
     }
 
@@ -1102,7 +1101,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue fvalue = op.accept(this);
         // Evaluate actual parameters.
         int s = args.size();
-        FValue res = evVoid;
+        FValue res = FVoid.V;
         List<FValue> vargs;
 
         if (name instanceof Op && OprUtil.isPostfix(name) &&
@@ -1671,7 +1670,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forTypecase(Typecase x) {
         Evaluator ev = new Evaluator(this, x);
         List<FType> res = evalTypeCaseBinding(ev, x);
-        FValue result = evVoid;
+        FValue result = FVoid.V;
         List<TypecaseClause> clauses = x.getClauses();
 
         for (TypecaseClause c : clauses) {
