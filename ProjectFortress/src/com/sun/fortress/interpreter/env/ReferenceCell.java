@@ -78,14 +78,31 @@ public class ReferenceCell extends IndirectionCell {
         readers = new ReadSet();
     }
 
+    private void debugPrint(String s) {
+	System.out.println(Thread.currentThread().getName() + s);
+    }
+
     public void assignValue(FValue f2) {
         Transaction me  = FortressTaskRunner.getTransaction();
         Transaction other = null;
         Set<Transaction> others = null;
         while (true) {
             synchronized (this) {
-                others = readWriteConflict(me);
-                if (others == null) {
+                if (me == null) {
+		    others = readWriteConflict(me);
+		    for (Transaction t : others) {
+			t.abort();
+		    }
+                    writer.abort();
+		    rnode.recover();
+		    writer = Transaction.COMMITTED_TRANS;
+		    node.setValue(f2);
+                    return;
+		} else if (!me.isActive()) {
+		    return;
+		}
+		others = readWriteConflict(me);		
+                if (others.isEmpty()) {
                     other = openWrite(me);
                     if (other == null) {
                         node.setValue(f2);
@@ -109,10 +126,15 @@ public class ReferenceCell extends IndirectionCell {
         FValue val;
         FValue oldVal;
 
-        void setValue(FValue value) { val = value;};
+        void setValue(FValue value) { 
+	    val = value;
+	}
+
         FNode(FValue value) {val = value;}
         FNode() {}
-        FValue getValue() { return val;}
+        FValue getValue() { 
+	    return val;
+	}
         FValue getOldValue() { return oldVal;}
 
         public void backup() { oldVal = val; }
@@ -144,21 +166,15 @@ public class ReferenceCell extends IndirectionCell {
                 //other = openWrite(me);
                 if (other == null) {
 		    FValue the_value;
-		    // If I'm not in a current transaction and there is a transaction
-                    // writing this value.  The safest thing to do is to abort that transaction.
-                    if (me == null && writer.isActive()) {
-			writer.abort();
-		    } else {
-                        the_value = node.getValue();
+		    the_value = node.getValue();
 
-                        if (the_value == null) {
-                            return error("Attempt to read uninitialized variable");
-                        }
-
-                        return the_value;
+		    if (the_value == null) {
+			return error("Attempt to read uninitialized variable");
 		    }
-                }
-            }
+
+		    return the_value;
+		}
+	    }
             manager.resolveConflict(me, other);
         }
     }
@@ -167,12 +183,17 @@ public class ReferenceCell extends IndirectionCell {
    * Tries to open object for reading. Returns reference to conflicting transaction, if one exists
    **/
   public Transaction openRead(Transaction me) {
-    // don't try read sharing if contention seems high
+    // not in a transaction?
     if (me == null) {   // restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
         writer = Transaction.COMMITTED_TRANS;
+      } else if (writer.isActive()) {
+	  writer.abort();
+	  rnode.recover();
+	  writer = Transaction.COMMITTED_TRANS;
       }
+	  
       return null;
     }
     if (me.attempts > CONFLICT_THRESHOLD) {
@@ -209,11 +230,15 @@ public class ReferenceCell extends IndirectionCell {
    **/
   Transaction openWrite(Transaction me) {
     boolean cacheHit = false;  // already open for read?
-    // not in a transaction
+    // not in a transaction?
     if (me == null) {   // restore object if latest writer aborted
       if (writer.isAborted()) {
         rnode.recover();
         writer = Transaction.COMMITTED_TRANS;
+      } else if (writer.isActive()) {
+          writer.abort();
+          rnode.recover();
+	  writer = Transaction.COMMITTED_TRANS;
       }
       return null;
     }
@@ -250,7 +275,7 @@ public class ReferenceCell extends IndirectionCell {
       }
     }
     readers.clear();
-    return null;
+    return readers;
   }
 
 }
