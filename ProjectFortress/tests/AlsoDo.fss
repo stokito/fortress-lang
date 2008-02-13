@@ -23,7 +23,7 @@ fib(x)=do
     n1:ZZ32
     n2:ZZ32
 
-    if x > 1 then 
+    if x > 1 then
         do
             n1 = fib(x-1)
         also do
@@ -40,11 +40,17 @@ testAtomicAlso() = do
     z:ZZ32 := 0
     atomic do
         x += 1
-        y += 1
+        x += 1
     also do
-        z := x + y
+        z := x
     end
-    assert(z =/= 1, "testAtomicAlso got impossible result")
+    assert(z =/= 1, "testAtomicAlso got impossible read result")
+    atomic do
+        z := y + y
+    also do
+        y := 1
+    end
+    assert(z =/= 1, "testAtomicAlso got impossible write result")
 end
 
 testManyClauses() = do
@@ -72,8 +78,8 @@ testManyClauses() = do
 end
 
 run(args:String...):()=do
-    assert(fib(5), 8, "fib(5)=8") 
-(*    testAtomicAlso()  *)
+    assert(fib(5), 8, "fib(5)=8")
+    testAtomicAlso()
     testManyClauses()
 end
 end
