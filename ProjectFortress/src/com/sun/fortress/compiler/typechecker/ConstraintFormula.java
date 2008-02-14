@@ -30,9 +30,9 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static edu.rice.cs.plt.debug.DebugUtil.error;
-    
+
 public abstract class ConstraintFormula {
-    
+
     public static final ConstraintFormula TRUE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return f; }
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return this; }
@@ -40,7 +40,7 @@ public abstract class ConstraintFormula {
         public boolean isFalse() { return false; }
         public String toString() { return "(true)"; }
     };
-    
+
     public static final ConstraintFormula FALSE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
@@ -48,11 +48,12 @@ public abstract class ConstraintFormula {
         public boolean isFalse() { return true; }
         public String toString() { return "(false)"; }
     };
-    
-    /** A conjunction of a number of binding constraints on inference variables.  Clients are
-      * responsible for insuring that all constructed formulas are neither unsatisfiable (due to
-      * conflicting bounds on a variable) nor true (due to trivial bounds).
-      */
+
+    /** A conjunction of a number of binding constraints on inference variables.
+     *  Clients are responsible for insuring that all constructed formulas are
+     *  neither unsatisfiable (due to conflicting bounds on a variable) nor
+     *  true (due to trivial bounds).
+     */
     private static class SimpleFormula extends ConstraintFormula {
         private Map<InferenceVarType, Type> _upperBounds;
         private Map<InferenceVarType, Type> _lowerBounds;
@@ -60,14 +61,14 @@ public abstract class ConstraintFormula {
             _upperBounds = upperBounds;
             _lowerBounds = lowerBounds;
         }
-        
+
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) {
             if (f.isTrue()) { return this; }
             else if (f.isFalse()) { return f; }
             else if (f instanceof SimpleFormula) { return merge((SimpleFormula) f, history); }
             else { throw new RuntimeException("unexpected case"); }
         }
-        
+
         public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) {
             if (f.isTrue()) { return f; }
             else if (f.isFalse()) { return this; }
@@ -76,10 +77,10 @@ public abstract class ConstraintFormula {
                 return this;
             }
         }
-        
+
         public boolean isTrue() { return false; }
         public boolean isFalse() { return false; }
-        
+
         public String toString() {
             StringBuilder result = new StringBuilder();
             boolean first = true;
@@ -105,16 +106,17 @@ public abstract class ConstraintFormula {
             result.append(")");
             return result.toString();
         }
-        
+
         private ConstraintFormula merge(SimpleFormula f, SubtypeHistory history) {
             debug.logStart();
             debug.logValues(new String[]{"this", "f"}, this, f);
             Map<InferenceVarType, Type> uppers = new HashMap<InferenceVarType, Type>();
             Map<InferenceVarType, Type> lowers = new HashMap<InferenceVarType, Type>();
             ConstraintFormula conditions = TRUE;
-            
+
             Set<InferenceVarType> upperVars = CollectUtil.union(_upperBounds.keySet(), f._upperBounds.keySet());
             Set<InferenceVarType> lowerVars = CollectUtil.union(_lowerBounds.keySet(), f._lowerBounds.keySet());
+            // Optimization may be possible here -- Sukyoung
             for (InferenceVarType t : CollectUtil.union(upperVars, lowerVars)) {
                 Type upper = null;
                 Type lower = null;
@@ -128,7 +130,8 @@ public abstract class ConstraintFormula {
                 }
                 else if (_lowerBounds.containsKey(t)) { lower = _lowerBounds.get(t); }
                 else if (f._lowerBounds.containsKey(t)) { lower = f._lowerBounds.get(t); }
-                
+
+                // What is this for? -- Sukyoung
                 if (_upperBounds.containsKey(t) && f._lowerBounds.containsKey(t) ||
                     _lowerBounds.containsKey(t) && f._upperBounds.containsKey(t)) {
                     conditions = conditions.and(history.subtype(lower, upper), history);
@@ -142,15 +145,14 @@ public abstract class ConstraintFormula {
                 if (upper != null) { uppers.put(t, upper); }
                 if (lower != null) { lowers.put(t, lower); }
             }
-            //return new SimpleFormula(uppers, lowers).and(conditions, history);
             ConstraintFormula result = new SimpleFormula(uppers, lowers).and(conditions, history);
             debug.logValue("result", result);
             debug.logEnd();
             return result;
         }
     }
-    
-    
+
+
     public static ConstraintFormula upperBound(InferenceVarType var, Type bound, SubtypeHistory history) {
         debug.logStart();
         debug.logValues(new String[]{"var","upperBound"}, var, bound);
@@ -162,7 +164,7 @@ public abstract class ConstraintFormula {
         }
         } finally { debug.logEnd(); }
     }
-    
+
     public static ConstraintFormula lowerBound(InferenceVarType var, Type bound, SubtypeHistory history) {
         debug.logStart();
         debug.logValues(new String[]{"var","lowerBound"}, var, bound);
@@ -174,12 +176,12 @@ public abstract class ConstraintFormula {
         }
         } finally { debug.logEnd(); }
     }
-    
+
     public static ConstraintFormula fromBoolean(boolean b) {
         return b ? TRUE : FALSE;
     }
-    
-    public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);  
+
+    public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
     public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
     public abstract boolean isTrue();
     public abstract boolean isFalse();

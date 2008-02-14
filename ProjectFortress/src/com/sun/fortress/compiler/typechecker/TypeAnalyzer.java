@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 
 public class TypeAnalyzer {
@@ -56,7 +57,7 @@ public class TypeAnalyzer {
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
     }
-    
+
     /**
      * Convert the type to a normal form.  A normalized type has the following properties:
      * <ul>
@@ -65,7 +66,7 @@ public class TypeAnalyzer {
      */
     public Type normalize(Type t) {
         return (Type) t.accept(new NodeUpdateVisitor() {
-            
+
             public Node forArrowTypeOnly(ArrowType t, Type newDomain,
                                          Type newRange, Option<List<Type>> newThrows) {
                 // fix newThrows so that it is a singleton list
@@ -87,23 +88,23 @@ public class TypeAnalyzer {
                     return t;
                 }
                 else {
-                    return new ArrowType(t.getSpan(), t.isParenthesized(), newDomain,
-                                         newRange, newThrows, t.isIo());
+                    return NodeFactory.makeArrowType(t, newDomain, newRange,
+                                                     newThrows);
                 }
             }
-        
+
         });
     }
-    
+
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.
      */
     public ConstraintFormula subtype(Type s, Type t) {
-        //return ConstraintFormula.TRUE; 
+        //return ConstraintFormula.TRUE;
         return SIMPLIFIED_SUBTYPING ? sub(s, t, _emptyHistory) : subtype(s, t, _emptyHistory);
     }
-    
+
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         try {
@@ -112,16 +113,16 @@ public class TypeAnalyzer {
         else {
             final SubtypeHistory h = history.extend(s, t);
             ConstraintFormula result = ConstraintFormula.FALSE;
-            
+
             if (s instanceof BottomType) { result = result.or(ConstraintFormula.TRUE, h); }
-            
+
             if (!result.isTrue()) {
                 ConstraintFormula tResult = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    
+
                     @Override public ConstraintFormula forType(Type t) {
                         return ConstraintFormula.FALSE;
                     }
-                    
+
                     @Override public ConstraintFormula forInferenceVarType(InferenceVarType t) {
                         if (s instanceof InferenceVarType && s.equals(t)) {
                             return ConstraintFormula.TRUE;
@@ -130,7 +131,7 @@ public class TypeAnalyzer {
                             return ConstraintFormula.lowerBound(t, s, h);
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forIdType(IdType t) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
                         else if (s instanceof OrType) {
@@ -141,7 +142,7 @@ public class TypeAnalyzer {
                             return ConstraintFormula.FALSE;
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forInstantiatedType(InstantiatedType t) {
                         ConstraintFormula result;
                         if (s instanceof InstantiatedType && ((InstantiatedType) s).getName().equals(t.getName())) {
@@ -158,7 +159,7 @@ public class TypeAnalyzer {
                             else { return ConstraintFormula.FALSE; }
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forOrType(OrType t) {
                         if (s instanceof OrType || s instanceof AndType) {
                             return ConstraintFormula.FALSE;
@@ -167,27 +168,27 @@ public class TypeAnalyzer {
                             return sub(s, t.getFirst(), h).or(sub(s, t.getSecond(), h), h);
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forAndType(AndType t) {
                         return sub(s, t.getFirst(), h).and(sub(s, t.getSecond(), h), h);
                     }
-                    
+
                 });
                 result = result.or(tResult, h);
             }
-            
+
             if (!result.isTrue()) {
-                                      
+
                 ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    
+
                     @Override public ConstraintFormula forType(Type s) {
                         return ConstraintFormula.FALSE;
                     }
-                    
+
                     @Override public ConstraintFormula forInferenceVarType(InferenceVarType s) {
                         return ConstraintFormula.upperBound(s, t, h);
                     }
-                    
+
                     @Override public ConstraintFormula forIdType(IdType s) {
                         // TODO: recur on upper bounds
                         if (t instanceof AndType) { return ConstraintFormula.FALSE; }
@@ -196,7 +197,7 @@ public class TypeAnalyzer {
                             return ConstraintFormula.FALSE;
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
                         TypeConsIndex index = _table.typeCons(s.getName());
                         if (index instanceof TraitIndex) {
@@ -229,7 +230,7 @@ public class TypeAnalyzer {
                         }
                         else { throw new IllegalStateException("Unexpected index type"); }
                     }
-                    
+
                     /*
                     @Override public ConstraintFormula forTupleType(TupleType s) {
                         if (t instanceof TupleType) {
@@ -247,11 +248,11 @@ public class TypeAnalyzer {
                             }
                             else { return ConstraintFormula.FALSE; }
                         }
-                        
+
                         else if (t instanceof InstantiatedType) {
                             return sub(TUPLE, t, h);
                         }
-                        
+
                         else if (t instanceof AndType) {
                             // split to an And
                             List<Type> infElements1 = newInferenceVars(s.getElements().size());
@@ -285,7 +286,7 @@ public class TypeAnalyzer {
                             }
                             return f;
                         }
-                        
+
                         else if (t instanceof BottomType) {
                             ConstraintFormula result = ConstraintFormula.FALSE;
                             for (Type eltT : s.getElements()) {
@@ -300,11 +301,11 @@ public class TypeAnalyzer {
                             }
                             return result;
                         }
-                        
+
                         else { return ConstraintFormula.FALSE; }
                     }
                     */
-                    
+
                     @Override public ConstraintFormula forVoidType(VoidType s) {
                         if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
                         else if (t instanceof InstantiatedType) {
@@ -313,18 +314,18 @@ public class TypeAnalyzer {
                         }
                         else { return ConstraintFormula.FALSE; }
                     }
-                    
+
                     @Override public ConstraintFormula forArrowType(ArrowType s) {
                         Type throwsType = throwsType(s);
-                        
+
                         // domain is BottomType
                         ConstraintFormula result = sub(s.getDomain(), BOTTOM, h);
                         if (!result.isFalse()) {
                             result = result.and(sub(makeArrow(BOTTOM, BOTTOM, BOTTOM, false), t, h), h);
                         }
-                        
+
                         if (!result.isTrue()) {
-                            
+
                             if (t instanceof ArrowType) {
                                 if (!s.isIo() || ((ArrowType) t).isIo()) {
                                     ArrowType tCast = (ArrowType) t;
@@ -338,12 +339,12 @@ public class TypeAnalyzer {
                                     result = result.or(f, h);
                                 }
                             }
-                            
+
                             else if (t instanceof InstantiatedType) {
                                 // extends Object
                                 result = result.or(sub(OBJECT, t, h), h);
                             }
-                            
+
                             else if (t instanceof AndType) {
                                 // split Or domain to an And
                                 InferenceVarType d1 = newInferenceVar();
@@ -355,7 +356,7 @@ public class TypeAnalyzer {
                                     f = f.and(sub(sup, t, h), h);
                                 }
                                 result = result.or(f, h);
-                                
+
                                 if (!result.isTrue()) {
                                     // split And range/throws to an And
                                     InferenceVarType r1 = newInferenceVar();
@@ -377,11 +378,11 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     @Override public ConstraintFormula forOrType(OrType s) {
                         return sub(s.getFirst(), t, h).and(sub(s.getSecond(), t, h), h);
                     }
-                    
+
                     @Override public ConstraintFormula forAndType(AndType s) {
                         if (t instanceof AndType) { return excl(s.getFirst(), s.getSecond(), h); }
                         else {
@@ -442,10 +443,11 @@ public class TypeAnalyzer {
                             return result;
                         }
                     }
-                    
+
                 });
                 result = result.or(sResult, h);
             }
+            _cache.put(s, t, result);
             return result;
         }
         } finally { debug.logEnd(); }
@@ -465,13 +467,13 @@ public class TypeAnalyzer {
         }
         else {
             final SubtypeHistory h = history.extend(s, t);
-            
+
             ConstraintFormula result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                
+
                 @Override public ConstraintFormula forType(Type t) {
                     return ConstraintFormula.FALSE;
                 }
-                
+
                 @Override public ConstraintFormula forInferenceVarType(InferenceVarType t) {
                     if (s instanceof InferenceVarType && s.equals(t)) {
                         return ConstraintFormula.TRUE;
@@ -480,33 +482,33 @@ public class TypeAnalyzer {
                         return ConstraintFormula.lowerBound(t, s, h);
                     }
                 }
-                
+
             });
-            
+
             if (!result.isTrue()) {
-                                                 
+
                 ConstraintFormula sResult = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    
+
                     @Override public ConstraintFormula forBottomType(BottomType s) {
                         return ConstraintFormula.TRUE;
                     }
-                    
+
                     @Override public ConstraintFormula forInferenceVarType(InferenceVarType s) {
                         return ConstraintFormula.upperBound(s, t, h);
                     }
-                    
+
                     @Override public ConstraintFormula forIdType(IdType s) {
                         if (s.equals(t)) { return ConstraintFormula.TRUE; }
                         else { return ConstraintFormula.FALSE; }
                     }
-                    
+
                     @Override public ConstraintFormula forInstantiatedType(InstantiatedType s) {
                         ConstraintFormula result;
                         if (t instanceof InstantiatedType && s.getName().equals(((InstantiatedType) t).getName())) {
                             result = equivalent(s.getArgs(), ((InstantiatedType) t).getArgs(), h);
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             TypeConsIndex index = _table.typeCons(s.getName());
                             if (index instanceof TraitIndex) {
@@ -535,7 +537,7 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     /*
                     @Override public ConstraintFormula forTupleType(TupleType s) {
                         ConstraintFormula result;
@@ -552,7 +554,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends Tuple
                             result = result.or(subtype(TUPLE, t, h), h);
@@ -623,7 +625,7 @@ public class TypeAnalyzer {
                         return result;
                     }
                     */
-                    
+
                     @Override public ConstraintFormula forVoidType(VoidType s) {
                         if (t instanceof VoidType) { return ConstraintFormula.TRUE; }
                         else {
@@ -631,7 +633,7 @@ public class TypeAnalyzer {
                             return subtype(ANY, t, h);
                         }
                     }
-                    
+
                     @Override public ConstraintFormula forArrowType(ArrowType s) {
                         ConstraintFormula result;
                         Type throwsType = throwsType(s);
@@ -647,7 +649,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends Object
                             result = result.or(subtype(OBJECT, t, h), h);
@@ -708,7 +710,7 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     @Override public ConstraintFormula forOrType(OrType s) {
                         ConstraintFormula result;
                         if (t instanceof OrType) {
@@ -718,7 +720,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // common supertype
                             ConstraintFormula f = subtype(s.getFirst(), t, h);
@@ -754,7 +756,7 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                     @Override public ConstraintFormula forAndType(AndType s) {
                         ConstraintFormula result;
                         if (t instanceof AndType) {
@@ -764,7 +766,7 @@ public class TypeAnalyzer {
                             }
                         }
                         else { result = ConstraintFormula.FALSE; }
-                        
+
                         if (!result.isTrue()) {
                             // extends its first element
                             result = result.or(subtype(s.getFirst(), t, h), h);
@@ -923,11 +925,11 @@ public class TypeAnalyzer {
                         }
                         return result;
                     }
-                    
+
                 });
                 result = result.or(sResult, h);
             }
-            
+
             if (!result.isTrue()) {
                 // expand to intersection
                 InferenceVarType inf = newInferenceVar();
@@ -940,10 +942,11 @@ public class TypeAnalyzer {
                 InferenceVarType inf = newInferenceVar();
                 result = result.or(subtype(new OrType(s, inf), t, h), h);
             }
-            
+
             // match where declarations
             // reverse aliases
-            
+
+            _cache.put(s, t, result);
             return result;
         }
         } finally { debug.logEnd(); }
@@ -954,13 +957,13 @@ public class TypeAnalyzer {
         if (!result.isFalse()) { result = result.and(subtype(t, s, history), history); }
         return result;
     }
-    
+
     public ConstraintFormula equiv(Type s, Type t, SubtypeHistory history) {
         ConstraintFormula result = sub(s, t, history);
         if (!result.isFalse()) { result = result.and(sub(t, s, history), history); }
         return result;
     }
-    
+
 
     public ConstraintFormula equivalent(StaticArg a1, final StaticArg a2,
                                         final SubtypeHistory history) {
@@ -1072,7 +1075,7 @@ public class TypeAnalyzer {
     public ConstraintFormula excludes(Type s, Type t, SubtypeHistory history) {
         return ConstraintFormula.FALSE;
     }
-    
+
     public ConstraintFormula excl(Type s, Type t, SubtypeHistory history) {
         return ConstraintFormula.FALSE;
     }
@@ -1082,7 +1085,7 @@ public class TypeAnalyzer {
         else if (subtype(t, s, history).isTrue()) { return t; }
         else { return new AndType(s, t); }
     }
-    
+
     public Type mt(Type s, Type t, SubtypeHistory history) {
         if (sub(s, t, history).isTrue()) { return s; }
         else if (sub(t, s, history).isTrue()) { return t; }
@@ -1337,10 +1340,17 @@ public class TypeAnalyzer {
     // Package private -- accessed by ConstraintFormula
     class SubtypeHistory {
         private final Relation<Type, Type> _entries;
-        public SubtypeHistory() { _entries = new HashRelation<Type, Type>(false, false); }
-        private SubtypeHistory(Relation<Type, Type> entries) { _entries = entries; }
+        public SubtypeHistory() {
+            _entries = new HashRelation<Type, Type>(false, false);
+        }
+        private SubtypeHistory(Relation<Type, Type> entries) {
+            _entries = entries;
+        }
         public int size() { return _entries.size(); }
-        public boolean contains(Type s, Type t) { return _entries.contains(s, t); }
+        public boolean contains(Type s, Type t) {
+            return _entries.contains(s, t);
+        }
+        // Why creating a new SubtypeHistory? -- Sukyoung
         public SubtypeHistory extend(Type s, Type t) {
             Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
             newEntries.addAll(_entries);
@@ -1365,8 +1375,19 @@ public class TypeAnalyzer {
     }
 
     private static class SubtypeCache {
-        public boolean contains(Type s, Type t) { return false; }
-        public ConstraintFormula value(Type s, Type t) { throw new IllegalArgumentException(); }
+        HashMap<Pair<Type,Type>,ConstraintFormula> subtypeCache =
+            new HashMap<Pair<Type,Type>,ConstraintFormula>();
+        public void put(Type s, Type t, ConstraintFormula c) {
+            if (subtypeCache.put(new Pair(s,t), c) != null) {
+                bug("Duplicate subtype checking: " + s + " <: " + t);
+            }
+        }
+        public boolean contains(Type s, Type t) {
+            return subtypeCache.containsKey(new Pair(s,t));
+        }
+        public ConstraintFormula value(Type s, Type t) {
+            return subtypeCache.get(new Pair(s,t));
+        }
     }
 
 }
