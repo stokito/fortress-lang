@@ -135,7 +135,10 @@ FnHeaderFront OpHeaderFront =
        Op op = (Op)a1;
        if (big != null)
            op = NodeFactory.makeOpBig(op.getSpan(), "BIG " + op.getText());
-       else if (a3.size() == 0) { // nofix
+       else if (op.getText().equals("BIG +") ||
+                op.getText().equals("BIG juxtaposition")) {
+           op = op;
+       } else if (a3.size() == 0) { // nofix
            op = NodeFactory.makeOpNofix(op);
        } else if (NodeUtil.isMultifix(a3)) { // multifix
            op = NodeFactory.makeOpMultifix(op);
