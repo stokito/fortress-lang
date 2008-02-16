@@ -1217,7 +1217,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                 IdType(QualifiedIdName name);
                 /**
                  * inferred type
-                 * internal uses only
+                 * Used internally for type analysis
                  */
                 InferenceVarType(Object id);
                 /**
@@ -1262,23 +1262,17 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              */
             VoidType();
             /**
-             * intersection type
-             * internal uses only
-             */
-            IntersectionType(Set<Type> elements);
-            /**
-             * union type
-             * internal uses only
-             */
-            UnionType(Set<Type> elements);
-            /**
-             * internal uses only
+             * A binary intersection.  Used internally for type analysis.
              */
             AndType(Type first, Type second);
             /**
-             * internal uses only
+             * A binary union.  Used internally for type analysis.
              */
             OrType(Type first, Type second);
+            /**
+             * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
+             */
+            FixedPointType(QualifiedIdName name, Type body);
             /**
              * dimension type
              */
@@ -1342,22 +1336,6 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
              * e.g.) dimensionless
              */
             UnitArg(Expr unit);
-        /**
-         * a fresh type variable, used by type inference
-         */
-        _RewriteImplicitType();
-        /**
-         * intersection type, used during static checking
-         */
-        _RewriteIntersectionType(List<Type> elements);
-        /**
-         * union type, used during static checking
-         */
-        _RewriteUnionType(List<Type> elements);
-        /**
-         * fixed point (a.k.a. "mu") type, used during witness finding
-         */
-        _RewriteFixedPointType(_RewriteImplicitType var, Type body);
     /**
      * static expression
      */

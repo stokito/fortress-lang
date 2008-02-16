@@ -405,25 +405,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             System.err.println("forIfOnly has else");
 
             TypeCheckerResult result = new TypeCheckerResult(that);
-            List<Type> clauseTypes = new ArrayList<Type>(clauses_result.size()+1);
+            Type clauseType = Types.BOTTOM;
             TypeCheckerResult elseResult = unwrap(elseClause_result);
 
             // Get union of all clauses' types
             for (TypeCheckerResult clauseResult : clauses_result) {
                 if (clauseResult.type().isSome()) {
-                    clauseTypes.add(unwrap(clauseResult.type()));
+                    clauseType = analyzer.join(clauseType, (unwrap(clauseResult.type())));
                 } else {
                     result = TypeCheckerResult.compose(that, clauseResult, result);
                 }
             }
             if (elseResult.type().isSome()) {
-                clauseTypes.add(unwrap(elseResult.type()));
+                clauseType = analyzer.join(clauseType, unwrap(elseResult.type()));
             } else {
                 result = TypeCheckerResult.compose(that, elseResult, result);
             }
-            return TypeCheckerResult.compose(that,
-                                             NodeFactory.makeUnionType(IterUtil.asArray(clauseTypes, Type.class)),
-                                             result);
+            return TypeCheckerResult.compose(that, clauseType, result);
         } else {
             System.err.println("forIfOnly does not have else");
 
@@ -481,19 +479,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeCheckerResult forDoOnly(Do that, List<TypeCheckerResult> fronts_result) {
         TypeCheckerResult result = new TypeCheckerResult(that);
-        List<Type> frontTypes = new ArrayList<Type>(fronts_result.size());
+        Type frontType = Types.BOTTOM;
 
         // Get union of all clauses' types
         for (TypeCheckerResult frontResult : fronts_result) {
             if (frontResult.type().isSome()) {
-                frontTypes.add(unwrap(frontResult.type()));
+                frontType = analyzer.join(frontType, unwrap(frontResult.type()));
             } else {
                 result = TypeCheckerResult.compose(that, frontResult, result);
             }
         }
-        return TypeCheckerResult.compose(that,
-                                         NodeFactory.makeUnionType(IterUtil.asArray(frontTypes, Type.class)),
-                                         result);
+        return TypeCheckerResult.compose(that, frontType, result);
     }
 
 
@@ -519,14 +515,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                           List<TypeCheckerResult> staticArgs_result) {
 
         // Get intersection of overloaded function types.
-        List<Type> overloadedTypes = new ArrayList<Type>(fns_result.size());
+        Type overloadedType = Types.ANY;
         for (TypeCheckerResult fn_result : fns_result) {
             if (fn_result.type().isSome()) {
-                overloadedTypes.add(unwrap(fn_result.type()));
+              overloadedType = analyzer.meet(overloadedType, unwrap(fn_result.type()));
             }
         }
         return TypeCheckerResult.compose(that,
-                                         NodeFactory.makeIntersectionType(IterUtil.asArray(overloadedTypes, Type.class)),
+                                         overloadedType,
                                          TypeCheckerResult.compose(that, fns_result),
                                          TypeCheckerResult.compose(that, staticArgs_result));
     }

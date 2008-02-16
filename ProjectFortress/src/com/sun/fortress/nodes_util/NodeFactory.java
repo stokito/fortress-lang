@@ -170,29 +170,22 @@ public class NodeFactory {
   return new KeywordType(new Span(), name, type);
  }
 
- public static _RewriteIntersectionType makeIntersectionType(Type... elements) {
-  List<Type> types = new ArrayList<Type>();
-  for (Type type: elements) {
-   types.add(type);
-  }
-  return new _RewriteIntersectionType(new Span(), types);
- }
-
- public static _RewriteUnionType makeUnionType(Type... elements) {
-  List<Type> types = new ArrayList<Type>();
-  for (Type type: elements) {
-   types.add(type);
-  }
-  return new _RewriteUnionType(new Span(), types);
- }
-
- public static _RewriteFixedPointType makeFixedPointType(_RewriteImplicitType var, Type body) {
-  return new _RewriteFixedPointType(new Span(), var, body);
- }
-
  public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
   return new ConstructorFnName(def.getSpan(), def);
  }
+ 
+ public static InferenceVarType makeInferenceVarType() {
+   return new InferenceVarType(new Object());
+ }
+ 
+ public static List<Type> makeInferenceVarTypes(int size) {
+   List<Type> result = new ArrayList<Type>(size);
+   for (int i = 0; i < size; i++) { result.add(makeInferenceVarType()); }
+   return result;
+ }
+
+ 
+ 
 
  /** Alternatively, you can invoke the Contract constructor without any parameters */
  public static Contract makeContract() {
@@ -895,18 +888,18 @@ public class NodeFactory {
   return new VarRef(span, true, name);
  }
 
-	public static Expr makeFnRef(Span span, QualifiedIdName name,
-			List<StaticArg> staticArgs) {
-		List<QualifiedIdName> ids = new LinkedList<QualifiedIdName>();
-		ids.add(name);
-		return new FnRef(span, ids, staticArgs);
-	}
+ public static Expr makeFnRef(Span span, QualifiedIdName name,
+   List<StaticArg> staticArgs) {
+  List<QualifiedIdName> ids = new LinkedList<QualifiedIdName>();
+  ids.add(name);
+  return new FnRef(span, ids, staticArgs);
+ }
 
-	public static QualifiedOpName makeQualifiedEncloserOpName(Span span) {
-		Op open = NodeFactory.makeOpEnclosing(span, "<|");
-		Op close = NodeFactory.makeOpEnclosing(span, "|>");
-		Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close), open,close);
-		return NodeFactory.makeQualifiedOpName(op);
-	}
+ public static QualifiedOpName makeQualifiedEncloserOpName(Span span) {
+  Op open = NodeFactory.makeOpEnclosing(span, "<|");
+  Op close = NodeFactory.makeOpEnclosing(span, "|>");
+  Enclosing op = new Enclosing(FortressUtil.spanTwo(open,close), open,close);
+  return NodeFactory.makeQualifiedOpName(op);
+ }
 
 }

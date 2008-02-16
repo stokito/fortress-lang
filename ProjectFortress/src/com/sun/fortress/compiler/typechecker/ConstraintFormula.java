@@ -28,6 +28,8 @@ import com.sun.fortress.nodes.InferenceVarType;
 
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
+import static com.sun.fortress.compiler.typechecker.Types.ANY;
+import static com.sun.fortress.compiler.typechecker.Types.BOTTOM;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static edu.rice.cs.plt.debug.DebugUtil.error;
 
@@ -157,7 +159,7 @@ public abstract class ConstraintFormula {
         debug.logStart();
         debug.logValues(new String[]{"var","upperBound"}, var, bound);
         try {
-        if (history.subtype(TypeAnalyzer.ANY, bound).isTrue()) { return TRUE; }
+        if (history.subtype(ANY, bound).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.singletonMap(var, bound),
                                      Collections.<InferenceVarType, Type>emptyMap());
@@ -169,7 +171,7 @@ public abstract class ConstraintFormula {
         debug.logStart();
         debug.logValues(new String[]{"var","lowerBound"}, var, bound);
         try {
-        if (history.subtype(bound, TypeAnalyzer.BOTTOM).isTrue()) { return TRUE; }
+        if (history.subtype(bound, BOTTOM).isTrue()) { return TRUE; }
         else {
             return new SimpleFormula(Collections.<InferenceVarType, Type>emptyMap(),
                                      Collections.singletonMap(var, bound));
