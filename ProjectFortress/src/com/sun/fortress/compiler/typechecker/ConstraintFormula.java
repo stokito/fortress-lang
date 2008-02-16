@@ -64,6 +64,14 @@ public abstract class ConstraintFormula {
             _lowerBounds = lowerBounds;
         }
 
+        public Map<InferenceVarType, Type> getUpper() {
+            return _upperBounds;
+        }
+
+        public Map<InferenceVarType, Type> getLower() {
+            return _lowerBounds;
+        }
+
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) {
             if (f.isTrue()) { return this; }
             else if (f.isFalse()) { return f; }

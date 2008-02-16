@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,26 +35,24 @@ public class TestTask extends BaseTask {
         ReadSet rs1 = new ReadSet();
         for (int i = 0; i < 10; i++)
             rs1.add(fred);
-        Assert.assertEquals(rs1.size(), 1); 
-        
+        Assert.assertEquals(rs1.size(), 1);
+
         // Verify that multiple threads adding to a readset don't stomp on each other.
         ReadSet rs2 = new ReadSet();
         int taskcount = 8;
         int transcount = 256;
-        
+
         TestTask2[] tasks = new TestTask2[taskcount];
         for (int i = 0; i < taskcount; i++) {
             tasks[i] = new TestTask2(rs2, transcount);
         }
-        
+
         TestTask2.forkJoin(tasks);
         Assert.assertEquals(rs2.size(), taskcount * transcount);
     }
-    
+
     public void print() {
         System.out.println("TestTask");
     }
-    
+
 }
-
-

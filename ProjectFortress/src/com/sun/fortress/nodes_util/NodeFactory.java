@@ -18,12 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.math.BigInteger;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -98,6 +93,95 @@ public class NodeFactory {
   return new ArrayType(span, element, indices);
  }
 
+    public static ExponentType makeExponentType(ExponentType t, Type s) {
+        return new ExponentType(t.getSpan(), t.isParenthesized(), s,
+                                t.getPower());
+    }
+
+    public static ProductDim makeProductDim(ProductDim t, DimExpr s, DimExpr u) {
+        return new ProductDim(t.getSpan(), t.isParenthesized(), s, u);
+    }
+
+    public static QuotientDim makeQuotientDim(QuotientDim t, DimExpr s, DimExpr u) {
+        return new QuotientDim(t.getSpan(), t.isParenthesized(), s, u);
+    }
+
+    public static ExponentDim makeExponentDim(ExponentDim t, DimExpr s) {
+        return new ExponentDim(t.getSpan(), t.isParenthesized(), s,
+                               t.getPower());
+    }
+
+    public static OpDim makeOpDim(OpDim t, DimExpr s) {
+        return new OpDim(t.getSpan(), t.isParenthesized(), s, t.getOp());
+    }
+
+    public static ArrowType makeArrowType(ArrowType t, Type domain, Type range,
+                                          Option<List<Type>> newThrows) {
+        return new ArrowType(t.getSpan(), t.isParenthesized(), domain, range,
+                             newThrows, t.isIo());
+    }
+
+    public static InferenceVarType makeInferenceVarType(int index) {
+        return new InferenceVarType(new Integer(index));
+    }
+
+    public static InstantiatedType makeInstantiatedType(InstantiatedType t,
+                                                        List<StaticArg> args) {
+        return new InstantiatedType(t.getSpan(), t.isParenthesized(),
+                                    t.getName(), args);
+    }
+
+    public static TupleType makeTupleType(TupleType t, List<Type> tys) {
+        return new TupleType(t.getSpan(), t.isParenthesized(), tys);
+    }
+
+    public static ArgType makeArgType(ArgType t, List<Type> tys,
+                                      Option<VarargsType> varargs,
+                                      List<KeywordType> keywords) {
+        return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs,
+                           keywords);
+    }
+
+    public static VarargsType makeVarargsType(VarargsType t, Type s) {
+        return new VarargsType(t.getSpan(), s);
+    }
+
+    public static KeywordType makeKeywordType(KeywordType t, Type s) {
+        return new KeywordType(t.getSpan(), t.getName(), s);
+    }
+
+    public static AndType makeAndType(AndType t, Type first, Type second) {
+        return new AndType(t.getSpan(), t.isParenthesized(), first, second);
+    }
+
+    public static OrType makeOrType(OrType t, Type first, Type second) {
+        return new OrType(t.getSpan(), t.isParenthesized(), first, second);
+    }
+
+    public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
+                                                  DimExpr u) {
+        return new TaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
+                                 t.getUnit());
+    }
+
+    public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
+        return new TaggedUnitType(t.getSpan(), t.isParenthesized(), s,
+                                  t.getUnit());
+    }
+
+    public static TypeArg makeTypeArg(TypeArg t, Type s) {
+        return new TypeArg(t.getSpan(), t.isParenthesized(), s);
+    }
+
+    public static DimArg makeDimArg(DimArg t, DimExpr s) {
+        return new DimArg(t.getSpan(), t.isParenthesized(), s);
+    }
+
+    public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
+        return new FixedPointType(t.getSpan(), t.isParenthesized(), t.getName(),
+                                  s);
+    }
+
  public static InstantiatedType makeInstantiatedType(Span span, boolean isParenthesized,
    QualifiedIdName name, List<StaticArg> args) {
   return new InstantiatedType(span, isParenthesized, name, args);
@@ -146,12 +230,6 @@ public class NodeFactory {
                           Option.<List<Type>>none());
  }
 
- public static ArrowType makeArrowType(ArrowType t, Type domain, Type range,
-                                       Option<List<Type>> newThrows) {
-     return new ArrowType(t.getSpan(), t.isParenthesized(), domain, range,
-                          newThrows, t.isIo());
- }
-
  public static _RewriteGenericArrowType makeGenericArrowType(Span span,
    List<StaticParam> staticParams,
    Type domain,
@@ -173,19 +251,16 @@ public class NodeFactory {
  public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
   return new ConstructorFnName(def.getSpan(), def);
  }
- 
+
  public static InferenceVarType makeInferenceVarType() {
    return new InferenceVarType(new Object());
  }
- 
+
  public static List<Type> makeInferenceVarTypes(int size) {
    List<Type> result = new ArrayList<Type>(size);
    for (int i = 0; i < size; i++) { result.add(makeInferenceVarType()); }
    return result;
  }
-
- 
- 
 
  /** Alternatively, you can invoke the Contract constructor without any parameters */
  public static Contract makeContract() {
