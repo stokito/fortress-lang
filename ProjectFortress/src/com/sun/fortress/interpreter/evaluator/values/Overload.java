@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -77,6 +77,11 @@ public class Overload implements Comparable, HasAt {
 
 
     private SingleFcn fn;
+    /**
+     * True if this overload cannot possibly conflict -- because it is a
+     * functional method of an instantiated generic type.
+     * This is a (major) optimization.
+     */
     boolean guaranteedOK;
     
     DebugletPrintStream ps;

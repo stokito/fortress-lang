@@ -161,14 +161,19 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
         }
         /* FIX FOR #62 */
-        // if (params.size()==1 && args.size() != 1) {
-        // /* Tuple (or even re-tuple) arguments when inferring type
-        // * if passing different # of args to 1-arg function. */
-        // if (DUMP_INFERENCE) {
-        // System.err.println("Tupling args to match single-arg context.");
-        // }
-        // args = Useful.<FValue>list(FTuple.make(args));
-        // }
+         if (params.size()==1 && args.size() != 1) {
+             Iterator<Param> pit = params.iterator();
+             Param pa = pit.next();
+             
+             if ( ! (pa instanceof VarargsParam)) {
+                 /* Tuple (or even re-tuple) arguments when inferring type
+                  * if passing different # of args to 1-arg function. */
+                 if (DUMP_INFERENCE) {
+                     System.err.println("Tupling args to match single-arg context.");
+                 }
+                 args = Useful.<FValue>list(FTuple.make(args));
+             }
+         }
         Iterator<Param> pit = params.iterator();
         for (FValue a : args) {
             FType at = a.type();

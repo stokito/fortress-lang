@@ -284,7 +284,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
   index_remove(index:ZZ32): SelfType = do
     keys':Array[\Key,ZZ32\] = array[\Key\](keys.size() - 1)
     children':Array[\ChildType,ZZ32\] = array[\ChildType\](children.size() - 1)
-    replace:ZZ32 = MAX(0, index - 1)
+    replace:ZZ32 = 0 MAX (index - 1)
     keys'[0 # replace] := keys[0 # replace]
     keys'[replace # (keys'.size() - replace)] := keys[(replace + 1) # (keys'.size() - replace)]
     children'[0 # index] := children[0 # index]

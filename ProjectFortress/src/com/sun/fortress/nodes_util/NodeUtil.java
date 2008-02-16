@@ -112,6 +112,18 @@ public class NodeUtil {
         return false;
     }
 
+    private final static String fixityDecorator(Option<Fixity> of, String s) {
+        if (of.isNone())
+            return s;
+        Fixity f = Option.unwrap(of);
+        if (f instanceof PreFixity)
+            return "prefix "+s;
+        if (f instanceof PostFixity)
+            return "postfix "+s;
+    
+        return s;
+    }
+    
     private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
 
@@ -122,7 +134,7 @@ public class NodeUtil {
             return nameString(n);
             }
         public String forId(Id n) { return n.getText(); }
-        public String forOp(Op n) { return n.getText(); }
+        public String forOp(Op n) { return fixityDecorator(n.getFixity(), n.getText()); }
         public String forEnclosing(Enclosing n) {
             return n.getOpen().getText() + " " + n.getClose().getText();
         }
@@ -134,6 +146,8 @@ public class NodeUtil {
         return stringName(n.getDef());
         }
     };
+    
+    
 
     /* nameString *************************************************************/
     public static String nameString(Name n) {
