@@ -47,19 +47,19 @@ class MethodTypeEnv extends TypeEnv {
      */
     public Option<LValueBind> binding(Id var) {
         Set<Method> methods = entries.getSeconds(var);
-        Type type = makeIntersectionType();
+        Type type = Types.ANY;
         
         for (Method method: methods) {
             if (method instanceof DeclaredMethod) {
                 DeclaredMethod _method = (DeclaredMethod)method;
                 FnAbsDeclOrDecl decl = _method.ast();
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(decl.getSpan(),
-                                                                 decl.getStaticParams(),
-                                                                 typeFromParams(decl.getParams()),
-                                                                 unwrap(decl.getReturnType()), // all types have been filled in at this point
-                                                                 decl.getThrowsClause(),
-                                                                 decl.getWhere()));
+                type = new AndType(type,
+                                   makeGenericArrowType(decl.getSpan(),
+                                                        decl.getStaticParams(),
+                                                        typeFromParams(decl.getParams()),
+                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getThrowsClause(),
+                                                        decl.getWhere()));
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
                 LValueBind binding = _method.ast();

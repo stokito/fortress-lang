@@ -30,9 +30,7 @@ import com.sun.fortress.compiler.index.*;
 
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.TRUE;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.FALSE;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzer.ANY;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzer.BOTTOM;
-import static com.sun.fortress.compiler.typechecker.Types.VOID;
+import static com.sun.fortress.compiler.typechecker.Types.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
@@ -341,7 +339,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             int arrowIndex = s.indexOf("->");
             Type left = parseType(s.substring(0, arrowIndex));
             Type right = parseType(s.substring(arrowIndex+2));
-            List<Type> thrown = Collections.singletonList(TypeAnalyzer.BOTTOM);
+            List<Type> thrown = Collections.singletonList(BOTTOM);
             return new ArrowType(left, right, Option.some(thrown), false);
         }
         else if (s.contains("|")) {

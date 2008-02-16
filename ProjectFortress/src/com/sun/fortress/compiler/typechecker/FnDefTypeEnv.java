@@ -47,16 +47,16 @@ class FnDefTypeEnv extends TypeEnv {
      */
     public Option<LValueBind> binding(Id var) {
         Set<? extends FnDef> fns = entries.getSeconds(var);
-        Type type = makeIntersectionType();
+        Type type = Types.ANY;
         
         for (FnDef fn: fns) {
-            type = makeIntersectionType(type,
-                                        makeGenericArrowType(fn.getSpan(),
-                                                             fn.getStaticParams(),
-                                                             typeFromParams(fn.getParams()),
-                                                             unwrap(fn.getReturnType()), // all types have been filled in at this point
-                                                             fn.getThrowsClause(),
-                                                             fn.getWhere()));
+            type = new AndType(type,
+                               makeGenericArrowType(fn.getSpan(),
+                                                    fn.getStaticParams(),
+                                                    typeFromParams(fn.getParams()),
+                                                    unwrap(fn.getReturnType()), // all types have been filled in at this point
+                                                    fn.getThrowsClause(),
+                                                    fn.getWhere()));
             
         }
         return some(makeLValue(var, type));

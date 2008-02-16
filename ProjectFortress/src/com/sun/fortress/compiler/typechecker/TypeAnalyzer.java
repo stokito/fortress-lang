@@ -31,17 +31,15 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
+import static com.sun.fortress.compiler.typechecker.Types.*;
+import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
+import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarTypes;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
 
 
 public class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = true;
-
-    public static final Type BOTTOM = new BottomType();
-    public static final Type ANY = NodeFactory.makeInstantiatedType("FortressBuiltin", "Any");
-    public static final Type OBJECT = NodeFactory.makeInstantiatedType("FortressLibrary", "Object");
-    public static final Type TUPLE = NodeFactory.makeInstantiatedType("FortressBuiltin", "Tuple");
 
     private static final int MAX_SUBTYPE_DEPTH = 4;
 
@@ -105,6 +103,14 @@ public class TypeAnalyzer {
         return SIMPLIFIED_SUBTYPING ? sub(s, t, _emptyHistory) : subtype(s, t, _emptyHistory);
     }
 
+    public Type join(Type s, Type t) {
+      return SIMPLIFIED_SUBTYPING ? jn(s, t, _emptyHistory) : join(s, t, _emptyHistory);
+    }
+    
+    public Type meet(Type s, Type t) {
+      return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
+    }
+    
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         try {
@@ -255,8 +261,8 @@ public class TypeAnalyzer {
 
                         else if (t instanceof AndType) {
                             // split to an And
-                            List<Type> infElements1 = newInferenceVars(s.getElements().size());
-                            List<Type> infElements2 = newInferenceVars(s.getElements().size());
+                            List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
+                            List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
                             Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
                             Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
@@ -347,8 +353,8 @@ public class TypeAnalyzer {
 
                             else if (t instanceof AndType) {
                                 // split Or domain to an And
-                                InferenceVarType d1 = newInferenceVar();
-                                InferenceVarType d2 = newInferenceVar();
+                                InferenceVarType d1 = makeInferenceVarType();
+                                InferenceVarType d2 = makeInferenceVarType();
                                 ConstraintFormula f = equiv(s.getDomain(), new OrType(d1, d2), h);
                                 if (!f.isFalse()) {
                                     Type sup = new AndType(makeArrow(d1, s.getRange(), throwsType, s.isIo()),
@@ -359,10 +365,10 @@ public class TypeAnalyzer {
 
                                 if (!result.isTrue()) {
                                     // split And range/throws to an And
-                                    InferenceVarType r1 = newInferenceVar();
-                                    InferenceVarType r2 = newInferenceVar();
-                                    InferenceVarType th1 = newInferenceVar();
-                                    InferenceVarType th2 = newInferenceVar();
+                                    InferenceVarType r1 = makeInferenceVarType();
+                                    InferenceVarType r2 = makeInferenceVarType();
+                                    InferenceVarType th1 = makeInferenceVarType();
+                                    InferenceVarType th2 = makeInferenceVarType();
                                     ConstraintFormula f2 = equiv(s.getRange(), new AndType(r1, r2), h);
                                     if (!f2.isFalse()) {
                                         f2 = f2.and(equiv(throwsType, new AndType(th1, th2), h), h);
@@ -405,8 +411,8 @@ public class TypeAnalyzer {
                                     else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
                                 }
                                 if (form != null) {
-                                    List<Type> infElements1 = newInferenceVars(form.getElements().size());
-                                    List<Type> infElements2 = newInferenceVars(form.getElements().size());
+                                    List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
+                                    List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
                                     Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
                                     Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
                                     List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
@@ -561,7 +567,7 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // covariance
-                            List<Type> infElements = newInferenceVars(s.getElements().size());
+                            List<Type> infElements = makeInferenceVarTypes(s.getElements().size());
                             Option<VarargsType> infVarargs = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords = newInferenceVars(s.getKeywords());
                             ConstraintFormula f = subtype(s.getElements(), infElements, h);
@@ -578,8 +584,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // split to an And
-                            List<Type> infElements1 = newInferenceVars(s.getElements().size());
-                            List<Type> infElements2 = newInferenceVars(s.getElements().size());
+                            List<Type> infElements1 = makeInferenceVarTypes(s.getElements().size());
+                            List<Type> infElements2 = makeInferenceVarTypes(s.getElements().size());
                             Option<VarargsType> infVarargs1 = newInferenceVar(s.getVarargs());
                             Option<VarargsType> infVarargs2 = newInferenceVar(s.getVarargs());
                             List<KeywordType> infKeywords1 = newInferenceVars(s.getKeywords());
@@ -656,9 +662,9 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // covariance/contravariance
-                            InferenceVarType infDomain = newInferenceVar();
-                            InferenceVarType infRange = newInferenceVar();
-                            InferenceVarType infThrowsType = newInferenceVar();
+                            InferenceVarType infDomain = makeInferenceVarType();
+                            InferenceVarType infRange = makeInferenceVarType();
+                            InferenceVarType infThrowsType = makeInferenceVarType();
                             ConstraintFormula f = ConstraintFormula.upperBound(infDomain, s.getDomain(), h);
                             f = f.and(ConstraintFormula.lowerBound(infRange, s.getRange(), h), h);
                             f = f.and(ConstraintFormula.lowerBound(infThrowsType, throwsType, h), h);
@@ -681,8 +687,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // split Or domain to an And
-                            InferenceVarType d1 = newInferenceVar();
-                            InferenceVarType d2 = newInferenceVar();
+                            InferenceVarType d1 = makeInferenceVarType();
+                            InferenceVarType d2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getDomain(), new OrType(d1, d2), h);
                             if (!f.isFalse()) {
                                 Type sup = new AndType(makeArrow(d1, s.getRange(), throwsType, s.isIo()),
@@ -693,10 +699,10 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // split And range/throws to an And
-                            InferenceVarType r1 = newInferenceVar();
-                            InferenceVarType r2 = newInferenceVar();
-                            InferenceVarType th1 = newInferenceVar();
-                            InferenceVarType th2 = newInferenceVar();
+                            InferenceVarType r1 = makeInferenceVarType();
+                            InferenceVarType r2 = makeInferenceVarType();
+                            InferenceVarType th1 = makeInferenceVarType();
+                            InferenceVarType th2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getRange(), new AndType(r1, r2), h);
                             if (!f.isFalse()) {
                                 f = f.and(equivalent(throwsType, new AndType(th1, th2), h), h);
@@ -729,8 +735,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // distribution of And
-                            InferenceVarType inf1 = newInferenceVar();
-                            InferenceVarType inf2 = newInferenceVar();
+                            InferenceVarType inf1 = makeInferenceVarType();
+                            InferenceVarType inf2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
                             if (!f.isFalse()) {
                                 Type sup = new AndType(new OrType(inf1, s.getSecond()),
@@ -745,8 +751,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // associativity
-                            InferenceVarType inf1 = newInferenceVar();
-                            InferenceVarType inf2 = newInferenceVar();
+                            InferenceVarType inf1 = makeInferenceVarType();
+                            InferenceVarType inf2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
                             if (!f.isFalse()) {
                                 Type sup = new OrType(inf1, new OrType(inf2, s.getSecond()));
@@ -795,8 +801,8 @@ public class TypeAnalyzer {
                                 else if (!compatibleTuples(form, (TupleType) s.getSecond())) { form = null; }
                             }
                             if (form != null) {
-                                List<Type> infElements1 = newInferenceVars(form.getElements().size());
-                                List<Type> infElements2 = newInferenceVars(form.getElements().size());
+                                List<Type> infElements1 = makeInferenceVarTypes(form.getElements().size());
+                                List<Type> infElements2 = makeInferenceVarTypes(form.getElements().size());
                                 Option<VarargsType> infVarargs1 = newInferenceVar(form.getVarargs());
                                 Option<VarargsType> infVarargs2 = newInferenceVar(form.getVarargs());
                                 List<KeywordType> infKeywords1 = newInferenceVars(form.getKeywords());
@@ -832,10 +838,10 @@ public class TypeAnalyzer {
                         */
                         if (!result.isTrue()) {
                             // merge arrow domain (non-io)
-                            InferenceVarType d1 = newInferenceVar();
-                            InferenceVarType d2 = newInferenceVar();
-                            InferenceVarType r = newInferenceVar();
-                            InferenceVarType th = newInferenceVar();
+                            InferenceVarType d1 = makeInferenceVarType();
+                            InferenceVarType d2 = makeInferenceVarType();
+                            InferenceVarType r = makeInferenceVarType();
+                            InferenceVarType th = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, false), h);
                             if (!f.isFalse()) {
                                 f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, false), h), h);
@@ -848,10 +854,10 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // merge arrow domain (io)
-                            InferenceVarType d1 = newInferenceVar();
-                            InferenceVarType d2 = newInferenceVar();
-                            InferenceVarType r = newInferenceVar();
-                            InferenceVarType th = newInferenceVar();
+                            InferenceVarType d1 = makeInferenceVarType();
+                            InferenceVarType d2 = makeInferenceVarType();
+                            InferenceVarType r = makeInferenceVarType();
+                            InferenceVarType th = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d1, r, th, true), h);
                             if (!f.isFalse()) {
                                 f = f.and(equivalent(s.getSecond(), makeArrow(d2, r, th, true), h), h);
@@ -864,11 +870,11 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // merge arrow range (non-io)
-                            InferenceVarType d = newInferenceVar();
-                            InferenceVarType r1 = newInferenceVar();
-                            InferenceVarType r2 = newInferenceVar();
-                            InferenceVarType th1 = newInferenceVar();
-                            InferenceVarType th2 = newInferenceVar();
+                            InferenceVarType d = makeInferenceVarType();
+                            InferenceVarType r1 = makeInferenceVarType();
+                            InferenceVarType r2 = makeInferenceVarType();
+                            InferenceVarType th1 = makeInferenceVarType();
+                            InferenceVarType th2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, false), h);
                             if (!f.isFalse()) {
                                 f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, false), h), h);
@@ -881,11 +887,11 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // merge arrow range (io)
-                            InferenceVarType d = newInferenceVar();
-                            InferenceVarType r1 = newInferenceVar();
-                            InferenceVarType r2 = newInferenceVar();
-                            InferenceVarType th1 = newInferenceVar();
-                            InferenceVarType th2 = newInferenceVar();
+                            InferenceVarType d = makeInferenceVarType();
+                            InferenceVarType r1 = makeInferenceVarType();
+                            InferenceVarType r2 = makeInferenceVarType();
+                            InferenceVarType th1 = makeInferenceVarType();
+                            InferenceVarType th2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), makeArrow(d, r1, th1, true), h);
                             if (!f.isFalse()) {
                                 f = f.and(equivalent(s.getSecond(), makeArrow(d, r2, th2, true), h), h);
@@ -898,8 +904,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // distribution of Or
-                            InferenceVarType inf1 = newInferenceVar();
-                            InferenceVarType inf2 = newInferenceVar();
+                            InferenceVarType inf1 = makeInferenceVarType();
+                            InferenceVarType inf2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), new OrType(inf1, inf2), h);
                             if (!f.isFalse()) {
                                 Type sup = new OrType(new AndType(inf1, s.getSecond()),
@@ -914,8 +920,8 @@ public class TypeAnalyzer {
                         }
                         if (!result.isTrue()) {
                             // associativity
-                            InferenceVarType inf1 = newInferenceVar();
-                            InferenceVarType inf2 = newInferenceVar();
+                            InferenceVarType inf1 = makeInferenceVarType();
+                            InferenceVarType inf2 = makeInferenceVarType();
                             ConstraintFormula f = equivalent(s.getFirst(), new AndType(inf1, inf2), h);
                             if (!f.isFalse()) {
                                 Type sup = new AndType(inf1, new OrType(inf2, s.getSecond()));
@@ -932,14 +938,14 @@ public class TypeAnalyzer {
 
             if (!result.isTrue()) {
                 // expand to intersection
-                InferenceVarType inf = newInferenceVar();
+                InferenceVarType inf = makeInferenceVarType();
                 ConstraintFormula f = subtype(new AndType(s, inf), t, h);
                 f = f.and(ConstraintFormula.lowerBound(inf, s, h), h);
                 result = result.or(f, h);
             }
             if (!result.isTrue()) {
                 // expand to union
-                InferenceVarType inf = newInferenceVar();
+                InferenceVarType inf = makeInferenceVarType();
                 result = result.or(subtype(new OrType(s, inf), t, h), h);
             }
 
@@ -1154,7 +1160,7 @@ public class TypeAnalyzer {
             });
         }
         for (Id id : hiddenParams) {
-            typeSubs.put(NodeFactory.makeQualifiedIdName(id), newInferenceVar());
+            typeSubs.put(NodeFactory.makeQualifiedIdName(id), makeInferenceVarType());
         }
 
         return new Lambda<Type, Type>() {
@@ -1248,25 +1254,15 @@ public class TypeAnalyzer {
     }
 
 
-    private InferenceVarType newInferenceVar() {
-        return new InferenceVarType(new Object());
-    }
-
-    private List<Type> newInferenceVars(int size) {
-        List<Type> result = new ArrayList<Type>(size);
-        for (int i = 0; i < size; i++) { result.add(newInferenceVar()); }
-        return result;
-    }
-
     private Option<VarargsType> newInferenceVar(Option<VarargsType> varargs) {
-        if (varargs.isSome()) { return Option.some(new VarargsType(newInferenceVar())); }
+        if (varargs.isSome()) { return Option.some(new VarargsType(makeInferenceVarType())); }
         else { return Option.none(); }
     }
 
     private List<KeywordType> newInferenceVars(List<KeywordType> keys) {
         List<KeywordType> result = new ArrayList<KeywordType>(keys.size());
         for (KeywordType k : keys) {
-            result.add(new KeywordType(k.getName(), newInferenceVar()));
+            result.add(new KeywordType(k.getName(), makeInferenceVarType()));
         }
         return result;
     }

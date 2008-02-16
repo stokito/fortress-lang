@@ -47,43 +47,43 @@ class FnTypeEnv extends TypeEnv {
      */
     public Option<LValueBind> binding(Id var) {
         Set<? extends Function> fns = entries.getSeconds(var);
-        Type type = makeIntersectionType();
+        Type type = Types.ANY;
 
         for (Function fn: fns) {
             if (fn instanceof DeclaredFunction) {
                 DeclaredFunction _fn = (DeclaredFunction)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(decl.getSpan(),
-                                                                 decl.getStaticParams(),
-                                                                 typeFromParams(decl.getParams()),
-                                                                 unwrap(decl.getReturnType()), // all types have been filled in at this point
-                                                                 decl.getThrowsClause(),
-                                                                 decl.getWhere()));
+                type = new AndType(type,
+                                   makeGenericArrowType(decl.getSpan(),
+                                                        decl.getStaticParams(),
+                                                        typeFromParams(decl.getParams()),
+                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getThrowsClause(),
+                                                        decl.getWhere()));
             } else if (fn instanceof FunctionalMethod) {
                 FunctionalMethod _fn = (FunctionalMethod)fn;
                 FnAbsDeclOrDecl decl = _fn.ast();
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(decl.getSpan(),
-                                                                 decl.getStaticParams(),
-                                                                 typeFromParams(decl.getParams()),
-                                                                 unwrap(decl.getReturnType()), // all types have been filled in at this point
-                                                                 decl.getThrowsClause(),
-                                                                 decl.getWhere()));
+                type = new AndType(type,
+                                   makeGenericArrowType(decl.getSpan(),
+                                                        decl.getStaticParams(),
+                                                        typeFromParams(decl.getParams()),
+                                                        unwrap(decl.getReturnType()), // all types have been filled in at this point
+                                                        decl.getThrowsClause(),
+                                                        decl.getWhere()));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                type = makeIntersectionType(type,
-                                            makeGenericArrowType(_fn.declaringTrait().getSpan(),
-                                                                 _fn.staticParams(),
-                                                                 typeFromParams(unwrap(_fn.params())),
-                                                                 makeInstantiatedType(makeQualifiedIdName(_fn.declaringTrait()),
-                                                                                      staticParamsToArgs(_fn.staticParams())),
-                                                                 _fn.throwsClause(),
-                                                                 _fn.where()));
-
+                type = new AndType(type,
+                                   makeGenericArrowType(_fn.declaringTrait().getSpan(),
+                                                        _fn.staticParams(),
+                                                        typeFromParams(unwrap(_fn.params())),
+                                                        makeInstantiatedType(makeQualifiedIdName(_fn.declaringTrait()),
+                                                                             staticParamsToArgs(_fn.staticParams())),
+                                                        _fn.throwsClause(),
+                                                        _fn.where()));
+                
             }
         }
         return some(makeLValue(var, type));
