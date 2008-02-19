@@ -249,12 +249,15 @@ public class Fortress {
         StaticChecker.ApiResult apiSR =
             StaticChecker.checkApis(apiIR.apis(), apiEnv);
         if (!apiSR.isSuccessful()) { return apiSR.errors(); }
-        
+
+        Desugarer.ApiResult apiDSR =
+            Desugarer.desugarApis(apiSR.apis(), apiEnv);
+
         // Generate code. Code is stored in the _repository object. In an implementation
         // with pure static linking, we would have to write this code back out to a file.
         // In an implementation with fortresses, we would write this code into the resident
         // fortress.
-        for (Map.Entry<APIName, ApiIndex> newApi : apiIR.apis().entrySet()) {
+        for (Map.Entry<APIName, ApiIndex> newApi : apiDSR.apis().entrySet()) {
             _repository.addApi(newApi.getKey(), newApi.getValue());
         }
         

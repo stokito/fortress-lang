@@ -29,15 +29,6 @@ public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
     private final ConstraintFormula nodeConstraints;
-    
-    private static Iterable<? extends StaticError> collectErrors(Iterable<? extends TypeCheckerResult> results) {
-        Iterable<? extends StaticError> allErrors = new ArrayList<StaticError>();
-        
-        for (TypeCheckerResult result: results) {
-            allErrors = IterUtil.compose(allErrors, result.errors());
-        }
-        return allErrors;
-    }
 
     public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
                                             TypeCheckerResult... results) {
