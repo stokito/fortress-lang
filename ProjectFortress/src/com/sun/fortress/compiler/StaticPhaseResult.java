@@ -18,6 +18,9 @@
 package com.sun.fortress.compiler;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
+
+import java.util.ArrayList;
 
 public class StaticPhaseResult {
     
@@ -38,5 +41,13 @@ public class StaticPhaseResult {
     public boolean isSuccessful() { return IterUtil.isEmpty(_errors); }
     
     public Iterable<? extends StaticError> errors() { return _errors; }
-    
+
+    protected static Iterable<? extends StaticError> collectErrors(Iterable<? extends TypeCheckerResult> results) {
+        Iterable<? extends StaticError> allErrors = new ArrayList<StaticError>();
+
+        for (TypeCheckerResult result: results) {
+            allErrors = IterUtil.compose(allErrors, result.errors());
+        }
+        return allErrors;
+    }
 }
