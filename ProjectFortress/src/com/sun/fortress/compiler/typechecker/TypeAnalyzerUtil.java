@@ -30,8 +30,8 @@ public class TypeAnalyzerUtil {
     private static final Type BOTTOM = new BottomType();
     private static final Option<List<Type>> THROWS_BOTTOM =
         Option.some(Collections.singletonList(BOTTOM));
-    private static final Set<InferenceVarType> emptySet =
-        new HashSet<InferenceVarType>();
+    private static final List<InferenceVarType> emptyList =
+        new ArrayList<InferenceVarType>();
 
     /**
      * Convert the type to a normal form.
@@ -71,145 +71,145 @@ public class TypeAnalyzerUtil {
         });
     }
 
-    private static Set<InferenceVarType> collectVs(Option<VarargsType> varargs) {
-        if (varargs.isNone()) return new HashSet<InferenceVarType>();
+    private static List<InferenceVarType> collectVs(Option<VarargsType> varargs) {
+        if (varargs.isNone()) return new ArrayList<InferenceVarType>();
         else return collectV(Option.unwrap(varargs).getType());
     }
 
-    private static Set<InferenceVarType> collectVs(List<KeywordType> keywords) {
-        Set<InferenceVarType> set = new HashSet<InferenceVarType>();
+    private static List<InferenceVarType> collectVs(List<KeywordType> keywords) {
+        List<InferenceVarType> list = new ArrayList<InferenceVarType>();
         for (KeywordType kwd : keywords) {
-            set.addAll(collectV(kwd.getType()));
+            list.addAll(collectV(kwd.getType()));
         }
-        return set;
+        return list;
     }
 
-    private static Set<InferenceVarType> collectVs(Iterable<? extends Type> ts) {
-        Set<InferenceVarType> set = new HashSet<InferenceVarType>();
+    private static List<InferenceVarType> collectVs(Iterable<? extends Type> ts) {
+        List<InferenceVarType> list = new ArrayList<InferenceVarType>();
         for (Type type : ts) {
-            set.addAll(collectV(type));
+            list.addAll(collectV(type));
         }
-        return set;
+        return list;
     }
 
-    private static Set<InferenceVarType> collectVs(Type... ts) {
-        Set<InferenceVarType> set = new HashSet<InferenceVarType>();
+    private static List<InferenceVarType> collectVs(Type... ts) {
+        List<InferenceVarType> list = new ArrayList<InferenceVarType>();
         for (Type type : ts) {
-            set.addAll(collectV(type));
+            list.addAll(collectV(type));
         }
-        return set;
+        return list;
     }
 
-    private static Set<InferenceVarType> collectV(Type type) {
-        return (Set<InferenceVarType>)
-               type.accept(new NodeAbstractVisitor<Set<InferenceVarType>>() {
+    private static List<InferenceVarType> collectV(Type type) {
+        return (List<InferenceVarType>)
+               type.accept(new NodeAbstractVisitor<List<InferenceVarType>>() {
             @Override
-            public Set<InferenceVarType> forType(Type t) { return emptySet; }
+            public List<InferenceVarType> forType(Type t) { return emptyList; }
             @Override
-            public Set<InferenceVarType> forExponentType(ExponentType t) {
+            public List<InferenceVarType> forExponentType(ExponentType t) {
                 return collectV(t.getBase());
             }
             @Override
-            public Set<InferenceVarType> forProductDim(ProductDim t) {
-                Set<InferenceVarType> vars = collectV(t.getMultiplier());
+            public List<InferenceVarType> forProductDim(ProductDim t) {
+                List<InferenceVarType> vars = collectV(t.getMultiplier());
                 vars.addAll(collectV(t.getMultiplicand()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forQuotientDim(QuotientDim t) {
-                Set<InferenceVarType> vars = collectV(t.getNumerator());
+            public List<InferenceVarType> forQuotientDim(QuotientDim t) {
+                List<InferenceVarType> vars = collectV(t.getNumerator());
                 vars.addAll(collectV(t.getDenominator()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forExponentDim(ExponentDim t) {
+            public List<InferenceVarType> forExponentDim(ExponentDim t) {
                 return collectV(t.getBase());
             }
             @Override
-            public Set<InferenceVarType> forOpDim(OpDim t) {
+            public List<InferenceVarType> forOpDim(OpDim t) {
                 return collectV(t.getVal());
             }
             @Override
-            public Set<InferenceVarType> forArrowType(ArrowType t) {
-                Set<InferenceVarType> vars = collectV(t.getDomain());
+            public List<InferenceVarType> forArrowType(ArrowType t) {
+                List<InferenceVarType> vars = collectV(t.getDomain());
                 vars.addAll(collectV(t.getRange()));
                 vars.addAll(collectV(Option.unwrap(t.getThrowsClause()).get(0)));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> for_RewriteGenericArrowType(_RewriteGenericArrowType t) {
+            public List<InferenceVarType> for_RewriteGenericArrowType(_RewriteGenericArrowType t) {
                 // ???????????????????????????
-                return emptySet;
+                return emptyList;
             }
             @Override
-            public Set<InferenceVarType> forArrayType(ArrayType t) {
+            public List<InferenceVarType> forArrayType(ArrayType t) {
                 // ???????????????????????????
-                return emptySet;
+                return emptyList;
             }
             @Override
-            public Set<InferenceVarType> forInferenceVarType(InferenceVarType t) {
-                Set<InferenceVarType> set = emptySet;
-                set.add(t);
-                return set;
+            public List<InferenceVarType> forInferenceVarType(InferenceVarType t) {
+                List<InferenceVarType> list = new ArrayList<InferenceVarType>();
+                list.add(t);
+                return list;
             }
             @Override
-            public Set<InferenceVarType> forMatrixType(MatrixType t) {
+            public List<InferenceVarType> forMatrixType(MatrixType t) {
                 // ???????????????????????????
-                return emptySet;
+                return emptyList;
             }
             @Override
-            public Set<InferenceVarType> forInstantiatedType(InstantiatedType t) {
+            public List<InferenceVarType> forInstantiatedType(InstantiatedType t) {
                 return collectVs(t.getArgs());
             }
             @Override
-            public Set<InferenceVarType> forTupleType(TupleType t) {
+            public List<InferenceVarType> forTupleType(TupleType t) {
                 return collectVs(t.getElements());
             }
             @Override
-            public Set<InferenceVarType> forArgType(ArgType t) {
-                Set<InferenceVarType> vars = collectVs(t.getElements());
+            public List<InferenceVarType> forArgType(ArgType t) {
+                List<InferenceVarType> vars = collectVs(t.getElements());
                 vars.addAll(collectVs(t.getVarargs()));
                 vars.addAll(collectVs(t.getKeywords()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forAndType(AndType t) {
-                Set<InferenceVarType> vars = collectV(t.getFirst());
+            public List<InferenceVarType> forAndType(AndType t) {
+                List<InferenceVarType> vars = collectV(t.getFirst());
                 vars.addAll(collectV(t.getSecond()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forOrType(OrType t) {
-                Set<InferenceVarType> vars = collectV(t.getFirst());
+            public List<InferenceVarType> forOrType(OrType t) {
+                List<InferenceVarType> vars = collectV(t.getFirst());
                 vars.addAll(collectV(t.getSecond()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forFixedPointType(FixedPointType t) {
+            public List<InferenceVarType> forFixedPointType(FixedPointType t) {
                 return collectV(t.getBody());
             }
             @Override
-            public Set<InferenceVarType> forTaggedDimType(TaggedDimType t) {
-                Set<InferenceVarType> vars = collectV(t.getType());
+            public List<InferenceVarType> forTaggedDimType(TaggedDimType t) {
+                List<InferenceVarType> vars = collectV(t.getType());
                 vars.addAll(collectV(t.getDim()));
                 return vars;
             }
             @Override
-            public Set<InferenceVarType> forTaggedUnitType(TaggedUnitType t) {
+            public List<InferenceVarType> forTaggedUnitType(TaggedUnitType t) {
                 return collectV(t.getType());
             }
             @Override
-            public Set<InferenceVarType> forTypeArg(TypeArg t) {
+            public List<InferenceVarType> forTypeArg(TypeArg t) {
                 return collectV(t.getType());
             }
             @Override
-            public Set<InferenceVarType> forDimArg(DimArg t) {
+            public List<InferenceVarType> forDimArg(DimArg t) {
                 return collectV(t.getDim());
             }
         });
     }
 
-    private static Map<InferenceVarType,Integer> mapVs(Set<InferenceVarType> vs) {
+    private static Map<InferenceVarType,Integer> mapVs(List<InferenceVarType> vs) {
         Map<InferenceVarType,Integer> map =
             new HashMap<InferenceVarType,Integer>();
         int index = 0;
@@ -365,9 +365,9 @@ public class TypeAnalyzerUtil {
     }
 
     public static Map<InferenceVarType,Integer> mapVs(Type t, Type s) {
-        Set<InferenceVarType> set = collectV(t);
-        set.addAll(collectV(s));
-        return mapVs(set);
+        List<InferenceVarType> list = collectV(t);
+        list.addAll(collectV(s));
+        return mapVs(list);
     }
 
     /**
