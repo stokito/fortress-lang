@@ -121,14 +121,24 @@ public class NodeFactory {
                              newThrows, t.isIo());
     }
 
-    public static InferenceVarType makeInferenceVarType(int index) {
-        return new InferenceVarType(new Integer(index));
-    }
-
     public static InstantiatedType makeInstantiatedType(InstantiatedType t,
                                                         List<StaticArg> args) {
         return new InstantiatedType(t.getSpan(), t.isParenthesized(),
                                     t.getName(), args);
+    }
+
+    public static InferenceVarType makeCanonicalizedInferenceVarType(int index) {
+        return new InferenceVarType(new Integer(index), index);
+    }
+
+    public static InferenceVarType makeInferenceVarType() {
+        return new InferenceVarType(new Object());
+    }
+
+    public static List<Type> makeInferenceVarTypes(int size) {
+        List<Type> result = new ArrayList<Type>(size);
+        for (int i = 0; i < size; i++) { result.add(makeInferenceVarType()); }
+        return result;
     }
 
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
@@ -250,16 +260,6 @@ public class NodeFactory {
 
  public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
   return new ConstructorFnName(def.getSpan(), def);
- }
-
- public static InferenceVarType makeInferenceVarType() {
-   return new InferenceVarType(new Object());
- }
-
- public static List<Type> makeInferenceVarTypes(int size) {
-   List<Type> result = new ArrayList<Type>(size);
-   for (int i = 0; i < size; i++) { result.add(makeInferenceVarType()); }
-   return result;
  }
 
  /** Alternatively, you can invoke the Contract constructor without any parameters */

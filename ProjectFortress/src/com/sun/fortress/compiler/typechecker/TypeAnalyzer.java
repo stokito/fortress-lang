@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.*;
+import java.lang.Boolean;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
@@ -36,15 +37,14 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarType;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInferenceVarTypes;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 import static com.sun.fortress.interpreter.evaluator.InterpreterBug.bug;
-
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.normalize;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.canonicalize;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.unCanonicalize;
 
 public class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = true;
 
     private static final int MAX_SUBTYPE_DEPTH = 4;
-
-    private static final Option<List<Type>> THROWS_BOTTOM =
-        Option.some(Collections.singletonList(BOTTOM));
 
     private final TraitTable _table;
     private final SubtypeCache _cache;
@@ -54,44 +54,6 @@ public class TypeAnalyzer {
         _table = table;
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
-    }
-
-    /**
-     * Convert the type to a normal form.  A normalized type has the following properties:
-     * <ul>
-     * <li>The throws clause of all arrow types is a singleton list.
-     * </ul>
-     */
-    public Type normalize(Type t) {
-        return (Type) t.accept(new NodeUpdateVisitor() {
-
-            public Node forArrowTypeOnly(ArrowType t, Type newDomain,
-                                         Type newRange, Option<List<Type>> newThrows) {
-                // fix newThrows so that it is a singleton list
-                if (newThrows.isNone()) { newThrows = THROWS_BOTTOM; }
-                else {
-                    List<Type> throwsList = Option.unwrap(newThrows);
-                    if (throwsList.isEmpty()) { newThrows = THROWS_BOTTOM; }
-                    else if (throwsList.size() > 1) {
-                        Type union = null;
-                        for (Type elt : throwsList) {
-                            if (union == null) { union = elt; }
-                            else { union = new OrType(union, elt); }
-                        }
-                        newThrows = Option.some(Collections.singletonList(union));
-                    }
-                }
-                if (t.getDomain() == newDomain && t.getRange() == newRange &&
-                    t.getThrowsClause() == newThrows) {
-                    return t;
-                }
-                else {
-                    return NodeFactory.makeArrowType(t, newDomain, newRange,
-                                                     newThrows);
-                }
-            }
-
-        });
     }
 
     /**
@@ -106,15 +68,16 @@ public class TypeAnalyzer {
     public Type join(Type s, Type t) {
       return SIMPLIFIED_SUBTYPING ? jn(s, t, _emptyHistory) : join(s, t, _emptyHistory);
     }
-    
+
     public Type meet(Type s, Type t) {
       return SIMPLIFIED_SUBTYPING ? mt(s, t, _emptyHistory) : meet(s, t, _emptyHistory);
     }
-    
+
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         try {
-        if (_cache.contains(s, t)) { return _cache.value(s, t); }
+        Pair<Boolean,Option<ConstraintFormula>> cached = _cache.contains(s, t);
+        if (cached.first().booleanValue()) { return Option.unwrap(cached.second()); }
         else if (history.contains(s, t)) { return ConstraintFormula.FALSE; }
         else {
             final SubtypeHistory h = history.extend(s, t);
@@ -467,8 +430,12 @@ public class TypeAnalyzer {
         debug.logStart(new String[]{"s", "t"}, s, t);
         //debug.logStack();
         try {
-        if (_cache.contains(s, t)) { return _cache.value(s, t); }
+        Pair<Boolean,Option<ConstraintFormula>> cached = _cache.contains(s, t);
+        if (cached.first().booleanValue()) { return Option.unwrap(cached.second()); }
         else if (history.size() > MAX_SUBTYPE_DEPTH || history.contains(s, t)) {
+        /*
+        else if (history.contains(s, t)) {
+        */
             return ConstraintFormula.FALSE;
         }
         else {
@@ -1344,13 +1311,15 @@ public class TypeAnalyzer {
         }
         public int size() { return _entries.size(); }
         public boolean contains(Type s, Type t) {
-            return _entries.contains(s, t);
+            Pair<Type, Type> pair = canonicalize(s, t).first();
+            return _entries.contains(pair.first(), pair.second());
         }
         // Why creating a new SubtypeHistory? -- Sukyoung
         public SubtypeHistory extend(Type s, Type t) {
             Relation<Type, Type> newEntries = new HashRelation<Type, Type>();
             newEntries.addAll(_entries);
-            newEntries.add(s, t);
+            Pair<Type, Type> pair = canonicalize(s, t).first();
+            newEntries.add(pair.first(), pair.second());
             return new SubtypeHistory(newEntries);
         }
         public ConstraintFormula subtype(Type s, Type t) {
@@ -1373,16 +1342,28 @@ public class TypeAnalyzer {
     private static class SubtypeCache {
         HashMap<Pair<Type,Type>,ConstraintFormula> subtypeCache =
             new HashMap<Pair<Type,Type>,ConstraintFormula>();
+
         public void put(Type s, Type t, ConstraintFormula c) {
-            if (subtypeCache.put(new Pair(s,t), c) != null) {
-                bug("Duplicate subtype checking: " + s + " <: " + t);
+            Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
+                pair = canonicalize(s,t);
+            Pair<Type,Type> canonicalizedTypes = pair.first();
+            Map<InferenceVarType,Integer> map = pair.second();
+            if (!subtypeCache.containsKey(canonicalizedTypes)) {
+                subtypeCache.put(canonicalizedTypes, c);
             }
         }
-        public boolean contains(Type s, Type t) {
-            return subtypeCache.containsKey(new Pair(s,t));
-        }
-        public ConstraintFormula value(Type s, Type t) {
-            return subtypeCache.get(new Pair(s,t));
+
+        public Pair<Boolean,Option<ConstraintFormula>> contains(Type s, Type t) {
+            Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
+                pair = canonicalize(s, t);
+            Map<InferenceVarType,Integer> map = pair.second();
+            Pair<Type,Type> canonicalizedTypes = pair.first();
+            if (subtypeCache.containsKey(canonicalizedTypes)) {
+                ConstraintFormula c = subtypeCache.get(canonicalizedTypes);
+                return new Pair(Boolean.TRUE,
+                                Option.some(c));
+            } else return new Pair(Boolean.FALSE,
+                                   Option.<ConstraintFormula>none());
         }
     }
 

@@ -56,7 +56,7 @@ public abstract class ConstraintFormula {
      *  neither unsatisfiable (due to conflicting bounds on a variable) nor
      *  true (due to trivial bounds).
      */
-    private static class SimpleFormula extends ConstraintFormula {
+    public static class SimpleFormula extends ConstraintFormula {
         private Map<InferenceVarType, Type> _upperBounds;
         private Map<InferenceVarType, Type> _lowerBounds;
         public SimpleFormula(Map<InferenceVarType, Type> upperBounds, Map<InferenceVarType, Type> lowerBounds) {
