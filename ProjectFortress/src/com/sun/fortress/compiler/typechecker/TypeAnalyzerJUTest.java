@@ -368,7 +368,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     /** Assumes each TraitIndex wraps a non-abstract declaration (a Decl). */
     private static TypeAnalyzer makeAnalyzer(TraitIndex... traits) {
         ComponentIndex c = component("TypeAnalyzerTestComponent", traits);
-        return new TypeAnalyzer(new TraitTable(c, GLOBAL_ENV));
+        return TypeAnalyzer.make(new TraitTable(c, GLOBAL_ENV));
     }
     
 }
