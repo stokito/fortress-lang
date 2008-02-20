@@ -50,7 +50,7 @@ public class FileReadStream extends Constructor {
         String name = self_env.getValue("filename").getString();
         try {
             BufferedReader r = Useful.utf8BufferedFileReader(name);
-            return new PrimReader(name, r, selfType, self_env);
+            return new PrimReader(name, r, selfType, lex_env, self_env);
         } catch (FileNotFoundException ex) {
             return error("FileNotFound: "+name);
         }
@@ -63,8 +63,8 @@ public class FileReadStream extends Constructor {
         protected boolean consumed = false;
 
         public PrimReader(String name, BufferedReader reader,
-                          FType selfType, BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
+                          FType selfType, BetterEnv lexical_env, BetterEnv self_dot_env) {
+            super(selfType, lexical_env, self_dot_env);
             this.reader = reader;
             this.name = name;
         }
