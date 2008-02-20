@@ -1219,7 +1219,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
                  * inferred type
                  * Used internally for type analysis
                  */
-                InferenceVarType(Object id);
+                InferenceVarType(Object id, int index = -1);
                 /**
                  * matrix type
                  * TraitType ::= Type ^ IntExpr
