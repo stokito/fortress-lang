@@ -58,7 +58,7 @@ public class Reflect extends Constructor {
         if (it==null) {
             synchronized(this) {
                 if (it==null) {
-                    it = new ReflectedType(selfType, self_env);
+                    it = new ReflectedType(selfType, lex_env, self_env);
                 }
             }
         }
@@ -66,8 +66,8 @@ public class Reflect extends Constructor {
     }
 
     private static final class ReflectedType extends FObject {
-        public ReflectedType(FType selfType, BetterEnv self_dot_env) {
-            super(selfType, BetterEnv.blessedEmpty(), self_dot_env);
+        public ReflectedType(FType selfType, BetterEnv lex_env, BetterEnv self_dot_env) {
+            super(selfType, lex_env, self_dot_env);
         }
 
         FType getTy() {

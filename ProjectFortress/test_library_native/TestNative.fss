@@ -22,7 +22,8 @@ language="java"
 package="com.sun.fortress.interpreter.glue.test"
 
 object TNFoo[\nat n\](s:String)
-  bar():String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.TNFoo$bar")
+  bar():String = "" doit()
+  doit():String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.TNFoo$bar")
 end
 
 end
