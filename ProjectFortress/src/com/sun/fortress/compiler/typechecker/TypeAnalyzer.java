@@ -62,10 +62,10 @@ public abstract class TypeAnalyzer {
         return new LeafTypeAnalyzer(table);
     }
     
-    public TypeAnalyzer extend(List<StaticParam> params) {
-        return new ConsTypeAnalyzer(_table, this, _staticParamEnv.extend(params));
+    public TypeAnalyzer extend(List<StaticParam> params, WhereClause whereClause) {
+        return new ConsTypeAnalyzer(_table, this, _staticParamEnv.extend(params, whereClause));
     }
-
+    
     /**
      * Produce a formula that, if satisfied, will support s as a subtype of t.
      * Assumes s and t are normalized.

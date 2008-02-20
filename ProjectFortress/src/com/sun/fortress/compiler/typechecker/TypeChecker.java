@@ -80,19 +80,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
-                               params.extend(newParams), analyzer.extend(newStaticParams));
+                               params.extend(newParams), analyzer.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
         return new TypeChecker(table, staticParams.extend(newStaticParams, whereClause),
-                               params.extendWithParams(newParams), analyzer.extend(newStaticParams));
+                               params.extendWithParams(newParams), analyzer.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
         return new TypeChecker(table,
                                staticParams.extend(newStaticParams, whereClause),
                                params,
-                               analyzer.extend(newStaticParams));
+                               analyzer.extend(newStaticParams, whereClause));
     }
 
     private TypeChecker extend(List<LValueBind> bindings) {
