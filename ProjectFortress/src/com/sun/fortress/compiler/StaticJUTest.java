@@ -37,7 +37,6 @@ public class StaticJUTest extends TestCase {
         "XXXUndefinedVar.fss",
         "XXXUndefinedTopLevelVar.fss");
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
-        "AsExpr.fss",
         "IfThen.fss",
         "IfThenElse.fss",
         "SimpleProgram.fss",

@@ -59,6 +59,7 @@ public abstract class StaticParamEnv {
         else { return new WhereClauseEnv(params, whereClause, this); }
     }
 
+
 //    public abstract Option<OperatorParam> operatorParam(Op name);
 //    public abstract Option<BoolParam> boolParam(Id name);
 //    public abstract Option<DimensionParam> dimensionParam(Id name);
