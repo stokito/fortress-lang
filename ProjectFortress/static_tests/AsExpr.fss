@@ -22,7 +22,7 @@ export Executable
 
 run(args:String...):() = do
   x:ZZ32 = 5
-  y:Number = x as Any
+  y:Any = x as Any
 end
 
 end

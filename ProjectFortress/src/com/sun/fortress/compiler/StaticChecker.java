@@ -47,7 +47,7 @@ public class StaticChecker {
      * When typecheck is true, the TypeChecker is called during static checking. 
      * It's false by default to allow the static checker to be used at the command
      * line before the type checker is fully functional.
-     * CompilerTopLevelJUTests sets typecheck to true before running its tests.
+     * StaticTest sets typecheck to true before running type checking tests.
      */
     public static boolean typecheck = false;
     
