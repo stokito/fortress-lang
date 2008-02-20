@@ -28,6 +28,10 @@ public abstract class StaticParamEnv {
     public static StaticParamEnv make(StaticParam... params) {
         return EmptyStaticParamEnv.ONLY.extend(params);
     }
+    
+    public static StaticParamEnv make(List<StaticParam> params) {
+        return EmptyStaticParamEnv.ONLY.extend(params);
+    }
 
     public abstract Option<StaticParam> binding(SimpleName name);
 

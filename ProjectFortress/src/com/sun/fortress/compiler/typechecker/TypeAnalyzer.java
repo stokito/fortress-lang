@@ -41,19 +41,29 @@ import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.normalize;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.canonicalize;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.unCanonicalize;
 
-public class TypeAnalyzer {
+public abstract class TypeAnalyzer {
     private static final boolean SIMPLIFIED_SUBTYPING = true;
 
     private static final int MAX_SUBTYPE_DEPTH = 4;
 
-    private final TraitTable _table;
-    private final SubtypeCache _cache;
-    private final SubtypeHistory _emptyHistory;
+    protected final TraitTable _table;
+    protected final SubtypeCache _cache;
+    protected final SubtypeHistory _emptyHistory;
+    protected final StaticParamEnv _staticParamEnv;
 
-    public TypeAnalyzer(TraitTable table) {
+    public TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv) {
         _table = table;
         _cache = new SubtypeCache();
         _emptyHistory = new SubtypeHistory();
+        _staticParamEnv = staticParamEnv;
+    }
+    
+    public static TypeAnalyzer make(TraitTable table) {
+        return new LeafTypeAnalyzer(table);
+    }
+    
+    public TypeAnalyzer extend(List<StaticParam> params) {
+        return new ConsTypeAnalyzer(_table, this, _staticParamEnv.extend(params));
     }
 
     /**
@@ -76,8 +86,8 @@ public class TypeAnalyzer {
     private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         try {
-        Pair<Boolean,Option<ConstraintFormula>> cached = _cache.contains(s, t);
-        if (cached.first().booleanValue()) { return Option.unwrap(cached.second()); }
+        Option<ConstraintFormula> cached = cacheContains(s, t);
+        if (cached.isSome()) { return Option.unwrap(cached); }
         else if (history.contains(s, t)) { return ConstraintFormula.FALSE; }
         else {
             final SubtypeHistory h = history.extend(s, t);
@@ -416,7 +426,7 @@ public class TypeAnalyzer {
                 });
                 result = result.or(sResult, h);
             }
-            _cache.put(s, t, result);
+            cachePut(s, t, result);
             return result;
         }
         } finally { debug.logEnd(); }
@@ -430,8 +440,8 @@ public class TypeAnalyzer {
         debug.logStart(new String[]{"s", "t"}, s, t);
         //debug.logStack();
         try {
-        Pair<Boolean,Option<ConstraintFormula>> cached = _cache.contains(s, t);
-        if (cached.first().booleanValue()) { return Option.unwrap(cached.second()); }
+        Option<ConstraintFormula> cached = cacheContains(s, t);
+        if (cached.isSome()) { return Option.unwrap(cached); }
         else if (history.size() > MAX_SUBTYPE_DEPTH || history.contains(s, t)) {
         /*
         else if (history.contains(s, t)) {
@@ -919,7 +929,7 @@ public class TypeAnalyzer {
             // match where declarations
             // reverse aliases
 
-            _cache.put(s, t, result);
+            cachePut(s, t, result);
             return result;
         }
         } finally { debug.logEnd(); }
@@ -1337,9 +1347,13 @@ public class TypeAnalyzer {
                 TypeAnalyzer.this.jn(s, t, this) :
                 TypeAnalyzer.this.join(s, t, this);
         }
-    }
+    }    
+    
+    protected abstract Option<ConstraintFormula> cacheContains(Type s, Type t);
+    
+    protected abstract void cachePut(Type s, Type t, ConstraintFormula c);
 
-    private static class SubtypeCache {
+    protected static class SubtypeCache {
         HashMap<Pair<Type,Type>,ConstraintFormula> subtypeCache =
             new HashMap<Pair<Type,Type>,ConstraintFormula>();
 
@@ -1353,17 +1367,17 @@ public class TypeAnalyzer {
             }
         }
 
-        public Pair<Boolean,Option<ConstraintFormula>> contains(Type s, Type t) {
+        public Option<ConstraintFormula> contains(Type s, Type t) {
             Pair<Pair<Type,Type>, Map<InferenceVarType,Integer>>
                 pair = canonicalize(s, t);
             Map<InferenceVarType,Integer> map = pair.second();
             Pair<Type,Type> canonicalizedTypes = pair.first();
             if (subtypeCache.containsKey(canonicalizedTypes)) {
                 ConstraintFormula c = subtypeCache.get(canonicalizedTypes);
-                return new Pair(Boolean.TRUE,
-                                Option.some(c));
-            } else return new Pair(Boolean.FALSE,
-                                   Option.<ConstraintFormula>none());
+                return Option.some(c);
+            } else {
+                return Option.<ConstraintFormula>none();
+            }
         }
     }
 
