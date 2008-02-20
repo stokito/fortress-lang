@@ -19,31 +19,34 @@ package com.sun.fortress.syntax_abstractions;
 
 import java.util.Arrays;
 import java.util.List;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import com.sun.fortress.compiler.StaticTest;
+import com.sun.fortress.compiler.StaticTestSuite;
+import com.sun.fortress.interpreter.drivers.ProjectProperties;
 
-public class SyntaxAbstractionJUTest extends StaticTest {
-
-	public SyntaxAbstractionJUTest() {
-		staticTests += "syntax_abstraction/";
-	}
-
-	private final List<String> NOT_PASSING = Arrays.asList(
-			staticTests + "SyntaxHelloWorldUse.fss",
-			staticTests + "SyntaxHelloWorld.fss",
-			staticTests + "SyntaxGrammarImportsUse.fss",
-			staticTests + "XXXSyntaxGrammarImportsUse.fss",
-			staticTests + "SyntaxGrammarImports.fss",
-			staticTests + "SyntaxGrammarImportsA.fss",
-			staticTests + "SyntaxProductionExtends.fsi",
-			staticTests + "XXXSyntaxMultipleGrammarsWithSameName.fsi",
-			staticTests + "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
-			staticTests + "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi"
-			// really not working:
-			// staticTests + "XXXSyntaxNoFortressAstImport.fsi",
-	);
-
-	@Override
-	public List<String> getNotPassing() {
-		return NOT_PASSING;
-	}}
+public class SyntaxAbstractionJUTest extends TestCase {
+    
+    private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
+    private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList(
+        "SyntaxHelloWorldUse.fss",
+        "SyntaxHelloWorld.fss",
+        "SyntaxGrammarImportsUse.fss",
+        "XXXSyntaxGrammarImportsUse.fss",
+        "SyntaxGrammarImports.fss",
+        "SyntaxGrammarImportsA.fss",
+        "SyntaxProductionExtends.fsi",
+        // really not working:
+        // "XXXSyntaxNoFortressAstImport.fsi",
+        "XXXSyntaxMultipleGrammarsWithSameName.fsi",
+        "XXXSyntaxMultipleNonterminalDefsWithSameName.fsi",
+        "XXXSyntaxGrammarExtendsNonExistingGrammar.fsi");
+    
+    public static TestSuite suite() {
+        return new StaticTestSuite("SyntaxAbstractionJUTest",
+                                   STATIC_TESTS_DIR,
+                                   FAILING_DISAMBIGUATOR,
+                                   null);     
+    }
+    
+}

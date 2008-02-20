@@ -15,14 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MaltypedTopLevelVar
+component DXXMutualSeparateLetFn
 export Executable
 
-x: Foo = Bar
-
-object Foo end
-object Bar end
-
-run(args:String...):() = do end
+(* Tests that mutually recursive, *nonconsecutive* local function definitions
+ * do not work. *)
+  
+run(args:String...):() = do
+  odd(x:ZZ32):Boolean = if x == 1 then true else even(x-1) end
+  odd(5)
+  f(x:ZZ32):ZZ32 = 0
+  even(x:ZZ32):Boolean = if x == 0 then true else odd(x-1) end
+  even(5)
+end
 
 end

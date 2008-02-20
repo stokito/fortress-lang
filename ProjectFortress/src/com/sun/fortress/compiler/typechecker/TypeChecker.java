@@ -37,7 +37,7 @@ import java.util.*;
 
 import java.io.PrintWriter;
 
-import static com.sun.fortress.compiler.StaticError.errorMsg;
+import static com.sun.fortress.compiler.TypeError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
@@ -140,15 +140,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return checkSubtype(subtype,
                             supertype,
                             ast,
-                            StaticError.make(errorMsg("Expected expression of type ", supertype, " ",
-                                                      "but was type ", subtype),
-                                             ast));
+                            TypeError.make(errorMsg("Expected expression of type ", supertype, " ",
+                                                    "but was type ", subtype),
+                                           ast));
     }
 
     /**
      * Check the subtype relation for the given types.  If subtype <: supertype, then a TypeCheckerResult
      * for the given node and corresponding type constraints will be returned.  Otherwise, a TypeCheckerResult
-     * for the given node with the given StaticError will be returned.
+     * for the given node with the given TypeError will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, StaticError error) {
         ConstraintFormula constraints = analyzer.subtype(subtype, supertype);
@@ -164,7 +164,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     /** Ignore unsupported nodes for now. */
     /*public TypeCheckerResult defaultCase(Node that) {
-        return new TypeCheckerResult(that, Types.Types.VOID, IterUtil.<StaticError>empty());
+        return new TypeCheckerResult(that, Types.VOID, IterUtil.<TypeError>empty());
     }*/
 
     public TypeCheckerResult forFnDef(FnDef that) {
@@ -208,14 +208,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return TypeCheckerResult.compose(new VarDecl(that.getSpan(),
                                                                  lhs,
                                                                  (Expr)initResult.ast()),
-                                                         initResult);
+                                                     initResult);
                 }
                 return checkSubtype(unwrap(initResult.type()),
                                     unwrap(varType),
                                     that,
-                                    StaticError.make(errorMsg("Attempt to define variable ", var, " ",
-                                                              "with an expression of type ", unwrap(initResult.type())),
-                                                     that));
+                                    TypeError.make(errorMsg("Attempt to define variable ", var, " ",
+                                                            "with an expression of type ", unwrap(initResult.type())),
+                                                   that));
             } else { // Eventually, this case will involve type inference
                 // System.err.println("varType.isNone()");
                 return NI.nyi();
@@ -234,9 +234,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return checkSubtype(unwrap(initResult.type()),
                                 varType,
                                 that,
-                                StaticError.make(errorMsg("Attempt to define variables ", lhs, " ",
-                                                          "with an expression of type ", unwrap(initResult.type())),
-                                                 that));
+                                TypeError.make(errorMsg("Attempt to define variables ", lhs, " ",
+                                                        "with an expression of type ", unwrap(initResult.type())),
+                                               that));
         }
     }
 
@@ -247,7 +247,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return new TypeCheckerResult(that, unwrap(thatType));
         } else {
             StaticError error =
-                StaticError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
+                TypeError.make(errorMsg("Attempt to reference an unbound identifier: ", that), that);
             return new TypeCheckerResult(that, error);
         }
     }
@@ -283,8 +283,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         } else {
             // System.err.println("y");
             StaticError error =
-                StaticError.make(errorMsg("Attempt to reference unbound variable: \n    ", that),
-                                 that);
+                TypeError.make(errorMsg("Attempt to reference unbound variable: \n    ", that),
+                               that);
             return new TypeCheckerResult(that, error);
         }
     }
@@ -390,8 +390,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //        if (var_result.isSome()) {
 //            return new TypeCheckerResult(that, varType);
 //        } else {
-//            StaticError error =
-//                StaticError.make(errorMsg("Attempt to reference unbound variable: ", that),
+//            TypeError error =
+//                TypeError.make(errorMsg("Attempt to reference unbound variable: ", that),
 //                                 that);
 //            return new TypeCheckerResult(that, error);
 //        }
@@ -435,9 +435,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         checkSubtype(clauseType,
                                      Types.VOID,
                                      that,
-                                     StaticError.make(errorMsg("An 'if' clause without corresponding 'else' has type ",
-                                                               clauseType, " instead of type ()"),
-                                                      clauseResult.ast())),
+                                     TypeError.make(errorMsg("An 'if' clause without corresponding 'else' has type ",
+                                                             clauseType, " instead of type ()"),
+                                                    clauseResult.ast())),
                         result);
                 } else {
                     result = TypeCheckerResult.compose(that, clauseResult, result);
@@ -461,9 +461,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 checkSubtype(testType,
                              Types.BOOLEAN,
                              test_result.ast(),
-                             StaticError.make(errorMsg("Attempt to use expression of type ", testType, " ",
-                                                       "as a test condition"),
-                                              test_result.ast())),
+                             TypeError.make(errorMsg("Attempt to use expression of type ", testType, " ",
+                                                     "as a test condition"),
+                                            test_result.ast())),
                 result);
         } else {
             result = TypeCheckerResult.compose(that, test_result, result);
@@ -496,7 +496,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forDoFrontOnly(DoFront that,
                                             Option<TypeCheckerResult> loc_result,
                                             TypeCheckerResult expr_result) {
-        System.err.println("forDoFrontOnly");
         if (loc_result.isSome()) {
             TypeCheckerResult _loc_result = unwrap(loc_result);
             if (_loc_result.type().isSome()) {
@@ -616,9 +615,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 checkSubtype(exprType,
                              ascriptedType,
                              expr_result.ast(),
-                             StaticError.make(errorMsg("Attempt to ascript expression of type ",
-                                                       exprType, " to non-supertype ", ascriptedType),
-                                              expr_result.ast())),
+                             TypeError.make(errorMsg("Attempt to ascript expression of type ",
+                                                     exprType, " to non-supertype ", ascriptedType),
+                                            expr_result.ast())),
                 expr_result,
                 type_result);
         } else {

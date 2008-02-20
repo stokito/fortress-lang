@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component UndefinedArrayRef
+component XXXUndefinedArrayRef
 export Executable
 
 run(args:String...):() = do
