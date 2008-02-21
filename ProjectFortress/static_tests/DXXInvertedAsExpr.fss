@@ -15,21 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXIfThenNotVoid
+component DXXInvertedAsExpr
 export Executable
 
-object A end
-object B end
-
-(* Each IfClause should have type () if there is no corresponding 'else'. *)
+(* Test that supertype cannot be ascripted to a subtype. *)
 
 run(args:String...):() = do
-  if false then
-    A
-  elif true then
-    B
-    ()
-  end
+  x:Any = 5
+  y:ZZ32 = x as ZZ32
 end
 
 end

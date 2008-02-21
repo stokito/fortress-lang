@@ -93,7 +93,10 @@ public abstract class TypeAnalyzer {
             final SubtypeHistory h = history.extend(s, t);
             ConstraintFormula result = ConstraintFormula.FALSE;
 
-            if (s instanceof BottomType) { result = result.or(ConstraintFormula.TRUE, h); }
+            // Handle trivial cases
+            if (s.equals(BOTTOM)) { return ConstraintFormula.TRUE; }
+            if (t.equals(ANY)) { return ConstraintFormula.TRUE; }
+            if (s.equals(ANY) && !t.equals(ANY)) { return ConstraintFormula.FALSE; }
 
             if (!result.isTrue()) {
                 ConstraintFormula tResult = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {

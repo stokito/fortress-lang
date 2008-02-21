@@ -655,7 +655,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               List<TypeCheckerResult> imports_result,
                                               List<TypeCheckerResult> exports_result,
                                               List<TypeCheckerResult> decls_result) {
-        System.err.println("forComponentOnly");
         return TypeCheckerResult.compose(that,
                                          name_result,
                                          TypeCheckerResult.compose(that, imports_result),
