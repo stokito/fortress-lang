@@ -27,6 +27,14 @@ import com.sun.fortress.useful.HasAt;
 public abstract class TypeError extends StaticError {
 
     /**
+     * Make a simple static error with the given location.
+     */
+    @Override
+    public static StaticError make(String description, HasAt location) {
+        return make(description, location.at());
+    }
+
+    /**
      * Make a simple type error with type description "Error" and the given
      * location.
      */

@@ -165,13 +165,15 @@ public final class StaticTestSuite extends TestSuite {
         
         private void assertTypeCheckerFails(File f) throws IOException {
             Iterable<? extends StaticError> allErrors = compile(f);
+            String msg = "";
             List<TypeError> typeErrors = new ArrayList();
             for (StaticError error : allErrors) {
                 try { throw error; }
                 catch (TypeError e) { typeErrors.add(e); }
-                catch (StaticError e) {}
+                catch (Fortress.WrappedException e) { msg += "\nStaticError (wrapped): " + e.getCause().toString(); }
+                catch (StaticError e) { msg += "\nStaticError: " + e.toString(); }
             }
-            assertFalse("Source " + f + " was compiled without type checker errors",
+            assertFalse("Source " + f + " was compiled without TypeErrors but got:" + msg,
                         IterUtil.isEmpty(typeErrors));
             if (VERBOSE) {
                 System.out.println(f + "  OK -- errors:");
@@ -181,8 +183,14 @@ public final class StaticTestSuite extends TestSuite {
         
         private void assertWellFormedProgram(File f) throws IOException {
             Iterable<? extends StaticError> errors = compile(f);
-            String message = "Source " + f + " produces static errors:\n" +
-                             IterUtil.multilineToString(errors);
+            String message = "Source " + f + " produces static errors:\n";
+            for (StaticError e : errors) {
+                if (e instanceof Fortress.WrappedException) {
+                    message += e.getCause().toString() + "\n";
+                } else {
+                    message += e.toString() + "\n";
+                }
+            }
             assertTrue(message, IterUtil.isEmpty(errors));
             if (VERBOSE) { System.out.println(f + "  OK"); }
         }

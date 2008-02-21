@@ -364,6 +364,11 @@ public class Fortress {
             return "";
         }
         
+        @Override
+        public Throwable getCause() {
+            return throwable;
+        }
+        
         public WrappedException(Throwable th) {
             throwable = th;
         }
