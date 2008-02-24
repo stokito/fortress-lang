@@ -28,7 +28,7 @@ public abstract class StaticParamEnv {
     public static StaticParamEnv make(StaticParam... params) {
         return EmptyStaticParamEnv.ONLY.extend(params);
     }
-    
+
     public static StaticParamEnv make(List<StaticParam> params) {
         return EmptyStaticParamEnv.ONLY.extend(params);
     }
@@ -46,12 +46,12 @@ public abstract class StaticParamEnv {
     public StaticParamEnv extend(StaticParam... params) {
         return this.extend(Arrays.asList(params));
     }
-    
+
     public StaticParamEnv extend(List<StaticParam> params) {
         if (params.size() == 0) { return this; }
         else { return new NonEmptyStaticParamEnv(params, this); }
     }
-    
+
     public StaticParamEnv extend(List<StaticParam> params, WhereClause whereClause) {
         // For now, only bindings of hidden type variables are supported (not constraints).
         List<WhereBinding> whereBindings = whereClause.getBindings();

@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.FortressError;
 import com.sun.fortress.nodes.VarargsType;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.AbsTupleType;
+import com.sun.fortress.nodes.AbstractTupleType;
 import com.sun.fortress.nodes.ArgType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
@@ -355,7 +355,7 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
-        if (!(val instanceof AbsTupleType)) return false;
+        if (!(val instanceof AbstractTupleType)) return false;
         if (val instanceof ArgType) {
             ArgType tup = (ArgType) val;
             if (!(tup.getKeywords().isEmpty())) return false;

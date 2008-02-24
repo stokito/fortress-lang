@@ -26,19 +26,19 @@ import static edu.rice.cs.plt.tuple.Option.*;
 public class NonEmptyStaticParamEnv extends StaticParamEnv {
     private List<StaticParam> entries;
     private StaticParamEnv parent;
-    
+
     public NonEmptyStaticParamEnv(List<StaticParam> _entries, StaticParamEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
-    
+
     private SimpleName paramName(StaticParam param) {
         // Both OperatorParams and IdStaticParams have name fields, but they
-        // differ in the types of the fields. 
-        if (param instanceof OperatorParam) { 
-            return ((OperatorParam)param).getName(); 
+        // differ in the types of the fields.
+        if (param instanceof OperatorParam) {
+            return ((OperatorParam)param).getName();
         } else { // param instanceof IdStaticParam
-            return ((IdStaticParam)param).getName(); 
+            return ((IdStaticParam)param).getName();
         }
     }
 
