@@ -120,10 +120,10 @@ public class NodeUtil {
             return "prefix "+s;
         if (f instanceof PostFixity)
             return "postfix "+s;
-    
+
         return s;
     }
-    
+
     private final static NodeVisitor<String> nameGetter =
         new NodeAbstractVisitor<String>() {
 
@@ -146,8 +146,6 @@ public class NodeUtil {
         return stringName(n.getDef());
         }
     };
-    
-    
 
     /* nameString *************************************************************/
     public static String nameString(Name n) {

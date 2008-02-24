@@ -760,7 +760,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * labeled expression: tuple expression or argument expression
              */
-            abstract AbsTupleExpr(List<Expr> exprs);
+            abstract AbstractTupleExpr(List<Expr> exprs);
                 /**
                  * tuple expression
                  * TupleExpr ::= ( (Expr,)+ Expr )
@@ -1236,7 +1236,7 @@ abstract AbstractNode(ignoreForEquals Span span = new Span())
             /**
              * labeled type: tuple type or argument type
              */
-            abstract AbsTupleType(List<Type> elements);
+            abstract AbstractTupleType(List<Type> elements);
                 /**
                  * tuple type
                  * TupleType ::= ( Type, TypeList )
