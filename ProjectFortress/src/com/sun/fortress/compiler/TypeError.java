@@ -29,7 +29,7 @@ public abstract class TypeError extends StaticError {
     /**
      * Make a simple static error with the given location.
      */
-    @Override
+    
     public static StaticError make(String description, HasAt location) {
         return make(description, location.at());
     }
@@ -38,7 +38,7 @@ public abstract class TypeError extends StaticError {
      * Make a simple type error with type description "Error" and the given
      * location.
      */
-    @Override
+    
     public static StaticError make(final String description, final String location) {
         return new TypeError() {
             public String description() { return description; }
